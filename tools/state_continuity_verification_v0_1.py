@@ -164,7 +164,7 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
         if (domain != privacy["owner_domain"] or domain not in privacy["allowed_domains"]
                 or purpose != privacy["purpose"]):
             return result("RECONSTRUCTION_DENIED", "DOMAIN_OR_PURPOSE_DENIED")
-        if any(c != "PUBLIC" for c in privacy["data_classes"]):
+        if privacy["data_classes"] != ["PUBLIC"]:
             return result("RECONSTRUCTION_DENIED", "PRIVATE_SOURCE_UNVERIFIED_CONSENT")
         if as_of > _timestamp(privacy["retention_until"]):
             return result("RECONSTRUCTION_DENIED", "RETENTION_EXPIRED")
@@ -185,6 +185,12 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
             or domain not in vlr.get("retrieval", {}).get("eligible_domains", [])):
         return result("NOT_ESTABLISHED", "RETRIEVAL_STATE_NOT_CURRENT")
 
+    # A malformed or unbounded graph cannot supply valid continuity metadata.
+    for key in ("entities", "sources", "assertions", "events"):
+        items = graph.get(key)
+        if not isinstance(items, list) or len(items) > 10000 or any(
+                not isinstance(item, dict) for item in items):
+            return result("NOT_ESTABLISHED", "MALFORMED_OR_UNBOUNDED_GRAPH")
     entities = [e for e in graph.get("entities", []) if e.get("id") == entity_id]
     if len(entities) != 1:
         return result("NOT_ESTABLISHED", "ENTITY_MISSING_OR_DUPLICATED")
