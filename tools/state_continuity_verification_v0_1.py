@@ -3,7 +3,7 @@
 Builder v1.7 compliant - validation_tool.
 
 Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
-Session Graph adapter checks structural lineage and scope; it NEVER authenticates
+Session Graph adapter checks structural lineage and scope; it does not authenticate
 source/issuer claims, reconstructs private payloads, or grants execution rights.
 """
 from __future__ import annotations
@@ -218,7 +218,7 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
 
 
 def run_smoke_test() -> bool:
-    """Synthetic smoke test; never authenticates sources or changes authority."""
+    """Synthetic smoke test; does not authenticate sources or change authority."""
     sample = assess_finite(range(9), lambda x: 2 * x % 9, lambda _: None)
     return (sample["status"] == "EXACTLY_RECOVERABLE"
             and sample["authority_effect"] == "NONE"
