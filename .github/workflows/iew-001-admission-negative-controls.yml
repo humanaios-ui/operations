@@ -1,0 +1,40 @@
+name: iew-001-admission-negative-controls
+
+# Z1 control-plane research. This check cannot itself admit a PR or authorize merge.
+# Trusted default-branch execution is independently triggered, never by a PR-controlled workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/iew/**'
+      - 'tools/repository_coordinator_v0_1.py'
+      - '.github/workflows/iew-001-admission-negative-controls.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-negative-controls:
+    name: IEW-001 / trusted admission negative controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run regression against repository coordinator
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tools/iew -p 'test_*.py' -v
+      - name: Report boundary
+        if: always()
+        run: |
+          echo 'IEW-001 is a negative-control check only.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'A passing run does not attest the submitted calculator experiment.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No evidence-bearing receipt can itself alter coordinator state.' >> "$GITHUB_STEP_SUMMARY"
