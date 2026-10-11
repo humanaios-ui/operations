@@ -95,10 +95,11 @@ All multi-byte integers use big-endian order.
 | N | operand | canonical UTF-8 JSON object |
 
 Canonical JSON uses sorted object keys, UTF-8, no insignificant whitespace, and
-no floating-point values. Duplicate object keys are rejected. Raw payload keys
-such as `body`, `content`, `email`, `message`, `private`, `secret`, `text`, and
-`token` are excluded from bytecode operands. Claims and sources use digests and
-opaque references instead.
+no floating-point values. Integers are signed 64-bit values, strings are bounded
+to 8,192 code points, and JSON nesting is bounded to 32 levels. Duplicate object
+keys are rejected. Raw payload keys such as `body`, `content`, `email`, `message`,
+`private`, `secret`, `text`, and `token` are excluded from bytecode operands.
+Claims and sources use digests and opaque references instead.
 
 ### 3.3 Trailer
 

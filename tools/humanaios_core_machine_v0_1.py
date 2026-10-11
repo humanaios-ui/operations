@@ -53,6 +53,8 @@ MAX_OPERAND_BYTES = 65_536
 MAX_BYTECODE_BYTES = 1_048_576
 MAX_JSON_DEPTH = 32
 MAX_STRING_LENGTH = 8_192
+MIN_INTEGER = -(1 << 63)
+MAX_INTEGER = (1 << 63) - 1
 
 DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT_RE = re.compile(r"[0-9a-f]{40}\Z")
@@ -138,6 +140,8 @@ def _json_value(value: Any, *, path: str = "$", depth: int = 0) -> None:
     if value is None or isinstance(value, bool):
         return
     if isinstance(value, int) and not isinstance(value, bool):
+        if value < MIN_INTEGER or value > MAX_INTEGER:
+            raise MachineError("INTEGER_OUT_OF_RANGE", path)
         return
     if isinstance(value, float):
         raise MachineError("FLOAT_NOT_CANONICAL", path)
@@ -200,7 +204,7 @@ def _load_json_bytes(raw: bytes) -> Any:
         )
     except MachineError:
         raise
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (UnicodeDecodeError, RecursionError, ValueError) as exc:
         raise MachineError("INVALID_CANONICAL_JSON", str(exc)) from exc
     _json_value(value)
     if canonical_json(value) != raw:
@@ -281,6 +285,17 @@ def _validate_program(
     outcome: dict[str, Any] | None = None
     all_ids: set[str] = set()
     terminal_seen = False
+    stage = "START"
+
+    allowed_by_stage = {
+        "START": {Opcode.PIN_CONTEXT},
+        "EVIDENCE": {Opcode.OBSERVE, Opcode.CLAIM, Opcode.HALT},
+        "CLAIMS": {Opcode.CLAIM, Opcode.CHALLENGE, Opcode.WARRANT, Opcode.HALT},
+        "WARRANT": {Opcode.IMPORT_AUTHORITY, Opcode.CLOSE, Opcode.HALT},
+        "AUTHORITY": {Opcode.RECORD_ACTION, Opcode.CLOSE, Opcode.HALT},
+        "ACTION": {Opcode.RECORD_OUTCOME, Opcode.CLOSE, Opcode.HALT},
+        "OUTCOME": {Opcode.CLOSE, Opcode.HALT},
+    }
 
     def reserve(identifier: str) -> None:
         if identifier in all_ids:
@@ -291,6 +306,10 @@ def _validate_program(
         op, arg = instruction.opcode, instruction.operand
         if terminal_seen:
             raise MachineError("INSTRUCTION_AFTER_TERMINAL", str(index))
+        if op not in allowed_by_stage[stage]:
+            raise MachineError(
+                "OPCODE_OUT_OF_ORDER", f"{op.name}@{index}:{stage}"
+            )
 
         if op is Opcode.PIN_CONTEXT:
             if index != 0 or context is not None:
@@ -312,6 +331,7 @@ def _validate_program(
             ):
                 raise MachineError("INVALID_SOURCE_ISSUE")
             context = arg
+            stage = "EVIDENCE"
 
         elif op is Opcode.OBSERVE:
             _exact_keys(arg, {"id", "source_ref", "source_sha256", "epistemic_state"})
@@ -334,6 +354,7 @@ def _validate_program(
             if arg["epistemic_state"] not in CLAIM_STATES:
                 raise MachineError("INVALID_CLAIM_STATE", identifier)
             claims[identifier] = arg
+            stage = "CLAIMS"
 
         elif op is Opcode.CHALLENGE:
             _exact_keys(arg, {"id", "claim_id", "state", "evidence_ids"})
@@ -388,6 +409,7 @@ def _validate_program(
             if not isinstance(arg["reversible"], bool):
                 raise MachineError("REVERSIBILITY_BOOLEAN_REQUIRED")
             warrant = arg
+            stage = "WARRANT"
 
         elif op is Opcode.IMPORT_AUTHORITY:
             if warrant is None:
@@ -403,6 +425,7 @@ def _validate_program(
             if arg["min_strength"] not in STRENGTHS:
                 raise MachineError("AUTHORITY_STRENGTH_UNSUPPORTED")
             authority = arg
+            stage = "AUTHORITY"
 
         elif op is Opcode.RECORD_ACTION:
             if warrant is None or authority is None:
@@ -421,6 +444,7 @@ def _validate_program(
             if arg["warrant_id"] != warrant["id"]:
                 raise MachineError("ACTION_WARRANT_MISMATCH")
             action = arg
+            stage = "ACTION"
 
         elif op is Opcode.RECORD_OUTCOME:
             if action is None:
@@ -434,6 +458,7 @@ def _validate_program(
             if arg["action_id"] != action["id"]:
                 raise MachineError("OUTCOME_ACTION_MISMATCH")
             outcome = arg
+            stage = "OUTCOME"
 
         elif op is Opcode.CLOSE:
             _exact_keys(arg, set())

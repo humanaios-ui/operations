@@ -236,6 +236,35 @@ class TestBytecodeFormat:
         with pytest.raises(machine.MachineError, match="RAW_PAYLOAD_KEY_FORBIDDEN"):
             machine.canonical_json({"text": "sensitive payload"})
 
+    def test_integer_and_decoder_nesting_bounds_are_enforced(self):
+        with pytest.raises(machine.MachineError, match="INTEGER_OUT_OF_RANGE"):
+            machine.canonical_json({"value": machine.MAX_INTEGER + 1})
+
+        operand = (
+            b'{"value":' + (b"[" * 2_000) + b"0" + (b"]" * 2_000) + b"}"
+        )
+        body = bytearray(
+            machine.HEADER.pack(
+                machine.MAGIC,
+                machine.FORMAT_VERSION,
+                0,
+                0,
+                bytes.fromhex(machine.policy_sha256(policy())),
+                1,
+            )
+        )
+        body.extend(
+            machine.INSTRUCTION_HEADER.pack(
+                int(machine.Opcode.PIN_CONTEXT), len(operand)
+            )
+        )
+        body.extend(operand)
+        with pytest.raises(
+            machine.MachineError,
+            match="JSON_DEPTH_EXCEEDED|INVALID_CANONICAL_JSON",
+        ):
+            machine.decode_program(valid_digest_blob(body))
+
     def test_context_policy_mismatch_is_rejected(self):
         program = source()
         program["instructions"][0]["arg"]["policy_sha256"] = "f" * 64
@@ -282,6 +311,23 @@ class TestEpistemicBoundary:
         with pytest.raises(machine.MachineError, match="WARRANT_HAS_OPEN_CHALLENGE"):
             compile_source(source(challenge_state="OPEN"))
 
+    def test_challenge_cannot_bypass_warrant_by_arriving_late(self):
+        program = source()
+        program["instructions"].insert(
+            -1,
+            {
+                "op": "CHALLENGE",
+                "arg": {
+                    "id": "CHALLENGE-LATE",
+                    "claim_id": "CLAIM-1",
+                    "state": "OPEN",
+                    "evidence_ids": [],
+                },
+            },
+        )
+        with pytest.raises(machine.MachineError, match="OPCODE_OUT_OF_ORDER"):
+            compile_source(program)
+
     def test_resolved_challenge_requires_evidence(self):
         program = source(challenge_state="RESOLVED")
         program["instructions"][3]["arg"]["evidence_ids"] = []
@@ -299,7 +345,7 @@ class TestEpistemicBoundary:
             "id": "ACTION-1", "receipt_id": "ACTION-R1",
             "authorization_receipt_id": "AUTH-1", "warrant_id": "WARRANT-1",
         }})
-        with pytest.raises(machine.MachineError, match="ACTION_BEFORE_AUTHORITY"):
+        with pytest.raises(machine.MachineError, match="OPCODE_OUT_OF_ORDER"):
             compile_source(program)
 
 
