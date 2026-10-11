@@ -17,9 +17,9 @@ Checks, in order:
 Checks 1-5 block (exit 1). Everything else is reported and does not block.
 Environment problems (no base ref, not a git repo) exit 2.
 
-The prediction fields are never filled in for you. smag_p and molt_tier_claimed
+The prediction fields are not filled in for you. smag_p and molt_tier_claimed
 are the author's hypothesis; CI measures the diff and records the gap. A
-pre-filled claim would always match the measurement and erase that signal. The
+pre-filled claim would match the measurement by construction and erase that signal. The
 draft instead shows the measured tier beside the empty field.
 
 This script is advisory tooling, not a gate. CI remains the authority.
@@ -103,7 +103,7 @@ def strip_comments(text: str) -> str:
 def claimed_tier(body: str) -> int | None:
     """A filled-in claim is a bare digit 0-2. The unfilled `[0 | 1 | 2]` is not one.
 
-    The digit must not be followed by another digit or `|`, so `10` never reads
+    The digit must not be followed by another digit or `|`, so `10` does not read
     as a claim of Tier 1.
     """
     match = re.search(r"molt_tier_claimed:\*{0,2}[\s`\[]*([0-2])(?!\s*[\d|])", strip_comments(body))
@@ -199,7 +199,7 @@ def check_workflows(files: list[str]) -> Check:
             continue
         # PyYAML reads a bare `on:` key as the boolean True.
         if not isinstance(doc, dict) or (True not in doc and "on" not in doc):
-            bad.append(f"{rel}: no `on:` trigger, so it can never fire")
+            bad.append(f"{rel}: no `on:` trigger, so it cannot fire")
     if bad:
         return Check("Workflows", "fail", "; ".join(bad))
     return Check("Workflows", "pass", f"{len(paths)} changed workflow file(s) parse")
@@ -221,7 +221,7 @@ def check_secrets(base: str) -> Check:
         for label in secret_labels(line[1:]):
             hits.add(f"{current}: {label}")
     if hits:
-        # Report the location and the kind of match, never the matched value.
+        # Report the location and the kind of match, not the matched value.
         return Check("Secrets", "fail",
                      "possible secret in added lines (value not shown): " + "; ".join(sorted(hits)))
     return Check("Secrets", "pass", "no private keys or known token formats in added lines")

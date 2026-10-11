@@ -7,7 +7,7 @@ Covers the parsing and policy helpers in scripts/pre_submit.py. The git-facing
 checks are exercised by running the script against a real branch, not here.
 
 The falsifier for the claim parser is "a template placeholder or a commented
-example is never read as a filled-in claim." The secret fixtures are assembled
+example is not read as a filled-in claim." The secret fixtures are assembled
 from fragments so this file does not itself match the secret patterns.
 
 Runs under pytest, and standalone via `python3 tools/tests/test_pre_submit.py`.
