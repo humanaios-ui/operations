@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 208
+  tools: 209
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 160
@@ -2646,6 +2646,18 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
+- tool_id: HAIOS-TOOL-222
+  name: pre_submit
+  path: scripts/pre_submit.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: pre_submit.py — run the PR pre-submission checks in one command.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

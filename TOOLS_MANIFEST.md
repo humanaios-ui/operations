@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**208 registered tools** · 2 MCP servers · 4 excluded · 160 carrying Builder v1.7 markers
+**209 registered tools** · 2 MCP servers · 4 excluded · 160 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,8 +13,8 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 208 |
-| — status `draft` | 207 |
+| Registered tools | 209 |
+| — status `draft` | 208 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 160 |
 | Uncategorized | 0 |
@@ -284,7 +284,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (27)
+## Validation — `validation_tool` (28)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -315,6 +315,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 | HAIOS-TOOL-209 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies. |
 | HAIOS-TOOL-221 | state_continuity_verification | `tools/state_continuity_verification_v0_1.py` | 0.1.0 | 1 | draft | — | Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS / |
+| HAIOS-TOOL-222 | pre_submit | `scripts/pre_submit.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | pre_submit.py — run the PR pre-submission checks in one command. |
 
 ## MCP servers (2)
 
@@ -359,7 +360,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 27 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 28 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 
