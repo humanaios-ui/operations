@@ -6,6 +6,8 @@ from pathlib import Path
 
 MODULE = Path(__file__).resolve().parents[2] / "tools/coderabbit_coverage_inventory.py"
 spec = importlib.util.spec_from_file_location("coderabbit_coverage_inventory", MODULE)
+if spec is None or spec.loader is None:
+    raise RuntimeError(f"Cannot load coverage inventory module: {MODULE}")
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
@@ -30,6 +32,11 @@ class CoverageTests(unittest.TestCase):
         d["files"][0]["review_receipt"] = {"bot": "coderabbit", "status": "passed"}
         with self.assertRaisesRegex(ValueError, "independently verified"):
             mod.validate(d)
+
+    def test_pending_forged_receipt_never_promotes(self):
+        d = self.fixture()
+        d["files"][0]["review_receipt"] = {"bot": "coderabbit", "signed": True}
+        self.assertEqual(mod.validate(d)["reviewed_authenticated"], 0)
 
     def test_duplicate_file_rejected(self):
         d = self.fixture()
@@ -74,6 +81,7 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(by_path["static/photo.png"]["status"], "UNSUPPORTED")
         self.assertEqual(by_path["vendor/dependency"]["status"], "UNSUPPORTED")
         self.assertEqual(by_path["docs/readme.md"]["status"], "PENDING")
+        self.assertEqual(by_path[".env"]["path_bytes_hex"], b".env".hex())
         self.assertEqual([r["path"] for r in report["files"]], sorted(by_path))
 
     def test_rejects_moving_or_short_ref(self):
