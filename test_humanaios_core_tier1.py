@@ -4,9 +4,11 @@ test_humanaios_core_tier1.py — Tests for humanaios_core.py (Layer 0 kernel)
 Coverage by doctrine:
 Roles:        the capability table is the whole authority model; no zone holds another's action
 Propose:      falsifier required and substantive; pinned SHA required (IC-030); kind closed set
-Ratify:       Z2 only; both ratified identities plus "Night"; REJECT needs a reason; hash formula
+Ratify:       Z2 only; exactly the two ratified identities; the display name "Night" is refused;
+              REJECT needs a reason; hash formula; optional ledger writes a RATIFY row
 Verify:       any drift in candidate, signer, time, decision or contest_response breaks the hash
-Window:       48h routine, 24h urgent; contest only after expiry or within 48h of a REJECT
+Window:       48h routine, 24h urgent; contest only after expiry or within [0, 48h] of a verified
+              REJECT on this candidate; forged or other-candidate priors refused
 Execute:      zone, hash, ACCEPT, CI — four refusals in order, then one EXECUTE row
 Envelope:     anti-cascade rules 1, 3, 4
 Callouts:     ten mandatory triggers, routes and Z2 response; unknown kinds refused
@@ -35,6 +37,7 @@ from humanaios_core import (
     GateRefused,
     Ledger,
     Ratification,
+    Z2_DISPLAY_NAME,
     Zone,
     anti_cascade,
     callout_route,
@@ -54,6 +57,7 @@ from humanaios_core import (
 
 T0 = datetime(2026, 10, 11, 12, 0, tzinfo=timezone.utc)
 FALSIFIER = "falsified if the smoke test exits non-zero on main"
+Z2 = "carly.r.anderson@gmail.com"  # a ratified Z2 identity; "Night" is the display name, not a signer
 
 
 def _cand(**over) -> Candidate:
@@ -117,36 +121,59 @@ class RatifyTest(unittest.TestCase):
         c = _cand()
         for zone in (Zone.Z1, Zone.Z3):
             with self.assertRaises(GateRefused):
-                ratify(zone, c, "Night", T0, Decision.ACCEPT)
+                ratify(zone, c, Z2, T0, Decision.ACCEPT)
 
     def test_identity_must_be_authorized(self):
         c = _cand()
-        for who in ("Night", "carly.r.anderson@gmail.com", "aioshuman@gmail.com"):
+        for who in ("carly.r.anderson@gmail.com", "aioshuman@gmail.com"):
             r = ratify(Zone.Z2, c, who, T0, Decision.ACCEPT)
             self.assertTrue(verify_ratification(c, r))
+        # The display name is a label, not a signature (z2_ratification_gate.yml allowlists only the emails).
+        self.assertEqual(Z2_DISPLAY_NAME, "Night")
+        for who in (Z2_DISPLAY_NAME, "night", "claude", "Carly.R.Anderson@gmail.com"):
+            with self.assertRaises(GateRefused):
+                ratify(Zone.Z2, c, who, T0, Decision.ACCEPT)
+        self.assertEqual(AUTHORIZED_Z2_IDENTITIES, frozenset({"carly.r.anderson@gmail.com", "aioshuman@gmail.com"}))
+        self.assertNotIn(Z2_DISPLAY_NAME, AUTHORIZED_Z2_IDENTITIES)
+
+    def test_hand_built_ratification_by_display_name_never_verifies(self):
+        c = _cand()
+        digest = ratification_hash(c, Z2_DISPLAY_NAME, T0, Decision.ACCEPT)
+        self.assertFalse(verify_ratification(c, Ratification(c.candidate_id, Z2_DISPLAY_NAME, T0, Decision.ACCEPT, digest)))
+
+    def test_ledger_rows_on_success_only(self):
+        ledger = Ledger()
+        c = _cand(ledger=ledger)
+        self.assertEqual([e.kind for e in ledger.events()], ["PROPOSE"])
+        self.assertEqual(ledger.events("PROPOSE")[0].payload["candidate_id"], c.candidate_id)
         with self.assertRaises(GateRefused):
-            ratify(Zone.Z2, c, "night", T0, Decision.ACCEPT)  # case matters: identity is literal
+            _cand(falsifier="TBD", ledger=ledger)
         with self.assertRaises(GateRefused):
-            ratify(Zone.Z2, c, "claude", T0, Decision.ACCEPT)
-        self.assertEqual(len(AUTHORIZED_Z2_IDENTITIES), 3)
+            ratify(Zone.Z2, c, Z2_DISPLAY_NAME, T0, Decision.ACCEPT, ledger=ledger)
+        self.assertEqual(len(ledger), 1, "refusals write nothing")
+        r = ratify(Zone.Z2, c, Z2, T0, Decision.EDIT, ledger=ledger)
+        row = ledger.events("RATIFY")[0]
+        self.assertEqual(row.by, Z2)
+        self.assertEqual(row.payload, {"candidate_id": c.candidate_id, "decision": "EDIT", "hash": r.hash, "contested": False})
+        self.assertTrue(ledger.verify())
 
     def test_reject_requires_reason(self):
         c = _cand()
         with self.assertRaises(GateRefused):
-            ratify(Zone.Z2, c, "Night", T0, Decision.REJECT)
-        r = ratify(Zone.Z2, c, "Night", T0, Decision.REJECT, reason="falsifier too broad")
+            ratify(Zone.Z2, c, Z2, T0, Decision.REJECT)
+        r = ratify(Zone.Z2, c, Z2, T0, Decision.REJECT, reason="falsifier too broad")
         self.assertEqual(r.reason, "falsifier too broad")
 
     def test_hash_formula_matches_claude_md(self):
         c = _cand()
-        r = ratify(Zone.Z2, c, "Night", T0, Decision.EDIT)
+        r = ratify(Zone.Z2, c, Z2, T0, Decision.EDIT)
         expected = hashlib.sha256(
-            f"{c.canonical()} | by=Night | at={T0.isoformat()} | decision=EDIT".encode()
+            f"{c.canonical()} | by={Z2} | at={T0.isoformat()} | decision=EDIT".encode()
         ).hexdigest()
         self.assertEqual(r.hash, expected)
-        with_contest = ratification_hash(c, "Night", T0, Decision.ACCEPT, "re-read")
+        with_contest = ratification_hash(c, Z2, T0, Decision.ACCEPT, "re-read")
         expected2 = hashlib.sha256(
-            f"{c.canonical()} | by=Night | at={T0.isoformat()} | decision=ACCEPT | contest_response=re-read".encode()
+            f"{c.canonical()} | by={Z2} | at={T0.isoformat()} | decision=ACCEPT | contest_response=re-read".encode()
         ).hexdigest()
         self.assertEqual(with_contest, expected2)
         self.assertEqual(len(r.hash), 64)
@@ -156,7 +183,7 @@ class RatifyTest(unittest.TestCase):
 class VerifyTest(unittest.TestCase):
     def setUp(self):
         self.c = _cand()
-        self.r = ratify(Zone.Z2, self.c, "Night", T0, Decision.ACCEPT)
+        self.r = ratify(Zone.Z2, self.c, Z2, T0, Decision.ACCEPT)
 
     def test_clean_verifies(self):
         self.assertTrue(verify_ratification(self.c, self.r))
@@ -197,27 +224,44 @@ class WindowAndContestTest(unittest.TestCase):
 
     def test_contest_of_reject_inside_48h_only(self):
         c = _cand()
-        rej = ratify(Zone.Z2, c, "Night", T0 + timedelta(hours=1), Decision.REJECT, reason="no")
+        rej = ratify(Zone.Z2, c, Z2, T0 + timedelta(hours=1), Decision.REJECT, reason="no")
         self.assertIn("contested", contest(Zone.Z1, c, rej, rej.at + timedelta(hours=47), "please re-read"))
         with self.assertRaises(GateRefused):
             contest(Zone.Z1, c, rej, rej.at + timedelta(hours=49), "late")
         with self.assertRaises(GateRefused):
             contest(Zone.Z1, c, rej, rej.at, "")  # no reason
+        self.assertIn("contested", contest(Zone.Z1, c, rej, rej.at, "at the instant of the REJECT"))  # elapsed 0 is in [0, 48h]
+        with self.assertRaisesRegex(GateRefused, "dated before"):
+            contest(Zone.Z1, c, rej, rej.at - timedelta(seconds=1), "pre-dated")
+
+    def test_contest_requires_a_verified_prior_on_this_candidate(self):
+        c = _cand()
+        other = _cand(candidate_id="Q-T-02")
+        rej = ratify(Zone.Z2, c, Z2, T0, Decision.REJECT, reason="no")
+        with self.assertRaisesRegex(GateRefused, "does not verify"):
+            contest(Zone.Z1, other, rej, T0 + timedelta(hours=1), "a REJECT signed for a different candidate")
+        forged = Ratification(c.candidate_id, Z2, T0, Decision.REJECT, "0" * 64, None, "forged")
+        with self.assertRaisesRegex(GateRefused, "does not verify"):
+            contest(Zone.Z1, c, forged, T0 + timedelta(hours=1), "a REJECT whose hash is invented")
+        unsigned = Ratification(c.candidate_id, Z2_DISPLAY_NAME, T0, Decision.REJECT,
+                                ratification_hash(c, Z2_DISPLAY_NAME, T0, Decision.REJECT), None, "x")
+        with self.assertRaisesRegex(GateRefused, "does not verify"):
+            contest(Zone.Z1, c, unsigned, T0 + timedelta(hours=1), "a REJECT by the display name")
 
     def test_only_reject_is_contestable_and_z2_cannot_contest(self):
         c = _cand()
         for d in (Decision.ACCEPT, Decision.EDIT):
-            r = ratify(Zone.Z2, c, "Night", T0, d)
+            r = ratify(Zone.Z2, c, Z2, T0, d)
             with self.assertRaises(GateRefused):
                 contest(Zone.Z1, c, r, T0, "why")
-        rej = ratify(Zone.Z2, c, "Night", T0, Decision.REJECT, reason="no")
+        rej = ratify(Zone.Z2, c, Z2, T0, Decision.REJECT, reason="no")
         with self.assertRaises(GateRefused):
             contest(Zone.Z2, c, rej, T0, "self-contest")
 
     def test_re_read_is_a_new_event_not_a_rewrite(self):
         c = _cand()
-        rej = ratify(Zone.Z2, c, "Night", T0, Decision.REJECT, reason="no")
-        acc = ratify(Zone.Z2, c, "Night", T0 + timedelta(hours=5), Decision.ACCEPT, contest_response="re-read")
+        rej = ratify(Zone.Z2, c, Z2, T0, Decision.REJECT, reason="no")
+        acc = ratify(Zone.Z2, c, Z2, T0 + timedelta(hours=5), Decision.ACCEPT, contest_response="re-read")
         self.assertNotEqual(rej.hash, acc.hash)
         self.assertTrue(verify_ratification(c, rej))
         self.assertTrue(verify_ratification(c, acc))
@@ -227,7 +271,7 @@ class WindowAndContestTest(unittest.TestCase):
 class ExecuteTest(unittest.TestCase):
     def setUp(self):
         self.c = _cand()
-        self.acc = ratify(Zone.Z2, self.c, "Night", T0, Decision.ACCEPT)
+        self.acc = ratify(Zone.Z2, self.c, Z2, T0, Decision.ACCEPT)
         self.ledger = Ledger()
 
     def test_four_refusals_in_order(self):
@@ -238,7 +282,7 @@ class ExecuteTest(unittest.TestCase):
         forged = Ratification(self.c.candidate_id, "Night", T0, Decision.ACCEPT, "f" * 64)
         with self.assertRaisesRegex(GateRefused, "does not verify"):
             execute(Zone.Z3, self.c, forged, True, "x", T0, self.ledger)
-        edit = ratify(Zone.Z2, self.c, "Night", T0, Decision.EDIT)
+        edit = ratify(Zone.Z2, self.c, Z2, T0, Decision.EDIT)
         with self.assertRaisesRegex(GateRefused, "not ACCEPT"):
             execute(Zone.Z3, self.c, edit, True, "x", T0, self.ledger)
         with self.assertRaisesRegex(GateRefused, "not green"):
@@ -295,8 +339,12 @@ class SessionTest(unittest.TestCase):
             self.assertEqual(len(halts), 1)
             self.assertTrue(halts[0].startswith(tag))
         self.assertTrue(session_open({**self.FULL, "registered_read_at_sha": "other"})[0].startswith("A.2"))
-        for p in (None, -0.1, 1.5, "high"):
-            self.assertTrue(session_open({**self.FULL, "probability": p})[0].startswith("A.6"))
+        for p in (None, -0.1, 1.5, "high", True, False):  # bool is an int subclass; a flag is not a calibration
+            halts = session_open({**self.FULL, "probability": p})
+            self.assertEqual(len(halts), 1, f"probability={p!r}")
+            self.assertTrue(halts[0].startswith("A.6"))
+        for p in (0, 1, 0.5):
+            self.assertEqual(session_open({**self.FULL, "probability": p}), [])
 
     def test_close_b0_refuses(self):
         ledger = Ledger()

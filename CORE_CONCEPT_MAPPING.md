@@ -5,7 +5,7 @@
 **Mapping Date:** 2026-10-11  
 **Authority:** Z2 (Night) ratification pending  
 **Status:** Z1 candidate for REGISTERED.md (Q-CORE-CONCEPT-MAPPING-01)  
-**Code:** [`humanaios_core.py`](./humanaios_core.py) (stdlib only, 28 exported names) · tests: [`test_humanaios_core_tier1.py`](./test_humanaios_core_tier1.py) (31 tests, `unittest`, no pytest dependency) · standing check: `python3 humanaios_core.py --smoke-test`
+**Code:** [`humanaios_core.py`](./humanaios_core.py) (stdlib only, 29 exported names) · tests: [`test_humanaios_core_tier1.py`](./test_humanaios_core_tier1.py) (34 tests, `unittest`, no pytest dependency) · standing check: `python3 humanaios_core.py --smoke-test`
 
 ---
 
@@ -58,9 +58,9 @@ That last clause is also ACAT's core measurement (`SEED.md` §3: the gap between
 
 | Doctrine | Machine translation | Operation |
 |:---|:---|:---|
-| `sha256(candidate \| by=Night \| at=timestamp \| decision=ACCEPT\|EDIT\|REJECT)` | The signature is a hash over exactly those four parts, in that order | `ratification_hash(candidate, by, at, decision)` · smoke test recomputes it by hand and compares |
+| `sha256(candidate \| by=Night \| at=timestamp \| decision=ACCEPT\|EDIT\|REJECT)` | The signature is a hash over exactly those four segments, in that order; the `by=` segment carries the signer's ratified identity, not a display name | `ratification_hash(candidate, by, at, decision)` · smoke test recomputes it by hand and compares |
 | Contested: `... \| contest_response=<reason>` appended | Same formula, one more segment | `ratification_hash(..., contest_response=...)` |
-| Both `carly.r.anderson@gmail.com` and `aioshuman@gmail.com` authorized (Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01) | A signer outside the ratified identity set cannot produce a valid ratification | `AUTHORIZED_Z2_IDENTITIES` (plus the literal `Night` the formula names) · `z2_ratification_gate.yml` author check |
+| Both `carly.r.anderson@gmail.com` and `aioshuman@gmail.com` authorized (Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01); "Night" is the ratifier's name | A signer outside the two ratified identities cannot produce a valid ratification; the display name is a label and is refused as a signer | `AUTHORIZED_Z2_IDENTITIES` (exactly the two emails, the same allowlist as `z2_ratification_gate.yml`'s author check) · `Z2_DISPLAY_NAME = "Night"` kept separate |
 | "If REJECT: Z2 documents reason" | A REJECT with no reason is refused at signing time | `ratify(..., Decision.REJECT, reason="")` → `GateRefused` |
 | "Change Z2 decision retroactively" is not allowed; "only emit new RATIFY event with new hash" | A `Ratification` is frozen; a changed mind is a second event with a second hash and the first intact | `Ratification` `frozen=True` · smoke test: `rej.hash != acc.hash` and both still verify |
 | M12 Z2 hash verification | Recompute from inputs; any drift in candidate, signer, time, decision or contest text fails | `verify_ratification(candidate, ratification)` · `ci_gates.Z2HashGate` (format and presence) |
@@ -74,6 +74,7 @@ That last clause is also ACAT's core measurement (`SEED.md` §3: the gap between
 | "48h for routine decisions; 24h or less for urgent items" | A window is a state function of proposed-at and now, never a timer the proposer controls | `DECISION_WINDOW`, `URGENT_WINDOW`, `window_state(candidate, now, decided, urgent)` → `OPEN \| DECIDED \| EXPIRED` |
 | "Z1 contests Z2 rejection within 48h, or 48h window closes without Z2 decision" | Two triggers, both checked; anything else is refused with the reason | `contest(zone, candidate, prior, now, reason)` |
 | Only a REJECT is contestable | Contesting an ACCEPT or EDIT is refused | `contest(...)` with `prior.decision is not REJECT` → `GateRefused` |
+| A contest answers a real decision on this candidate | A `prior` that does not verify against the candidate (forged, or signed for another block) is refused; so is a contest dated before the REJECT it names; elapsed time must sit in [0, 48h] | `contest(...)` calls `verify_ratification(candidate, prior)` first · smoke test: other-candidate REJECT, zero-hash REJECT, pre-dated contest all refused |
 | "IC beyond 48h / Z2 decision contested" callout | The contest returns the callout text; it never mutates the prior event | return value of `contest(...)` |
 | Blocked row without unblock action → GAP | An EXPIRED window is the GAP trigger | `window_state(...) == "EXPIRED"` → `callout_route("GAP")` |
 
@@ -86,7 +87,7 @@ That last clause is also ACAT's core measurement (`SEED.md` §3: the gap between
 | "Merge PRs with Z2 hash + CI gate pass" | Four refusals in a fixed order: zone, hash present, hash verifies and is ACCEPT, CI green | `execute(zone, candidate, ratification, ci_gate_pass, executor, now, ledger)` |
 | "Cannot execute without Z2 hash (CI enforces)" | `ratification=None` is refused before anything else is looked at | `execute(..., None, ...)` → `GateRefused("no Z2 hash")` · `z2_ratification_gate.yml` |
 | A verified REJECT or EDIT executes nothing | A real, verified signature that is not ACCEPT is still a refusal | smoke test: `execute(..., rej, ...)` refused |
-| "Emit VERDICT/CYCLE/MEASURE events"; receipts for B.6 | A successful execute writes exactly one chained EXECUTE row carrying the Z2 hash and the pinned SHA | `Ledger.append("EXECUTE", ...)` payload `{candidate_id, z2_hash, pinned_sha}` |
+| "Emit VERDICT/CYCLE/MEASURE events"; receipts for B.6 | A successful execute writes exactly one chained EXECUTE row carrying the Z2 hash and the pinned SHA; the VERDICT itself is a later row, written at window close by the measurement step | `Ledger.append("EXECUTE", ...)` payload `{candidate_id, z2_hash, pinned_sha}` · VERDICT: `molt_cycle.py` MEASURE → KEEP/REVERT |
 | A refusal leaves no trace of having almost happened | No refused path writes to the ledger | `test_four_refusals_in_order` asserts `len(ledger) == 0` |
 
 ---
@@ -100,7 +101,7 @@ That last clause is also ACAT's core measurement (`SEED.md` §3: the gap between
 | Rule 4: reverted twice in a row → frozen; Z2 Tier-2 ruling to reopen | Two consecutive reverts freeze; one does not | `REVERTS_TO_FREEZE = 2` → `"rule 4: ..."` · `authorization_evidence.render_decision({"frozen": True})` → ROLL_BACK |
 | Rules 2 (no self-reference inside a window) and 5 (Priority Queue rank, no bypass) | Need the event stream and the queue; they stay where they are | `molt_cycle.py` · `priority_queue_engine.py` — cited, not duplicated |
 
-`AUTHORIZATION_EVIDENCE_MAPPING.md` §3 records, honestly, that `molt_cycle.check_anti_cascade_rules()` is currently a stub. `anti_cascade()` here is the smallest real check for rules 1, 3 and 4; it is pure (no ledger read) so it can be called from that stub once a reader for open molts and revert history is wired, which this document does not do.
+`molt_cycle.MoltCycle.check_anti_cascade_rules()` already derives rules 1, 3 and 4 mechanically from `constants.json`'s per-constant `molt_id` / `molt_history` fields and reports rules 2 and 5 as NOT_MECHANICALLY_CHECKED rather than assumed (the "stub" note in `AUTHORIZATION_EVIDENCE_MAPPING.md` §3 predates that implementation). `anti_cascade()` here is not a replacement for it: it is the pure, candidate-level form of the same three rules — given one constant and the current open-molt and revert-count state, it answers "would *this* new candidate break the envelope?", which the repo-wide report does not ask. It reads nothing from disk, so a caller that already has `check_anti_cascade_rules()`'s `open_constants` and `frozen_constants` in hand can pass them straight in.
 
 ---
 
@@ -123,7 +124,7 @@ That last clause is also ACAT's core measurement (`SEED.md` §3: the gap between
 | 3. Read PRIORITY_QUEUE.md | | `"A.3"` |
 | 4. Read ZONE_REGISTRY.md; heading count = active rows | | `"A.4"` · `registry_consistency` gate |
 | 5. Verify sha256 against manifest | | `"A.5"` · `.tool-control/scan.py --check` |
-| 6. State position · destination · probability | Probability is a number in [0, 1], not a word | `"A.6"` |
+| 6. State position · destination · probability | Probability is a number in [0, 1], not a word and not a flag (`True` is rejected even though `bool` is an `int`) | `"A.6"` |
 | A missing key is a halt, never a pass | Cautious default, as `authorization_evidence._UNSAFE_DEFAULTS` | `session_open({})` returns all six halts, in order |
 
 ---
@@ -147,7 +148,7 @@ That last clause is also ACAT's core measurement (`SEED.md` §3: the gap between
 | Doctrine | Machine translation | Operation |
 |:---|:---|:---|
 | NF_LEDGER.jsonl: "append-only; hash-chain validation" | Each row's hash covers the prior row's hash; rewriting any earlier line breaks every later one | `Ledger.append(...)`, `Ledger.verify()` · `ci_gates.MerkleRootGate` · `tools/nf_ledger_v0_1.py` |
-| `FIVE_RINGS_MAPPING.md` Void: "what is not written to the ledger did not happen" | Every gate step that succeeds is a row; every refusal is not | `Event` rows: PROPOSE, RATIFY, EXECUTE, RECEIPT, CALLOUT · `five_rings.persist_or_void` |
+| `FIVE_RINGS_MAPPING.md` Void: "what is not written to the ledger did not happen" | Every gate step that succeeds against a ledger is a row; a refusal never is. `propose()` and `ratify()` take an optional `ledger` and write PROPOSE / RATIFY rows when given one; `execute()` and `session_close()` require one. A caller that passes no ledger holds a value the ledger does not know about, and the module does not pretend otherwise | `Event` rows: PROPOSE, RATIFY, EXECUTE, RECEIPT, CALLOUT · smoke test asserts a refused `propose`/`ratify` leaves the ledger unchanged · `five_rings.persist_or_void` |
 
 ---
 
@@ -164,11 +165,11 @@ halts = session_open({"pinned_sha": sha, "registered_read_at_sha": sha, "queue_r
                       "position": f"REGISTERED.md pinned at {sha}", "destination": "Q-X", "probability": 0.8})
 assert not halts                                                     # §A: or stop here
 
-cand = propose(Zone.Z1, "Q-X", "Q", body, falsifier, sha, "claude", now)   # falsifier + pin, or refused
-acc = ratify(Zone.Z2, cand, "Night", now, Decision.ACCEPT)                 # Z2 only; sha256 as CLAUDE.md states it
+ledger = Ledger()                                                    # opened first: every step below is a row
+cand = propose(Zone.Z1, "Q-X", "Q", body, falsifier, sha, "claude", now, ledger=ledger)   # falsifier + pin, or refused
+acc = ratify(Zone.Z2, cand, "carly.r.anderson@gmail.com", now, Decision.ACCEPT, ledger=ledger)  # a ratified identity signs
 assert verify_ratification(cand, acc)
 
-ledger = Ledger()
 execute(Zone.Z3, cand, acc, ci_gate_pass=ci_green(), executor="z3", now=now, ledger=ledger)  # under hash, or refused
 
 receipt = session_close({"code_ran": True, "prereg_verified": True, "handoff_written": True,
@@ -193,7 +194,7 @@ assert ledger.verify()                                               # what is n
 
 1. Ratify `CORE_CONCEPT_MAPPING.md` + `humanaios_core.py` as Layer 0 of the concept-to-code stack (Q-CORE-CONCEPT-MAPPING-01).
 2. Decide whether `test_humanaios_core_tier1.py` is added to `.tool-control/baseline_tests.yaml` (it needs no external capability; `requires: []`).
-3. Decide whether `molt_cycle.check_anti_cascade_rules()` (the stub `AUTHORIZATION_EVIDENCE_MAPPING.md` §3 records) is pointed at `anti_cascade()` once an open-molt / revert-history reader exists. Documentation only here; no code change proposed to `molt_cycle.py`.
+3. Decide whether `AUTHORIZATION_EVIDENCE_MAPPING.md` §3's "stub" note on `check_anti_cascade_rules()` is corrected in its own PR: `molt_cycle.py` now derives rules 1, 3 and 4 mechanically, so that row's PARTIAL status is stale. Documentation only; no code change proposed to `molt_cycle.py`.
 
 **Falsifier for this mapping:** a row above that names an operation which does not exist in `humanaios_core.py`, or a doctrine sentence that the named operation does not actually refuse on, falsifies its own row and the row is struck. `python3 humanaios_core.py --smoke-test` (every refusal exercised once, the hash recomputed by hand) is the standing check; `test_humanaios_core_tier1.py` is the training.
 
@@ -207,7 +208,7 @@ metadata:
   stack: ["CORE_CONCEPT_MAPPING.md", "FRAMEWORK_MAPPING.md", "BOOT_PROCESS_MAP.md", "FIVE_RINGS_MAPPING.md", "AUTHORIZATION_EVIDENCE_MAPPING.md", "PROGRAM_GRAPH_MAPPING.md"]
   source: "CLAUDE.md (authority, routing, anti-cascade, §A/§B, callouts); SEED.md §1, §3; SESSION_RITUALS.md §A, §B.0, §F"
   code: "humanaios_core.py (stdlib only), test_humanaios_core_tier1.py (unittest)"
-  exported_names: 28
+  exported_names: 29
   authority: "Z2 (Night) ratifies this map"
   candidate_id: "Q-CORE-CONCEPT-MAPPING-01"
   last_updated: "2026-10-11T00:00:00Z"

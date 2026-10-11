@@ -24,10 +24,16 @@ governance kernel and the research instrument are the same shape.
 Nothing here decides anything on its own authority. The precedence of refusals
 is the doctrine as written in CLAUDE.md ("Decision Routing", "Anti-cascade
 rules", "§A / §B"), and it is not meant to be tuned per call site. The hash
-formula is CLAUDE.md's exactly:
+formula is CLAUDE.md's, segment for segment:
 
-    sha256(candidate | by=Night | at=<timestamp> | decision=ACCEPT|EDIT|REJECT)
-    sha256(candidate | by=Night | at=<timestamp> | decision=... | contest_response=<reason>)
+    sha256(candidate | by=<signer> | at=<timestamp> | decision=ACCEPT|EDIT|REJECT)
+    sha256(candidate | by=<signer> | at=<timestamp> | decision=... | contest_response=<reason>)
+
+CLAUDE.md writes the `by=` segment as `by=Night`. "Night" is the ratifier's
+display name (Z2_DISPLAY_NAME); the <signer> that is hashed and checked is one
+of the two ratified Z2 identities, the same allowlist
+.github/workflows/z2_ratification_gate.yml enforces on commit authorship. A
+display name is a label, not a signature, and is refused as a signer.
 
 Stdlib only. `python3 humanaios_core.py --smoke-test` walks one candidate
 through the full gate and exercises every refusal once.
@@ -58,6 +64,7 @@ __all__ = [
     "Ledger",
     "Ratification",
     "Receipt",
+    "Z2_DISPLAY_NAME",
     "Zone",
     "anti_cascade",
     "callout_route",
@@ -83,11 +90,14 @@ TOOL_ZONE = 1
 
 # ── Constants (CLAUDE.md, ratified values; a change here is a molt, not an edit) ──
 
-#: Both Z2 identities ratified under Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01, plus the
-#: short name CLAUDE.md's hash formula uses literally ("by=Night").
+#: The two Z2 identities ratified under Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 — the
+#: same allowlist z2_ratification_gate.yml checks. Nothing else signs.
 AUTHORIZED_Z2_IDENTITIES: frozenset[str] = frozenset(
-    {"Night", "carly.r.anderson@gmail.com", "aioshuman@gmail.com"}
+    {"carly.r.anderson@gmail.com", "aioshuman@gmail.com"}
 )
+#: The ratifier's display name, as CLAUDE.md's formula writes the `by=` segment.
+#: A label for humans; never accepted as a signer identity.
+Z2_DISPLAY_NAME = "Night"
 DECISION_WINDOW = timedelta(hours=48)  # routine decisions; after it, Z1 may contest
 URGENT_WINDOW = timedelta(hours=24)  # urgent items: 24h or less
 K_OPEN_MOLTS = 3  # anti-cascade rule 3
@@ -188,11 +198,14 @@ def propose(
     pinned_sha: str,
     proposed_by: str,
     now: datetime,
+    ledger: Ledger | None = None,
 ) -> Candidate:
     """Z1 proposes. Refused without a substantive falsifier or a pinned SHA.
 
     Decision Routing steps 1–4: read REGISTERED.md live and pin it (IC-030),
     create the block, include the falsifier (falsifier_lint.yml), submit.
+    With a `ledger`, the accepted proposal is written as a PROPOSE row; a
+    refusal writes nothing.
     """
     _require(zone, Action.PROPOSE)
     if not _falsifier_is_substantive(falsifier):
@@ -204,7 +217,10 @@ def propose(
         raise GateRefused(f"{candidate_id}: no pinned REGISTERED.md SHA (IC-030: live-fetch, pin, never reason from cache)")
     if kind not in {"F", "IC", "H", "MOLT", "Q"}:
         raise GateRefused(f"{candidate_id}: unknown candidate kind {kind!r} (F | IC | H | MOLT | Q)")
-    return Candidate(candidate_id, kind, body, falsifier, pinned_sha, proposed_by, now)
+    candidate = Candidate(candidate_id, kind, body, falsifier, pinned_sha, proposed_by, now)
+    if ledger is not None:
+        ledger.append("PROPOSE", now, proposed_by, {"candidate_id": candidate_id, "kind": kind, "pinned_sha": pinned_sha})
+    return candidate
 
 
 # ── Ratification: the Z2 serial gate ────────────────────────────────────────
@@ -226,9 +242,12 @@ class Ratification:
 def ratification_hash(
     candidate: Candidate, by: str, at: datetime, decision: Decision, contest_response: str | None = None
 ) -> str:
-    """CLAUDE.md's formula, byte for byte in structure:
+    """CLAUDE.md's formula, segment for segment:
 
-    sha256(candidate | by=<name> | at=<timestamp> | decision=<decision>[ | contest_response=<reason>])
+    sha256(candidate | by=<signer> | at=<timestamp> | decision=<decision>[ | contest_response=<reason>])
+
+    <signer> is the ratified Z2 identity that signs (CLAUDE.md writes the
+    segment as `by=Night`, the ratifier's display name; see Z2_DISPLAY_NAME).
     """
     hashable = f"{candidate.canonical()} | by={by} | at={at.isoformat()} | decision={decision.value}"
     if contest_response is not None:
@@ -244,20 +263,34 @@ def ratify(
     decision: Decision,
     reason: str = "",
     contest_response: str | None = None,
+    ledger: Ledger | None = None,
 ) -> Ratification:
     """Z2 signs. Refused from any other zone or any non-authorized identity.
 
     Decision Routing steps 5–9: ACCEPT → CI merges and Z3 executes; EDIT → Z1
     revises and resubmits; REJECT → reason documented, Z1 may re-propose or
-    contest within 48h. A REJECT without a documented reason is refused.
+    contest within 48h. A REJECT without a documented reason is refused. The
+    display name "Night" is refused as a signer: only the two ratified
+    identities sign. With a `ledger`, the signature is written as a RATIFY
+    row; a refusal writes nothing.
     """
     _require(zone, Action.RATIFY)
     if by not in AUTHORIZED_Z2_IDENTITIES:
-        raise GateRefused(f"{by!r} is not an authorized Z2 identity (Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01)")
+        raise GateRefused(
+            f"{by!r} is not an authorized Z2 identity (Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01); "
+            "a display name is a label, not a signature"
+        )
     if decision is Decision.REJECT and not reason.strip():
         raise GateRefused(f"{candidate.candidate_id}: REJECT requires a documented reason (Decision Routing step 9)")
     digest = ratification_hash(candidate, by, at, decision, contest_response)
-    return Ratification(candidate.candidate_id, by, at, decision, digest, contest_response, reason)
+    ratification = Ratification(candidate.candidate_id, by, at, decision, digest, contest_response, reason)
+    if ledger is not None:
+        ledger.append(
+            "RATIFY", at, by,
+            {"candidate_id": candidate.candidate_id, "decision": decision.value, "hash": digest,
+             "contested": contest_response is not None},
+        )
+    return ratification
 
 
 def verify_ratification(candidate: Candidate, ratification: Ratification) -> bool:
@@ -295,9 +328,12 @@ def contest(
 ) -> str:
     """Z1 (or Z3, on a GAUGE) requests an Admiral re-read. Returns the callout text.
 
-    Allowed when a REJECT is contested within 48h of its signature, or when the
-    48h window closed with no decision at all. Never mutates `prior`: the
-    Admiral answers with a *new* RATIFY event carrying `contest_response`.
+    Allowed when a verified REJECT on *this* candidate is contested within 48h
+    of its signature, or when the 48h window closed with no decision at all.
+    A `prior` that does not verify against the candidate (forged, or signed
+    for another candidate) is refused, as is a contest dated before the
+    rejection it contests. Never mutates `prior`: the Admiral answers with a
+    *new* RATIFY event carrying `contest_response`.
     """
     _require(zone, Action.CONTEST)
     if not contest_reason.strip():
@@ -308,9 +344,17 @@ def contest(
                 f"{candidate.candidate_id}: Z2 window still open; wait for the decision or the window"
             )
         return f"IC beyond 48h / Z2 decision contested: {candidate.candidate_id} — no decision inside window"
+    if not verify_ratification(candidate, prior):
+        raise GateRefused(
+            f"{candidate.candidate_id}: the prior ratification does not verify against this candidate; "
+            "nothing to contest"
+        )
     if prior.decision is not Decision.REJECT:
         raise GateRefused(f"{candidate.candidate_id}: only a REJECT is contestable; {prior.decision.value} is not")
-    if now - prior.at > DECISION_WINDOW:
+    elapsed = now - prior.at
+    if elapsed < timedelta(0):
+        raise GateRefused(f"{candidate.candidate_id}: contest is dated before the REJECT it contests")
+    if elapsed > DECISION_WINDOW:
         raise GateRefused(f"{candidate.candidate_id}: contest window (48h after REJECT) has closed; re-propose instead")
     return f"IC beyond 48h / Z2 decision contested: {candidate.candidate_id} — {contest_reason}"
 
@@ -373,10 +417,12 @@ def execute(
     now: datetime,
     ledger: Ledger,
 ) -> Event:
-    """Z3 lands a ratified change and emits a VERDICT. Four refusals, in order:
+    """Z3 lands a ratified change and writes one EXECUTE row. Four refusals, in order:
 
     1. wrong zone;  2. no Z2 hash (CI enforces);  3. hash does not verify, or
     is not an ACCEPT;  4. CI gate not green. Only then is the EXECUTE row written.
+    The VERDICT (prediction held / falsifier tripped) is a later event, emitted
+    at window close by the measurement step (molt_cycle.py), not here.
     """
     _require(zone, Action.EXECUTE)
     if ratification is None:
@@ -472,8 +518,10 @@ def session_open(state: Mapping[str, Any]) -> list[str]:
     if not state.get("manifest_ok"):
         halts.append("A.5: sha256 manifest verification not done")
     p = state.get("probability")
-    if not state.get("position") or not state.get("destination") or not isinstance(p, (int, float)) or not 0.0 <= p <= 1.0:
-        halts.append("A.6: position · destination · probability (0..1) not stated")
+    # bool subclasses int: True/False would read as 1.0/0.0, a status standing in for a calibration.
+    p_ok = isinstance(p, (int, float)) and not isinstance(p, bool) and 0.0 <= p <= 1.0
+    if not state.get("position") or not state.get("destination") or not p_ok:
+        halts.append("A.6: position · destination · probability (0..1, a number not a flag) not stated")
     return halts
 
 
@@ -555,24 +603,30 @@ def _smoke_test() -> int:
     }
     ok(session_open(opened) == [], "complete §A must not halt")
     ok("A.2" in session_open({**opened, "registered_read_at_sha": "stale"})[0], "cached REGISTERED.md is an IC-030 halt")
+    ok("A.6" in session_open({**opened, "probability": True})[0], "a boolean is a status, not a probability")
 
-    # Z1 proposes: falsifier and pinned SHA are required; Z2 cannot propose.
-    refused(propose, Zone.Z1, "Q-X", "Q", "body", "TBD", "bda7c88", "claude", t0)
-    refused(propose, Zone.Z1, "Q-X", "Q", "body", "fails if smoke test does not exit 0", "", "claude", t0)
-    refused(propose, Zone.Z2, "Q-X", "Q", "body", "fails if smoke test does not exit 0", "bda7c88", "Night", t0)
+    # Z1 proposes: falsifier and pinned SHA are required; Z2 cannot propose. A refusal writes no row.
+    refused(propose, Zone.Z1, "Q-X", "Q", "body", "TBD", "bda7c88", "claude", t0, ledger)
+    refused(propose, Zone.Z1, "Q-X", "Q", "body", "fails if smoke test does not exit 0", "", "claude", t0, ledger)
+    refused(propose, Zone.Z2, "Q-X", "Q", "body", "fails if smoke test does not exit 0", "bda7c88", Z2_DISPLAY_NAME, t0, ledger)
+    ok(len(ledger) == 0, "a refused proposal writes nothing")
     cand = propose(Zone.Z1, "Q-CORE-CONCEPT-01", "Q", "humanaios_core.py encodes the serial gate",
                    "falsified if any gate step passes without its doctrine's precondition",
-                   "bda7c88", "claude", t0)
-    ledger.append("PROPOSE", t0, "claude", {"candidate_id": cand.candidate_id})
+                   "bda7c88", "claude", t0, ledger)
+    ok(len(ledger) == 1 and ledger.events("PROPOSE")[0].payload["candidate_id"] == cand.candidate_id,
+       "an accepted proposal is a PROPOSE row")
     ok(can(Zone.Z1, Action.PROPOSE) and not can(Zone.Z1, Action.RATIFY), "Z1 proposes, never ratifies")
     ok(can(Zone.Z2, Action.RATIFY) and not can(Zone.Z2, Action.EXECUTE), "Z2 ratifies, never executes")
     ok(can(Zone.Z3, Action.EXECUTE) and not can(Zone.Z3, Action.RATIFY), "Z3 executes, never ratifies")
 
-    # Z3 cannot execute without a hash; Z1 cannot ratify; an unknown identity cannot sign.
+    # Z3 cannot execute without a hash; Z1 cannot ratify; an unknown identity cannot sign;
+    # the display name "Night" is a label, not a signer.
     refused(execute, Zone.Z3, cand, None, True, "z3", t0, ledger)
     refused(ratify, Zone.Z1, cand, "claude", t0, Decision.ACCEPT)
     refused(ratify, Zone.Z2, cand, "someone@example.com", t0, Decision.ACCEPT)
-    refused(ratify, Zone.Z2, cand, "Night", t0, Decision.REJECT)  # REJECT needs a reason
+    refused(ratify, Zone.Z2, cand, Z2_DISPLAY_NAME, t0, Decision.ACCEPT, ledger=ledger)
+    refused(ratify, Zone.Z2, cand, "carly.r.anderson@gmail.com", t0, Decision.REJECT)  # REJECT needs a reason
+    ok(len(ledger) == 1, "a refused ratification writes nothing")
 
     # Window: open inside 48h, expired after; contest only after expiry or a REJECT.
     ok(window_state(cand, t0 + timedelta(hours=47), decided=False) == "OPEN", "47h: open")
@@ -583,27 +637,36 @@ def _smoke_test() -> int:
 
     # REJECT, contest, Admiral re-reads: a new event, the prior intact.
     t1 = t0 + timedelta(hours=2)
-    rej = ratify(Zone.Z2, cand, "carly.r.anderson@gmail.com", t1, Decision.REJECT, reason="falsifier too broad")
+    rej = ratify(Zone.Z2, cand, "carly.r.anderson@gmail.com", t1, Decision.REJECT, reason="falsifier too broad",
+                 ledger=ledger)
     ok(verify_ratification(cand, rej), "REJECT hash verifies")
+    ok(ledger.events("RATIFY")[-1].payload["decision"] == "REJECT", "a signed REJECT is a RATIFY row")
     refused(execute, Zone.Z3, cand, rej, True, "z3", t1, ledger)  # a verified REJECT executes nothing
     ok("contested" in contest(Zone.Z1, cand, rej, t1 + timedelta(hours=3), "falsifier is the standard one"), "contest in window")
     refused(contest, Zone.Z1, cand, rej, t1 + timedelta(hours=49), "late")
+    refused(contest, Zone.Z1, cand, rej, t1 - timedelta(hours=1), "dated before the REJECT")
+    other = propose(Zone.Z1, "Q-OTHER-01", "Q", "another block", "falsified if X", "bda7c88", "claude", t0)
+    refused(contest, Zone.Z1, other, rej, t1 + timedelta(hours=1), "a REJECT signed for a different candidate")
+    forged_rej = Ratification(cand.candidate_id, rej.by, rej.at, Decision.REJECT, "0" * 64, None, "forged")
+    refused(contest, Zone.Z1, cand, forged_rej, t1 + timedelta(hours=1), "a REJECT whose hash does not verify")
     t2 = t1 + timedelta(hours=4)
-    acc = ratify(Zone.Z2, cand, "Night", t2, Decision.ACCEPT, contest_response="re-read: falsifier is adequate")
+    acc = ratify(Zone.Z2, cand, "aioshuman@gmail.com", t2, Decision.ACCEPT,
+                 contest_response="re-read: falsifier is adequate", ledger=ledger)
     ok(acc.hash != rej.hash and verify_ratification(cand, rej) and verify_ratification(cand, acc),
        "a new RATIFY event never rewrites the prior one")
     refused(contest, Zone.Z1, cand, acc, t2, "an ACCEPT is not contestable")
-    ledger.append("RATIFY", t2, "Night", {"candidate_id": cand.candidate_id, "hash": acc.hash, "decision": "ACCEPT"})
+    ok(ledger.events("RATIFY")[-1].payload["contested"] is True, "the re-read is its own RATIFY row")
 
-    # Hash formula: exactly CLAUDE.md's, and sensitive to every field.
+    # Hash formula: CLAUDE.md's segments with the ratified identity as signer, sensitive to every field.
     expected = hashlib.sha256(
-        f"{cand.canonical()} | by=Night | at={t2.isoformat()} | decision=ACCEPT | contest_response=re-read: falsifier is adequate".encode()
+        f"{cand.canonical()} | by=aioshuman@gmail.com | at={t2.isoformat()} | decision=ACCEPT"
+        " | contest_response=re-read: falsifier is adequate".encode()
     ).hexdigest()
-    ok(acc.hash == expected, "hash is sha256(candidate | by=Night | at=ts | decision=... | contest_response=...)")
+    ok(acc.hash == expected, "hash is sha256(candidate | by=<signer> | at=ts | decision=... | contest_response=...)")
     tampered = Candidate(cand.candidate_id, cand.kind, cand.body + " and more", cand.falsifier,
                          cand.pinned_sha, cand.proposed_by, cand.proposed_at)
     ok(not verify_ratification(tampered, acc), "an edited candidate no longer matches its signature")
-    forged = Ratification(acc.candidate_id, "Night", acc.at, Decision.ACCEPT, "0" * 64, acc.contest_response)
+    forged = Ratification(acc.candidate_id, "aioshuman@gmail.com", acc.at, Decision.ACCEPT, "0" * 64, acc.contest_response)
     refused(execute, Zone.Z3, cand, forged, True, "z3", t2, ledger)
     refused(execute, Zone.Z3, tampered, acc, True, "z3", t2, ledger)
 
@@ -640,7 +703,9 @@ def _smoke_test() -> int:
     ok(reconcile(["a"], ["a"]).clean, "a claim the tree confirms is clean")
 
     # Ledger: append-only, chained; a rewritten prior row breaks verify().
-    ok(ledger.verify() and len(ledger) == 5, "chain verifies (PROPOSE, RATIFY, EXECUTE, RECEIPT, CALLOUT)")
+    ok(ledger.verify() and [e.kind for e in ledger.events()]
+       == ["PROPOSE", "RATIFY", "RATIFY", "EXECUTE", "RECEIPT", "CALLOUT"],
+       "chain verifies: PROPOSE, RATIFY (REJECT), RATIFY (ACCEPT), EXECUTE, RECEIPT, CALLOUT")
     first = ledger._events[0]
     ledger._events[0] = Event(first.kind, first.at, "someone-else", first.payload, first.prev_hash, first.hash)
     ok(not ledger.verify(), "an edited prior line breaks the chain")
