@@ -59,7 +59,7 @@ class CoverageTests(unittest.TestCase):
     def test_inventory_exact_sha_and_classification(self):
         sha = "a" * 40
         def record(mode, typ, oid, path):
-            return f"{mode} {typ} {oid}\\t{path}".encode() + b"\\0"
+            return f"{mode} {typ} {oid}\t{path}".encode() + b"\0"
         tree = b"".join([
             record("100644", "blob", "b" * 40, ".env"),
             record("100644", "blob", "c" * 40, "docs/readme.md"),
