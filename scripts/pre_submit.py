@@ -166,8 +166,10 @@ def _strict_loader(yaml):
         for key_node, value_node in node.value:
             key = loader.construct_object(key_node, deep=True)
             if key in out:
+                # PyYAML reads a bare `on:` as the boolean True; name it as written.
+                shown = "on" if key is True else repr(key)
                 raise yaml.constructor.ConstructorError(
-                    None, None, f"duplicate key {key!r}", key_node.start_mark)
+                    None, None, f"duplicate key {shown}", key_node.start_mark)
             out[key] = loader.construct_object(value_node, deep=True)
         return out
 
