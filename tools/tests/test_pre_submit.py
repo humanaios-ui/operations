@@ -3,7 +3,7 @@ test_pre_submit.py
 Builder v1.7 compliant
 HumanAIOS
 
-Covers the parsing and policy helpers in scripts/pre_submit.py. The git-facing
+Covers the parsing and policy helpers in tools/pre_submit.py. The git-facing
 checks are exercised by running the script against a real branch, not here.
 
 The falsifier for the claim parser is "a template placeholder or a commented
@@ -20,7 +20,7 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SCRIPT = REPO / "scripts" / "pre_submit.py"
+SCRIPT = REPO / "tools" / "pre_submit.py"
 
 
 def _load():
@@ -61,9 +61,16 @@ def test_smag_prediction_parsed_and_meta_is_not_confused():
     assert ps.smag_prediction("smag_p_meta: 0.82") is None
 
 
-def test_zone_tick_detected_only_when_ticked():
-    assert ps.zone_ticked("- [x] **Z1** — AI-executable")
-    assert not ps.zone_ticked("- [ ] **Z1** — AI-executable")
+def test_zone_boxes_counted_so_exactly_one_is_checkable():
+    assert ps.zone_boxes_ticked("- [x] **Z1** — AI-executable") == 1
+    assert ps.zone_boxes_ticked("- [ ] **Z1** — AI-executable") == 0
+    assert ps.zone_boxes_ticked("- [x] **Z1** a\n- [x] **Z2** b") == 2
+
+
+def test_smag_outside_zero_to_one_is_void():
+    # Matches the canonical lint: 1.5 is not a valid prediction.
+    assert ps.smag_prediction("smag_p: 1.5") is None
+    assert ps.smag_prediction("smag_p: 1.0") == 1.0
 
 
 def test_zone_suggestion_precedence():
@@ -123,6 +130,11 @@ def test_lint_flags_unfilled_fields_and_mismatch():
         assert results["Body: molt claim"].status == "info"
         assert results["Body: smag_p"].status == "pass"
         assert results["Body: zone"].status == "pass"
+
+        path.write_text("**molt_tier_claimed:** `0`\nsmag_p: 0.9\n- [x] **Z1** x\n- [x] **Z2** y\n",
+                        encoding="utf-8")
+        results = {c.name: c for c in ps.lint_body(path, 0)}
+        assert results["Body: zone"].status == "warn", "two boxes must not pass"
 
 
 def test_strict_loader_rejects_duplicate_keys():

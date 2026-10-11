@@ -2646,18 +2646,19 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
-- tool_id: HAIOS-TOOL-222
+- tool_id: HAIOS-TOOL-223
   name: pre_submit
-  path: scripts/pre_submit.py
-  version: unversioned
+  path: tools/pre_submit.py
+  version: 1.0.0
   category: validation_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
+  smoke_test: true
   builder_markers: false
   purpose: pre_submit.py — run the PR pre-submission checks in one command.
+  session: S-101126-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

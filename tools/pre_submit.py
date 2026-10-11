@@ -2,9 +2,10 @@
 """
 pre_submit.py — run the PR pre-submission checks in one command.
 
-    python3 scripts/pre_submit.py                     # print the report
-    python3 scripts/pre_submit.py --body-out DRAFT.md # also write a PR body draft
-    python3 scripts/pre_submit.py --body FILLED.md    # lint a body you have filled in
+    python3 tools/pre_submit.py                       # print the report
+    python3 tools/pre_submit.py --body-out DRAFT.md   # also write a PR body draft
+    python3 tools/pre_submit.py --input FILLED.md     # lint a body you have filled in
+    python3 tools/pre_submit.py --smoke-test          # self-check, no git needed
 
 Checks, in order:
   1. Branch     not on the default branch; has commits ahead of the base.
@@ -33,6 +34,12 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+TOOL_NAME = "pre_submit"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "validation_tool"
+TOOL_SESSION = "S-101126-01"
+TOOL_ZONE = 1  # 1=execute, 2=ratify, 3=night
 
 REPO = Path(__file__).resolve().parent.parent
 TEMPLATE = REPO / ".github" / "PULL_REQUEST_TEMPLATE.md"
@@ -110,13 +117,19 @@ def claimed_tier(body: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+# Same pattern as the canonical lint in tools/smag_predict_lint.py. A value outside
+# 0-1 (for example 1.5) is VOID there, so it must be VOID here too.
+SMAG_P = re.compile(r"(?im)^\s*smag_p\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
+ZONE_BOX = re.compile(r"- \[[xX]\] \*\*Z[123]\*\*")
+
+
 def smag_prediction(body: str) -> float | None:
-    match = re.search(r"smag_p:\s*(\d?\.\d+)", strip_comments(body))
+    match = SMAG_P.search(strip_comments(body))
     return float(match.group(1)) if match else None
 
 
-def zone_ticked(body: str) -> bool:
-    return bool(re.search(r"- \[[xX]\] \*\*Z[123]\*\*", strip_comments(body)))
+def zone_boxes_ticked(body: str) -> int:
+    return len(ZONE_BOX.findall(strip_comments(body)))
 
 
 # ----------------------------------------------------------------- the checks
@@ -308,10 +321,14 @@ def lint_body(path: Path, tier: int) -> list[Check]:
                          "smag_p is not filled in; an omitted prediction is VOID, not scored"))
     else:
         out.append(Check("Body: smag_p", "pass", f"smag_p {smag_prediction(body)}"))
-    if zone_ticked(body):
-        out.append(Check("Body: zone", "pass", "a zone box is ticked"))
+    ticked = zone_boxes_ticked(body)
+    if ticked == 1:
+        out.append(Check("Body: zone", "pass", "exactly one zone box is ticked"))
+    elif ticked == 0:
+        out.append(Check("Body: zone", "warn", "no zone box ticked; the template requires exactly one"))
     else:
-        out.append(Check("Body: zone", "warn", "no zone box ticked"))
+        out.append(Check("Body: zone", "warn",
+                         f"{ticked} zone boxes ticked; the template requires exactly one"))
     unchecked = len(re.findall(r"- \[ \]", strip_comments(body)))
     if unchecked:
         out.append(Check("Body: checklist", "info", f"{unchecked} item(s) still unchecked"))
@@ -335,13 +352,36 @@ def print_report(checks: list[Check]) -> None:
         print("✓ ready to submit")
 
 
+def run_smoke_test() -> int:
+    """Self-check of the parsing and policy helpers. Needs no git or network."""
+    cases = [
+        (smag_prediction("smag_p: 0.9\n") == 0.9, "smag_p 0.9 parses"),
+        (smag_prediction("smag_p: 1.5\n") is None, "smag_p 1.5 is VOID, as in smag_predict_lint"),
+        (claimed_tier("**molt_tier_claimed:** `[0 | 1 | 2]`") is None,
+         "unfilled molt placeholder is not a claim"),
+        (zone_boxes_ticked("- [x] **Z1** a\n- [x] **Z2** b\n") == 2, "two ticked zone boxes counted"),
+        (secret_labels("key = 'AKIA" + "B" * 16 + "'") == ["AWS access key"],
+         "AWS access key shape detected"),
+    ]
+    failed = [msg for ok, msg in cases if not ok]
+    for msg in failed:
+        print(f"FAIL {msg}")
+    print(f"smoke-test: {len(cases) - len(failed)}/{len(cases)} passed")
+    return 1 if failed else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--base", help="base ref to compare against (default: origin/main, then main)")
     parser.add_argument("--body-out", type=Path, help="write a PR body draft to this path")
-    parser.add_argument("--body", type=Path, help="lint a filled-in PR body before submitting")
+    parser.add_argument("--body", "--input", dest="body", type=Path,
+                        help="lint a filled-in PR body before submitting")
+    parser.add_argument("--smoke-test", action="store_true",
+                        help="run the built-in self-check and exit")
     args = parser.parse_args(argv)
 
+    if args.smoke_test:
+        return run_smoke_test()
     if not TEMPLATE.exists():
         print(f"pre_submit: missing PR template at {TEMPLATE}", file=sys.stderr)
         return 2

@@ -54,19 +54,21 @@ taught to the validator/CI so it doesn't recur.
 
 ## Before you open a PR — run a checkup
 
-Start with the pre-submission check. It runs the same gates CI runs, catches the
-common blockers, and drafts the PR body:
+Start with the pre-submission check. It catches the common blockers before you push
+and drafts the PR body:
 
 ```bash
-python3 scripts/pre_submit.py                        # branch, no-op, readiness, workflows, secrets, molt tier
-python3 scripts/pre_submit.py --body-out draft.md    # also write a PR body from the template
-python3 scripts/pre_submit.py --body filled.md       # lint your filled-in body before you submit it
+python3 tools/pre_submit.py                          # branch, no-op, readiness, workflows, secrets, molt tier
+python3 tools/pre_submit.py --body-out draft.md      # also write a PR body from the template
+python3 tools/pre_submit.py --input filled.md        # lint your filled-in body before you submit it
 ```
 
 It blocks on problems CI would also reject (on the default branch, no commits, an
 empty diff, a failing readiness check, an unparseable workflow, a secret in an added
-line). It never fills in `smag_p` or `molt_tier_claimed` for you. Those are your
-prediction, and CI measures the gap. The draft shows the measured tier beside the empty field.
+line). It is not the full CI suite: it does not run pytest, ruff, mypy, or the gates.
+CI remains the authority. It never fills in `smag_p` or `molt_tier_claimed` for you.
+Those are your prediction, and CI measures the gap. The draft shows the measured tier
+beside the empty field.
 
 Then the vitality check:
 

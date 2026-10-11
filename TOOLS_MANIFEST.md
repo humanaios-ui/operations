@@ -315,7 +315,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 | HAIOS-TOOL-209 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies. |
 | HAIOS-TOOL-221 | state_continuity_verification | `tools/state_continuity_verification_v0_1.py` | 0.1.0 | 1 | draft | — | Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS / |
-| HAIOS-TOOL-222 | pre_submit | `scripts/pre_submit.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | pre_submit.py — run the PR pre-submission checks in one command. |
+| HAIOS-TOOL-223 | pre_submit | `tools/pre_submit.py` | 1.0.0 | 1 | draft | no-builder-markers | pre_submit.py — run the PR pre-submission checks in one command. |
 
 ## MCP servers (2)
 

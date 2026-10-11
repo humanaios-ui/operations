@@ -2,7 +2,7 @@
 name: General Issue
 about: Report a bug, gap, or request that is not covered by a more specific template
 title: "[Issue] "
-labels: ["needs-triage"]
+labels: []
 assignees: []
 ---
 
