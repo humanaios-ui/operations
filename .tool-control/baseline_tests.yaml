@@ -52,6 +52,10 @@ baseline_tests:
     requires: []
     description: Repository coordinator tests
 
+  - path: tools/tests/test_humanaios_core_machine_v0_1.py
+    requires: []
+    description: HumanAIOS Core Machine deterministic bytecode and authority-boundary regressions
+
   - path: tools/tests/test_registry_site_generator.py
     requires: []
     description: Registry site generator tests
