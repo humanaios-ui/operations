@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 pre_submit.py — run the PR pre-submission checks in one command.
+Builder v1.7 compliant
+HumanAIOS
 
     python3 tools/pre_submit.py                       # print the report
     python3 tools/pre_submit.py --body-out DRAFT.md   # also write a PR body draft

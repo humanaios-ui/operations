@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**209 registered tools** · 2 MCP servers · 4 excluded · 160 carrying Builder v1.7 markers
+**209 registered tools** · 2 MCP servers · 4 excluded · 161 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -16,7 +16,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | Registered tools | 209 |
 | — status `draft` | 208 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 160 |
+| Builder v1.7 markers present | 161 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -315,7 +315,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 | HAIOS-TOOL-209 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies. |
 | HAIOS-TOOL-221 | state_continuity_verification | `tools/state_continuity_verification_v0_1.py` | 0.1.0 | 1 | draft | — | Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS / |
-| HAIOS-TOOL-223 | pre_submit | `tools/pre_submit.py` | 1.0.0 | 1 | draft | no-builder-markers | pre_submit.py — run the PR pre-submission checks in one command. |
+| HAIOS-TOOL-223 | pre_submit | `tools/pre_submit.py` | 1.0.0 | 1 | draft | — | pre_submit.py — run the PR pre-submission checks in one command. |
 
 ## MCP servers (2)
 

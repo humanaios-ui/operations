@@ -33,7 +33,7 @@ counts:
   tools: 209
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 160
+  builder_markers_present: 161
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2656,7 +2656,7 @@ tools:
   interface: cli
   lang: python
   smoke_test: true
-  builder_markers: false
+  builder_markers: true
   purpose: pre_submit.py — run the PR pre-submission checks in one command.
   session: S-101126-01
 mcp_servers:
