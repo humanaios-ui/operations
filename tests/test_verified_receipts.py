@@ -137,6 +137,28 @@ class VerifiedReceiptResolverTests(unittest.TestCase):
         self.assertFalse(result.valid)
         self.assertEqual("RECEIPT_NOT_CONSUMED", result.reason)
 
+    def test_consumption_must_match_the_verified_receipt_subject(self):
+        events, head = build_receipt_chain_for_testing([
+            receipt_event(one_time=True),
+            {
+                "type": "RECEIPT_CONSUMED",
+                "receipt_id": "r1",
+                "subject": "different-subject",
+                "by": "consumer",
+            },
+        ])
+        requirement = ReceiptRequirement(
+            receipt_type="HARMONY_GATE",
+            subject="dissent_preserved",
+            action="ASSERT_GATE",
+            scope="run:test",
+            min_strength="OBSERVED",
+            consumption_state="CONSUMED",
+        )
+        result = VerifiedReceiptResolver(events, head).resolve("r1", requirement)
+        self.assertFalse(result.valid)
+        self.assertEqual("CONSUMPTION_SUBJECT_MISMATCH", result.reason)
+
     def test_resolution_returns_receipt_copy(self):
         events, head = build_receipt_chain_for_testing([receipt_event()])
         resolver = VerifiedReceiptResolver(events, head)
@@ -208,6 +230,63 @@ class VerifiedReceiptResolverTests(unittest.TestCase):
                     consumed_by="test",
                     subject="dissent_preserved",
                 )
+
+    def test_atomic_consume_rejects_a_mismatched_subject(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = str(Path(td) / "receipts.jsonl")
+            append_receipt_event(path, receipt_event("r1", one_time=True))
+            events, trusted_head = read_receipt_events(path)
+
+            with self.assertRaisesRegex(ValueError, "CONSUMPTION_SUBJECT_MISMATCH"):
+                consume_receipt_atomic(
+                    path,
+                    receipt_id="r1",
+                    requirement=self.requirement(),
+                    expected_head_hash=trusted_head,
+                    consumed_by="test",
+                    subject="different-subject",
+                )
+
+            after, _ = read_receipt_events(path)
+            self.assertEqual(len(events), len(after))
+
+    def test_atomic_consume_ignores_a_consumed_audit_requirement(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = str(Path(td) / "receipts.jsonl")
+            append_receipt_event(path, receipt_event("r1", one_time=True))
+            _, trusted_head = read_receipt_events(path)
+            consume_receipt_atomic(
+                path,
+                receipt_id="r1",
+                requirement=self.requirement(),
+                expected_head_hash=trusted_head,
+                consumed_by="test",
+                subject="dissent_preserved",
+            )
+            events, consumed_head = read_receipt_events(path)
+            audit_requirement = ReceiptRequirement(
+                receipt_type="HARMONY_GATE",
+                subject="dissent_preserved",
+                action="ASSERT_GATE",
+                scope="run:test",
+                min_strength="OBSERVED",
+                consumption_state="CONSUMED",
+            )
+
+            with self.assertRaisesRegex(
+                ValueError, "RECEIPT_NOT_CONSUMABLE:RECEIPT_ALREADY_CONSUMED"
+            ):
+                consume_receipt_atomic(
+                    path,
+                    receipt_id="r1",
+                    requirement=audit_requirement,
+                    expected_head_hash=consumed_head,
+                    consumed_by="test",
+                    subject="dissent_preserved",
+                )
+
+            after, _ = read_receipt_events(path)
+            self.assertEqual(len(events), len(after))
 
 
 if __name__ == "__main__":

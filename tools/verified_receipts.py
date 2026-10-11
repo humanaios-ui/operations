@@ -17,7 +17,7 @@ Usage:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 import argparse
@@ -237,6 +237,15 @@ class VerifiedReceiptResolver:
                     receipt=dict(receipt),
                     chain_head=self.pinned_head_hash,
                 )
+            if consumption.get("subject") != receipt.get("subject"):
+                return ReceiptResolution(
+                    valid=False,
+                    receipt_id=receipt_id,
+                    reason="CONSUMPTION_SUBJECT_MISMATCH",
+                    receipt=dict(receipt),
+                    consumption=dict(consumption),
+                    chain_head=self.pinned_head_hash,
+                )
 
         if receipt.get("verification_status") != "VERIFIED":
             return ReceiptResolution(
@@ -415,8 +424,9 @@ def consume_receipt_atomic(
         if current_head != expected_head_hash:
             raise ValueError("STALE_RECEIPT_HEAD")
 
+        consume_requirement = replace(requirement, consumption_state="UNCONSUMED")
         resolution = VerifiedReceiptResolver(events, expected_head_hash).resolve(
-            receipt_id, requirement
+            receipt_id, consume_requirement
         )
         if not resolution.valid:
             raise ValueError(
@@ -426,6 +436,8 @@ def consume_receipt_atomic(
         receipt = resolution.receipt or {}
         if not receipt.get("one_time"):
             raise ValueError("RECEIPT_NOT_ONE_TIME")
+        if subject != receipt.get("subject"):
+            raise ValueError("CONSUMPTION_SUBJECT_MISMATCH")
 
         return _append_event_unlocked(
             p,

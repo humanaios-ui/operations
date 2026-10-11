@@ -511,6 +511,30 @@ class TestAuthorityBoundary:
         )
         assert "AUTHORIZATION_BINDING_REJECTED" in result["reason_codes"]
 
+    def test_mixed_precision_review_times_use_chronological_order(self):
+        changed_snapshot = review_snapshot(
+            {
+                "review_id": REVIEW_ID,
+                "actor": "humanaios-ui",
+                "state": "APPROVED",
+                "submitted_at": REVIEW_TIME,
+            },
+            {
+                "review_id": "REVIEW-2",
+                "actor": "humanaios-ui",
+                "state": "DISMISSED",
+                "submitted_at": "2026-10-11T12:00:00.500Z",
+            },
+        )
+        authorization = auth_receipt(
+            review_snapshot_sha256=review_snapshot_digest(changed_snapshot)
+        )
+        result = machine.run_program(
+            compile_source(source(authority=True)),
+            trust([authorization], review_snapshot=changed_snapshot),
+        )
+        assert "AUTHORIZATION_BINDING_REJECTED" in result["reason_codes"]
+
     def test_authorization_binds_the_exact_warrant_evidence_closure(self):
         program = source(authority=True)
         program["instructions"][2]["arg"]["claim_sha256"] = "9" * 64

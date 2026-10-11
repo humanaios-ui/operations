@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+from datetime import datetime
 from enum import IntEnum
 from hashlib import sha256
 import json
@@ -741,7 +742,7 @@ def _review_snapshot_inputs(
     if not isinstance(reviews, list):
         raise MachineError("REVIEW_SNAPSHOT_REVIEWS_NOT_LIST")
 
-    latest: dict[str, tuple[tuple[str, str], dict[str, Any]]] = {}
+    latest: dict[str, tuple[tuple[datetime, str], dict[str, Any]]] = {}
     review_ids: set[str] = set()
     for index, raw in enumerate(reviews):
         if not isinstance(raw, dict):
@@ -757,7 +758,15 @@ def _review_snapshot_inputs(
         submitted_at = raw["submitted_at"]
         if not isinstance(submitted_at, str) or TIMESTAMP_RE.fullmatch(submitted_at) is None:
             raise MachineError("REVIEW_SNAPSHOT_TIMESTAMP_INVALID", review_id)
-        candidate = (submitted_at, review_id)
+        try:
+            parsed_time = datetime.fromisoformat(
+                submitted_at.replace("Z", "+00:00")
+            )
+        except ValueError as exc:
+            raise MachineError(
+                "REVIEW_SNAPSHOT_TIMESTAMP_INVALID", review_id
+            ) from exc
+        candidate = (parsed_time, review_id)
         prior = latest.get(actor)
         if prior is None or candidate >= prior[0]:
             latest[actor] = (candidate, dict(raw))
