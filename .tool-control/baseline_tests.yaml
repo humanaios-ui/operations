@@ -12,6 +12,10 @@ baseline_tests:
     requires: []
     description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
 
+  - path: test_humanaios_core_tier1.py
+    requires: []
+    description: Non-authoritative HumanAIOS governance conformance and HCM translation regressions
+
   - path: tools/tests/test_ai_context_generator_v0_1.py
     requires: [gh_cli]
     description: AI Context Generator smoke tests (skips if GitHub CLI unavailable)

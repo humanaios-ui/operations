@@ -28,8 +28,10 @@ from contextlib import redirect_stdout
 from datetime import datetime, timedelta, timezone
 
 from humanaios_core import (
+    AUTHORITY_EFFECT,
     AUTHORIZED_Z2_IDENTITIES,
     CALLOUTS,
+    HCM_TRANSLATION_FIXTURE,
     K_OPEN_MOLTS,
     Action,
     Candidate,
@@ -84,6 +86,18 @@ class RolesTest(unittest.TestCase):
         self.assertFalse(can(Zone.Z2, Action.CONTEST))
         self.assertTrue(can(Zone.Z1, Action.CONTEST))
         self.assertTrue(can(Zone.Z3, Action.CONTEST))
+
+    def test_model_has_no_authority_and_maps_to_hcm(self):
+        self.assertEqual(AUTHORITY_EFFECT, "NONE")
+        self.assertEqual(
+            HCM_TRANSLATION_FIXTURE,
+            {
+                "propose": ("PIN_CONTEXT", "OBSERVE", "CLAIM", "CHALLENGE", "WARRANT"),
+                "ratify": ("IMPORT_AUTHORITY",),
+                "execute": ("RECORD_ACTION",),
+                "session_close": ("RECORD_OUTCOME", "CLOSE"),
+            },
+        )
 
 
 class ProposeTest(unittest.TestCase):
@@ -258,6 +272,24 @@ class WindowAndContestTest(unittest.TestCase):
         with self.assertRaises(GateRefused):
             contest(Zone.Z2, c, rej, T0, "self-contest")
 
+    def test_public_time_boundaries_reject_naive_datetimes(self):
+        naive = datetime(2026, 10, 11, 12, 0)
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            _cand(now=naive)
+        c = _cand()
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            Candidate(c.candidate_id, c.kind, c.body, c.falsifier, c.pinned_sha, c.proposed_by, naive)
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            ratification_hash(c, Z2, naive, Decision.ACCEPT)
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            ratify(Zone.Z2, c, Z2, naive, Decision.ACCEPT)
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            Ratification(c.candidate_id, Z2, naive, Decision.ACCEPT, "0" * 64)
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            window_state(c, naive, decided=False)
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            contest(Zone.Z1, c, None, naive, "time check")
+
     def test_re_read_is_a_new_event_not_a_rewrite(self):
         c = _cand()
         rej = ratify(Zone.Z2, c, Z2, T0, Decision.REJECT, reason="no")
@@ -297,6 +329,10 @@ class ExecuteTest(unittest.TestCase):
         self.assertEqual(ev.payload["pinned_sha"], "bda7c88")
         self.assertEqual(len(self.ledger), 1)
         self.assertTrue(self.ledger.verify())
+
+    def test_execute_rejects_naive_timestamp(self):
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            execute(Zone.Z3, self.c, self.acc, True, "z3-ops", datetime(2026, 10, 11, 12, 0), self.ledger)
 
 
 class EnvelopeTest(unittest.TestCase):
@@ -380,6 +416,11 @@ class SessionTest(unittest.TestCase):
         self.assertTrue(reconcile([], ["x"]).clean)  # the tree may hold more than was claimed
         self.assertEqual(reconcile(["x", "y"], ["x"]).gaps, ("y",))
 
+    def test_close_rejects_naive_timestamp(self):
+        state = {"code_ran": True, "prereg_verified": True, "handoff_written": True}
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            session_close(state, Ledger(), datetime(2026, 10, 11, 12, 0), "claude")
+
 
 class LedgerTest(unittest.TestCase):
     def test_chain_and_tamper(self):
@@ -398,6 +439,19 @@ class LedgerTest(unittest.TestCase):
         ledger.append("CALLOUT", T0, "claude", {})
         self.assertEqual(len(ledger.events("CALLOUT")), 1)
         self.assertEqual(len(ledger.events()), 2)
+
+    def test_append_normalizes_and_detaches_nested_payload(self):
+        ledger = Ledger()
+        payload = {"routes": ["Q", "FS"], "nested": {"items": [1, 2]}}
+        event = ledger.append("CALLOUT", T0, "claude", payload)
+        payload["routes"].append("Z2")
+        payload["nested"]["items"].append(3)
+        self.assertEqual(event.payload, {"routes": ["Q", "FS"], "nested": {"items": [1, 2]}})
+        self.assertTrue(ledger.verify())
+
+    def test_event_boundary_rejects_naive_datetime(self):
+        with self.assertRaisesRegex(GateRefused, "timezone-aware"):
+            Ledger().append("PROPOSE", datetime(2026, 10, 11, 12, 0), "claude", {})
 
 
 class CliTest(unittest.TestCase):

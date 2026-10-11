@@ -1,17 +1,21 @@
 """
-humanaios_core.py — The HumanAIOS core concept as executable machine operations (v0.1)
+humanaios_core.py — HumanAIOS governance conformance model (v0.1)
 
-Layer 0 of the concept-to-code stack: the kernel every other layer maps onto.
+Layer 0 conformance fixture for the concept-to-code stack. The proposed
+HumanAIOS Core Machine (HCM) is the machine encoding; this module is a pure
+model used to test whether governance examples conform to the documented
+Z1 → Z2 → Z3 sequence.
 
 CLAUDE.md, SEED.md and SESSION_RITUALS.md state the core concept of this
 repository in prose. This module states it as code, so it can be run, tested
 and falsified:
 
     A machine (Z1) may PROPOSE, and every proposal carries a falsifier and a
-    pinned SHA. Only a human ratifier (Z2) may RATIFY, and a ratification is a
-    sha256 signature over the candidate, the signer, the time and the decision.
-    Only an executor (Z3) may EXECUTE, and only under a verified ACCEPT hash
-    with the CI gate green. Retries are bounded (anti-cascade: K=3, one open
+    pinned SHA. A modeled Z2 RATIFY transition produces an unkeyed sha256 hash
+    over the candidate, a claimed identity, the time and the decision. Identity
+    authenticity is external to this module. A modeled Z3 EXECUTE transition
+    requires an ACCEPT hash and a caller-supplied CI status. Retries are bounded
+    (anti-cascade: K=3, one open
     molt per constant, freeze after two reverts). Every session opens by
     pinning live state (§A) and closes by reconciling every claim against the
     tree (§B.0 / B.6). What is not in the ledger did not happen, and the gap
@@ -19,9 +23,10 @@ and falsified:
 
 That last sentence is also ACAT's core measurement (SEED.md §3): the gap
 between what a system claims about itself and what it does under test. The
-governance kernel and the research instrument are the same shape.
+governance conformance model and the research instrument are the same shape.
 
-Nothing here decides anything on its own authority. The precedence of refusals
+Nothing here decides anything on its own authority, authenticates an identity,
+performs an external action, or supplies HCM authority evidence. The precedence of refusals
 is the doctrine as written in CLAUDE.md ("Decision Routing", "Anti-cascade
 rules", "§A / §B"), and it is not meant to be tuned per call site. The hash
 formula is CLAUDE.md's, segment for segment:
@@ -30,10 +35,10 @@ formula is CLAUDE.md's, segment for segment:
     sha256(candidate | by=<signer> | at=<timestamp> | decision=... | contest_response=<reason>)
 
 CLAUDE.md writes the `by=` segment as `by=Night`. "Night" is the ratifier's
-display name (Z2_DISPLAY_NAME); the <signer> that is hashed and checked is one
-of the two ratified Z2 identities, the same allowlist
-.github/workflows/z2_ratification_gate.yml enforces on commit authorship. A
-display name is a label, not a signature, and is refused as a signer.
+display name (Z2_DISPLAY_NAME); the claimed identity that is hashed and checked
+must be one of the two configured Z2 identities. `ratify()` validates only the
+supplied value. It does not authenticate the caller. Protected infrastructure
+must authenticate identity independently.
 
 Stdlib only. `python3 humanaios_core.py --smoke-test` walks one candidate
 through the full gate and exercises every refusal once.
@@ -47,10 +52,12 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+from types import MappingProxyType
 from typing import Any, Iterable, Mapping, Sequence
 
 __all__ = [
     "AUTHORIZED_Z2_IDENTITIES",
+    "AUTHORITY_EFFECT",
     "CALLOUTS",
     "DECISION_WINDOW",
     "K_OPEN_MOLTS",
@@ -61,6 +68,7 @@ __all__ = [
     "Decision",
     "Event",
     "GateRefused",
+    "HCM_TRANSLATION_FIXTURE",
     "Ledger",
     "Ratification",
     "Receipt",
@@ -83,7 +91,7 @@ __all__ = [
 
 TOOL_NAME = "humanaios_core"
 TOOL_VERSION = "0.1.0"
-TOOL_CATEGORY = "governance_tool"
+TOOL_CATEGORY = "validation_tool"
 TOOL_SESSION = "CORE_CONCEPT_MAPPING.md"
 TOOL_ZONE = 1
 
@@ -96,8 +104,9 @@ AUTHORIZED_Z2_IDENTITIES: frozenset[str] = frozenset(
     {"carly.r.anderson@gmail.com", "aioshuman@gmail.com"}
 )
 #: The ratifier's display name, as CLAUDE.md's formula writes the `by=` segment.
-#: A label for humans; never accepted as a signer identity.
+#: A label for humans; not accepted as a signer identity.
 Z2_DISPLAY_NAME = "Night"
+AUTHORITY_EFFECT = "NONE"
 DECISION_WINDOW = timedelta(hours=48)  # routine decisions; after it, Z1 may contest
 URGENT_WINDOW = timedelta(hours=24)  # urgent items: 24h or less
 K_OPEN_MOLTS = 3  # anti-cascade rule 3
@@ -105,6 +114,17 @@ REVERTS_TO_FREEZE = 2  # anti-cascade rule 4
 
 #: Substantive-falsifier check, same list ci_gates.FalsifierLintGate rejects.
 _NON_FALSIFIERS = frozenset({"", "tbd", "n/a", "none", "unknown"})
+
+#: Semantic translation fixture for the proposed HCM v0.1 instruction set.
+#: This mapping does not compile a program or satisfy HCM authority checks.
+HCM_TRANSLATION_FIXTURE: Mapping[str, tuple[str, ...]] = MappingProxyType(
+    {
+        "propose": ("PIN_CONTEXT", "OBSERVE", "CLAIM", "CHALLENGE", "WARRANT"),
+        "ratify": ("IMPORT_AUTHORITY",),
+        "execute": ("RECORD_ACTION",),
+        "session_close": ("RECORD_OUTCOME", "CLOSE"),
+    }
+)
 
 
 # ── Roles and actions ───────────────────────────────────────────────────────
@@ -126,7 +146,7 @@ class Action(Enum):
 
 
 #: CLAUDE.md "Cannot do (by design)": Z2 neither proposes nor executes; Z1 and Z3
-#: never ratify. The table is the whole authority model; nothing else grants.
+#: do not ratify. The table is the whole authority model; nothing else grants.
 _CAPABILITIES: Mapping[Zone, frozenset[Action]] = {
     Zone.Z1: frozenset({Action.PROPOSE, Action.CONTEST}),
     Zone.Z2: frozenset({Action.RATIFY}),
@@ -135,12 +155,17 @@ _CAPABILITIES: Mapping[Zone, frozenset[Action]] = {
 
 
 def can(zone: Zone, action: Action) -> bool:
-    """Does this zone hold this capability? Absence is refusal, never a default."""
+    """Does this zone hold this capability? Absence is refusal rather than a default."""
     return action in _CAPABILITIES[zone]
 
 
 class GateRefused(Exception):
     """A step in the serial gate was refused. The message names the doctrine."""
+
+
+def _require_aware(value: datetime, label: str) -> None:
+    if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
+        raise GateRefused(f"{label} must be timezone-aware")
 
 
 def _require(zone: Zone, action: Action) -> None:
@@ -159,7 +184,7 @@ class Decision(Enum):
 
 @dataclass(frozen=True)
 class Candidate:
-    """A candidate block (F / IC / H / MOLT / Q). Frozen: a ratified thing never moves."""
+    """A candidate block (F / IC / H / MOLT / Q). Frozen: a ratified thing remains immutable."""
 
     candidate_id: str
     kind: str  # F | IC | H | MOLT | Q
@@ -169,8 +194,11 @@ class Candidate:
     proposed_by: str
     proposed_at: datetime
 
+    def __post_init__(self) -> None:
+        _require_aware(self.proposed_at, "proposed_at")
+
     def canonical(self) -> str:
-        """Deterministic serialization: what the Z2 signature covers."""
+        """Deterministic serialization covered by the modeled Z2 hash."""
         return json.dumps(
             {
                 "candidate_id": self.candidate_id,
@@ -208,13 +236,14 @@ def propose(
     refusal writes nothing.
     """
     _require(zone, Action.PROPOSE)
+    _require_aware(now, "proposal timestamp")
     if not _falsifier_is_substantive(falsifier):
         raise GateRefused(
             f"{candidate_id}: falsifier missing or non-substantive (falsifier doctrine; "
             "a claim that cannot be shown false claims nothing)"
         )
     if not pinned_sha or not pinned_sha.strip():
-        raise GateRefused(f"{candidate_id}: no pinned REGISTERED.md SHA (IC-030: live-fetch, pin, never reason from cache)")
+        raise GateRefused(f"{candidate_id}: no pinned REGISTERED.md SHA (IC-030: live-fetch, pin, do not reason from cache)")
     if kind not in {"F", "IC", "H", "MOLT", "Q"}:
         raise GateRefused(f"{candidate_id}: unknown candidate kind {kind!r} (F | IC | H | MOLT | Q)")
     candidate = Candidate(candidate_id, kind, body, falsifier, pinned_sha, proposed_by, now)
@@ -238,6 +267,9 @@ class Ratification:
     contest_response: str | None = None
     reason: str = ""
 
+    def __post_init__(self) -> None:
+        _require_aware(self.at, "ratification timestamp")
+
 
 def ratification_hash(
     candidate: Candidate, by: str, at: datetime, decision: Decision, contest_response: str | None = None
@@ -246,9 +278,11 @@ def ratification_hash(
 
     sha256(candidate | by=<signer> | at=<timestamp> | decision=<decision>[ | contest_response=<reason>])
 
-    <signer> is the ratified Z2 identity that signs (CLAUDE.md writes the
-    segment as `by=Night`, the ratifier's display name; see Z2_DISPLAY_NAME).
+    <signer> is a claimed Z2 identity supplied by the caller. This unkeyed hash
+    does not authenticate that caller (CLAUDE.md writes the segment as
+    `by=Night`, the ratifier's display name; see Z2_DISPLAY_NAME).
     """
+    _require_aware(at, "ratification timestamp")
     hashable = f"{candidate.canonical()} | by={by} | at={at.isoformat()} | decision={decision.value}"
     if contest_response is not None:
         hashable += f" | contest_response={contest_response}"
@@ -265,16 +299,18 @@ def ratify(
     contest_response: str | None = None,
     ledger: Ledger | None = None,
 ) -> Ratification:
-    """Z2 signs. Refused from any other zone or any non-authorized identity.
+    """Model a Z2 transition for an allowed claimed identity.
 
     Decision Routing steps 5–9: ACCEPT → CI merges and Z3 executes; EDIT → Z1
     revises and resubmits; REJECT → reason documented, Z1 may re-propose or
     contest within 48h. A REJECT without a documented reason is refused. The
     display name "Night" is refused as a signer: only the two ratified
-    identities sign. With a `ledger`, the signature is written as a RATIFY
-    row; a refusal writes nothing.
+    identities are accepted as values. The caller is not authenticated here.
+    With a `ledger`, the modeled hash is written as a RATIFY row; a refusal
+    writes nothing.
     """
     _require(zone, Action.RATIFY)
+    _require_aware(at, "ratification timestamp")
     if by not in AUTHORIZED_Z2_IDENTITIES:
         raise GateRefused(
             f"{by!r} is not an authorized Z2 identity (Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01); "
@@ -294,7 +330,7 @@ def ratify(
 
 
 def verify_ratification(candidate: Candidate, ratification: Ratification) -> bool:
-    """Recompute the signature from its inputs. False on any drift in any field."""
+    """Recompute the unkeyed hash. This checks consistency, not identity."""
     if ratification.candidate_id != candidate.candidate_id:
         return False
     if ratification.by not in AUTHORIZED_Z2_IDENTITIES:
@@ -313,6 +349,7 @@ def window_state(candidate: Candidate, now: datetime, decided: bool, urgent: boo
 
     An EXPIRED window is a GAP callout and the trigger for the contest route.
     """
+    _require_aware(now, "window timestamp")
     if decided:
         return "DECIDED"
     window = URGENT_WINDOW if urgent else DECISION_WINDOW
@@ -332,10 +369,11 @@ def contest(
     of its signature, or when the 48h window closed with no decision at all.
     A `prior` that does not verify against the candidate (forged, or signed
     for another candidate) is refused, as is a contest dated before the
-    rejection it contests. Never mutates `prior`: the Admiral answers with a
+    rejection it contests. Does not mutate `prior`: the Admiral answers with a
     *new* RATIFY event carrying `contest_response`.
     """
     _require(zone, Action.CONTEST)
+    _require_aware(now, "contest timestamp")
     if not contest_reason.strip():
         raise GateRefused(f"{candidate.candidate_id}: a contest without a reason is not a contest")
     if prior is None:
@@ -388,8 +426,10 @@ class Ledger:
         return hashlib.sha256(f"{prev_hash}|{body}".encode("utf-8")).hexdigest()
 
     def append(self, kind: str, at: datetime, by: str, payload: Mapping[str, Any]) -> Event:
+        _require_aware(at, "event timestamp")
         prev = self._events[-1].hash if self._events else self.GENESIS
-        ev = Event(kind, at, by, dict(payload), prev, self._digest(kind, at, by, payload, prev))
+        normalized = json.loads(json.dumps(payload, sort_keys=True, default=str))
+        ev = Event(kind, at, by, normalized, prev, self._digest(kind, at, by, normalized, prev))
         self._events.append(ev)
         return ev
 
@@ -417,7 +457,7 @@ def execute(
     now: datetime,
     ledger: Ledger,
 ) -> Event:
-    """Z3 lands a ratified change and writes one EXECUTE row. Four refusals, in order:
+    """Model a Z3 transition and write one EXECUTE row. Four refusals, in order:
 
     1. wrong zone;  2. no Z2 hash (CI enforces);  3. hash does not verify, or
     is not an ACCEPT;  4. CI gate not green. Only then is the EXECUTE row written.
@@ -425,6 +465,7 @@ def execute(
     at window close by the measurement step (molt_cycle.py), not here.
     """
     _require(zone, Action.EXECUTE)
+    _require_aware(now, "execution timestamp")
     if ratification is None:
         raise GateRefused(f"{candidate.candidate_id}: no Z2 hash — Z3 cannot execute without one (CI enforces)")
     if not verify_ratification(candidate, ratification):
@@ -503,7 +544,7 @@ def session_open(state: Mapping[str, Any]) -> list[str]:
 
     Keys read: pinned_sha, registered_read_at_sha, queue_read, zone_registry_ok,
     manifest_ok, position, destination, probability. A missing key is a halt,
-    never a pass — the cautious default, as in authorization_evidence.py.
+    a missing key is a refusal — the cautious default, as in authorization_evidence.py.
     """
     halts: list[str] = []
     sha = state.get("pinned_sha")
@@ -543,7 +584,7 @@ def reconcile(claims: Iterable[str], tree: Iterable[str]) -> Receipt:
     `claims` are the statements a transcript makes; `tree` is what the B.0
     verification block actually showed (paths, hashes, counts). A claim with no
     matching entry is a RECEIPT-GAP, and the receipt must be walked back to the
-    tree — never the tree explained up to the claim.
+    tree — the tree is not explained up to the claim.
     """
     have = set(tree)
     matched, gaps = [], []
@@ -557,6 +598,7 @@ def session_close(state: Mapping[str, Any], ledger: Ledger, now: datetime, by: s
 
     Keys read: code_ran, prereg_verified, claims, tree, handoff_written.
     """
+    _require_aware(now, "session-close timestamp")
     if not state.get("code_ran"):
         raise GateRefused("B.0: code did not run this session; close refused")
     if not state.get("prereg_verified"):
@@ -615,9 +657,9 @@ def _smoke_test() -> int:
                    "bda7c88", "claude", t0, ledger)
     ok(len(ledger) == 1 and ledger.events("PROPOSE")[0].payload["candidate_id"] == cand.candidate_id,
        "an accepted proposal is a PROPOSE row")
-    ok(can(Zone.Z1, Action.PROPOSE) and not can(Zone.Z1, Action.RATIFY), "Z1 proposes, never ratifies")
-    ok(can(Zone.Z2, Action.RATIFY) and not can(Zone.Z2, Action.EXECUTE), "Z2 ratifies, never executes")
-    ok(can(Zone.Z3, Action.EXECUTE) and not can(Zone.Z3, Action.RATIFY), "Z3 executes, never ratifies")
+    ok(can(Zone.Z1, Action.PROPOSE) and not can(Zone.Z1, Action.RATIFY), "Z1 proposes and does not ratify")
+    ok(can(Zone.Z2, Action.RATIFY) and not can(Zone.Z2, Action.EXECUTE), "Z2 ratifies and does not execute")
+    ok(can(Zone.Z3, Action.EXECUTE) and not can(Zone.Z3, Action.RATIFY), "Z3 executes and does not ratify")
 
     # Z3 cannot execute without a hash; Z1 cannot ratify; an unknown identity cannot sign;
     # the display name "Night" is a label, not a signer.
@@ -653,7 +695,7 @@ def _smoke_test() -> int:
     acc = ratify(Zone.Z2, cand, "aioshuman@gmail.com", t2, Decision.ACCEPT,
                  contest_response="re-read: falsifier is adequate", ledger=ledger)
     ok(acc.hash != rej.hash and verify_ratification(cand, rej) and verify_ratification(cand, acc),
-       "a new RATIFY event never rewrites the prior one")
+       "a new RATIFY event preserves the prior one")
     refused(contest, Zone.Z1, cand, acc, t2, "an ACCEPT is not contestable")
     ok(ledger.events("RATIFY")[-1].payload["contested"] is True, "the re-read is its own RATIFY row")
 
