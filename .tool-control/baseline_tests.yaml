@@ -84,6 +84,10 @@ baseline_tests:
     requires: []
     description: Molt tier classifier tests
 
+  - path: tools/tests/test_pre_submit.py
+    requires: []
+    description: PR pre-submission check parsing and policy tests
+
   - path: tools/tests/test_ratify_index_write.py
     requires: []
     description: Ratify index write tests
