@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Issue #806: immutable tree inventory and conservative review coverage accounting.
+"""HumanAIOS Builder v1.7 compliant — issue #806 immutable tree inventory.
 
 This tool does NOT invoke CodeRabbit and cannot authenticate review receipts.
 REVIEWED remains impossible until an independent protected witness adapter exists.
 """
+TOOL_NAME = "coderabbit_coverage_inventory"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "audit_tool"
+TOOL_ZONE = 1
+
 import argparse
 import json
 import subprocess
@@ -42,6 +47,7 @@ def inventory(commit):
             status, reason = "PENDING", "not submitted to an authenticated reviewer"
         items.append({"path": path, "mode": mode, "git_type": kind, "git_oid": blob,
                       "status": status, "reason": reason, "review_receipt": None})
+    items.sort(key=lambda row: row["path"])
     return {"schema": "coderabbit_coverage_v0", "commit": resolved, "files": items}
 
 
@@ -69,11 +75,24 @@ def validate(doc):
             "complete": False, "review_verdict": "NOT_VERIFIED"}
 
 
+def run_smoke_test():
+    sample = {"files": [{"path": "example.py", "status": "PENDING", "reason": "pending"}]}
+    return validate(sample)["review_verdict"] == "NOT_VERIFIED"
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--commit", required=True, help="full immutable 40-character commit SHA")
-    p.add_argument("--output", required=True)
+    p.add_argument("--commit", help="full immutable 40-character commit SHA")
+    p.add_argument("--output")
+    p.add_argument("--smoke-test", action="store_true")
     args = p.parse_args()
+    if args.smoke_test:
+        if not run_smoke_test():
+            raise SystemExit(1)
+        print("smoke-test OK")
+        return
+    if not args.commit or not args.output:
+        p.error("--commit and --output are required unless --smoke-test is used")
     doc = inventory(args.commit)
     doc["summary"] = validate(doc)
     Path(args.output).write_text(json.dumps(doc, indent=2, ensure_ascii=True) + "\n")
