@@ -207,3 +207,7 @@ baseline_tests:
   - path: tests/test_scvc_v02_oidc_identity.py
     requires: []
     description: GitHub OIDC issuer identity and replay-resistant verification negative tests
+
+  - path: tests/coderabbit_audit/test_coverage_inventory.py
+    requires: []
+    description: CodeRabbit exact-commit inventory fail-closed and classification regressions (#806)
