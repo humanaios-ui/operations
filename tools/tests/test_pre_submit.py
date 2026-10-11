@@ -141,6 +141,9 @@ def test_strict_loader_rejects_duplicate_keys():
     try:
         import yaml
     except ImportError:
+        if "pytest" in sys.modules:
+            import pytest
+            pytest.skip("PyYAML not installed")
         print("skip: PyYAML not installed")
         return
     loader = ps._strict_loader(yaml)
@@ -160,7 +163,7 @@ if __name__ == "__main__":
             try:
                 fn()
                 print(f"PASS {name}")
-            except AssertionError as exc:
+            except Exception as exc:
                 failures += 1
-                print(f"FAIL {name}: {exc}")
+                print(f"FAIL {name}: {type(exc).__name__}: {exc}")
     sys.exit(1 if failures else 0)

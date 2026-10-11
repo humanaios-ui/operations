@@ -87,7 +87,7 @@ def git(*args: str) -> str:
 def ref_exists(ref: str) -> bool:
     return subprocess.run(
         ["git", "rev-parse", "--verify", "--quiet", ref],
-        cwd=REPO, capture_output=True,
+        cwd=REPO, capture_output=True, check=False,
     ).returncode == 0
 
 
@@ -149,7 +149,7 @@ def check_branch(base: str) -> list[Check]:
         out.append(Check("Commits", "fail", f"no commits ahead of {base}; nothing to submit"))
     else:
         out.append(Check("Commits", "pass", f"{ahead} commit(s) ahead of {base}"))
-    if git("status", "--porcelain").strip():
+    if git("status", "--porcelain", "--untracked-files=no").strip():
         out.append(Check("Working tree", "warn", "uncommitted changes will not be in the PR"))
     return out
 
@@ -162,7 +162,8 @@ def check_noop(files: list[str], base: str) -> Check:
 
 
 def check_readiness() -> Check:
-    proc = subprocess.run(["bash", str(VERIFY)], cwd=REPO, capture_output=True, text=True)
+    proc = subprocess.run(["bash", str(VERIFY)], cwd=REPO, capture_output=True, text=True,
+                          check=False)
     if proc.returncode == 0:
         return Check("Readiness", "pass", "verify_pr_readiness.sh passed")
     lines = proc.stdout.splitlines()
@@ -392,14 +393,14 @@ def main(argv: list[str] | None = None) -> int:
         checks = check_branch(base)
         files = changed_files(base)
         checks.append(check_noop(files, base))
-    except (RuntimeError, subprocess.CalledProcessError) as exc:
+        molt_check, tier, evidence = check_molt(files, load_classifier())
+    except (RuntimeError, subprocess.CalledProcessError, OSError, SyntaxError) as exc:
         print(f"pre_submit: environment error: {exc}", file=sys.stderr)
         return 2
 
     checks.append(check_readiness())
     checks.append(check_workflows(files))
     checks.append(check_secrets(base))
-    molt_check, tier, evidence = check_molt(files, load_classifier())
     checks.append(molt_check)
 
     if args.body_out:

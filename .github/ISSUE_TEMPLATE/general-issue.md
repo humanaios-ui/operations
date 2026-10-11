@@ -16,7 +16,7 @@ assignees: []
 <!-- Commands, file paths, a link to a CI run, or the exact output. -->
 
 ## Zone
-<!-- See GOVERNANCE.md. Pick one; say so if unsure. -->
+<!-- The labels summarise the zones; GOVERNANCE.md has the full criteria. Pick one; say so if unsure. -->
 
 - [ ] **Z1**: AI can execute this without ratification
 - [ ] **Z2**: needs operator ratification (canonical record or finding)
