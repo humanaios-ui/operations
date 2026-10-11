@@ -99,6 +99,44 @@ class VerifiedReceiptResolverTests(unittest.TestCase):
         self.assertFalse(result.valid)
         self.assertEqual("RECEIPT_ALREADY_CONSUMED", result.reason)
 
+    def test_consumed_one_time_receipt_can_be_required_for_audit_replay(self):
+        events, head = build_receipt_chain_for_testing([
+            receipt_event(one_time=True),
+            {
+                "type": "RECEIPT_CONSUMED",
+                "receipt_id": "r1",
+                "subject": "dissent_preserved",
+                "by": "consumer",
+            },
+        ])
+        requirement = ReceiptRequirement(
+            receipt_type="HARMONY_GATE",
+            subject="dissent_preserved",
+            action="ASSERT_GATE",
+            scope="run:test",
+            min_strength="OBSERVED",
+            consumption_state="CONSUMED",
+        )
+        result = VerifiedReceiptResolver(events, head).resolve("r1", requirement)
+        self.assertTrue(result.valid)
+        self.assertEqual("consumer", result.consumption["by"])
+
+    def test_required_consumption_rejects_unconsumed_receipt(self):
+        events, head = build_receipt_chain_for_testing([
+            receipt_event(one_time=True),
+        ])
+        requirement = ReceiptRequirement(
+            receipt_type="HARMONY_GATE",
+            subject="dissent_preserved",
+            action="ASSERT_GATE",
+            scope="run:test",
+            min_strength="OBSERVED",
+            consumption_state="CONSUMED",
+        )
+        result = VerifiedReceiptResolver(events, head).resolve("r1", requirement)
+        self.assertFalse(result.valid)
+        self.assertEqual("RECEIPT_NOT_CONSUMED", result.reason)
+
     def test_resolution_returns_receipt_copy(self):
         events, head = build_receipt_chain_for_testing([receipt_event()])
         resolver = VerifiedReceiptResolver(events, head)

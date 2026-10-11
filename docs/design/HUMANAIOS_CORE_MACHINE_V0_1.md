@@ -67,9 +67,9 @@ Those values are constants, not caller options. Their meaning is precise:
    supplied its runtime trust anchors.
 
 The protected caller is responsible for supplying the policy document, subject
-head, receipt-chain head, and issuer identities from independently authenticated
-sources. A bytecode program cannot embed those runtime values as sufficient
-proof of itself.
+head, latest-review snapshot, receipt-chain head, issuer identities, and any
+consumption actor from independently authenticated sources. A bytecode program
+cannot embed those runtime values as sufficient proof of itself.
 
 ## 3. Binary format
 
@@ -153,7 +153,8 @@ stateDiagram-v2
 
 The v0.1 program contains one context and at most one warrant, authority import,
 action, and outcome. Multiple observations, claims, and challenges are allowed.
-Object identifiers are unique across the whole program.
+Object identifiers are unique across the whole program. Opcode phases are
+monotonic: after `WARRANT`, no observation, claim, or challenge can be added.
 
 ## 6. Epistemic rules
 
@@ -196,9 +197,12 @@ The rest comes from runtime state that is not in the bytecode:
 
 - the exact subject head;
 - the canonical Repository Coordinator policy document;
+- a current, protected snapshot of decision-bearing PR reviews;
 - the pinned receipt-chain head and receipt events;
 - the authorization witness issuer;
-- the action/outcome observation witness issuer.
+- the action/outcome observation witness issuer;
+- for post-action replay, the protected caller identity that atomically consumed
+  the authorization receipt.
 
 The VM recomputes the policy digest and requires it to match both the bytecode
 header and `PIN_CONTEXT`. It then checks the policy still contains:
@@ -221,17 +225,33 @@ and match all of these fields:
 | `issuer` | runtime authorization issuer |
 | `authority_scope` | `EVALUATION_ONLY` |
 | `actor` | member of the policy’s `authorized_actors` |
+| `review_id` | ID of that actor’s latest decision-bearing review |
 | `review_state` | `APPROVED` |
+| `review_submitted_at` | timestamp in the protected review snapshot |
+| `review_is_latest` | `true` |
+| `review_snapshot_sha256` | digest of the exact protected snapshot supplied at runtime |
 | `source_kind` | `GITHUB_PULL_REQUEST_REVIEW` |
 | `issue_state` | `ADMISSION_REQUESTED` |
 | `subject_head_sha` | exact context head |
 | `warrant_id` | exact current warrant |
+| `warrant_sha256` | digest of the warrant and its cited claims, observations, and challenges |
+| `one_time` | `true` |
 | `merge_authority` | `false` |
 
 An issue comment fails the `source_kind` test even when its wording resembles an
 admission command. A receipt bound to an earlier PR head fails the subject test.
-A consumed one-time receipt fails in `tools/verified_receipts.py` before these
-additional bindings are considered.
+The snapshot contains normalized decision-bearing reviews only: `review_id`,
+`actor`, `state`, and `submitted_at`. HCM chooses each actor’s latest entry by
+timestamp and review ID. A later `DISMISSED` or `CHANGES_REQUESTED` entry therefore
+invalidates an earlier approval even when the old receipt remains in the ledger.
+
+For an authority-only replay, the one-time receipt must be unconsumed. The HCM
+result is not proof of consumption and cannot authorize action. A protected
+caller must use `consume_receipt_atomic` from `tools/verified_receipts.py` with
+the expected chain head before acting. HCM does not append `RECEIPT_CONSUMED`.
+For a post-action replay containing `RECORD_ACTION`, the pinned ledger must
+instead contain exactly one matching consumption event, attributed to the
+runtime-pinned consumption actor and ordered before the action observation.
 
 ## 8. Action and outcome records
 
@@ -247,6 +267,8 @@ The action receipt binds:
 - warrant action and scope;
 - authorization receipt ID;
 - warrant ID;
+- warrant evidence-closure digest;
+- a prior matching authorization-consumption event in the same hash chain;
 - `event_state = OBSERVED`.
 
 The outcome receipt binds:
@@ -274,6 +296,11 @@ Any runtime mismatch returns `HALTED`. Detailed external values are not echoed.
 When a diagnostic detail exists, the receipt includes a truncated digest of that
 detail rather than the value itself.
 
+When runtime evidence is supplied, the result also carries the pinned
+`receipt_chain_head` and the canonical `review_snapshot_sha256`. Those values are
+part of the content-derived receipt ID, so replays against different evidence
+snapshots cannot collapse to the same HCM receipt.
+
 Receipt IDs are content-derived:
 
 ```text
@@ -288,26 +315,28 @@ Compile:
 
 ```bash
 python3 tools/humanaios_core_machine_v0_1.py \
-  compile program.json program.hcm
+  compile --input program.json --output program.hcm
 ```
 
 Disassemble and integrity-check:
 
 ```bash
 python3 tools/humanaios_core_machine_v0_1.py \
-  disassemble program.hcm
+  disassemble --input program.hcm
 ```
 
 Replay with runtime pins:
 
 ```bash
-python3 tools/humanaios_core_machine_v0_1.py run program.hcm \
+python3 tools/humanaios_core_machine_v0_1.py run --input program.hcm \
   --policy REPOSITORY_COORDINATOR_POLICY.json \
+  --review-snapshot latest-reviews.json \
   --subject-head <exact-pr-head> \
   --receipt-ledger <verified-receipts.jsonl> \
   --receipt-head <independently-pinned-chain-head> \
   --authorization-issuer <protected-review-witness> \
   --observation-issuer <protected-action-witness> \
+  --consumption-actor <protected-caller> \
   --output <receipt.json>
 ```
 
@@ -325,8 +354,11 @@ of these tests succeeds when it should fail:
 5. authorization for an earlier head binds to the current head;
 6. policy with merge authority enabled passes the v0.1 boundary;
 7. an action or outcome records without its prior receipt binding;
-8. the VM performs an external action;
-9. a result changes any of the four non-authority constants.
+8. an earlier approval survives a later dismissal in the supplied review snapshot;
+9. altered claim evidence reuses authorization for the old warrant closure;
+10. an observed action lacks a prior atomic-consumption event;
+11. the VM performs an external action;
+12. a result changes any of the non-authority constants.
 
 The pilot does not establish that a receipt issuer or runtime pin is authentic.
 It checks exact binding after a protected caller supplies those trust anchors.

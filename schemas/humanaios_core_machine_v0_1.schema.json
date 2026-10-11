@@ -4,7 +4,8 @@
   "title": "HumanAIOS Core Machine v0.1 contracts",
   "oneOf": [
     {"$ref": "#/$defs/program"},
-    {"$ref": "#/$defs/receipt"}
+    {"$ref": "#/$defs/receipt"},
+    {"$ref": "#/$defs/review_snapshot"}
   ],
   "$defs": {
     "sha256": {
@@ -26,6 +27,37 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": {"$ref": "#/$defs/opaque"}
+    },
+    "review_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "subject_head_sha", "reviews"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "subject_head_sha": {"$ref": "#/$defs/commit"},
+        "reviews": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["review_id", "actor", "state", "submitted_at"],
+            "properties": {
+              "review_id": {"$ref": "#/$defs/opaque"},
+              "actor": {"$ref": "#/$defs/opaque"},
+              "state": {
+                "enum": ["APPROVED", "CHANGES_REQUESTED", "DISMISSED"]
+              },
+              "submitted_at": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"
+              }
+            }
+          }
+        }
+      }
     },
     "pin_context": {
       "type": "object",
@@ -286,6 +318,8 @@
         "subject_head_sha": {"$ref": "#/$defs/commit"},
         "policy_sha256": {"$ref": "#/$defs/sha256"},
         "program_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_chain_head": {"$ref": "#/$defs/sha256"},
+        "review_snapshot_sha256": {"$ref": "#/$defs/sha256"},
         "status": {
           "enum": [
             "READY_FOR_EXTERNAL_AUTHORITY",
@@ -307,7 +341,9 @@
           "propertyNames": {
             "enum": [
               "warrant_id", "authorization_receipt_id",
-              "action_receipt_id", "outcome_receipt_id"
+              "warrant_sha256", "review_snapshot_sha256",
+              "authorization_consumption", "action_receipt_id",
+              "outcome_receipt_id"
             ]
           },
           "additionalProperties": {"$ref": "#/$defs/opaque"}

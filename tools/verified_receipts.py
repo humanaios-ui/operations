@@ -53,6 +53,10 @@ ALLOWED_VERIFICATION_METHODS = {
 _RECEIPT_ID_RE = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 
 
+class SpecLoadFailed(Exception):
+    """Raised when a caller supplies an unreadable receipt specification."""
+
+
 def canonical_verification_method(value: Any) -> str:
     """Canonicalize a verification-method token before policy checks."""
     return str(value or "").strip().upper()
@@ -79,6 +83,7 @@ class ReceiptRequirement:
     min_strength: str = "OBSERVED"
     issuer: Optional[str] = None
     authority_scope: Optional[str] = None
+    consumption_state: str = "UNCONSUMED"
 
 
 @dataclass(frozen=True)
@@ -87,6 +92,7 @@ class ReceiptResolution:
     receipt_id: Optional[str] = None
     reason: Optional[str] = None
     receipt: Optional[Dict[str, Any]] = None
+    consumption: Optional[Dict[str, Any]] = None
     chain_head: Optional[str] = None
 
 
@@ -99,7 +105,7 @@ class VerifiedReceiptResolver:
         self.chain_error = self._verify_chain()
         self._receipts: Dict[str, Dict[str, Any]] = {}
         self._revoked: set[str] = set()
-        self._consumed: set[str] = set()
+        self._consumed: Dict[str, List[Dict[str, Any]]] = {}
         if self.chain_error is None:
             self._project()
 
@@ -147,7 +153,7 @@ class VerifiedReceiptResolver:
             elif event_type == "RECEIPT_REVOKED":
                 self._revoked.add(receipt_id)
             elif event_type == "RECEIPT_CONSUMED":
-                self._consumed.add(receipt_id)
+                self._consumed.setdefault(receipt_id, []).append(event)
 
     def resolve(
         self,
@@ -180,14 +186,57 @@ class VerifiedReceiptResolver:
                 chain_head=self.pinned_head_hash,
             )
 
-        if receipt.get("one_time") and receipt_id in self._consumed:
+        consumption_state = str(requirement.consumption_state).strip().upper()
+        if consumption_state not in {"UNCONSUMED", "CONSUMED"}:
+            return ReceiptResolution(
+                valid=False,
+                receipt_id=receipt_id,
+                reason="UNKNOWN_CONSUMPTION_STATE",
+                receipt=dict(receipt),
+                chain_head=self.pinned_head_hash,
+            )
+
+        consumptions = self._consumed.get(receipt_id, [])
+        if len(consumptions) > 1:
+            return ReceiptResolution(
+                valid=False,
+                receipt_id=receipt_id,
+                reason="DUPLICATE_RECEIPT_CONSUMPTION",
+                receipt=dict(receipt),
+                chain_head=self.pinned_head_hash,
+            )
+        consumption = consumptions[0] if consumptions else None
+
+        if (
+            consumption_state == "UNCONSUMED"
+            and receipt.get("one_time")
+            and consumption is not None
+        ):
             return ReceiptResolution(
                 valid=False,
                 receipt_id=receipt_id,
                 reason="RECEIPT_ALREADY_CONSUMED",
                 receipt=dict(receipt),
+                consumption=dict(consumption),
                 chain_head=self.pinned_head_hash,
             )
+        if consumption_state == "CONSUMED":
+            if not receipt.get("one_time"):
+                return ReceiptResolution(
+                    valid=False,
+                    receipt_id=receipt_id,
+                    reason="RECEIPT_NOT_ONE_TIME",
+                    receipt=dict(receipt),
+                    chain_head=self.pinned_head_hash,
+                )
+            if consumption is None:
+                return ReceiptResolution(
+                    valid=False,
+                    receipt_id=receipt_id,
+                    reason="RECEIPT_NOT_CONSUMED",
+                    receipt=dict(receipt),
+                    chain_head=self.pinned_head_hash,
+                )
 
         if receipt.get("verification_status") != "VERIFIED":
             return ReceiptResolution(
@@ -277,6 +326,7 @@ class VerifiedReceiptResolver:
             valid=True,
             receipt_id=receipt_id,
             receipt=dict(receipt),
+            consumption=dict(consumption) if consumption is not None else None,
             chain_head=self.pinned_head_hash,
         )
 
@@ -305,6 +355,8 @@ def _verify_existing_chain(events: List[Dict[str, Any]]) -> Optional[str]:
     if not events:
         return None
     head = events[-1].get("hash")
+    if not isinstance(head, str):
+        raise ValueError("existing receipt ledger invalid: missing head hash")
     resolver = VerifiedReceiptResolver(events, head)
     if resolver.chain_error is not None:
         raise ValueError(f"existing receipt ledger invalid: {resolver.chain_error}")
@@ -410,6 +462,11 @@ def read_receipt_events(path: str) -> tuple[List[Dict[str, Any]], Optional[str]]
         events = _read_events_unlocked(p)
         head = events[-1].get("hash") if events else None
         return events, head
+
+
+def write_report(output: Dict[str, Any], destination: str | Path) -> None:
+    """Write a deterministic JSON report to an explicit destination."""
+    Path(destination).write_bytes(_canon(dict(output)) + b"\n")
 
 
 # ── Builder v1.7 smoke test / entry point ────────────────────────────────────

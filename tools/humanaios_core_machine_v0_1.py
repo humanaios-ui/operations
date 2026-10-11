@@ -14,9 +14,11 @@ separately from bytecode, so a program cannot package its own sufficient trust.
 
 Usage:
   python3 tools/humanaios_core_machine_v0_1.py --smoke-test
-  python3 tools/humanaios_core_machine_v0_1.py compile SOURCE.json PROGRAM.hcm
-  python3 tools/humanaios_core_machine_v0_1.py disassemble PROGRAM.hcm
-  python3 tools/humanaios_core_machine_v0_1.py run PROGRAM.hcm --policy POLICY.json \
+  python3 tools/humanaios_core_machine_v0_1.py compile --input SOURCE.json \
+      --output PROGRAM.hcm
+  python3 tools/humanaios_core_machine_v0_1.py disassemble --input PROGRAM.hcm
+  python3 tools/humanaios_core_machine_v0_1.py run --input PROGRAM.hcm \
+      --policy POLICY.json --review-snapshot REVIEWS.json \
       --subject-head SHA --receipt-ledger RECEIPTS.jsonl --receipt-head HASH \
       --authorization-issuer ISSUER --observation-issuer ISSUER
 """
@@ -60,6 +62,7 @@ DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT_RE = re.compile(r"[0-9a-f]{40}\Z")
 OPAQUE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:@/+\-]{0,255}\Z")
 REPOSITORY_RE = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
+TIMESTAMP_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\Z")
 
 FORBIDDEN_RAW_KEYS = frozenset({
     "body", "content", "email", "message", "private", "secret", "text", "token",
@@ -69,6 +72,7 @@ EVIDENCE_STATES = frozenset({"OBSERVED", "ATTESTED", "UNKNOWN", "DISPUTED"})
 CHALLENGE_STATES = frozenset({"OPEN", "RESOLVED"})
 SUPPORTED_ACTIONS = frozenset({"EVALUATION_ADMISSION"})
 STRENGTHS = frozenset({"ATTESTED", "CRYPTO_VERIFIED"})
+REVIEW_STATES = frozenset({"APPROVED", "CHANGES_REQUESTED", "DISMISSED"})
 
 
 class SpecLoadFailed(Exception):
@@ -131,6 +135,8 @@ class TrustContext:
     receipt_chain_head: str
     authorization_issuer: str
     observation_issuer: str
+    review_snapshot: Mapping[str, Any] | None = None
+    consumption_actor: str | None = None
 
 
 def _json_value(value: Any, *, path: str = "$", depth: int = 0) -> None:
@@ -327,7 +333,9 @@ def _validate_program(
                 raise MachineError("POLICY_HEADER_CONTEXT_MISMATCH")
             _opaque(arg["purpose"], "purpose")
             if "source_issue" in arg and (
-                not isinstance(arg["source_issue"], int) or arg["source_issue"] <= 0
+                isinstance(arg["source_issue"], bool)
+                or not isinstance(arg["source_issue"], int)
+                or arg["source_issue"] <= 0
             ):
                 raise MachineError("INVALID_SOURCE_ISSUE")
             context = arg
@@ -579,6 +587,59 @@ def disassemble_program(bytecode: bytes) -> dict[str, Any]:
     }
 
 
+def _warrant_closure_sha256(program: DecodedProgram) -> str:
+    """Digest the warrant and the complete evidence closure that supports it."""
+    observations = {
+        item.operand["id"]: item.operand
+        for item in program.instructions
+        if item.opcode is Opcode.OBSERVE
+    }
+    claims = {
+        item.operand["id"]: item.operand
+        for item in program.instructions
+        if item.opcode is Opcode.CLAIM
+    }
+    challenges = [
+        item.operand
+        for item in program.instructions
+        if item.opcode is Opcode.CHALLENGE
+    ]
+    warrants = [
+        item.operand
+        for item in program.instructions
+        if item.opcode is Opcode.WARRANT
+    ]
+    if len(warrants) != 1:
+        raise MachineError("WARRANT_CLOSURE_UNAVAILABLE")
+    warrant = warrants[0]
+    cited_claims = [claims[identifier] for identifier in warrant["claim_ids"]]
+    evidence_ids = {
+        identifier
+        for claim in cited_claims
+        for identifier in claim["evidence_ids"]
+    }
+    cited_challenges = [
+        challenge
+        for challenge in challenges
+        if challenge["claim_id"] in warrant["claim_ids"]
+    ]
+    closure = {
+        "observations": sorted(
+            (observations[identifier] for identifier in evidence_ids),
+            key=lambda item: item["id"],
+        ),
+        "claims": sorted(cited_claims, key=lambda item: item["id"]),
+        "challenges": sorted(cited_challenges, key=lambda item: item["id"]),
+        "warrant": warrant,
+    }
+    return sha256(canonical_json(closure)).hexdigest()
+
+
+def warrant_sha256(bytecode: bytes) -> str:
+    """Return the evidence-closure digest an authorization receipt must bind."""
+    return _warrant_closure_sha256(decode_program(bytecode))
+
+
 def _receipt_module() -> tuple[Any, Any]:
     """Load the existing pinned receipt resolver from the tools directory."""
     tools_dir = str(Path(__file__).resolve().parent)
@@ -596,6 +657,8 @@ def _base_receipt(
     reason_codes: Sequence[str],
     counts: Mapping[str, int],
     bindings: Mapping[str, Any] | None = None,
+    receipt_chain_head: str | None = None,
+    review_snapshot_sha256: str | None = None,
 ) -> dict[str, Any]:
     body: dict[str, Any] = {
         "schema": RECEIPT_SCHEMA,
@@ -615,6 +678,10 @@ def _base_receipt(
         "merge_authority": False,
         "authenticated": False,
     }
+    if receipt_chain_head is not None:
+        body["receipt_chain_head"] = receipt_chain_head
+    if review_snapshot_sha256 is not None:
+        body["review_snapshot_sha256"] = review_snapshot_sha256
     body["receipt_id"] = "HCM-" + sha256(canonical_json(body)).hexdigest()[:24]
     return body
 
@@ -622,14 +689,24 @@ def _base_receipt(
 def _policy_inputs(policy: Mapping[str, Any]) -> tuple[set[str], str, str]:
     """Extract the exact evaluation-admission boundary from policy v0.3+ shape."""
     try:
-        invariants = set(policy["invariants"])
+        raw_invariants = policy["invariants"]
         evaluation = policy["evaluation_admission"]
-        actors = set(evaluation["authorized_actors"])
+        raw_actors = evaluation["authorized_actors"]
         issue_state = evaluation["required_issue_state"]
         authority_effect = evaluation["authority_effect"]
         merge_authority = evaluation["merge_authority"]
     except (KeyError, TypeError) as exc:
         raise MachineError("POLICY_SHAPE_UNSUPPORTED") from exc
+    if not isinstance(raw_invariants, list) or not all(
+        isinstance(item, str) for item in raw_invariants
+    ):
+        raise MachineError("POLICY_SHAPE_UNSUPPORTED", "invariants")
+    if not isinstance(raw_actors, list) or not all(
+        isinstance(item, str) for item in raw_actors
+    ):
+        raise MachineError("POLICY_SHAPE_UNSUPPORTED", "authorized_actors")
+    invariants = set(raw_invariants)
+    actors = set(raw_actors)
     required_invariants = {
         "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
         "ADMISSION_IS_NOT_MERGE_AUTHORITY",
@@ -645,6 +722,50 @@ def _policy_inputs(policy: Mapping[str, Any]) -> tuple[set[str], str, str]:
     return actors, issue_state, authority_effect
 
 
+def _review_snapshot_inputs(
+    snapshot: Mapping[str, Any] | None,
+    *,
+    repository: str,
+    subject_head_sha: str,
+) -> tuple[str, dict[str, dict[str, Any]]]:
+    """Validate a protected latest-review snapshot and return its digest/state."""
+    if not isinstance(snapshot, Mapping):
+        raise MachineError("REVIEW_SNAPSHOT_REQUIRED")
+    snapshot_dict = dict(snapshot)
+    _exact_keys(snapshot_dict, {"repository", "subject_head_sha", "reviews"})
+    if snapshot_dict["repository"] != repository:
+        raise MachineError("REVIEW_SNAPSHOT_REPOSITORY_MISMATCH")
+    if snapshot_dict["subject_head_sha"] != subject_head_sha:
+        raise MachineError("REVIEW_SNAPSHOT_HEAD_MISMATCH")
+    reviews = snapshot_dict["reviews"]
+    if not isinstance(reviews, list):
+        raise MachineError("REVIEW_SNAPSHOT_REVIEWS_NOT_LIST")
+
+    latest: dict[str, tuple[tuple[str, str], dict[str, Any]]] = {}
+    review_ids: set[str] = set()
+    for index, raw in enumerate(reviews):
+        if not isinstance(raw, dict):
+            raise MachineError("REVIEW_SNAPSHOT_ENTRY_NOT_OBJECT", str(index))
+        _exact_keys(raw, {"review_id", "actor", "state", "submitted_at"})
+        review_id = _opaque(raw["review_id"], "review_id")
+        if review_id in review_ids:
+            raise MachineError("REVIEW_SNAPSHOT_DUPLICATE_ID", review_id)
+        review_ids.add(review_id)
+        actor = _opaque(raw["actor"], "review.actor")
+        if not isinstance(raw["state"], str) or raw["state"] not in REVIEW_STATES:
+            raise MachineError("REVIEW_SNAPSHOT_STATE_INVALID", review_id)
+        submitted_at = raw["submitted_at"]
+        if not isinstance(submitted_at, str) or TIMESTAMP_RE.fullmatch(submitted_at) is None:
+            raise MachineError("REVIEW_SNAPSHOT_TIMESTAMP_INVALID", review_id)
+        candidate = (submitted_at, review_id)
+        prior = latest.get(actor)
+        if prior is None or candidate >= prior[0]:
+            latest[actor] = (candidate, dict(raw))
+
+    digest = sha256(canonical_json(snapshot_dict)).hexdigest()
+    return digest, {actor: item for actor, (_, item) in latest.items()}
+
+
 def _resolve_receipt(
     trust: TrustContext,
     *,
@@ -656,7 +777,8 @@ def _resolve_receipt(
     min_strength: str,
     issuer: str,
     authority_scope: str,
-) -> dict[str, Any]:
+    consumption_state: str = "UNCONSUMED",
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
     Requirement, Resolver = _receipt_module()
     requirement = Requirement(
         receipt_type=receipt_type,
@@ -666,50 +788,120 @@ def _resolve_receipt(
         min_strength=min_strength,
         issuer=issuer,
         authority_scope=authority_scope,
+        consumption_state=consumption_state,
     )
-    resolution = Resolver(trust.receipt_events, trust.receipt_chain_head).resolve(
-        receipt_id, requirement
-    )
+    try:
+        resolution = Resolver(trust.receipt_events, trust.receipt_chain_head).resolve(
+            receipt_id, requirement
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise MachineError("RECEIPT_LEDGER_INVALID", type(exc).__name__) from exc
     if not resolution.valid:
         raise MachineError("RECEIPT_REJECTED", resolution.reason or "UNKNOWN")
-    return dict(resolution.receipt or {})
+    receipt = dict(resolution.receipt or {})
+    consumption = (
+        dict(resolution.consumption) if resolution.consumption is not None else None
+    )
+    return receipt, consumption
 
 
 def run_program(bytecode: bytes, trust: TrustContext | None = None) -> dict[str, Any]:
     """Replay bytecode and emit a deterministic, non-authoritative receipt."""
     program = decode_program(bytecode)
     context = program.instructions[0].operand
-    counts = {"observations": 0, "claims": 0, "challenges": 0, "warrants": 0,
-              "authorities": 0, "actions": 0, "outcomes": 0}
+    counts = {
+        "observations": 0,
+        "claims": 0,
+        "challenges": 0,
+        "warrants": 0,
+        "authorities": 0,
+        "actions": 0,
+        "outcomes": 0,
+    }
     bindings: dict[str, Any] = {}
     warrant: dict[str, Any] | None = None
+    warrant_digest: str | None = None
     authority: dict[str, Any] | None = None
+    authority_consumption: dict[str, Any] | None = None
     action_record: dict[str, Any] | None = None
+    trusted_chain_head: str | None = None
+    review_snapshot_digest: str | None = None
+    latest_reviews: dict[str, dict[str, Any]] = {}
+    imports_authority = any(
+        item.opcode is Opcode.IMPORT_AUTHORITY for item in program.instructions
+    )
+    records_action = any(
+        item.opcode is Opcode.RECORD_ACTION for item in program.instructions
+    )
 
     def halted(code: str, detail: str = "") -> dict[str, Any]:
         reasons = [code]
         if detail:
             reasons.append("DETAIL_" + sha256(detail.encode("utf-8")).hexdigest()[:16])
         return _base_receipt(
-            program, context, status="HALTED", reason_codes=reasons,
-            counts=counts, bindings=bindings,
+            program,
+            context,
+            status="HALTED",
+            reason_codes=reasons,
+            counts=counts,
+            bindings=bindings,
+            receipt_chain_head=trusted_chain_head,
+            review_snapshot_sha256=review_snapshot_digest,
         )
 
     if trust is not None:
+        if not isinstance(trust.policy_document, Mapping):
+            return halted("POLICY_DOCUMENT_INVALID")
+        if not isinstance(trust.subject_head_sha, str):
+            return halted("SUBJECT_HEAD_INVALID")
+        if COMMIT_RE.fullmatch(trust.subject_head_sha) is None:
+            return halted("SUBJECT_HEAD_INVALID")
+        if not isinstance(trust.receipt_chain_head, str):
+            return halted("RECEIPT_HEAD_INVALID")
+        if DIGEST_RE.fullmatch(trust.receipt_chain_head) is None:
+            return halted("RECEIPT_HEAD_INVALID")
+        trusted_chain_head = trust.receipt_chain_head
+        if not isinstance(trust.authorization_issuer, str):
+            return halted("AUTHORIZATION_ISSUER_INVALID")
+        if OPAQUE_RE.fullmatch(trust.authorization_issuer) is None:
+            return halted("AUTHORIZATION_ISSUER_INVALID")
+        if not isinstance(trust.observation_issuer, str):
+            return halted("OBSERVATION_ISSUER_INVALID")
+        if OPAQUE_RE.fullmatch(trust.observation_issuer) is None:
+            return halted("OBSERVATION_ISSUER_INVALID")
+        if not isinstance(trust.receipt_events, (list, tuple)) or any(
+            not isinstance(event, Mapping) for event in trust.receipt_events
+        ):
+            return halted("RECEIPT_EVENTS_INVALID")
         try:
             trusted_policy_digest = policy_sha256(trust.policy_document)
-        except MachineError as exc:
-            return halted(exc.code, exc.detail)
+        except (MachineError, TypeError, ValueError) as exc:
+            if isinstance(exc, MachineError):
+                return halted(exc.code, exc.detail)
+            return halted("POLICY_DOCUMENT_INVALID", type(exc).__name__)
         if trusted_policy_digest != program.policy_sha256:
             return halted("POLICY_DIGEST_MISMATCH")
         if trust.subject_head_sha != context["subject_head_sha"]:
             return halted("SUBJECT_HEAD_MISMATCH")
-        if not DIGEST_RE.fullmatch(trust.receipt_chain_head):
-            return halted("RECEIPT_HEAD_INVALID")
-        if not OPAQUE_RE.fullmatch(trust.authorization_issuer):
-            return halted("AUTHORIZATION_ISSUER_INVALID")
-        if not OPAQUE_RE.fullmatch(trust.observation_issuer):
-            return halted("OBSERVATION_ISSUER_INVALID")
+        if imports_authority:
+            try:
+                review_snapshot_digest, latest_reviews = _review_snapshot_inputs(
+                    trust.review_snapshot,
+                    repository=context["repository"],
+                    subject_head_sha=context["subject_head_sha"],
+                )
+            except MachineError as exc:
+                return halted(exc.code, exc.detail)
+        if records_action:
+            if not isinstance(trust.consumption_actor, str):
+                return halted("CONSUMPTION_ACTOR_INVALID")
+            if OPAQUE_RE.fullmatch(trust.consumption_actor) is None:
+                return halted("CONSUMPTION_ACTOR_INVALID")
+        elif trust.consumption_actor is not None and (
+            not isinstance(trust.consumption_actor, str)
+            or OPAQUE_RE.fullmatch(trust.consumption_actor) is None
+        ):
+            return halted("CONSUMPTION_ACTOR_INVALID")
 
     for instruction in program.instructions[1:]:
         op, arg = instruction.opcode, instruction.operand
@@ -722,14 +914,21 @@ def run_program(bytecode: bytes, trust: TrustContext | None = None) -> dict[str,
         elif op is Opcode.WARRANT:
             counts["warrants"] += 1
             warrant = arg
+            warrant_digest = _warrant_closure_sha256(program)
             bindings["warrant_id"] = arg["id"]
+            bindings["warrant_sha256"] = warrant_digest
         elif op is Opcode.IMPORT_AUTHORITY:
-            if trust is None or warrant is None:
+            if trust is None or warrant is None or warrant_digest is None:
                 return halted("RUNTIME_TRUST_CONTEXT_REQUIRED")
+            if review_snapshot_digest is None:
+                return halted("REVIEW_SNAPSHOT_REQUIRED")
             try:
-                actors, issue_state, authority_effect = _policy_inputs(trust.policy_document)
+                actors, issue_state, authority_effect = _policy_inputs(
+                    trust.policy_document
+                )
                 subject = f"repo:{context['repository']}@{context['subject_head_sha']}"
-                receipt = _resolve_receipt(
+                consumption_state = "CONSUMED" if records_action else "UNCONSUMED"
+                receipt, consumption = _resolve_receipt(
                     trust,
                     receipt_id=arg["receipt_id"],
                     receipt_type="HUMAN_AUTHORIZATION",
@@ -739,30 +938,89 @@ def run_program(bytecode: bytes, trust: TrustContext | None = None) -> dict[str,
                     min_strength=arg["min_strength"],
                     issuer=trust.authorization_issuer,
                     authority_scope=authority_effect,
+                    consumption_state=consumption_state,
                 )
+                actor = receipt.get("actor")
+                latest = latest_reviews.get(actor) if isinstance(actor, str) else None
                 checks = {
-                    "actor": receipt.get("actor") in actors,
+                    "actor": isinstance(actor, str) and actor in actors,
                     "review_state": receipt.get("review_state") == "APPROVED",
-                    "source_kind": receipt.get("source_kind") == "GITHUB_PULL_REQUEST_REVIEW",
+                    "review_is_latest": receipt.get("review_is_latest") is True,
+                    "latest_review_state": (
+                        latest is not None and latest.get("state") == "APPROVED"
+                    ),
+                    "latest_review_id": (
+                        latest is not None
+                        and receipt.get("review_id") == latest.get("review_id")
+                    ),
+                    "latest_review_time": (
+                        latest is not None
+                        and receipt.get("review_submitted_at")
+                        == latest.get("submitted_at")
+                    ),
+                    "review_snapshot_sha256": (
+                        receipt.get("review_snapshot_sha256")
+                        == review_snapshot_digest
+                    ),
+                    "source_kind": (
+                        receipt.get("source_kind")
+                        == "GITHUB_PULL_REQUEST_REVIEW"
+                    ),
                     "issue_state": receipt.get("issue_state") == issue_state,
-                    "subject_head_sha": receipt.get("subject_head_sha") == context["subject_head_sha"],
+                    "subject_head_sha": (
+                        receipt.get("subject_head_sha")
+                        == context["subject_head_sha"]
+                    ),
                     "warrant_id": receipt.get("warrant_id") == warrant["id"],
+                    "warrant_sha256": (
+                        receipt.get("warrant_sha256") == warrant_digest
+                    ),
+                    "one_time": receipt.get("one_time") is True,
                     "merge_authority": receipt.get("merge_authority") is False,
                 }
+                if records_action:
+                    checks.update(
+                        {
+                            "consumption_present": consumption is not None,
+                            "consumption_actor": (
+                                consumption is not None
+                                and consumption.get("by") == trust.consumption_actor
+                            ),
+                            "consumption_subject": (
+                                consumption is not None
+                                and consumption.get("subject") == subject
+                            ),
+                            "consumption_after_receipt": (
+                                consumption is not None
+                                and isinstance(consumption.get("seq"), int)
+                                and not isinstance(consumption.get("seq"), bool)
+                                and isinstance(receipt.get("seq"), int)
+                                and not isinstance(receipt.get("seq"), bool)
+                                and consumption["seq"] > receipt["seq"]
+                            ),
+                        }
+                    )
                 failed = sorted(key for key, value in checks.items() if not value)
                 if failed:
-                    raise MachineError("AUTHORIZATION_BINDING_REJECTED", ",".join(failed))
+                    raise MachineError(
+                        "AUTHORIZATION_BINDING_REJECTED", ",".join(failed)
+                    )
             except MachineError as exc:
                 return halted(exc.code, exc.detail)
             counts["authorities"] += 1
             authority = arg
+            authority_consumption = consumption
             bindings["authorization_receipt_id"] = arg["receipt_id"]
+            bindings["authorization_consumption"] = consumption_state
+            bindings["review_snapshot_sha256"] = review_snapshot_digest
         elif op is Opcode.RECORD_ACTION:
             if trust is None or warrant is None or authority is None:
                 return halted("BOUND_AUTHORITY_REQUIRED_FOR_ACTION_RECORD")
+            if warrant_digest is None or authority_consumption is None:
+                return halted("AUTHORIZATION_CONSUMPTION_REQUIRED")
             try:
                 subject = f"repo:{context['repository']}@{context['subject_head_sha']}"
-                receipt = _resolve_receipt(
+                receipt, _ = _resolve_receipt(
                     trust,
                     receipt_id=arg["receipt_id"],
                     receipt_type="ACTION_OBSERVATION",
@@ -775,11 +1033,25 @@ def run_program(bytecode: bytes, trust: TrustContext | None = None) -> dict[str,
                 )
                 checks = {
                     "authorization_receipt_id": (
-                        receipt.get("authorization_receipt_id") == authority["receipt_id"]
+                        receipt.get("authorization_receipt_id")
+                        == authority["receipt_id"]
                     ),
                     "warrant_id": receipt.get("warrant_id") == warrant["id"],
-                    "subject_head_sha": receipt.get("subject_head_sha") == context["subject_head_sha"],
+                    "warrant_sha256": (
+                        receipt.get("warrant_sha256") == warrant_digest
+                    ),
+                    "subject_head_sha": (
+                        receipt.get("subject_head_sha")
+                        == context["subject_head_sha"]
+                    ),
                     "event_state": receipt.get("event_state") == "OBSERVED",
+                    "action_after_consumption": (
+                        isinstance(receipt.get("seq"), int)
+                        and not isinstance(receipt.get("seq"), bool)
+                        and isinstance(authority_consumption.get("seq"), int)
+                        and not isinstance(authority_consumption.get("seq"), bool)
+                        and receipt["seq"] > authority_consumption["seq"]
+                    ),
                 }
                 failed = sorted(key for key, value in checks.items() if not value)
                 if failed:
@@ -794,7 +1066,7 @@ def run_program(bytecode: bytes, trust: TrustContext | None = None) -> dict[str,
                 return halted("ACTION_RECORD_REQUIRED_FOR_OUTCOME")
             try:
                 subject = f"repo:{context['repository']}@{context['subject_head_sha']}"
-                receipt = _resolve_receipt(
+                receipt, _ = _resolve_receipt(
                     trust,
                     receipt_id=arg["receipt_id"],
                     receipt_type="OUTCOME_OBSERVATION",
@@ -806,9 +1078,15 @@ def run_program(bytecode: bytes, trust: TrustContext | None = None) -> dict[str,
                     authority_scope="NONE",
                 )
                 checks = {
-                    "action_receipt_id": receipt.get("action_receipt_id") == action_record["receipt_id"],
+                    "action_receipt_id": (
+                        receipt.get("action_receipt_id")
+                        == action_record["receipt_id"]
+                    ),
                     "action_id": receipt.get("action_id") == action_record["id"],
-                    "subject_head_sha": receipt.get("subject_head_sha") == context["subject_head_sha"],
+                    "subject_head_sha": (
+                        receipt.get("subject_head_sha")
+                        == context["subject_head_sha"]
+                    ),
                     "event_state": receipt.get("event_state") == "OBSERVED",
                 }
                 failed = sorted(key for key, value in checks.items() if not value)
@@ -836,6 +1114,8 @@ def run_program(bytecode: bytes, trust: TrustContext | None = None) -> dict[str,
                 reason_codes=["DETERMINISTIC_REPLAY_COMPLETE"],
                 counts=counts,
                 bindings=bindings,
+                receipt_chain_head=trusted_chain_head,
+                review_snapshot_sha256=review_snapshot_digest,
             )
     return halted("TERMINAL_OPCODE_NOT_REACHED")
 
@@ -943,6 +1223,16 @@ def _read_events(path: str) -> tuple[Mapping[str, Any], ...]:
     return tuple(events)
 
 
+def _selected_path(positional: str | None, option: str | None, field: str) -> str:
+    """Resolve one positional-or-option path without accepting ambiguity."""
+    if positional and option:
+        raise SpecLoadFailed(f"{field} supplied more than once")
+    selected = option or positional
+    if not selected:
+        raise SpecLoadFailed(f"{field} is required")
+    return selected
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Command-line compiler, disassembler, and pure replay interface."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -950,20 +1240,26 @@ def main(argv: Sequence[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command")
 
     compile_parser = sub.add_parser("compile")
-    compile_parser.add_argument("source")
-    compile_parser.add_argument("output")
+    compile_parser.add_argument("source", nargs="?")
+    compile_parser.add_argument("destination", nargs="?")
+    compile_parser.add_argument("--input", dest="input_path")
+    compile_parser.add_argument("--output", dest="output_path")
 
     disassemble_parser = sub.add_parser("disassemble")
-    disassemble_parser.add_argument("bytecode")
+    disassemble_parser.add_argument("bytecode", nargs="?")
+    disassemble_parser.add_argument("--input", dest="input_path")
 
     run_parser = sub.add_parser("run")
-    run_parser.add_argument("bytecode")
+    run_parser.add_argument("bytecode", nargs="?")
+    run_parser.add_argument("--input", dest="input_path")
     run_parser.add_argument("--policy", required=True)
+    run_parser.add_argument("--review-snapshot")
     run_parser.add_argument("--subject-head", required=True)
     run_parser.add_argument("--receipt-ledger", required=True)
     run_parser.add_argument("--receipt-head", required=True)
     run_parser.add_argument("--authorization-issuer", required=True)
     run_parser.add_argument("--observation-issuer", required=True)
+    run_parser.add_argument("--consumption-actor")
     run_parser.add_argument("--output")
 
     args = parser.parse_args(list(argv) if argv is not None else None)
@@ -971,16 +1267,35 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0 if run_smoke_test() else 1
     try:
         if args.command == "compile":
-            source = _read_json(args.source)
-            Path(args.output).write_bytes(compile_program(source))
+            source_path = _selected_path(args.source, args.input_path, "input")
+            output_path = _selected_path(
+                args.destination, args.output_path, "output"
+            )
+            source = _read_json(source_path)
+            Path(output_path).write_bytes(compile_program(source))
             return 0
         if args.command == "disassemble":
-            print(json.dumps(disassemble_program(Path(args.bytecode).read_bytes()), indent=2))
+            bytecode_path = _selected_path(
+                args.bytecode, args.input_path, "input"
+            )
+            print(
+                json.dumps(
+                    disassemble_program(Path(bytecode_path).read_bytes()), indent=2
+                )
+            )
             return 0
         if args.command == "run":
+            bytecode_path = _selected_path(
+                args.bytecode, args.input_path, "input"
+            )
             policy = _read_json(args.policy)
             if not isinstance(policy, dict):
                 raise SpecLoadFailed("policy is not an object")
+            review_snapshot = None
+            if args.review_snapshot:
+                review_snapshot = _read_json(args.review_snapshot)
+                if not isinstance(review_snapshot, dict):
+                    raise SpecLoadFailed("review snapshot is not an object")
             trust = TrustContext(
                 subject_head_sha=args.subject_head,
                 policy_document=policy,
@@ -988,8 +1303,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 receipt_chain_head=args.receipt_head,
                 authorization_issuer=args.authorization_issuer,
                 observation_issuer=args.observation_issuer,
+                review_snapshot=review_snapshot,
+                consumption_actor=args.consumption_actor,
             )
-            result = run_program(Path(args.bytecode).read_bytes(), trust)
+            result = run_program(Path(bytecode_path).read_bytes(), trust)
             if args.output:
                 write_report(result, args.output)
             else:
