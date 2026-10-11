@@ -11,6 +11,8 @@ TOOL_ZONE = 1
 
 import argparse
 import json
+import re
+import sys
 import subprocess
 from pathlib import Path
 
@@ -20,14 +22,17 @@ SENSITIVE_NAMES = {".env", ".env.local", "id_rsa", "id_ed25519"}
 
 
 def git(*args):
-    return subprocess.check_output(["git", *args])
+    return subprocess.check_output(["git", *args], timeout=120)
 
 
 def inventory(commit):
     # Require an immutable commit object: tag/branch names alone are not durable.
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", commit):
+        raise ValueError("Pass a complete 40-character hexadecimal commit SHA")
+    commit = commit.lower()
     resolved = git("rev-parse", "--verify", commit + "^{commit}").decode().strip()
     if commit != resolved:
-        raise ValueError("Pass the complete 40-character commit SHA, not a moving ref")
+        raise ValueError("Resolved commit differs from requested exact commit SHA")
     raw = git("ls-tree", "-rz", "--full-tree", resolved)
     items = []
     for record in raw.split(b"\0"):
@@ -45,9 +50,9 @@ def inventory(commit):
             status, reason = "UNSUPPORTED", "binary/lockfile: separate review required"
         else:
             status, reason = "PENDING", "not submitted to an authenticated reviewer"
-        items.append({"path": path, "mode": mode, "git_type": kind, "git_oid": blob,
+        items.append({"path": path, "path_bytes_hex": name.hex(), "mode": mode, "git_type": kind, "git_oid": blob,
                       "status": status, "reason": reason, "review_receipt": None})
-    items.sort(key=lambda row: row["path"])
+    items.sort(key=lambda row: row["path"].encode("utf-8", errors="surrogateescape"))
     return {"schema": "coderabbit_coverage_v0", "commit": resolved, "files": items}
 
 
@@ -56,7 +61,7 @@ def validate(doc):
     paths = [r["path"] for r in rows]
     if len(paths) != len(set(paths)):
         raise ValueError("duplicate file path")
-    if paths != sorted(paths):
+    if paths != sorted(paths, key=lambda path: path.encode("utf-8", errors="surrogateescape")):
         raise ValueError("inventory not sorted")
     counts = {state: 0 for state in sorted(STATES)}
     for row in rows:
@@ -71,8 +76,11 @@ def validate(doc):
         counts[state] += 1
     if sum(counts.values()) != len(rows):
         raise ValueError("coverage total mismatch")
-    return {"tracked": len(rows), "counts": counts, "reviewed_authenticated": 0,
-            "complete": False, "review_verdict": "NOT_VERIFIED"}
+    # No authenticated review provider is wired into this pilot.
+    authenticated = 0
+    complete = bool(rows) and counts["PENDING"] == 0 and counts["FAILED"] == 0 and counts["SKIPPED_LIMIT"] == 0 and counts["REVIEWED"] == len(rows) and authenticated == len(rows)
+    return {"tracked": len(rows), "counts": counts, "reviewed_authenticated": authenticated,
+            "complete": complete, "review_verdict": "VERIFIED" if complete else "NOT_VERIFIED"}
 
 
 def run_smoke_test():
@@ -93,9 +101,13 @@ def main():
         return
     if not args.commit or not args.output:
         p.error("--commit and --output are required unless --smoke-test is used")
-    doc = inventory(args.commit)
-    doc["summary"] = validate(doc)
-    Path(args.output).write_text(json.dumps(doc, indent=2, ensure_ascii=True) + "\n")
+    try:
+        doc = inventory(args.commit)
+        doc["summary"] = validate(doc)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, OSError) as exc:
+        print(f"Inventory failed closed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
+    Path(args.output).write_text(json.dumps(doc, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
     print(json.dumps(doc["summary"], sort_keys=True))
 
 
