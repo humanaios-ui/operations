@@ -2,7 +2,7 @@
 """HumanAIOS Builder v1.7 compliant — issue #806 immutable tree inventory.
 
 This tool does NOT invoke CodeRabbit and cannot authenticate review receipts.
-REVIEWED remains impossible until an independent protected witness adapter exists.
+This pilot rejects REVIEWED claims pending independent protected witness integration.
 """
 TOOL_NAME = "coderabbit_coverage_inventory"
 TOOL_VERSION = "0.1.0"
