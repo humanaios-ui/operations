@@ -303,11 +303,14 @@ When these occur, emit callout immediately:
 
 **Programs (Layer 5):** See [`PROGRAM_GRAPH_MAPPING.md`](./PROGRAM_GRAPH_MAPPING.md) for the layer connecting `INTENT_GRAPH.yaml`'s Objective nodes to in-flight, cross-repo work and its resource cost: a proposed `type: program` node (Objective → realized-by-Program → constituent issues/PRs, each Program tagged with a `RESOURCE_UNITS.yaml`-vector cost rollup, never collapsed across units per the ratified `P-NON-COMMENSURABLE` principle) that composes with the Attention Router (issue #640) as a third routing axis and with `PRIORITY_QUEUE.md`'s existing `density = benefit / cost` formula, applied one level up from individual work orders to whole initiatives. Read after AUTHORIZATION_EVIDENCE_MAPPING.md (Layer 4); `python3 program_graph.py --smoke-test` is the standing check.
 
+**Core Concept (Layer 0, the kernel):** See [`CORE_CONCEPT_MAPPING.md`](./CORE_CONCEPT_MAPPING.md) for the thing Layers 1–5 all map onto, stated once as runnable code in `humanaios_core.py`: Z1 proposes (falsifier and pinned SHA required), Z2 alone ratifies (`sha256(candidate | by=Night | at=timestamp | decision=...)`, both ratified identities, REJECT needs a reason, a changed mind is a new event), Z3 executes only under a verified ACCEPT hash with CI green, the anti-cascade envelope (K=3, one open molt per constant, freeze after two reverts), the ten mandatory callouts and their routes, §A halt-on-failure open, §B.0 refused close, and B.6 claim-vs-tree reconciliation where the gap is the finding — the same primitive as ACAT's claim-vs-behavior measurement. Read first, or after PROGRAM_GRAPH_MAPPING.md (Layer 5) to see what the stack rests on; `python3 humanaios_core.py --smoke-test` is the standing check and `test_humanaios_core_tier1.py` the training.
+
 ---
 
 ## Appended Events
 
 ```
+2026-10-11 — Z1 proposed Q-CORE-CONCEPT-MAPPING-01 (CORE_CONCEPT_MAPPING.md + humanaios_core.py + test_humanaios_core_tier1.py: the Z1→Z2→Z3 serial gate, hash formula, windows/contest, anti-cascade envelope, callouts, §A/§B rituals and claim-vs-tree reconciliation as one stdlib module with every refusal exercised, Layer 0 of the concept-to-code stack); awaiting Z2 RATIFY signature
 2026-10-02 — Z1 proposed Q-PROGRAM-GRAPH-MAPPING-01 (PROGRAM_GRAPH_MAPPING.md + program_graph.py: Programs as the graph layer connecting INTENT_GRAPH.yaml Objectives to cross-repo work and RESOURCE_UNITS.yaml cost, Layer 5 of the concept-to-code stack); awaiting Z2 RATIFY signature
 2026-10-02 — Z2 (Night) finalized all four specifications with real digests | All status fields made consistent | Layer 1–4 concept-to-code stack complete | Ratification manifest updated | See digest records below | Governance integrity verified
 
@@ -344,7 +347,7 @@ When these occur, emit callout immediately:
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
-See **Framework Reference** section above for foundational material on FRAMEWORK_MAPPING.md, BOOT_PROCESS_MAP.md, FIVE_RINGS_MAPPING.md, AUTHORIZATION_EVIDENCE_MAPPING.md, and PROGRAM_GRAPH_MAPPING.md — the concept-to-code stack, Layers 1–5.
+See **Framework Reference** section above for foundational material on CORE_CONCEPT_MAPPING.md, FRAMEWORK_MAPPING.md, BOOT_PROCESS_MAP.md, FIVE_RINGS_MAPPING.md, AUTHORIZATION_EVIDENCE_MAPPING.md, and PROGRAM_GRAPH_MAPPING.md — the concept-to-code stack, Layer 0 (the kernel) and Layers 1–5.
 
 **PR Workflow & Quality Gates:** See [`.claude/PR_WORKFLOW_GUIDE.md`](./.claude/PR_WORKFLOW_GUIDE.md) for Z1's (Claude's) PR handling process. Covers task tracking, upfront scope documentation, local CI validation, and formal handoff to Z2. Uses automated verification script (`scripts/verify_pr_readiness.sh`) for manifest, document, and code quality checks before push. Essential reference for PRs with multiple findings or review feedback.
 
