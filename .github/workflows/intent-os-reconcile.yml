@@ -17,7 +17,8 @@
 #      z1-inbox/INDEX.yaml, Z1_INBOX_INDEX.md regenerated. The candidate file is never touched.
 #   3. the z2 gate's own checks run here on the result (validate.py, render.py --check, ratify.py
 #      --verify) before anything is pushed; then one pull request "intent-os: reconcile ratifications"
-#      on branch intent-os/reconcile, updated in place while it is open
+#      on an immutable exact-main branch; a rerun may reuse it only when its
+#      generated tree is identical
 #
 # Runs on every push to main that touches z1-inbox/ (a merged decided candidate is one) and by hand.
 # Event-driven only, no clock schedule (resource-based, RESOURCE_UNITS.yaml). Pinned to main: a
@@ -115,11 +116,21 @@ jobs:
           python3 .z1-control/ratify.py --verify
           git config user.name "intent-os-reconcile[bot]"
           git config user.email "intent-os-reconcile@users.noreply.github.com"
-          branch="intent-os/reconcile"
+          branch="intent-os/reconcile-$(git rev-parse --short=12 main)"
           git checkout -B "$branch"
           git add z1-inbox/INDEX.yaml Z1_INBOX_INDEX.md z1-inbox/*/Z2_RULINGS_*.md
           git commit -m "intent-os: reconcile ratifications merged as of $(git rev-parse --short main)"
-          git push --force-with-lease origin "$branch"
+          remote_sha=$(git ls-remote --heads origin "refs/heads/$branch" | awk '{print $1}')
+          if [ -n "$remote_sha" ]; then
+            git fetch origin "$branch"
+            if ! git diff --quiet "origin/$branch" HEAD; then
+              echo "::error::immutable reconciliation branch already exists with a different tree: $branch"
+              exit 1
+            fi
+            echo "reusing identical reconciliation branch $branch"
+          else
+            git push origin "$branch"
+          fi
           existing=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')
           python3 - > "$REPORT_DIR/pr_body.md" <<'PY'
           import json, os

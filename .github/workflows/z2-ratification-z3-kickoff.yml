@@ -41,21 +41,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 - <<'PYTHON'
-          import os, sys, json, subprocess, re
-          from datetime import datetime
+          import json, os
           from pathlib import Path
-
-          def run_git(cmd):
-              """Run git command safely."""
-              result = subprocess.run(
-                  f"git {cmd}", shell=True, capture_output=True, text=True, cwd="/home/user/operations"
-              )
-              return result.stdout.strip()
 
           def parse_yaml_front_matter(content, id_filter=None):
               """Extract YAML front matter from REGISTERED.md entries."""
               entries = {}
-              current = None
               in_yaml = False
               yaml_block = []
 
@@ -64,7 +55,7 @@ jobs:
                       if not in_yaml:
                           in_yaml = True
                       else:
-                          if yaml_block and current:
+                          if yaml_block:
                               yaml_text = '\n'.join(yaml_block)
                               try:
                                   import yaml
@@ -76,14 +67,13 @@ jobs:
                                   pass
                           in_yaml = False
                           yaml_block = []
-                          current = None
                   elif in_yaml:
                       yaml_block.append(line)
 
               return entries
 
           # Get current REGISTERED.md
-          registered_md = Path('/home/user/operations/REGISTERED.md').read_text()
+          registered_md = Path("REGISTERED.md").read_text(encoding="utf-8")
           entries = parse_yaml_front_matter(registered_md, id_filter='Q-')
 
           # Detect WITNESS phase proposals (the blocking ones from PR #431)

@@ -74,13 +74,19 @@ class GitHubReadOnly:
         self.token = token
 
     def get(self, path: str):
-        # Permit the exact repository identity endpoint as well as its
-        # children. The initial prefix-only guard rejected repos/{REPO},
-        # preventing every live witness run immediately after OIDC succeeded.
+        # Permit the exact repository identity endpoint and its children. Check
+        # traversal by decoded path segment so GitHub's legitimate
+        # ``compare/<base>...<head>`` endpoint is not mistaken for ``..``.
         root = f"repos/{REPO}"
-        if (not isinstance(path, str)
-                or not (path == root or path.startswith(root + "/"))
-                or ".." in path or "\\" in path or len(path) > 600):
+        if (not isinstance(path, str) or len(path) > 600 or "\\" in path
+                or "#" in path or path.count("?") > 1):
+            raise WitnessError("API_PATH_DENIED")
+        endpoint = path.partition("?")[0]
+        decoded = endpoint
+        for _ in range(2):
+            decoded = urllib.parse.unquote(decoded)
+        if (not (decoded == root or decoded.startswith(root + "/"))
+                or any(segment in (".", "..") for segment in decoded.split("/"))):
             raise WitnessError("API_PATH_DENIED")
         req = urllib.request.Request(
             "https://api.github.com/" + path,

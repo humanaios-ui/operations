@@ -100,18 +100,14 @@ jobs:
           EOF
           echo "✅ A9 PASS — compliance manifest created with audit results"
 
-      - name: Persist audit manifest to repository
+      - name: Upload audit manifest snapshot
         if: always()
-        run: |
-          git config --local user.email "ci@humanaios.local"
-          git config --local user.name "HumanAIOS CI"
-          git add audit/framework-compliance/compliance-manifest.json
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "audit: Framework compliance manifest snapshot"
-            git push origin ${{ github.ref_name }}
-          fi
+        uses: actions/upload-artifact@v7
+        with:
+          name: framework-compliance-${{ github.sha }}-${{ github.run_attempt }}
+          path: audit/framework-compliance/compliance-manifest.json
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Audit summary
         run: |
