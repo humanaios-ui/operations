@@ -324,7 +324,7 @@ def ratify(
         ledger.append(
             "RATIFY", at, by,
             {"candidate_id": candidate.candidate_id, "decision": decision.value, "hash": digest,
-             "contested": contest_response is not None},
+             "contested": contest_response is not None, "reason": reason},
         )
     return ratification
 

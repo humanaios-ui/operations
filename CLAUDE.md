@@ -316,7 +316,7 @@ When these occur, emit callout immediately:
 2026-10-02 — Z2 (Night) finalized all four specifications with real digests | All status fields made consistent | Layer 1–4 concept-to-code stack complete | Ratification manifest updated | See digest records below | Governance integrity verified
 
 **Specification Digest Record (Ratified):**
-- Q-CORE-CONCEPT-MAPPING-01: CORE_CONCEPT_MAPPING.md | sha256: f82f9e36ff9ddfa7de02d9df06245b71e6f21f48e29a716557c0b42995e51e91 | Layer 0: Non-authoritative governance conformance model → HCM translation (humanaios_core.py sha256 bac1615c64a78a2515caaf67b12201ce760cd3007ccbe6b5bf6456c7903a7fd7) | Ratified 2026-10-12
+- Q-CORE-CONCEPT-MAPPING-01: CORE_CONCEPT_MAPPING.md | sha256: f82f9e36ff9ddfa7de02d9df06245b71e6f21f48e29a716557c0b42995e51e91 | Layer 0: Non-authoritative governance conformance model → HCM translation (humanaios_core.py sha256 bac1615c64a78a2515caaf67b12201ce760cd3007ccbe6b5bf6456c7903a7fd7 at ratified head cab7712c; later Z2-instructed follow-ups on that file are post-ratification) | Ratified 2026-10-12
 - Q-FRAMEWORK-MAPPING-01: FRAMEWORK_MAPPING.md | sha256: 3102473cbca79ae108d86fb296f6d73d4c6740b768bb3ecb088d90f0cec099fa | Layer 1: Unified mental model (Graph, Loop, Context, Harness, Prompt) → Z-roles | Ratified 2026-10-02
 - Q-BOOT-PROCESS-MAP-01: BOOT_PROCESS_MAP.md | sha256: 0aa8b59d21956a7d9388e3924ac8468a8b06fff7a1b9e844de63e39bfaabb5c0 | Layer 2: Session boot chain → standard computer boot stages | Ratified 2026-10-02
 - Q-FIVE-RINGS-MAPPING-01: FIVE_RINGS_MAPPING.md | sha256: de285b6de56f4ea817554df2647c3f3f0666d370ec64d39e630f9d36eb4ab396 | Layer 3: Book of Five Rings → executable operations | Ratified 2026-10-02
