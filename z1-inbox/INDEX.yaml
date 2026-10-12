@@ -3,7 +3,7 @@ generated: '2026-10-09'
 decision_window_days: 2
 counts:
   candidates: 106
-  records: 56
+  records: 57
 ratifiers:
 - Night
 candidates:
@@ -1228,6 +1228,12 @@ candidates:
     escalation for Z2 to choose B or C scope. All entries with missing required YAML
     fields documented and quantified per failure mode.'
 records:
+- path: z1-inbox/2026-10-10/HANDOFF.md
+  title: Session Handoff — Manifest Integrity Fix (GNER E0/E1/E2)
+  note: Session/handoff record for the manifest integrity fix (Builder v1.7 compliance
+    markers and TOOL_CATEGORY definitions on six .z1-control tools). Indexed as a
+    record so Z2 does not ratify a handoff summary in place of an underlying candidate;
+    no Z2 governance decision requested.
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide
   note: Step-by-step guide (15-20 minutes) for deploying Replicate API key and Supabase
