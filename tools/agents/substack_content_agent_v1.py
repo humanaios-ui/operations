@@ -27,6 +27,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Optional
 
+from tools.substack_agent.research_draft import verified_research_draft, EvidenceUnavailable
+
 TOOL_NAME = "substack_content_agent_v1"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "reporting_tool"
@@ -49,8 +51,8 @@ class SubstackContentAgent:
         Returns questions with Brier scores.
         """
         if not self.supabase:
-            print("⚠ Supabase not configured — using mock data")
-            return self._mock_data()
+            print("NO_VERIFIED_EVIDENCE: Supabase not configured")
+            return []
 
         try:
             result = self.supabase.table("acat_forecast_runs").select(
@@ -60,17 +62,18 @@ class SubstackContentAgent:
                 "p4_resolved_at", desc=True
             ).limit(limit).execute()
 
-            return result.data if result.data else self._mock_data()
+            return result.data if result.data else []
 
         except Exception as e:
-            print(f"⚠ Supabase query failed: {e} — using mock data")
-            return self._mock_data()
+            print("NO_VERIFIED_EVIDENCE: Supabase query failed")
+            return []
 
     def _mock_data(self) -> List[Dict]:
-        """Mock data for testing when Supabase is unavailable."""
+        """SYNTHETIC_TEST_ONLY. Never use to produce public research copy."""
         return [
             {
                 "question_url": "https://www.metaculus.com/questions/22427/",
+                "evidence_status": "SYNTHETIC_TEST_ONLY",
                 "p2_forecast_value": 0.62,
                 "p4_brier_score": 0.18,
                 "p4_brier_skill_score": 0.15,
@@ -83,66 +86,17 @@ class SubstackContentAgent:
         ]
 
     def generate_post(self, resolutions: List[Dict]) -> str:
-        """
-        Generate a Substack post from recent resolutions.
-        Returns markdown text.
-        """
-        if not resolutions:
-            return self._stub_post()
+        """Return evidence-qualified draft text; fail closed without real records."""
+        proposal = self.generate_governed_draft(resolutions)
+        return proposal["content"]["body"]
 
-        avg_brier = sum(r.get("p4_brier_score", 0) for r in resolutions if r.get("p4_brier_score")) / len(resolutions)
-        avg_skill = sum(r.get("p4_brier_skill_score", 0) for r in resolutions if r.get("p4_brier_skill_score")) / len(resolutions)
-
-        post = f"""# Weekly Calibration Update: {len(resolutions)} Questions Resolved
-
-**Published:** {datetime.now(timezone.utc).strftime('%Y-%m-%d')}
-
-## This Week's Calibration Metrics
-
-- **Questions Resolved:** {len(resolutions)}
-- **Average Brier Score:** {avg_brier:.3f}
-- **Average Skill Score:** {avg_skill:+.3f}
-- **Questions by Type:** """ + ", ".join(f"{r['question_type']}" for r in resolutions[:3]) + "...\n\n"
-
-        post += "## The Data\n\nThis bot demonstrated calibration on the following resolved questions:\n\n"
-
-        for i, r in enumerate(resolutions[:5], 1):
-            url = r.get("question_url", "")
-            brier = r.get("p4_brier_score", 0)
-            li = r.get("p1_li_estimate", 0)
-            post += f"{i}. **[{r['question_type']}]({url})**\n"
-            post += f"   - Forecast: {r.get('p2_forecast_value', 0):.1%}\n"
-            post += f"   - Brier: {brier:.3f}\n"
-            post += f"   - LI Estimate: {li:.2f}\n\n"
-
-        post += """## What This Means
-
-The HumanAIOS forecasting bot uses ACAT (AI Calibration Assessment Tool) to measure itself before each forecast. This weekly digest shows how that self-measurement correlates with real outcomes (Brier scores).
-
-**H34/H35 Research:** Does self-reported calibration predict forecasting accuracy? This data contributes to answering that question in public.
-
----
-
-*[HumanAIOS Research](https://humanaios.ai) — Behavioral observability for AI systems*
-"""
-        return post
+    def generate_governed_draft(self, resolutions: List[Dict]) -> dict:
+        """Translate verified forecast records into the HPRA DRAFT_ONLY contract."""
+        return verified_research_draft(resolutions)
 
     def _stub_post(self) -> str:
-        """Fallback post when no resolution data."""
-        return """# Weekly Calibration Update: No Questions Resolved Yet
-
-**Published:** {0}
-
-## Status
-
-The HumanAIOS forecasting bot is currently in test mode and awaiting the first batch of resolved questions. Once questions resolve, calibration metrics will be available here.
-
-**In the meantime:** The bot is actively forecasting and recording its pre-forecast self-assessments (ACAT scores) in the [live table](https://www.metaculus.com/profile/299627).
-
----
-
-*[HumanAIOS Research](https://humanaios.ai)*
-""".format(datetime.now(timezone.utc).strftime('%Y-%m-%d'))
+        """Never present absence of source data as a publishable report."""
+        raise EvidenceUnavailable("NO_VERIFIED_EVIDENCE")
 
     def save_draft(self, post: str, output_dir: str = "/tmp") -> str:
         """Save draft post to file."""
@@ -161,14 +115,19 @@ The HumanAIOS forecasting bot is currently in test mode and awaiting the first b
         print(f"  → {len(resolutions)} resolutions fetched")
 
         print("Generating post...")
-        post = self.generate_post(resolutions)
-        print(f"  → {len(post)} characters generated")
+        try:
+            proposal = self.generate_governed_draft(resolutions)
+        except EvidenceUnavailable as exc:
+            print(f"Blocked: {exc}")
+            return False
+        post = proposal["content"]["body"]
+        print(f"  → {len(post)} draft characters generated; authorization NONE")
 
         print("Saving draft...")
         filepath = self.save_draft(post)
         print(f"  → Draft saved: {filepath}")
 
-        print("✓ Weekly content generation complete")
+        print("✓ DRAFT_ONLY generated; no publishing authorization")
         return True
 
 
