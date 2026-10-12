@@ -1,0 +1,31 @@
+name: HPRA observer regression
+on:
+  pull_request:
+    paths:
+      - 'tools/substack_agent/**'
+      - 'tests/substack_agent/**'
+      - '.github/workflows/hpra-observer.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/substack_agent/**'
+      - 'tests/substack_agent/**'
+      - '.github/workflows/hpra-observer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hpra-offline-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run network-free HPRA regression
+        run: python -m unittest discover -s tests/substack_agent -p 'test_*.py' -v
