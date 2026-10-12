@@ -4341,6 +4341,43 @@ superseded_by: null
 
 ---
 
+## Z2 Ratification — 2026-10-12 (Q-HCM-CORE-MACHINE-01, re-pin to PR #812 head c49eabe1)
+
+**Candidate ID:** Q-HCM-CORE-MACHINE-01
+**Z2 Authority:** Night (Carly R. Anderson)
+**Decision:** ACCEPT (re-pin; the original record above stands and is not edited — "only emit new RATIFY event with new hash")
+**Timestamp:** 2026-10-12T06:35:00Z
+**Ratification Hash:** c0b9cc3566c61d8b54721474c8621302bb4d386f563dd9793a351be99603c77c
+**Hash basis:** `sha256(addendum | by="Carly R. Anderson (Night)" | at="2026-10-12T06:35:00Z" | decision=ACCEPT)`, computed with `.z1-control/ratify.py`'s own `signature()` over the exact bytes inside the fenced `text` block below — from the first byte after the opening fence line (the line beginning `RE-PIN ADDENDUM — Q-HCM-CORE-MACHINE-01`) through the end of the `scope:` line inclusive of its trailing newline, excluding the fence lines themselves (2263 bytes, sha256 `c60d45c84fa6a9fb994eaaee0235eee0e97f821df366db7c4aa0df4d6ada045e`). Same standing and same authentication condition as the original record: Z1-filed on the standing Z2 instruction ("Ratify HCM in PR #812"); authenticated by the Z2-identity merge of PR #815 or superseded by a controlled-path ruling.
+**Why a re-pin:** after the original record was written, PR #812's author moved its head from `7fc8211` to `c49eabe1` by merging `main` (which carries the ratified Layer 0 model) and adding two protected tests that bind `HCM_TRANSLATION_FIXTURE` to HCM's opcode path. No HCM implementation, schema or receipt-contract file changed; the design doc gained a "Layer 0 conformance binding" section. Z1 re-verified the new head in a detached checkout before filing this event.
+
+```text
+RE-PIN ADDENDUM — Q-HCM-CORE-MACHINE-01
+subject: PR #812 (humanaios-ui/operations), branch feat/810-humanaios-core-machine
+new_head: c49eabe14864a5209c70aa6b1d63032c86331189
+parents: 7fc8211761cc6db7d304184bd9f4f9d6bc798760 (previously ratified head) + 5985a388f5b153b6451fc2ef72285d53a4844d61 (main, carrying PR #811 Layer 0)
+changed_vs_previous_head (HCM files only): .tool-control/baseline_tests.yaml (+4) · docs/design/HUMANAIOS_CORE_MACHINE_V0_1.md (+19, "Layer 0 conformance binding") · tools/tests/test_humanaios_core_machine_v0_1.py (+39: test_translation_fixture_is_the_exact_non_halting_opcode_path, test_full_translation_preserves_the_non_authority_boundary)
+unchanged_vs_previous_head: tools/humanaios_core_machine_v0_1.py · schemas/humanaios_core_machine_v0_1.schema.json · tools/verified_receipts.py · tests/test_verified_receipts.py · tools-manifest.yaml · TOOLS_MANIFEST.md
+digests_at_new_head:
+  tools/humanaios_core_machine_v0_1.py ee537d72e98b2e78e6c95a30947695db2df04821eb36fbc88b08152f3c5b31cd
+  tools/tests/test_humanaios_core_machine_v0_1.py 3ff197d899e84d04f332698468eae9bad1b63a0d1f9bec8df612ca4423e5a375
+  tools/verified_receipts.py c82d84ea6bbfcb6bc76fbf3b96a65e35edb9d564ae4486414118b8049b980ae1
+  tests/test_verified_receipts.py bad5d517205190b5c0de8390ec47c86c6ca9eea078e2688cc7c6214f7af2773d
+  docs/design/HUMANAIOS_CORE_MACHINE_V0_1.md 1f92be767c95fc347ec4466b1237fd2d6cfe830ec7bb8aa0a92592f74761275c
+  schemas/humanaios_core_machine_v0_1.schema.json d0976b10bf9477c06697a83ec08ccc1f2db8573fc0a53f119f5310e79b4b6e13
+  .tool-control/baseline_tests.yaml c3f04e4fc3f96192ef94ed56c7645f914b5e597f44a8b3427b225f21ba83cb26
+  tools-manifest.yaml f3117b991a68d09b1883f879960babefe7816ce418d05c136d84c24ca02b457f
+  TOOLS_MANIFEST.md 8389ffc1badb04616944e3522aa74d9101a1b0a603dccb2a14805a4dab141da8
+verified_by_z1_at_new_head: HCM suite 50 passed · receipt resolver 17 passed · Layer 0 tier-1 suite 40 passed · ruff E9/F63/F7/F82 clean · TOOLS_MANIFEST.md in sync · six authority-boundary values present verbatim
+scope: identical to the ratified scope of the original record; the two added tests bind HCM_TRANSLATION_FIXTURE (Layer 0) to the exact non-halting opcode path and assert the non-authority boundary on both surfaces
+```
+
+**Ratified Scope:** unchanged from the original record, now pinned at `c49eabe14864a5209c70aa6b1d63032c86331189`. Still not performed by this record: the authenticated `APPROVED` review on #812's exact head, the admission record for #812, and the merge.
+
+**Status:** ACCEPTED (re-pin) · same authentication condition as the original record
+
+---
+
 ## Z2 Ratification — 2026-09-16
 
 **Candidate ID:** H-HOLO-SELF-REP-01  
