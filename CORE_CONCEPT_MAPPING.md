@@ -5,7 +5,7 @@
 **Mapping Date:** 2026-10-11
 **Authority effect:** `NONE`
 
-**Status:** Z1 conformance candidate for REGISTERED.md (Q-CORE-CONCEPT-MAPPING-01); not an admission or ratification record
+**Status:** Z2-ratified (Q-CORE-CONCEPT-MAPPING-01, ACCEPT, 2026-10-12 — hash and scope in `REGISTERED.md` "Z2 Ratification — 2026-10-12"); this document itself is not an admission or ratification record
 
 **Code:** [`humanaios_core.py`](./humanaios_core.py) (stdlib only, 31 exported names) · tests: [`test_humanaios_core_tier1.py`](./test_humanaios_core_tier1.py) (40 tests, `unittest`, no pytest dependency) · standing check: `python3 humanaios_core.py --smoke-test`
 
@@ -209,9 +209,9 @@ assert ledger.verify()                                               # what is n
 
 ## Action Items for Z2 Ratification
 
-1. Evaluate `CORE_CONCEPT_MAPPING.md` + `humanaios_core.py` as a non-authoritative Layer 0 conformance fixture after the HCM relationship is reviewed.
-2. Preserve HCM's externally authenticated exact-head authority import; do not substitute this module's unkeyed hash.
-3. Decide whether `AUTHORIZATION_EVIDENCE_MAPPING.md` §3's "stub" note on `check_anti_cascade_rules()` is corrected in its own PR: `molt_cycle.py` now derives rules 1, 3 and 4 mechanically, so that row's PARTIAL status is stale. Documentation only; no code change proposed to `molt_cycle.py`.
+1. ~~Evaluate `CORE_CONCEPT_MAPPING.md` + `humanaios_core.py` as a non-authoritative Layer 0 conformance fixture after the HCM relationship is reviewed.~~ Done: ratified ACCEPT 2026-10-12 (see `REGISTERED.md`).
+2. Preserve HCM's externally authenticated exact-head authority import; do not substitute this module's unkeyed hash. (Standing constraint, carried into the ratified scope.)
+3. Still open for Z2: decide whether `AUTHORIZATION_EVIDENCE_MAPPING.md` §3's "stub" note on `check_anti_cascade_rules()` is corrected in its own PR: `molt_cycle.py` now derives rules 1, 3 and 4 mechanically, so that row's PARTIAL status is stale. Documentation only; no code change proposed to `molt_cycle.py`.
 
 **Falsifier for this mapping:** a row above that names an operation which does not exist in `humanaios_core.py`, or a doctrine sentence that the named operation does not actually refuse on, falsifies its own row and the row is struck. `python3 humanaios_core.py --smoke-test` (every refusal exercised once, the hash recomputed by hand) is the standing check; `test_humanaios_core_tier1.py` is the training.
 
@@ -225,9 +225,10 @@ metadata:
   stack: ["CORE_CONCEPT_MAPPING.md", "FRAMEWORK_MAPPING.md", "BOOT_PROCESS_MAP.md", "FIVE_RINGS_MAPPING.md", "AUTHORIZATION_EVIDENCE_MAPPING.md", "PROGRAM_GRAPH_MAPPING.md"]
   source: "CLAUDE.md (authority, routing, anti-cascade, §A/§B, callouts); SEED.md §1, §3; SESSION_RITUALS.md §A, §B.0, §F"
   code: "humanaios_core.py (stdlib only), test_humanaios_core_tier1.py (unittest)"
-  exported_names: 29
+  exported_names: 31
   authority_effect: "NONE"
   machine_encoding: "proposed HCM v0.1 (PR #812); external exact-head authority required"
   candidate_id: "Q-CORE-CONCEPT-MAPPING-01"
-  last_updated: "2026-10-11T00:00:00Z"
+  zone2_ratification: "Carly R. Anderson (Night) · 2026-10-12 · ACCEPT · hash in REGISTERED.md"
+  last_updated: "2026-10-12T00:00:00Z"
 ```
