@@ -27,6 +27,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Optional
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from tools.substack_agent.research_draft import verified_research_draft, EvidenceUnavailable
 
 TOOL_NAME = "substack_content_agent_v1"
