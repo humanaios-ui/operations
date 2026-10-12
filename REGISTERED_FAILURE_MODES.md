@@ -1,7 +1,7 @@
 # REGISTERED.md Failure-Mode Map
 ## Registry Failure Modes → Standing Orders → Industrial Failure Modes
 
-**Source:** `REGISTERED.md` @ HEAD (5,809 lines, 163 entries)
+**Source:** `REGISTERED.md` @ HEAD (5,847 lines, 163 entries)
 **Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-10-12
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
