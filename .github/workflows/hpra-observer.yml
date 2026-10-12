@@ -3,12 +3,14 @@ on:
   pull_request:
     paths:
       - 'tools/substack_agent/**'
+      - 'tools/agents/substack_content_agent_v1.py'
       - 'tests/substack_agent/**'
       - '.github/workflows/hpra-observer.yml'
   push:
     branches: [main]
     paths:
       - 'tools/substack_agent/**'
+      - 'tools/agents/substack_content_agent_v1.py'
       - 'tests/substack_agent/**'
       - '.github/workflows/hpra-observer.yml'
   workflow_dispatch:
