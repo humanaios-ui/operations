@@ -177,6 +177,30 @@ class RestTransportRegressionTests(unittest.TestCase):
         self.assertEqual(result["sha"], "synthetic")
         self.assertTrue(open_url.called)
 
+    def test_compare_endpoint_with_triple_dot_is_accepted(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, *_):
+                return b'{"status":"ahead"}'
+
+        endpoint = PRE + "/compare/" + MERGE + "..." + MAIN
+        with patch.object(witness.urllib.request, "urlopen", return_value=Response()) as open_url:
+            result = witness.GitHubReadOnly("synthetic-test-token").get(endpoint)
+        self.assertEqual(result["status"], "ahead")
+        self.assertEqual(open_url.call_args.args[0].full_url,
+                         "https://api.github.com/" + endpoint)
+
+    def test_encoded_path_traversal_is_denied_without_network(self):
+        with patch.object(witness.urllib.request, "urlopen") as open_url:
+            with self.assertRaises(witness.WitnessError):
+                witness.GitHubReadOnly("synthetic-test-token").get(PRE + "/%252e%252e/private")
+            open_url.assert_not_called()
+
 
 class WitnessTests(unittest.TestCase):
     def setUp(self):

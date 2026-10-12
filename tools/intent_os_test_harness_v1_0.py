@@ -167,7 +167,7 @@ def registry(root: str = ROOT) -> list[dict]:
     # Load baseline tests from single source of truth (.tool-control/baseline_tests.yaml)
     # tools/tests/test_ci_suite_enumeration.py asserts the YAML, workflow, and this list
     # all agree; add to YAML or that guard goes red.
-    with open(str(root / ".tool-control" / "baseline_tests.yaml")) as f:
+    with open(os.path.join(root, ".tool-control", "baseline_tests.yaml"), encoding="utf-8") as f:
         baseline_cfg = yaml.safe_load(f)
     baseline = [t['path'] for t in baseline_cfg['baseline_tests']]
     pyt = ["-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider"]

@@ -32,6 +32,10 @@ baseline_tests:
     requires: []
     description: CI suite enumeration and consistency checks
 
+  - path: tools/tests/test_postmerge_workflow_contracts.py
+    requires: []
+    description: Post-merge workflow portability, immutability, and least-authority regressions
+
   - path: tools/tests/test_clone_sync_health.py
     requires: []
     description: Clone sync health checks
