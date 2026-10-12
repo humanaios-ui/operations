@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only) | **STRUCTURAL REPAIR PENDING**
-**Last updated:** October 9, 2026 (Registry structural audit; 162 entries, 127 defects identified; repair proposal Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01 filed) — See RFM-06/RFM-09/RFM-10/RFM-15/RFM-17 closure tasks in parallel governance channel.
+**Last updated:** October 12, 2026 (Q-CORE-CONCEPT-MAPPING-01 registered and Z2-ratified; Layer 0 of the concept-to-code stack) — prior: October 9, 2026 (Registry structural audit; 162 entries, 127 defects identified; repair proposal Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01 filed) — See RFM-06/RFM-09/RFM-10/RFM-15/RFM-17 closure tasks in parallel governance channel.
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -3118,6 +3118,38 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 - **Control:** Z3-PUB-01 now appears in WGS carry queue. Z3-P1-01 retired from carry queue.
 - **Status:** RESOLVED · closed S-060926-02 · Z2-ratified Night · S-060926-02
 
+### Q-CORE-CONCEPT-MAPPING-01 — Governance Conformance Model → HCM Translation (Layer 0)
+
+```yaml
+---
+id: "Q-CORE-CONCEPT-MAPPING-01"
+name: "core-concept-conformance-model"
+status: REGISTERED
+class: Q
+date_registered: "2026-10-12"
+date_origin: "2026-10-11"
+session_registered: "S-101226-Z1-coreconcept"  # NOTE: same non-conforming session_registered pattern already flagged and accepted at Q-BOOT-PROCESS-MAP-01 and Q-AUTHORIZATION-EVIDENCE-MAPPING-01 — this repo has no visible mechanism for a session to learn its own canonical S-MMDDYY-NN short of Z2 assigning one, so the slug form is kept rather than fabricated.
+principles_triggered: ["P-governance", "P-framework", "P19"]
+substrate: "Claude (claude-code-remote) — Z1 proposer session; revision commit cab7712c authored by Z2"
+tags: ["governance", "conformance-model", "serial-gate", "anti-cascade", "session-rituals", "receipt-reconciliation", "hcm-translation", "reference-architecture"]
+related_finding: ["IC-030", "IC-031"]
+zone2_ratification: "Carly R. Anderson (Night) · 2026-10-12 · direct Z2 instruction, this session — see Z2 Ratification section below for hash"
+calibration_ref: null  # PENDING — no P30 interactive acat_document_analyzer_v1.1 pass run this session, same honest gap the Layer 2 and Layer 4 entries flagged for themselves; ratified anyway per direct, explicit Z2 instruction, which is Z2's prerogative to waive
+superseded_by: null
+---
+```
+
+- **Synopsis:** Creates `CORE_CONCEPT_MAPPING.md` (Layer 0 of the concept-to-code stack, beneath `FRAMEWORK_MAPPING.md` → `BOOT_PROCESS_MAP.md` → `FIVE_RINGS_MAPPING.md` → `AUTHORIZATION_EVIDENCE_MAPPING.md` → `PROGRAM_GRAPH_MAPPING.md`), `humanaios_core.py` (stdlib only, 31 exported names) and `test_humanaios_core_tier1.py` (40 `unittest` tests, enumerated in `.tool-control/baseline_tests.yaml` so `quality-baseline.yml` runs them). The module is a pure, non-authoritative conformance model of the doctrine shape Layers 1–5 share: Z1 proposes (every candidate carries a falsifier and a pinned SHA); Z2's modeled transition produces the unkeyed `sha256(candidate | by | at | decision [| contest_response])` hash over caller-supplied values; Z3's modeled transition records an EXECUTE row only after an ACCEPT hash verifies and caller-supplied CI status is green; anti-cascade rules 1, 3 and 4 (one open molt per constant, K=3 system-wide, freeze after two consecutive reverts) bound retries; the ten mandatory callouts route to their ratified destinations; §A session open halts on six conditions and §B.0 refuses close without a verification block; `reconcile(claims, tree)` walks claim against tree and reports RECEIPT-GAP (IC-030, IC-031). `AUTHORITY_EFFECT` is `NONE`: the hash checks consistency, not identity authenticity; `execute` writes a synthetic ledger row and performs no external action. `HCM_TRANSLATION_FIXTURE` maps each modeled operation onto the proposed HumanAIOS Core Machine (HCM) v0.1 instruction phases (PR #812, issue #810) and marks the model's unkeyed hash as insufficient for HCM's `IMPORT_AUTHORITY`, which requires externally authenticated exact-head human-review evidence. `python3 humanaios_core.py --smoke-test` exercises every refusal once and recomputes the hash by hand (56 checks, verified passing at the ratified head).
+- **Landed / pinned:** PR #811 (`claude/humanaios-ui-ops-machine-code-qx8j7h`), ratified head `cab7712c7a410c1fff6b17d2bd7184ff8493ba70` (Z2's own revision commit "fix(core): subordinate conformance model to HCM", which reframed the module from "kernel" to conformance fixture, added the HCM translation fixture, and registered the test file in the quality baseline). PR #813 (one-line `pull-requests: write` permission fix to `repository-admission-gate.yml`, a Tier 2 gate change opened on direct Z2 instruction after the gate's receipt step failed 403 on every PR), merged 2026-10-11. Admission record for #811 appended via authorized `workflow_dispatch` ADMIT on 2026-10-12 (coordinator state `efec94782febe11c7f2b3a93a56568d0d6f7e7ba`); gate receipt RCD-0C7A21076E9287B4 reads PASS / ACTIVE. File digests at the ratified tree: `CORE_CONCEPT_MAPPING.md` sha256 `f82f9e36ff9ddfa7de02d9df06245b71e6f21f48e29a716557c0b42995e51e91` · `humanaios_core.py` sha256 `bac1615c64a78a2515caaf67b12201ce760cd3007ccbe6b5bf6456c7903a7fd7` · `test_humanaios_core_tier1.py` sha256 `1fe2a8e2094575750a8333c1c5154fa94533bd04d239ce7825e20973da1a1bfc`.
+- **Scope guard / flagged, not resolved:** Filed as a REGISTERED.md Q-class candidate-and-ratification under direct, explicit Z2 instruction (this session, 2026-10-12), not via the z1-inbox/`ratify.py` candidate pipeline — the same precedent `Q-AUTHORIZATION-EVIDENCE-MAPPING-01` set and documented. `.z1-control/ratify.py --list` does not carry this q_id; the Ratification Hash below is computed with that script's own `signature()` function applied directly to this candidate block's text. The "Z2 sole write" vs. "Z1 candidate-block output" ambiguity on REGISTERED.md that `Q-BOOT-PROCESS-MAP-01` named is still live and still not adjudicated here. Ratifying this candidate does not ratify HCM (PR #812 remains its own candidate), does not resolve the stale PARTIAL row on `check_anti_cascade_rules()` in `AUTHORIZATION_EVIDENCE_MAPPING.md` §3 (named as an open Z2 decision in the mapping's action items), and does not merge PR #811 — merge is a separate Z2 action under the gate.
+- **Falsifier:** Any doctrine→operation row in `CORE_CONCEPT_MAPPING.md` that names an operation which does not exist in `humanaios_core.py`, or a doctrine sentence the named operation does not actually refuse on; or any claim in the module's docstring or `HCM_TRANSLATION_FIXTURE` that asserts authority, authentication, or external effect (the module's `AUTHORITY_EFFECT` must remain `NONE`); or `--smoke-test` / `test_humanaios_core_tier1.py` failing at the ratified head.
+
+**Priority:** Reference architecture (non-blocking).
+**Estimated effort:** Documentation + one stdlib module + one test file — no CI gate changes in this candidate (the gate permission fix landed separately as PR #813).
+**Assigned executor:** N/A (reference candidate; no Z3 execution required beyond merge of PR #811, which stays with Z2).
+
+---
+
 ## Changelog
 
 - **2026-07-23 (S-072126-01) — H-VERIF-02, H-CAND-AGENCY-ATTRIBUTION-LEDGER-01, IC-cand-draft-reply-send-status-gap registered; F-56/IC-046/IC-047 resolved with real corpus evidence; H-CAND-SCORER-GATING-EFFECT confirmed via full-corpus test.**
@@ -4230,6 +4262,27 @@ superseded_by: null
 - `calibration_ref: null` (no P30 pass run) accepted as-is per this Z2 instruction, not treated as a blocking gate
 
 **Status:** ACCEPTED · Layer 4 of the concept-to-code stack ratified; `CLAUDE.md` Appended Events updated to match
+
+---
+
+## Z2 Ratification — 2026-10-12
+
+**Candidate ID:** Q-CORE-CONCEPT-MAPPING-01
+**Z2 Authority:** Night (Carly R. Anderson)
+**Decision:** ACCEPT
+**Timestamp:** 2026-10-12T00:07:00Z
+**Ratification Hash:** 424abe058f7708cdd5764345fe3adce8bc55525b927da9fca4c74d7df16d78b2
+**Hash basis:** `sha256(candidate | by="Carly R. Anderson (Night)" | at="2026-10-12T00:07:00Z" | decision=ACCEPT)`, computed with `.z1-control/ratify.py`'s own `signature()` function directly over this candidate block's exact bytes — from the line reading ` ```yaml ` through the end of the `**Assigned executor:**` line, inclusive of that line's trailing newline (6164 bytes, sha256 `7a7bcced8f1816afac60c33b5a12a06190ee0e069bd33bb5dd59d04d36b034f8`) — not run through that script's z1-inbox-backed CLI, since no z1-inbox candidate file exists for this q_id (see this candidate's own "Scope guard" note above). Independently reproducible: `python3 -c "import sys; sys.path.insert(0,'.z1-control'); from ratify import signature; print(signature(open('<candidate block saved to a file>','rb').read(), 'Carly R. Anderson (Night)', '2026-10-12T00:07:00Z', 'ACCEPT'))"`.
+**Authority:** Admiral (Z2 Serial Gate) — direct instruction, this session ("I Approve Z2 ratification of the revised candidate", 2026-10-12)
+
+**Ratified Scope:**
+- `CORE_CONCEPT_MAPPING.md` + `humanaios_core.py` + `test_humanaios_core_tier1.py` as Layer 0 of the concept-to-code stack, at PR #811 head `cab7712c7a410c1fff6b17d2bd7184ff8493ba70` (file digests in the candidate block above), as a **non-authoritative conformance model**: `AUTHORITY_EFFECT = NONE`, unkeyed claimed-identity hash distinguished from authentication, modeled execution distinguished from external action
+- `HCM_TRANSLATION_FIXTURE` as the declared relationship to the proposed HCM v0.1 bytecode (PR #812 / issue #810): HCM remains the machine-encoding candidate and keeps its externally authenticated exact-head authority import; this module's hash is not a substitute for it. Ratifying this candidate does not ratify HCM
+- The candidate's own open items stay open on their own tracks: the stale PARTIAL row on `check_anti_cascade_rules()` in `AUTHORIZATION_EVIDENCE_MAPPING.md` §3 (documentation fix, own PR), and the "Z2 sole write" vs. Z1 candidate-block ambiguity on REGISTERED.md
+- `calibration_ref: null` (no P30 pass run) accepted as-is per this Z2 instruction, not treated as a blocking gate
+- Merge of PR #811 is a separate Z2 action and is not performed by this record
+
+**Status:** ACCEPTED · Layer 0 of the concept-to-code stack ratified; `CLAUDE.md` Appended Events and `CORE_CONCEPT_MAPPING.md` status/metadata updated to match
 
 ---
 

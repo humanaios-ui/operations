@@ -29,6 +29,9 @@ the Operations contract.
 
 The implementation composes existing repository contracts:
 
+- `humanaios_core.py` supplies the non-authoritative Layer 0 conformance
+  fixture. Its `HCM_TRANSLATION_FIXTURE` fixes the semantic phase-to-opcode
+  correspondence exercised by protected cross-contract tests.
 - `REPOSITORY_COORDINATOR_POLICY.json` supplies the current evaluation-admission
   boundary and authorized actor set.
 - `tools/verified_receipts.py` resolves receipts from a separately pinned hash
@@ -39,6 +42,22 @@ The implementation composes existing repository contracts:
 
 HCM is therefore a deterministic translation and replay layer. It is not a new
 Coordinator, trust root, admission system, executor, or merge gate.
+
+### 1.1 Layer 0 binding
+
+The conformance model and HCM are separate surfaces with one checked boundary.
+Flattening `humanaios_core.HCM_TRANSLATION_FIXTURE` must yield every non-halting
+HCM opcode exactly once and in numeric execution order:
+
+```text
+PIN_CONTEXT → OBSERVE → CLAIM → CHALLENGE → WARRANT
+  → IMPORT_AUTHORITY → RECORD_ACTION → RECORD_OUTCOME → CLOSE
+```
+
+`HALT` is deliberately outside that success-path fixture because it is the
+fail-closed terminal available from multiple phases. The cross-contract
+regression also compiles and replays the complete resolved-challenge path and
+requires both surfaces to preserve `authority_effect = NONE`.
 
 ## 2. Core invariants
 

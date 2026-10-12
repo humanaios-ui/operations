@@ -13,9 +13,13 @@ import pytest
 
 
 TOOLS = Path(__file__).resolve().parents[1]
+ROOT = TOOLS.parent
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
+import humanaios_core as conformance
 import humanaios_core_machine_v0_1 as machine
 from verified_receipts import build_receipt_chain_for_testing
 
@@ -29,7 +33,7 @@ REVIEW_ID = "REVIEW-1"
 REVIEW_TIME = "2026-10-11T12:00:00Z"
 SCOPE = "issue:810/pr:999"
 SUBJECT = f"repo:humanaios-ui/operations@{HEAD}"
-SCHEMA_PATH = TOOLS.parent / "schemas" / "humanaios_core_machine_v0_1.schema.json"
+SCHEMA_PATH = ROOT / "schemas" / "humanaios_core_machine_v0_1.schema.json"
 
 
 def policy() -> dict:
@@ -273,6 +277,39 @@ def compile_source(value: dict | None = None) -> bytes:
 
 def valid_digest_blob(body: bytearray) -> bytes:
     return bytes(body) + sha256(body).digest()
+
+
+class TestLayerZeroConformanceContract:
+    def test_translation_fixture_is_the_exact_non_halting_opcode_path(self):
+        phases = conformance.HCM_TRANSLATION_FIXTURE
+        flattened = tuple(name for phase in phases.values() for name in phase)
+        non_halting = tuple(
+            opcode.name for opcode in machine.Opcode if opcode is not machine.Opcode.HALT
+        )
+
+        assert tuple(phases) == ("propose", "ratify", "execute", "session_close")
+        assert flattened == non_halting
+        assert tuple(
+            instruction["op"]
+            for instruction in instructions(full=True, challenge_state="RESOLVED")
+        ) == flattened
+
+    def test_full_translation_preserves_the_non_authority_boundary(self):
+        bytecode = compile_source(source(full=True, challenge_state="RESOLVED"))
+        warrant_digest = machine.warrant_sha256(bytecode)
+        pinned = trust(
+            full_events(
+                authorization=auth_receipt(warrant_sha256=warrant_digest),
+                action=action_receipt(warrant_sha256=warrant_digest),
+            )
+        )
+        result = machine.run_program(bytecode, pinned)
+
+        assert result["status"] == "OUTCOME_OBSERVED"
+        assert result["authority_effect"] == conformance.AUTHORITY_EFFECT == "NONE"
+        assert result["can_authorize"] is False
+        assert result["can_execute"] is False
+        assert result["merge_authority"] is False
 
 
 class TestBytecodeFormat:
