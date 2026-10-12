@@ -2,7 +2,7 @@
 ## Registry Failure Modes → Standing Orders → Industrial Failure Modes
 
 **Source:** `REGISTERED.md` @ HEAD (5,809 lines, 163 entries)
-**Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-10-09
+**Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-10-12
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED_FAILURE_MODES.md`
@@ -53,8 +53,8 @@ Reproduce with `python3 tools/registered_failure_mode_scan_v0_1.py scan`.
 `RFM-06` scores the **full** schema at `REGISTERED.md:16-32`, all ten declared fields. The registry says entries
 *"must open with"* that block, so the whole list is the contract; scoring a convenient subset would let the
 measurement flatter the registry. For triage the core five (`name`, `status`, `class`, `date_registered`,
-`session_registered`) are at **14/156 — 90.4% conforming**. The gap between 90.4% and 56.4% is `substrate` (58
-absent), `tags` (45), `superseded_by` (45) and `date_origin` (33): fields declared but never adopted. Whether that
+`session_registered`) are at **15 / 163 missing a core field — 90.8% conforming**. The gap between 90.8% and 57.1% is `substrate` (60
+absent), `superseded_by` (48), `tags` (46) and `date_origin` (34): fields declared but never adopted. Whether that
 is schema erosion or an over-declared schema is Z2's call, not the scanner's — it reports both numbers and picks
 the declared one as the headline.
 
@@ -94,7 +94,7 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 |:---|:---|:---|:---|:---|
 | **RFM-04** | **Under-registration** — a registrable item surfaces in-session and is never registered | `tools/skills/humanaios-findings-scan/SKILL.md:29` | UNMEASURED | 5 — skill exists, manually invoked |
 | **RFM-05** | **Over-registration / receipt overstatement** — asserting registry state that does not exist | IC-031 | UNMEASURED | 5 — §B.6, `receipt_reconciliation.py` |
-| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **70 / 163** full schema · 14 / 163 core | 10 — see note below |
+| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **70 / 163** full schema · 15 / 163 core | 10 — see note below |
 | **RFM-07** | **Front-matter fence loss** — the entry carries no machine-readable front matter, so a fence-based parser cannot see it. Two forms: `id:` rendered as a markdown heading (F-52…F-55), and legacy `### ID — Title` entries with bold-prose fields or none at all (H-ELICIT-01 at `:2302`, plus H-1 / H-42 / H-LE-02) | F-52…F-55; H-1, H-42, H-LE-02, H-ELICIT-01 | **8 / 163** | 10 → 5 with this scanner |
 | **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01, (2 additional found in Phase 2 review) | **3 / 163** | 10 → 5 with this scanner |
 

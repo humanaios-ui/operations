@@ -4327,6 +4327,7 @@ superseded_by: null
 **Ratification Hash:** cb622b71c8a4b8e9b06d97b0b9e6bc1a588a423fe016349277192dbaabc6bd7f
 **Hash basis:** `sha256(candidate | by="Carly R. Anderson (Night)" | at="2026-10-12T04:47:00Z" | decision=ACCEPT)`, computed with `.z1-control/ratify.py`'s own `signature()` function directly over this candidate block's exact bytes — from the line reading ` ```yaml ` through the end of the `**Assigned executor:**` line, inclusive of that line's trailing newline (8162 bytes, sha256 `cb672fb4a50ef65bc3f676247b709ea180e6819c6450c58a2f5e3516f2492c79`) — not run through that script's z1-inbox-backed CLI, since no z1-inbox candidate file exists for this q_id. Independently reproducible: `python3 -c "import sys; sys.path.insert(0,'.z1-control'); from ratify import signature; print(signature(open('<candidate block saved to a file>','rb').read(), 'Carly R. Anderson (Night)', '2026-10-12T04:47:00Z', 'ACCEPT'))"`.
 **Authority:** Admiral (Z2 Serial Gate) — direct instruction, this session ("Ratify HCM in PR #812", 2026-10-12)
+**Authentication of this record:** The hash above pins content, not identity: it is unkeyed and was computed by the Z1 session that filed this record, exactly as `.z1-control/ratify.py`'s own header warns ("CI cannot authenticate Z2"). Until one of the following happens this section is a Z1-filed claim of a Z2 decision, the same standing the `Q-AUTHORIZATION-EVIDENCE-MAPPING-01` and `Q-CORE-CONCEPT-MAPPING-01` records had before Z2 merged them: (a) PR #815 is merged to `main` under a Z2 identity, which `z2_ratification_gate.yml`'s commit-author check and CODEOWNERS on this file treat as the authenticating act; or (b) Z2 runs the controlled path (`.z1-control/ratify.py Q-HCM-CORE-MACHINE-01 --decision ACCEPT --by Night --apply` against an indexed z1-inbox candidate) and commits the resulting ruling, which then supersedes this hash. Neither is Z1's to perform.
 
 **Ratified Scope:**
 - HumanAIOS Core Machine v0.1 as specified in `docs/design/HUMANAIOS_CORE_MACHINE_V0_1.md` and implemented in `tools/humanaios_core_machine_v0_1.py`, `schemas/humanaios_core_machine_v0_1.schema.json`, `tools/verified_receipts.py` and their tests, at PR #812 head `7fc8211761cc6db7d304184bd9f4f9d6bc798760` (file digests in the candidate block above), as **the machine-encoding layer of the Operations contract**: the layer the ratified Layer 0 conformance model (`Q-CORE-CONCEPT-MAPPING-01`) is subordinate to
@@ -4336,7 +4337,7 @@ superseded_by: null
 
 **Explicitly not performed by this record (each a separate Z2 act):** the authenticated `APPROVED` review on #812's exact head; the Repository Coordinator admission record for #812 (issue #810 is `PROPOSED`); the merge of #812. A ratified candidate whose PR later changes head is re-pinned by a new RATIFY event, never by editing this one.
 
-**Status:** ACCEPTED · HCM v0.1 ratified as the machine-encoding layer; `CLAUDE.md` Appended Events and digest record updated to match
+**Status:** ACCEPTED (Z1-filed on Z2 instruction; authenticated by the Z2-identity merge of PR #815 or by a controlled-path ruling, see "Authentication of this record" above) · HCM v0.1 ratified as the machine-encoding layer; `CLAUDE.md` Appended Events and digest record updated to match
 
 ---
 
