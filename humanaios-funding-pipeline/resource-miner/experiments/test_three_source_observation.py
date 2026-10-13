@@ -38,6 +38,20 @@ class ThreeSourceContractTest(unittest.TestCase):
         self.assertFalse(public_source("https://evil.example/devteam/example", "devto"))
         self.assertFalse(public_source("https://github.com.attacker.example/o/r/issues/4", "github"))
 
+    def test_old_dev_post_without_deadline_requires_currentness(self):
+        r = screen(candidate(source_name="DEV Community",
+             source_url="https://dev.to/devteam/old-challenge",
+             resource_types=["competition"], published_at="2026-09-24T12:00:00Z"),
+             date(2026,10,13))
+        self.assertEqual(r["verification_state"], "HOLD_CURRENTNESS")
+        self.assertEqual(r["verification_relevance_not_profit"], 0)
+
+    def test_secondary_github_list_not_a_primary_bounty(self):
+        r = screen(candidate(title="📋 2 open bounties right now"),
+                   date(2026,10,13))
+        self.assertEqual(r["verification_state"], "HOLD_SECONDARY_AGGREGATOR")
+        self.assertEqual(r["verification_relevance_not_profit"], 0)
+
     def test_unknown_provider_excluded(self):
         self.assertIsNone(screen(candidate(source_name="Unauthorized Site"), date(2026,10,13)))
 
