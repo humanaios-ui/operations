@@ -176,6 +176,37 @@ python3 app.py --host 0.0.0.0 --port 8766
 - `GET /api/entitlement/handoff?resource_id=<id>` — emits a typed, provenance-bearing `humanaios.resource-entitlement-handoff.v1` object for a selected live/snapshot resource. The handoff is always `VERIFY_ELIGIBILITY` with `eligibility_assessed=false` and authority effect `NONE`.
 
 
+## INTENT-OS: human objective -> Resource Miner (public read-only bridge)
+
+The **existing Resource Miner HTTP service** now serves a small mobile-friendly INTENT-OS page.
+
+- Open `/intent-os` (or `/`) on the running Resource Miner service.
+- Enter one plain-language goal and choose `Public discovery + curated funding` or `Last stored funding snapshot`.
+- The page calls `POST /api/intent` on the **same origin** and displays up to 10 matching resource candidates with official-source links, provenance, limits and an unsigned reproducibility digest.
+- Live mode uses the existing **public DEV Community adapter** plus the curated HumanAIOS funding source, and discloses any upstream failure. Snapshot mode reads the previously committed funding snapshot without network.
+- This is not the previous E0/E1 synthetic demonstration, and it does not require the user to operate GitHub or the terminal once the service is deployed. This is an HTTP integration against existing candidate models, not a new adapter protocol.
+
+Example:
+
+```bash
+python3 app.py --host 127.0.0.1 --port 8766
+# Open http://127.0.0.1:8766/intent-os
+curl -sS -X POST http://127.0.0.1:8766/api/intent \
+  -H 'Content-Type: application/json' \
+  -d '{"objective":"Find compute credits for AI research","source_mode":"live"}'
+```
+
+**Privacy / authority:** Do not enter private identifying details. The HTTP service does not persist the objective. No cookies, third-party scripts, account access, applications, purchases, outreach, eligibility determination or authorization are performed. The returned SHA-256 selection digest is *not* an authenticated witness receipt. Resource descriptions are untrusted text rendered as text, not instructions. Only the public funding pipeline and DEV candidate classes are allowed through this new route; private Gmail and HackerOne discovery are excluded even if they exist elsewhere in the repository.
+
+**Operational limits:** The live feed may be unavailable; the service will say so and show labeled curated results instead. The funding catalog is not a live eligibility source. The existing deployed service must be updated to the approved commit before the new page works. Reusing the existing Railway start command is sufficient; do not treat a green PR as evidence that public deployment has happened.
+
+Tests:
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+```
+
 ## HackerOne scope and authorization boundary
 
 The HackerOne adapter is intentionally split into three layers:
