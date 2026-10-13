@@ -66,8 +66,21 @@ def screen(row, as_of):
     # Issue assignments do not establish claimant access.
     raw = row.raw if isinstance(row.raw, dict) else {}
     assigned = provider == "github" and bool(raw.get("assignee") or raw.get("assignees"))
+    aggregator = (provider == "github" and
+                  "open bounties" in row.title.lower() and
+                  "bounty" not in row.title.lower().replace("open bounties", ""))
+    dev_old_and_undated = False
+    if provider == "devto" and not deadline:
+        try:
+            published = datetime.fromisoformat((row.published_at or "").replace("Z", "+00:00"))
+            dev_old_and_undated = (as_of - published.date()).days > 7
+        except ValueError:
+            dev_old_and_undated = True
     state = ("ARCHIVE_EXPIRED" if expired else
-             "CHECK_ASSIGNED_OR_CLAIMED" if assigned else "VERIFY_TERMS_ACCESS_COSTS")
+             "CHECK_ASSIGNED_OR_CLAIMED" if assigned else
+             "HOLD_SECONDARY_AGGREGATOR" if aggregator else
+             "HOLD_CURRENTNESS" if dev_old_and_undated else
+             "VERIFY_TERMS_ACCESS_COSTS")
     # Existing need/requirement match => verification relevance only.
     scores = [m.score for m in row.need_matches] + [
         m.score for m in row.requirement_matches if m.gap_status == "CONFIRMED"
