@@ -100,6 +100,33 @@ class HttpIntentTests(unittest.TestCase):
             handler.do_POST()
         return observed[0], scan
 
+    def test_page_is_served_by_existing_http_service(self):
+        handler = object.__new__(app.Handler)
+        handler.path = "/intent-os"
+        handler.wfile = io.BytesIO()
+        headers = []
+        handler._headers = lambda status, content_type, length: headers.append(
+            (status, content_type, length)
+        )
+        handler.do_GET()
+        page = handler.wfile.getvalue()
+        self.assertEqual(headers[0][0], 200)
+        self.assertIn(b"INTENT-OS", page)
+        self.assertIn(b"/api/intent", page)
+        self.assertIn(b"source_mode", page)
+
+    def test_oversized_request_rejected_without_reading_body(self):
+        handler = object.__new__(app.Handler)
+        handler.path = "/api/intent"
+        handler.headers = {"Content-Type": "application/json", "Content-Length": "999999"}
+        handler.rfile = io.BytesIO(b"")
+        observed = []
+        handler._send_json = lambda response, status=200: observed.append((int(status), response))
+        with patch.object(app, "_intent_scan") as scan:
+            handler.do_POST()
+        self.assertEqual(observed[0][0], 400)
+        scan.assert_not_called()
+
     def test_live_request_reaches_miner(self):
         (status, result), scan = self.invoke({"objective": "Find grants for compute"})
         self.assertEqual(status, 200)
