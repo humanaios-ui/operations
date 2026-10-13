@@ -87,12 +87,55 @@ def screen(row, as_of):
         "execution": "DISABLED",
     }
 
+def official_dev_challenges(per_page=100):
+    """Bounded first-party DEV organization intake; filter out entrant submissions.
+
+    Uses the same public DEV API transport and canonical Miner normalizer.
+    An article about a contest is not necessarily an open contest.
+    """
+    from resource_miner.normalize import normalize_generic, utcnow_iso
+    url = "https://dev.to/api/organizations/devteam/articles?per_page=" + str(per_page)
+    payload = devto._get_json(url)
+    if not isinstance(payload, list):
+        raise ValueError("DEV organization API did not return article records")
+    observed = utcnow_iso()
+    for article in payload:
+        if not isinstance(article, dict):
+            continue
+        tags = article.get("tag_list") or []
+        if "devchallenge" not in [str(v).lower() for v in tags]:
+            continue
+        title = str(article.get("title") or "")
+        if not title.lower().startswith(("join the ", "hacktoberfest 2026 dev challenges")):
+            continue
+        url = str(article.get("url") or "")
+        if not public_source(url, "devto"):
+            continue
+        detail = article
+        article_id = article.get("id")
+        if isinstance(article_id, int):
+            try:
+                detail = devto._get_json(devto.API + "/" + str(article_id))
+            except Exception:
+                detail = article
+        yield normalize_generic(
+            title=title, url=url, source_name="DEV Community",
+            discovery_method="devto_org_public_api:devteam:devchallenge",
+            description=str(article.get("description") or ""),
+            sponsor="The DEV Team",
+            published_at=str(article.get("published_at") or "") or None,
+            tags=[str(v) for v in tags],
+            body_text=str(detail.get("body_markdown") or ""),
+            observed_at=observed,
+        )
+
+
 def collect(max_per_source=12, collectors=None):
     if not 1 <= max_per_source <= 30:
         raise ValueError("max_per_source must be 1..30")
     collectors = collectors if collectors is not None else {
         "funding": lambda: funding_pipeline.discover(DEFAULT_FUNDING),
-        "devto": lambda: devto.discover(tags=["devchallenge"], per_page=100, hydrate=False),
+        "devto": lambda: official_dev_challenges(per_page=100),
         "github": lambda: github.discover(["is:issue is:open label:bounty"], per_query=30),
     }
     at = datetime.now(timezone.utc).isoformat()
@@ -101,9 +144,7 @@ def collect(max_per_source=12, collectors=None):
         try:
             items = list(collectors[name]())
             if name == "devto":
-                # Preserve the official devteam announcements first.
                 items.sort(key=lambda x: x.published_at or "", reverse=True)
-                items.sort(key=lambda x: x.sponsor != "The DEV Team")
             items = items[:max_per_source]
             captured.extend(items)
             receipts.append({
@@ -138,7 +179,7 @@ def collect(max_per_source=12, collectors=None):
         "economic_outcome": "NOT_ESTABLISHED", "authority_effect": "NONE",
         "authorization": "NOT_GRANTED",
         "disclosure": (
-            "Funding records come from the local curated dataset; DEV/GitHub use "
+            "Funding records come from the local curated dataset; official DEV org and GitHub use "
             "public read-only APIs. No applicant eligibility, payment, independent "
             "source authentication, or commercial return is claimed. "
             "A source failure must not count as zero available opportunities."
