@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from resource_miner.miner import enrich
+from resource_miner.intent_os import evaluate_objective
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
 from resource_miner.sources import devto, funding_pipeline, github, rss
@@ -53,6 +54,25 @@ def _run_scan(params: dict[str, list[str]]) -> list[Any]:
     return enrich(discovered, needs_path, requirements_path)
 
 
+def _intent_scan() -> tuple[list[dict[str, Any]], str, str]:
+    """Use existing public Miner adapters only; never expose private sources.
+
+    The locally curated funding catalog is not independently refreshed.
+    DEV Community is a public network observation. Its failure is disclosed.
+    """
+    discovered = list(funding_pipeline.discover(DEFAULT_FUNDING))
+    source_status = "CURATED_ONLY_LIVE_SOURCE_FAILED"
+    source_warning = ""
+    try:
+        observed = list(devto.discover(["devchallenge"], per_page=12, hydrate=False))
+        discovered.extend(observed)
+        source_status = "PUBLIC_DEV_LIVE_PLUS_CURATED_FUNDING"
+    except Exception:
+        source_warning = "DEV live source could not be reached. Showing curated records only; current availability is unknown."
+    candidates = enrich(discovered, DEFAULT_NEEDS, DEFAULT_REQUIREMENTS)
+    return [c.to_dict() for c in candidates], source_status, source_warning
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "ResourceMiner/0.2"
 
@@ -63,6 +83,12 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("Cache-Control", "no-store")
+        if content_type.startswith("text/html"):
+            self.send_header(
+                "Content-Security-Policy",
+                "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
+                "connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+            )
         self.end_headers()
 
     def _send_json(self, data: Any, status: int = 200) -> None:
@@ -74,6 +100,11 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path in ("/", "/intent-os"):
+                page = (ROOT / "intent-os.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
             if parsed.path == "/api/health":
                 return self._send_json({
                     "ok": True,
@@ -118,6 +149,39 @@ class Handler(BaseHTTPRequestHandler):
             )
 
     def do_POST(self) -> None:
+        if urlparse(self.path).path == "/api/intent":
+            try:
+                content_type = self.headers.get("Content-Type", "").lower()
+                if not content_type.startswith("application/json"):
+                    raise ValueError("Content-Type must be application/json.")
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0 or length > 4096:
+                    raise ValueError("JSON request must be between 1 and 4096 bytes.")
+                body = json.loads(self.rfile.read(length).decode("utf-8"))
+                if not isinstance(body, dict) or set(body) - {"objective", "source_mode"}:
+                    raise ValueError("Expected only objective and source_mode.")
+                objective = body.get("objective")
+                mode = body.get("source_mode", "live")
+                if not isinstance(objective, str) or not 3 <= len(objective.strip()) <= 500:
+                    raise ValueError("Describe what you need in 3 to 500 characters.")
+                if mode not in ("live", "snapshot"):
+                    raise ValueError("source_mode must be live or snapshot.")
+                if mode == "live":
+                    rows, source_status, warning = _intent_scan()
+                else:
+                    rows = _read_jsonl(SNAPSHOT_OUT)
+                    source_status, warning = ("CURATED_SNAPSHOT_NOT_LIVE",
+                        "Snapshot captured previously. Dates, eligibility and availability are unverified.")
+                result = evaluate_objective(
+                    objective, rows, source_mode=mode,
+                    source_status=source_status, source_warning=warning,
+                )
+                return self._send_json(result)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                return self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Source or service unavailable. Try the stored snapshot."},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path != "/api/scan":
             return self._send_json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
         try:
