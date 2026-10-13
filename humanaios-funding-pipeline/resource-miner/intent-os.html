@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INTENT-OS · Find Resources</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf2fc;background:#0b1423;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:#0b1423}main{max-width:780px;margin:auto;padding:36px 18px 80px}
+header{margin-bottom:28px}small,.muted{color:#a6b5cb}.brand{font-size:.77rem;letter-spacing:.16em;color:#81c5e9;font-weight:750}
+h1{font-size:clamp(1.8rem,5vw,2.7rem);line-height:1.18;margin:10px 0}h2{font-size:1.12rem;margin:0 0 14px}
+p{line-height:1.55}.panel{background:#13243a;border:1px solid #314764;border-radius:16px;padding:22px;margin-bottom:20px}
+label{display:block;font-weight:650;margin-bottom:9px}textarea,select{display:block;width:100%;background:#081829;color:#fff;border:1px solid #60728c;border-radius:9px;padding:13px;font:inherit}
+textarea{resize:vertical;min-height:108px}textarea:focus,select:focus,button:focus-visible,a:focus-visible{outline:3px solid #8dd3ee;outline-offset:3px}
+.row{display:flex;align-items:end;gap:15px;flex-wrap:wrap;margin-top:17px}.field{flex:1;min-width:190px}
+button{font:inherit;cursor:pointer;border-radius:9px;padding:13px 18px;border:1px solid #7cb1d0;background:#326a91;color:#fff;font-weight:700}
+button:hover{background:#4683af}button:disabled{opacity:.6;cursor:wait}
+.examples{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0 0}.examples button{font-size:.8rem;padding:7px 11px;background:transparent;border-color:#577189}
+#feedback{padding:12px 0;min-height:24px;color:#c6d5ec}#feedback.error{color:#ffb9b0}
+.item{border-top:1px solid #38526e;padding:18px 0}.item:first-of-type{border-top:0}
+.item h3{margin:0 0 6px;font-size:1.03rem}.item p{margin:8px 0;color:#c2d0e1;font-size:.92rem}
+.meta{font-size:.79rem;color:#abc8de;margin-top:9px}.tag{font-size:.74rem;display:inline-block;border:1px solid #5f91a7;border-radius:99px;padding:3px 8px;margin:4px 4px 2px 0}
+a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
+.notice{border-left:3px solid #e5b66e;padding:9px 14px;color:#e8d5ac;background:#302a24;margin-top:10px;border-radius:5px}
+#results[hidden]{display:none}footer{font-size:.84rem;line-height:1.6;color:#a3b3c6;margin-top:26px}
+</style>
+</head>
+<body>
+<main>
+<header><div class="brand">HUMANAIOS / INTENT-OS</div><h1>What resource would help you?</h1>
+<p class="muted">Describe a goal. INTENT-OS will match it to observations from the existing Resource Miner. You decide what to pursue.</p></header>
+<section class="panel" aria-label="Resource search">
+<form id="form">
+<label for="objective">What are you trying to accomplish?</label>
+<textarea id="objective" name="objective" maxlength="500" required placeholder="Example: Find compute credits or grants to support AI evaluation research"></textarea>
+<div class="row">
+<div class="field"><label for="mode">Where to look</label>
+<select id="mode"><option value="live">Public discovery + curated funding (refresh now)</option>
+<option value="snapshot">Last stored funding snapshot (offline)</option></select></div>
+<button type="submit" id="go">Find resources</button>
+</div>
+</form>
+<div class="examples" aria-label="Example goals">
+<button type="button" data-example="Find grants to support independent AI evaluation research">Research grants</button>
+<button type="button" data-example="Find compute credits or free cloud infrastructure">Cloud credits</button>
+<button type="button" data-example="Find training and certification programs">Training</button>
+</div>
+</section>
+<div id="feedback" role="status" aria-live="polite"></div>
+<section class="panel" id="results" hidden aria-labelledby="resTitle">
+<h2 id="resTitle">Resources to review</h2>
+<p id="summary"></p>
+<div id="warning" class="notice" hidden></div>
+<div id="items"></div>
+<p class="muted" id="receipt"></p>
+</section>
+<footer><strong>What this does:</strong> public discovery, basic relevance matching, and links to source material. <strong>What it does not do:</strong> verify eligibility, guarantee availability, access accounts, apply, purchase, contact anyone, or grant authorization. Your objective is sent only to this service for this request; the application does not save it. Avoid entering sensitive personal details. Live public discovery depends on source availability and is not an eligibility assessment.</footer>
+</main>
+<script>
+"use strict";
+const form=document.getElementById("form"),field=document.getElementById("objective"),
+  mode=document.getElementById("mode"),button=document.getElementById("go"),
+  feedback=document.getElementById("feedback"),box=document.getElementById("results"),
+  items=document.getElementById("items"),summary=document.getElementById("summary"),
+  warning=document.getElementById("warning"),receipt=document.getElementById("receipt");
+document.querySelectorAll("[data-example]").forEach(b=>b.addEventListener("click",()=>{
+  field.value=b.dataset.example;field.focus();
+}));
+const text=(element,value)=>{element.textContent=String(value??"");};
+function addCard(row){
+ const card=document.createElement("article");card.className="item";
+ const heading=document.createElement("h3");text(heading,row.title||"Resource candidate");card.append(heading);
+ const desc=document.createElement("p");text(desc,row.description||"No description supplied.");card.append(desc);
+ const meta=document.createElement("div");meta.className="meta";
+ text(meta,(row.source_name||"Source unknown")+" · "+(row.route||"WATCH")+
+   " · Eligibility: NOT ASSESSED"+(row.deadline?" · Reported deadline: "+row.deadline:""));
+ card.append(meta);
+ const matches=document.createElement("div");
+ for(const word of (Array.isArray(row.matched_terms)?row.matched_terms:[])){
+   const tag=document.createElement("span");tag.className="tag";text(tag,word);matches.append(tag);
+ }
+ card.append(matches);
+ try {
+   const link=new URL(row.source_url);
+   if(link.protocol==="https:" && !link.username && !link.password){
+     const wrap=document.createElement("p"),a=document.createElement("a");
+     a.href=link.href;a.target="_blank";a.rel="noopener noreferrer";
+     text(a,"Open source to verify details ↗");wrap.append(a);card.append(wrap);
+   }
+ }catch(_){}
+ return card;
+}
+form.addEventListener("submit",async event=>{
+ event.preventDefault();const objective=field.value.trim();
+ if(!objective){field.focus();return;}
+ button.disabled=true;feedback.classList.remove("error");
+ text(feedback,"Checking Resource Miner…");box.hidden=true;items.replaceChildren();
+ try{
+   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+   let response;
+   try{
+     response=await fetch("/api/intent",{method:"POST",headers:{"Content-Type":"application/json"},
+       body:JSON.stringify({objective,source_mode:mode.value}),signal:controller.signal,cache:"no-store"});
+   }finally{clearTimeout(timer);}
+   const result=await response.json();
+   if(!response.ok)throw new Error(result.error||"Request failed");
+   text(summary,result.shown_count?
+     "Found "+result.matched_count+" possible match(es); showing "+result.shown_count+
+     ". These are leads to verify, not eligibility decisions.":
+     "No supported matches in these sources. Try another goal or the other source mode.");
+   warning.hidden=!result.source_warning;
+   text(warning,result.source_warning);
+   (result.candidates||[]).forEach(row=>items.append(addCard(row)));
+   text(receipt,"Source: "+result.source_status+" · Unsigned selection digest: "+result.receipt_sha256);
+   box.hidden=false;
+   text(feedback,result.shown_count+" resource candidate(s) displayed.");
+ }catch(error){
+   feedback.classList.add("error");
+   text(feedback,error.name==="AbortError"?"The source did not respond in time. Try the stored snapshot.":
+      "Could not complete the request: "+error.message+". Try the stored snapshot.");
+ }finally{button.disabled=false;}
+});
+</script>
+</body>
+</html>
