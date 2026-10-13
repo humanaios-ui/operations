@@ -81,6 +81,16 @@ class ObjectiveContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.evaluate([candidate()], "grant " * 150)
 
+    def test_actual_committed_miner_snapshot_produces_human_readable_matches(self):
+        rows = app._read_jsonl(app.SNAPSHOT_OUT)
+        self.assertGreater(len(rows), 0, "Existing Resource Miner snapshot missing")
+        result = self.evaluate(rows, "Find grants to support AI research")
+        self.assertGreater(result["shown_count"], 0)
+        self.assertTrue(all(row["source_name"] == "HumanAIOS Funding Pipeline"
+                            for row in result["candidates"]))
+        self.assertTrue(all(row["eligibility_assessed"] is False
+                            for row in result["candidates"]))
+
     def test_deterministic_receipt(self):
         a = self.evaluate([candidate()])
         b = self.evaluate([candidate()])
