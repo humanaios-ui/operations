@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import date
 import hashlib
+import ipaddress
 import json
 import re
 from urllib.parse import urlsplit
@@ -49,7 +50,26 @@ def _public_https(value: object) -> str | None:
         parsed = urlsplit(value)
         if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
             return None
-        if parsed.hostname in {"localhost", "127.0.0.1", "::1"}:
+        host = parsed.hostname.lower().rstrip(".")
+        # Reject literal IP targets, including public IPs (official source links
+        # should be hostnames). No DNS fetch is performed by this projection.
+        try:
+            ipaddress.ip_address(host)
+            return None
+        except ValueError:
+            pass
+        if (
+            "." not in host
+            or host == "localhost"
+            or host.endswith((
+                ".localhost", ".local", ".internal", ".lan", ".home",
+                ".test", ".invalid", ".nip.io", ".sslip.io",
+                ".localtest.me", ".lvh.me",
+            ))
+            or re.fullmatch(r"[0-9.]+", host)
+            or host.startswith("0x")
+            or parsed.port not in (None, 443)
+        ):
             return None
     except ValueError:
         return None
