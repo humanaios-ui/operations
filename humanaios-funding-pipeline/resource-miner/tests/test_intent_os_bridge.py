@@ -61,6 +61,24 @@ class ObjectiveContractTests(unittest.TestCase):
         self.assertEqual(self.evaluate([candidate(canonical_url="javascript:alert(1)")])["candidates"], [])
         self.assertEqual(self.evaluate([candidate(canonical_url="http://127.0.0.1/")])["candidates"], [])
 
+    def test_private_network_link_disguises_are_rejected(self):
+        addresses = [
+            "https://192.168.1.55/grant",
+            "https://10.0.0.2/grant",
+            "https://169.254.169.254/latest/meta-data",
+            "https://[::1]/grant",
+            "https://service.internal/grant",
+            "https://service.local/grant",
+            "https://localhost/grant",
+            "https://2130706433/grant",
+            "https://127.0.0.1.nip.io/grant",
+            "https://example.org:8080/grant",
+        ]
+        for address in addresses:
+            with self.subTest(address=address):
+                result = self.evaluate([candidate(canonical_url=address)])
+                self.assertEqual(result["candidates"], [])
+
     def test_past_deadline_is_excluded_even_when_route_is_stale(self):
         self.assertEqual(
             self.evaluate([candidate(deadline="2020-01-01", route="VERIFY_NOW")])["candidates"], []
