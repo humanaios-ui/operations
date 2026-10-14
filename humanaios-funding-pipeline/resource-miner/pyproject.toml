@@ -10,3 +10,11 @@ observability = ["langfuse>=5,<6", "cerebras_cloud_sdk>=1.0,<3"]
 
 [project.scripts]
 haios-resource-miner = "resource_miner.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["resource_miner", "resource_miner.*"]
+exclude = ["tests*", "data*", "fixtures*", "reports*", "schemas*"]
