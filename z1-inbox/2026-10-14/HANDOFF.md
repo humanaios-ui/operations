@@ -13,7 +13,8 @@
 
 | Claim | Where it is verifiable | Status |
 |:--|:--|:--|
-| 36 PRs open; 32 of 33 swept fail the admission gate | QUEUE_MAP §1; gate workflow | observed via API |
+| 36 PRs open; the admission-gate check concluded failure on 32 of 33 swept | QUEUE_MAP §1; gate workflow | observed via API (check conclusion only; coordinator decision per run not swept) |
+| On #740 the gate decided PASS/MAINTENANCE and the job then failed with HTTP 403 publishing its receipt | run 38058777239, job 114232581292 log | read 2026-10-14 after Copilot review |
 | ADMIT is a Z2 act (workflow_dispatch or `/coordinator admit`) | `.github/workflows/repository-admission-gate.yml` lines 25–48, 584–600 | read |
 | Admitted capacity is 4 | `REPOSITORY_COORDINATOR_POLICY.json` `capacity.active_operator_queue` | read |
 | Ten PRs collide on the manifest pair | QUEUE_MAP §3 | observed via `get_files` |
@@ -29,7 +30,7 @@
 
 ## Findings scan
 
-- F-candidate (not filed, needs Z2 view first): the admission gate is red on 32/33 PRs because ADMIT records are absent, so "CI red" on this repo currently measures Z2 backlog, not code quality. SMAG #817 names this check as the top gap driver. A candidate block would propose that the SMAG `gap_rate` separate admission-gate failures from code-check failures.
+- F-candidate (not filed, needs Z2 view first): the admission-gate check is red on 32/33 PRs, and the red conflates three causes with three different owners: FAIL decisions awaiting a Z2 ADMIT; PASS decisions whose receipt-comment step failed with HTTP 403 on `pull_request_target` runs for bot-authored PRs (verified on #740; a workflow-permission defect, owner CI Mechanic); and non-draft PRs that would route to WORKBENCH. SMAG #817 names this check as the top gap driver. A candidate block would propose that the SMAG `gap_rate` and the coordinator index split the check conclusion from the gate decision, so each cause is counted against its owner.
 - Observation: #719's body claims five files; the PR carries fifteen including a workflow (`molt_tier_claimed: 0` looks under-claimed). Routed to Lane P in the plan, not filed as IC.
 
 ## Next blockers
