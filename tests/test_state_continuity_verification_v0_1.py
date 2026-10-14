@@ -203,6 +203,24 @@ class InterfaceTests(unittest.TestCase):
         self.v["validation_receipts"][0]["verified_at"] = "2026-10-21T00:00:00Z"
         self.assertEqual(self.audit(), first)
 
+        # Observation times also remain descriptive, not authority-bearing.
+        # Keep source ids, event ids, source pins and work state unchanged.
+        # Use two separate, well-formed histories within the valid interval.
+        for observed_at, recorded_at, event_date in (
+            ("2026-10-03T10:00:00Z", "2026-10-03T10:01:00Z", "2026-10-03"),
+            ("2026-10-18T10:00:00Z", "2026-10-18T10:01:00Z", "2026-10-18"),
+        ):
+            self.v["observation_refs"][0]["observed_at"] = observed_at
+            self.v["observation_refs"][0]["recorded_at"] = recorded_at
+            self.g["events"][0]["observed_on"] = event_date
+            result = self.audit()
+            self.assertEqual(result, first)
+            self.assertEqual(result["status"], "NOT_ESTABLISHED")
+            self.assertEqual(result["reason_codes"], first["reason_codes"])
+            self.assertFalse(result["can_authorize"])
+            self.assertFalse(result["authenticated"])
+            self.assertEqual(result["authority_effect"], "NONE")
+
     def test_orthogonal_time_state_change_at_same_clock_fails_closed(self):
         before = self.audit()
         self.assertIn("SOURCE_BINDING_NOT_PROOF", before["reason_codes"])
