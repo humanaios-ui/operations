@@ -78,11 +78,13 @@ class GitHubReadOnly:
         # children. The initial prefix-only guard rejected repos/{REPO},
         # preventing every live witness run immediately after OIDC succeeded.
         root = f"repos/{REPO}"
-        # Reject dot-segments ("." / "..") only. Triple-dot compare ranges
-        # (compare/{base}...{head}) are valid and must stay reachable.
+        # Reject dot-segments ("." / "..", plain or percent-encoded) only.
+        # Triple-dot compare ranges (compare/{base}...{head}) are valid and
+        # must stay reachable. "#" ends the URL path for urllib, so it is a
+        # segment terminator here too: "/..#x" would otherwise traverse.
         if (not isinstance(path, str)
                 or not (path == root or path.startswith(root + "/"))
-                or re.search(r"(^|/)\.\.?(/|\?|$)", path)
+                or re.search(r"(?i)(^|/)(\.|%2e)(\.|%2e)?(/|\?|#|$)", path)
                 or "\\" in path or len(path) > 600):
             raise WitnessError("API_PATH_DENIED")
         req = urllib.request.Request(
