@@ -161,6 +161,38 @@ class RestTransportRegressionTests(unittest.TestCase):
                 witness.GitHubReadOnly("synthetic-test-token").get(PRE + "/../private")
             open_url.assert_not_called()
 
+    def test_fragment_and_encoded_traversal_denied_without_network(self):
+        """Fragment-terminated and percent-encoded dot-segments are rejected pre-network."""
+        for bad in (PRE + "/..#x", PRE + "/%2e%2e/private", PRE + "/%2E./private",
+                    PRE + "/.#x", PRE + "/x/..?y=1"):
+            with self.subTest(path=bad), patch.object(witness.urllib.request, "urlopen") as open_url:
+                with self.assertRaises(witness.WitnessError):
+                    witness.GitHubReadOnly("synthetic-test-token").get(bad)
+                open_url.assert_not_called()
+
+    def test_triple_dot_compare_reaches_transport(self):
+        """A compare/{base}...{head} path reaches urlopen unchanged."""
+        class Response:
+            """Minimal context-manager stand-in for urlopen's response."""
+
+            def __enter__(self):
+                """Return self as the response object."""
+                return self
+
+            def __exit__(self, *_):
+                """Do not suppress exceptions."""
+                return False
+
+            def read(self, *_):
+                """Return a canned compare payload."""
+                return b'{"status":"ahead"}'
+
+        path = PRE + "/compare/" + "a" * 40 + "..." + "b" * 40
+        with patch.object(witness.urllib.request, "urlopen", return_value=Response()) as open_url:
+            info = witness.GitHubReadOnly("synthetic-test-token").get(path)
+        self.assertEqual(info["status"], "ahead")
+        self.assertEqual(open_url.call_args.args[0].full_url, "https://api.github.com/" + path)
+
     def test_child_endpoint_keeps_existing_access(self):
         class Response:
             def __enter__(self):
