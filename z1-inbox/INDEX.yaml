@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-10-09'
+generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 106
-  records: 57
+  candidates: 107
+  records: 58
 ratifiers:
 - Night
 candidates:
@@ -1227,7 +1227,29 @@ candidates:
     Option C (comprehensive audit + full repair, 5-7 days). Recommends A + governance
     escalation for Z2 to choose B or C scope. All entries with missing required YAML
     fields documented and quantified per failure mode.'
+- q_id: Q-HCM-CORE-MACHINE-01
+  title: 'HumanAIOS Core Machine v0.1 (PR #812) — staged for the controlled ratification
+    path (.z1-control/ratify.py)'
+  path: z1-inbox/2026-10-14/Q-HCM-CORE-MACHINE-01.md
+  submitted: '2026-10-14'
+  status: ratified
+  tier: 0
+  note: 'Second record of one decision, not a second decision: the governance decision
+    on Q-HCM-CORE-MACHINE-01 was taken 2026-10-12 on direct Z2 instruction and is on
+    main in REGISTERED.md (PR #815, merged under a Z2 identity; hashes cb622b71… and
+    c0b9cc35…). This block exists so Z2 can bind that decision through the path
+    validate.py enforces: ratify.py Q-HCM-CORE-MACHINE-01 --decision ACCEPT --by Night
+    --apply, then render, validate, commit. Pinned subject: PR #812 head c49eabe1.
+    Z1 pre-fills no signature field.'
+  ratified_by: Night
+  ratified_at: "2026-10-14"
+  z2_ruling: "z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md"
+  z2_hash: "9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd"
 records:
+- path: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
+  title: "Z2 rulings — 2026-10-14 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-10/HANDOFF.md
   title: Session Handoff — Manifest Integrity Fix (GNER E0/E1/E2)
   note: Session/handoff record for the manifest integrity fix (Builder v1.7 compliance
