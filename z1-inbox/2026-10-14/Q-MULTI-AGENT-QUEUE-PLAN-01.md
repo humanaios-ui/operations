@@ -145,7 +145,7 @@ Each agent is a bounded role with one output and one authority effect. All are Z
 |:--|:--|:--|:--|:--|:--|
 | A0 | Orchestrator (this session's role) | Z1 | pinned SHA, QUEUE_MAP | dispatches, WIP enforcement, decision sheets, handoff | z1-inbox only |
 | A1 | Cartographer | Z1 read-only | GitHub API | QUEUE_MAP refresh (PR table, issue clusters, conflict map) | QUEUE_MAP record |
-| A2 | Supersession and Lineage Analyst | Z1 | QUEUE_MAP | per-PR recommendation: keep / supersede / stack / close, with file-overlap evidence | decision-sheet rows |
+| A2 | Supersession and Lineage Analyst | Z1 | QUEUE_MAP + the Repository Coordinator index comment (its per-PR guidance: CLOSE_PRESERVE, REEXAMINE, REBASE_RETEST) | per-PR recommendation: keep / supersede / stack / close, with file-overlap evidence; never recomputes what the coordinator already reports | decision-sheet rows |
 | A3 | Manifest Steward (single writer) | Z1 | serial order from D7 | one rebased PR at a time; tool-ID allocation; `TOOLS_MANIFEST.md` regen | the PR branch in lane |
 | A4 | CI Mechanic | Z1 | one red PR | fixes for Builder / Tool manifest / quality / P19 / validate; `verify_pr_readiness.sh` green; K <= 13 files per commit | the PR branch (per D2) |
 | A5 | Review Responder | Z1 | open review threads | blocking findings fixed; optional ones answered in one line and resolved; reviewer re-requested | PR threads |
@@ -202,7 +202,17 @@ RAT-min column is the demand prior for the row's class; A7 replaces it with meas
 | D9 | Cross-repo lane: draft PRs in humanaios and lasting-light-ai now, or proposals in operations until #749/#750 are ratified | Proposals in operations first; sibling-repo draft PRs only after #749/#750 rows are signed | 8 |
 | D10 | Holds: #597 stays parked; is #812's HOLD lifted now that #815 is merged? | #597 parked; #812 HOLD is Z2's call, no recommendation | 5 |
 
-Sum of priors: 73 RAT-min, one sitting.
+| D11 | Convert prose-draft PRs to API drafts: #597, #767, #770, #771, #777, #790, #812, #814, #819, #825, #827 all say DRAFT/HOLD in their bodies but are `draft=false`; the gate routes API drafts to WORKBENCH (PASS) and out of ADMISSION_REVIEW | Convert them; it makes the gate measure what the authors already claim, and it is reversible with "ready for review" | 5 |
+
+Sum of priors: 78 RAT-min, one sitting.
+
+## 5a. Observations from this PR's own gate run (2026-10-14)
+
+Filed after the first CI run on the PR carrying this candidate; they correct §1 and §2.
+
+- **Drafts pass the admission gate by design.** The Repository Coordinator receipt for this draft PR read `PASS`, lane `WORKBENCH`, reason "draft work is isolated from the operator queue" (receipt `RCD-AB60C8AD94173F77`, state `09479a1b`). So the 32-of-33 red count in §1 conflates two populations: PRs awaiting a Z2 ADMIT and PRs that merely never set the GitHub draft flag. The coordinator index on the same run counted 29 in ADMISSION_REVIEW, 5 MAINTENANCE, 1 ACTIVE (#606, #812 listed), 1 WORKBENCH (this PR), 1 CONTROL_PLANE. D11 is the cheap correction.
+- **The coordinator already does Lane M and part of A2.** Its index routes dependabot by cohort (MAINTENANCE 5) and prints technical guidance per PR, including `CLOSE_PRESERVE` for #781 and #805 (zero files) and `REBASE_RETEST` for #606 and #812. A2 consumes that comment; it does not rebuild it (per #747's "map, do not duplicate").
+- **Per-check predictions are a separate pin from `smag_p`.** `ci-predict-pin` refused the inherited `ci_predictions/pr.json` as a status receipt (`INHERITED`, not a failure). A7's pins should use that file per PR head, which is why this PR now carries one.
 
 ## 6. How the five purposes are served
 

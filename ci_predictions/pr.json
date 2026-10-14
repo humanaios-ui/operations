@@ -1,55 +1,47 @@
 {
-  "pr": 727,
-  "actor_origin_claim": "GPT-5.6 Sol via ChatGPT, implementing user-authorized Repository Coordinator State Architecture v1.1",
+  "pr": 836,
+  "actor_origin_claim": "Claude Code (Z1 proposer), filing Q-MULTI-AGENT-QUEUE-PLAN-01 as a docs-only z1-inbox candidate",
   "checks": {
-    "agent-principle-compliance-check": {
+    "repository-admission-gate": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.90
     },
-    "builder-lint": {
+    "validate": {
       "conclusion": "success",
       "p": 0.95
     },
-    "document-control": {
-      "conclusion": "success",
-      "p": 0.96
-    },
-    "manifest-sync-gate": {
-      "conclusion": "success",
-      "p": 0.97
-    },
-    "No-op PR guard": {
-      "conclusion": "success",
-      "p": 0.99
-    },
-    "quality-baseline": {
-      "conclusion": "success",
-      "p": 0.92
-    },
-    "repository-admission-gate": {
-      "conclusion": "success",
-      "p": 0.94
-    },
-    "repository-coordinator": {
-      "conclusion": "success",
-      "p": 0.97
-    },
-    "security-gates": {
-      "conclusion": "success",
-      "p": 0.98
-    },
-    "tool-manifest": {
+    "Verify Z2 Ratification Requirements": {
       "conclusion": "success",
       "p": 0.93
     },
-    "workflow-lint": {
+    "Reject unauthorized internal deadline semantics": {
       "conclusion": "success",
-      "p": 0.92
+      "p": 0.90
     },
-    "workflow-path-validation": {
+    "guard": {
       "conclusion": "success",
-      "p": 0.96
+      "p": 0.99
+    },
+    "Secret scanning (gitleaks)": {
+      "conclusion": "success",
+      "p": 0.99
+    },
+    "Python dependency vulnerability scan": {
+      "conclusion": "success",
+      "p": 0.97
+    },
+    "Validate Configuration": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "Measure molt tier from the diff (ADVISORY)": {
+      "conclusion": "success",
+      "p": 0.97
+    },
+    "pin": {
+      "conclusion": "success",
+      "p": 0.90
     }
   },
-  "note": "Prediction-bearing v1.1 head. Expected risk is workflow/schema integration around chained state migration, terminal lifecycle routing, durable RCD comments, and new tool-manifest registration. No merge authority is introduced."
+  "note": "Docs-only candidate plus inbox index and this prediction file. Draft PR, so the admission gate should route to WORKBENCH. Main risks: the index collision with PR #831 and the deadline-semantics gate reading the plan's prose about decision windows."
 }
