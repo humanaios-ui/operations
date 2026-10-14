@@ -30,6 +30,8 @@ class ComplementarityTests(unittest.TestCase):
         rows = load_snapshot(ROOT / "data/resources.snapshot.jsonl")
         out = evaluate_combinations(rows, CONFIG)
         self.assertEqual(out["baseline_single"]["coverage_count"], 1)
+        self.assertEqual(out["existing_miner_first_feasible"]["resource_ids"], ["RES-436E920AFDEDD702"])
+        self.assertEqual(out["delta_vs_existing_miner_first"], 2)
         self.assertEqual(out["best_multi_resource"]["coverage_count"], 3)
         self.assertEqual(out["incremental_reported_coverage"], 2)
         self.assertEqual(len(out["best_multi_resource"]["source_hosts"]), 3)
