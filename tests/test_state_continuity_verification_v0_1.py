@@ -113,6 +113,34 @@ class FiniteTests(unittest.TestCase):
         d = scvc.assess_finite(range(9), lambda x: x % 3, lambda x: x // 3)
         self.assertEqual(d["status"], "EXACTLY_RECOVERABLE")
 
+    def test_orthogonal_time_is_semantically_invariant_not_exact_state(self):
+        # Two dated observations can describe the same logical state.
+        samples = [
+            {"work_state": "ADMITTED", "observed_at": "2026-10-01T00:00:00Z"},
+            {"work_state": "ADMITTED", "observed_at": "2026-10-14T00:00:00Z"},
+        ]
+        report = scvc.assess_finite(
+            samples, lambda s: s["work_state"], lambda _: None,
+            lambda s: s["work_state"],
+        )
+        self.assertEqual(report["status"], "SEMANTICALLY_RECOVERABLE")
+        self.assertFalse(report["authenticated"])
+        self.assertFalse(report["can_authorize"])
+
+    def test_orthogonal_time_clock_alone_does_not_reconstruct_state(self):
+        # Same clock cannot distinguish competing semantic states.
+        samples = [
+            {"work_state": "ADMITTED", "observed_at": "2026-10-14T00:00:00Z"},
+            {"work_state": "REVOKED", "observed_at": "2026-10-14T00:00:00Z"},
+        ]
+        report = scvc.assess_finite(
+            samples, lambda s: s["observed_at"], lambda _: None,
+            lambda s: s["work_state"],
+        )
+        self.assertEqual(report["status"], "NOT_ESTABLISHED")
+        self.assertIn("FINITE_COLLISION_COUNTEREXAMPLE", report["reason_codes"])
+        self.assertFalse(report["can_authorize"])
+
     def test_empty_and_limit_fail_closed(self):
         self.assertEqual(scvc.assess_finite([], lambda x:x, lambda x:x)["status"], "NOT_ESTABLISHED")
         self.assertEqual(scvc.assess_finite(range(3), lambda x:x, lambda x:x, max_states=2)["status"], "NOT_ESTABLISHED")
@@ -159,6 +187,42 @@ class InterfaceTests(unittest.TestCase):
 
     def test_deterministic_report_id(self):
         self.assertEqual(self.audit(), self.audit())
+
+    def test_orthogonal_time_valid_clock_change_does_not_elevate_binding(self):
+        # The request clock varies inside both validity and retention windows.
+        first = self.audit()
+        self.r["at"] = "2026-10-20T08:00:00Z"
+        second = self.audit()
+        self.assertEqual(first, second)
+        self.assertEqual(second["status"], "NOT_ESTABLISHED")
+        self.assertFalse(second["authenticated"])
+        self.assertFalse(second["can_authorize"])
+        self.assertEqual(second["authority_effect"], "NONE")
+
+        # Self-claimed issuer chronology cannot bootstrap continuity proof.
+        self.v["validation_receipts"][0]["verified_at"] = "2026-10-21T00:00:00Z"
+        self.assertEqual(self.audit(), first)
+
+    def test_orthogonal_time_state_change_at_same_clock_fails_closed(self):
+        before = self.audit()
+        self.assertIn("SOURCE_BINDING_NOT_PROOF", before["reason_codes"])
+        self.v["source_commit"] = "c" * 40
+        changed_source = self.audit()
+        self.assertIn("SOURCE_COMMIT_MISMATCH", changed_source["reason_codes"])
+        self.assertFalse(changed_source["can_authorize"])
+
+        self.v["source_commit"] = SHA
+        self.v["revocation"]["state"] = "REVOKED"
+        revoked = self.audit()
+        self.assertEqual(revoked["status"], "RECONSTRUCTION_DENIED")
+        self.assertFalse(revoked["can_authorize"])
+
+    def test_orthogonal_time_explicit_validity_boundary_still_applies(self):
+        self.r["at"] = "2026-11-02T00:00:00Z"
+        report = self.audit()
+        self.assertEqual(report["status"], "NOT_ESTABLISHED")
+        self.assertIn("VALIDITY_WINDOW_MISMATCH", report["reason_codes"])
+        self.assertFalse(report["can_authorize"])
 
     def test_changed_source_pin_fails_closed(self):
         self.r["source_commit"] = "c" * 40
