@@ -219,7 +219,7 @@ const g=JSON.parse(document.querySelector('#atlas-data').textContent);
 const bridge=g.bridges || {views:{},bindings:[]};
 const panel=document.querySelector('#lenses');
 for(const [name,v] of Object.entries(bridge.views||{})){
- const p=document.createElement('p');p.textContent=`${name}: ${v.present}/${v.expected} pinned sources; ${v.bindings} path bindings; verification NOT ESTABLISHED`;
+ const p=document.createElement('p');p.textContent=`${name}: ${v.present}/${v.expected} pinned sources; ${v.bindings} path bindings; ${v.node_count??'?'} graph nodes; verification NOT ESTABLISHED`;
  panel.appendChild(p);
 }
 

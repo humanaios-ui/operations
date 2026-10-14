@@ -50,6 +50,10 @@ def project(repo: Path, atlas: dict, tracked: list[str], component_of_path) -> d
     if (atlas.get('authority_effect') != 'NONE' or atlas.get('merge_authority') is not False
             or not re.fullmatch(r'[a-f0-9]{40}', str(atlas.get('head_sha', '')))):
         raise ValueError('Atlas identity/authority boundary invalid')
+    actual_head = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                                 check=True, capture_output=True, text=True, timeout=30).stdout.strip()
+    if actual_head != atlas['head_sha']:
+        raise ValueError('Atlas head does not match pinned repository HEAD')
     paths = set(tracked)
     entries = []
     datasets = {}
@@ -85,6 +89,14 @@ def project(repo: Path, atlas: dict, tracked: list[str], component_of_path) -> d
                          'source_time': source_time,
                          'authority_effect': 'NONE'})
         return True
+
+    # A pinned source file is itself a concrete path-to-Atlas binding.
+    # This does NOT say any assertion in that source is true.
+    for kind, files in SOURCES.items():
+        for source in bykind[kind]:
+            if source['status'] == 'PINNED_SOURCE_OBSERVED':
+                attach(kind, source['path'], 'PINNED_SOURCE_FILE', source['path'],
+                       evidence_state='SOURCE_PIN_ONLY')
 
     e = datasets.get('EVIDENCE_GRAPH.json')
     if e is not None:
@@ -165,6 +177,16 @@ def project(repo: Path, atlas: dict, tracked: list[str], component_of_path) -> d
                        'bindings': sum(1 for b in bindings if b['graph'] == kind),
                        'state': 'SOURCE_BOUND' if source_count == len(SOURCES[kind]) else 'INCOMPLETE_SOURCE',
                        'verification': 'NOT_ESTABLISHED'}
+    if e is not None:
+        views['evidence']['node_count'] = len(e['nodes'])
+        views['evidence']['edge_count'] = len(e['edges'])
+        views['evidence']['node_types'] = dict(sorted(Counter(
+            str(n.get('type', 'UNKNOWN')) for n in e['nodes']).items()))
+    if s is not None:
+        views['session']['node_count'] = len(s['nodes'])
+        views['session']['edge_count'] = len(s['edges'])
+        views['session']['node_types'] = dict(sorted(Counter(
+            str(n.get('type', 'UNKNOWN')) for n in s['nodes']).items()))
     views['session']['historical_observation'] = historical
     views['scvc']['continuity_status'] = 'NOT_ESTABLISHED'
     views['coordinator']['admission_status'] = coordinator_state

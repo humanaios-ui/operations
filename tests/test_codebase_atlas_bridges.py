@@ -71,6 +71,11 @@ class BridgeTest(unittest.TestCase):
         for v in a['views'].values():
             self.assertEqual(v['verification'],'NOT_ESTABLISHED')
             self.assertEqual(v['state'],'SOURCE_BOUND')
+        self.assertEqual(a['views']['evidence']['node_count'], 3)
+        self.assertEqual(a['views']['evidence']['edge_count'], 1)
+        self.assertEqual(a['views']['session']['node_count'], 1)
+        self.assertGreaterEqual(a['views']['session']['bindings'], 3)
+        self.assertGreaterEqual(a['views']['evidence']['bindings'], 1)
         self.assertFalse(a['can_authorize'])
         self.assertFalse(a['authenticated'])
         self.assertFalse(a['merge_authority'])
@@ -82,9 +87,10 @@ class BridgeTest(unittest.TestCase):
 
     def test_unique_exact_evidence_binding_no_fuzzy_or_ambiguous(self):
         e=[b for b in self.output()['bindings'] if b['graph']=='evidence']
-        self.assertEqual(len(e),1)
-        self.assertEqual(e[0]['path'],'docs/proof.py')
-        self.assertEqual(e[0]['epistemic_state'],'DECLARED_NOT_VERIFIED')
+        self.assertEqual(len([b for b in e if b['relation']=='EVIDENCE_NODE_LABEL_MATCH']),1)
+        matched=[b for b in e if b['relation']=='EVIDENCE_NODE_LABEL_MATCH']
+        self.assertEqual(matched[0]['path'],'docs/proof.py')
+        self.assertEqual(matched[0]['epistemic_state'],'DECLARED_NOT_VERIFIED')
 
     def test_session_cannot_make_historical_snapshot_current(self):
         v=self.output()['views']['session']['historical_observation']
@@ -92,8 +98,9 @@ class BridgeTest(unittest.TestCase):
         self.assertNotEqual(v['overlay_commit_sha'],self.head)
         self.assertFalse(v['same_as_atlas_head'])
         session=[b for b in self.output()['bindings'] if b['graph']=='session']
-        self.assertEqual([b['epistemic_state'] for b in session],['CHAT_DERIVED'])
-        self.assertEqual(session[0]['source_time'],'2026-10-02')
+        derived=[b for b in session if b['relation']=='CHAT_SYNTHESIS_EXACT_PATH']
+        self.assertEqual([b['epistemic_state'] for b in derived],['CHAT_DERIVED'])
+        self.assertEqual(derived[0]['source_time'],'2026-10-02')
 
     def test_git_head_not_dirty_worktree_source_and_no_secret(self):
         before=self.output()
@@ -124,6 +131,11 @@ class BridgeTest(unittest.TestCase):
         a=project(self.repo,self.atlas,self.tracked,self.owner)
         self.assertEqual(a['views']['scvc']['state'],'INCOMPLETE_SOURCE')
         self.assertEqual(a['views']['scvc']['present'],2)
+
+    def test_head_pin_cannot_be_forged(self):
+        self.atlas['head_sha']='b'*40
+        with self.assertRaisesRegex(ValueError,'head does not match'):
+            self.output()
 
     def test_repeated_projection_is_deterministic(self):
         self.assertEqual(self.output(),self.output())
