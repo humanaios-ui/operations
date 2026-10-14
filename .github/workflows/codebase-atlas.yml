@@ -1,0 +1,50 @@
+name: codebase-atlas
+# Advisory observer: never uses PR metadata as approval evidence.
+on:
+  pull_request:
+    paths:
+      - 'architecture/codebase_atlas.py'
+      - 'architecture/codebase_atlas.components.json'
+      - 'tests/test_codebase_atlas.py'
+      - '.github/workflows/codebase-atlas.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'architecture/codebase_atlas.py'
+      - 'architecture/codebase_atlas.components.json'
+      - 'tests/test_codebase_atlas.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Falsifier regression tests
+        run: python -m unittest discover -s tests -p 'test_codebase_atlas.py' -v
+      - name: Generate read-only architecture map
+        run: python architecture/codebase_atlas.py --out "$RUNNER_TEMP/codebase-atlas"
+      - name: Verify contract and evidence paths
+        run: |
+          python - "$RUNNER_TEMP/codebase-atlas/atlas.json" <<'PY'
+          import json,sys
+          g=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert g['authority_effect']=='NONE' and g['merge_authority'] is False
+          assert g['worktree_clean'] and len(g['head_sha'])==40
+          assert g['nodes'] and g['coverage']['mapped_files']>0
+          for edge in g['edges']:
+              assert edge['count']>0 and edge['evidence']
+              assert all(item['line']>0 and item['source'] and item['target'] for item in edge['evidence'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: codebase-atlas-${{ github.sha }}
+          path: ${{ runner.temp }}/codebase-atlas/
+          retention-days: 14
