@@ -13,6 +13,9 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from typing import Any
 
+from .miner import _ranking_score
+from .models import NeedMatch, RequirementMatch, ResourceCandidate
+
 MAX_CANDIDATES = 8  # exhaustive, deterministic; never an open-ended solver
 MAX_BUNDLE_SIZE = 3
 
@@ -65,6 +68,20 @@ def _exclusion(row: dict[str, Any], as_of: date) -> str | None:
     ):
         return "NO_BOUND_SOURCE_EVIDENCE"
     return None
+
+def _legacy_sort_key(row: dict[str, Any]) -> tuple[Any, ...]:
+    """Use the existing individual Resource Miner ranking against saved matches."""
+    resource = ResourceCandidate(
+        resource_id=row["resource_id"], title=row.get("title", ""),
+        source_name=row.get("source_name", ""), source_url=row.get("source_url", ""),
+        canonical_url=row.get("canonical_url", ""),
+        discovery_method=row.get("discovery_method", ""), discovered_at=row.get("discovered_at", ""),
+        need_matches=[NeedMatch(**m) for m in row.get("need_matches", [])],
+        requirement_matches=[RequirementMatch(**m) for m in row.get("requirement_matches", [])],
+    )
+    route = row.get("route", "WATCH")
+    return (0 if route == "VERIFY_NOW" else 1 if route == "WATCH" else 2,
+            -_ranking_score(resource), row.get("deadline") or "9999-12-31", resource.title.lower())
 
 
 def evaluate_combinations(snapshot: list[dict[str, Any]], config: dict[str, Any]) -> dict[str, Any]:
@@ -119,6 +136,8 @@ def evaluate_combinations(snapshot: list[dict[str, Any]], config: dict[str, Any]
     singles = [row for row in feasible if len(row["resource_ids"]) == 1]
     bundles = [row for row in feasible if len(row["resource_ids"]) > 1]
     baseline = singles[0] if singles else None
+    legacy_pool = [row for row in eligible if costs[row["resource_id"]] <= budget]
+    legacy_first = candidate((sorted(legacy_pool, key=_legacy_sort_key)[0],)) if legacy_pool else None
     best = bundles[0] if bundles else None
     delta = (best["coverage_count"] - baseline["coverage_count"]) if best and baseline else None
     return {
@@ -133,8 +152,11 @@ def evaluate_combinations(snapshot: list[dict[str, Any]], config: dict[str, Any]
         "admissible_for_comparison_count": len(eligible),
         "rejected": rejected,
         "baseline_single": baseline,
+        "existing_miner_first_feasible": legacy_first,
         "best_multi_resource": best,
         "incremental_reported_coverage": delta,
+        "delta_vs_existing_miner_first": (best["coverage_count"] - legacy_first["coverage_count"])
+        if best and legacy_first else None,
         "positive_complementarity_hypothesis": delta is not None and delta > 0,
         "verified_synergy": "NOT_ESTABLISHED",
         "verified_interoperability": "NOT_ESTABLISHED",
