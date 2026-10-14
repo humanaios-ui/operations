@@ -5,5 +5,8 @@ description = "Evidence-bearing resource discovery and needs mapping upstream of
 requires-python = ">=3.10"
 dependencies = []
 
+[project.optional-dependencies]
+observability = ["langfuse>=5,<6", "cerebras_cloud_sdk>=1.0,<3"]
+
 [project.scripts]
 haios-resource-miner = "resource_miner.cli:main"
