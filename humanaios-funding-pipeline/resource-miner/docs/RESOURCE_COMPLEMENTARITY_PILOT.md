@@ -47,9 +47,12 @@ python3 -m unittest discover -s tests -v
 Use `--config <file>` and `--snapshot <file>` to replay an alternative bounded
 scenario. The module has no network or write capability.
 
-At a hypothetical 120-minute budget, the best single candidate covers one
-of the three declared target affordances; the three-source combination covers
-three. Reported coverage delta is +2 affordance classes. This is not a
+At a hypothetical 120-minute budget, the existing Resource Miner individual
+ranking (captured need/requirement matches, using its `_ranking_score`) ranks
+Microsoft first in this 3-candidate subset. That top singleton covers one of
+the three declared target affordances. The best feasible singleton under the
+new coverage objective also covers one. The three-source bundle covers three.
+Reported coverage delta is +2 affordance classes **against both** baselines. This is not a
 percentage improvement in usefulness, efficiency or money; objectives were
 intentionally chosen to exercise complementarity.
 
