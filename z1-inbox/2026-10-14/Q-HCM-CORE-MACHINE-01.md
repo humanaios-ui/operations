@@ -67,7 +67,7 @@ This candidate is FALSE if any of the following is observed:
 
 1. Any of the PR's own falsifiers, adopted here as the candidate's: a protected test shows modified bytecode passing integrity verification; missing or disputed evidence or an open challenge forming a warrant; a stale, comment-based or non-exact-head authority import being accepted; altered evidence reusing an authorization; a one-time receipt consumed twice; action or outcome recording bypassing its receipt binding; the VM performing an external action; or any replay output gaining authorization, execution or merge authority (any of the six boundary values above drifting from the fixed ones).
 2. The focused HCM suite or the receipt resolver suite failing at head `c49eabe1`, or any of the five file digests listed above failing to reproduce at that head.
-3. `python3 .z1-control/ratify.py --verify` reporting a mismatch for `Q-HCM-CORE-MACHINE-01` after Z2 signs it, which would mean this file was edited after ratification.
+3. `python3 .z1-control/ratify.py --verify` reporting a signature or ratification-record mismatch for `Q-HCM-CORE-MACHINE-01` after Z2 signs it.
 4. The REGISTERED.md record of `Q-HCM-CORE-MACHINE-01` on `main` and this block disagreeing on the pinned head, the ratified decision, or the six authority-boundary values.
 
 ## Proposed Z2 actions (accept, edit, or reject individually)
