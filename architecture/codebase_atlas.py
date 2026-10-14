@@ -352,7 +352,7 @@ def main() -> int:
         parser.exit(1,f'Atlas failed closed: {exc}\n')
     # Build a read-only projection from fixed HEAD-pinned public source files.
     # No Coordinator state branch or live attestation endpoint is queried.
-    from architecture.codebase_atlas_bridges import project
+    from codebase_atlas_bridges import project
     definitions=load_config(args.config)
     graph['bridges']=project(root, graph, tracked_files(root), lambda p:component_of(p,definitions))
     args.out.mkdir(parents=True,exist_ok=True)
