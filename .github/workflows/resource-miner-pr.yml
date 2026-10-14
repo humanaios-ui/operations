@@ -25,6 +25,23 @@ jobs:
           HACKERONE_API_TOKEN: ''
         run: python3 -m unittest discover -s tests -v
 
+      - name: Validate optional Langfuse/Cerebras SDK imports (no credentials)
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          CEREBRAS_API_KEY: ''
+          LANGFUSE_PUBLIC_KEY: ''
+          LANGFUSE_SECRET_KEY: ''
+          LANGFUSE_BASE_URL: ''
+        run: |
+          python3 -m pip install --disable-pip-version-check -e '.[observability]'
+          python3 - <<'PY'
+          from cerebras.cloud.sdk import Cerebras
+          from langfuse import get_client
+          assert Cerebras is not None
+          assert callable(get_client)
+          print("Cerebras and Langfuse SDK imports available; no provider call")
+          PY
+
       - name: Execute M2 local outcome negative control (evidence only)
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
