@@ -26,7 +26,7 @@ has one collaborator.
 
 ## Proposed convention
 
-### 1. Labels (three axes, 10 labels maximum)
+### 1. Labels (three axes, 9 labels in the proposed vocabulary)
 
 Every issue carries **exactly one** label from each axis it applies to.
 
@@ -37,7 +37,7 @@ Every issue carries **exactly one** label from each axis it applies to.
 | | `kind:research` | Hypothesis, experiment, or measurement work |
 | | `kind:ops` | Deployment, CI, tooling, or infrastructure |
 | **state** | `state:needs-triage` | Filed; not yet read against the Priority Queue |
-| | `state:ready` | Triaged; has an owner and a Priority Queue ID |
+| | `state:ready` | Triaged; meets the assignee (§2) and linking (§3) rules for its kind |
 | | `state:awaiting-z2` | Blocked on a Z2 ratification or decision |
 | | `state:blocked` | Blocked on something other than Z2 (name it in a comment) |
 | **authority** | `zone:z1-proposal` | Z1 is proposing; no execution authority implied |
@@ -75,7 +75,8 @@ Issues that have neither are allowed only for `kind:ops` and `kind:defect`.
 
 - Z1 may propose label additions or removals through a new Q-block.
 - Labels are created or deleted in GitHub only after Z2 ratifies the proposal.
-- The label set is capped at 10 labels. Adding an eleventh requires removing one.
+- The proposed vocabulary is capped at 9 labels. Adding a tenth requires a new proposal.
+- Labels already created by existing automation (`z2-queue`, `doc-review-queue`, `audit:auto`) are outside this cap. This proposal does not create, rename, or remove them, and it does not change the workflows that apply them.
 
 ---
 
@@ -111,8 +112,12 @@ The falsifier is a count, not an impression.
 - No change to branch protection or required reviews.
 - No triage rota. With one collaborator, a rota would be fiction.
 - No new issue templates in this proposal.
-- No edit to `REGISTERED.md` or `z1-inbox/INDEX.yaml`. Registry writes are Z2-only;
-  this block is filed as a candidate and does not register itself.
+- No edit to `REGISTERED.md`. Registry writes are Z2-only; this block is filed as a
+  candidate and does not register itself.
+- Bookkeeping outside this block: the PR also adds this block's entry and count to
+  `z1-inbox/INDEX.yaml` and re-renders `Z1_INBOX_INDEX.md`. The inbox validator's
+  coverage rule requires both for any file under `z1-inbox/`. Indexing records that
+  the candidate is awaiting Z2. It is not ratification.
 
 ---
 
@@ -129,6 +134,6 @@ Z2 may also instruct the retroactive labeling of #824 directly.
 ## Open questions for Z2
 
 1. Should the `zone:z1-proposal` label be replaced with a Z2-maintained `zone:` set
-   that mirrors `ZONE_REGISTRY.md`? Z1 recommends not, to keep the set at 10.
+   that mirrors `ZONE_REGISTRY.md`? Z1 recommends not, to keep the proposed set at 9.
 2. Should `kind:ops` issues be exempt from the Priority Queue link rule? Z1
    recommends yes, as drafted.
