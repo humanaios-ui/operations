@@ -46,17 +46,16 @@ scope:
 
 resource_cost:
   cost:
-    RAT-min: 150     # PRIOR: ~75 for Decision Sheet 1 (10 rows) + ~3 per ADMIT x ~25 PRs
+    RAT-min: 225     # PRIOR: ~80 for Decision Sheet 1 + ~3 per ADMIT x ~25 PRs + ~3 per merge act x ~25 (Z2 merges by hand, D1)
     Z1-ktok: 700     # PRIOR: 6-8 proposer sessions at the 100 Z1-ktok per-session cap
-    Z3-hr: 5         # PRIOR: ~25 merges x 0.2 h; Z3 seat is TBD (ZONE_REGISTRY.md)
+    Z3-hr: 0         # Z2 performs the merge acts herself (D1, recorded 2026-10-14); no Z3 seat is drawn on
     CI-min: 2400     # PRIOR: ~60 pushes x ~40 CI-min across the path-filtered gate stack
   dependencies:
     - "REPOSITORY_COORDINATOR_POLICY.json (capacity.active_operator_queue = 4)"
     - "RESOURCE_UNITS.yaml (RAT-min constraint; demand_priors)"
     - "PRIORITY_QUEUE.md (Q-TEMPORAL-DISSOLUTION-01: no internal deadlines)"
     - "CLAUDE.md P19 (K <= 13 files per authored commit)"
-  blocking_on:
-    - "Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 (or a narrower Z3 assignment for this plan; Decision D1)"
+  blocking_on: []    # D1 resolved in-session (Z2 merges by hand); Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 no longer gates this plan
 
 impact_prediction:
   resource_impact: 7
@@ -106,7 +105,12 @@ z2_decision:
   status: "awaiting_ratification"
   ratified_at: null
   ratification_hash: null
-  z2_notes: ""
+  z2_notes: |
+    2026-10-14, in-session, human-attested, unsigned (see §9): Z2 answered D1, D2, D8, D9
+    and open questions 6-8, and asked for an ROI matrix before deciding D3 (§5b). These are
+    recorded as Z2 statements made in conversation with the filing session; they bind by
+    the same convention as the IC-065 "confirmed live" precedent, not by hash. The hash
+    on this block is still owed.
 
 related_candidates:
   - "Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01"
@@ -134,7 +138,7 @@ Observed via the GitHub API on 2026-10-12 (33 PRs, full triage) and re-listed on
 | Admission-gate check failed, everything else green | 12 | Read each run's `gate.json` before assigning a cause: FAIL (needs ADMIT), PASS with a 403 on the receipt step (needs a workflow-permission fix, not ADMIT), or non-draft routing |
 | Red on Builder / Tool manifest / quality / P19 / validate | 15 (of 33 swept) | Mechanical lane work, one PR at a time |
 | Touch `tools-manifest.yaml` + `TOOLS_MANIFEST.md` | 10 | Every pair conflicts; must be serialized |
-| Competing GNER lineages for the same files | 3 | One survives; Z2 picks (D3) |
+| Open GNER PRs for files main already carries | 6 | Main has E0, E1, E2 tools, tests, docs and manifest rows via merged #779; #770 and #771 are ancestors of main; see the matrix in §5b |
 | Superseded by a newer open PR | 4 (#724, #781, #798 or #814, #805) | Close, not fix (D5) |
 | Self-declared parked / HOLD / DO NOT MERGE | 9 | Left alone unless Z2 lifts the hold |
 | z1-inbox candidates awaiting Z2 | 96 | Only batched into decision sheets here |
@@ -159,10 +163,10 @@ Each agent is a bounded role with one output and one authority effect. All are Z
 | A5 | Review Responder | Z1 | open review threads | blocking findings fixed; optional ones answered in one line and resolved; reviewer re-requested | PR threads |
 | A6 | Decision-Sheet Compiler | Z1 -> Z2 | A2, A3, A4 outputs | one sheet per sitting: rows with evidence, RAT-min prior, ACCEPT/EDIT/REJECT boxes, exact ADMIT inputs | z1-inbox |
 | A7 | Calibration Recorder | Z1 | every disposition | one disposition pin per PR in the queue pin ledger (§4a) before the PR is touched; per-check pins in `ci_predictions/pr.json` per head; resolution on outcome; Brier via `nf_ledger_v0_1.py score`; RAT-min SPEND rows; B.6 reconciliation; findings scan | ledgers, ci_predictions, z1-inbox |
-| A8 | Jester (adversarial, provider-diverse) | Z1 external check | each batch before its sheet | independent blocking findings, stratified by lineage (Claude vs Copilot vs CodeRabbit vs Codex) | PR threads, A7 table |
+| A8 | Jester (adversarial, provider-diverse) | Z1 external check | each batch before its sheet | Copilot and CodeRabbit are the other lineages (Z2, 2026-10-14); a second Claude reader forms the same-lineage pair; findings stratified per §4b | PR threads, A7 table |
 | A9 | Domain-Agent Scaffolder | Z1 cross-repo | #747, #749–#752 | three bounded agent manifests (Human Resource Agent, Operations Agent, Translation/Research Agent), read-only, E1 deterministic tests | proposals; draft PRs only per D9 |
 | Z2 | Night | Z2 | decision sheets | ADMIT dispatches, closes, ratification hashes, merge acts | state branch, REGISTERED.md |
-| Z3 | TBD (D1) | Z3 | Z2 hash + ADMIT receipt | merges in serial order; VERDICT rows | main |
+| Z3 | Night, by hand (D1, recorded 2026-10-14) | Z2 acting as merger | Z2 hash + ADMIT receipt | merge acts in serial order; A7 records the RAT-min each one costs | main |
 
 Isolation rule (from #747 §7, applied here): each agent has one identity string in its commit trailer or thread signature, a scoped file set, and the P19 commit cap. A3 is the only agent allowed to touch the manifest pair. A4 and A5 never run on the same PR at the same time.
 
@@ -172,8 +176,8 @@ PRs are assigned to one lane from the QUEUE_MAP; a PR moves lanes only on a deci
 
 - **Lane M, maintenance.** Two cohorts the coordinator routes differently. (1) Dependabot #740, #741, #742 (disjoint files), then #743 before #744 (adjacent lines in `tools/requirements.txt`): `REPOSITORY_COORDINATOR_POLICY.json` grants maintenance standing by author to `dependabot[bot]` only, so these need no working-set ADMIT, just Z2 merge acts; all were owner-approved at sweep. (2) #817 (SMAG consolidation, `github-actions[bot]`, supersedes #724) holds no maintenance standing and goes through ordinary admission; at sweep only the admission job had run on its head, so A1 verifies its exact-head checks before it reaches a sheet row. No agent code work in either cohort.
 - **Lane G, green except admission.** #802, #809, #814 (or #798, per D4), #812 (ADMIT already recorded; HOLD is Z2's to lift, D10), #768 (empty template body: EDIT row, author fills the body or A2 recommends close). These need a sheet row each, then Z3.
-- **Lane R, red on mechanical checks.** #594, #606, #627, #630, #761, #763, #772, #777, #778, #785, #790, #819, and the four new PRs #822, #825, #827, #831 once swept. A4 takes them in the serial order of D7 where they touch the manifest, otherwise in ascending PR number. A5 follows A4 on each.
-- **Lane L, lineage decision pending.** #767, #770, #771 (stacked), #772, #778, #768: frozen until D3. A2 prepares the comparison; nothing is pushed.
+- **Lane R, red on mechanical checks.** #594, #606, #627, #630, #761, #763, #777, #785, #790, #819, the Resource Miner trio #822, #825, #827 (in scope per Z2, 2026-10-14) and #831 once swept. A4 takes them in the serial order of D7 where they touch the manifest, otherwise in ascending PR number. A5 follows A4 on each. Agents push fixes onto the open PR branches (D2, recorded 2026-10-14): merge commits only, never force-push, one identity trailer per agent.
+- **Lane L, GNER.** #767, #770, #771, #772, #778, #768: the matrix in §5b replaces the lineage question. Nothing is pushed here until D3 is signed against that matrix.
 - **Lane P, parked by their own text.** #597 (DO NOT MERGE), #781 (close in favor of #785, D5), #805 (planning-only, convert to issue #804 or close, D5), #719 (awaiting admission record; body claims 5 files, PR has 15 including a workflow, so A5 asks for a corrected `molt_tier_claimed` first).
 
 WIP limits: at most 4 admitted PRs at any time (policy); at most 1 PR in the Manifest Steward lane; at most 2 PRs under A4 concurrently; A8 reviews a batch, never a single PR, so lineage stratification has a sample.
@@ -203,26 +207,64 @@ Phases P2, P4 run in parallel once P1 exits. P5 can start its reconciliation at 
 - **Score.** `nf_ledger_v0_1.py score ledgers/QUEUE_PINS_LEDGER.jsonl` gives the Brier score F5 reads, with n reported; F5 is undefined below n = 20 and says so.
 - **Baseline.** P0 is not met until the spec covers every open PR, so the first pins are filed before any D-row is executed, not after.
 
+### 4b. Lineage-correlated error: the primary metric (Z2, 2026-10-14)
+
+H-CAND-MULTI-AGENT-CASCADE-01 predicts that reviewers sharing a training lineage miss the same things, so a same-lineage pair catches less than independence would predict. The queue gives a natural test bed: every batch is reviewed by Claude agents (A4, A5, a second Claude reader in A8), by Copilot, and by CodeRabbit, on the same heads.
+
+- **Unit of observation.** One confirmed finding: a review finding that a later commit fixed with a CI state change, or that Z2 ruled valid. Unconfirmed findings are not counted against anyone.
+- **Lineages.** Claude (two independent Claude readers per batch, run without seeing each other's output), Copilot, CodeRabbit. Copilot and CodeRabbit are the other lineages by Z2's decision; Codex and Grok are out of scope for this plan.
+- **Per-lineage marginals.** For each lineage L, miss(L) = share of confirmed findings in the batch that L did not report.
+- **Pair statistic.** For each pair, observed joint-miss rate versus the independence prediction miss(L1) × miss(L2). The same-lineage pair is Claude-reader-1 with Claude-reader-2; the cross-lineage pairs are Claude with Copilot and Claude with CodeRabbit.
+- **Falsifier F6 (of the null).** Over at least 20 confirmed findings across at least 4 batches, if the same-lineage joint-miss rate exceeds its independence prediction by more than 10 percentage points while the cross-lineage pairs do not, the cascade hypothesis is supported and the plan's same-lineage lanes (A4 then A5) must add a cross-lineage reader before any sheet row. If every pair is within 10 points of independence, the null stands for this queue and the hypothesis block records the negative result.
+- **Recording.** A7 keeps `audits/lineage_findings_<sweep-date>.jsonl`: one row per finding with batch, head sha, lineage(s) that reported it, confirmation source. The schema is the `marshal_dispatch_runs_v1` lineage field the hypothesis block already asks for, applied to review rather than dispatch.
+- **Secondary metrics** stay as filed: RAT-min per cleared PR (F3) and disposition Brier (F5).
+
 ## 5. Decision Sheet 1 (the ten Z2 rows)
 
 RAT-min column is the demand prior for the row's class; A7 replaces it with measured minutes.
 
 | Row | Decision Z2 is asked for | Z1 recommendation | RAT-min |
 |:--|:--|:--|--:|
-| D1 | Z3 executor for this plan: ratify Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01, or a narrower assignment scoped to Z-000 for the duration | Narrow Z-000 assignment to the Claude machine identity (already authorized by Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01), with Z2 merge act still required | 12 |
-| D2 | May agents push fixes to existing `humanaios-ui` PR branches, or must they open stacked fix-PRs? | Push to branch, merge-commit only, never force-push; one identity trailer per agent | 5 |
-| D3 | GNER lineage: A (#767 -> #770 -> #771 stack), B (#772 + #778 to main), or C (#768) | A, because #770/#771 are explicitly stacked on #767 and #778 says it depends on #767; close B and C with a comment pointing at A | 12 |
+| D1 | Z3 executor for this plan | **Decided 2026-10-14 (in-session): Z2 merges by hand.** No machine Z3 assignment; merge acts are costed in RAT-min | 12 |
+| D2 | May agents push fixes to existing `humanaios-ui` PR branches? | **Decided 2026-10-14: yes.** Merge commits only, never force-push; one identity trailer per agent | 5 |
+| D3 | GNER: which of #767, #770, #771, #772, #778, #768 survive | **Z2 asked for an ROI matrix (2026-10-14); it is §5b.** Z1 recommends option D there: close four as merged or superseded, keep #768 as the carrier for the human-objective experiment, decide the independent-witness implementation under D12 | 12 |
 | D4 | SCVC witness fix: keep #814 (segment-based check, supersedes #798) or #798 (narrow regex) | #814; close #798 with a pointer | 5 |
 | D5 | Supersession closes: #724 -> #817, #781 -> #785, #805 -> issue #804 | Close all three | 5 |
 | D6 | Lane M routing: merge dependabot #740–#744 (maintenance standing, no ADMIT needed, #743 before #744); route #817 through ordinary admission once its head checks are verified green | Confirm the split; merge the five; defer #817's ADMIT to the batch after A1's verification | 8 |
 | D7 | Manifest serial order | #812 (ratified, admitted) -> #809 -> #763 -> #767 -> #594 -> #627 -> #630 -> #719 -> lineage winner's remainder -> new PRs | 8 |
-| D8 | Primary stress-test metric | RAT-min per cleared PR (constraint unit), with Brier and lineage-stratified findings as secondary | 5 |
-| D9 | Cross-repo lane: draft PRs in humanaios and lasting-light-ai now, or proposals in operations until #749/#750 are ratified | Proposals in operations first; sibling-repo draft PRs only after #749/#750 rows are signed | 8 |
+| D8 | Primary stress-test metric | **Decided 2026-10-14: lineage-correlated error** (H-CAND-MULTI-AGENT-CASCADE-01), measured per §4b; RAT-min per cleared PR and Brier are secondary | 5 |
+| D9 | Cross-repo lane: sibling-repo draft PRs now, or operations proposals until #749/#750 are signed | **Decided 2026-10-14: operations proposals until #749/#750 are signed**, per #747's own sequencing | 8 |
 | D10 | Holds: #597 stays parked; is #812's HOLD lifted now that #815 is merged? | #597 parked; #812 HOLD is Z2's call, no recommendation | 5 |
+| D11 | Convert prose-draft PRs to API drafts: #597, #777, #790, #812, #814, #819, #825, #827 say DRAFT/HOLD in their bodies but are `draft=false` (the GNER PRs drop out under §5b); the gate routes API drafts to WORKBENCH (PASS) and out of ADMISSION_REVIEW | Convert them; it makes the gate measure what the authors already claim, and it is reversible with "ready for review" | 5 |
+| D12 | Independent execution witness: two implementations are open, `tools/independent_execution_witness_v0_1.py` inside #772 and the `tools/iew/` package with workflow and negative controls in #777 (IEW-001) | Keep #777 as the IEW lane; drop #772's copy with its close; A2 diffs the two first so nothing #777 lacks is lost | 8 |
 
-| D11 | Convert prose-draft PRs to API drafts: #597, #767, #770, #771, #777, #790, #812, #814, #819, #825, #827 all say DRAFT/HOLD in their bodies but are `draft=false`; the gate routes API drafts to WORKBENCH (PASS) and out of ADMISSION_REVIEW | Convert them; it makes the gate measure what the authors already claim, and it is reversible with "ready for review" | 5 |
+Sum of priors: 86 RAT-min; five rows already decided in-session, seven (D3–D7, D10–D12) still open.
 
-Sum of priors: 78 RAT-min, one sitting.
+## 5b. GNER return-on-investment matrix (requested by Z2, 2026-10-14)
+
+**Fact base, measured 2026-10-14 against main `3bf3b21`** (`git merge-base --is-ancestor`, `git diff --numstat` per file; manifest and prediction files excluded):
+
+| PR | Remaining delta against main | CI at sweep | Review debt | Unique content not on main |
+|:--|:--|:--|:--|:--|
+| #770 (E1) | **None: the branch is an ancestor of main** (landed through #779's merge chain) | red (quality, Builder, Tool manifest) | Copilot 4 | none |
+| #771 (E2) | **None: ancestor of main** | red (Builder, quality, Tool manifest) | Copilot 2 | none |
+| #767 (E0) | `tools/gner_notification_e0.py` is an **older** version (main's has `TOOL_CATEGORY = "diagnostic_tool"` and a bool smoke test; the PR's has the superseded `analysis_tool` and dict variant); 3 stale lines in the principle-compliance exemption; docs and tests identical to main | red (Tool manifest, Molt tier advisory) | Copilot 4 | none |
+| #778 (E1 Builder) | `tools/gner_verify_e1.py` is an **older** smoke-test variant (main's reconcile fixtures are fuller); all six `.z1-control` tools, docs, tests and E0 identical to main | red (Molt tier, Verify Z2 Ratification, P19, quality) | Copilot 5 | none |
+| #772 (E1 baseline + E0 parser) | older E0 (40+/75−); duplicate test under `tools/tests/` | red (quality, P19, Molt tier, Verify Z2 Ratification) | Copilot 7 | `experiments/human_objective_e1.py` + fixture + README + test (issue #760); `tools/independent_execution_witness_v0_1.py` + test; `z1-inbox/2026-10-09/HANDOFF.md` |
+| #768 (human objective pilot) | none of its four files exist on main | green except admission | Copilot 3 | the same four `human_objective_e1` files as #772, nothing else; body is an unfilled template |
+
+So the "three lineages" framing was wrong by the time it was written: main already carries GNER E0, E1 and E2 with tests, docs and manifest rows. What is left to land is the human-objective E1 experiment (#760) and one independent-witness implementation.
+
+**Options.** Costs are non-commensurable vectors (RESOURCE_UNITS.yaml); priors, not measurements. Benefit is counted in EVID-row candidates landed (the experiment and its fixture are evidence-bearing; superseded tool copies are not) and in issues unblocked.
+
+| Option | What lands | RAT-min (Z2 acts) | Z1-ktok (to green) | CI-min | Manifest conflicts created | Benefit |
+|:--|:--|--:|--:|--:|--:|:--|
+| A: land the stack #767 → #770 → #771 | nothing new; three merges of content main has, with two of them already ancestors | 3 ADMIT + 3 merge ≈ 18 | ≈ 60 to re-green #767 against main | ≈ 240 | 1 (#767 vs main's manifest) | 0 EVID-row; #766 closes on paperwork that #779 already did |
+| B: land #772 + #778 | the experiment and the IEW file, plus two regressions of tools main already improved | 2 ADMIT + 2 merge ≈ 12 | ≈ 120 (re-green two red PRs, drop the stale E0/E1 copies) | ≈ 320 | 2 | 2 EVID-row candidates, minus the regression risk on E0/E1 |
+| C: land #768 alone | the experiment, four files | 1 EDIT (body) + 1 ADMIT + 1 merge ≈ 10 | ≈ 15 (fill the body; already green) | ≈ 40 | 0 | 1 EVID-row candidate (#760 experiment); the IEW tool is left to #777 |
+| D (recommended): C plus closes, IEW to #777 | #768; close #770, #771 (merged), #767, #778 (superseded); A2 diffs #772's IEW file against #777's package, carries any missing behaviour into #777, then #772 is closed | 4 closes ≈ 8 + C's 10 ≈ 18 | ≈ 40 | ≈ 40 | 0 | 1 EVID-row candidate now, the IEW decision isolated in D12, five PRs out of the queue |
+
+Density under the PRIORITY_QUEUE.md formula (benefit ÷ cost[RAT-min]): A ≈ 0, B ≈ 0.17, C ≈ 0.10, D ≈ 0.06 on benefit alone, but D also removes five PRs from ADMISSION_REVIEW and zero manifest conflicts, which the formula's "work unblocked" term credits to D (every Lane R PR behind the manifest lane). D is the recommendation. The one thing D must not lose is any behaviour in #772's witness file that #777 lacks, hence D12.
 
 ## 5a. Observations from this PR's own gate run (2026-10-14)
 
@@ -243,24 +285,37 @@ Filed after the first CI run on the PR carrying this candidate; they correct §1
 ## 7. What this candidate does not do
 
 - Does not define issue labels (PR #831, Q-ISSUE-TRIAGE-CONVENTION-01, covers that; this plan consumes whatever Z2 ratifies there).
-- Does not clear the 96 awaiting-Z2 candidates; it only reuses the decision-sheet form for them later if Z2 wants.
+- Does not clear the 96 awaiting-Z2 candidates in Decision Sheet 1. Z2 placed them in scope for later sheets (2026-10-14): A6 compiles them in sheets of 10–12 rows, ordered by the tier and density ranking of Q-TIER-ASSIGNMENT-BATCH-01 once that is signed, each row with the candidate's own falsifier status from `Z1_INBOX_INDEX.md`.
 - Does not touch constants, gates, workflows, REGISTERED.md, or CODEOWNERS.
 - Does not claim any PR will merge: `smag_p` pins are predictions, scored at P5.
 
-## 8. Open questions for Z2 (answers change the work)
+## 8. Questions put to Z2 on filing, and their status
 
-The decision sheet above is the formal version. In plain terms:
+1. Who is Z3 for this clearance? **Answered: Night merges by hand** (D1).
+2. May agents push to existing PR branches? **Answered: yes** (D2).
+3. Which GNER lineage survives? **Z2 asked for an ROI matrix**; §5b; D3 stays open against it.
+4. Primary metric? **Answered: lineage-correlated error** (D8, §4b).
+5. Sibling-repo draft PRs now, or operations proposals first? **Answered: operations proposals until #749/#750 are signed** (D9).
+6. Jester lineages? **Answered: Copilot and CodeRabbit.**
+7. The 96 inbox candidates? **Answered: in scope for later decision sheets** (§7).
+8. The Resource Miner trio? **Answered: in scope** (Lane R).
 
-1. Who is Z3 for this clearance: the Claude machine identity under a narrow Z-000 assignment, or Night merging by hand? (D1)
-2. May agents push to your existing PR branches? (D2)
-3. Which GNER lineage survives? (D3)
-4. Is the primary metric RAT-min per PR, throughput under the cap of 4, or lineage-correlated error? (D8)
-5. Should the three domain-agent manifests go to the sibling repos as draft PRs now, or stay as proposals in operations until #749/#750 are signed? (D9)
-6. Are Copilot and CodeRabbit the intended "other lineages" for the Jester, or should Codex (`.codex/` exists) and Grok (HARC Trial 003) be included?
-7. Should the 96 inbox candidates be folded into later decision sheets, or kept out of this plan entirely?
-8. Is the Resource Miner trio (#822, #825, #827) in scope for Lane R, or is that program being driven elsewhere?
+Still open for the sheet: D3 (against §5b), D4, D5, D6, D7, D10, D11, D12.
 
-Until answered, the plan proceeds under the recommendations in §5 only for work that needs no Z2 act: cartography refreshes, supersession analysis, pins, and decision-sheet compilation.
+## 9. Z2 responses recorded in-session (2026-10-14)
+
+Recorded by the filing Z1 session from Z2's reply in conversation. Human-attested, unsigned: these bind by the convention the IC-065 "confirmed live" record set, and the ratification hash for this candidate is still owed. Z2 also stated she will merge PR #836 herself when the candidate is complete.
+
+| Z2 statement (verbatim fragment) | Row | Effect in this document |
+|:--|:--|:--|
+| "i will merge PR when complete" | D1 | Z3 row in §2 is Night; Z3-hr cost 0; merge acts costed in RAT-min; `blocking_on` emptied |
+| "agents may push fixes onto open existing" | D2 | Lane R text; A4/A5 push to PR branches, merge commits only |
+| "ROI matrix for GNER" | D3 | §5b written; Lane L frozen until D3 is signed against it |
+| "lineage-correlated error" | D8 | §4b written; F6 added as the primary falsifier; RAT-min and Brier secondary |
+| "stay as operations proposals until #749/#750 are signed, per #747's own sequencing" | D9 | A9 output stays in operations; no sibling-repo PRs |
+| "Copilot and CodeRabbit the intended other lineages for the adversarial reviewer" | Q6 | A8 row; §4b lineages fixed |
+| "96 inbox candidates in scope for later decision sheets" | Q7 | §7 |
+| "RM in scope" | Q8 | #822, #825, #827 in Lane R |
 
 ---
 

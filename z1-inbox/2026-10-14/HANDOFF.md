@@ -22,6 +22,17 @@
 | 96 candidates await Z2 | `.z1-control/validate.py` output; issue #328 | observed |
 | ADMIT dispatched for #812/#815 on 2026-10-14 | PR #815 body, Notes | read, not independently verified against the state branch |
 
+## Z2 responses received in-session (2026-10-14, after filing)
+
+Night answered D1 (she merges by hand), D2 (agents may push to open PR branches), D8 (primary metric is lineage-correlated error), D9 (operations proposals until #749/#750 are signed), Q6 (Copilot and CodeRabbit are the Jester lineages), Q7 (96 candidates in scope for later sheets), Q8 (Resource Miner trio in scope), and asked for an ROI matrix before deciding D3. Recorded in the candidate's §9; unsigned.
+
+| Claim added after the responses | Where it is verifiable | Status |
+|:--|:--|:--|
+| Main carries GNER E0/E1/E2 tools, tests, docs, manifest rows | `ls tools/gner_*`, `tools-manifest.yaml` lines 2529–2554 at `3bf3b21`; PR #779 merged 2026-10-10 | read |
+| #770 and #771 branches are ancestors of main | `git merge-base --is-ancestor origin/<branch> origin/main` | run 2026-10-14 |
+| #767 and #778 differ from main only by older E0/E1 versions | per-file `git diff --numstat` against main | run 2026-10-14 |
+| #772 and #768 share the four `human_objective_e1` files; #772 also carries an IEW file that #777 implements differently | same diff; `git diff --name-only` on #777's branch | run 2026-10-14 |
+
 ## Not done, on purpose
 
 - No comment, label, close, push to another branch, or ADMIT. All are Z2 acts or need D2.
@@ -35,9 +46,10 @@
 
 ## Next blockers
 
-1. Z2 signs Decision Sheet 1 (ten rows, ~73 RAT-min prior).
-2. D1 decides who merges; until then no Phase 3.
-3. This PR collides with #831 on `z1-inbox/INDEX.yaml` and `Z1_INBOX_INDEX.md`; whichever lands second re-renders the index.
+1. Z2 signs the open rows of Decision Sheet 1: D3 against the §5b matrix, D4, D5, D6, D7, D10, D11, D12 (~86 RAT-min prior for the whole sheet, five rows already answered in-session).
+2. Z2 merges PR #836 when the candidate is complete (her statement, 2026-10-14); the ratification hash follows.
+3. A7 files the first disposition pins (§4a) and the lineage-findings ledger (§4b) before any D-row is executed; P0 stays open until then.
+4. This PR collides with #831 on `z1-inbox/INDEX.yaml` and `Z1_INBOX_INDEX.md`; whichever lands second re-renders the index.
 
 ---
 
