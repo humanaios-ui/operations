@@ -2,11 +2,22 @@ version: 1
 generated: '2026-10-09'
 decision_window_days: 2
 counts:
-  candidates: 106
+  candidates: 107
   records: 57
 ratifiers:
 - Night
 candidates:
+- q_id: Q-ISSUE-TRIAGE-CONVENTION-01
+  title: Labels, assignees, and triage for repository issues
+  path: z1-inbox/2026-10-14/Q-ISSUE-TRIAGE-CONVENTION-01.md
+  submitted: '2026-10-14'
+  status: awaiting_z2
+  tier: 1
+  note: 'Draft proposal for a fixed issue label vocabulary (kind/state/authority, 9-label
+    cap), an assignee rule, and a PQ/Q linking rule. Filed from issue #824, which was
+    opened without metadata. Does not touch CODEOWNERS, branch protection, REGISTERED.md,
+    or this index beyond this entry. Falsifier defined in the block (30-day counts).
+    Labels are not created in GitHub until Z2 ratifies.'
 - q_id: Q-GRAPH-CAPTURE-LINT-01
   title: graph_capture_lint — score every graph file against the nine properties of
     a self-sealing graph; block on the three that make a graph unauditable
