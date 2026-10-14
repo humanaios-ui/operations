@@ -4,15 +4,19 @@ on:
   pull_request:
     paths:
       - 'architecture/codebase_atlas.py'
+      - 'architecture/codebase_atlas_bridges.py'
       - 'architecture/codebase_atlas.components.json'
       - 'tests/test_codebase_atlas.py'
+      - 'tests/test_codebase_atlas_bridges.py'
       - '.github/workflows/codebase-atlas.yml'
   push:
     branches: [main]
     paths:
       - 'architecture/codebase_atlas.py'
+      - 'architecture/codebase_atlas_bridges.py'
       - 'architecture/codebase_atlas.components.json'
       - 'tests/test_codebase_atlas.py'
+      - 'tests/test_codebase_atlas_bridges.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,7 +31,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Falsifier regression tests
-        run: python -m unittest discover -s tests -p 'test_codebase_atlas.py' -v
+        run: python -m unittest discover -s tests -p 'test_codebase_atlas*.py' -v
       - name: Generate read-only architecture map
         run: python architecture/codebase_atlas.py --out "$RUNNER_TEMP/codebase-atlas"
       - name: Verify contract and evidence paths
@@ -38,6 +42,15 @@ jobs:
           assert g['authority_effect']=='NONE' and g['merge_authority'] is False
           assert g['worktree_clean'] and len(g['head_sha'])==40
           assert g['nodes'] and g['coverage']['mapped_files']>0
+          b=g['bridges']
+          assert b['authority_effect']=='NONE' and b['merge_authority'] is False
+          assert b['can_authorize'] is False and b['authenticated'] is False
+          assert b['head_sha']==g['head_sha']
+          assert set(b['views'])=={'evidence','session','scvc','coordinator'}
+          assert all(v['state']=='SOURCE_BOUND' for v in b['views'].values())
+          assert all(v['verification']=='NOT_ESTABLISHED' for v in b['views'].values())
+          assert b['views']['scvc']['continuity_status']=='NOT_ESTABLISHED'
+          assert b['views']['coordinator']['state_branch_verified'] is False
           for edge in g['edges']:
               assert edge['count']>0 and edge['evidence']
               assert all(item['line']>0 and item['source'] and item['target'] for item in edge['evidence'])

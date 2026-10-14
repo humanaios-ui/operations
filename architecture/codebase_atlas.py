@@ -181,6 +181,11 @@ def render_markdown(graph: dict, mermaid: str) -> str:
               '- Edges reflect static source evidence, not verified runtime behavior.',
               '- Missing edges do not prove disconnected systems.',
               '- No AI inference, secrets, token transfer, or external generation service.', ""]
+    if 'bridges' in graph:
+        lines.extend(['', '## Cross-graph projections (advisory only)', ''])
+        for k, v in graph['bridges']['views'].items():
+            lines.append(f'- {k}: {v["present"]}/{v["expected"]} pinned sources; {v["bindings"]} path bindings; verification NOT_ESTABLISHED.')
+        lines.append('- All join predicates are exact source/path references, not proof of execution, continuity, admission, or authorization.')
     return "\n".join(lines)
 
 
@@ -206,11 +211,18 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}ul{padding-left:1
 <button id="export">Export JSON</button><button id="mm">Export Mermaid</button></header>
 <main><section id="canvas" aria-label="Architecture map"><svg id="map" role="img" aria-label="Component graph"></svg></section>
 <aside><h2 id="detailtitle">Select a component</h2><p class="fine" id="detail"></p><div id="details"></div>
-<h3>Evidence note</h3><p class="fine">Lines and links are observed static references, not proof of runtime behavior. Diagram has no admission authority.</p></aside></main>
+<h3>Cross-graph lenses</h3><div id="lenses" class="fine"></div><h3>Evidence note</h3><p class="fine">Lines and links are observed static references, not proof of runtime behavior. Diagram has no admission authority.</p></aside></main>
 <script id="atlas-data" type="application/json">__ATLAS_DATA__</script>
 <script>
 'use strict';
 const g=JSON.parse(document.querySelector('#atlas-data').textContent);
+const bridge=g.bridges || {views:{},bindings:[]};
+const panel=document.querySelector('#lenses');
+for(const [name,v] of Object.entries(bridge.views||{})){
+ const p=document.createElement('p');p.textContent=`${name}: ${v.present}/${v.expected} pinned sources; ${v.bindings} path bindings; verification NOT ESTABLISHED`;
+ panel.appendChild(p);
+}
+
 const svg=document.querySelector('#map');const ns='http://www.w3.org/2000/svg';
 const W=1160,C=3,dx=375,dy=132,offsetX=30,offsetY=65;
 const positions=new Map(g.nodes.map((n,i)=>[n.id,{x:offsetX+(i%C)*dx,y:offsetY+Math.floor(i/C)*dy}]));
@@ -231,6 +243,11 @@ const ul=document.createElement('ul');n.paths.forEach(path=>{const li=document.c
 const con=g.edges.filter(e=>e.source===n.id||e.target===n.id);
 const h=document.createElement('h3');h.textContent='Observed connections ('+con.length+')';dest.appendChild(h);
 con.forEach(e=>{const p=document.createElement('p');p.className='fine';p.textContent=`${e.source} → ${e.target}: ${e.kind} (${e.count}); ${e.evidence[0]?.source}:${e.evidence[0]?.line}`;dest.appendChild(p)});
+const joined=(bridge.bindings||[]).filter(b=>b.component_id===n.id);
+const cross=document.createElement('h3');cross.textContent=`Cross-graph path bindings (${joined.length})`;dest.appendChild(cross);
+joined.slice(0,40).forEach(b=>{const item=document.createElement('p');item.className='fine';item.textContent=`${b.graph}: ${b.path} (${b.epistemic_state}; ${b.relation})`;dest.appendChild(item)});
+if(joined.length>40){const more=document.createElement('p');more.textContent=`Showing 40 of ${joined.length} (export JSON for all).`;dest.appendChild(more)}
+
 }
 group.addEventListener('click',choose);group.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();choose()}});svg.appendChild(group);nodeItems.push([group,n])}
 document.querySelector('#sha').textContent=g.head_sha.slice(0,12)+(g.worktree_clean?' · clean':' · unverified worktree');
@@ -333,8 +350,14 @@ def main() -> int:
         graph=build(root,args.config,args.repository)
     except (ValueError,OSError,subprocess.CalledProcessError,subprocess.TimeoutExpired) as exc:
         parser.exit(1,f'Atlas failed closed: {exc}\n')
+    # Build a read-only projection from fixed HEAD-pinned public source files.
+    # No Coordinator state branch or live attestation endpoint is queried.
+    from architecture.codebase_atlas_bridges import project
+    definitions=load_config(args.config)
+    graph['bridges']=project(root, graph, tracked_files(root), lambda p:component_of(p,definitions))
     args.out.mkdir(parents=True,exist_ok=True)
     (args.out/'atlas.json').write_text(json.dumps(graph,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+    (args.out/'bridges.json').write_text(json.dumps(graph['bridges'],indent=2,sort_keys=True)+'\n',encoding='utf-8')
     (args.out/'atlas.mmd').write_text(graph['mermaid'],encoding='utf-8')
     (args.out/'atlas.md').write_text(render_markdown(graph,graph['mermaid']),encoding='utf-8')
     (args.out/'index.html').write_text(render_html(graph),encoding='utf-8')
