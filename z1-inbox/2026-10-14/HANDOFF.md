@@ -46,7 +46,7 @@ Night answered D1 (she merges by hand), D2 (agents may push to open PR branches)
 
 ## Next blockers
 
-1. Z2 signs the open rows of Decision Sheet 1: D3 against the §5b matrix, D4, D5, D6, D7, D10, D11, D12 (~86 RAT-min prior for the whole sheet, five rows already answered in-session).
+1. Z2 signs the open rows of Decision Sheet 1: D3 against the §5b matrix, D4, D5, D6, D7, D10, D11, D12 (~86 RAT-min prior for the whole sheet, four rows already answered in-session).
 2. Z2 merges PR #836 when the candidate is complete (her statement, 2026-10-14); the ratification hash follows.
 3. A7 files the first disposition pins (§4a) and the lineage-findings ledger (§4b) before any D-row is executed; P0 stays open until then.
 4. This PR collides with #831 on `z1-inbox/INDEX.yaml` and `Z1_INBOX_INDEX.md`; whichever lands second re-renders the index.

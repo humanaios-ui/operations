@@ -191,7 +191,7 @@ No phase has a date. Each exits on a resource-state predicate, per Q-TEMPORAL-DI
 | P0 Cartography | A1 sweep; A2 supersession pass; A7 baseline pins | Every open PR has a lane, a conflict class, and a disposition pin in the queue pin ledger (§4a); every open issue sits in a program cluster. **Partly met on 2026-10-14:** lanes, conflict classes and clusters are in the evidence record; **no disposition pins exist yet**, so P0 stays open until the pin spec covers every open PR. |
 | P1 Decision Sheet 1 | A6 compiles the rows in §5; Z2 sits | Every D-row carries ACCEPT/EDIT/REJECT; the first admission batch (at most 4 minus the PRs already ACTIVE, which were #606 and #812 on 2026-10-14) carries ADMIT receipts; RAT-min SPEND rows recorded. |
 | P2 Mechanical lanes | A3 serial manifest lane; A4 and A5 on Lane R; A8 batch review | Every Lane R PR is green except admission or carries one standing-down comment naming the failing check and why; no PR has an unanswered blocking thread. |
-| P3 Landing | Rolling batches: admit at most (4 minus ACTIVE) PRs in D7 order, Z3 lands them, slots are released, the next batch is admitted; a batch is never made ready together if it would trip CAPACITY_CONTENTION; A7 resolves pins as each PR reaches a terminal state | Open PR count <= 4 + Lane P; every merge has an ADMIT receipt and a Z2 hash or merge act traceable in the ledger. |
+| P3 Landing | Rolling batches: admit at most (4 minus ACTIVE) PRs in D7 order, Z3 lands them, slots are released, the next batch is admitted; a batch is never made ready together if it would trip CAPACITY_CONTENTION; A7 resolves pins as each PR reaches a terminal state | Open PR count <= 4 + Lane P; every ordinary-lane merge has an ADMIT receipt, every maintenance-standing Lane M merge has a current PASS / MAINTENANCE receipt for the exact PR head, and every merge has a Z2 hash or merge act traceable in the ledger. |
 | P4 Domain agents | A9 drafts the three manifests; proposes #749/#750 measurement contracts first per #747 | Three manifests exist as proposals with E1 deterministic tests passing locally; no write path crosses a repo boundary. |
 | P5 Learning close | A7 Brier over >= 20 pins; B.6 reconciliation; findings scan; A8 lineage table | Brier reported with n; zero open RECEIPT-GAP rows; F/IC/H candidate blocks filed; H-CAND-MULTI-AGENT-CASCADE-01 stratified table populated. |
 
@@ -219,7 +219,7 @@ H-CAND-MULTI-AGENT-CASCADE-01 predicts that reviewers sharing a training lineage
 - **Recording.** A7 keeps `audits/lineage_findings_<sweep-date>.jsonl`: one row per finding with batch, head sha, lineage(s) that reported it, confirmation source. The schema is the `marshal_dispatch_runs_v1` lineage field the hypothesis block already asks for, applied to review rather than dispatch.
 - **Secondary metrics** stay as filed: RAT-min per cleared PR (F3) and disposition Brier (F5).
 
-## 5. Decision Sheet 1 (the ten Z2 rows)
+## 5. Decision Sheet 1 (the twelve Z2 rows)
 
 RAT-min column is the demand prior for the row's class; A7 replaces it with measured minutes.
 
@@ -238,7 +238,7 @@ RAT-min column is the demand prior for the row's class; A7 replaces it with meas
 | D11 | Convert prose-draft PRs to API drafts: #597, #777, #790, #812, #814, #819, #825, #827 say DRAFT/HOLD in their bodies but are `draft=false` (the GNER PRs drop out under §5b); the gate routes API drafts to WORKBENCH (PASS) and out of ADMISSION_REVIEW | Convert them; it makes the gate measure what the authors already claim, and it is reversible with "ready for review" | 5 |
 | D12 | Independent execution witness: two implementations are open, `tools/independent_execution_witness_v0_1.py` inside #772 and the `tools/iew/` package with workflow and negative controls in #777 (IEW-001) | Keep #777 as the IEW lane; drop #772's copy with its close; A2 diffs the two first so nothing #777 lacks is lost | 8 |
 
-Sum of priors: 86 RAT-min; five rows already decided in-session, seven (D3–D7, D10–D12) still open.
+Sum of priors: 86 RAT-min; four rows already decided in-session (D1, D2, D8, D9), eight (D3–D7, D10–D12) still open.
 
 ## 5b. GNER return-on-investment matrix (requested by Z2, 2026-10-14)
 
@@ -262,9 +262,9 @@ So the "three lineages" framing was wrong by the time it was written: main alrea
 | A: land the stack #767 → #770 → #771 | nothing new; three merges of content main has, with two of them already ancestors | 3 ADMIT + 3 merge ≈ 18 | ≈ 60 to re-green #767 against main | ≈ 240 | 1 (#767 vs main's manifest) | 0 EVID-row; #766 closes on paperwork that #779 already did |
 | B: land #772 + #778 | the experiment and the IEW file, plus two regressions of tools main already improved | 2 ADMIT + 2 merge ≈ 12 | ≈ 120 (re-green two red PRs, drop the stale E0/E1 copies) | ≈ 320 | 2 | 2 EVID-row candidates, minus the regression risk on E0/E1 |
 | C: land #768 alone | the experiment, four files | 1 EDIT (body) + 1 ADMIT + 1 merge ≈ 10 | ≈ 15 (fill the body; already green) | ≈ 40 | 0 | 1 EVID-row candidate (#760 experiment); the IEW tool is left to #777 |
-| D (recommended): C plus closes, IEW to #777 | #768; close #770, #771 (merged), #767, #778 (superseded); A2 diffs #772's IEW file against #777's package, carries any missing behaviour into #777, then #772 is closed | 4 closes ≈ 8 + C's 10 ≈ 18 | ≈ 40 | ≈ 40 | 0 | 1 EVID-row candidate now, the IEW decision isolated in D12, five PRs out of the queue |
+| D (recommended): C plus closes, IEW to #777 | #768; close #770, #771 (merged), #767, #778 (superseded); A2 diffs #772's IEW file against #777's package, carries any missing behaviour into #777, then #772 is closed | 5 closes ≈ 10 + C's 10 ≈ 20 | ≈ 40 | ≈ 40 | 0 | 1 EVID-row candidate now, the IEW decision isolated in D12, five PRs out of the queue |
 
-Density under the PRIORITY_QUEUE.md formula (benefit ÷ cost[RAT-min]): A ≈ 0, B ≈ 0.17, C ≈ 0.10, D ≈ 0.06 on benefit alone, but D also removes five PRs from ADMISSION_REVIEW and zero manifest conflicts, which the formula's "work unblocked" term credits to D (every Lane R PR behind the manifest lane). D is the recommendation. The one thing D must not lose is any behaviour in #772's witness file that #777 lacks, hence D12.
+Density under the PRIORITY_QUEUE.md formula (benefit ÷ cost[RAT-min]): A ≈ 0, B ≈ 0.17, C ≈ 0.10, D ≈ 0.05 on benefit alone, but D also removes five PRs from ADMISSION_REVIEW and zero manifest conflicts, which the formula's "work unblocked" term credits to D (every Lane R PR behind the manifest lane). D is the recommendation. The one thing D must not lose is any behaviour in #772's witness file that #777 lacks, hence D12.
 
 ## 5a. Observations from this PR's own gate run (2026-10-14)
 

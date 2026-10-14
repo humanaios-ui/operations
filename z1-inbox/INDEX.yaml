@@ -18,8 +18,9 @@ candidates:
     manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration
     recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in
     five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched
-    into Decision Sheet 1 (ten rows, ~73 RAT-min prior). Phase exits are resource-state
-    predicates, no dates. Falsifier F1-F5. Evidence record: QUEUE_MAP_2026-10-14.md.
+    into Decision Sheet 1 (twelve rows, ~86 RAT-min prior; four answered in-session on
+    2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier
+    F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md.
     Touches no constants, gates, workflows, or REGISTERED.md.'
 - q_id: Q-GRAPH-CAPTURE-LINT-01
   title: graph_capture_lint — score every graph file against the nine properties of
