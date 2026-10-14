@@ -88,3 +88,54 @@ Until then, the +2 signal is a **hypothesis only**.
 Existing `.github/workflows/resource-miner-pr.yml` runs the test by
 `python3 -m unittest discover -s tests -v` for changed Resource Miner paths.
 Check **exact head SHA**, test logs and admission evidence before merging.
+
+## Milestone 2 — executable outcome negative control
+
+Run from `humanaios-funding-pipeline/resource-miner`:
+
+```bash
+python3 -m resource_miner.outcome_probe
+```
+
+This **executes real local Resource Miner processing** over actual checked-in,
+provenance-bearing resource records. The exact same `CREATE_RESOURCE_VERIFICATION_QUEUE`
+task is executed twice: once with the previously selected individual resource
+(using the existing Resource Miner ordering), and once with the three-resource
+combination, under the same hypothetical review budget.
+
+A receipt includes input source ref, time measured in nanoseconds by the
+local Python process, output SHA-256 hashes, generated verification questions,
+explicit budget assumptions, and missing live-provider prerequisites. It
+**does not claim** the Python host is Azure or the resources have actually
+worked together.
+
+**Falsification result:** The bundle generates three *unverified source-review*
+questions versus one for the baseline. Both generate **zero** independently
+verified provider accesses or completed verified outcomes. The bundle's added
+capability coverage is not a demonstrated useful-task improvement. Both
+outputs remain read-only, unactionable. The extra hypothetical review minutes
+are not actual money or recorded labor.
+
+**Live interoperability remains BLOCKED:** Azure compute must be witnessed
+independently on a real owned workload; Cerebras requires an authenticated,
+permitted, bounded inference call; Langfuse requires a functioning authorized
+trace ingestion and independent readback. A host-environment string, a cached
+resource candidate, or a passed mock is not proof of any of these. The
+preflight only reports missing configuration names; it never prints keys,
+makes external calls, or upgrades permissions. Having all settings present
+still returns `PREFLIGHT_ONLY_NOT_AUTHORIZED`.
+
+No secret-bearing GitHub Actions PR job was added. Credentialed external work
+must pass protected human authorization, cost and data-boundary review and
+independent witness checks before a separate live workflow is enabled. Never
+send private HumanAIOS source material or client data to model providers
+without documented data authorization.
+
+**What would prove real synergy:** Run the *same pinned and independently
+scored public/synthetic task* on authorized Azure compute with a control arm
+(Azure-only deterministic processing) and an experimental arm
+(Azure + Cerebras inference + Langfuse trace with independent receipt).
+Collect outcome quality (claim precision and completeness), wall-clock time,
+actual API tokens/charge, workload cost, and verified telemetry readback.
+A larger input list or mere trace count does not count as a better outcome.
+If cost rises without improved useful output, the result is negative.
