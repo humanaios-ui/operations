@@ -25,6 +25,37 @@ jobs:
           HACKERONE_API_TOKEN: ''
         run: python3 -m unittest discover -s tests -v
 
+      - name: Execute M2 local outcome negative control (evidence only)
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          CEREBRAS_API_KEY: ''
+          LANGFUSE_PUBLIC_KEY: ''
+          LANGFUSE_SECRET_KEY: ''
+          LANGFUSE_BASE_URL: ''
+          AZURE_EXECUTION_RECEIPT: ''
+        run: |
+          python3 -m resource_miner.outcome_probe > /tmp/humanaios-m2-shadow.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('/tmp/humanaios-m2-shadow.json').read_text())
+          assert row['mode'] == 'LOCAL_REAL_EXECUTION_NO_EXTERNAL_PROVIDERS'
+          assert row['comparison']['baseline']['generated_verification_questions'] == 1
+          assert row['comparison']['bundle']['generated_verification_questions'] == 3
+          assert row['comparison']['verified_outcome_delta'] == 0
+          assert row['provider_live_preflight']['provider_live_trial'] == 'BLOCKED_MISSING_RUNTIME'
+          assert row['authority_effect'] == 'NONE'
+          assert row['verified_synergy'] == 'NOT_ESTABLISHED'
+          print('M2 NEGATIVE CONTROL PASS: coverage +2, verified outcome +0, external provider trial blocked')
+          PY
+
+      - name: Preserve M2 comparison evidence artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: resource-complementarity-m2-shadow
+          path: /tmp/humanaios-m2-shadow.json
+          retention-days: 30
+
       - name: Exercise persistent Mine resolver contract
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
