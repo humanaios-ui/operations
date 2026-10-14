@@ -2,11 +2,25 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 107
-  records: 58
+  candidates: 108
+  records: 60
 ratifiers:
 - Night
 candidates:
+- q_id: Q-MULTI-AGENT-QUEUE-PLAN-01
+  title: Multi-agent plan to work the intentionally backed-up PR queue as a governed
+    experiment
+  path: z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md
+  submitted: '2026-10-14'
+  status: awaiting_z2
+  tier: 1
+  note: 'Ten-agent roster (orchestrator, cartographer, supersession analyst, single-writer
+    manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration
+    recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in
+    five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched
+    into Decision Sheet 1 (ten rows, ~73 RAT-min prior). Phase exits are resource-state
+    predicates, no dates. Falsifier F1-F5. Evidence record: QUEUE_MAP_2026-10-14.md.
+    Touches no constants, gates, workflows, or REGISTERED.md.'
 - q_id: Q-GRAPH-CAPTURE-LINT-01
   title: graph_capture_lint — score every graph file against the nine properties of
     a self-sealing graph; block on the three that make a graph unauditable
@@ -1246,6 +1260,17 @@ candidates:
   z2_ruling: "z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md"
   z2_hash: "9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd"
 records:
+- path: z1-inbox/2026-10-14/QUEUE_MAP_2026-10-14.md
+  title: QUEUE_MAP — open PRs and issues of operations, 2026-10-14
+  note: Phase 0 evidence for Q-MULTI-AGENT-QUEUE-PLAN-01. Read-only GitHub API sweep
+    of 33 PRs (CI, reviews, files) on 2026-10-12 plus a re-list on 2026-10-14 (36 open),
+    88 issues mapped into 16 program clusters, shared-file conflict map, sibling-repo
+    agent surfaces. Observations only; dispositions live in the candidate.
+- path: z1-inbox/2026-10-14/HANDOFF.md
+  title: Session Handoff — Multi-agent queue plan (Q-MULTI-AGENT-QUEUE-PLAN-01)
+  note: §B handoff for the session that filed Q-MULTI-AGENT-QUEUE-PLAN-01. Claim-vs-tree
+    table, what was deliberately not done, findings scan, next blockers (Decision Sheet
+    1; D1 decides who merges; index collision with PR #831).
 - path: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   title: "Z2 rulings — 2026-10-14 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
