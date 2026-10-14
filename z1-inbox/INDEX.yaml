@@ -13,7 +13,7 @@ candidates:
   submitted: '2026-10-14'
   status: awaiting_z2
   tier: 1
-  note: 'Draft proposal for a fixed issue label vocabulary (kind/state/authority, 10-label
+  note: 'Draft proposal for a fixed issue label vocabulary (kind/state/authority, 9-label
     cap), an assignee rule, and a PQ/Q linking rule. Filed from issue #824, which was
     opened without metadata. Does not touch CODEOWNERS, branch protection, REGISTERED.md,
     or this index beyond this entry. Falsifier defined in the block (30-day counts).
