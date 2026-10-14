@@ -74,6 +74,11 @@ class GitHubReadOnly:
         self.token = token
 
     def get(self, path: str):
+        """Return parsed JSON for a read-only GET under the witnessed repository.
+
+        Raises WitnessError (API_PATH_DENIED) before any network call when the
+        path is outside repos/{REPO} or contains dot-segments.
+        """
         # Permit the exact repository identity endpoint as well as its
         # children. The initial prefix-only guard rejected repos/{REPO},
         # preventing every live witness run immediately after OIDC succeeded.
