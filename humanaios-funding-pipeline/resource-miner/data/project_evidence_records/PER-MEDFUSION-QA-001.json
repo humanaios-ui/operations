@@ -1,0 +1,114 @@
+{
+  "project_id": "PER-MEDFUSION-QA-001",
+  "title": "Problem Resolution / Quality Assurance Department Build",
+  "organization": "Medfusion Laboratories — Lewisville, TX",
+  "source_role": "Supervisor — Problem Resolution Department",
+  "time_window": "May 2015 – August 2016",
+  "mandate": "Build and operate a laboratory-wide compliance/problem-resolution capability.",
+  "objective": "Reduce compliance exceptions and cross-laboratory communication failures through QA process design, data analysis, system integration, and escalation management.",
+  "scope": [
+    "quality assurance department build",
+    "CRM/LIS integration",
+    "compliance exception management",
+    "data analysis",
+    "inter-laboratory tracking",
+    "compliance dashboard",
+    "team supervision",
+    "process improvement"
+  ],
+  "stakeholders": [
+    "laboratory operations",
+    "clients",
+    "quality/compliance staff",
+    "cross-laboratory teams"
+  ],
+  "constraints": [
+    "regulated laboratory environment",
+    "high-volume exception handling",
+    "cross-system data visibility"
+  ],
+  "resources_controlled": [
+    "problem-resolution team",
+    "CRM/LIS workflow",
+    "compliance dashboard",
+    "inter-laboratory tracking process"
+  ],
+  "risks_dependencies": [
+    "compliance exceptions",
+    "escalation delays",
+    "cross-lab communication errors",
+    "data visibility gaps"
+  ],
+  "execution": [
+    "Spearheaded creation of a quality-assurance department and integrated CRM software with LIS.",
+    "Managed a team, schedules, and daily tasks.",
+    "Served as primary point of contact for compliance-exception escalations.",
+    "Analyzed compliance rates, audits, and trends.",
+    "Authored and implemented compliance-exception regulations.",
+    "Designed an inter-laboratory tracking system and initiated a Compliance Dashboard.",
+    "Analyzed systems/applications and contributed to project-management/process-efficiency initiatives."
+  ],
+  "deliverables": [
+    "quality-assurance department",
+    "CRM/LIS-integrated workflow",
+    "compliance exception regulations",
+    "inter-laboratory tracking system",
+    "Compliance Dashboard"
+  ],
+  "validation": [
+    "Historical resume documents the project and outcomes direction; quantitative before/after values are not preserved in the retrieved artifact."
+  ],
+  "outcomes": [
+    "Historical resume reports reduced compliance exceptions/escalations, improved exception resolution, increased visibility, proactive monitoring, and productivity."
+  ],
+  "metrics": [],
+  "capability_tags": [
+    "QUALITY_SYSTEMS",
+    "DEPARTMENT_BUILD",
+    "CRM_LIS_INTEGRATION",
+    "DATA_ANALYTICS",
+    "ESCALATION_MANAGEMENT",
+    "DASHBOARD",
+    "PEOPLE_MANAGEMENT",
+    "PROCESS_IMPROVEMENT"
+  ],
+  "evidence": [
+    {
+      "claim": "Served as Supervisor — Problem Resolution Department at Medfusion Laboratories, May 2015–August 2016.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Resume UTD 2024.docx — Medfusion section"
+    },
+    {
+      "claim": "Spearheaded creation of a QA department integrating CRM with LIS and built tracking/dashboard processes for compliance exceptions.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Resume UTD 2024.docx — Medfusion section"
+    },
+    {
+      "claim": "Managed staff/schedules and served as escalation point for compliance exceptions.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Resume UTD 2024.docx — Medfusion section"
+    }
+  ],
+  "unknowns": [
+    {
+      "field": "quantified_outcomes",
+      "reason": "Retrieved resume describes improvements but does not preserve numeric baselines or deltas.",
+      "interrogation_prompt": "Retrieve dashboard/report evidence only if quantitative results are required for a target application.",
+      "market_signal_ids": [
+        "JRS-METRICS-001"
+      ]
+    },
+    {
+      "field": "team_size",
+      "reason": "Retrieved resume confirms team management but does not state headcount.",
+      "interrogation_prompt": "Resolve from HR/performance records only if team size is material.",
+      "market_signal_ids": [
+        "JRS-PEOPLE-PROGRAM-001"
+      ]
+    }
+  ],
+  "authority_effect": "NONE"
+}

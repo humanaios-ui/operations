@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/claim-evaluation-event.v1.schema.json",
+  "title": "HumanAIOS Claim Evaluation Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "event_id",
+    "claim_id",
+    "claim_token",
+    "opportunity_id",
+    "sequence",
+    "previous_event_id",
+    "event_type",
+    "observed_at",
+    "actor_type",
+    "actor_id",
+    "method",
+    "facet",
+    "prior_overall_state",
+    "resulting_overall_state",
+    "prior_facet_state",
+    "resulting_facet_state",
+    "evidence_ids",
+    "payload",
+    "uncertainty",
+    "confidence",
+    "authority_effect",
+    "proposition_id",
+    "proposition_token"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.claim-evaluation-event.v1"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^CEV-[A-F0-9]{20}$"
+    },
+    "claim_id": {
+      "type": "string",
+      "pattern": "^CLM-[A-F0-9]{16}$"
+    },
+    "claim_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:opportunity-claim:CLM-[A-F0-9]{16}$"
+    },
+    "opportunity_id": {
+      "type": "string",
+      "pattern": "^OPP-[A-F0-9]{16}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "previous_event_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "event_type": {
+      "enum": [
+        "CLAIM_ASSERTED",
+        "EVIDENCE_RECORDED",
+        "FALSIFIER_EVALUATED",
+        "FACET_RESOLVED"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor_type": {
+      "enum": [
+        "SYSTEM",
+        "AI",
+        "HUMAN",
+        "AUTHORITY",
+        "RESOLVER"
+      ]
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1
+    },
+    "facet": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "EXISTENCE",
+        "CURRENTNESS",
+        "TERMS",
+        "ELIGIBILITY",
+        "ATTAINABILITY",
+        null
+      ]
+    },
+    "prior_overall_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resulting_overall_state": {
+      "enum": [
+        "UNVERIFIED",
+        "OBSERVED",
+        "SUPPORTED",
+        "CONTESTED",
+        "RETIRED",
+        "FALSIFIED"
+      ]
+    },
+    "prior_facet_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resulting_facet_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "payload": {
+      "type": "object"
+    },
+    "uncertainty": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "proposition_id": {
+      "type": "string",
+      "pattern": "^(|PRP-[A-F0-9]{16})$"
+    },
+    "proposition_token": {
+      "type": "string",
+      "pattern": "^(|urn:humanaios:proposition:PRP-[A-F0-9]{16})$"
+    }
+  }
+}

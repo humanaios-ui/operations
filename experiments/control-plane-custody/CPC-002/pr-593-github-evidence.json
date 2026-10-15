@@ -1,0 +1,134 @@
+[
+  {
+    "event_id": "CPC-001-002",
+    "source_type": "commit",
+    "repository": "humanaios-ui/operations",
+    "payload": {
+      "sha": "7b4461866e7eed00fd7960a254d6719d3ff08315",
+      "html_url": "https://github.com/humanaios-ui/operations/commit/7b4461866e7eed00fd7960a254d6719d3ff08315",
+      "message": "Merge current main into repository knowledge graph branch\n\nhumanaios-origin: ai-agent; agent=ChatGPT; purpose=pr593-restack",
+      "sender": {"login": "humanaios-ui"},
+      "committed_at": "2026-10-01T03:41:02Z"
+    },
+    "decision_custodian": "ChatGPT",
+    "information_custodians": ["humanaios-ui repository state"],
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "non-force fast-forward branch update after merge commit creation",
+      "evidence_refs": ["commit:7b4461866e7eed00fd7960a254d6719d3ff08315"]
+    },
+    "authority_evidence": {"state": "NONE", "scope": null, "refs": []},
+    "evidence_refs": ["commit:7b4461866e7eed00fd7960a254d6719d3ff08315"]
+  },
+  {
+    "event_id": "CPC-001-003",
+    "source_type": "pr_comment",
+    "repository": "humanaios-ui/operations",
+    "payload": {
+      "id": 5924271969,
+      "html_url": "https://github.com/humanaios-ui/operations/pull/593#issuecomment-5924271969",
+      "body": "<!-- ci-predict:pin --> prediction_status=PINNED schema=ci_predict_pin_v2",
+      "user": {"login": "github-actions[bot]"},
+      "created_at": "2026-10-01T03:42:11Z",
+      "head_sha": "8efd40edb60fca10636778cc82a95cb96bdca875"
+    },
+    "decision_custodian": "ci-predict-pin workflow policy",
+    "information_custodians": ["ChatGPT prediction declaration", "GitHub PR state"],
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "ci-predict-pin v2 PR-binding validation",
+      "evidence_refs": ["comment:5924271969"]
+    },
+    "authority_evidence": {"state": "NONE", "scope": null, "refs": []},
+    "evidence_refs": ["comment:5924271969"]
+  },
+  {
+    "event_id": "CPC-001-004",
+    "source_type": "workflow_run",
+    "repository": "humanaios-ui/operations",
+    "payload": {
+      "id": 36811708349,
+      "html_url": "https://github.com/humanaios-ui/operations/actions/runs/36811708349",
+      "name": "tool-manifest",
+      "head_sha": "8efd40edb60fca10636778cc82a95cb96bdca875",
+      "conclusion": "failure",
+      "actor": {"login": "github-actions[bot]"},
+      "updated_at": "2026-10-01T03:42:16Z"
+    },
+    "decision_custodian": "tool-manifest workflow policy",
+    "information_custodians": ["repository manifest files"],
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "tool-manifest blocking CI gate",
+      "evidence_refs": ["run:36811708349"]
+    },
+    "authority_evidence": {"state": "NONE", "scope": null, "refs": []},
+    "evidence_refs": ["run:36811708349"]
+  },
+  {
+    "event_id": "CPC-001-005",
+    "source_type": "workflow_run",
+    "repository": "humanaios-ui/operations",
+    "payload": {
+      "id": 36811708465,
+      "html_url": "https://github.com/humanaios-ui/operations/actions/runs/36811708465",
+      "name": "agent-principle-compliance-check",
+      "head_sha": "8efd40edb60fca10636778cc82a95cb96bdca875",
+      "conclusion": "failure",
+      "actor": {"login": "github-actions[bot]"},
+      "updated_at": "2026-10-01T03:42:11Z"
+    },
+    "decision_custodian": "principle-compliance workflow policy",
+    "information_custodians": ["PR #593 changed-file set"],
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "P-COMMIT-DISCIPLINE blocking gate",
+      "evidence_refs": ["run:36811708465"]
+    },
+    "authority_evidence": {"state": "NONE", "scope": null, "refs": []},
+    "evidence_refs": ["run:36811708465"]
+  },
+  {
+    "event_id": "CPC-001-006",
+    "source_type": "commit",
+    "repository": "humanaios-ui/operations",
+    "payload": {
+      "sha": "8e4b340e91598ebf009f242ee658846a305f76ce",
+      "html_url": "https://github.com/humanaios-ui/operations/commit/8e4b340e91598ebf009f242ee658846a305f76ce",
+      "message": "fix(tool-manifest): sync graph diagnostic count",
+      "sender": {"login": "humanaios-ui"},
+      "committed_at": "2026-10-01T03:44:59Z"
+    },
+    "decision_custodian": "UNKNOWN",
+    "information_custodians": ["Tool Manifest CI evidence"],
+    "boundary": {
+      "state": "PROCEDURAL",
+      "mechanism": "corrective commit after CI evidence",
+      "evidence_refs": ["run:36811708349"]
+    },
+    "authority_evidence": {"state": "NONE", "scope": null, "refs": []},
+    "evidence_refs": ["commit:8e4b340e91598ebf009f242ee658846a305f76ce"]
+  },
+  {
+    "event_id": "CPC-001-007",
+    "source_type": "pr_comment",
+    "repository": "humanaios-ui/operations",
+    "payload": {
+      "id": 5924302923,
+      "html_url": "https://github.com/humanaios-ui/operations/pull/593#issuecomment-5924302923",
+      "body": "<!-- ci-predict:pin --> duplicate unchanged P1",
+      "user": {"login": "github-actions[bot]"},
+      "created_at": "2026-10-01T03:45:19Z",
+      "head_sha": "8e4b340e91598ebf009f242ee658846a305f76ce"
+    },
+    "decision_custodian": "ci-predict-pin workflow policy",
+    "information_custodians": ["unchanged P1 declaration", "GitHub PR state"],
+    "boundary": {
+      "state": "ABSENT",
+      "mechanism": "no one-shot prediction identity check",
+      "evidence_refs": ["issue:619", "comment:5924302923"]
+    },
+    "authority_evidence": {"state": "NONE", "scope": null, "refs": []},
+    "evidence_refs": ["comment:5924302923", "issue:619"]
+  }
+]

@@ -206,6 +206,24 @@
 *.md                                       @humanaios-ui/doc-control
 ```
 
+### **Commit Discipline (P19 Principles)**
+
+**Scope:** Authored commits only. Merge commits (git merge) exempt.
+
+**Authored Commit Cap:** K ≤ 13 files per authored commit
+- Rationale: Reviewability. Small, focused changes.
+- Exception: Constants/schema/manifest bulk updates (ratified via molt) may exceed K with Z2 signature. Otherwise no override.
+
+**Merge Commits (git merge, rebase-merge, squash-merge):** Exempt
+- Rationale: Merge commits are structural; not authored work.
+- No file count cap applies.
+- Advisory flag on P19 is informational only (✓ pass, no merge block).
+
+**Enforcement:**
+- Workflow identifies merge vs. authored via git-log ancestry
+- Reports both types; marks merged exempt; flags authored overage
+- Breaches flagged in CI (advisory only; does not block merge)
+
 ---
 
 ## Session Rituals (§A / §B)
@@ -283,20 +301,39 @@ When these occur, emit callout immediately:
 
 **Authorization & Evidence (Layer 4):** See [`AUTHORIZATION_EVIDENCE_MAPPING.md`](./AUTHORIZATION_EVIDENCE_MAPPING.md) for the final layer of the concept-to-code stack: a set of authorization-and-evidence assurance questions (is the system authorized to operate; does this actor have sufficient evidence and authority for this action now; is it inside a safe envelope; is it sufficiently assured; can it detect unauthorized paths, skipped approvals, and protocol divergence; does it render ACT/ABSTAIN/ESCALATE/ACQUIRE-EVIDENCE/REDUCE-SCOPE/MAKE-REVERSIBLE/SANDBOX/ROLL-BACK) mapped one-for-one onto existing gates, ledgers, and findings (F-62, F-63, F-64, `H-CAND-GOVERNANCE-CAPTURE-SURFACE-01`), with the one genuine gap — the eight-way decision taxonomy — closed by `authorization_evidence.py`. Read after FIVE_RINGS_MAPPING.md (Layer 3); `python3 authorization_evidence.py --smoke-test` is the standing check.
 
+**Programs (Layer 5):** See [`PROGRAM_GRAPH_MAPPING.md`](./PROGRAM_GRAPH_MAPPING.md) for the layer connecting `INTENT_GRAPH.yaml`'s Objective nodes to in-flight, cross-repo work and its resource cost: a proposed `type: program` node (Objective → realized-by-Program → constituent issues/PRs, each Program tagged with a `RESOURCE_UNITS.yaml`-vector cost rollup, never collapsed across units per the ratified `P-NON-COMMENSURABLE` principle) that composes with the Attention Router (issue #640) as a third routing axis and with `PRIORITY_QUEUE.md`'s existing `density = benefit / cost` formula, applied one level up from individual work orders to whole initiatives. Read after AUTHORIZATION_EVIDENCE_MAPPING.md (Layer 4); `python3 program_graph.py --smoke-test` is the standing check.
+
+**Core Concept conformance model (Layer 0):** See [`CORE_CONCEPT_MAPPING.md`](./CORE_CONCEPT_MAPPING.md) for a non-authoritative runnable model of the doctrine shape shared by Layers 1–5. `humanaios_core.py` models Z1 proposal, claimed Z2 ratification values, Z3 transition records, anti-cascade rules, callout routes, §A/§B rituals, and claim-vs-tree reconciliation. Its ratification hash is unkeyed and does not authenticate the caller; its execute operation writes a synthetic ledger row and performs no external action. `AUTHORITY_EFFECT` is `NONE`. The HCM bytecode in PR #812 is the machine-encoding layer (ratified 2026-10-12 as Q-HCM-CORE-MACHINE-01; see `docs/design/HUMANAIOS_CORE_MACHINE_V0_1.md` and `tools/humanaios_core_machine_v0_1.py` once #812 lands), and `HCM_TRANSLATION_FIXTURE` maps this model onto its instruction phases without substituting for HCM's externally authenticated exact-head authority evidence. `python3 humanaios_core.py --smoke-test` is the standing check and `test_humanaios_core_tier1.py` is protected baseline coverage. Ratified by Z2 on 2026-10-12 (Q-CORE-CONCEPT-MAPPING-01, ACCEPT; hash in REGISTERED.md).
+
 ---
 
 ## Appended Events
 
 ```
+2026-10-12 — Q-HCM-CORE-MACHINE-01 re-pinned to PR #812 head c49eabe1 (merge of main carrying Layer 0, plus two protected tests binding HCM_TRANSLATION_FIXTURE to HCM's exact non-halting opcode path and asserting the non-authority boundary on both surfaces; no implementation, schema or receipt-contract file changed) | New RATIFY event, original record untouched | Re-pin Hash c0b9cc3566c61d8b54721474c8621302bb4d386f563dd9793a351be99603c77c (record in REGISTERED.md) | Same authentication condition as the original record
+2026-10-12 — Z2 (Night) ratified Q-HCM-CORE-MACHINE-01 | HumanAIOS Core Machine v0.1 (issue #810, PR #812: deterministic bytecode compiler, integrity-checking decoder, pure replay VM, schema, design spec, verified-receipt consumption contract; HAIOS-TOOL-223) accepted as the machine-encoding layer of the Operations contract, with the preserved authority boundary (authority_effect NONE, can_authorize/can_execute/merge_authority/authenticated false, trust anchors external to the VM) as a ratified invariant | Ratified at PR #812 head 7fc8211 (published exact head caca0eac + merge of main) | Ratification Hash cb622b71c8a4b8e9b06d97b0b9e6bc1a588a423fe016349277192dbaabc6bd7f (full record in REGISTERED.md) | Authenticated APPROVED review on the exact head, admission record and merge of #812 remain separate Z2 acts | Record filed by Z1 on direct Z2 instruction, this session; the hash pins content, not identity — the record is bound by Z2's merge of PR #815 under a Z2 identity (governance convention and precedent, not a mechanical control: z2_ratification_gate's commit-author check is advisory and the active CODEOWNERS assigns every path to the authoring account) or superseded by a controlled-path ruling if Z2 runs .z1-control/ratify.py, which the validator does enforce
+2026-10-12 — Z2 (Night) ratified Q-CORE-CONCEPT-MAPPING-01 | CORE_CONCEPT_MAPPING.md + humanaios_core.py + test_humanaios_core_tier1.py accepted as Layer 0 of the concept-to-code stack, non-authoritative (AUTHORITY_EFFECT NONE; HCM in PR #812 stays the machine-encoding candidate and is not ratified by this decision) | Ratified at PR #811 head cab7712c | Ratification Hash 424abe058f7708cdd5764345fe3adce8bc55525b927da9fca4c74d7df16d78b2 (full record in REGISTERED.md) | Direct Z2 instruction, this session
+2026-10-11 — Q-CORE-CONCEPT-MAPPING-01 revised as a non-authoritative Layer 0 conformance fixture: authority effect NONE; unkeyed claimed-identity hash distinguished from authentication; modeled execution distinguished from external action; protected baseline coverage added; explicit translation to proposed HCM v0.1 phases; remains Z1-proposed and unratified
+2026-10-02 — Z1 proposed Q-PROGRAM-GRAPH-MAPPING-01 (PROGRAM_GRAPH_MAPPING.md + program_graph.py: Programs as the graph layer connecting INTENT_GRAPH.yaml Objectives to cross-repo work and RESOURCE_UNITS.yaml cost, Layer 5 of the concept-to-code stack); awaiting Z2 RATIFY signature
+2026-10-02 — Z2 (Night) finalized all four specifications with real digests | All status fields made consistent | Layer 1–4 concept-to-code stack complete | Ratification manifest updated | See digest records below | Governance integrity verified
+
+**Specification Digest Record (Ratified):**
+- Q-HCM-CORE-MACHINE-01: docs/design/HUMANAIOS_CORE_MACHINE_V0_1.md | sha256: 32f98d9d380a0c9bfb7f0f364080e94197c2e447b00baab4f186186a1a7b0ccb | Machine-encoding layer: HumanAIOS Core Machine v0.1 bytecode, decoder and replay VM (tools/humanaios_core_machine_v0_1.py sha256 ee537d72e98b2e78e6c95a30947695db2df04821eb36fbc88b08152f3c5b31cd; schemas/humanaios_core_machine_v0_1.schema.json sha256 d0976b10bf9477c06697a83ec08ccc1f2db8573fc0a53f119f5310e79b4b6e13; ratified at PR #812 head 7fc8211, re-pinned to head c49eabe1 where the design doc is sha256 1f92be767c95fc347ec4466b1237fd2d6cfe830ec7bb8aa0a92592f74761275c and the implementation and schema digests are unchanged) | Ratified 2026-10-12
+- Q-CORE-CONCEPT-MAPPING-01: CORE_CONCEPT_MAPPING.md | sha256: f82f9e36ff9ddfa7de02d9df06245b71e6f21f48e29a716557c0b42995e51e91 | Layer 0: Non-authoritative governance conformance model → HCM translation (humanaios_core.py sha256 bac1615c64a78a2515caaf67b12201ce760cd3007ccbe6b5bf6456c7903a7fd7 at ratified head cab7712c; later Z2-instructed follow-ups on that file are post-ratification) | Ratified 2026-10-12
+- Q-FRAMEWORK-MAPPING-01: FRAMEWORK_MAPPING.md | sha256: 3102473cbca79ae108d86fb296f6d73d4c6740b768bb3ecb088d90f0cec099fa | Layer 1: Unified mental model (Graph, Loop, Context, Harness, Prompt) → Z-roles | Ratified 2026-10-02
+- Q-BOOT-PROCESS-MAP-01: BOOT_PROCESS_MAP.md | sha256: 0aa8b59d21956a7d9388e3924ac8468a8b06fff7a1b9e844de63e39bfaabb5c0 | Layer 2: Session boot chain → standard computer boot stages | Ratified 2026-10-02
+- Q-FIVE-RINGS-MAPPING-01: FIVE_RINGS_MAPPING.md | sha256: de285b6de56f4ea817554df2647c3f3f0666d370ec64d39e630f9d36eb4ab396 | Layer 3: Book of Five Rings → executable operations | Ratified 2026-10-02
+- Q-AUTHORIZATION-EVIDENCE-MAPPING-01: AUTHORIZATION_EVIDENCE_MAPPING.md | sha256: f84359917edfde483c3b49e59b7f9bd1047b69e9ce9dd35a205eda59559456ae | Layer 4: Authorization & evidence assurance → decision taxonomy | Ratified 2026-10-02
+
 2026-09-28 — Z2 (Night) ratified Q-AUTHORIZATION-EVIDENCE-MAPPING-01 | AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py accepted | Layer 4 of the concept-to-code stack | Ratification Hash d44b986feb44aab056480650886575f98f011db35689a10b8be86f1f7e0fa23a (full record in REGISTERED.md) | Direct Z2 instruction, this session
 2026-09-27 — Z1 proposed Q-AUTHORIZATION-EVIDENCE-MAPPING-01 (AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py: authorization & evidence assurance questions → executable checks, Layer 4 of the concept-to-code stack); ratified 2026-09-28 (see line above)
-2026-09-25 — Z1 proposed Q-FIVE-RINGS-MAPPING-01 (FIVE_RINGS_MAPPING.md + five_rings.py: Book of Five Rings → executable machine operations, Layer 3 of the concept-to-code stack); awaiting Z2 RATIFY signature
+2026-09-25 — Z1 proposed Q-FIVE-RINGS-MAPPING-01 (FIVE_RINGS_MAPPING.md + five_rings.py: Book of Five Rings → executable machine operations, Layer 3 of the concept-to-code stack); ratified 2026-10-02
 2026-09-19 19:00 UTC — Z2 (Night) ratified Q-INTENT-OS-WITNESS-LEDGER-01 | Witness ledger architecture approved | Human-machine decision attribution ledger | Phase 1–3 roadmap ratified | Enables scalable Z3 executor onboarding
 2026-09-19 18:55 UTC — Z2 (Night) ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | Dual-authority Z2 model formalized | Both carly.r.anderson@gmail.com & aioshuman@gmail.com authorized | Machine authority via INTENT-OS capability | Stop hook to query INTENT-OS (Phase 1)
-2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); awaiting Z2 RATIFY signature
+2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); ratified 2026-10-02
 2026-09-14 — Z1 implemented Option B (separate PLANNED_REPOS.md for roadmap repos, updated ZONE_REGISTRY.md & CLAUDE.md)
 2026-09-10 22:13 UTC — Z1 proposed Q-FRAMEWORK-MAPPING-01 (FRAMEWORK_MAPPING.md: 5 AI engineering concepts → Z-roles)
-2026-09-10 22:17 UTC — PR #264 merged (FRAMEWORK_MAPPING.md content); awaiting Z2 RATIFY signature for Q-FRAMEWORK-MAPPING-01
+2026-09-10 22:17 UTC — PR #264 merged (FRAMEWORK_MAPPING.md content); ratified 2026-10-02
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | ZONE_REGISTRY.md & CLAUDE.md ratified | Phase 0 READY
 2026-09-09 — Z1 created ZONE_REGISTRY.md & CLAUDE.md from blueprint authority map spec
 ```
@@ -315,7 +352,7 @@ When these occur, emit callout immediately:
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
-See **Framework Reference** section above for foundational material on FRAMEWORK_MAPPING.md, BOOT_PROCESS_MAP.md, FIVE_RINGS_MAPPING.md, and AUTHORIZATION_EVIDENCE_MAPPING.md — the concept-to-code stack, Layers 1–4.
+See **Framework Reference** section above for foundational material on CORE_CONCEPT_MAPPING.md, FRAMEWORK_MAPPING.md, BOOT_PROCESS_MAP.md, FIVE_RINGS_MAPPING.md, AUTHORIZATION_EVIDENCE_MAPPING.md, and PROGRAM_GRAPH_MAPPING.md — the concept-to-code stack, Layer 0 (the kernel) and Layers 1–5.
 
 **PR Workflow & Quality Gates:** See [`.claude/PR_WORKFLOW_GUIDE.md`](./.claude/PR_WORKFLOW_GUIDE.md) for Z1's (Claude's) PR handling process. Covers task tracking, upfront scope documentation, local CI validation, and formal handoff to Z2. Uses automated verification script (`scripts/verify_pr_readiness.sh`) for manifest, document, and code quality checks before push. Essential reference for PRs with multiple findings or review feedback.
 

@@ -1,0 +1,47 @@
+schema_version: "0.1"
+oracle_id: ORACLE-DOMAIN-REPOSITORY
+oracle_class: DOMAIN_ORACLE
+domain: repository
+tracking_issue: 735
+state: LAID
+
+authority:
+  advisory_only: true
+  can_authorize: false
+  authority_effect: NONE
+  can_ratify: false
+  can_merge: false
+
+purpose: Maintain an evidence-bound projection of repository reality: issues, PRs, commits, branches, CI, governed files, and observed outcomes.
+
+source_oracles:
+  - ORACLE-SOURCE-GITHUB
+
+entity_focus:
+  - REPOSITORY
+  - ISSUE
+  - PULL_REQUEST
+  - COMMIT
+  - CI_CHECK
+  - SOURCE_OBJECT
+  - INCIDENT
+  - DECISION
+
+may:
+  - observe_repository_state
+  - bind_exact_commit_refs
+  - detect_ci_or_review_state
+  - detect_repository_drift
+  - relate_issue_pr_commit_lineage
+  - emit_graph_delta
+
+may_not:
+  - equate_ci_pass_with_authorization
+  - equate_mergeability_with_ratification
+  - commit
+  - merge
+  - ratify
+
+outputs:
+  graph_projection: REPOSITORY_ADVISORY_GRAPH
+  authority_effect: NONE
