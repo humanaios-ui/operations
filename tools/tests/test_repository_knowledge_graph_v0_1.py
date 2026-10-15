@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import os
 import pytest
@@ -871,3 +872,30 @@ def test_tracked_regular_file_via_symlinked_parent_rejected(tmp_path):
     _symlink_or_skip(str(outside), child)
     with pytest.raises(SpecLoadFailed, match="outside repository"):
         GraphBuilder(repo).build()
+
+
+def test_real_method_receipt_pins_compiler_and_private_bridge(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    bridge = _chat_bridge_fixture(tmp_path)
+    destination = tmp_path / "method-with-bridge"
+    script = TOOLS / "repository_knowledge_graph_v0_1.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "method", "--repo", str(repo),
+         "--output", str(destination), "--chat-local-bridge", str(bridge)],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    receipt = json.loads((destination / "method-receipt.json").read_text())
+    assert receipt["status"] == "PASS"
+    assert receipt["compiler_tool_version"] == "0.2.0"
+    assert receipt["compiler_sha256"] == hashlib.sha256(script.read_bytes()).hexdigest()
+    assert receipt["determinism"]["canonical_graph_match"] is True
+    graph = json.loads((destination / "graph.json").read_text())
+    assert graph["validation"]["valid"] is True
+    assert any(n["id"] == "external:chatgpt-local-private" for n in graph["nodes"])
+    assert str(bridge) not in json.dumps(graph)
+    assert "events.jsonl" not in json.dumps(graph)
+    assert receipt["authority_effect"] == "NONE"
