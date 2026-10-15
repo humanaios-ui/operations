@@ -573,8 +573,8 @@ jobs:
           {
             echo "## Repository Coordinator state mutation"
             echo
-            echo "- Decision: `$DECISION`"
-            echo "- Subject: `$SUBJECT_KIND#$SUBJECT_NUMBER`"
+            echo "- Decision: \`$DECISION\`"
+            echo "- Subject: \`$SUBJECT_KIND#$SUBJECT_NUMBER\`"
             echo "- State commit: `$(git rev-parse HEAD)`"
             echo
             echo "Admission routing only; this event does not authorize merge."
