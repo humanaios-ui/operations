@@ -606,7 +606,7 @@ def test_strict_ci_api_rejects_failed_and_malformed_responses(monkeypatch):
 
 
 def test_partial_success_then_ci_api_failure_never_publishes(monkeypatch, tmp_path):
-    """The second source fails after the first was usable; never append."""
+    """The second source fails after the first was usable; leave ledger unchanged."""
     first_sha, second_sha = "a" * 40, "b" * 40
     pins = {
         first_sha: bound_pin(pr="123", sha=first_sha),
@@ -616,7 +616,7 @@ def test_partial_success_then_ci_api_failure_never_publishes(monkeypatch, tmp_pa
                         lambda comments, expected_pr: pins)
 
     def fetch(path, key=None, strict=False):
-        assert strict, "consolidation must always use fail-closed API mode"
+        assert strict, "expected fail-closed API mode for the collector"
         if "/issues/" in path:
             return [{"body": "trusted source fixture"}]
         if first_sha in path:
