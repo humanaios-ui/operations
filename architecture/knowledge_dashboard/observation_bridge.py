@@ -43,8 +43,17 @@ def project(rkg: dict, atlas: dict, timeline: dict) -> dict:
             or atlas.get("repository") != REPO
             or not _SHA.fullmatch(str(a_head))):
         raise ValueError("Atlas source violates repository or authority boundary")
-    if not isinstance(timeline.get("nodes"), list) or not isinstance(timeline.get("edges"), list):
-        raise ValueError("timeline schema invalid")
+    t_head = timeline.get("source_head_sha")
+    if (not _SHA.fullmatch(str(t_head))
+            or not isinstance(timeline.get("nodes"), list)
+            or not isinstance(timeline.get("edges"), list)):
+        raise ValueError("timeline missing full exact-head provenance or invalid schema")
+    if r_head != a_head or r_head != t_head:
+        raise ValueError("source heads differ; no same-head convergence")
+    if src.get("worktree_state") != "CLEAN":
+        raise ValueError("RKG source was built from a dirty worktree")
+    if atlas.get("worktree_clean") is not True or atlas.get("snapshot") != "HEAD_WORKTREE":
+        raise ValueError("Atlas worktree or snapshot is not clean HEAD")
     nodes, edges, ids, path_nodes = [], [], set(), {}
     def node(id_, kind, name, provenance):
         if id_ in ids:
@@ -104,26 +113,28 @@ def project(rkg: dict, atlas: dict, timeline: dict) -> dict:
               "can_execute": False, "merge_authority": False,
               "sources": {"rkg": {"head": r_head, "status": "VALIDATED_READ_MODEL"},
                           "atlas": {"head": a_head,
-                                    "status": "EXACT_HEAD" if r_head == a_head
-                                    else "DIFFERENT_HEAD_NO_CONVERGENCE_CLAIM"},
+                                    "status": "SAME_EXACT_HEAD_VERIFIED"},
                           "timeline": {"head_abbrev": timeline.get("head"),
-                                       "status": "HISTORICAL_DRAFT_NOT_AUTHORITY"}},
+                                       "source_head_sha": t_head,
+                                       "status": "SAME_HEAD_HISTORY_NOT_AUTHORITY"}},
               "nodes": nodes, "edges": edges}
     return result
 
 def smoke_test() -> None:
     sha = "a" * 40
     rkg = {"authority_effect": "NONE", "graph_kind": "DERIVED_READ_MODEL",
-           "source": {"repository": REPO, "head_commit": sha},
+           "source": {"repository": REPO, "head_commit": sha,
+                      "worktree_state": "CLEAN"},
            "validation": {"valid": True},
            "nodes": [{"id": "artifact:test.py", "type": "artifact", "label": "test.py"}],
            "edges": []}
     atlas = {"authority_effect": "NONE", "merge_authority": False,
              "repository": REPO, "head_sha": sha,
+             "worktree_clean": True, "snapshot": "HEAD_WORKTREE",
              "nodes": [{"id": "a", "label": "A"}, {"id": "b", "label": "B"}],
              "edges": [{"source": "a", "target": "b", "kind": "python_import",
                         "evidence": [{"source": "test.py", "target": "test.py", "line": 1}]}]}
-    timeline = {"head": sha[:8], "nodes": [{"id": "T", "name": "T",
+    timeline = {"head": sha[:8], "source_head_sha": sha, "nodes": [{"id": "T", "name": "T",
                  "first_seen": "2026-09-01", "files": ["test.py"],
                  "date_source": "fallback"}], "edges": []}
     out = project(rkg, atlas, timeline)
