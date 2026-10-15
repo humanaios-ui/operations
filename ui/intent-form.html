@@ -32,6 +32,7 @@ textarea{min-height:76px;resize:vertical}
 input:focus,textarea:focus{outline:1px solid var(--steel);border-color:var(--steel)}
 .req::after{content:" *";color:var(--waiting)}
 .err{color:var(--waiting);font-size:12px;margin-top:3px;min-height:0}
+input[aria-invalid=true],textarea[aria-invalid=true]{border-color:var(--waiting)}
 .checks label{color:var(--ink);font-size:14px;display:flex;gap:8px;align-items:flex-start;margin:6px 0}
 .checks input{margin-top:4px}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
@@ -59,10 +60,10 @@ pre{background:var(--panel);border:1px solid var(--line);border-radius:6px;paddi
         <legend>Identity</legend>
         <label class="req" for="name">Name</label>
         <input type="text" id="name" maxlength="120" placeholder="short name for this intent"/>
-        <div class="err" id="err-name"></div>
+        <div class="err" aria-live="polite" id="err-name"></div>
         <label class="req" for="author">Author</label>
         <input type="text" id="author" maxlength="120" placeholder="your name or did:key"/>
-        <div class="err" id="err-author"></div>
+        <div class="err" aria-live="polite" id="err-author"></div>
       </fieldset>
 
       <fieldset>
@@ -70,11 +71,11 @@ pre{background:var(--panel);border:1px solid var(--line);border-radius:6px;paddi
         <label class="req" for="problem">Problem</label>
         <textarea id="problem" placeholder="What can't be done today, and who is affected."></textarea>
         <div class="hint">State it as a symptom, not a solution.</div>
-        <div class="err" id="err-problem"></div>
+        <div class="err" aria-live="polite" id="err-problem"></div>
 
         <label class="req" for="outcome">Proposed Outcome</label>
         <textarea id="outcome" placeholder="What 'better' looks like when this ships."></textarea>
-        <div class="err" id="err-outcome"></div>
+        <div class="err" aria-live="polite" id="err-outcome"></div>
 
         <label for="affected">Affected Users and Systems</label>
         <textarea id="affected" placeholder="Who interacts with it, what it touches."></textarea>
@@ -92,12 +93,12 @@ pre{background:var(--panel);border:1px solid var(--line);border-radius:6px;paddi
         <legend>Test</legend>
         <label class="req" for="falsifier">Falsifier</label>
         <textarea id="falsifier" placeholder="A specific, observable condition that would prove this wrong. e.g. 'If API p95 stays above 4s after this ships, this failed.'"></textarea>
-        <div class="err" id="err-falsifier"></div>
+        <div class="err" aria-live="polite" id="err-falsifier"></div>
 
         <label class="req" for="smag">Success probability (smag_p, 0 to 1)</label>
         <input type="number" id="smag" min="0" max="1" step="0.01" placeholder="e.g. 0.72"/>
         <div class="hint">Your forecast that this reaches the outcome as stated.</div>
-        <div class="err" id="err-smag"></div>
+        <div class="err" aria-live="polite" id="err-smag"></div>
       </fieldset>
 
       <fieldset class="checks">
@@ -182,7 +183,7 @@ pre{background:var(--panel);border:1px solid var(--line);border-radius:6px;paddi
       "## Success Probability",
       "`smag_p: " + (errors.smag ? "[0..1]" : smag) + "`", "",
       "## Calibration Check",
-      box("endorse", "Re-read and endorse (signature updated)"),
+      box("endorse", "Re-read and endorse (not signed here)"),
       box("revise", "Re-read and revise (submit revised version, not a flag)"),
       box("skipped", "Skipped (mark as AMBIGUITY callout)"),
       ""
@@ -196,7 +197,12 @@ pre{background:var(--panel);border:1px solid var(--line);border-radius:6px;paddi
     var r = build(d);
     $("out").textContent = r.md;
     ["name", "author", "problem", "outcome", "falsifier", "smag"].forEach(function (f) {
-      $("err-" + f).textContent = r.errors[f] || "";
+      var msg = $("err-" + f);
+      var el = $(f);
+      msg.textContent = r.errors[f] || "";
+      el.setAttribute("aria-required", "true");
+      el.setAttribute("aria-invalid", r.errors[f] ? "true" : "false");
+      el.setAttribute("aria-describedby", msg.id);
     });
     $("copy").disabled = !r.ok;
     $("download").disabled = !r.ok;
