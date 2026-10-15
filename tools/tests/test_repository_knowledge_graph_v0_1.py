@@ -899,3 +899,21 @@ def test_real_method_receipt_pins_compiler_and_private_bridge(tmp_path):
     assert str(bridge) not in json.dumps(graph)
     assert "events.jsonl" not in json.dumps(graph)
     assert receipt["authority_effect"] == "NONE"
+
+
+@pytest.mark.parametrize("mutation", ["bad-rule-count", "bad-premises", "bad-conclusion", "bad-view-members"])
+def test_schema_invalid_nested_records_never_crash(tmp_path, mutation):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    if mutation == "bad-rule-count":
+        graph["inference"]["rules"][0]["assertion_count"] = []
+    elif mutation == "bad-premises":
+        assertion = next(n for n in graph["nodes"] if n["type"] == "inference_assertion")
+        assertion["properties"]["premise_edge_ids"] = [{"unhashable": True}]
+    elif mutation == "bad-conclusion":
+        assertion = next(n for n in graph["nodes"] if n["type"] == "inference_assertion")
+        assertion["properties"]["conclusion"] = ["invalid"]
+    elif mutation == "bad-view-members":
+        graph["views"][0]["node_ids"] = [{"unhashable": True}]
+    verdict = validate_graph(graph)
+    assert verdict["valid"] is False
+    assert verdict["errors"]
