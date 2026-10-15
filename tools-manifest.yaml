@@ -33,7 +33,7 @@ counts:
   tools: 210
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 161
+  builder_markers_present: 162
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2667,8 +2667,8 @@ tools:
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
   session: Q-REPO-GRAPH-LOOKUP-01
 mcp_servers:

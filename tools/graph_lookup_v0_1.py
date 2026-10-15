@@ -20,6 +20,7 @@ Guarantees:
   - authority_effect is NONE: an answer is a lookup, never a decision
 
 Usage:
+  python3 tools/graph_lookup_v0_1.py --smoke-test
   python3 tools/graph_lookup_v0_1.py --graph PATH --search TEXT [--repo PATH]
   python3 tools/graph_lookup_v0_1.py --graph PATH --node NODE_ID [--repo PATH]
   python3 tools/graph_lookup_v0_1.py --graph PATH --search TEXT --require-fresh
@@ -209,11 +210,44 @@ def build_report(graph_path: Path, repo: Path, graph: dict[str, Any], fresh: dic
     }
 
 
+def run_smoke_test() -> int:
+    """In-memory check: digest verifies, tampering is refused, answers carry citations."""
+    graph = {
+        "graph_id": "smoke",
+        "graph_kind": "DERIVED_READ_MODEL",
+        "authority_effect": "NONE",
+        "source": {"repository": "smoke", "head_commit": "0" * 40, "worktree_state": "CLEAN"},
+        "nodes": [{"id": "n:a", "type": "artifact", "label": "alpha", "provenance": []}],
+        "edges": [{"id": "e:1", "from": "n:a", "to": "n:b", "relation": "REFERENCES",
+                   "evidence_state": "OBSERVED", "provenance": [
+                       {"source_ref": "a.md", "locator": "line:1", "source_hash": "c" * 64,
+                        "method": "smoke", "confidence": 1.0}]}],
+        "integrity": {"algorithm": "sha256", "canonicalization": "json-sort-keys-utf8", "sha256": None},
+    }
+    graph["integrity"]["sha256"] = hashlib.sha256(
+        _canonical_bytes({**graph, "integrity": {**graph["integrity"], "sha256": None}})).hexdigest()
+    checks = {}
+    checks["digest_verifies"] = verify_integrity(graph) == graph["integrity"]["sha256"]
+    tampered = copy.deepcopy(graph)
+    tampered["nodes"][0]["label"] = "beta"
+    try:
+        verify_integrity(tampered)
+        checks["tamper_refused"] = False
+    except LookupRefused:
+        checks["tamper_refused"] = True
+    answer = lookup(graph, search="alpha", node_id=None, limit=5)
+    checks["answer_cites_edge"] = bool(answer) and answer[0]["incident_edges"][0]["citations"][0]["locator"] == "line:1"
+    ok = all(checks.values())
+    print(json.dumps({"smoke_test": "PASS" if ok else "FAIL", "checks": checks}, sort_keys=True))
+    return EXIT_OK if ok else EXIT_REFUSED
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read-only, citation-bearing graph lookup (§A).")
-    parser.add_argument("--graph", required=True, help="graph.json from the repository graph compiler")
+    parser.add_argument("--smoke-test", action="store_true", help="run the in-memory self-check and exit")
+    parser.add_argument("--graph", help="graph.json from the repository graph compiler")
     parser.add_argument("--repo", default=".", help="repository the graph describes (default: cwd)")
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group()
     group.add_argument("--search", help="case-insensitive substring over node id and label")
     group.add_argument("--node", help="exact node id")
     parser.add_argument("--limit", type=int, default=10)
@@ -221,6 +255,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="print no answers unless the graph is FRESH")
     args = parser.parse_args(argv)
 
+    if args.smoke_test:
+        return run_smoke_test()
+    if not args.graph or not (args.search or args.node):
+        parser.error("--graph and one of --search / --node are required")
     if args.limit < 1:
         print(json.dumps({"error": "limit must be at least 1"}), file=sys.stderr)
         return EXIT_BAD_ARGS
