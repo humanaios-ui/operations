@@ -22,7 +22,7 @@
     "DECISION_ARTIFACT_RETENTION_IS_NOT_DURABLE_PROVENANCE"
   ],
   "capacity": {
-    "active_operator_queue": 4
+    "active_operator_queue": 9
   },
   "maintenance": {
     "authors": [

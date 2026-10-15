@@ -125,7 +125,7 @@ jobs:
             }
       - name: Store read-only evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: external-contribution-witness-${{ github.run_id }}
           path: external-contribution-witness.json

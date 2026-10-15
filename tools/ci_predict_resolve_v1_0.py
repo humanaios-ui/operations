@@ -202,7 +202,11 @@ def gh_json(path: str):
         return None
 
 
-def gh_json_paginated(path: str, key: Optional[str] = None) -> List[dict]:
+class GitHubApiFailure(RuntimeError):
+    """A required GitHub API response was unavailable or malformed."""
+
+
+def gh_json_paginated(path: str, key: Optional[str] = None, *, strict: bool = False) -> List[dict]:
     """Fetch every page of a paginated GitHub list endpoint via gh.
 
     `--slurp` makes gh emit one JSON array of pages instead of one bare object
@@ -217,17 +221,32 @@ def gh_json_paginated(path: str, key: Optional[str] = None) -> List[dict]:
     proc = subprocess.run(["gh", "api", "--paginate", "--slurp", path],
                           capture_output=True, text=True, timeout=60)
     if proc.returncode != 0:
+        if strict:
+            raise GitHubApiFailure(f"GitHub API request failed for {path}: exit {proc.returncode}")
         return []
     try:
-        pages = json.loads(proc.stdout) or []
-    except json.JSONDecodeError:
+        pages = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        if strict:
+            raise GitHubApiFailure(f"malformed GitHub API JSON for {path}") from exc
         return []
+    if strict and not isinstance(pages, list):
+        raise GitHubApiFailure(f"malformed GitHub API pages for {path}")
     items: List[dict] = []
-    for page in pages:
+    for page in pages or []:
         if key is not None and isinstance(page, dict):
-            items.extend(page.get(key, []))
-        elif isinstance(page, list):
-            items.extend(page)
+            payload = page.get(key)
+        elif isinstance(page, list) and key is None:
+            payload = page
+        else:
+            if strict:
+                raise GitHubApiFailure(f"unexpected GitHub API page shape for {path}")
+            continue
+        if not isinstance(payload, list) or (strict and any(not isinstance(x, dict) for x in payload)):
+            if strict:
+                raise GitHubApiFailure(f"invalid GitHub API item list for {path}")
+            continue
+        items.extend(payload)
     return items
 
 
