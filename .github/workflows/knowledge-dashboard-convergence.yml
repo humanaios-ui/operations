@@ -39,6 +39,33 @@ jobs:
           python3 architecture/knowledge_dashboard/observation_bridge.py --smoke-test
           python3 architecture/knowledge_dashboard/render.py --smoke-test
           python3 -m unittest discover -s architecture/knowledge_dashboard -p 'test_*.py' -v
+      - name: Verify principle compliance against current PR base (read-only)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 - <<'PY'
+          import os, subprocess, sys
+          sys.path.insert(0, 'tools/agents')
+          from principle_compliance_bot_v1 import PrincipleComplianceBot
+          base = os.environ['BASE_SHA']
+          diff = subprocess.run(['git', 'diff', '--name-only', base + '...HEAD'],
+                                check=True, capture_output=True, text=True)
+          files = [item for item in diff.stdout.splitlines() if item]
+          if not files:
+              raise SystemExit('No changed files in PR: refuse an empty validation')
+          bot = PrincipleComplianceBot()
+          message = subprocess.check_output(['git', 'log', '-1', '--format=%s'],
+                                            text=True).strip()
+          bot.check_commit(message, files)
+          for item in files:
+              if item.endswith('.py'):
+                  bot.check_code_file(item, base)
+          if bot.violations_found:
+              for finding in bot.violations_found:
+                  print('::error::' + str(finding))
+              raise SystemExit(1)
+          print('Principle compliance checked', len(files), 'changed files, no findings')
+          PY
       - name: Compile Codebase Atlas at exact head
         run: |
           python3 architecture/codebase_atlas.py --repo-root . --out "$RUNNER_TEMP/atlas"
