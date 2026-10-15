@@ -1,138 +1,194 @@
-# ci-predict-consolidate — the CONSOLIDATE half of execution-grounded
-# calibration (Stage 2). Drains the pin comments this repo's recently-active
-# PRs accumulated into the durable, hash-chained ledger via
-# tools/nf_ledger_v0_1.py (unchanged), independently re-checking each
-# predicted commit's actual check-run conclusions rather than trusting any
-# resolve comment, and opens a follow-up PR with the diff — the same
-# capture-then-consolidate split already proven by
-# smag-capture.yml / smag-consolidate.yml, so a single unsynchronized writer
-# never races the ledger's hash chain.
-#
-# Fires immediately on PR close for fast feedback, and hourly to catch what
-# a one-shot close trigger misses: a check that finishes resolving only after
-# its PR is already closed (smag-consolidate.yml carries the same "capture
-# without a later consolidate pass" risk, mitigated the same way — a
-# periodic sweep, here over recently-updated PRs, re-checks every run).
-#
-# concurrency ensures overlapping runs queue instead of racing the ledger's
-# tail hash; the job itself is a single, ordered writer per invocation, and
-# combining an event trigger with a schedule is safe precisely because of
-# that serialization.
+# CI calibration: one bounded, single-writer rollup, not a PR per observation.
+# PIN and RESOLVE stay independently observed. The consolidation workflow
+# runs ONLY trusted main code, never the proposed ledger branch's code.
+# An unresolved legacy backlog or diverging hash chain BLOCKS publication.
+# This is data review only: no admission, approval, or merge is granted.
 name: ci-predict-consolidate
+
+on:
+  schedule:
+    - cron: "37 4 * * *"
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "Optional single source PR; otherwise sweep latest 50"
+        required: false
 
 concurrency:
   group: ci-predict-consolidate
   cancel-in-progress: false
 
-on:
-  pull_request:
-    types: [closed]
-  schedule:
-    - cron: "0 * * * *"
-  workflow_dispatch:
-    inputs:
-      pr:
-        description: "Single PR number to consolidate (optional; default sweeps recent PRs)"
-        required: false
-
 permissions:
-  contents: write
-  checks: read
-  pull-requests: write
+  contents: read
 
 jobs:
   consolidate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: read
+      pull-requests: write
     steps:
-      # Trusted script only, from main — this job holds contents: write and
-      # pull-requests: write. See ci_predict_consolidate_v1_0.py: it never
-      # trusts a resolve comment's embedded outcome either, re-deriving it
-      # from a fresh check-runs fetch, so the only PR-authored input reaching
-      # it at all is the pin's declared prediction, read via the API.
-      - uses: actions/checkout@v7
+      - name: Checkout trusted default branch
+        uses: actions/checkout@v7
         with:
           ref: main
+          persist-credentials: true
+
       - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
-      # Same bootstrap case as ci-predict-pin.yml: the PR introducing this
-      # tool fires this job on its own close event before the tool exists on
-      # main (this job never runs code from the PR branch itself). Detected
-      # cleanly here rather than surfacing as a file-not-found failure.
-      - name: Check the tool exists on this trusted ref yet
-        id: tool
+      - name: Fail closed if trusted tools are absent
         run: |
-          if [ -f tools/ci_predict_consolidate_v1_0.py ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::tools/ci_predict_consolidate_v1_0.py is not on main yet — expected for the PR introducing it. It will run for real once this one merges."
-          fi
+          set -euo pipefail
+          test -f tools/ci_predict_consolidate_v1_0.py
+          test -f tools/ci_predict_rollup_v0_1.py
+          test -f tools/nf_ledger_v0_1.py
+          test -f ledgers/CI_PREDICT_LEDGER.jsonl
 
-      - name: Consolidate pin comments into the ledger
-        if: steps.tool.outputs.present == 'true'
+      - name: Choose single writer and validate pending chain
+        id: writer
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          DISPATCH_PR: ${{ github.event.inputs.pr }}
-          CLOSED_PR: ${{ github.event.pull_request.number }}
         run: |
+          set -euo pipefail
+          LEDGER="ledgers/CI_PREDICT_LEDGER.jsonl"
+          BRANCH="ci-predict-consolidate/rolling"
+          cp "$LEDGER" /tmp/ci-predict-main-ledger.jsonl
+          python3 tools/nf_ledger_v0_1.py verify /tmp/ci-predict-main-ledger.jsonl
+          gh pr list --repo "$REPO" --state open --limit 200 \
+            --json number,title,headRefName > /tmp/ci-predict-open-prs.json
+          python3 tools/ci_predict_rollup_v0_1.py select \
+            --inventory /tmp/ci-predict-open-prs.json > /tmp/ci-predict-selection.json
+          PR_NUMBER="$(python3 -c 'import json; s=json.load(open("/tmp/ci-predict-selection.json")); print((s.get("pr") or {}).get("number") or "")')"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "pr=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          if [ -n "$PR_NUMBER" ]; then
+            git fetch --no-tags origin "$BRANCH"
+            EXPECTED_HEAD="$(git rev-parse FETCH_HEAD)"
+            echo "expected_head=$EXPECTED_HEAD" >> "$GITHUB_OUTPUT"
+            git show "FETCH_HEAD:$LEDGER" > /tmp/ci-predict-rolling-ledger.jsonl
+            python3 tools/ci_predict_rollup_v0_1.py verify-prefix \
+              --base /tmp/ci-predict-main-ledger.jsonl \
+              --candidate /tmp/ci-predict-rolling-ledger.jsonl
+            cp /tmp/ci-predict-rolling-ledger.jsonl "$LEDGER"
+          else
+            if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+              echo "::error::Orphaned rolling branch: requires review, never force-push." >&2
+              exit 1
+            fi
+          fi
+          cp "$LEDGER" /tmp/ci-predict-seed-ledger.jsonl
+
+      - name: Consolidate authenticated checks with strict failure handling
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DISPATCH_PR: ${{ inputs.pr }}
+        run: |
+          set -euo pipefail
           python3 - <<'PYEOF'
           import json
           import os
           import subprocess
+          import sys
 
           repo = os.environ["REPO"]
-          dispatch_pr = os.environ.get("DISPATCH_PR", "")
-          closed_pr = os.environ.get("CLOSED_PR", "")
+          dispatch_pr = os.environ.get("DISPATCH_PR", "").strip()
           if dispatch_pr:
+              if not dispatch_pr.isascii() or not dispatch_pr.isdecimal() or int(dispatch_pr) < 1:
+                  raise SystemExit("invalid dispatch PR number")
               pr_numbers = [dispatch_pr]
-          elif closed_pr:
-              # The PR that just closed, direct — no need to wait for it to
-              # surface in the sweep below.
-              pr_numbers = [closed_pr]
           else:
-              # Recently-updated PRs, open or closed: late resolutions on an
-              # open PR and last-chance ones on a just-closed PR both matter.
               proc = subprocess.run(
                   ["gh", "pr", "list", "--repo", repo, "--state", "all",
-                   "--limit", "50", "--json", "number",
+                   "--limit", "50", "--json", "number,title,headRefName",
                    "--search", "sort:updated-desc"],
                   capture_output=True, text=True, check=False,
               )
+              if proc.returncode:
+                  raise SystemExit("PR inventory failed: " + proc.stderr)
               try:
-                  pr_numbers = [str(p["number"]) for p in json.loads(proc.stdout or "[]")]
-              except json.JSONDecodeError:
-                  pr_numbers = []
+                  discovered = json.loads(proc.stdout)
+              except (ValueError, TypeError) as exc:
+                  raise SystemExit("malformed PR inventory") from exc
+              pr_numbers = [
+                  str(item["number"])
+                  for item in discovered
+                  if item.get("title") != "ci-predict: consolidate resolved CI predictions"
+                  and not str(item.get("headRefName") or "").startswith("ci-predict-consolidate/")
+              ]
 
+          failures = []
           for pr in pr_numbers:
-              subprocess.run(
+              result = subprocess.run(
                   ["python3", "tools/ci_predict_consolidate_v1_0.py", "consolidate",
                    "--repo", repo, "--pr", pr,
                    "--ledger", "ledgers/CI_PREDICT_LEDGER.jsonl"],
-                  check=False,
+                  text=True, capture_output=True, check=False,
               )
+              if result.stdout:
+                  print(result.stdout)
+              if result.returncode:
+                  failures.append(pr)
+                  print(result.stderr, file=sys.stderr)
+          if failures:
+              raise SystemExit("consolidation failed; refusing to publish partial ledger: "
+                               + ",".join(failures))
           PYEOF
 
-      - name: Open a PR if the ledger changed
+      - name: Verify append-only change and update exactly one review PR
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.writer.outputs.branch }}
+          ROLLING_PR: ${{ steps.writer.outputs.pr }}
+          EXPECTED_ROLLING_HEAD: ${{ steps.writer.outputs.expected_head }}
         run: |
-          # git diff --quiet would miss the ledger's very first creation: an
-          # untracked new file shows no diff until it is staged. git status
-          # --porcelain reports untracked files too.
-          if [ -z "$(git status --porcelain -- ledgers/CI_PREDICT_LEDGER.jsonl)" ]; then
-            echo "No new resolved predictions — nothing to consolidate."
+          set -euo pipefail
+          LEDGER="ledgers/CI_PREDICT_LEDGER.jsonl"
+          if cmp -s /tmp/ci-predict-seed-ledger.jsonl "$LEDGER"; then
+            echo "No newly verified outcomes — no commit and no PR."
             exit 0
           fi
-          branch="ci-predict-consolidate/$(date -u +%Y%m%d-%H%M%S)"
-          git config user.name  "ci-predict-consolidate[bot]"
+          python3 tools/nf_ledger_v0_1.py verify "$LEDGER"
+          python3 tools/ci_predict_rollup_v0_1.py verify-prefix \
+            --base /tmp/ci-predict-seed-ledger.jsonl --candidate "$LEDGER"
+          cp "$LEDGER" /tmp/ci-predict-proposed-ledger.jsonl
+          git fetch --no-tags origin main
+          git show "FETCH_HEAD:$LEDGER" > /tmp/ci-predict-live-main.jsonl
+          if ! cmp -s /tmp/ci-predict-main-ledger.jsonl /tmp/ci-predict-live-main.jsonl; then
+            echo "::error::Main ledger advanced; recompute on a fresh checkout." >&2
+            exit 1
+          fi
+
+          if [ -n "$ROLLING_PR" ]; then
+            git fetch --no-tags origin "$BRANCH"
+            if [ "$(git rev-parse FETCH_HEAD)" != "$EXPECTED_ROLLING_HEAD" ]; then
+              echo "::error::Rolling branch advanced; retry without rewriting history." >&2
+              exit 1
+            fi
+            git switch -c "$BRANCH" FETCH_HEAD
+          else
+            if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+              echo "::error::Rolling branch unexpectedly exists; refusing overwrite." >&2
+              exit 1
+            fi
+            git switch -c "$BRANCH"
+          fi
+          cp /tmp/ci-predict-proposed-ledger.jsonl "$LEDGER"
+          git config user.name "ci-predict-consolidate[bot]"
           git config user.email "ci-predict-consolidate@users.noreply.github.com"
-          git checkout -b "$branch"
-          git add ledgers/CI_PREDICT_LEDGER.jsonl
-          git commit -m "chore(ci-predict): consolidate resolved CI predictions"
-          git push origin "$branch"
-          gh pr create --base main --head "$branch" \
-            --title "ci-predict: consolidate resolved CI predictions" \
-            --body "Automated CONSOLIDATE step of the execution-grounded calibration loop (Stage 2). Appends newly-resolved PIN/RESOLVE events via tools/nf_ledger_v0_1.py's own hash-chain functions, unchanged; resolutions are independently re-derived from a fresh check-runs fetch, never taken from a comment. Verified by the same tool before this PR was opened; re-verify with \`python3 tools/nf_ledger_v0_1.py verify ledgers/CI_PREDICT_LEDGER.jsonl\` before merging."
+          git add -- "$LEDGER"
+          git diff --cached --quiet && { echo "No new branch changes"; exit 0; }
+          git commit -m "chore(ci-predict): append verified daily calibration batch"
+          git push --set-upstream origin "HEAD:refs/heads/$BRANCH"
+          if [ -z "$ROLLING_PR" ]; then
+            gh pr create --repo "$REPO" --base main --head "$BRANCH" \
+              --title "ci-predict: consolidate resolved CI predictions" \
+              --body "Bounded daily single-writer ledger rollup. Append-only chain and fresh CI outcomes verified. Data review only; no authorization or automatic merge. Verify ledger and independent review at exact head."
+          else
+            echo "Updated existing rolling PR #$ROLLING_PR (no new PR)."
+          fi
