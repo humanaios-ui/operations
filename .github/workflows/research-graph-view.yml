@@ -4,9 +4,9 @@ name: research-graph-view
 # Read-only. Runs default-branch code only, never pull_request_target, never
 # checks out PR head code. Writes research-graph/ in the runner workspace and
 # uploads it as an artifact. Commits nothing and posts nothing.
+# Manual dispatch only: a schedule would be a temporal control, which
+# temporal-dissolution-gate rejects without a policy classification.
 on:
-  schedule:
-    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions: {}
