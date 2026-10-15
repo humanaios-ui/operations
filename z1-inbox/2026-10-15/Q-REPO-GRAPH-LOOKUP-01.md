@@ -68,10 +68,11 @@ evidence:
   - "SESSION_RITUALS.md §A has no graph step (checked 2026-10-15)"
 
 z2_decision:
-  status: "awaiting_ratification"
-  ratified_at: null
-  ratification_hash: null
-  z2_notes: ""
+  status: "ratified"
+  ratified_by: "Night"
+  ratified_at: "2026-10-15"
+  ratification_hash: "d80d38e5fa2041f3c6a3e79ad7706dee3bcf6f3879987e63ee1c4b4ba832ff6c"  # sha256 of this file with this field empty
+  z2_notes: "Ratified by Z2 (Night) on direct instruction in session 2026-10-15. Ratifies the read-only tool and its candidate block. Does not ratify SESSION_RITUALS §A wiring or committing a pinned graph (both remain open decisions)."
 
 related_candidates: ["Q-GRAPH-CONVERGENCE-01", "Q-GRAPH-CAPTURE-LINT-01"]
 external_constraint: null

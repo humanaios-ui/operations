@@ -3,7 +3,7 @@ generated: '2026-10-14'
 decision_window_days: 2
 counts:
   candidates: 110
-  records: 60
+  records: 61
 ratifiers:
 - Night
 candidates:
@@ -11,9 +11,13 @@ candidates:
   title: Read-only, citation-bearing lookup over the PR 630 repository graph for the section A session-open step
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md
   submitted: '2026-10-15'
-  status: awaiting_z2
+  status: ratified
   tier: 0
-  note: 'PR #843. Adds tools/graph_lookup_v0_1.py (HAIOS-TOOL-224): stdlib, read-only, refuses graphs whose integrity digest fails, reports FRESH/STALE/DIRTY against HEAD. No change to SESSION_RITUALS.md.'
+  note: 'PR #843. Adds tools/graph_lookup_v0_1.py (HAIOS-TOOL-224): stdlib, read-only, refuses graphs whose integrity digest fails, reports FRESH/STALE/DIRTY against HEAD. Ratified by Night 2026-10-15 (tool only; §A wiring and graph commit remain open).'
+  ratified_by: Night
+  ratified_at: '2026-10-15'
+  z2_ruling: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
+  z2_hash: d80d38e5fa2041f3c6a3e79ad7706dee3bcf6f3879987e63ee1c4b4ba832ff6c
 - q_id: Q-MULTI-AGENT-QUEUE-PLAN-01
   title: Multi-agent plan to work the intentionally backed-up PR queue as a governed experiment
   path: z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md
@@ -815,6 +819,10 @@ candidates:
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
 records:
+- title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
+  path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
+  submitted: '2026-10-15'
+  note: Records the Z2 ratification of the read-only graph lookup tool. §A wiring and graph commit remain open.
 - path: z1-inbox/2026-10-14/QUEUE_MAP_2026-10-14.md
   title: QUEUE_MAP — open PRs and issues of operations, 2026-10-14
   note: Phase 0 evidence for Q-MULTI-AGENT-QUEUE-PLAN-01. Read-only GitHub API sweep of 33 PRs (CI, reviews, files) on 2026-10-12 plus a re-list on 2026-10-14 (36 open), 88 issues mapped into 16 program clusters, shared-file conflict map, sibling-repo agent surfaces. Observations only; dispositions live in the candidate.
