@@ -629,3 +629,15 @@ def test_partial_success_then_ci_api_failure_never_publishes(monkeypatch, tmp_pa
     target = tmp_path / "calibration.jsonl"
     assert consolidate_tool.run("o/r", "123", target) == 1
     assert not target.exists(), "partially verified events must not be published"
+
+
+def test_rollup_cli_exposes_documented_input_alias():
+    import subprocess
+    assert rollup_tool.TOOL_SESSION == "issue-870"
+    for command in ("select", "verify-prefix"):
+        result = subprocess.run(
+            [sys.executable, str(TOOLS_DIR / "ci_predict_rollup_v0_1.py"),
+             command, "--help"],
+            text=True, capture_output=True, check=False)
+        assert result.returncode == 0
+        assert "--input" in result.stdout
