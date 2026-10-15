@@ -85,7 +85,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-121 | smag_pr_autocapture | `tools/smag_pr_autocapture_v1_0.py` | 1.0.0 | 1 | draft | — | smag_pr_autocapture_v1_0 — auto-capture a SMAG pilot row from a merged PR |
 | HAIOS-TOOL-123 | smag_resolve | `tools/smag_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve. |
 | HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
-
 | HAIOS-TOOL-224 | ci_predict_rollup | `tools/ci_predict_rollup_v0_1.py` | 0.1.0 | 1 | draft | — | ci_predict_rollup_v0_1.py |
 
 ## Connectors — `connector_tool` (13)
