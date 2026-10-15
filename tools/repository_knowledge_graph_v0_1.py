@@ -297,6 +297,12 @@ def _load_chat_local_public_bridge(path_arg: str | Path, repo: Path) -> tuple[di
     if path.is_symlink():
         raise SpecLoadFailed("local bridge may not be a symlink")
     try:
+        path.absolute().relative_to(repo)
+    except ValueError:
+        pass
+    else:
+        raise SpecLoadFailed("local bridge argument must be outside the repository")
+    try:
         source = path.resolve(strict=True)
         source.relative_to(repo)
     except ValueError:
@@ -2685,7 +2691,7 @@ def validate_graph(
             "inference assertion_count does not match inference_assertion nodes"
         )
     reported_rules = inference.get("rules") or []
-    if not isinstance(reported_rules, list) or any(not isinstance(rule, dict) for rule in reported_rules):
+    if not isinstance(reported_rules, list) or any(not isinstance(rule, dict) or type(rule.get("assertion_count", 0)) is not int for rule in reported_rules):
         return {"valid": False, "errors": sorted(set(errors + ["invalid inference rule report shape"])), "warnings": [], "counts": {}}
     reported_rule_ids = {rule.get("id") for rule in reported_rules}
     reported_rule_by_id = {rule.get("id"): rule for rule in reported_rules}
@@ -2736,6 +2742,8 @@ def validate_graph(
         if properties.get("review_state") != "UNREVIEWED":
             errors.append(f"inference assertion review state is not UNREVIEWED: {node_id}")
         premise_ids = properties.get("premise_edge_ids") or []
+        if not isinstance(premise_ids, list) or any(not isinstance(v, str) for v in premise_ids):
+            return {"valid": False, "errors": sorted(set(errors + ["invalid inference premise types"])), "warnings": [], "counts": {}}
         if not premise_ids:
             errors.append(f"inference assertion has no premises: {node_id}")
         if properties.get("premise_sha256") != _sha256_bytes(
@@ -2751,6 +2759,8 @@ def validate_graph(
             elif premise.get("layer") == "inferred":
                 errors.append(f"inference assertion uses inferred premise {premise_id}: {node_id}")
         conclusion = properties.get("conclusion") or {}
+        if not isinstance(conclusion, dict):
+            return {"valid": False, "errors": sorted(set(errors + ["invalid inference conclusion type"])), "warnings": [], "counts": {}}
         subject = conclusion.get("subject")
         object_id = conclusion.get("object")
         predicate = conclusion.get("predicate")
@@ -2781,7 +2791,9 @@ def validate_graph(
     views = graph.get("views") or []
     if not isinstance(views, list) or any(
         not isinstance(v, dict) or not isinstance(v.get("id"), str) or
-        not isinstance(v.get("node_ids", []), list) or not isinstance(v.get("edge_ids", []), list)
+        not isinstance(v.get("node_ids", []), list) or not isinstance(v.get("edge_ids", []), list) or
+        any(not isinstance(x, str) for x in v.get("node_ids", [])) or
+        any(not isinstance(x, str) for x in v.get("edge_ids", []))
         for v in views
     ):
         return {"valid": False, "errors": sorted(set(errors + ["invalid view record shape"])), "warnings": [], "counts": {}}
