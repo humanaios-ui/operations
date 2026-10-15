@@ -2602,15 +2602,26 @@ def validate_graph(
         return {"valid": False, "errors": ["graph must be an object"], "warnings": [], "counts": {}}
     errors: list[str] = _schema_errors(graph, verify_integrity=verify_integrity)
     warnings: list[str] = []
-    # Do not dereference malformed nodes, edges or rules after schema failure.
-    if errors and verify_integrity:
-        return {"valid": False, "errors": sorted(set(errors)), "warnings": [], "counts": {}}
+    # Schema violations remain visible, but safe semantic checks still run.
+    # A schema-invalid authority edge must also produce its precise invariant error.
     nodes = graph.get("nodes") or []
     edges = graph.get("edges") or []
     if not isinstance(nodes, list) or not isinstance(edges, list) or any(
         not isinstance(item, dict) for item in nodes + edges
     ):
         return {"valid": False, "errors": sorted(set(errors + ["invalid node or edge shape"])), "warnings": [], "counts": {}}
+    if any(
+        not isinstance(node.get("id"), str) or
+        not isinstance(node.get("properties"), dict) or
+        not isinstance(node.get("provenance"), list)
+        for node in nodes
+    ) or any(
+        not all(isinstance(edge.get(key), str) for key in ("id", "from", "to", "relation", "layer")) or
+        not isinstance(edge.get("properties"), dict) or
+        not isinstance(edge.get("provenance"), list)
+        for edge in edges
+    ):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid graph record types"])), "warnings": [], "counts": {}}
     node_ids = [node.get("id") for node in nodes]
     edge_ids = [edge.get("id") for edge in edges]
     node_set = set(node_ids)
@@ -2767,8 +2778,15 @@ def validate_graph(
             errors.append(f"inferred edge source is not an assertion: {edge.get('id')}")
         if not edge.get("properties", {}).get("inference_scaffold"):
             errors.append(f"inferred edge is not marked as scaffold: {edge.get('id')}")
+    views = graph.get("views") or []
+    if not isinstance(views, list) or any(
+        not isinstance(v, dict) or not isinstance(v.get("id"), str) or
+        not isinstance(v.get("node_ids", []), list) or not isinstance(v.get("edge_ids", []), list)
+        for v in views
+    ):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid view record shape"])), "warnings": [], "counts": {}}
     view_ids: set[str] = set()
-    for view in graph.get("views") or []:
+    for view in views:
         view_id = view.get("id")
         if view_id in view_ids:
             errors.append(f"duplicate view id: {view_id}")
