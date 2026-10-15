@@ -9,7 +9,6 @@ No imported source can create approval, admission, or merge authority.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 from pathlib import Path
