@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 209
+  tools: 210
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 161
@@ -2658,6 +2658,19 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806)
+- tool_id: HAIOS-TOOL-224
+  name: graph_lookup
+  path: tools/graph_lookup_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
+  session: Q-REPO-GRAPH-LOOKUP-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
