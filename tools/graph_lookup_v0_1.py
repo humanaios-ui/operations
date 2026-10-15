@@ -37,6 +37,7 @@ import argparse
 import copy
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -124,11 +125,17 @@ def load_graph(path: Path) -> dict[str, Any]:
     return graph
 
 
+_ROUTING_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+                 "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR")
+
+
 def _git(repo: Path, *args: str) -> str | None:
+    # Inherited routing variables (set inside git hooks) would override -C and read another repository.
+    env = {k: v for k, v in os.environ.items() if k not in _ROUTING_VARS}
     try:
         proc = subprocess.run(
             ["git", "--no-optional-locks", "-C", str(repo), *args],
-            capture_output=True, text=True, timeout=30, check=False,
+            capture_output=True, text=True, timeout=30, check=False, env=env,
         )
     except (OSError, subprocess.SubprocessError):
         return None

@@ -60,6 +60,10 @@ def write_graph(path, graph):
 def git(repo, *args):
     env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.com",
                GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.com")
+    # Inherited repository-routing variables (set inside git hooks) would aim these commands elsewhere.
+    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+                "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR"):
+        env.pop(key, None)
     # Isolate temporary repositories from caller signing and hook configuration.
     hooks = repo / ".hooks-disabled"
     return subprocess.run(
