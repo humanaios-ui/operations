@@ -293,7 +293,7 @@ slider.addEventListener("input", render);
 let timer = null;
 document.getElementById("play").addEventListener("click", () => {
   if (timer) { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Play"; return; }
-  if (Number(slider.value) >= slider.max) slider.value = 0;
+  if (Number(slider.value) >= slider.max) { slider.value = 0; render(); }
   document.getElementById("play").textContent = "Pause";
   timer = setInterval(() => {
     slider.value = Math.min(Number(slider.value) + 1, slider.max);
