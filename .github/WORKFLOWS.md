@@ -113,7 +113,7 @@ Three intentionally separate workflows form a real-time prediction loop:
 
 ---
 
-## Infrastructure & Maintenance (15 workflows)
+## Infrastructure & Maintenance (16 workflows)
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
