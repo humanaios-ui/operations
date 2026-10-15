@@ -21,6 +21,14 @@ from repository_knowledge_graph_v0_1 import (  # noqa: E402
 )
 
 
+def _symlink_or_skip(target: Path, link_name: Path) -> None:
+    try:
+        os.symlink(target, link_name)
+    except (OSError, NotImplementedError):
+        import pytest
+        pytest.skip("symlinks not supported on this system")
+
+
 def _run(repo: Path, *args: str, env=None) -> None:
     result = subprocess.run(
         list(args),
@@ -726,3 +734,4 @@ def test_method_output_inside_target_repository_is_rejected(tmp_path):
     assert "method output must resolve outside the target repository" in (
         result.stderr + result.stdout
     )
+    assert not (repo / "outputs").exists()

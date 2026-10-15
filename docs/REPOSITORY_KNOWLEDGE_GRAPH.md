@@ -541,7 +541,7 @@ The replay emits the complete machine-readable receipt as
 | Bounded inference assertions | 28 |
 | Output files | 16 |
 
-All 28 assertions came from `RGM-INF-LOCAL-DEPENDENCY-01`. They identify
+All 28 assertions came from `RKG-INF-LOCAL-DEPENDENCY-01`. They identify
 possible two-hop static dependency paths, including `src/App.tsx` to
 `src/lib/contamination.ts` and `src/pages/Experiment.tsx` to
 `src/lib/storage.ts`. These candidates do not establish runtime execution,

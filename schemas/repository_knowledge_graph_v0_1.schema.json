@@ -102,6 +102,12 @@
         "errors": {"type": "array", "items": {"type": "string"}},
         "warnings": {"type": "array", "items": {"type": "string"}},
         "counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+      },
+      "not": {
+        "allOf": [
+          {"properties": {"valid": {"const": true}}},
+          {"properties": {"errors": {"minItems": 1}}}
+        ]
       }
     },
     "integrity": {

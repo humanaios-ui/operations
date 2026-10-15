@@ -43,7 +43,13 @@
     "*.jpg",
     "*.jpeg",
     "*.png",
-    "*.glb"
+    "*.glb",
+    "*.pem",
+    "*.key",
+    "*.p12",
+    "id_rsa*",
+    ".npmrc",
+    "credentials*"
   ],
   "source_graphs": [
     {
