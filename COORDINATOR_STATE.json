@@ -60,6 +60,12 @@
       "event_id": "RCSEVT-FBD2DB8439928A03",
       "objective_issue_number": null
     },
+    "PULL_REQUEST#841": {
+      "admission_scope": "subject:PULL_REQUEST#841",
+      "command_ref": "RCC-GITHUB-ACTIONS-38742577673",
+      "event_id": "RCSEVT-2B2EDBE214C374FD",
+      "objective_issue_number": null
+    },
     "PULL_REQUEST#859": {
       "admission_scope": "subject:PULL_REQUEST#859",
       "command_ref": "RCC-GITHUB-ACTIONS-38737131488",
@@ -78,6 +84,7 @@
     "PULL_REQUEST#630": "RCSEVT-2D75C0067E19F5F9",
     "PULL_REQUEST#690": "RCSEVT-BOOTSTRAP-PR-000690",
     "PULL_REQUEST#812": "RCSEVT-FBD2DB8439928A03",
+    "PULL_REQUEST#841": "RCSEVT-2B2EDBE214C374FD",
     "PULL_REQUEST#859": "RCSEVT-3E2D84286E169F81"
   },
   "admitted_issue_numbers": [
@@ -93,6 +100,7 @@
     630,
     690,
     812,
+    841,
     859
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
@@ -124,6 +132,7 @@
     "RCC-GITHUB-ACTIONS-38640753538",
     "RCC-GITHUB-ACTIONS-38651985974",
     "RCC-GITHUB-ACTIONS-38737131488",
+    "RCC-GITHUB-ACTIONS-38742577673",
     "RCC-GITHUB-COMMENT-6082515675",
     "RCC-GITHUB-COMMENT-6179637755",
     "RCC-GITHUB-COMMENT-6180556109",
@@ -138,11 +147,11 @@
     "RCC-GITHUB-PR-LIFECYCLE-836-e90e4cbd35ea2192d794dc38908a29b8c2cc7140-2026-10-15T09:05:03Z-MERGED",
     "RCC-Z2-INSTRUCTION-2026-10-15"
   ],
-  "last_event_hash": "3e2d84286e169f81ddcb1f172971ebd065c13f26fc8bbb5d1436c1eede4ddaaf",
-  "last_event_id": "RCSEVT-3E2D84286E169F81",
-  "last_sequence": 65,
-  "ledger_event_count": 65,
-  "ledger_sha256": "de79625c67a07436746db6b3d9435426281f25cc5269e2dd325732866bf07cc8",
+  "last_event_hash": "2b2edbe214c374fd4600c6bcd86dc6e2c1116f91f33adc584b65f8a0cc327615",
+  "last_event_id": "RCSEVT-2B2EDBE214C374FD",
+  "last_sequence": 66,
+  "ledger_event_count": 66,
+  "ledger_sha256": "e2351d25d5cdf3be81a4e0dbdbe4d43f1bf2c744b74e8b614cef5975171e2dcb",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
