@@ -2,8 +2,8 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 108
-  records: 61
+  candidates: 109
+  records: 60
 ratifiers:
 - Night
 candidates:
@@ -22,6 +22,17 @@ candidates:
     2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier
     F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md.
     Touches no constants, gates, workflows, or REGISTERED.md.'
+- q_id: Q-QUEUE-SWEEP-PIN-SPEC-01
+  title: Queue sweep and pin spec for 56 open PRs, with four Z2 decisions (S1-S4)
+  path: z1-inbox/2026-10-15/QUEUE_SWEEP_PIN_SPEC_2026-10-15.md
+  submitted: '2026-10-15'
+  status: awaiting_z2
+  tier: 0
+  note: 'Opening move of P0 for Q-MULTI-AGENT-QUEUE-PLAN-01. Lane-based gate-conclusion
+    priors per open PR (queue_pins_2026-10-15.json), lane source per row. Asks Z2 for
+    four decisions (S1 window and resolver, S2 priors, S3 read the UNREAD receipts,
+    S4 one ci-predict consolidate PR at a time). Falsifier stated under "## Falsifier". No
+    signature, admission, label, or merge action.'
 - q_id: Q-GRAPH-CAPTURE-LINT-01
   title: graph_capture_lint — score every graph file against the nine properties of
     a self-sealing graph; block on the three that make a graph unauditable
@@ -1261,11 +1272,6 @@ candidates:
   z2_ruling: "z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md"
   z2_hash: "9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd"
 records:
-- path: z1-inbox/2026-10-15/QUEUE_SWEEP_PIN_SPEC_2026-10-15.md
-  title: Queue sweep and pin spec, 56 open PRs, 2026-10-15
-  note: Opening move of P0 for Q-MULTI-AGENT-QUEUE-PLAN-01. Lane-based gate-conclusion
-    priors per open PR (queue_pins_2026-10-15.json), with lane source per row. Proposal
-    only; no Z2 signature and no admission, label, or merge action.
 - path: z1-inbox/2026-10-14/QUEUE_MAP_2026-10-14.md
   title: QUEUE_MAP — open PRs and issues of operations, 2026-10-14
   note: Phase 0 evidence for Q-MULTI-AGENT-QUEUE-PLAN-01. Read-only GitHub API sweep

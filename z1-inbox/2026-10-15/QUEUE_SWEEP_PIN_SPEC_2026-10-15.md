@@ -53,7 +53,7 @@ Row count: 1 + 1 + 8 + 4 + 11 + 19 + 12 = 56. Predicted mean across the 56 rows:
 ## 6. Not done, on purpose
 
 - No ADMIT dispatch, label, comment, close, merge, or push to any other PR branch.
-- No edit to `z1-inbox/INDEX.yaml` or `Z1_INBOX_INDEX.md`. PR #831 touches both, and whichever lands second re-renders them.
+- Index edits are limited to registering this spec as a candidate in `z1-inbox/INDEX.yaml` and re-rendering `Z1_INBOX_INDEX.md`. PR #831 touches both files, and whichever lands second re-renders them.
 - No edit to `ci_predictions/pr.json`, `REGISTERED.md`, `PRIORITY_QUEUE.md`, or `.z1-control/`.
 - No Z2 signature. Nothing here is a RATIFY event.
 
@@ -65,6 +65,10 @@ Row count: 1 + 1 + 8 + 4 + 11 + 19 + 12 = 56. Predicted mean across the 56 rows:
 | S2 | Accept the lane priors in §2 as the opening pins, or set your own | Accept; they are a starting point, and the pins are scored against outcomes |
 | S3 | Authorise a read of the 12 UNREAD receipts before the window opens | Yes; it fixes the largest uncertainty in the sweep |
 | S4 | One ci-predict consolidate PR at a time, starting now | Yes; the stack is the largest source of churn in the queue |
+
+## Falsifier
+
+The priors are falsified if, at window close, any row with `p_pass` at 0.85 or above fails its gate conclusion, or any row with `p_pass` at 0.05 or below passes, **more than twice** in the window. Either event means the lane-to-prior table is miscalibrated and the table is revised before any further use. This is a gate-calibration falsifier only. It makes no claim about lineage-correlated error.
 
 ---
 
