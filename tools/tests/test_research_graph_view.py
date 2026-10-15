@@ -190,7 +190,7 @@ class LaneAndTerminalTests(unittest.TestCase):
 
 class SnapshotAndAuthorityTests(unittest.TestCase):
     def test_errors_or_truncation_mark_snapshot_incomplete(self):
-        """AC5: a partial snapshot is always marked INCOMPLETE."""
+        """AC5: a partial snapshot is marked INCOMPLETE."""
         self.assertEqual(_build(_snapshot([_pr()], errors=["list open PRs: HTTP 403"]))["snapshot"]["status"], "INCOMPLETE")
         self.assertEqual(_build(_snapshot([_pr()], truncated=True))["snapshot"]["status"], "INCOMPLETE")
         self.assertEqual(_build(_snapshot([_pr()]))["snapshot"]["status"], "OK")
