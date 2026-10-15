@@ -2443,6 +2443,7 @@ class GraphBuilder:
                 "sha256": None,
             },
         }
+        graph["validation"] = {"valid": True, "errors": [], "warnings": [], "counts": {}}
         graph["validation"] = validate_graph(graph, verify_integrity=False)
         graph["integrity"]["sha256"] = _graph_digest(graph)
         return graph
