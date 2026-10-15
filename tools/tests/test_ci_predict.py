@@ -641,3 +641,17 @@ def test_rollup_cli_exposes_documented_input_alias():
             text=True, capture_output=True, check=False)
         assert result.returncode == 0
         assert "--input" in result.stdout
+
+
+
+def test_writer_inventory_limit_matches_cli_bound():
+    import pytest
+    ordinary = {"number": 1, "title": "unrelated", "headRefName": "fix/example"}
+    with pytest.raises(rollup_tool.RollupBlocked, match="inventory incomplete"):
+        rollup_tool.select_writer([ordinary, ordinary], inventory_limit=2)
+    assert rollup_tool.select_writer([ordinary, ordinary], inventory_limit=3) is None
+    with pytest.raises(rollup_tool.RollupBlocked, match="invalid PR inventory limit"):
+        rollup_tool.select_writer([], inventory_limit=0)
+    workflow = (TOOLS_DIR.parent / ".github/workflows/ci-predict-consolidate.yml").read_text()
+    assert 'gh pr list --repo "$REPO" --state open --limit 200' in workflow
+    assert "--limit 200 \\" in workflow
