@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/oracle_observation_v1.schema.json",
+  "title": "HumanAIOS Oracle Observation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observation_id",
+    "oracle_id",
+    "source",
+    "as_of",
+    "recorded_at",
+    "observation",
+    "advisory_only",
+    "can_authorize",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "observation_id": {"type": "string", "minLength": 1},
+    "oracle_id": {"type": "string", "minLength": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["substrate", "locator"],
+      "properties": {
+        "substrate": {
+          "type": "string",
+          "enum": ["google_drive", "github", "gmail", "local_machine", "web_research", "other"]
+        },
+        "locator": {"type": "string", "minLength": 1},
+        "content_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "as_of": {"type": "string", "format": "date-time"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "observation": {"type": "string", "minLength": 1},
+    "relation": {
+      "type": ["string", "null"],
+      "enum": ["SUPPORTS", "CONTRADICTS", null]
+    },
+    "subject_ref": {"type": ["string", "null"]},
+    "transformation": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "component": {"type": "string"},
+        "version": {"type": "string"},
+        "producer_ref": {"type": ["string", "null"]}
+      }
+    },
+    "advisory_only": {"const": true},
+    "can_authorize": {"const": false},
+    "authority_effect": {"const": "NONE"}
+  }
+}

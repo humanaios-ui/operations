@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/state_continuity_verification_v0_1.schema.json",
+  "title": "HumanAIOS State Continuity Verification v0.1",
+  "description": "Advisory finite check or read-only HLKS/Session Graph binding. Not authenticated evidence or permission.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "scope", "subject_ref", "status", "reason_codes", "source_refs", "observation_refs", "advisory_only", "can_authorize", "authority_effect", "authenticated", "report_id"],
+  "properties": {
+    "schema": {"const": "humanaios.state_continuity_verification.v0.1"},
+    "scope": {"enum": ["FINITE_SYNTHETIC", "HLKS_SESSION_BINDING"]},
+    "subject_ref": {"type": "string", "minLength": 1},
+    "status": {"enum": ["EXACTLY_RECOVERABLE", "SEMANTICALLY_RECOVERABLE", "NOT_ESTABLISHED", "RECONSTRUCTION_DENIED"]},
+    "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "source_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "observation_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "advisory_only": {"const": true},
+    "can_authorize": {"const": false},
+    "authority_effect": {"const": "NONE"},
+    "authenticated": {"const": false},
+    "report_id": {"type": "string", "pattern": "^SCVC-[0-9a-f]{20}$"}
+  }
+}

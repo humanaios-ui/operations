@@ -1,0 +1,47 @@
+{
+  "pr": 836,
+  "actor_origin_claim": "Claude Code (Z1 proposer), filing Q-MULTI-AGENT-QUEUE-PLAN-01 as a docs-only z1-inbox candidate",
+  "checks": {
+    "Repository admission/backpressure gate": {
+      "conclusion": "success",
+      "p": 0.9
+    },
+    "validate": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "Verify Z2 Ratification Requirements": {
+      "conclusion": "success",
+      "p": 0.93
+    },
+    "Reject unauthorized internal deadline semantics": {
+      "conclusion": "success",
+      "p": 0.9
+    },
+    "guard": {
+      "conclusion": "success",
+      "p": 0.99
+    },
+    "Secret scanning (gitleaks)": {
+      "conclusion": "success",
+      "p": 0.99
+    },
+    "Python dependency vulnerability scan": {
+      "conclusion": "success",
+      "p": 0.97
+    },
+    "Validate Configuration": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "Measure molt tier from the diff (ADVISORY)": {
+      "conclusion": "success",
+      "p": 0.97
+    },
+    "pin": {
+      "conclusion": "success",
+      "p": 0.9
+    }
+  },
+  "note": "Docs-only candidate plus inbox index and this prediction file. Ready for review with an ADMIT record on the state branch, so the admission gate should read PASS / ACTIVE. Main risks: the index collision with PR #831 and the deadline-semantics gate reading the plan's prose about decision windows."
+}

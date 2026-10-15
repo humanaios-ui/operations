@@ -4,16 +4,30 @@ import argparse
 import json
 from pathlib import Path
 
+from .claim_state_machine import reconcile_claim_event_ledger
 from .miner import enrich
+from .mines import load_mines, receipts_to_jsonl, resolve_mines
+from .opportunity_claim import claims_from_propositions, write_claims_jsonl
+from .proposition import propositions_from_candidates, write_propositions_jsonl
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .policy_adjudication import adjudicate_ranked_candidate
+from .security_authorization import TestingMode
+from .security_capability import profile_from_machine_graph, unknown_capability_profile
+from .security_scope import fetch_scope_graph
 from .store import write_jsonl
-from .sources import devto, funding_pipeline, github, rss
+from .sources import devto, funding_pipeline, github, hackerone, rss
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
 DEFAULT_REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
 DEFAULT_OUT = ROOT / "data" / "resources.jsonl"
 DEFAULT_FUNDING = ROOT.parent / "data" / "sources.json"
+DEFAULT_MINES = ROOT / "data" / "mines.seed.json"
+DEFAULT_OPPORTUNITIES = ROOT / "data" / "opportunities.jsonl"
+DEFAULT_MINE_RECEIPTS = ROOT / "data" / "mine-resolution.jsonl"
+DEFAULT_OPPORTUNITY_CLAIMS = ROOT / "data" / "opportunity-claims.jsonl"
+DEFAULT_CLAIM_EVENTS = ROOT / "data" / "opportunity-claim-events.jsonl"
+DEFAULT_PROPOSITIONS = ROOT / "data" / "propositions.jsonl"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -21,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     scan = sub.add_parser("scan", help="Discover, normalize, map, and route resource candidates")
-    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "rss"], default=[])
+    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "hackerone", "rss"], default=[])
     scan.add_argument("--needs", default=str(DEFAULT_NEEDS))
     scan.add_argument("--requirements", default=str(DEFAULT_REQUIREMENTS))
     scan.add_argument(
@@ -34,8 +48,25 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--funding-data", default=str(DEFAULT_FUNDING))
     scan.add_argument("--dev-tag", action="append", default=[])
     scan.add_argument("--github-query", action="append", default=[])
+    scan.add_argument("--hackerone-handle", action="append", default=[])
+    scan.add_argument("--hackerone-page-size", type=int, default=100)
     scan.add_argument("--rss", action="append", default=[])
     scan.add_argument("--dry-run", action="store_true")
+
+    resolve = sub.add_parser(
+        "resolve-mines",
+        help="Re-observe persistent Mines and emit discrete Resource Opportunity tokens",
+    )
+    resolve.add_argument("--mines", default=str(DEFAULT_MINES))
+    resolve.add_argument("--mine-id", action="append", default=[])
+    resolve.add_argument("--needs", default=str(DEFAULT_NEEDS))
+    resolve.add_argument("--requirements", default=str(DEFAULT_REQUIREMENTS))
+    resolve.add_argument("--out", default=str(DEFAULT_OPPORTUNITIES))
+    resolve.add_argument("--receipts-out", default=str(DEFAULT_MINE_RECEIPTS))
+    resolve.add_argument("--claims-out", default=str(DEFAULT_OPPORTUNITY_CLAIMS))
+    resolve.add_argument("--propositions-out", default=str(DEFAULT_PROPOSITIONS))
+    resolve.add_argument("--events-ledger", default=str(DEFAULT_CLAIM_EVENTS))
+    resolve.add_argument("--dry-run", action="store_true")
 
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
@@ -57,10 +88,60 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 def main() -> None:
     args = build_parser().parse_args()
 
+    if args.command == "reconcile":
+        audit = reconcile_snapshot(args.snapshot, args.receipts, args.out, args.audit_out)
+        print(json.dumps(audit, indent=2, ensure_ascii=False))
+        return
+
     if args.command == "plan":
         plan = load_resource_plan(args.file)
         data = miner_requirements_from_plan(plan) if args.miner_requirements else resolve_resource_plan(plan)
         print(json.dumps(data, indent=2, ensure_ascii=False))
+        return
+
+    if args.command == "resolve-mines":
+        mines = load_mines(args.mines)
+        if args.mine_id:
+            wanted = set(args.mine_id)
+            mines = [mine for mine in mines if mine.mine_id in wanted]
+        discovered, receipts = resolve_mines(mines)
+        resources = enrich(discovered, args.needs, args.requirements)
+        propositions = propositions_from_candidates(resources)
+        claims = claims_from_propositions(resources, propositions)
+        if args.dry_run:
+            print(
+                json.dumps(
+                    {
+                        "mines": [mine.to_dict() for mine in mines],
+                        "opportunities": [row.to_dict() for row in resources],
+                        "propositions": [row.to_dict() for row in propositions],
+                        "claims": [claim.to_dict() for claim in claims],
+                        "receipts": [receipt.to_dict() for receipt in receipts],
+                    },
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+        else:
+            write_jsonl(args.out, resources)
+            receipt_path = Path(args.receipts_out)
+            receipt_path.parent.mkdir(parents=True, exist_ok=True)
+            receipt_path.write_text(receipts_to_jsonl(receipts), encoding="utf-8")
+            write_propositions_jsonl(args.propositions_out, propositions)
+            write_claims_jsonl(args.claims_out, claims)
+            appended_events = reconcile_claim_event_ledger(
+                args.events_ledger,
+                claims,
+                actor_id="resource-miner",
+                method="scheduled_mine_resolution",
+            )
+            print(
+                f"resolved {len(mines)} mines -> {len(resources)} opportunities, "
+                f"{len(propositions)} propositions, and {len(claims)} claims; "
+                f"appended {len(appended_events)} claim events; wrote {args.out}, "
+                f"{args.receipts_out}, {args.propositions_out}, {args.claims_out}, "
+                f"and reconciled {args.events_ledger}"
+            )
         return
 
     sources = args.source or ["funding", "devto"]
@@ -72,6 +153,13 @@ def main() -> None:
     if "github" in sources:
         queries = args.github_query or ["is:issue is:open label:bounty", 'is:issue is:open "cash prize"']
         discovered.extend(github.discover(queries))
+    if "hackerone" in sources:
+        discovered.extend(
+            hackerone.discover(
+                args.hackerone_handle or None,
+                page_size=args.hackerone_page_size,
+            )
+        )
     if "rss" in sources:
         discovered.extend(rss.discover(args.rss))
 
