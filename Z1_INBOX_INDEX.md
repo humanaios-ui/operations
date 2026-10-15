@@ -108,7 +108,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-03 | **Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01** | Z3 executor assignments and execution plan for 90 tier-assigned candidates | `z1-inbox/2026-10-01/Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01.md` |
 | 2026-10-10 | **Q-SYSTEM-GRAPH-TEMPORAL-01** | Temporal sequencing for system_graph.json schema | `z1-inbox/2026-10-08/SYSTEM_GRAPH_TEMPORAL_SCHEMA_PROPOSAL.md` |
 | 2026-10-11 | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Governance registry structural repair — 162 entries, 127 defects | `z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md` |
-| 2026-10-17 | **Q-REPO-GRAPH-LOOKUP-01** | Read-only, citation-bearing lookup over the PR | `z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md` |
+| 2026-10-17 | **Q-REPO-GRAPH-LOOKUP-01** | Read-only, citation-bearing lookup over the PR 630 repository graph for the section A session-open step | `z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md` |
 
 ## Decided (11)
 

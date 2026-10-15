@@ -60,8 +60,12 @@ def write_graph(path, graph):
 def git(repo, *args):
     env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.com",
                GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.com")
-    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True,
-                          text=True, env=env).stdout.strip()
+    # Isolate temporary repositories from caller signing and hook configuration.
+    hooks = repo / ".hooks-disabled"
+    return subprocess.run(
+        ["git", "-C", str(repo), "-c", "commit.gpgsign=false", "-c", f"core.hooksPath={hooks}", *args],
+        check=True, capture_output=True, text=True, env=env, timeout=30,
+    ).stdout.strip()
 
 
 def make_repo(tmp_path):
@@ -291,4 +295,58 @@ def test_input_alias_accepted(tmp_path, capsys):
     repo, head = make_repo(tmp_path)
     path = write_graph(tmp_path / "graph.json", make_graph(head))
     code, _ = run(["--input", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
+    assert code == gl.EXIT_OK
+
+
+def test_unusable_pinned_commit_is_unknown_not_stale(tmp_path, capsys):
+    repo, head = make_repo(tmp_path)
+    graph = make_graph(head)
+    graph["source"]["head_commit"] = None
+    graph["integrity"]["sha256"] = _digest(graph)
+    path = write_graph(tmp_path / "graph.json", graph)
+    _, report = run(["--graph", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
+    assert report["freshness"]["state"] == "UNKNOWN"
+    assert "head_commit" in report["freshness"]["reason"]
+
+
+def test_non_object_node_provenance_is_refused(tmp_path, capsys):
+    code, report = _refused_with_digest(
+        tmp_path, capsys, lambda g: g["nodes"][0].__setitem__("provenance", 1))
+    assert code == gl.EXIT_REFUSED
+    assert "node provenance must be a list" in report["refused"]
+
+
+def test_edge_without_provenance_is_refused(tmp_path, capsys):
+    code, report = _refused_with_digest(tmp_path, capsys, lambda g: g["edges"][0].__setitem__("provenance", []))
+    assert code == gl.EXIT_REFUSED
+    assert "non-empty provenance" in report["refused"]
+
+
+def test_edge_without_source_hash_is_refused(tmp_path, capsys):
+    def mutate(g):
+        g["edges"][0]["provenance"][0]["source_hash"] = ""
+    code, report = _refused_with_digest(tmp_path, capsys, mutate)
+    assert code == gl.EXIT_REFUSED
+    assert "source_hash" in report["refused"]
+
+
+def test_null_source_hash_for_tree_evidence_still_accepted(tmp_path, capsys):
+    # The compiler records tree-level CONTAINS edges with source_hash null; the commit is the source.
+    repo, head = make_repo(tmp_path)
+    graph = make_graph(head)
+    graph["edges"][0]["provenance"][0]["source_hash"] = None
+    graph["integrity"]["sha256"] = _digest(graph)
+    path = write_graph(tmp_path / "graph.json", graph)
+    code, _ = run(["--graph", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
+    assert code == gl.EXIT_OK
+
+
+def test_null_locator_still_accepted(tmp_path, capsys):
+    # The compiler emits locator null for whole-file evidence; that is valid.
+    repo, head = make_repo(tmp_path)
+    graph = make_graph(head)
+    graph["edges"][0]["provenance"][0]["locator"] = None
+    graph["integrity"]["sha256"] = _digest(graph)
+    path = write_graph(tmp_path / "graph.json", graph)
+    code, _ = run(["--graph", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
     assert code == gl.EXIT_OK

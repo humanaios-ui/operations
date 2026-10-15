@@ -79,14 +79,22 @@ def validate_structure(graph: dict[str, Any]) -> None:
     _require(isinstance(graph.get("edges"), list), "graph.edges must be a list")
     for node in graph["nodes"]:
         _require(isinstance(node, dict) and isinstance(node.get("id"), str), "every node must be an object with a string id")
-    for edge in graph["edges"]:
-        _require(isinstance(edge, dict) and isinstance(edge.get("id"), str), "every edge must be an object with a string id")
-        _require(isinstance(edge.get("provenance", []), list), "edge provenance must be a list")
-        for entry in edge.get("provenance") or []:
-            _require(isinstance(entry, dict), "every provenance entry must be an object")
     for node in graph["nodes"]:
+        _require(isinstance(node.get("provenance", []), list), "node provenance must be a list")
         for entry in node.get("provenance") or []:
             _require(isinstance(entry, dict), "every node provenance entry must be an object")
+    for edge in graph["edges"]:
+        _require(isinstance(edge, dict) and isinstance(edge.get("id"), str), "every edge must be an object with a string id")
+        provenance = edge.get("provenance")
+        _require(isinstance(provenance, list) and provenance, "every edge needs a non-empty provenance list")
+        for entry in provenance:
+            _require(isinstance(entry, dict), "every provenance entry must be an object")
+            # The compiler writes source_hash null for tree-level evidence (the source is the commit),
+            # and locator null for whole-file evidence. Both are valid; an empty string is not.
+            _require(isinstance(entry.get("source_ref"), str) and entry["source_ref"],
+                     "every edge provenance entry must name a source_ref")
+            _require(entry.get("source_hash") is None or (isinstance(entry["source_hash"], str) and entry["source_hash"]),
+                     "edge provenance source_hash must be null or a non-empty string")
 
 
 def verify_integrity(graph: dict[str, Any]) -> str:
@@ -129,6 +137,10 @@ def _git(repo: Path, *args: str) -> str | None:
     return proc.stdout
 
 
+def _is_commit_sha(value: Any) -> bool:
+    return isinstance(value, str) and len(value) == 40 and all(c in "0123456789abcdef" for c in value)
+
+
 def freshness(graph: dict[str, Any], repo: Path) -> dict[str, Any]:
     """Compare the graph's pinned commit with the repository as it is now."""
     pinned = (graph.get("source") or {}).get("head_commit")
@@ -137,7 +149,10 @@ def freshness(graph: dict[str, Any], repo: Path) -> dict[str, Any]:
     current = head.strip() if head else None
     dirty = bool(status and status.strip()) if status is not None else None
 
-    if current is None or dirty is None:
+    if not _is_commit_sha(pinned):
+        state = "UNKNOWN"
+        reason = "graph has no usable source.head_commit (expected a 40-character hex SHA)"
+    elif current is None or dirty is None:
         state = "UNKNOWN"
         reason = "repository HEAD or worktree could not be read"
     elif dirty:

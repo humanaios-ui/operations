@@ -8,7 +8,7 @@ ratifiers:
 - Night
 candidates:
 - q_id: Q-REPO-GRAPH-LOOKUP-01
-  title: Read-only, citation-bearing lookup over the PR #630 repository graph for the section A session-open step
+  title: Read-only, citation-bearing lookup over the PR 630 repository graph for the section A session-open step
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md
   submitted: '2026-10-15'
   status: awaiting_z2
