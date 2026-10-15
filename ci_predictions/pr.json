@@ -1,14 +1,14 @@
 {
-  "pr": 727,
-  "actor_origin_claim": "GPT-5.6 Sol via ChatGPT, implementing user-authorized Repository Coordinator State Architecture v1.1",
+  "pr": 843,
+  "actor_origin_claim": "Claude Code session, Z1 proposal and read-only lookup tool",
   "checks": {
     "agent-principle-compliance-check": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.95
     },
     "builder-lint": {
       "conclusion": "success",
-      "p": 0.95
+      "p": 0.93
     },
     "document-control": {
       "conclusion": "success",
@@ -16,7 +16,7 @@
     },
     "manifest-sync-gate": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.9
     },
     "No-op PR guard": {
       "conclusion": "success",
@@ -24,32 +24,32 @@
     },
     "quality-baseline": {
       "conclusion": "success",
-      "p": 0.92
+      "p": 0.9
     },
     "repository-admission-gate": {
       "conclusion": "success",
-      "p": 0.94
+      "p": 0.8
     },
     "repository-coordinator": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.9
     },
     "security-gates": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.95
     },
     "tool-manifest": {
       "conclusion": "success",
-      "p": 0.93
+      "p": 0.9
     },
     "workflow-lint": {
       "conclusion": "success",
-      "p": 0.92
+      "p": 0.97
     },
     "workflow-path-validation": {
       "conclusion": "success",
-      "p": 0.96
+      "p": 0.97
     }
   },
-  "note": "Prediction-bearing v1.1 head. Expected risk is workflow/schema integration around chained state migration, terminal lifecycle routing, durable RCD comments, and new tool-manifest registration. No merge authority is introduced."
+  "note": "Adds tools/graph_lookup_v0_1.py (stdlib, read-only) and its tests. Builder v1.7 gate fixed by adding --smoke-test. Expected risk: manifest row ID and repository-admission-gate for a Z2-queued tool path."
 }
