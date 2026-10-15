@@ -20,10 +20,14 @@ def browser():
     with sync_api.sync_playwright() as p:
         # INTENT_FORM_CHROMIUM overrides Playwright's bundled build (used on machines with a preinstalled browser).
         exe = os.environ.get("INTENT_FORM_CHROMIUM") or None
-        try:
+        if exe:
+            # An explicit override must launch. A bad path fails the run instead of skipping it.
             b = p.chromium.launch(executable_path=exe)
-        except Exception as exc:  # no browser build on this machine
-            pytest.skip(f"chromium not available: {exc}")
+        else:
+            try:
+                b = p.chromium.launch()
+            except Exception as exc:  # optional bundled browser not installed
+                pytest.skip(f"bundled chromium not available: {exc}")
         yield b
         b.close()
 
