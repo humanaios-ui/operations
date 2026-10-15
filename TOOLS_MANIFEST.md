@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**210 registered tools** · 2 MCP servers · 4 excluded · 162 carrying Builder v1.7 markers
+**211 registered tools** · 2 MCP servers · 4 excluded · 163 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 210 |
-| — status `draft` | 209 |
+| Registered tools | 211 |
+| — status `draft` | 210 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 162 |
+| Builder v1.7 markers present | 163 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -85,7 +85,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-121 | smag_pr_autocapture | `tools/smag_pr_autocapture_v1_0.py` | 1.0.0 | 1 | draft | — | smag_pr_autocapture_v1_0 — auto-capture a SMAG pilot row from a merged PR |
 | HAIOS-TOOL-123 | smag_resolve | `tools/smag_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve. |
 | HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
-| HAIOS-TOOL-223 | ci_predict_rollup | `tools/ci_predict_rollup_v0_1.py` | 0.1.0 | 1 | draft | — | ci_predict_rollup_v0_1.py |
+
+| HAIOS-TOOL-224 | ci_predict_rollup | `tools/ci_predict_rollup_v0_1.py` | 0.1.0 | 1 | draft | — | ci_predict_rollup_v0_1.py |
 
 ## Connectors — `connector_tool` (13)
 
