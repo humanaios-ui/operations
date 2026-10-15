@@ -27,6 +27,9 @@ def browser():
             try:
                 b = p.chromium.launch()
             except Exception as exc:  # optional bundled browser not installed
+                # GitHub Actions sets CI=true; there a missing browser is a failure, not a skip.
+                if os.environ.get("CI"):
+                    pytest.fail(f"bundled chromium missing in CI: {exc}")
                 pytest.skip(f"bundled chromium not available: {exc}")
         yield b
         b.close()
