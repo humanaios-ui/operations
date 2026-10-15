@@ -578,3 +578,54 @@ def test_calibration_workflows_exclude_self_generated_rollup_activity():
     assert "startsWith(github.event.pull_request.head.ref, 'ci-predict-consolidate/')" in pin
     assert 'if not str(((pr.get("head") or {}).get("ref")) or "").startswith(' in resolve
     assert 'subprocess.run(cmd, check=True)' in resolve
+
+
+
+def test_rolling_branch_switch_restores_proposed_ledger():
+    """A dirty main ledger must be reset before checking out rolling head."""
+    script = (TOOLS_DIR.parent / ".github/workflows/ci-predict-consolidate.yml").read_text()
+    save = script.index('cp "$LEDGER" /tmp/ci-predict-proposed-ledger.jsonl')
+    reset = script.index('git restore -- "$LEDGER"')
+    switch = script.index('git switch -c "$BRANCH" FETCH_HEAD')
+    restore = script.index('cp /tmp/ci-predict-proposed-ledger.jsonl "$LEDGER"')
+    assert save < reset < switch < restore
+    assert 'if [ "$rc" -ne 2 ]; then' in script
+    assert 'Cannot establish rolling branch absence' in script
+
+
+def test_strict_ci_api_rejects_failed_and_malformed_responses(monkeypatch):
+    import pytest
+    from types import SimpleNamespace
+
+    for status, output in [(1, "[]"), (0, "{broken"), (0, '[{"check_runs":{}}]')]:
+        monkeypatch.setattr(resolve_tool.subprocess, "run",
+                            lambda *args, **kwargs: SimpleNamespace(returncode=status, stdout=output))
+        with pytest.raises(resolve_tool.GitHubApiFailure):
+            resolve_tool.gh_json_paginated("repos/o/r/commits/a/check-runs",
+                                           key="check_runs", strict=True)
+
+
+def test_partial_success_then_ci_api_failure_never_publishes(monkeypatch, tmp_path):
+    """The second source fails after the first was usable; never append."""
+    first_sha, second_sha = "a" * 40, "b" * 40
+    pins = {
+        first_sha: bound_pin(pr="123", sha=first_sha),
+        second_sha: bound_pin(pr="123", sha=second_sha)
+    }
+    monkeypatch.setattr(consolidate_tool, "collect_trusted_pins",
+                        lambda comments, expected_pr: pins)
+
+    def fetch(path, key=None, strict=False):
+        assert strict, "consolidation must always use fail-closed API mode"
+        if "/issues/" in path:
+            return [{"body": "trusted source fixture"}]
+        if first_sha in path:
+            return [{"name": "x", "status": "completed",
+                     "conclusion": "success", "id": 42,
+                     "html_url": "https://github.com/example/actions/runs/42"}]
+        raise resolve_tool.GitHubApiFailure("synthetic GitHub API failure")
+
+    monkeypatch.setattr(resolve_tool, "gh_json_paginated", fetch)
+    target = tmp_path / "calibration.jsonl"
+    assert consolidate_tool.run("o/r", "123", target) == 1
+    assert not target.exists(), "partially verified events must not be published"
