@@ -1486,6 +1486,9 @@ class GraphBuilder:
         for item in self.profile.get("semantic_nodes") or []:
             node_id = str(item["id"])
             source_ref = str(item["source_ref"])
+            artifact_id = self._artifact_for_source(source_ref)
+            if not artifact_id:
+                raise SpecLoadFailed(f"semantic node source_ref missing from repository: {source_ref}")
             self.add_node(
                 node_id,
                 str(item["type"]),
@@ -1498,19 +1501,22 @@ class GraphBuilder:
                 },
                 provenance=self.provenance(source_ref, "explicit_profile_mapping"),
             )
-            artifact_id = self._artifact_for_source(source_ref)
-            if artifact_id:
-                self.add_edge(
-                    node_id,
-                    artifact_id,
-                    "CITES",
-                    "OBSERVED",
-                    "semantic",
-                    properties={"citation_only": True},
-                    provenance=profile_prov,
-                )
+            self.add_edge(
+                node_id,
+                artifact_id,
+                "CITES",
+                "OBSERVED",
+                "semantic",
+                properties={"citation_only": True},
+                provenance=profile_prov,
+            )
 
         for item in self.profile.get("semantic_edges") or []:
+            source_ref = item.get("source_ref")
+            if source_ref:
+                artifact_id = self._artifact_for_source(source_ref)
+                if not artifact_id:
+                    raise SpecLoadFailed(f"semantic edge source_ref missing from repository: {source_ref}")
             self.add_edge(
                 str(item["from"]),
                 str(item["to"]),

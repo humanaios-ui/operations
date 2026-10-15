@@ -16,6 +16,7 @@ sys.path.insert(0, str(TOOLS))
 from repository_knowledge_graph_v0_1 import (  # noqa: E402
     GraphBuilder,
     SpecLoadFailed,
+    TOOL_VERSION,
     _graph_digest,
     query_graph,
     validate_graph,
@@ -798,13 +799,18 @@ def test_chat_bridge_rejects_authority_and_invalid_payload(tmp_path, key, value)
         GraphBuilder(repo, chat_local_bridge=bridge).build()
 
 
-def test_chat_bridge_requires_outside_file_not_symlink(tmp_path):
+def test_chat_bridge_requires_outside_file(tmp_path):
     repo = _fixture_repo(tmp_path)
     bridge = _chat_bridge_fixture(tmp_path)
     internal = repo / "local-bridge.json"
     internal.write_bytes(bridge.read_bytes())
     with pytest.raises(SpecLoadFailed, match="outside the repository"):
         GraphBuilder(repo, chat_local_bridge=internal).build()
+
+
+def test_chat_bridge_rejects_symlink(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    bridge = _chat_bridge_fixture(tmp_path)
     link = tmp_path / "alias-bridge.json"
     _symlink_or_skip(str(bridge), link)
     with pytest.raises(SpecLoadFailed, match="symlink"):
@@ -890,7 +896,7 @@ def test_real_method_receipt_pins_compiler_and_private_bridge(tmp_path):
     assert result.returncode == 0, result.stderr
     receipt = json.loads((destination / "method-receipt.json").read_text())
     assert receipt["status"] == "PASS"
-    assert receipt["compiler_tool_version"] == "0.2.0"
+    assert receipt["compiler_tool_version"] == TOOL_VERSION
     assert receipt["compiler_sha256"] == hashlib.sha256(script.read_bytes()).hexdigest()
     assert receipt["determinism"]["canonical_graph_match"] is True
     graph = json.loads((destination / "graph.json").read_text())
