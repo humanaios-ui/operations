@@ -837,7 +837,7 @@ def test_query_reports_total_matches_before_limit(tmp_path):
 def test_python_nested_imports_are_observed(tmp_path):
     repo = _fixture_repo(tmp_path)
     nested = repo / "nested.py"
-    nested.write_text("def worker():\n    from src import engine\n", encoding="utf-8")
+    nested.write_text("def worker():\n    import src.engine\n", encoding="utf-8")
     _run(repo, "git", "add", "nested.py")
     _run(repo, "git", "commit", "-q", "-m", "nested import")
     graph = GraphBuilder(repo).build()
