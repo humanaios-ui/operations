@@ -64,7 +64,7 @@ evidence:
   - "tools/repository_knowledge_graph_v0_1.py: `query` subcommand; `_graph_digest`; `_canonical_bytes`"
   - "outputs/ listed in .gitignore; graph output not tracked"
   - "Real graph built from PR 630 head: integrity 92e5a930…, source.head_commit 1345e027…, 117 incident edges for artifact:SESSION_RITUALS.md; lookup reports FRESH against that worktree and withholds answers with --require-fresh against a dirty tree"
-  - "tools/tests/test_graph_lookup_v0_1.py: 13 passed"
+  - "tools/tests/test_graph_lookup_v0_1.py: 21 passed"
   - "SESSION_RITUALS.md §A has no graph step (checked 2026-10-15)"
 
 z2_decision:

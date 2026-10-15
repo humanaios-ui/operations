@@ -45,6 +45,7 @@ from typing import Any
 TOOL_NAME = "graph_lookup"
 TOOL_VERSION = "0.1.0"
 TOOL_CATEGORY = "diagnostic_tool"
+TOOL_ZONE = 1
 TOOL_SESSION = "Q-REPO-GRAPH-LOOKUP-01"
 
 EXIT_OK = 0
@@ -65,9 +66,33 @@ def _canonical_bytes(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def _require(condition: bool, message: str) -> None:
+    if not condition:
+        raise LookupRefused(message)
+
+
+def validate_structure(graph: dict[str, Any]) -> None:
+    """Refuse malformed shapes before any field is dereferenced."""
+    _require(isinstance(graph.get("source"), dict), "graph.source must be an object")
+    _require(isinstance(graph.get("integrity"), dict), "graph.integrity must be an object")
+    _require(isinstance(graph.get("nodes"), list), "graph.nodes must be a list")
+    _require(isinstance(graph.get("edges"), list), "graph.edges must be a list")
+    for node in graph["nodes"]:
+        _require(isinstance(node, dict) and isinstance(node.get("id"), str), "every node must be an object with a string id")
+    for edge in graph["edges"]:
+        _require(isinstance(edge, dict) and isinstance(edge.get("id"), str), "every edge must be an object with a string id")
+        _require(isinstance(edge.get("provenance", []), list), "edge provenance must be a list")
+        for entry in edge.get("provenance") or []:
+            _require(isinstance(entry, dict), "every provenance entry must be an object")
+    for node in graph["nodes"]:
+        for entry in node.get("provenance") or []:
+            _require(isinstance(entry, dict), "every node provenance entry must be an object")
+
+
 def verify_integrity(graph: dict[str, Any]) -> str:
     """Return the recomputed digest, or raise if it does not match the graph's claim."""
-    claimed = (graph.get("integrity") or {}).get("sha256")
+    validate_structure(graph)
+    claimed = graph["integrity"].get("sha256")
     if not isinstance(claimed, str) or len(claimed) != 64:
         raise LookupRefused("graph carries no integrity.sha256")
     candidate = copy.deepcopy(graph)
@@ -94,7 +119,7 @@ def load_graph(path: Path) -> dict[str, Any]:
 def _git(repo: Path, *args: str) -> str | None:
     try:
         proc = subprocess.run(
-            ["git", "-C", str(repo), *args],
+            ["git", "--no-optional-locks", "-C", str(repo), *args],
             capture_output=True, text=True, timeout=30, check=False,
         )
     except (OSError, subprocess.SubprocessError):
@@ -125,12 +150,21 @@ def freshness(graph: dict[str, Any], repo: Path) -> dict[str, Any]:
         state = "FRESH"
         reason = "graph pinned to current clean HEAD"
 
+    compiled_state = (graph.get("source") or {}).get("worktree_state")
+    if state == "FRESH" and compiled_state != "CLEAN":
+        state = "UNKNOWN"
+        reason = (
+            "graph was compiled from a dirty or unrecorded snapshot; "
+            f"source.worktree_state is {compiled_state!r}"
+        )
+
     return {
         "state": state,
         "reason": reason,
         "pinned_head_commit": pinned,
         "current_head_commit": current,
         "worktree_dirty": dirty,
+        "compiled_worktree_state": compiled_state,
     }
 
 
@@ -245,7 +279,8 @@ def run_smoke_test() -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read-only, citation-bearing graph lookup (§A).")
     parser.add_argument("--smoke-test", action="store_true", help="run the in-memory self-check and exit")
-    parser.add_argument("--graph", help="graph.json from the repository graph compiler")
+    parser.add_argument("--graph", "--input", dest="graph",
+                        help="graph.json from the repository graph compiler")
     parser.add_argument("--repo", default=".", help="repository the graph describes (default: cwd)")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--search", help="case-insensitive substring over node id and label")

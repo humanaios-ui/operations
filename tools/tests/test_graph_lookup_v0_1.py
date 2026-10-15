@@ -25,12 +25,12 @@ def _digest(graph):
     return hashlib.sha256(gl._canonical_bytes(candidate)).hexdigest()
 
 
-def make_graph(head):
+def make_graph(head, worktree_state="CLEAN", drop_worktree_state=False):
     graph = {
         "graph_id": "test-graph",
         "graph_kind": "DERIVED_READ_MODEL",
         "authority_effect": "NONE",
-        "source": {"repository": "example/repo", "head_commit": head, "worktree_state": "CLEAN"},
+        "source": {"repository": "example/repo", "head_commit": head, "worktree_state": worktree_state},
         "nodes": [
             {"id": "artifact:SESSION_RITUALS.md", "type": "artifact", "label": "SESSION_RITUALS.md",
              "provenance": [{"source_ref": "SESSION_RITUALS.md", "locator": None,
@@ -46,6 +46,8 @@ def make_graph(head):
         "views": [],
         "integrity": {"algorithm": "sha256", "canonicalization": "json-sort-keys-utf8", "sha256": None},
     }
+    if drop_worktree_state:
+        del graph["source"]["worktree_state"]
     graph["integrity"]["sha256"] = _digest(graph)
     return graph
 
@@ -215,3 +217,78 @@ def test_argument_validation(tmp_path, capsys):
     capsys.readouterr()
     code, _ = run(["--graph", str(path), "--repo", str(repo), "--search", "a", "--limit", "0"], capsys)
     assert code == gl.EXIT_BAD_ARGS
+
+
+# --- review follow-ups (Copilot, PR 843) ----------------------------------------
+
+def _refused_with_digest(tmp_path, capsys, mutate):
+    repo, head = make_repo(tmp_path)
+    graph = make_graph(head)
+    mutate(graph)
+    if isinstance(graph.get("integrity"), dict):
+        graph["integrity"]["sha256"] = _digest(graph)
+    path = write_graph(tmp_path / "graph.json", graph)
+    code, report = run(["--graph", str(path), "--repo", str(repo), "--search", "x"], capsys)
+    return code, report
+
+
+def test_string_integrity_is_refused_not_a_traceback(tmp_path, capsys):
+    code, report = _refused_with_digest(tmp_path, capsys, lambda g: g.__setitem__("integrity", "oops"))
+    assert code == gl.EXIT_REFUSED
+    assert "integrity must be an object" in report["refused"]
+
+
+def test_null_node_is_refused_not_a_traceback(tmp_path, capsys):
+    code, report = _refused_with_digest(tmp_path, capsys, lambda g: g.__setitem__("nodes", [None]))
+    assert code == gl.EXIT_REFUSED
+    assert "every node" in report["refused"]
+
+
+def test_non_object_provenance_is_refused(tmp_path, capsys):
+    def mutate(g):
+        g["edges"][0]["provenance"] = ["not-an-object"]
+    code, report = _refused_with_digest(tmp_path, capsys, mutate)
+    assert code == gl.EXIT_REFUSED
+    assert "provenance entry" in report["refused"]
+
+
+def test_dirty_compilation_snapshot_is_unknown_even_at_head(tmp_path, capsys):
+    repo, head = make_repo(tmp_path)
+    path = write_graph(tmp_path / "graph.json", make_graph(head, worktree_state="DIRTY"))
+    code, report = run(["--graph", str(path), "--repo", str(repo), "--search", "ritual", "--require-fresh"], capsys)
+    assert report["freshness"]["state"] == "UNKNOWN"
+    assert report["results"] is None
+    assert code == gl.EXIT_NOT_FRESH
+
+
+def test_missing_compilation_state_is_unknown(tmp_path, capsys):
+    repo, head = make_repo(tmp_path)
+    path = write_graph(tmp_path / "graph.json", make_graph(head, drop_worktree_state=True))
+    _, report = run(["--graph", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
+    assert report["freshness"]["state"] == "UNKNOWN"
+
+
+def test_clean_compilation_at_head_stays_fresh(tmp_path, capsys):
+    repo, head = make_repo(tmp_path)
+    path = write_graph(tmp_path / "graph.json", make_graph(head))
+    _, report = run(["--graph", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
+    assert report["freshness"]["state"] == "FRESH"
+
+
+def test_index_bytes_unchanged_when_tracked_file_metadata_changes(tmp_path, capsys):
+    repo, head = make_repo(tmp_path)
+    path = write_graph(tmp_path / "graph.json", make_graph(head))
+    index = repo / ".git" / "index"
+    index_before = index.read_bytes()
+    # Change only metadata of a tracked file: mtime, not content.
+    st = (repo / "README.md").stat()
+    os.utime(repo / "README.md", (st.st_atime + 100, st.st_mtime + 100))
+    run(["--graph", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
+    assert index.read_bytes() == index_before
+
+
+def test_input_alias_accepted(tmp_path, capsys):
+    repo, head = make_repo(tmp_path)
+    path = write_graph(tmp_path / "graph.json", make_graph(head))
+    code, _ = run(["--input", str(path), "--repo", str(repo), "--search", "ritual"], capsys)
+    assert code == gl.EXIT_OK
