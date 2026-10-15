@@ -21,7 +21,7 @@
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Critical-Path Gates | 9 | Lean, required |
+| Critical-Path Gates | 10 | Lean, required |
 | Scheduled Audits | 23 | Intentional separation by scope/schedule |
 | Specialized Frameworks | 5 | SMAG calibration (Stage 2), research, industry telemetry |
 | Infrastructure/Maintenance | 12 | Ancillary support workflows |
@@ -35,7 +35,7 @@
 
 ## Critical-Path Gates (Blocking PRs)
 
-These 9 workflows must pass before a PR can merge to main:
+These 10 workflows must pass before a PR can merge to main:
 
 | Workflow | Purpose | Trigger | Category |
 |----------|---------|---------|----------|
@@ -48,6 +48,7 @@ These 9 workflows must pass before a PR can merge to main:
 | `temporal-dissolution-gate.yml` | Policy enforcement: reject unauthorized internal deadline semantics (audit-critical, S-070726) | PR to main | Policy |
 | `builder-lint.yml` | Lint builders and infrastructure-as-code | PR to main | Linting |
 | `workflow-lint.yml` | Lint GitHub Actions workflows themselves | PR to main | Linting |
+| `repository-admission-gate.yml` | Fail-closed admission/backpressure routing from trusted default-branch policy plus exact replayed coordinator state; RCC-linked manual/issue mutations, terminal PR lifecycle reconciliation, and durable RCD decision comments | PR/review events; PR closed lifecycle events; authorized issue comments; manual dispatch from main for authorized state mutators | Governance |
 
 **Why this stays small:** These gates cover the critical path (code quality, security, governance, policy). Additional audits run on schedule or event-trigger but do not block merges—by design, to prevent audit overhead from becoming a merge blocker.
 
@@ -112,11 +113,13 @@ Three intentionally separate workflows form a real-time prediction loop:
 
 ---
 
-## Infrastructure & Maintenance (12 workflows)
+## Infrastructure & Maintenance (15 workflows)
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
-| `auto-request-copilot-review.yml` | Request GitHub Copilot review on new PRs | PR create |
+| `graph-capture-lint.yml` | Score the five canonical graph layers (INTENT, system, EVIDENCE, capability, morphogenesis) against the nine self-sealing properties; exits non-zero on a P1–P3 failure not listed in `crb/graph_capture_baseline.json` or on a stale baseline entry. Not a required check until Z2 adds it (Q-GRAPH-CAPTURE-LINT-01) | PR/push touching a canonical graph, the baseline, the tool or its tests |
+| `.coderabbit.yaml` | CodeRabbit advisory review policy (requires installed GitHub App) | PR create/update via external app |
+| `auto-request-copilot-review.yml` | Legacy Copilot review provenance stub | Manual dispatch only |
 | `copilot-base-guard.yml` | Base branch protection with Copilot checks | PR to main |
 | `behavioral-compliance.yml` | Agent behavior compliance checking | Scheduled |
 | `agent-principle-compliance-check.yml` | Principle compliance validation | PR changes |
@@ -128,6 +131,7 @@ Three intentionally separate workflows form a real-time prediction loop:
 | `haios-harmonizer-pulse.yml` | System pulse monitoring | Every 8 hours |
 | `intent-os-refresh.yml` | INTENT-OS state refresh | Scheduled + dispatch |
 | `industry-telemetry.yml` | Industry telemetry capture (Q4 2026 forecasts) | Mon 09:30 UTC |
+| `deploy-acat-api-azure.yml` | Deploy ACAT API to Azure Container Apps — Microsoft for Startups M3 proof-of-concept; builds/lints on every PR touching Dockerfile.acat-api/bicep/acat/api paths, deploys only on manual dispatch behind an environment gate | PR/push (build-validate only); manual dispatch (deploy) |
 
 ---
 

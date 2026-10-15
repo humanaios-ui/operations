@@ -1,0 +1,22 @@
+{
+  "graph_id": "humanaios-cross-chat-longitudinal-evidence-graph",
+  "version": "0.2.0",
+  "planning_surface": "https://github.com/humanaios-ui/operations/issues/677",
+  "predecessor_sha256": "b36d387e844ccea1ca56c993300a152bea550123a5229e5fc9fc7d12a2ed46d9",
+  "verified_local_build_output_sha256": "1afdaf2a53b39f9951b5b919123a30857cac99b594221b12dc7813c292bfbfde",
+  "entity_count": 195,
+  "assertion_count": 444,
+  "source_count": 40,
+  "event_count": 40,
+  "hydrated_entity_count": 30,
+  "chat_derived_entity_count": 165,
+  "correction_event_count": 3,
+  "validation": "PASS",
+  "source_copy_byte_equivalent": true,
+  "note": "The recorded output SHA remains the verified pre-Drive build. A private Drive source root was subsequently admitted; current builder output must be rebuilt before a replacement output SHA is receipted.",
+  "verified_build_scope": "GITHUB_HYDRATION_BEFORE_PRIVATE_SOURCE_ADMISSION",
+  "private_source_root_admitted_after_verified_build": true,
+  "current_builder_expected_source_count": 41,
+  "current_builder_expected_event_count": 41,
+  "current_builder_rebuild_required": true
+}

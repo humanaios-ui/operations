@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/humanaios-ui/operations/workspace_event.schema.json",
+  "title": "HumanAIOS Workspace Evidence Bus Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id", "event_type", "subject_ref", "actor_ref", "source_system",
+    "source_ref", "observed_at", "idempotency_key", "state_version",
+    "previous_event_hash", "payload_hash", "privacy_class", "authority_effect"
+  ],
+  "properties": {
+    "event_id": {"type": "string", "pattern": "^EVT-[A-Za-z0-9._:-]+$"},
+    "event_type": {"type": "string", "minLength": 1},
+    "subject_ref": {"type": "string", "minLength": 1},
+    "actor_ref": {"type": "string", "minLength": 1},
+    "source_system": {"enum": ["GMAIL", "DRIVE", "APPS_SCRIPT", "GITHUB", "OTHER"]},
+    "source_ref": {"type": "string", "minLength": 1},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "valid_at": {"type": ["string", "null"], "format": "date-time"},
+    "idempotency_key": {"type": "string", "minLength": 1},
+    "state_version": {"type": "integer", "minimum": 0},
+    "previous_event_hash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "payload_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "privacy_class": {"enum": ["PRIVATE", "PUBLIC_SAFE"]},
+    "authority_effect": {"enum": ["NONE", "Z1", "Z2_REQUIRED", "Z3_REQUIRED"]},
+    "artifact_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["store", "opaque_id", "sha256"],
+        "properties": {
+          "store": {"enum": ["DRIVE", "GMAIL", "GITHUB", "OTHER"]},
+          "opaque_id": {"type": "string", "minLength": 1},
+          "revision": {"type": ["string", "null"]},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "payload": {"type": "object"}
+  }
+}

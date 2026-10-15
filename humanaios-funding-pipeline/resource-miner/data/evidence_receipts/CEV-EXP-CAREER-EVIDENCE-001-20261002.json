@@ -1,0 +1,416 @@
+{
+  "verification_id": "CEV-EXP-CAREER-EVIDENCE-001-20261002",
+  "experiment_id": "EXP-CAREER-EVIDENCE-001",
+  "status": "EVIDENCE_RETRIEVAL_COMPLETED",
+  "retrieval_surfaces": [
+    "completed interrogation PDF",
+    "private Google Drive career/resume artifacts",
+    "connected Gmail application/resume evidence",
+    "HumanAIOS GitHub repository",
+    "HumanAIOS Supabase project",
+    "public scholarly record"
+  ],
+  "evidence_state_definitions": {
+    "PUBLIC_VERIFIED": "Independent public source supports the claim.",
+    "REPOSITORY_VERIFIED": "Objective repository/database state supports the claim.",
+    "PRIVATE_DOCUMENTED": "A durable private document supports the claim; this is documentary evidence but not independent third-party verification.",
+    "HUMAN_ATTESTED": "Claim is supported only by the completed human interrogation at this stage.",
+    "PARTIAL": "Some components are documented but the full claim is not.",
+    "CONTRADICTED": "Retrieved sources conflict; do not use the disputed detail externally until resolved.",
+    "UNRESOLVED": "No supporting evidence was located in the retrieved surfaces."
+  },
+  "projects": [
+    {
+      "project_id": "PER-HUMANAIOS-ACAT-001",
+      "findings": [
+        {
+          "claim": "Formal project-control/governance artifacts exist, including decision logs, issue/PR workflows, zone gates, ratification briefs, and change/version records.",
+          "state": "REPOSITORY_VERIFIED",
+          "locators": [
+            "GitHub: collaborator-ops/decisions/README.md",
+            "GitHub: docs/zone-model.md",
+            "GitHub: seeds/Z2-RATIFICATION-BRIEF.md"
+          ]
+        },
+        {
+          "claim": "HumanAIOS has an already-acquired $5,000 Azure startup credit resource.",
+          "state": "REPOSITORY_VERIFIED",
+          "locators": [
+            "GitHub issue #588"
+          ]
+        },
+        {
+          "claim": "Approximately $350/month of personal funding over the prior six months.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q1.1"
+          ]
+        },
+        {
+          "claim": "HumanAIOS-specific collaborator/reviewer/user scale.",
+          "state": "UNRESOLVED",
+          "locators": []
+        }
+      ]
+    },
+    {
+      "project_id": "PER-PIONEERS-EMR-001",
+      "findings": [
+        {
+          "claim": "Led quality/risk/data work during a major EMR conversion and validated data integrity/post-conversion accuracy.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx",
+            "PRIVATE_DRIVE: later HumanAIOS resume versions"
+          ]
+        },
+        {
+          "claim": "Managed incident reporting/document-control/data-analytics systems and state-directed Hospital Transformation Program work.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx"
+          ]
+        },
+        {
+          "claim": "Athena-to-Epic and Athena-to-Cerner conversion details, 10-to-100+ user scale, cutover/go-live duties, and direct vendor communication.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q2.1-Q2.3"
+          ]
+        },
+        {
+          "claim": "Quantified migration outcome metrics.",
+          "state": "UNRESOLVED",
+          "locators": []
+        },
+        {
+          "claim": "Facility bed count/trauma-level descriptors.",
+          "state": "CONTRADICTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx",
+            "PRIVATE_DRIVE: later HumanAIOS resume versions"
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "PER-BENEWAH-LAB-001",
+      "findings": [
+        {
+          "claim": "Directed hospital laboratory operations with budgeting, staffing, QA/QC, material management, accreditation readiness, and governance participation.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx",
+            "PRIVATE_DRIVE: later resume versions"
+          ]
+        },
+        {
+          "claim": "Siemens Atellica, Beckman Coulter hematology, and Abbott POC implementation/validation/troubleshooting/oversight.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q3.1"
+          ]
+        },
+        {
+          "claim": "Detailed laboratory performance metrics across all categories named in the worksheet.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q3.3"
+          ]
+        },
+        {
+          "claim": "Team size.",
+          "state": "CONTRADICTED",
+          "locators": [
+            "PRIVATE_DRIVE: resume version stating 7 professionals",
+            "PRIVATE_DRIVE/GitHub: later resume version stating 10 employees"
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "PER-LABCORP-QUALITY-001",
+      "findings": [
+        {
+          "claim": "Led cross-functional quality/regulatory work, built a compliance data system, supported regulatory surveys/applications, and drove multi-site process improvement.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx",
+            "PRIVATE_DRIVE: later resume versions"
+          ]
+        },
+        {
+          "claim": "Performed ISO/CAP/CLIA audit and analytical-method-validation work.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE/GitHub: later resume versions"
+          ]
+        },
+        {
+          "claim": "Formal CAPA/deviation/nonconformance/SOP/document-control/training/competency/change-control/effectiveness-check terminology and ownership.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q4.2"
+          ]
+        },
+        {
+          "claim": "Contribution to ISO 15189 certification achievement for the Houston laboratory.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q0.4"
+          ]
+        },
+        {
+          "claim": "Audit/site/finding/closure counts.",
+          "state": "UNRESOLVED",
+          "locators": []
+        }
+      ]
+    },
+    {
+      "project_id": "PER-WAFFLE-OPS-001",
+      "findings": [
+        {
+          "claim": "Managed high-volume restaurant operations with staffing, inventory, financial performance, cost control, training, safety, and P&L responsibility.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: multiple 2026 resume versions",
+            "PRIVATE_GMAIL: application resume attachments"
+          ]
+        },
+        {
+          "claim": "Average sales exceeded $6,000/day and annual unit scale exceeded $1,000,000.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q0.1/Q5.1"
+          ]
+        },
+        {
+          "claim": "Profit increased by more than 3% for two consecutive quarters.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q0.4"
+          ]
+        },
+        {
+          "claim": "Full hiring/performance/discipline/promotion/termination scope.",
+          "state": "PARTIAL",
+          "locators": [
+            "PRIVATE_DRIVE: resume documents recruiting/training/development",
+            "EXP-CAREER-EVIDENCE-001 Q0.5/Q5.2"
+          ]
+        },
+        {
+          "claim": "Detailed supply-chain responsibilities excluding returns/vendor establishment.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q5.3"
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "PER-VALLEYVIEW-SAFETY-001",
+      "findings": [
+        {
+          "claim": "Led patient-safety/compliance initiatives, administered incident reporting, investigated events, supported policy/procedure work, and advised senior management.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx",
+            "PRIVATE_DRIVE: later resume versions"
+          ]
+        },
+        {
+          "claim": "Managed hundreds of events/RCAs/action plans/cases.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q6.1"
+          ]
+        },
+        {
+          "claim": "Specific monthly/weekly committee cadence.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q6.2"
+          ]
+        },
+        {
+          "claim": "Typical patient-safety training groups of 10-20.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q6.3"
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "PER-HUMANAIOS-BOT-001",
+      "findings": [
+        {
+          "claim": "Forecasting bot code, Supabase pipeline, Metaculus profile/runbook, comment path, monitoring queries, and governance controls exist.",
+          "state": "REPOSITORY_VERIFIED",
+          "locators": [
+            "GitHub: tools/Metaculus/main.py",
+            "GitHub: deliverables/metaculus-management-plan.md",
+            "GitHub: deliverables/metaculus-monitoring-queries.md",
+            "GitHub: deliverables/metaculus-aib-entry-runbook.md"
+          ]
+        },
+        {
+          "claim": "Canonical forecast-run table contains recorded production/scored runs.",
+          "state": "REPOSITORY_VERIFIED",
+          "locators": [
+            "Supabase: public.acat_forecast_runs rows=0"
+          ],
+          "result": "FALSE — current canonical table has 0 rows"
+        },
+        {
+          "claim": "Scored forecasting performance / Brier track record exists.",
+          "state": "UNRESOLVED",
+          "locators": [],
+          "result": "No scored performance can be claimed from the canonical table at retrieval time."
+        },
+        {
+          "claim": "Version-control/release/change-management practices exist for the bot.",
+          "state": "PARTIAL",
+          "locators": [
+            "GitHub repository history and v2.3 source change record",
+            "GitHub workflow: .github/workflows/forecasting-tools-031-smoke.yml"
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "PER-STJOES-HPLC-001",
+      "findings": [
+        {
+          "claim": "Biochemical Genetics Technologist at St. Joseph's Hospital and Medical Center, June 2004-August 2011.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx"
+          ]
+        },
+        {
+          "claim": "Developed a body-fluid amino-acid HPLC analyzer into a standardized biochemical-genetics section recognized by CAP, with SOPs, training, QA, proficiency, document control, LIS reporting, budget/purchasing, instrumentation and reagent management.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx"
+          ]
+        },
+        {
+          "claim": "Capital requests exceeded $1,000,000.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q0.1"
+          ]
+        },
+        {
+          "claim": "Inherited project was dead-on-arrival/nonfunctional.",
+          "state": "HUMAN_ATTESTED",
+          "locators": [
+            "EXP-CAREER-EVIDENCE-001 Q8.4"
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "PER-BARROW-PROTEOMICS-001",
+      "findings": [
+        {
+          "claim": "Historical resume documents co-launch of an LC/MS Proteomics Research Laboratory and laboratory developer/co-manager role at Barrow/St. Joseph's.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx"
+          ]
+        },
+        {
+          "claim": "Carly R. Anderson coauthored the 2009 peer-reviewed MALDI-TOF paper.",
+          "state": "PUBLIC_VERIFIED",
+          "locators": [
+            "PubMed PMID 19940340",
+            "DOI 10.1255/ejms.1030"
+          ]
+        },
+        {
+          "claim": "Exact grant award, amount, and grant-administration responsibility.",
+          "state": "UNRESOLVED",
+          "locators": []
+        }
+      ]
+    },
+    {
+      "project_id": "PER-MEDFUSION-QA-001",
+      "findings": [
+        {
+          "claim": "Built a QA/problem-resolution function integrating CRM and LIS, managed staff/workflows/escalations, created tracking/dashboard capability, and performed compliance analytics.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Resume UTD 2024.docx"
+          ]
+        },
+        {
+          "claim": "Quantified reduction in exceptions/escalations and productivity change.",
+          "state": "UNRESOLVED",
+          "locators": []
+        }
+      ]
+    },
+    {
+      "project_id": "PER-BRIDGEWAY-AI-OPS-001",
+      "findings": [
+        {
+          "claim": "Practice-management work included Athena EHR, Phreesia scheduling/data flows, reporting dashboards, M365 Copilot integration, and payer/program coordination.",
+          "state": "PRIVATE_DOCUMENTED",
+          "locators": [
+            "PRIVATE_DRIVE: Carly_Robert_Anderson_Resume_Updated.docx and related resume versions"
+          ]
+        },
+        {
+          "claim": "Exact employment dates/status.",
+          "state": "CONTRADICTED",
+          "locators": [
+            "PRIVATE_DRIVE: multiple resume versions"
+          ]
+        },
+        {
+          "claim": "Quantified operational/AI-integration outcomes.",
+          "state": "UNRESOLVED",
+          "locators": []
+        }
+      ]
+    }
+  ],
+  "retrieval_contradictions": [
+    {
+      "subject": "Benewah team size",
+      "sources": [
+        "older/private resume: team of 7",
+        "later/current resume: 10 employees"
+      ],
+      "disposition": "Do not use a numeric team size externally until reconciled."
+    },
+    {
+      "subject": "Pioneers facility descriptors",
+      "sources": [
+        "older/private resume: 19-bed including swing-bed and Level 2 Trauma Emergency Department",
+        "later/current resume: 16-bed and Trauma Level 1 rural hospital"
+      ],
+      "disposition": "Exclude bed/trauma-level descriptors until verified from authoritative institutional records."
+    },
+    {
+      "subject": "Bridgeway employment dates/status",
+      "sources": [
+        "resume versions differ"
+      ],
+      "disposition": "Use role/capability evidence, but verify exact dates before external use."
+    }
+  ],
+  "newly_recovered_projects": [
+    "PER-STJOES-HPLC-001",
+    "PER-BARROW-PROTEOMICS-001",
+    "PER-MEDFUSION-QA-001",
+    "PER-BRIDGEWAY-AI-OPS-001"
+  ],
+  "external_use_rule": "Only PUBLIC_VERIFIED, REPOSITORY_VERIFIED, or appropriately scoped PRIVATE_DOCUMENTED claims may be promoted automatically. HUMAN_ATTESTED, PARTIAL, CONTRADICTED, and UNRESOLVED claims require explicit review or further evidence before external use.",
+  "authority_effect": "NONE"
+}

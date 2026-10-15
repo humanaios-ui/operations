@@ -1,0 +1,32 @@
+{
+  "artifact_type": "WORKSPACE_EVIDENCE_BUS_BOOTSTRAP_RECEIPT",
+  "session_id": "SESSION-WORKSPACE-EVIDENCE-BUS-001",
+  "issue": 681,
+  "observed_at": "2026-10-02T20:52:00Z",
+  "authority_effect": "NONE",
+  "read_back_verified": true,
+  "artifacts": [
+    {
+      "role": "deployment_state",
+      "store": "DRIVE",
+      "opaque_id": "11EgHtelUYGFGA5uYHZPzn6wIf1q717tg",
+      "sha256": "bda81e9ea6e2cff789ea66689e0be7451a6af6a609828c63a6b67cf5e159e20b"
+    },
+    {
+      "role": "reference_runtime_state",
+      "store": "DRIVE",
+      "opaque_id": "1C3caDIdK420n4fVL0Pnbe9OJpKXq-MAf",
+      "sha256": "e4074e621bd8c4d081c75ddab8c0ebcd3cefcb6ed19a8d43602e007bfcfa4e3d"
+    },
+    {
+      "role": "hmbm_cycle_003_state",
+      "store": "DRIVE",
+      "opaque_id": "1f8SSN571irttuQnrxFPBqdWve9lkHmH0",
+      "sha256": "093cf9387853c5f323aa3bf8851b022c305f52768abcec444cb0579b3dc9beeb"
+    }
+  ],
+  "hmbm": {
+    "cycle_002": "PRESERVED_DO_NOT_RECONSTRUCT",
+    "cycle_003": "INIT_PENDING"
+  }
+}

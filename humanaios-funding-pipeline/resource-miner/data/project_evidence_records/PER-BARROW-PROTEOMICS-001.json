@@ -1,0 +1,105 @@
+{
+  "project_id": "PER-BARROW-PROTEOMICS-001",
+  "title": "LC/MS Proteomics Research Laboratory Co-Launch",
+  "organization": "Barrow Neurological Institute / St. Joseph's Hospital and Medical Center — Phoenix, AZ",
+  "source_role": "Junior Research Technician / Laboratory Developer-Co-manager",
+  "time_window": "June 2004 – August 2011",
+  "mandate": "Help establish an LC/MS proteomics research laboratory supporting neurological research.",
+  "objective": "Co-launch laboratory capability, support proteomics/mass-spectrometry research, and contribute to publishable experimental work.",
+  "scope": [
+    "LC/MS proteomics laboratory buildout",
+    "mass-spectrometry research",
+    "laboratory development",
+    "research operations",
+    "experimental support"
+  ],
+  "stakeholders": [
+    "neurology research leadership",
+    "laboratory researchers",
+    "grant-supported research program"
+  ],
+  "constraints": [
+    "research-laboratory buildout",
+    "grant-supported resources",
+    "technical reproducibility"
+  ],
+  "resources_controlled": [
+    "laboratory development responsibilities",
+    "LC/MS/proteomics workflows"
+  ],
+  "risks_dependencies": [
+    "instrument readiness",
+    "method reproducibility",
+    "grant resources",
+    "research data quality"
+  ],
+  "execution": [
+    "Historical resume states co-launch of an LC/MS Proteomics Research Laboratory under a neurologist with grant support.",
+    "Served as laboratory developer/co-manager and junior research technician.",
+    "Participated in MALDI-TOF hydrogen/deuterium-exchange research that resulted in a peer-reviewed publication."
+  ],
+  "deliverables": [
+    "LC/MS proteomics research capability",
+    "experimental mass-spectrometry work",
+    "peer-reviewed publication contribution"
+  ],
+  "validation": [
+    "Historical resume documents the lab co-launch/developer role.",
+    "PubMed/OpenAlex independently document the 2009 MALDI-TOF publication and Carly R. Anderson authorship; OpenAlex associates the author with Barrow Neurological Institute."
+  ],
+  "outcomes": [
+    "Research contribution culminated in peer-reviewed publication on MALDI-TOF monitoring of hydrogen/deuterium exchange."
+  ],
+  "metrics": [
+    "Peer-reviewed publication: PMID 19940340 / DOI 10.1255/ejms.1030"
+  ],
+  "capability_tags": [
+    "RESEARCH_LAB_BUILDOUT",
+    "LC_MS",
+    "MALDI_TOF",
+    "PROTEOMICS",
+    "RESEARCH_OPERATIONS",
+    "PUBLICATION",
+    "BUILD_FROM_ZERO"
+  ],
+  "evidence": [
+    {
+      "claim": "Historical resume documents Junior Research Technician / Laboratory Developer-Co-manager work at Barrow Neurological Institute and co-launch of an LC/MS proteomics research laboratory.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Resume UTD 2024.docx — Barrow/St. Joseph's research section"
+    },
+    {
+      "claim": "Carly R. Anderson is a coauthor of the 2009 peer-reviewed MALDI-TOF paper on calcium-modulated calmodulin and S100b structures.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "PUBLICATION",
+      "locator": "PubMed PMID 19940340; DOI 10.1255/ejms.1030"
+    },
+    {
+      "claim": "Public bibliographic metadata associates Carly R. Anderson with Barrow Neurological Institute for the published research.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "PUBLICATION",
+      "locator": "OpenAlex record for DOI 10.1255/ejms.1030"
+    }
+  ],
+  "unknowns": [
+    {
+      "field": "grant_details",
+      "reason": "Historical resume identifies grant support but retrieved evidence does not independently establish grant amount, award identifier, or exact role in grant administration.",
+      "interrogation_prompt": "Retrieve grant/project records only if grant-management experience is needed externally.",
+      "market_signal_ids": [
+        "JRS-BUDGET-001"
+      ]
+    },
+    {
+      "field": "lab_buildout_scale",
+      "reason": "Exact equipment budget, staffing, launch date, and operating throughput are not documented in retrieved sources.",
+      "interrogation_prompt": "Use institutional/project records if quantitative buildout scope is needed.",
+      "market_signal_ids": [
+        "JRS-IMPLEMENTATION-SCALE-001",
+        "JRS-METRICS-001"
+      ]
+    }
+  ],
+  "authority_effect": "NONE"
+}

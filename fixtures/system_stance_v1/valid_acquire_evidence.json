@@ -1,0 +1,65 @@
+{
+  "schema": "humanaios/system_stance_v1",
+  "advisory_only": true,
+  "can_authorize": false,
+  "authority_effect": "NONE",
+  "subject": {
+    "repository": "humanaios-ui/operations",
+    "ref": "878f107eb757c6ee22d1937aadc01aa19d6bd3f9",
+    "scope": "Golden system-stance contract fixture"
+  },
+  "overall_stance": "ACQUIRE_EVIDENCE",
+  "stance_rationale": "The assessment remains advisory while one pre-action requirement is unresolved.",
+  "certainty": {
+    "level": "MODERATE",
+    "basis": "The fixture exercises the canonical schema boundary.",
+    "limitations": [
+      "This is a contract fixture, not an operational assessment."
+    ]
+  },
+  "opportunity_scan": {
+    "status": "PARTIAL",
+    "scope": "Golden fixture scope",
+    "limitations": [
+      "Only schema behavior is under test."
+    ],
+    "opportunities": [
+      {
+        "id": "OP-GOLDEN-1",
+        "description": "A bounded opportunity represented for contract validation.",
+        "propositions": [
+          {
+            "claim": "The golden fixture is intended to validate schema behavior.",
+            "evidence": [
+              {
+                "relation": "SUPPORTS",
+                "kind": "test",
+                "locator": "tests/test_system_stance_schema.py:1",
+                "observation": "The schema test suite validates golden records against system_stance_v1."
+              }
+            ],
+            "certainty": {
+              "level": "HIGH",
+              "basis": "The fixture and test are repository-controlled artifacts.",
+              "limitations": [
+                "This does not establish an external-world fact."
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "pre_action_requirements": [
+    {
+      "check": "Confirm the remaining evidence requirement before consequential action.",
+      "status": "OPEN",
+      "verification": "Provide evidence that directly satisfies this bounded requirement.",
+      "evidence": []
+    }
+  ],
+  "not_established": [
+    "That any consequential action is authorized."
+  ],
+  "created_at": "2026-10-04T14:00:00Z"
+}

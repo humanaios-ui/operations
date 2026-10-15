@@ -1,0 +1,60 @@
+name: graph-capture-lint
+
+# Scores the canonical graph multiplex (crb/README.md) against the nine
+# properties of a graph that cannot be wrong from the inside. P1-P3 block
+# unless listed in crb/graph_capture_baseline.json; a baseline entry that no
+# longer fails also blocks, so the baseline only ratchets down.
+
+on:
+  pull_request:
+    paths:
+      - 'INTENT_GRAPH.yaml'
+      - 'system_graph.json'
+      - 'EVIDENCE_GRAPH.json'
+      - 'crb/capability_graph.json'
+      - 'crb/morphogenesis.json'
+      - 'crb/graph_capture_baseline.json'
+      - 'tools/graph_capture_lint_v1_0.py'
+      - 'tools/tests/test_graph_capture_lint.py'
+      - 'tools/tests/fixtures/graph_capture_*.json'
+      - '.github/workflows/graph-capture-lint.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'INTENT_GRAPH.yaml'
+      - 'system_graph.json'
+      - 'EVIDENCE_GRAPH.json'
+      - 'crb/capability_graph.json'
+      - 'crb/morphogenesis.json'
+      - 'crb/graph_capture_baseline.json'
+      - 'tools/graph_capture_lint_v1_0.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: python3 -m pip install --quiet pyyaml pytest
+
+      - name: Smoke test
+        run: python3 tools/graph_capture_lint_v1_0.py --smoke-test
+
+      - name: Unit tests
+        run: python3 -m pytest tools/tests/test_graph_capture_lint.py -q
+
+      - name: Canonical graph set against the baseline (blocking)
+        run: python3 tools/graph_capture_lint_v1_0.py --all --baseline crb/graph_capture_baseline.json
+
+      - name: Full report, advisory included (informational)
+        if: always()
+        run: python3 tools/graph_capture_lint_v1_0.py --all || true

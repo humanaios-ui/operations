@@ -24,7 +24,12 @@ def parse_deadline(deadline_str: str | None) -> datetime | None:
 
 
 def check_deadlines(opportunities_file: str = "data/ranked_opportunities.json", days_ahead: int = 30, dry_run: bool = False) -> dict:
-    """Check for deadlines and categorize by urgency."""
+    """List opportunities with deadline metadata (OBSERVATIONAL only, no urgency-based categorization).
+
+    NOTE: This function provides deadline information for reference only (OBSERVATIONAL class per Q-TEMPORAL-DISSOLUTION-01).
+    Deadlines are NOT used to prioritize work. Work prioritization is resource-state based (PRIORITY_QUEUE.md).
+    External regulatory deadlines require Z2 ratification via external_constraint schema.
+    """
     if not Path(opportunities_file).exists():
         return {"status": "error", "message": f"File not found: {opportunities_file}"}
 
@@ -32,55 +37,69 @@ def check_deadlines(opportunities_file: str = "data/ranked_opportunities.json", 
         opportunities = json.load(f)
 
     now = datetime.now()
-    results: dict[str, list[dict[str, Any]]] = {
-        "urgent": [],  # < 7 days
-        "soon": [],    # 7-30 days
-        "upcoming": [], # 30+ days
-        "rolling": [],  # No deadline
-    }
+    valid_opportunities = []
+    expired_opportunities = []
 
     for opp in opportunities:
         deadline_str = opp.get("deadline")
+
+        # Handle rolling deadlines (no deadline provided)
         if deadline_str and deadline_str.lower() == "rolling":
-            results["rolling"].append(opp)
+            valid_opportunities.append({
+                "opportunity": opp,
+                "deadline_type": "rolling",
+                "deadline_parsed": None,
+                "days_until_deadline": None
+            })
             continue
 
+        # Parse deadline if present
         deadline = parse_deadline(deadline_str)
         if not deadline:
+            valid_opportunities.append({
+                "opportunity": opp,
+                "deadline_type": "unknown",
+                "deadline_parsed": None,
+                "days_until_deadline": None
+            })
             continue
 
         days_left = (deadline - now).days
 
         if days_left < 0:
-            continue  # Skip past deadlines
-        elif days_left < 7:
-            results["urgent"].append({"opp": opp, "days": days_left})
-        elif days_left < 30:
-            results["soon"].append({"opp": opp, "days": days_left})
+            # Expired opportunity - exclude from results
+            expired_opportunities.append({
+                "opportunity": opp,
+                "deadline_parsed": deadline.isoformat(),
+                "days_expired": abs(days_left)
+            })
         else:
-            results["upcoming"].append({"opp": opp, "days": days_left})
+            # Valid opportunity - store with deadline metadata (OBSERVATIONAL)
+            valid_opportunities.append({
+                "opportunity": opp,
+                "deadline_type": "dated",
+                "deadline_parsed": deadline.isoformat(),
+                "days_until_deadline": days_left
+            })
 
     # Print summary
     if not dry_run:
-        print(f"📊 Deadline Check Summary ({datetime.now().strftime('%Y-%m-%d %H:%M UTC')})")
-        print(f"  🚨 URGENT (<7d):  {len(results['urgent'])}")
-        print(f"  ⏰ SOON (7-30d):   {len(results['soon'])}")
-        print(f"  📅 UPCOMING (30+): {len(results['upcoming'])}")
-        print(f"  🔄 ROLLING:        {len(results['rolling'])}")
-
-        for item in results["urgent"]:
-            opp = item["opp"]
-            days = item["days"]
-            print(f"     🚨 {opp.get('name')} — {days}d ({opp.get('deadline')})")
+        print(f"📊 Opportunity Listing ({datetime.now().strftime('%Y-%m-%d %H:%M UTC')})")
+        print(f"  ✅ ACTIVE:         {len(valid_opportunities)}")
+        print(f"  ⏳ EXPIRED:        {len(expired_opportunities)}")
+        print("")
+        print("NOTE: Deadline metadata provided for reference (OBSERVATIONAL class).")
+        print("Work prioritization uses resource-state allocation, not calendar proximity.")
+        print("External regulatory deadlines require Z2 ratification.")
 
     return {
         "status": "ok",
         "checked_at": now.isoformat(),
+        "temporal_class": "OBSERVATIONAL",
         "summary": {
-            "urgent": len(results["urgent"]),
-            "soon": len(results["soon"]),
-            "upcoming": len(results["upcoming"]),
-            "rolling": len(results["rolling"]),
+            "active_opportunities": len(valid_opportunities),
+            "expired_opportunities": len(expired_opportunities),
         },
-        "details": results,
+        "opportunities": valid_opportunities,
+        "expired": expired_opportunities,
     }

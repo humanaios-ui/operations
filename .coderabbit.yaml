@@ -4,17 +4,18 @@ language: "en-US"
 early_access: false
 
 tone_instructions: >-
-  Be concise, evidence-focused, and adversarial without being stylistic.
-  Prioritize correctness, security, authority-boundary violations, provenance gaps,
-  scope drift, broken invariants, and claims that are not supported by the diff or CI.
-  Distinguish observed defects from uncertainty. Do not treat review findings as merge authority.
+  Be concise, evidence-focused, and adversarial. Prioritize correctness, security,
+  authority boundaries, provenance gaps, scope drift, invariants, and unsupported
+  claims. Distinguish observed defects from uncertainty; never imply merge authority.
 
 reviews:
   profile: "assertive"
   request_changes_workflow: false
   high_level_summary: true
   review_status: true
-  commit_status: false
+  review_details: true
+  commit_status: true
+  fail_commit_status: true
   poem: false
   collapse_walkthrough: false
   auto_review:
@@ -44,6 +45,3 @@ reviews:
       instructions: >-
         Treat discovered resources as candidates, not eligibility findings or
         recommendations. Preserve provenance, uncertainty, and verification boundaries.
-
-chat:
-  auto_reply: true

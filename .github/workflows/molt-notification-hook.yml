@@ -10,7 +10,6 @@ on:
       - main
     paths:
       - 'MOLT_STATE.md'
-      - '.molt-control/**'
   pull_request:
     paths:
       - 'MOLT_STATE.md'

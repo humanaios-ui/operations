@@ -1,0 +1,115 @@
+{
+  "reload_id": "WORK-FRONTIER-RELOAD-20261002",
+  "observed_at": "2026-10-02T16:45:30-05:00",
+  "authority_effect": "NONE",
+  "verified_resources": [
+    {
+      "resource_id": "RES-1C9FBF03A141E032",
+      "title": "GovAI Entrepreneur-in-Residence",
+      "currentness": "VERIFIED_ACTIVE",
+      "primary_source": "https://www.governance.ai/post/eir",
+      "evidence": [
+        "12-month salaried EIR role",
+        "rolling expressions of interest",
+        "approximately $150,000 seed funding via partner funders",
+        "selection process: short written application, max-2-page pitch, references, 1-2 interviews",
+        "essential qualifications emphasize building/shipping, AI-governance context, judgment under uncertainty, project-impact reasoning, rigor, feedback, communication"
+      ],
+      "application_fit": "SUPPORTED",
+      "fit_basis": [
+        "HumanAIOS/ACAT and repository work provide build/ship evidence",
+        "HumanAIOS control graph + Witness assurance layer is within the previously selected project boundary",
+        "GovAI explicitly lists automating AI governance and evaluation/assurance-adjacent projects among example directions"
+      ],
+      "remaining_boundary": [
+        "Selection remains external; VERIFIED/SUPPORTED is not an offer or acceptance prediction",
+        "Location is case-by-case and visa sponsorship is unavailable"
+      ]
+    },
+    {
+      "resource_id": "RES-7989E71F74E9CDFF",
+      "title": "BlueDot Career Transition Grants",
+      "currentness": "VERIFIED_ACTIVE",
+      "primary_source": "https://bluedot.org/grants/career-transition",
+      "evidence": [
+        "full-time personal transition program for AI safety or biosecurity",
+        "applications open to everyone",
+        "requires recent evidence, work samples, milestones, theory of change, and simple budget",
+        "cannot be done alongside full- or part-time work",
+        "program may route applicants to another BlueDot funding path if more appropriate"
+      ],
+      "application_fit": "SUPPORTED_WITH_BUDGET_DETAIL_PENDING",
+      "fit_basis": [
+        "Recent HumanAIOS/ACAT work supplies relevant momentum and work samples",
+        "12-month full-time transition has been confirmed by the user",
+        "base personal runway request is $72,000 at $6,000/month"
+      ],
+      "remaining_boundary": [
+        "The $2,400 health-insurance/tax-reserve/required-cost figure still needs its time basis confirmed before final budget submission",
+        "If full-time employment becomes active, the BlueDot branch must be replayed because the grant is full-time-exclusive"
+      ]
+    }
+  ],
+  "user_preference_dispositions": [
+    {
+      "resource_id": "RES-46C09D5556C9A413",
+      "title": "Mercor Analytical Chemist",
+      "disposition": "PASS",
+      "reason_class": "USER_PREFERENCE_ONLY",
+      "currentness_preserved": "ACTIVE",
+      "eligibility_preserved": "UNASSESSED",
+      "route_after_reconciliation": "ARCHIVE",
+      "next_operation": "NONE"
+    },
+    {
+      "resource_id": "RES-51AFAED9DEC24A74",
+      "title": "DataAnnotation Chemist",
+      "disposition": "PASS",
+      "reason_class": "USER_PREFERENCE_ONLY",
+      "currentness_preserved": "ACTIVE",
+      "eligibility_preserved": "UNASSESSED",
+      "route_after_reconciliation": "ARCHIVE",
+      "next_operation": "NONE"
+    }
+  ],
+  "replacements": [
+    {
+      "resource_id": "RES-26D48CDE47BB2BB0",
+      "title": "Convergent Research Program Launch Manager",
+      "currentness": "VERIFIED_ACTIVE",
+      "primary_source": "https://jobs.lever.co/convergentresearch/7b0506c1-caf2-4e92-9a44-d062c7a9b988",
+      "why_admitted": [
+        "project/program management rather than chemistry-specialist work",
+        "launches scientific organizations and founder programs",
+        "requires ownership/dependency/risk tracking, operating systems, handoffs, vendor/partner coordination, and AI-enabled process improvement",
+        "current master PER evidence includes launch/build-from-zero, regulated operations, cross-functional leadership, research operations, vendor coordination, and automation"
+      ],
+      "route": "VERIFY_NOW"
+    },
+    {
+      "resource_id": "RES-F6915EA87AD51B54",
+      "title": "Deepgram Senior Program Manager, Data Operations",
+      "currentness": "VERIFIED_ACTIVE",
+      "primary_source": "https://jobs.ashbyhq.com/Deepgram/681c5324-1234-4222-b783-a8a7a9440005",
+      "why_admitted": [
+        "AI/data program management rather than chemistry-specialist work",
+        "end-to-end data workflow design, labeling/evaluation, provenance, quality, automation, vendor management, and cross-functional research/engineering/product execution",
+        "current PER evidence includes ACAT data/evaluation operations, quality systems, provenance, automation, vendor work, and program execution"
+      ],
+      "route": "VERIFY_NOW"
+    }
+  ],
+  "controller_rules": [
+    "USER PASS != INELIGIBLE",
+    "USER PASS != STALE",
+    "USER PASS persists across later currentness refreshes until explicitly changed",
+    "replacement search is scoped to this frontier decision and does not establish a global no-chemistry preference"
+  ],
+  "engine_state": {
+    "candidates_after_reload": 51,
+    "passed_chemist_roles_archived": 2,
+    "new_verified_replacements": 2,
+    "govai_eir": "VERIFY_NOW / ACTIVE / VERIFY_ELIGIBILITY",
+    "bluedot_ctg": "VERIFY_NOW / ACTIVE / VERIFY_ELIGIBILITY"
+  }
+}

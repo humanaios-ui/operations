@@ -36,6 +36,16 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.z1-control/board_monitor.py\""
+          }
+        ]
+      }
     ]
   }
 }

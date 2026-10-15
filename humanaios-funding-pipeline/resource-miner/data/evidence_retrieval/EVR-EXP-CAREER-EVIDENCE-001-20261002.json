@@ -1,0 +1,219 @@
+{
+  "retrieval_id": "EVR-EXP-CAREER-EVIDENCE-001-20261002",
+  "experiment_id": "EXP-CAREER-EVIDENCE-001",
+  "status": "COMPLETE_FIRST_PASS",
+  "completed_at": "2026-10-02",
+  "scope": [
+    "GitHub operations repository",
+    "Google Drive documents accessible to the connected account",
+    "Gmail search for named project/employer evidence",
+    "conversation/library resume artifacts",
+    "public authoritative web sources"
+  ],
+  "sources": [
+    {
+      "source_id": "SRC-DRIVE-RESUME-2024",
+      "source_type": "PRIVATE_DOCUMENT",
+      "title": "Resume UTD 2024.docx",
+      "visibility": "PRIVATE",
+      "supports": [
+        "Valley View patient-safety program implementation, incident-reporting administration, investigations, policy/procedure work, regulatory compliance, multidisciplinary leadership",
+        "Pioneers Medical Center quality/risk program ownership, Colorado Hospital Transformation Program implementation, document-control/data-analytics administration, interdepartmental coordination",
+        "Benewah Community Hospital laboratory operations, quality control, material management, budgeting, governance participation",
+        "Labcorp regional quality/regulatory leadership, compliance-metrics system, regulatory surveys/applications, continuous-improvement work across multiple sites",
+        "St. Joseph's Hospital and Medical Center employment June 2004-August 2011 as Biochemical Genetics Technologist; HPLC body-fluid amino-acid analyzer development into a standardized CAP-recognized biochemical genetics section; SOPs, training, QA, proficiency policies, document control, LIS reporting, budget/purchasing, clinical trials, research extension",
+        "St. Joseph's/Barrow's Junior Research Technician work and co-launch of an LC/MS proteomics research laboratory"
+      ]
+    },
+    {
+      "source_id": "SRC-RESUME-CURRENT",
+      "source_type": "RESUME",
+      "title": "Carly_Anderson_Resume.pdf / RM-002 Chemistry QA resume",
+      "visibility": "PRIVATE_LIBRARY",
+      "supports": [
+        "HumanAIOS/ACAT design, validation, corrections-ledger, automation and provenance",
+        "Benewah COVID diagnostic-platform validation and discordant-result investigation",
+        "Pioneers system-wide migration/data-integrity role",
+        "Labcorp CAP/CLIA/ISO audit and method-validation experience",
+        "Valley View patient-safety and Hospital Transformation Program role",
+        "HumanAIOSBot deployment description and cost model"
+      ]
+    },
+    {
+      "source_id": "SRC-GITHUB-METACULUS",
+      "source_type": "REPOSITORY",
+      "title": "tools/Metaculus/main.py + forecasting-tools smoke workflow",
+      "visibility": "PUBLIC_REPOSITORY",
+      "supports": [
+        "HumanAIOS forecasting-bot implementation exists in code",
+        "Tournament, MiniBench, and test-question execution paths exist",
+        "Supabase P1/P2/P3 logging, Metaculus comment posting, secrets/env-variable requirements, rate-limit/error handling and model provenance are implemented",
+        "Compatibility smoke workflow verifies forecasting-tools API imports and tournament identifiers"
+      ],
+      "does_not_support": [
+        "Public leaderboard rank",
+        "forecast accuracy/calibration result",
+        "number of resolved forecasts",
+        "competition placement"
+      ]
+    },
+    {
+      "source_id": "SRC-PUBMED-19940340",
+      "source_type": "PUBLICATION",
+      "title": "The calcium-modulated structures of calmodulin and S100b proteins...",
+      "visibility": "PUBLIC",
+      "supports": [
+        "Carly R. Anderson is a listed coauthor on a 2009 peer-reviewed MALDI-TOF mass-spectrometry paper"
+      ],
+      "does_not_support": [
+        "HPLC laboratory buildout",
+        "capital request amount",
+        "specific St. Joseph's operational role"
+      ]
+    },
+    {
+      "source_id": "SRC-CAP-LABCORP-HOUSTON",
+      "source_type": "PRIMARY_SOURCE",
+      "title": "CAP ISO 15189 accreditation records for Laboratory Corporation of America - Houston",
+      "visibility": "PUBLIC",
+      "supports": [
+        "Labcorp Houston is/has been an ISO 15189-accredited laboratory"
+      ],
+      "does_not_support": [
+        "Carly Anderson's individual contribution to that accreditation"
+      ]
+    }
+  ],
+  "resolutions": [
+    {
+      "project_id": "PER-STJOES-HPLC-001",
+      "status": "MATERIAL_EVIDENCE_RECOVERED",
+      "promoted_to_source_supported": [
+        "Employment at St. Joseph's Hospital and Medical Center / Phoenix from June 2004 to August 2011",
+        "Biochemical Genetics Technologist role",
+        "HPLC body-fluid amino-acid analyzer developed into a standardized biochemical genetics section recognized by CAP",
+        "SOP creation for instrumentation/LIS/specimen processing",
+        "training procedures and skill-evaluation documentation",
+        "QA, proficiency-policy, document-control and LIS-reporting responsibilities",
+        "budget and purchasing responsibility",
+        "research extension/clinical-trial work",
+        "co-launch of LC/MS proteomics research laboratory"
+      ],
+      "remains_human_attested": [
+        "More than $1,000,000 capital request amount",
+        "description of inherited project as dead-on-arrival",
+        "exact operational outcome/throughput after buildout"
+      ]
+    },
+    {
+      "project_id": "PER-VALLEYVIEW-SAFETY-001",
+      "status": "PARTIALLY_PROMOTED",
+      "promoted_to_source_supported": [
+        "patient-safety protocol implementation",
+        "internal incident-reporting system administration",
+        "incident investigation and reporting",
+        "policy/procedure editing",
+        "regulatory compliance/risk mitigation",
+        "multidisciplinary collaboration and senior-management advice"
+      ],
+      "remains_human_attested": [
+        "hundreds of safety-event/RCA/follow-up cases",
+        "specific committee cadence",
+        "10-20 training-group size"
+      ]
+    },
+    {
+      "project_id": "PER-PIONEERS-EMR-001",
+      "status": "PARTIALLY_PROMOTED",
+      "promoted_to_source_supported": [
+        "quality/risk system ownership across hospital and ancillary clinics",
+        "Colorado Medicaid Hospital Transformation Program implementation leadership",
+        "incident-reporting/document-control/data-analytics software administration",
+        "interdepartmental handoff/program coordination"
+      ],
+      "remains_human_attested": [
+        "Athena-to-Epic/Cerner exact conversion attribution",
+        "10-to-100+ user scale",
+        "specific cutover/go-live task list",
+        "direct vendor communication"
+      ]
+    },
+    {
+      "project_id": "PER-BENEWAH-LAB-001",
+      "status": "PARTIALLY_PROMOTED",
+      "promoted_to_source_supported": [
+        "hospital laboratory operations leadership",
+        "quality assurance/control",
+        "material management",
+        "budgeting",
+        "hospital governance participation"
+      ],
+      "remains_human_attested": [
+        "Siemens Atellica / Beckman Coulter / Abbott POC platform details",
+        "ownership across every listed lab performance metric"
+      ]
+    },
+    {
+      "project_id": "PER-LABCORP-QUALITY-001",
+      "status": "PARTIALLY_PROMOTED",
+      "promoted_to_source_supported": [
+        "cross-functional quality/regulatory leadership for Midwest region",
+        "compliance-metrics data-management system",
+        "regulatory survey/application operations",
+        "continuous-improvement work across multiple sites with reduced regulatory violations"
+      ],
+      "remains_human_attested": [
+        "formal ownership of every CAPA/document-control/change-control subfunction",
+        "individual contribution to Houston ISO 15189 certification",
+        "dashboard coverage of every metric listed in the questionnaire"
+      ],
+      "organization_level_public_support": [
+        "Labcorp Houston has ISO 15189 accreditation"
+      ]
+    },
+    {
+      "project_id": "PER-HUMANAIOS-BOT-001",
+      "status": "TECHNICAL_IMPLEMENTATION_VERIFIED_PERFORMANCE_UNRESOLVED",
+      "promoted_to_source_supported": [
+        "forecasting-bot implementation",
+        "Metaculus tournament/MiniBench execution code",
+        "Supabase behavioral logging pipeline",
+        "comment posting path",
+        "compatibility smoke tests"
+      ],
+      "remains_unresolved": [
+        "leaderboard placement",
+        "forecast accuracy",
+        "resolved-forecast count",
+        "competition outcome"
+      ]
+    },
+    {
+      "project_id": "PER-WAFFLE-OPS-001",
+      "status": "NO_NEW_DOCUMENTARY_SOURCE_FOUND",
+      "remains_human_attested": [
+        "> $6,000/day average sales",
+        ">3% profit increase for two consecutive quarters",
+        "expanded hiring/performance-management scope beyond current resume"
+      ]
+    }
+  ],
+  "searches_with_no_material_new_evidence": [
+    "Gmail: St. Joseph/HPLC",
+    "Gmail: Labcorp ISO 15189",
+    "Gmail: Pioneers Epic/Cerner/Athena",
+    "Gmail: Benewah Atellica",
+    "Gmail: Waffle House sales/profit",
+    "Google Drive: Siemens Atellica",
+    "Google Drive: Beckman hematology + Abbott POC",
+    "Google Drive: exact Epic/Cerner/Athena conversion terms",
+    "Google Drive: exact Waffle House $6,000/day and 3% profit figures"
+  ],
+  "retrieval_boundary": [
+    "No further human interrogation was used.",
+    "Private-source identifiers/URLs are not embedded in public career claims.",
+    "Source-supported means supported by a located document/repository/public source; it does not imply independent third-party verification when the source is a self-authored resume.",
+    "Organization-level accreditation evidence cannot be promoted into person-level contribution evidence."
+  ],
+  "next_state": "READY_FOR_PER_PROMOTION_AND_RESUME_REGENERATION"
+}

@@ -1,0 +1,45 @@
+schema_version: "0.1"
+oracle_id: ORACLE-DOMAIN-WORKSPACE
+oracle_class: DOMAIN_ORACLE
+domain: workspace
+tracking_issue: 735
+state: LAID
+
+authority: &authority
+  advisory_only: true
+  can_authorize: false
+  authority_effect: NONE
+  can_ratify: false
+  can_merge: false
+
+purpose: Maintain the project/artifact topology across advisory workspace sources without treating file placement as canonical status.
+
+source_oracles:
+  - ORACLE-SOURCE-DRIVE
+  - ORACLE-SOURCE-GITHUB
+
+entity_focus:
+  - PROJECT
+  - SOURCE_OBJECT
+  - ARTIFACT
+  - MANIFEST
+  - CANDIDATE_CHANGE
+
+may:
+  - classify_project_membership
+  - map_artifact_to_project
+  - identify_target_repository_candidate
+  - detect_orphan_artifact
+  - detect_duplicate_or_superseded_artifact
+  - emit_graph_delta
+
+may_not:
+  - infer_authorization_from_folder_location
+  - commit
+  - merge
+  - ratify
+  - mutate_canonical_repository_state
+
+outputs:
+  graph_projection: WORKSPACE_ADVISORY_GRAPH
+  authority_effect: NONE
