@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import pytest
 import subprocess
 import sys
 from pathlib import Path
@@ -629,10 +630,17 @@ def test_hidden_path_exclusion_preserves_leading_dot(tmp_path):
     assert "artifact:.github/workflows/test.yml" not in ids
 
 
+def _symlink_or_skip(target: str, link: Path) -> None:
+    try:
+        os.symlink(target, link)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"symlink creation unavailable: {exc}")
+
+
 def test_tracked_broken_symlink_remains_in_snapshot_inventory(tmp_path):
     repo = _fixture_repo(tmp_path)
     broken = repo / "broken-link.json"
-    os.symlink("missing-target.json", broken)
+    _symlink_or_skip("missing-target.json", broken)
     _run(repo, "git", "add", "broken-link.json")
     _run(repo, "git", "commit", "-q", "-m", "track broken symlink")
     graph = GraphBuilder(repo).build()
@@ -649,7 +657,7 @@ def test_source_graph_symlink_is_rejected(tmp_path):
     target = repo / "EVIDENCE_GRAPH.real.json"
     original = repo / "EVIDENCE_GRAPH.json"
     original.rename(target)
-    os.symlink("EVIDENCE_GRAPH.real.json", original)
+    _symlink_or_skip("EVIDENCE_GRAPH.real.json", original)
     try:
         GraphBuilder(repo).build()
     except SpecLoadFailed as exc:
@@ -726,3 +734,140 @@ def test_method_output_inside_target_repository_is_rejected(tmp_path):
     assert "method output must resolve outside the target repository" in (
         result.stderr + result.stdout
     )
+    assert not (repo / "outputs").exists()
+
+
+def _chat_bridge_fixture(tmp_path):
+    bridge = tmp_path / "public_bridge.json"
+    bridge.write_text(json.dumps({
+        "version": "0.1.0",
+        "graph_namespace": "chatgpt-local-private",
+        "projection_status": "DERIVED_NON_CANONICAL",
+        "relation": "READ_ONLY_PROVENANCE_PROJECTION_PENDING_ADAPTER",
+        "event_count": 4,
+        "chain_head_sha256": "a" * 64,
+        "private_payload_exported": False,
+        "authority_effect": "NONE",
+        "repo": "humanaios-ui/operations",
+        "repository_knowledge_graph_pr": 630,
+        "session_graph_issue": 677,
+        "warning": "Integrity is not source authentication.",
+    }), encoding="utf-8")
+    return bridge
+
+
+def test_opt_in_chat_local_bridge_imports_only_safe_metadata(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    bridge = _chat_bridge_fixture(tmp_path)
+    graph = GraphBuilder(repo, chat_local_bridge=bridge).build()
+    assert validate_graph(graph)["valid"]
+    item = next(n for n in graph["nodes"] if n["id"] == "external:chatgpt-local-private")
+    assert item["properties"]["event_count"] == 4
+    assert item["properties"]["authority_effect"] == "NONE"
+    assert item["properties"]["private_payload_exported"] is False
+    assert "warning" not in item["properties"]
+    assert str(bridge) not in json.dumps(graph)
+    assert "events.jsonl" not in json.dumps(item)
+    assert any(e["to"] == item["id"] and e["evidence_state"] == "CLAIMED" for e in graph["edges"])
+
+
+def test_chat_bridge_rejects_unapproved_private_fields(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    bridge = _chat_bridge_fixture(tmp_path)
+    bad = json.loads(bridge.read_text())
+    bad["transcript"] = "PRIVATE_SECRET_SENTINEL"
+    bridge.write_text(json.dumps(bad))
+    with pytest.raises(SpecLoadFailed, match="strict allowlist"):
+        GraphBuilder(repo, chat_local_bridge=bridge).build()
+
+
+@pytest.mark.parametrize("key,value", [
+    ("authority_effect", "GRANTS_AUTHORITY"),
+    ("private_payload_exported", True),
+    ("event_count", True),
+    ("chain_head_sha256", "not-a-digest"),
+])
+def test_chat_bridge_rejects_authority_and_invalid_payload(tmp_path, key, value):
+    repo = _fixture_repo(tmp_path)
+    bridge = _chat_bridge_fixture(tmp_path)
+    bad = json.loads(bridge.read_text())
+    bad[key] = value
+    bridge.write_text(json.dumps(bad))
+    with pytest.raises(SpecLoadFailed):
+        GraphBuilder(repo, chat_local_bridge=bridge).build()
+
+
+def test_chat_bridge_requires_outside_file_not_symlink(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    bridge = _chat_bridge_fixture(tmp_path)
+    internal = repo / "local-bridge.json"
+    internal.write_bytes(bridge.read_bytes())
+    with pytest.raises(SpecLoadFailed, match="outside the repository"):
+        GraphBuilder(repo, chat_local_bridge=internal).build()
+    link = tmp_path / "alias-bridge.json"
+    _symlink_or_skip(str(bridge), link)
+    with pytest.raises(SpecLoadFailed, match="symlink"):
+        GraphBuilder(repo, chat_local_bridge=link).build()
+
+
+def test_schema_invalid_nodes_do_not_crash_validation(tmp_path):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    graph["nodes"] = [None]
+    result = validate_graph(graph)
+    assert result["valid"] is False and result["errors"]
+
+
+def test_schema_rejects_validity_claim_with_errors(tmp_path):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    graph["validation"]["valid"] = True
+    graph["validation"]["errors"] = ["contradiction"]
+    result = validate_graph(graph)
+    assert result["valid"] is False
+    assert any("schema:" in error for error in result["errors"])
+
+
+def test_query_reports_total_matches_before_limit(tmp_path):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    result = query_graph(graph, search="artifact", limit=1)
+    assert result["matched_count"] > 1
+    assert result["truncated"] is True
+    assert len(result["matched_node_ids"]) == 1
+
+
+def test_python_nested_imports_are_observed(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    nested = repo / "nested.py"
+    nested.write_text("def worker():\\n    from src import engine\\n", encoding="utf-8")
+    _run(repo, "git", "add", "nested.py")
+    _run(repo, "git", "commit", "-q", "-m", "nested import")
+    graph = GraphBuilder(repo).build()
+    assert any(e["from"] == "artifact:nested.py" and
+               e["to"] == "artifact:src/engine.py" and e["relation"] == "IMPORTS"
+               for e in graph["edges"])
+
+
+def test_missing_canonical_artifact_fails_closed(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    profile = repo / "architecture/repository-knowledge-graph/profile.json"
+    data = json.loads(profile.read_text())
+    data["canonical_artifacts"].append({"path": "MISSING.md", "role": "identity_anchor"})
+    profile.write_text(json.dumps(data))
+    with pytest.raises(SpecLoadFailed, match="canonical artifact missing"):
+        GraphBuilder(repo).build()
+
+
+def test_tracked_regular_file_via_symlinked_parent_rejected(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    child = repo / "nested_dir"
+    child.mkdir()
+    (child / "secret.py").write_text("x = 1", encoding="utf-8")
+    _run(repo, "git", "add", "nested_dir/secret.py")
+    _run(repo, "git", "commit", "-q", "-m", "track regular leaf")
+    backup = repo / "nested_dir.original"
+    child.rename(backup)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.py").write_text("PRIVATE_SENTINEL", encoding="utf-8")
+    _symlink_or_skip(str(outside), child)
+    with pytest.raises(SpecLoadFailed, match="outside repository"):
+        GraphBuilder(repo).build()
