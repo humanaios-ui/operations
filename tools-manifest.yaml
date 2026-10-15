@@ -2683,6 +2683,7 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: ci_predict_rollup_v0_1.py
+  session: issue-870
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
