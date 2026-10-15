@@ -18,6 +18,7 @@ import nf_ledger_v0_1 as engine
 TOOL_NAME = "ci_predict_rollup"
 TOOL_VERSION = "0.1.0"
 TOOL_CATEGORY = "calibration_tool"
+TOOL_SESSION = "issue-870"
 TOOL_ZONE = 1
 ROLLING_BRANCH = "ci-predict-consolidate/rolling"
 CONSOLIDATE_TITLE = "ci-predict: consolidate resolved CI predictions"
@@ -110,9 +111,9 @@ def main() -> int:
     parser.add_argument("--smoke-test", action="store_true")
     sub = parser.add_subparsers(dest="command")
     selection = sub.add_parser("select")
-    selection.add_argument("--inventory", type=Path, required=True)
+    selection.add_argument("--inventory", "--input", dest="inventory", type=Path, required=True)
     verify = sub.add_parser("verify-prefix")
-    verify.add_argument("--base", type=Path, required=True)
+    verify.add_argument("--base", "--input", dest="base", type=Path, required=True)
     verify.add_argument("--candidate", type=Path, required=True)
     args = parser.parse_args()
     if args.smoke_test:
