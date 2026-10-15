@@ -1,0 +1,126 @@
+name: knowledge-dashboard-convergence
+# Read-only, exact-head observation. Not an admission, approval, or merge gate.
+on:
+  pull_request:
+    paths:
+      - 'architecture/knowledge_dashboard/**'
+      - '.github/workflows/knowledge-dashboard-convergence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  same-head-observation:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact PR head with full history
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Install parser dependencies
+        run: python3 -m pip install --quiet jsonschema PyYAML
+      - name: Assert exact head and clean repository
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+      - name: Negative controls and deterministic bridge tests
+        run: |
+          python3 architecture/knowledge_dashboard/observation_bridge.py --smoke-test
+          python3 architecture/knowledge_dashboard/render.py --smoke-test
+          python3 -m unittest discover -s architecture/knowledge_dashboard -p 'test_*.py' -v
+      - name: Compile Codebase Atlas at exact head
+        run: |
+          python3 architecture/codebase_atlas.py --repo-root . --out "$RUNNER_TEMP/atlas"
+          python3 - "$RUNNER_TEMP/atlas/atlas.json" <<'PY'
+          import json,subprocess,sys
+          a=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert a['head_sha']==subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          assert a['worktree_clean'] is True and a['authority_effect']=='NONE'
+          assert a['merge_authority'] is False and a['nodes']
+          PY
+      - name: Build twice and validate #630 Repository Knowledge Graph
+        run: |
+          python3 tools/repository_knowledge_graph_v0_1.py method --repo . --output "$RUNNER_TEMP/rkg"
+          python3 tools/repository_knowledge_graph_v0_1.py validate --graph "$RUNNER_TEMP/rkg/graph.json"
+          python3 - "$RUNNER_TEMP/rkg/graph.json" <<'PY'
+          import json,subprocess,sys
+          g=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert g['source']['head_commit']==subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          assert g['source']['worktree_state']=='CLEAN'
+          assert g['validation']['valid'] is True and g['authority_effect']=='NONE'
+          PY
+      - name: Fetch and verify historical compiler from exact #841 head
+        env:
+          PINNED_841: 2e30b982c7ee61b7e16278dff5af9cc6ff95680a
+        run: |
+          git fetch --no-tags origin refs/pull/841/head
+          test "$(git rev-parse FETCH_HEAD)" = "$PINNED_841"
+          git show "$PINNED_841:temporal_graph_timeline.py" > "$RUNNER_TEMP/temporal_graph_timeline.py"
+          test -s "$RUNNER_TEMP/temporal_graph_timeline.py"
+      - name: Recompute historical observations against exact current HEAD
+        env:
+          PINNED_841: 2e30b982c7ee61b7e16278dff5af9cc6ff95680a
+        run: |
+          python3 - "$RUNNER_TEMP/temporal_graph_timeline.py" "$RUNNER_TEMP/timeline.json" <<'PY'
+          import importlib.util,json,pathlib,subprocess,sys,os
+          spec=importlib.util.spec_from_file_location('pinned_timeline_841',sys.argv[1])
+          module=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          module.ROOT=pathlib.Path.cwd()
+          result=module.build()
+          exact=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          result['source_head_sha']=exact
+          result['source_script_commit_sha']=os.environ['PINNED_841']
+          result['authority_effect']='NONE'
+          pathlib.Path(sys.argv[2]).write_text(json.dumps(result,sort_keys=True,indent=2)+'\\n',encoding='utf-8')
+          assert result['source_head_sha']==exact
+          print('Historical nodes:',len(result['nodes']),'fallbacks:',sum(x.get('date_source')=='fallback' for x in result['nodes']))
+          PY
+      - name: Produce verified three-source dashboard and receipt
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 architecture/knowledge_dashboard/observation_bridge.py \
+            --rkg "$RUNNER_TEMP/rkg/graph.json" \
+            --atlas "$RUNNER_TEMP/atlas/atlas.json" \
+            --timeline "$RUNNER_TEMP/timeline.json" \
+            --output "$RUNNER_TEMP/dashboard-projection.json"
+          python3 architecture/knowledge_dashboard/render.py \
+            --projection "$RUNNER_TEMP/dashboard-projection.json" \
+            --out "$RUNNER_TEMP/HumanAIOS_Integrated_Dashboard.html"
+          python3 - "$RUNNER_TEMP/dashboard-projection.json" <<'PY'
+          import json,os,sys
+          g=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert g['authority_effect']=='NONE' and g['can_authorize'] is False
+          assert g['can_execute'] is False and g['merge_authority'] is False
+          assert g['sources']['rkg']['head']==os.environ['EXACT_HEAD']
+          assert g['sources']['atlas']['head']==os.environ['EXACT_HEAD']
+          assert g['sources']['timeline']['source_head_sha']==os.environ['EXACT_HEAD']
+          assert g['sources']['atlas']['status']=='SAME_EXACT_HEAD_VERIFIED'
+          print('MATCHED HEAD:',os.environ['EXACT_HEAD'])
+          print('Graph counts:',len(g['nodes']),len(g['edges']))
+          PY
+      - name: Publish observational artifacts only
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: knowledge-dashboard-exact-head-${{ github.event.pull_request.head.sha }}
+          path: |
+            ${{ runner.temp }}/HumanAIOS_Integrated_Dashboard.html
+            ${{ runner.temp }}/dashboard-projection.json
+            ${{ runner.temp }}/timeline.json
+            ${{ runner.temp }}/atlas/atlas.json
+            ${{ runner.temp }}/rkg/method-receipt.json
+            ${{ runner.temp }}/rkg/manifest.json
+          retention-days: 14
