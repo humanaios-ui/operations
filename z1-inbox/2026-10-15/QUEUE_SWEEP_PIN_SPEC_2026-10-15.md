@@ -23,7 +23,7 @@
 | CONTROL_PLANE | 1 (#606) | 0.30 | Coordinator-policy change, needs ordinary review. `dirty` at index time. |
 | MAINTENANCE | 8 | 0.50 | Routed by cohort. #740's PASS decision was followed by HTTP 403 on the receipt step (run 38058777239), so a PASS decision does not guarantee a success conclusion. |
 | ADVANCE (in ADMISSION_REVIEW) | 4 (#770, #771, #838, #841) | 0.40 | Index says "explicit admission evidence found". Passing still needs a Z2 ADMIT. |
-| REBASE_RETEST, CLOSE_PRESERVE | 11 (9 + 2) | 0.05 | Dirty, behind, or no remaining delta. Cannot pass before a rebase or close. |
+| REBASE_RETEST, CLOSE_PRESERVE | 11 (9 + 2) | 0.05 | Mergeability guidance, not a gate input: the gate checks admission standing, scope drift, duplicate implementations and capacity, not mergeability. The low prior comes from these PRs' admission state (no ADMIT record, and in several cases a closed or superseded lineage), not from `dirty` or `behind`. |
 | REEXAMINE, COMPARE_CONSOLIDATE, ADMISSION_REVIEW (other, incl. #843) | 19 (14 + 4 + 1) | 0.10 | No admission record; gate FAILs until ADMIT. |
 | UNREAD | 12 | 0.10 | Default, pending a receipt read. |
 
@@ -31,10 +31,10 @@ Row count: 1 + 1 + 8 + 4 + 11 + 19 + 12 = 56. Predicted mean across the 56 rows:
 
 ## 3. Window, resolver, and what counts as a result
 
-- **Window:** 2026-10-22 (proposed; Z2 dates it). Each pin is one check-run conclusion at the head SHA recorded at window open.
+- **Window:** 2026-10-22 (proposed; Z2 dates it). Each pin is one check-run conclusion, resolved on the **closing head** (the last head before window close), the same rule used in the resolver below.
 - **Resolver:** tree read. The check-run conclusion and head SHA are the source, not a comment. A PR that moved heads during the window is resolved on its **last head before close**, and the head change is recorded.
 - **Admissions during the window are not fixed.** If Z2 dispatches ADMIT, the prediction stands as written. This makes the pin measure the system's behaviour, including the admission step.
-- **Lineage:** the pins are per PR. Lineage-correlated error (§4b of the plan) is computed from the GNER and ci-predict families after resolution, not in this spec.
+- **Lineage:** these pins are gate-calibration data only. They do not measure lineage-correlated error. The §4b joint-miss statistic and falsifier F6 need confirmed findings on the same heads, from per-finding review records, and this spec does not supply them. Grouping gate outcomes by GNER or ci-predict family is descriptive only.
 
 ## 4. Unread and inferred rows
 
