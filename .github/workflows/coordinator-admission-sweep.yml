@@ -99,6 +99,19 @@ jobs:
               return;
             }
 
+            // Main tree paths — so the missing-referenced-artifact check matches
+            // the advisory index (empty main_paths would spuriously flag refs HIGH
+            // and make the sweep under-admit). policySha is the pinned main HEAD.
+            const mainCommit = await github.rest.git.getCommit({
+              owner, repo, commit_sha: policySha
+            });
+            const mainTree = await github.rest.git.getTree({
+              owner, repo, tree_sha: mainCommit.data.tree.sha, recursive: "true"
+            });
+            const mainPaths = (mainTree.data.tree || [])
+              .filter(x => x.type === "blob" && x.path)
+              .map(x => x.path);
+
             const branch = await github.rest.repos.getBranch({
               owner, repo, branch: stateBranch
             });
@@ -157,7 +170,14 @@ jobs:
                 let files = [];
                 let reviews = [];
                 let filesComplete = false;
+                let mergeableState = "unknown";
                 if (need) {
+                  // Per-PR get supplies mergeable_state so dirty/behind PRs are
+                  // routed REBASE_RETEST (not ADVANCE) — matching the advisory index.
+                  const full = (await github.rest.pulls.get({
+                    owner, repo, pull_number: brief.number
+                  })).data;
+                  mergeableState = full.mergeable_state || "unknown";
                   files = await listFiles(brief.number);
                   filesComplete = true;
                   reviews = await github.paginate(
@@ -181,7 +201,7 @@ jobs:
                   state: brief.state,
                   draft: isDraft,
                   head_sha: brief.head && brief.head.sha ? brief.head.sha : "",
-                  mergeable_state: "unknown",
+                  mergeable_state: mergeableState,
                   files_complete: filesComplete,
                   files: files.map(f => f.filename),
                   file_details: [],
@@ -234,7 +254,7 @@ jobs:
               policy_sha: policySha,
               state_branch: stateBranch,
               state_sha: stateSha,
-              main_paths: [],
+              main_paths: mainPaths,
               referenced_pull_requests: {},
               referenced_items: referencedItems,
               pull_requests: pullRequests
