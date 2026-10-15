@@ -223,7 +223,13 @@ def load_ledger_state(ledger_path: Path) -> tuple:
 
 
 def run(repo: str, pr_number: str, ledger_path: Path) -> int:
-    comments = resolver.gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments")
+    try:
+        comments = resolver.gh_json_paginated(
+            f"repos/{repo}/issues/{pr_number}/comments", strict=True
+        )
+    except resolver.GitHubApiFailure as exc:
+        print(f"FAIL: refusing incomplete consolidation — {exc}", file=sys.stderr)
+        return 1
     pins = collect_trusted_pins(comments, expected_pr=pr_number)
     if not pins:
         print(f"no trusted pin comments on PR {pr_number}; nothing to consolidate")
@@ -237,9 +243,14 @@ def run(repo: str, pr_number: str, ledger_path: Path) -> int:
 
     all_events: List[dict] = []
     for head_sha, pin in pins.items():
-        check_runs = resolver.gh_json_paginated(
-            f"repos/{repo}/commits/{head_sha}/check-runs", key="check_runs"
-        )
+        try:
+            check_runs = resolver.gh_json_paginated(
+                f"repos/{repo}/commits/{head_sha}/check-runs",
+                key="check_runs", strict=True
+            )
+        except resolver.GitHubApiFailure as exc:
+            print(f"FAIL: refusing partial check evidence — {exc}", file=sys.stderr)
+            return 1
         resolutions = resolver.compute_resolutions(pin, check_runs)
         built = build_events(
             pin, resolutions, existing_ids,
