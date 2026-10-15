@@ -288,6 +288,71 @@ def _matches_any(path: str, patterns: Iterable[str]) -> bool:
     return any(fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(name, pattern) for pattern in patterns)
 
 
+
+def _load_chat_local_public_bridge(path_arg: str | Path, repo: Path) -> tuple[dict[str, Any], str]:
+    """Read an explicit metadata-only projection; reject raw private records."""
+    path = Path(path_arg)
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    if path.is_symlink():
+        raise SpecLoadFailed("local bridge may not be a symlink")
+    try:
+        path.absolute().relative_to(repo)
+    except ValueError:
+        pass
+    else:
+        raise SpecLoadFailed("local bridge argument must be outside the repository")
+    try:
+        source = path.resolve(strict=True)
+        source.relative_to(repo)
+    except ValueError:
+        pass
+    except OSError as exc:
+        raise SpecLoadFailed("local bridge source unavailable") from exc
+    else:
+        raise SpecLoadFailed("local bridge source must be outside the repository")
+    if not source.is_file() or source.stat().st_size > 4096:
+        raise SpecLoadFailed("local bridge must be a file of at most 4096 bytes")
+    raw = source.read_bytes()
+    try:
+        record = json.loads(raw)
+    except (UnicodeError, ValueError) as exc:
+        raise SpecLoadFailed("local bridge must contain valid JSON") from exc
+    if not isinstance(record, dict):
+        raise SpecLoadFailed("local bridge must be an object")
+    allowed = {
+        "version", "graph_namespace", "projection_status", "relation",
+        "event_count", "chain_head_sha256", "private_payload_exported",
+        "authority_effect", "repo", "repository_knowledge_graph_pr",
+        "session_graph_issue", "warning",
+    }
+    required = allowed - {"warning"}
+    if set(record) - allowed or required - set(record):
+        raise SpecLoadFailed("local bridge fields fail strict allowlist")
+    fixed = {
+        "version": "0.1.0",
+        "graph_namespace": "chatgpt-local-private",
+        "projection_status": "DERIVED_NON_CANONICAL",
+        "relation": "READ_ONLY_PROVENANCE_PROJECTION_PENDING_ADAPTER",
+        "private_payload_exported": False,
+        "authority_effect": "NONE",
+        "repo": "humanaios-ui/operations",
+        "repository_knowledge_graph_pr": 630,
+        "session_graph_issue": 677,
+    }
+    if any(type(record[key]) is not type(expected) or record[key] != expected for key, expected in fixed.items()):
+        raise SpecLoadFailed("local bridge requires the non-authoritative projection contract")
+    count = record["event_count"]
+    if type(count) is not int or not 0 <= count <= 10_000_000:
+        raise SpecLoadFailed("local bridge event_count must be a bounded integer")
+    digest = record["chain_head_sha256"]
+    if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+        raise SpecLoadFailed("local bridge chain_head_sha256 must be SHA-256")
+    if "warning" in record and (not isinstance(record["warning"], str) or len(record["warning"]) > 300):
+        raise SpecLoadFailed("local bridge warning must be a short string")
+    return record, _sha256_bytes(raw)
+
+
 class GraphBuilder:
     """Build a namespaced repository graph without mutating any source."""
 
@@ -297,6 +362,7 @@ class GraphBuilder:
         profile_path: str | Path = DEFAULT_PROFILE,
         *,
         allow_external_profile: bool = False,
+        chat_local_bridge: str | Path | None = None,
     ):
         self.repo = repo.resolve()
         if not (self.repo / ".git").exists():
@@ -333,6 +399,10 @@ class GraphBuilder:
         if not isinstance(profile, dict):
             raise SpecLoadFailed("profile must be a JSON object")
         self.profile: dict[str, Any] = profile
+        self.chat_local_bridge: tuple[dict[str, Any], str] | None = (
+            _load_chat_local_public_bridge(chat_local_bridge, self.repo)
+            if chat_local_bridge is not None else None
+        )
 
         self.nodes: dict[str, dict[str, Any]] = {}
         self.edges: dict[str, dict[str, Any]] = {}
@@ -522,7 +592,17 @@ class GraphBuilder:
         if stat.S_ISLNK(mode):
             target = os.readlink(path)
             return target.encode("utf-8", "surrogateescape"), True, target
+        # Tracked regular files may pass through symlinked parent directories.
+        self._assert_contained_regular_path(path)
         return path.read_bytes(), False, None
+
+    def _assert_contained_regular_path(self, path: Path) -> None:
+        if path.is_symlink():
+            raise SpecLoadFailed("unexpected symlink in regular-file reader")
+        try:
+            path.resolve(strict=True).relative_to(self.repo)
+        except (ValueError, OSError) as exc:
+            raise SpecLoadFailed("tracked path resolves outside repository or is missing") from exc
 
     def _add_repository_and_artifacts(self) -> None:
         self._inventory_paths()
@@ -1064,6 +1144,8 @@ class GraphBuilder:
                     ),
                 )
 
+        # Imports inside nested functions, classes and conditionals also count.
+        for item in ast.walk(tree):
             imports: list[tuple[str, int, int]] = []
             if isinstance(item, ast.Import):
                 imports = [(alias.name, 0, item.lineno) for alias in item.names]
@@ -1348,6 +1430,7 @@ class GraphBuilder:
             if suffix not in TEXT_SUFFIXES:
                 props["content_scan_reason"] = "NON_TEXT_SUFFIX"
                 continue
+            self._assert_contained_regular_path(path)
             try:
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
@@ -1378,7 +1461,7 @@ class GraphBuilder:
             path = str(item.get("path") or "")
             artifact_id = self.path_to_node.get(path)
             if not artifact_id:
-                continue
+                raise SpecLoadFailed(f"canonical artifact missing from repository: {path}")
             self.annotate_node(
                 artifact_id,
                 {
@@ -1403,6 +1486,9 @@ class GraphBuilder:
         for item in self.profile.get("semantic_nodes") or []:
             node_id = str(item["id"])
             source_ref = str(item["source_ref"])
+            artifact_id = self._artifact_for_source(source_ref)
+            if not artifact_id:
+                raise SpecLoadFailed(f"semantic node source_ref missing from repository: {source_ref}")
             self.add_node(
                 node_id,
                 str(item["type"]),
@@ -1415,19 +1501,22 @@ class GraphBuilder:
                 },
                 provenance=self.provenance(source_ref, "explicit_profile_mapping"),
             )
-            artifact_id = self._artifact_for_source(source_ref)
-            if artifact_id:
-                self.add_edge(
-                    node_id,
-                    artifact_id,
-                    "CITES",
-                    "OBSERVED",
-                    "semantic",
-                    properties={"citation_only": True},
-                    provenance=profile_prov,
-                )
+            self.add_edge(
+                node_id,
+                artifact_id,
+                "CITES",
+                "OBSERVED",
+                "semantic",
+                properties={"citation_only": True},
+                provenance=profile_prov,
+            )
 
         for item in self.profile.get("semantic_edges") or []:
+            source_ref = item.get("source_ref")
+            if source_ref:
+                artifact_id = self._artifact_for_source(source_ref)
+                if not artifact_id:
+                    raise SpecLoadFailed(f"semantic edge source_ref missing from repository: {source_ref}")
             self.add_edge(
                 str(item["from"]),
                 str(item["to"]),
@@ -1810,6 +1899,40 @@ class GraphBuilder:
                         locator=f"line:{line_number}",
                     ),
                 )
+
+    def _import_chat_local_bridge(self) -> None:
+        """Add a non-canonical source node, with no transcript or private paths."""
+        if self.chat_local_bridge is None:
+            return
+        projection, file_hash = self.chat_local_bridge
+        repo_id = "repo:" + str(self.profile.get("repository") or self.repo.name)
+        node_id = "external:chatgpt-local-private"
+        provenance = self.provenance(
+            "projection:chatgpt-local-private",
+            "opt_in_metadata_only_local_bridge",
+            source_hash=file_hash,
+        )
+        self.add_node(
+            node_id, "external_projection", "Private ChatGPT/local graph projection", "external",
+            properties={
+                "graph_namespace": projection["graph_namespace"],
+                "projection_status": projection["projection_status"],
+                "event_count": projection["event_count"],
+                "chain_head_sha256": projection["chain_head_sha256"],
+                "private_payload_exported": False,
+                "authority_effect": "NONE",
+                "source_binding_is_proof": False,
+                "read_only": True,
+                "repository_knowledge_graph_pr": 630,
+                "session_graph_issue": 677,
+            },
+            provenance=provenance,
+        )
+        self.add_edge(
+            repo_id, node_id, "HAS_NONCANONICAL_EXTERNAL_PROJECTION", "CLAIMED", "external",
+            properties={"read_only": True, "advisory_only": True, "source_binding_is_proof": False},
+            provenance=provenance,
+        )
 
     def _import_source_graphs(self) -> None:
         adapters = {
@@ -2405,6 +2528,7 @@ class GraphBuilder:
         self._scan_contents()
         self._import_profile_semantics()
         self._import_source_graphs()
+        self._import_chat_local_bridge()
         self._apply_inference_rules()
 
         nodes = sorted(self.nodes.values(), key=lambda item: item["id"])
@@ -2486,10 +2610,30 @@ def validate_graph(
     *,
     verify_integrity: bool = True,
 ) -> dict[str, Any]:
+    if not isinstance(graph, dict):
+        return {"valid": False, "errors": ["graph must be an object"], "warnings": [], "counts": {}}
     errors: list[str] = _schema_errors(graph, verify_integrity=verify_integrity)
     warnings: list[str] = []
+    # Schema violations remain visible, but safe semantic checks still run.
+    # A schema-invalid authority edge must also produce its precise invariant error.
     nodes = graph.get("nodes") or []
     edges = graph.get("edges") or []
+    if not isinstance(nodes, list) or not isinstance(edges, list) or any(
+        not isinstance(item, dict) for item in nodes + edges
+    ):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid node or edge shape"])), "warnings": [], "counts": {}}
+    if any(
+        not isinstance(node.get("id"), str) or
+        not isinstance(node.get("properties"), dict) or
+        not isinstance(node.get("provenance"), list)
+        for node in nodes
+    ) or any(
+        not all(isinstance(edge.get(key), str) for key in ("id", "from", "to", "relation", "layer")) or
+        not isinstance(edge.get("properties"), dict) or
+        not isinstance(edge.get("provenance"), list)
+        for edge in edges
+    ):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid graph record types"])), "warnings": [], "counts": {}}
     node_ids = [node.get("id") for node in nodes]
     edge_ids = [edge.get("id") for edge in edges]
     node_set = set(node_ids)
@@ -2553,6 +2697,8 @@ def validate_graph(
             "inference assertion_count does not match inference_assertion nodes"
         )
     reported_rules = inference.get("rules") or []
+    if not isinstance(reported_rules, list) or any(not isinstance(rule, dict) or type(rule.get("assertion_count", 0)) is not int for rule in reported_rules):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid inference rule report shape"])), "warnings": [], "counts": {}}
     reported_rule_ids = {rule.get("id") for rule in reported_rules}
     reported_rule_by_id = {rule.get("id"): rule for rule in reported_rules}
     if len(reported_rule_ids) != len(reported_rules):
@@ -2602,6 +2748,8 @@ def validate_graph(
         if properties.get("review_state") != "UNREVIEWED":
             errors.append(f"inference assertion review state is not UNREVIEWED: {node_id}")
         premise_ids = properties.get("premise_edge_ids") or []
+        if not isinstance(premise_ids, list) or any(not isinstance(v, str) for v in premise_ids):
+            return {"valid": False, "errors": sorted(set(errors + ["invalid inference premise types"])), "warnings": [], "counts": {}}
         if not premise_ids:
             errors.append(f"inference assertion has no premises: {node_id}")
         if properties.get("premise_sha256") != _sha256_bytes(
@@ -2617,6 +2765,8 @@ def validate_graph(
             elif premise.get("layer") == "inferred":
                 errors.append(f"inference assertion uses inferred premise {premise_id}: {node_id}")
         conclusion = properties.get("conclusion") or {}
+        if not isinstance(conclusion, dict):
+            return {"valid": False, "errors": sorted(set(errors + ["invalid inference conclusion type"])), "warnings": [], "counts": {}}
         subject = conclusion.get("subject")
         object_id = conclusion.get("object")
         predicate = conclusion.get("predicate")
@@ -2644,8 +2794,17 @@ def validate_graph(
             errors.append(f"inferred edge source is not an assertion: {edge.get('id')}")
         if not edge.get("properties", {}).get("inference_scaffold"):
             errors.append(f"inferred edge is not marked as scaffold: {edge.get('id')}")
+    views = graph.get("views") or []
+    if not isinstance(views, list) or any(
+        not isinstance(v, dict) or not isinstance(v.get("id"), str) or
+        not isinstance(v.get("node_ids", []), list) or not isinstance(v.get("edge_ids", []), list) or
+        any(not isinstance(x, str) for x in v.get("node_ids", [])) or
+        any(not isinstance(x, str) for x in v.get("edge_ids", []))
+        for v in views
+    ):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid view record shape"])), "warnings": [], "counts": {}}
     view_ids: set[str] = set()
-    for view in graph.get("views") or []:
+    for view in views:
         view_id = view.get("id")
         if view_id in view_ids:
             errors.append(f"duplicate view id: {view_id}")
@@ -3335,8 +3494,6 @@ def query_graph(
             haystack = json.dumps(node, ensure_ascii=False, sort_keys=True).casefold()
             if pattern in haystack:
                 selected.add(node["id"])
-                if len(selected) >= limit:
-                    break
     if not selected:
         raise SpecLoadFailed("query requires --search, --node, --view, or --rule")
     matched = sorted(selected)
@@ -3495,6 +3652,7 @@ def _build_command(args: argparse.Namespace) -> int:
         repo,
         args.profile,
         allow_external_profile=args.allow_external_profile,
+        chat_local_bridge=args.chat_local_bridge,
     ).build()
     result = write_outputs(graph, output)
     print(json.dumps({
@@ -3532,6 +3690,7 @@ def _method_command(args: argparse.Namespace) -> int:
         repo,
         args.profile,
         allow_external_profile=args.allow_external_profile,
+        chat_local_bridge=args.chat_local_bridge,
     ).build()
     if first["source"]["worktree_state"] != "CLEAN" and not args.allow_dirty:
         raise SpecLoadFailed(
@@ -3541,6 +3700,7 @@ def _method_command(args: argparse.Namespace) -> int:
         repo,
         args.profile,
         allow_external_profile=args.allow_external_profile,
+        chat_local_bridge=args.chat_local_bridge,
     ).build()
     graph_match = _canonical_bytes(first) == _canonical_bytes(second)
     source_match = (
@@ -3553,6 +3713,8 @@ def _method_command(args: argparse.Namespace) -> int:
     receipt = {
         "method": "REPOSITORY_EVIDENCE_GRAPH_METHOD",
         "method_version": METHOD_VERSION,
+        "compiler_tool_version": TOOL_VERSION,
+        "compiler_sha256": _sha256_file(Path(__file__).resolve()),
         "status": "PASS" if first["validation"]["valid"] else "FAIL",
         "repository": first["source"]["repository"],
         "head_commit": first["source"]["head_commit"],
@@ -3621,6 +3783,7 @@ def main(argv: list[str] | None = None) -> int:
     build_parser.add_argument("--profile", default=DEFAULT_PROFILE)
     build_parser.add_argument("--output", default=DEFAULT_OUTPUT)
     build_parser.add_argument("--allow-external-profile", action="store_true")
+    build_parser.add_argument("--chat-local-bridge", help="Explicit, metadata-only local bridge JSON (outside repo)")
     build_parser.set_defaults(func=_build_command)
 
     method_parser = subparsers.add_parser(
@@ -3631,6 +3794,7 @@ def main(argv: list[str] | None = None) -> int:
     method_parser.add_argument("--profile", default=DEFAULT_PROFILE)
     method_parser.add_argument("--output", default=DEFAULT_OUTPUT)
     method_parser.add_argument("--allow-external-profile", action="store_true")
+    method_parser.add_argument("--chat-local-bridge", help="Explicit, metadata-only local bridge JSON (outside repo)")
     method_parser.add_argument("--allow-dirty", action="store_true")
     method_parser.set_defaults(func=_method_command)
 
