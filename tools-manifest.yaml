@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 208
+  tools: 209
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 160
+  builder_markers_present: 161
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2646,6 +2646,18 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
+- tool_id: HAIOS-TOOL-222
+  name: research_graph_view
+  path: tools/research_graph_view.py
+  version: 0.1.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: research_graph_view.py
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

@@ -1,6 +1,6 @@
 """
 test_research_graph_view.py
-Fixture tests for tools/research_graph_view.py (issue #874, Phase 1).
+Builder v1.7 compliant. HumanAIOS fixture tests for tools/research_graph_view.py (issue #874, Phase 1).
 No network. Covers AC1–AC5 and AC7 of the design issue.
 """
 from __future__ import annotations
@@ -225,14 +225,14 @@ class WriteGuardTests(unittest.TestCase):
         view = _build(_snapshot([_pr()]))
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "research-graph"
-            rgv.write_outputs(view, out)
+            rgv.write_report(view, out)
             self.assertEqual(sorted(p.name for p in out.iterdir()), ["GRAPH.md", "graph.json"])
 
     def test_refuses_any_other_output_directory(self):
         view = _build(_snapshot([_pr()]))
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ValueError):
-                rgv.write_outputs(view, Path(tmp) / "elsewhere")
+                rgv.write_report(view, Path(tmp) / "elsewhere")
 
     def test_module_has_no_dependency_on_gate_code(self):
         """Independence: no import of the admission gate's trusted tools."""

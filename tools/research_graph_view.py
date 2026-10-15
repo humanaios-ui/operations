@@ -1,6 +1,7 @@
 """
 research_graph_view.py
-Phase 1 of the research-graph living view (tracking issue #874, hub #799).
+HumanAIOS research-graph living view, Phase 1 (tracking issue #874, hub #799).
+Builder v1.7 compliant.
 
 Read-only generator. It reads GitHub state through GET requests, builds a
 descriptive view of open and recently closed PRs, and writes exactly two files
@@ -27,6 +28,8 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+TOOL_NAME = "research_graph_view"
+TOOL_VERSION = "0.1.0"
 SCHEMA = "humanaios.research_graph.view.v0.1"
 OUT_DIR_NAME = "research-graph"
 PR_CAP = 200
@@ -312,7 +315,7 @@ def render_markdown(view: dict) -> str:
     return "\n".join(lines)
 
 
-def write_outputs(view: dict, out_dir: Path) -> None:
+def write_report(view: dict, out_dir: Path) -> None:
     """Write exactly graph.json and GRAPH.md into out_dir (must be research-graph/)."""
     if out_dir.name != OUT_DIR_NAME:
         raise ValueError(f"refusing to write outside {OUT_DIR_NAME}/: {out_dir}")
@@ -423,6 +426,31 @@ def fetch_snapshot(repo: str, token: str, workflows_dir: Path) -> dict:
     }
 
 
+def run_smoke_test() -> int:
+    """Offline check of the pure core: authority fields, one reason code, one pass."""
+    snapshot = {
+        "repository": "humanaios-ui/operations",
+        "default_head_sha": "c" * 40,
+        "pulls": [{"number": 1, "title": "smoke", "body": "Closes #2", "state": "open",
+                   "draft": False, "merged": False, "head_sha": "a" * 40,
+                   "changed_files": ["docs/x.md"], "reviews": [], "runs": []}],
+        "issues": {"2": {"state": "open", "body": "state: ADMISSION_REQUESTED"}},
+        "workflow_texts": [],
+        "errors": [],
+        "truncated": False,
+    }
+    view = build_view(snapshot, actors=["humanaios-ui"], generated_at="smoke",
+                      policy_sha=None)
+    checks = {
+        "authority_none": view["authority_effect"] == "NONE" and view["can_merge"] is False,
+        "reason_emitted": "LATEST_REVIEW_NOT_APPROVED" in view["nodes"][0]["missing_conditions"],
+        "admission_link_recognised": "NO_ADMISSION_LINK" not in view["nodes"][0]["missing_conditions"],
+    }
+    for name, ok in checks.items():
+        print(f"{'PASS' if ok else 'FAIL'} {name}")
+    return 0 if all(checks.values()) else 1
+
+
 # -------------------------------------------------------------------- CLI
 
 def _load_actors(policy_path: Path) -> tuple[list[str], str]:
@@ -439,9 +467,13 @@ def main(argv=None) -> int:
     ap.add_argument("--workflows-dir", type=Path, default=Path(".github/workflows"))
     ap.add_argument("--policy", type=Path, default=Path("REPOSITORY_COORDINATOR_POLICY.json"))
     ap.add_argument("--out-dir", type=Path, default=Path(OUT_DIR_NAME))
+    ap.add_argument("--smoke-test", action="store_true",
+                    help="run the offline self-check and exit")
     ap.add_argument("--snapshot-json", type=Path,
                     help="offline mode: build from a saved snapshot instead of the API")
     args = ap.parse_args(argv)
+    if args.smoke_test:
+        return run_smoke_test()
 
     actors, policy_sha = _load_actors(args.policy)
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -458,7 +490,7 @@ def main(argv=None) -> int:
     view = build_view(snapshot, actors=actors, generated_at=generated_at,
                       policy_sha=policy_sha)
     try:
-        write_outputs(view, args.out_dir)
+        write_report(view, args.out_dir)
     except ValueError as err:
         print(err, file=sys.stderr)
         return 2
