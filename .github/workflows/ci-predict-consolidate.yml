@@ -61,6 +61,7 @@ jobs:
           gh pr list --repo "$REPO" --state open --limit 200 \
             --json number,title,headRefName > /tmp/ci-predict-open-prs.json
           python3 tools/ci_predict_rollup_v0_1.py select \
+            --limit 200 \
             --inventory /tmp/ci-predict-open-prs.json > /tmp/ci-predict-selection.json
           PR_NUMBER="$(python3 -c 'import json; s=json.load(open("/tmp/ci-predict-selection.json")); print((s.get("pr") or {}).get("number") or "")')"
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
