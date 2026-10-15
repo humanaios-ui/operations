@@ -55,7 +55,7 @@ jobs:
               assert edge['count']>0 and edge['evidence']
               assert all(item['line']>0 and item['source'] and item['target'] for item in edge['evidence'])
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: success()
         with:
           name: codebase-atlas-${{ github.sha }}
