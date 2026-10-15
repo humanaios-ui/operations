@@ -5,6 +5,8 @@ on:
     paths:
       - 'src/**'
       - 'tools/**'
+      - 'architecture/knowledge_dashboard/**'
+      - '.github/workflows/knowledge-dashboard-convergence.yml'
       - 'acat/**'
       - 'tests/**'
       - 'calibration_profiles/**'
@@ -18,6 +20,8 @@ on:
     paths:
       - 'src/**'
       - 'tools/**'
+      - 'architecture/knowledge_dashboard/**'
+      - '.github/workflows/knowledge-dashboard-convergence.yml'
       - 'acat/**'
       - 'tests/**'
       - 'calibration_profiles/**'
