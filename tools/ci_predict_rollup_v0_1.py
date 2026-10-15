@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""CI prediction rollup guard: non-authoritative, fail-closed ledger reconciliation.
+"""ci_predict_rollup_v0_1.py
+Builder v1.7 compliant
+HumanAIOS — bounded, fail-closed calibration-ledger reconciliation.
 
 Only a single writer may append to a verified, append-only ledger. This module
 does not authorize, approve, merge, fetch network data, or rewrite history.
@@ -15,6 +17,8 @@ import nf_ledger_v0_1 as engine
 
 TOOL_NAME = "ci_predict_rollup"
 TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "calibration_tool"
+TOOL_ZONE = 1
 ROLLING_BRANCH = "ci-predict-consolidate/rolling"
 CONSOLIDATE_TITLE = "ci-predict: consolidate resolved CI predictions"
 
@@ -82,15 +86,42 @@ def select_writer(open_prs: list[dict]) -> dict | None:
     return consolidations[0] if consolidations else None
 
 
+def run_smoke_test() -> bool:
+    """Check genuine engine hashing, append-only replay, and backlog refusal."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        base, candidate = root / "base.jsonl", root / "candidate.jsonl"
+        engine.append(str(base), [{"seq": 1, "type": "OPEN", "at": "2026-10-15"}], "0" * 64)
+        candidate.write_bytes(base.read_bytes())
+        engine.append(str(candidate), [{"seq": 2, "type": "OPEN", "at": "2026-10-15"}], engine.last_hash(str(candidate)))
+        if require_append_only(base, candidate) != 1:
+            return False
+        try:
+            select_writer([{"number": 842, "title": CONSOLIDATE_TITLE,
+                            "headRefName": "ci-predict-consolidate/20261015-004422"}])
+        except RollupBlocked:
+            return True
+        return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument("--smoke-test", action="store_true")
+    sub = parser.add_subparsers(dest="command")
     selection = sub.add_parser("select")
     selection.add_argument("--inventory", type=Path, required=True)
     verify = sub.add_parser("verify-prefix")
     verify.add_argument("--base", type=Path, required=True)
     verify.add_argument("--candidate", type=Path, required=True)
     args = parser.parse_args()
+    if args.smoke_test:
+        ok = run_smoke_test()
+        print("smoke PASS" if ok else "smoke FAIL")
+        return 0 if ok else 1
+    if args.command is None:
+        parser.print_help()
+        return 2
     try:
         if args.command == "select":
             inventory = json.loads(args.inventory.read_text(encoding="utf-8"))
