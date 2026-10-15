@@ -47,11 +47,29 @@ def split_impl(text):
     """Split an implementation string into candidate path/glob tokens."""
     text = re.sub(r"\(.*?\)", "", text or "")  # drop "(skill)" style notes
     parts = re.split(r"[,;]", text)
-    return [p.strip() for p in parts if p.strip()]
+    tokens = []
+    for p in (p.strip() for p in parts):
+        if not p:
+            continue
+        tokens.append(p)
+        words = p.split()
+        # "CLAUDE.md authority spec" also yields its leading filename
+        if len(words) > 1 and "." in words[0]:
+            tokens.append("./" + words[0])
+    return tokens
+
+
+def require_full_history():
+    """Refuse to date nodes from a shallow clone: its history is truncated."""
+    if git("rev-parse", "--is-shallow-repository").strip() == "true":
+        sys.exit("error: shallow clone; run `git fetch --unshallow` first")
 
 
 def resolve(token, files):
     """Return tracked files matching a token (exact path, basename or glob)."""
+    if token.startswith("./"):
+        # "./name" is an exact repo-root path
+        return [f for f in files if f == token[2:]]
     if "/" in token:
         # Directory-qualified tokens match only inside that directory.
         # No basename fallback: an unmatched qualified glob stays unresolved.
@@ -80,6 +98,7 @@ def file_commits(path, follow=True):
 
 
 def build():
+    require_full_history()
     files = tracked_files()
     graph = json.loads((ROOT / GRAPH).read_text())
     graph_commits = file_commits(GRAPH)
@@ -177,7 +196,7 @@ input[type=range]{flex:1;min-width:160px}
 <div class="sub" id="sub"></div>
 <svg id="g" viewBox="0 0 800 640" role="img" aria-label="Animated system graph"></svg>
 <div class="controls">
-  <button id="play">Play</button>
+  <button id="play" type="button">Play</button>
   <input type="range" id="t" min="0" max="0" step="1" value="0" aria-label="Date">
   <span id="date"></span>
 </div>
@@ -234,7 +253,11 @@ const nodeEls = nodes.map(n => {
 const legend = document.getElementById("legend");
 Object.keys(byZone).sort().forEach(z => {
   const s = document.createElement("span");
-  s.innerHTML = `<span class="dot" style="background:${colFor(z)}"></span>${z} (${byZone[z].length})`;
+  const dot = document.createElement("span");
+  dot.className = "dot";
+  dot.style.background = colFor(z);
+  s.appendChild(dot);
+  s.appendChild(document.createTextNode(`${z} (${byZone[z].length})`));
   legend.appendChild(s);
 });
 legend.insertAdjacentHTML("beforeend", `<span><span class="dot" style="border:1px dashed var(--fg)"></span>date from graph file (no git match)</span><span><span class="dot" style="background:none;border:2px solid var(--pulse)"></span>changed in last 7 days</span>`);

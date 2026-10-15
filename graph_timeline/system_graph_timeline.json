@@ -1,5 +1,5 @@
 {
-  "head": "6487c4a6",
+  "head": "65f1c0f2",
   "head_date": "2026-10-15",
   "graph_file": "system_graph.json",
   "graph_revisions": [
@@ -77,6 +77,41 @@
         "2026-10-12"
       ],
       "first_seen": "2026-04-24",
+      "last_changed": "2026-10-12",
+      "date_source": "git"
+    },
+    {
+      "id": "Z2",
+      "name": "Z2 Ratification Gate",
+      "zone": "Z2",
+      "type": "gate",
+      "status": "OPERATED",
+      "files": [
+        "CLAUDE.md"
+      ],
+      "commit_count": 37,
+      "commit_dates": [
+        "2026-07-06",
+        "2026-07-18",
+        "2026-07-24",
+        "2026-09-06",
+        "2026-09-09",
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-13",
+        "2026-09-14",
+        "2026-09-17",
+        "2026-09-19",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-09-25",
+        "2026-09-27",
+        "2026-09-28",
+        "2026-10-02",
+        "2026-10-11",
+        "2026-10-12"
+      ],
+      "first_seen": "2026-07-06",
       "last_changed": "2026-10-12",
       "date_source": "git"
     },
@@ -176,19 +211,6 @@
       "name": "Behavior Dials",
       "zone": "code",
       "type": "process",
-      "status": "OPERATED",
-      "files": [],
-      "commit_count": 0,
-      "commit_dates": [],
-      "first_seen": "2026-09-07",
-      "last_changed": "2026-09-07",
-      "date_source": "fallback"
-    },
-    {
-      "id": "Z2",
-      "name": "Z2 Ratification Gate",
-      "zone": "Z2",
-      "type": "gate",
       "status": "OPERATED",
       "files": [],
       "commit_count": 0,
@@ -761,10 +783,6 @@
     {
       "id": "ML",
       "implementation": "molt_events.jsonl"
-    },
-    {
-      "id": "Z2",
-      "implementation": "CLAUDE.md authority spec"
     },
     {
       "id": "MK",
