@@ -52,11 +52,11 @@ def split_impl(text):
 
 def resolve(token, files):
     """Return tracked files matching a token (exact path, basename or glob)."""
-    if "*" in token or "/" in token:
-        hits = [f for f in files if f == token or fnmatch.fnmatch(f, token)]
-        if hits:
-            return hits
-    base = token.split("/")[-1]
+    if "/" in token:
+        # Directory-qualified tokens match only inside that directory.
+        # No basename fallback: an unmatched qualified glob stays unresolved.
+        return [f for f in files if f == token or fnmatch.fnmatch(f, token)]
+    base = token
     if "*" in base:
         hits = [f for f in files if fnmatch.fnmatch(f.split("/")[-1], base)]
     else:
@@ -113,6 +113,7 @@ def build():
             "status": node.get("status", ""),
             "files": matched,
             "commit_count": len(commits),
+            "commit_dates": sorted({d for _, d in commits}),
             "first_seen": first,
             "last_changed": last,
             "date_source": source,
@@ -255,7 +256,8 @@ function render() {
   nodeEls.forEach(({n, g, pulse}) => {
     const on = day(n.first_seen) <= t;
     g.setAttribute("opacity", on ? 1 : 0);
-    const recent = on && day(n.last_changed) <= t && t - day(n.last_changed) <= 7;
+    // a commit inside the trailing 7-day window ending at the selected date
+    const recent = on && n.commit_dates.some(d => { const x = day(d); return x <= t && t - x <= 7; });
     pulse.setAttribute("opacity", recent ? 1 : 0);
     if (on) vis++; if (recent) act++;
   });
