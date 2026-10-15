@@ -54,6 +54,25 @@ taught to the validator/CI so it doesn't recur.
 
 ## Before you open a PR — run a checkup
 
+Start with the pre-submission check. It catches the common blockers before you push
+and drafts the PR body:
+
+```bash
+python3 tools/pre_submit.py                          # branch, no-op, readiness, workflows, secrets, molt tier
+python3 tools/pre_submit.py --body-out draft.md      # also write a PR body from the template
+python3 tools/pre_submit.py --input filled.md        # lint your filled-in body before you submit it
+```
+
+It blocks on these local conditions: on the default branch, no commits, an empty
+diff, a failing readiness check, an unparseable workflow, or a recognized private
+key, GitHub token, or AWS access-key format in an added line. It does not run
+pytest, ruff, or mypy, and it does not replace the remaining CI gates. CI remains
+the authority. It never fills in `smag_p` or `molt_tier_claimed` for you.
+Those are your prediction, and CI measures the gap. The draft shows the measured tier
+beside the empty field.
+
+Then the vitality check:
+
 ```bash
 python3 tools/repo_health.py        # 0–100 repo vitality
 python3 tools/repo_health.py --strict   # non-zero exit below threshold

@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 209
+  tools: 210
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 161
+  builder_markers_present: 162
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2658,6 +2658,19 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806)
+- tool_id: HAIOS-TOOL-223
+  name: pre_submit
+  path: tools/pre_submit.py
+  version: 1.0.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: pre_submit.py — run the PR pre-submission checks in one command.
+  session: S-101126-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
