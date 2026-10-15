@@ -348,7 +348,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
 | `audit_tool` | Audits artifacts or state against rules and reports findings. | 24 |
-| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
+| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 17 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 19 |
