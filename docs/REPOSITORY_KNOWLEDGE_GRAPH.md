@@ -591,3 +591,34 @@ python3 tools/repository_knowledge_graph_v0_1.py method \
 
 The pilot additionally verified every manifest hash, the gzip round trip,
 GraphML parsing, CSV row counts, and JSONL inference count.
+## Optional ChatGPT/local bridge — metadata-only (Z1)
+
+This is an **opt-in diagnostic import**, not automatic ChatGPT sync and not a new
+canonical graph. The offline event ledger is **never** copied into this public
+repository. The bridge accepts only the strict allowlist in the starter's
+`public_bridge.json` file, and only from an external path. Unexpected keys,
+elevated authority, an exported-private-payload flag, symlinks, oversized files,
+invalid chain-head hashes and inside-repository paths are rejected.
+
+Example on a local machine after exporting the approved public-safe projection:
+
+```sh
+python3 tools/repository_knowledge_graph_v0_1.py method \
+  --repo /path/to/operations \
+  --output /tmp/humanaios-chat-read-model \
+  --chat-local-bridge /private/path/public_bridge.json
+```
+
+The graph adds a single `external:chatgpt-local-private` metadata node with
+event count, chain-head hash, SHA-256 of the approved bridge file, and
+non-authoritative references to PR #630 and issue #677. The inbound edge is
+`CLAIMED`, not independent source verification, proof, admission, or merge
+authority. The graph contains no `events.jsonl`, transcript, local path,
+warning text, or private ChatGPT Project data.
+
+The bridge preserves user control: only an explicit local export creates the
+projection; ChatGPT Project files are refreshed by the user, not automatically.
+A hash chain does not prove identity, source truth or valid authorization.
+This projection does not control the Repository Coordinator, SCVC, admission,
+or any user action. Run the protected regression suite before asking for Z2
+authorization against the exact current PR head.
