@@ -30,7 +30,7 @@ def _read(path: str) -> dict:
     return obj
 
 def project(rkg: dict, atlas: dict, timeline: dict) -> dict:
-    """Create review-only edges; never promote inferred or historical claims."""
+    """Create review-only edges without elevating inferred or historical claims."""
     src = rkg.get("source") or {}
     a_head, r_head = atlas.get("head_sha"), src.get("head_commit")
     if (rkg.get("authority_effect") != "NONE"
@@ -86,7 +86,7 @@ def project(rkg: dict, atlas: dict, timeline: dict) -> dict:
              "ATLAS_" + x.get("kind", "REFERENCE"), "#835", "STATIC_SOURCE_ASSOCIATION")
         for witness in x.get("evidence", []):
             path = witness.get("source")
-            # Never match by similar labels, guessed filenames, or PR comments.
+            # Bind exact paths only; labels, guesses and PR comments do not establish identity.
             if path in path_nodes:
                 link("atlas:" + x["source"], path_nodes[path], "EXACT_PATH_WITNESS",
                      "#835", "STATIC_SOURCE_ASSOCIATION")
