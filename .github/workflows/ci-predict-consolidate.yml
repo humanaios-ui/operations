@@ -75,9 +75,18 @@ jobs:
               --candidate /tmp/ci-predict-rolling-ledger.jsonl
             cp /tmp/ci-predict-rolling-ledger.jsonl "$LEDGER"
           else
+            # Branch cleanup is an explicit operator action after a merge.
+            # Refusal distinguishes a genuinely absent branch (exit 2)
+            # from a network/API failure (other nonzero exit).
             if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
-              echo "::error::Orphaned rolling branch: requires review, never force-push." >&2
+              echo "::error::Merged rolling branch still exists; delete only after verifying the merge." >&2
               exit 1
+            else
+              rc=$?
+              if [ "$rc" -ne 2 ]; then
+                echo "::error::Cannot establish rolling branch absence (git ls-remote exit $rc)." >&2
+                exit 1
+              fi
             fi
           fi
           cp "$LEDGER" /tmp/ci-predict-seed-ledger.jsonl
@@ -170,11 +179,20 @@ jobs:
               echo "::error::Rolling branch advanced; retry without rewriting history." >&2
               exit 1
             fi
+            # Proposed ledger is durably saved under /tmp. Reset the dirty
+            # checkout so git can switch to an existing rolling branch.
+            git restore -- "$LEDGER"
             git switch -c "$BRANCH" FETCH_HEAD
           else
             if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
               echo "::error::Rolling branch unexpectedly exists; refusing overwrite." >&2
               exit 1
+            else
+              rc=$?
+              if [ "$rc" -ne 2 ]; then
+                echo "::error::Rolling branch lookup failed (exit $rc)." >&2
+                exit 1
+              fi
             fi
             git switch -c "$BRANCH"
           fi
