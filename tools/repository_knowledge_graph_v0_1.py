@@ -288,6 +288,65 @@ def _matches_any(path: str, patterns: Iterable[str]) -> bool:
     return any(fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(name, pattern) for pattern in patterns)
 
 
+
+def _load_chat_local_public_bridge(path_arg: str | Path, repo: Path) -> tuple[dict[str, Any], str]:
+    """Read an explicit metadata-only projection; reject raw private records."""
+    path = Path(path_arg)
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    if path.is_symlink():
+        raise SpecLoadFailed("local bridge may not be a symlink")
+    try:
+        source = path.resolve(strict=True)
+        source.relative_to(repo)
+    except ValueError:
+        pass
+    except OSError as exc:
+        raise SpecLoadFailed("local bridge source unavailable") from exc
+    else:
+        raise SpecLoadFailed("local bridge source must be outside the repository")
+    if not source.is_file() or source.stat().st_size > 4096:
+        raise SpecLoadFailed("local bridge must be a file of at most 4096 bytes")
+    raw = source.read_bytes()
+    try:
+        record = json.loads(raw)
+    except (UnicodeError, ValueError) as exc:
+        raise SpecLoadFailed("local bridge must contain valid JSON") from exc
+    if not isinstance(record, dict):
+        raise SpecLoadFailed("local bridge must be an object")
+    allowed = {
+        "version", "graph_namespace", "projection_status", "relation",
+        "event_count", "chain_head_sha256", "private_payload_exported",
+        "authority_effect", "repo", "repository_knowledge_graph_pr",
+        "session_graph_issue", "warning",
+    }
+    required = allowed - {"warning"}
+    if set(record) - allowed or required - set(record):
+        raise SpecLoadFailed("local bridge fields fail strict allowlist")
+    fixed = {
+        "version": "0.1.0",
+        "graph_namespace": "chatgpt-local-private",
+        "projection_status": "DERIVED_NON_CANONICAL",
+        "relation": "READ_ONLY_PROVENANCE_PROJECTION_PENDING_ADAPTER",
+        "private_payload_exported": False,
+        "authority_effect": "NONE",
+        "repo": "humanaios-ui/operations",
+        "repository_knowledge_graph_pr": 630,
+        "session_graph_issue": 677,
+    }
+    if any(type(record[key]) is not type(expected) or record[key] != expected for key, expected in fixed.items()):
+        raise SpecLoadFailed("local bridge requires the non-authoritative projection contract")
+    count = record["event_count"]
+    if type(count) is not int or not 0 <= count <= 10_000_000:
+        raise SpecLoadFailed("local bridge event_count must be a bounded integer")
+    digest = record["chain_head_sha256"]
+    if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+        raise SpecLoadFailed("local bridge chain_head_sha256 must be SHA-256")
+    if "warning" in record and (not isinstance(record["warning"], str) or len(record["warning"]) > 300):
+        raise SpecLoadFailed("local bridge warning must be a short string")
+    return record, _sha256_bytes(raw)
+
+
 class GraphBuilder:
     """Build a namespaced repository graph without mutating any source."""
 
@@ -297,6 +356,7 @@ class GraphBuilder:
         profile_path: str | Path = DEFAULT_PROFILE,
         *,
         allow_external_profile: bool = False,
+        chat_local_bridge: str | Path | None = None,
     ):
         self.repo = repo.resolve()
         if not (self.repo / ".git").exists():
@@ -333,6 +393,10 @@ class GraphBuilder:
         if not isinstance(profile, dict):
             raise SpecLoadFailed("profile must be a JSON object")
         self.profile: dict[str, Any] = profile
+        self.chat_local_bridge: tuple[dict[str, Any], str] | None = (
+            _load_chat_local_public_bridge(chat_local_bridge, self.repo)
+            if chat_local_bridge is not None else None
+        )
 
         self.nodes: dict[str, dict[str, Any]] = {}
         self.edges: dict[str, dict[str, Any]] = {}
@@ -1824,6 +1888,40 @@ class GraphBuilder:
                     ),
                 )
 
+    def _import_chat_local_bridge(self) -> None:
+        """Add a non-canonical source node, with no transcript or private paths."""
+        if self.chat_local_bridge is None:
+            return
+        projection, file_hash = self.chat_local_bridge
+        repo_id = "repo:" + str(self.profile.get("repository") or self.repo.name)
+        node_id = "external:chatgpt-local-private"
+        provenance = self.provenance(
+            "projection:chatgpt-local-private",
+            "opt_in_metadata_only_local_bridge",
+            source_hash=file_hash,
+        )
+        self.add_node(
+            node_id, "external_projection", "Private ChatGPT/local graph projection", "external",
+            properties={
+                "graph_namespace": projection["graph_namespace"],
+                "projection_status": projection["projection_status"],
+                "event_count": projection["event_count"],
+                "chain_head_sha256": projection["chain_head_sha256"],
+                "private_payload_exported": False,
+                "authority_effect": "NONE",
+                "source_binding_is_proof": False,
+                "read_only": True,
+                "repository_knowledge_graph_pr": 630,
+                "session_graph_issue": 677,
+            },
+            provenance=provenance,
+        )
+        self.add_edge(
+            repo_id, node_id, "HAS_NONCANONICAL_EXTERNAL_PROJECTION", "CLAIMED", "external",
+            properties={"read_only": True, "advisory_only": True, "source_binding_is_proof": False},
+            provenance=provenance,
+        )
+
     def _import_source_graphs(self) -> None:
         adapters = {
             "intent": self._import_intent,
@@ -2418,6 +2516,7 @@ class GraphBuilder:
         self._scan_contents()
         self._import_profile_semantics()
         self._import_source_graphs()
+        self._import_chat_local_bridge()
         self._apply_inference_rules()
 
         nodes = sorted(self.nodes.values(), key=lambda item: item["id"])
@@ -3517,6 +3616,7 @@ def _build_command(args: argparse.Namespace) -> int:
         repo,
         args.profile,
         allow_external_profile=args.allow_external_profile,
+        chat_local_bridge=args.chat_local_bridge,
     ).build()
     result = write_outputs(graph, output)
     print(json.dumps({
@@ -3554,6 +3654,7 @@ def _method_command(args: argparse.Namespace) -> int:
         repo,
         args.profile,
         allow_external_profile=args.allow_external_profile,
+        chat_local_bridge=args.chat_local_bridge,
     ).build()
     if first["source"]["worktree_state"] != "CLEAN" and not args.allow_dirty:
         raise SpecLoadFailed(
@@ -3563,6 +3664,7 @@ def _method_command(args: argparse.Namespace) -> int:
         repo,
         args.profile,
         allow_external_profile=args.allow_external_profile,
+        chat_local_bridge=args.chat_local_bridge,
     ).build()
     graph_match = _canonical_bytes(first) == _canonical_bytes(second)
     source_match = (
@@ -3645,6 +3747,7 @@ def main(argv: list[str] | None = None) -> int:
     build_parser.add_argument("--profile", default=DEFAULT_PROFILE)
     build_parser.add_argument("--output", default=DEFAULT_OUTPUT)
     build_parser.add_argument("--allow-external-profile", action="store_true")
+    build_parser.add_argument("--chat-local-bridge", help="Explicit, metadata-only local bridge JSON (outside repo)")
     build_parser.set_defaults(func=_build_command)
 
     method_parser = subparsers.add_parser(
@@ -3655,6 +3758,7 @@ def main(argv: list[str] | None = None) -> int:
     method_parser.add_argument("--profile", default=DEFAULT_PROFILE)
     method_parser.add_argument("--output", default=DEFAULT_OUTPUT)
     method_parser.add_argument("--allow-external-profile", action="store_true")
+    method_parser.add_argument("--chat-local-bridge", help="Explicit, metadata-only local bridge JSON (outside repo)")
     method_parser.add_argument("--allow-dirty", action="store_true")
     method_parser.set_defaults(func=_method_command)
 
