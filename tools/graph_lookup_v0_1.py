@@ -12,12 +12,12 @@ answer cites the node, its incident edges, and each edge's provenance
 graph was compiled from and whether that commit is the repository's current HEAD.
 
 Guarantees:
-  - read-only: the graph file and the repository are never written
+  - read-only: this tool does not write the graph file or the repository
   - git is consulted only through `rev-parse HEAD` and `status --porcelain`
   - stdlib only; no network; no import of the compiler module, so it works
     whether or not PR #630 has merged
   - a graph whose integrity digest does not verify yields no answers
-  - authority_effect is NONE: an answer is a lookup, never a decision
+  - authority_effect is NONE: an answer is a lookup, not a decision
 
 Usage:
   python3 tools/graph_lookup_v0_1.py --smoke-test

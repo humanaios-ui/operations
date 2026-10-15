@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 107
+  candidates: 108
   records: 58
 ratifiers:
 - Night
 candidates:
+- q_id: Q-REPO-GRAPH-LOOKUP-01
+  title: Read-only, citation-bearing lookup over the PR #630 repository graph for the section A session-open step
+  path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md
+  submitted: '2026-10-15'
+  status: awaiting_z2
+  tier: 0
+  note: 'PR #843. Adds tools/graph_lookup_v0_1.py (HAIOS-TOOL-224): stdlib, read-only, refuses graphs whose integrity digest fails, reports FRESH/STALE/DIRTY against HEAD. No change to SESSION_RITUALS.md.'
 - q_id: Q-GRAPH-CAPTURE-LINT-01
   title: graph_capture_lint — score every graph file against the nine properties of
     a self-sealing graph; block on the three that make a graph unauditable
