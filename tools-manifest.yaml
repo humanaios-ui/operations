@@ -2663,6 +2663,10 @@ tools:
   path: tools/ci_predict_rollup_v0_1.py
   version: 0.1.0
   category: calibration_tool
+  name: humanaios_core_machine
+  path: tools/humanaios_core_machine_v0_1.py
+  version: 0.1.0
+  category: validation_tool
   zone: 1
   status: draft
   interface: cli
@@ -2670,6 +2674,8 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: ci_predict_rollup_v0_1.py
+  purpose: Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator.
+  session: issue-810
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
