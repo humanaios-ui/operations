@@ -68,7 +68,11 @@ This spec is the **behavioral contract**; the files above are its **enforcement*
 
 ## The sanctioned live view (not a markdown board)
 
-The "what is every agent doing right now" view that the mesh board provided is served in operations by a **GitHub Project** over the open-PR / issue queue — a projection of the authoritative data, grouped by status (Backlog → Admitted → In progress → In review → Merged). It is read from issues/PRs, never hand-maintained. See the project view at the org level (`humanaios-ui`). A hand-kept markdown board is explicitly **not** sanctioned: it drifts and races, as 2026-10-09 showed.
+The "what is every agent doing right now" view that the mesh board provided is served in operations by a **GitHub Project** over the open-PR / issue queue — a projection of the authoritative data, never hand-maintained. It is read from issues/PRs via an **auto-add workflow** (filter `repo:humanaios-ui/operations is:pr is:open`), so items back-fill and stay current automatically. A hand-kept markdown board is explicitly **not** sanctioned: it drifts and races, as 2026-10-09 showed.
+
+**The view:** [Operations PR Queue — Project #5](https://github.com/users/humanaios-ui/projects/5/views/1)
+
+Two lenses on the one project: a **Board** view grouped by a `Status` single-select (Backlog → Admitted → In progress → In review → Merged) for the live PR queue, and a **Roadmap** view for the Program/initiative timeline (see `PROGRAM_GRAPH_MAPPING.md`, Layer 5).
 
 ---
 
