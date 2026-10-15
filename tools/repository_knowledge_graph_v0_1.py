@@ -522,7 +522,17 @@ class GraphBuilder:
         if stat.S_ISLNK(mode):
             target = os.readlink(path)
             return target.encode("utf-8", "surrogateescape"), True, target
+        # Tracked regular files may pass through symlinked parent directories.
+        self._assert_contained_regular_path(path)
         return path.read_bytes(), False, None
+
+    def _assert_contained_regular_path(self, path: Path) -> None:
+        if path.is_symlink():
+            raise SpecLoadFailed("unexpected symlink in regular-file reader")
+        try:
+            path.resolve(strict=True).relative_to(self.repo)
+        except (ValueError, OSError) as exc:
+            raise SpecLoadFailed("tracked path resolves outside repository or is missing") from exc
 
     def _add_repository_and_artifacts(self) -> None:
         self._inventory_paths()
@@ -1064,6 +1074,8 @@ class GraphBuilder:
                     ),
                 )
 
+        # Imports inside nested functions, classes and conditionals also count.
+        for item in ast.walk(tree):
             imports: list[tuple[str, int, int]] = []
             if isinstance(item, ast.Import):
                 imports = [(alias.name, 0, item.lineno) for alias in item.names]
@@ -1348,6 +1360,7 @@ class GraphBuilder:
             if suffix not in TEXT_SUFFIXES:
                 props["content_scan_reason"] = "NON_TEXT_SUFFIX"
                 continue
+            self._assert_contained_regular_path(path)
             try:
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
@@ -1378,7 +1391,7 @@ class GraphBuilder:
             path = str(item.get("path") or "")
             artifact_id = self.path_to_node.get(path)
             if not artifact_id:
-                continue
+                raise SpecLoadFailed(f"canonical artifact missing from repository: {path}")
             self.annotate_node(
                 artifact_id,
                 {
@@ -2443,6 +2456,7 @@ class GraphBuilder:
                 "sha256": None,
             },
         }
+        graph["validation"] = {"valid": True, "errors": [], "warnings": [], "counts": {}}
         graph["validation"] = validate_graph(graph, verify_integrity=False)
         graph["integrity"]["sha256"] = _graph_digest(graph)
         return graph
@@ -2485,10 +2499,19 @@ def validate_graph(
     *,
     verify_integrity: bool = True,
 ) -> dict[str, Any]:
+    if not isinstance(graph, dict):
+        return {"valid": False, "errors": ["graph must be an object"], "warnings": [], "counts": {}}
     errors: list[str] = _schema_errors(graph, verify_integrity=verify_integrity)
     warnings: list[str] = []
+    # Do not dereference malformed nodes, edges or rules after schema failure.
+    if errors and verify_integrity:
+        return {"valid": False, "errors": sorted(set(errors)), "warnings": [], "counts": {}}
     nodes = graph.get("nodes") or []
     edges = graph.get("edges") or []
+    if not isinstance(nodes, list) or not isinstance(edges, list) or any(
+        not isinstance(item, dict) for item in nodes + edges
+    ):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid node or edge shape"])), "warnings": [], "counts": {}}
     node_ids = [node.get("id") for node in nodes]
     edge_ids = [edge.get("id") for edge in edges]
     node_set = set(node_ids)
@@ -2552,6 +2575,8 @@ def validate_graph(
             "inference assertion_count does not match inference_assertion nodes"
         )
     reported_rules = inference.get("rules") or []
+    if not isinstance(reported_rules, list) or any(not isinstance(rule, dict) for rule in reported_rules):
+        return {"valid": False, "errors": sorted(set(errors + ["invalid inference rule report shape"])), "warnings": [], "counts": {}}
     reported_rule_ids = {rule.get("id") for rule in reported_rules}
     reported_rule_by_id = {rule.get("id"): rule for rule in reported_rules}
     if len(reported_rule_ids) != len(reported_rules):
@@ -3334,8 +3359,6 @@ def query_graph(
             haystack = json.dumps(node, ensure_ascii=False, sort_keys=True).casefold()
             if pattern in haystack:
                 selected.add(node["id"])
-                if len(selected) >= limit:
-                    break
     if not selected:
         raise SpecLoadFailed("query requires --search, --node, --view, or --rule")
     matched = sorted(selected)
@@ -3552,6 +3575,8 @@ def _method_command(args: argparse.Namespace) -> int:
     receipt = {
         "method": "REPOSITORY_EVIDENCE_GRAPH_METHOD",
         "method_version": METHOD_VERSION,
+        "compiler_tool_version": TOOL_VERSION,
+        "compiler_sha256": _sha256_file(Path(__file__).resolve()),
         "status": "PASS" if first["validation"]["valid"] else "FAIL",
         "repository": first["source"]["repository"],
         "head_commit": first["source"]["head_commit"],
