@@ -58,9 +58,11 @@ def require_append_only(base: Path, candidate: Path) -> int:
     return len(proposal) - len(trusted)
 
 
-def select_writer(open_prs: list[dict]) -> dict | None:
+def select_writer(open_prs: list[dict], inventory_limit: int = 200) -> dict | None:
     """Refuse duplicates, including legacy timestamped consolidation PRs."""
-    if not isinstance(open_prs, list) or len(open_prs) >= 200:
+    if type(inventory_limit) is not int or inventory_limit < 1:
+        raise RollupBlocked("invalid PR inventory limit")
+    if not isinstance(open_prs, list) or len(open_prs) >= inventory_limit:
         raise RollupBlocked("open PR inventory incomplete or invalid")
     consolidations = [
         item for item in open_prs
@@ -112,6 +114,7 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command")
     selection = sub.add_parser("select")
     selection.add_argument("--inventory", "--input", dest="inventory", type=Path, required=True)
+    selection.add_argument("--limit", type=int, default=200, help="Maximum PR records requested from GitHub")
     verify = sub.add_parser("verify-prefix")
     verify.add_argument("--base", "--input", dest="base", type=Path, required=True)
     verify.add_argument("--candidate", type=Path, required=True)
@@ -126,7 +129,7 @@ def main() -> int:
     try:
         if args.command == "select":
             inventory = json.loads(args.inventory.read_text(encoding="utf-8"))
-            selected = select_writer(inventory)
+            selected = select_writer(inventory, inventory_limit=args.limit)
             print(json.dumps({"status": "PASS", "pr": selected, "branch": ROLLING_BRANCH}))
         else:
             count = require_append_only(args.base, args.candidate)
