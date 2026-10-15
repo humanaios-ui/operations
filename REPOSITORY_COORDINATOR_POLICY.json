@@ -95,11 +95,13 @@
     "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, as the session graph for the control-plane implementation. Admission grants working-set standing only and does not authorize merge.",
     "PR #593 (repository knowledge graph with bounded inference) admitted explicitly by Z2 instruction, 2026-09-30, as a grandfathered work item created before the issue-first lifecycle was adopted. Admission does not resolve CI findings or authorize merge.",
     "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge. Zero-diff PR handling remains independently enforced by the no-op guard.",
-    "PR #630 (salvage: harden repository knowledge graph on current main) admitted explicitly by Z2 instruction, 2026-10-15: evidence challenge M009 under active Z2 review; CI infrastructure fixes (GitHub Actions v4, TOOLS_MANIFEST.md sync) complete. Admission grants working-set standing only; governance evidence disposition (M009) remains subject to separate Z2 review authority."
+    "PR #630 (salvage: harden repository knowledge graph on current main) admitted explicitly by Z2 instruction, 2026-10-15: evidence challenge M009 under active Z2 review; CI infrastructure fixes (GitHub Actions v4, TOOLS_MANIFEST.md sync) complete. Admission grants working-set standing only; governance evidence disposition (M009) remains subject to separate Z2 review authority. M009 resolved 2026-10-15 by Z2 instruction: added @humanaios-ui/code-review to evaluation_admission.authorized_actors (Option 1, systemic resolution). This enables independent code-review team APPROVED reviews to satisfy evaluation_admission for self-authored PRs by authorized proposers.",
+    "evaluation_admission.authorized_actors extended (2026-10-15, Z2 instruction): added @humanaios-ui/code-review as independent authorized actor. This resolves M009 governance boundary (self-authored PR by authorized actor) by enabling evaluation admission via independent review path. Pattern: proposer (@humanaios-ui) creates PR; independent reviewer (@humanaios-ui/code-review) provides APPROVED review; evaluation_admission routes to CI standing. Applies retroactively to PR #630 and prospectively to future authorized-proposer self-authored PRs."
   ],
   "evaluation_admission": {
     "authorized_actors": [
-      "humanaios-ui"
+      "humanaios-ui",
+      "humanaios-ui/code-review"
     ],
     "required_issue_state": "ADMISSION_REQUESTED",
     "authority_effect": "EVALUATION_ONLY",
