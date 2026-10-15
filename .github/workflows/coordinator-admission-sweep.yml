@@ -1,0 +1,355 @@
+name: coordinator-admission-sweep
+
+# Capacity-bounded auto-admission of ADVANCE-classified PRs.
+# Candidate: Q-MOLT-ADMISSION-AUTOSWEEP-01 (z1-inbox/2026-10-15/).
+#
+# WHY: the admission gate fails every ready non-maintenance PR that lacks an
+# explicit admission record, but the only writer of that record is a manual
+# `/coordinator admit` comment. Supply (one gesture/PR) cannot match demand
+# (the ready queue), so clean PRs pile up in ADMISSION_REVIEW and get merged by
+# admin-override — the gate becomes noise. This sweep supplies admission for the
+# subset the coordinator itself already classifies safe, within operator capacity.
+#
+# SAFETY MODEL:
+#   * The sweep is a SELECTOR. It writes nothing to the ledger. The actual
+#     hash-chained ADMIT append is performed by the already-trusted mutate job
+#     in repository-admission-gate.yml, reached via workflow_dispatch — the exact
+#     same path `/coordinator admit` uses.
+#   * It admits ONLY PRs where lane==ADMISSION_REVIEW AND guidance.action==ADVANCE
+#     AND zero HIGH findings AND the open-admitted ready count stays within
+#     capacity.active_operator_queue_limit. Everything else stays in
+#     ADMISSION_REVIEW (honest backpressure; honors the invariant
+#     AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY).
+#   * Admission is ADMISSION_ROUTING_ONLY / merge_authority=false. It never
+#     merges, closes, labels, or ratifies.
+#   * Ships INERT. The actual dispatch runs only when:
+#       - workflow_dispatch with dry_run=false, OR
+#       - schedule with repository variable COORDINATOR_AUTOSWEEP_ENABLED == 'true'
+#     Z2 flips that variable to activate after ratification; reverting is setting
+#     it false (no code change, no ledger rewrite).
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours, offset off the hour
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Select only; do not dispatch ADMIT (true) or actually admit (false)"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+      max_admits:
+        description: "Hard cap on admissions this run (in addition to the capacity bound)"
+        required: false
+        default: "10"
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: coordinator-admission-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    name: Capacity-bounded auto-admission sweep
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      actions: write   # createWorkflowDispatch → repository-admission-gate.yml mutate
+    steps:
+      - name: Checkout trusted default-branch control law
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Pin checked-out policy commit
+        run: |
+          set -euo pipefail
+          mkdir -p .repo-coordinator
+          git rev-parse HEAD > .repo-coordinator/policy.sha
+
+      - name: Collect full open-PR queue snapshot + state
+        id: collect
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const defaultBranch = context.payload.repository.default_branch;
+            const policySha = fs.readFileSync(".repo-coordinator/policy.sha", "utf8").trim();
+
+            const policy = JSON.parse(
+              fs.readFileSync("REPOSITORY_COORDINATOR_POLICY.json", "utf8")
+            );
+            const stateCfg = policy.state || {};
+            const stateBranch = String(stateCfg.branch || "");
+            const ledgerPath = String(stateCfg.ledger_path || "");
+            const projectionPath = String(stateCfg.projection_path || "");
+            if (!stateBranch || !ledgerPath || !projectionPath) {
+              core.setFailed("policy state-branch contract is incomplete; refusing to sweep");
+              return;
+            }
+
+            const branch = await github.rest.repos.getBranch({
+              owner, repo, branch: stateBranch
+            });
+            const stateSha = branch.data.commit.sha;
+            const fetchText = async path => {
+              const response = await github.rest.repos.getContent({
+                owner, repo, path, ref: stateSha
+              });
+              if (Array.isArray(response.data) || response.data.type !== "file") {
+                throw new Error(`state path ${path} is not a file`);
+              }
+              return Buffer.from(response.data.content, "base64").toString("utf8");
+            };
+            const [ledgerText, projectionText] = await Promise.all([
+              fetchText(ledgerPath), fetchText(projectionPath)
+            ]);
+            fs.writeFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", ledgerText);
+            fs.writeFileSync(".repo-coordinator/COORDINATOR_STATE.json", projectionText);
+
+            const state = JSON.parse(projectionText);
+            if (state.merge_authority !== false) {
+              core.setFailed("coordinator state claims merge authority; failing closed");
+              return;
+            }
+
+            const maintenanceAuthors = new Set(
+              (((policy || {}).maintenance || {}).authors || []).map(String)
+            );
+            const closingRefRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
+            const referencedIssueNumbers = new Set(
+              (state.admitted_issue_numbers || []).map(Number)
+            );
+
+            const open = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: "open", per_page: 100 }
+            );
+
+            const listFiles = async number => github.paginate(
+              github.rest.pulls.listFiles,
+              { owner, repo, pull_number: number, per_page: 100 }
+            );
+            const chunk = (xs, size) => {
+              const out = [];
+              for (let i = 0; i < xs.length; i += size) out.push(xs.slice(i, i + size));
+              return out;
+            };
+
+            const pullRequests = [];
+            for (const batch of chunk(open, 6)) {
+              const rows = await Promise.all(batch.map(async brief => {
+                const author = brief.user && brief.user.login ? brief.user.login : "unknown";
+                const isDraft = Boolean(brief.draft);
+                const isMaintenance = maintenanceAuthors.has(author);
+                const need = !isDraft && !isMaintenance;
+                let files = [];
+                let reviews = [];
+                let filesComplete = false;
+                if (need) {
+                  files = await listFiles(brief.number);
+                  filesComplete = true;
+                  reviews = await github.paginate(
+                    github.rest.pulls.listReviews,
+                    { owner, repo, pull_number: brief.number, per_page: 100 }
+                  );
+                }
+                const body = brief.body || "";
+                for (const match of body.matchAll(closingRefRe)) {
+                  referencedIssueNumbers.add(Number(match[1]));
+                }
+                return {
+                  number: brief.number,
+                  title: brief.title || "",
+                  body,
+                  author,
+                  labels: (brief.labels || []).map(x => (
+                    typeof x === "string" ? x : x.name
+                  )).filter(Boolean),
+                  html_url: brief.html_url,
+                  state: brief.state,
+                  draft: isDraft,
+                  head_sha: brief.head && brief.head.sha ? brief.head.sha : "",
+                  mergeable_state: "unknown",
+                  files_complete: filesComplete,
+                  files: files.map(f => f.filename),
+                  file_details: [],
+                  reviews: reviews.map(r => ({
+                    user: { login: r.user && r.user.login ? r.user.login : "unknown" },
+                    state: r.state,
+                    submitted_at: r.submitted_at,
+                    commit_id: r.commit_id || null
+                  }))
+                };
+              }));
+              pullRequests.push(...rows);
+            }
+
+            const referencedItems = {};
+            for (const batch of chunk([...referencedIssueNumbers], 6)) {
+              const rows = await Promise.all(batch.map(async number => {
+                try {
+                  const issue = (await github.rest.issues.get({
+                    owner, repo, issue_number: number
+                  })).data;
+                  return { number, issue };
+                } catch (err) {
+                  if (!err || err.status !== 404) throw err;
+                  return { number, issue: null };
+                }
+              }));
+              for (const { number, issue } of rows) {
+                if (!issue) continue;
+                referencedItems[String(number)] = {
+                  state: issue.state,
+                  html_url: issue.html_url,
+                  title: issue.title,
+                  body: issue.body || "",
+                  labels: (issue.labels || []).map(x =>
+                    typeof x === "string" ? x : x.name
+                  ).filter(Boolean),
+                  is_pull_request: Boolean(issue.pull_request)
+                };
+              }
+            }
+
+            const snapshot = {
+              schema_version: "0.3",
+              purpose: "admission-sweep",
+              state_mode: "v0.3",
+              repository: `${owner}/${repo}`,
+              main_sha: policySha,
+              policy_ref: defaultBranch,
+              policy_sha: policySha,
+              state_branch: stateBranch,
+              state_sha: stateSha,
+              main_paths: [],
+              referenced_pull_requests: {},
+              referenced_items: referencedItems,
+              pull_requests: pullRequests
+            };
+            fs.writeFileSync(
+              ".repo-coordinator/sweep-snapshot.json",
+              JSON.stringify(snapshot, null, 2)
+            );
+            core.info(
+              `Sweep snapshot: ${pullRequests.length} open PR(s); ` +
+              `policy ${policySha.slice(0, 12)}; state ${stateSha.slice(0, 12)}.`
+            );
+
+      - name: Verify state replay (fail closed)
+        run: |
+          set -euo pipefail
+          python3 tools/repository_coordinator_state_v1.py verify \
+            --ledger .repo-coordinator/ADMISSION_LEDGER.jsonl \
+            --state .repo-coordinator/COORDINATOR_STATE.json
+
+      - name: Compute coordinator index over the whole queue
+        run: |
+          set -euo pipefail
+          python3 tools/repository_coordinator_v0_1.py \
+            --snapshot .repo-coordinator/sweep-snapshot.json \
+            --policy REPOSITORY_COORDINATOR_POLICY.json \
+            --state .repo-coordinator/COORDINATOR_STATE.json \
+            --priority-queue PRIORITY_QUEUE.md \
+            --output .repo-coordinator/index.json
+          test -f .repo-coordinator/index.json
+
+      - name: Select ADVANCE PRs within capacity and (optionally) admit
+        uses: actions/github-script@v9
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'true' }}
+          SCHEDULE_ENABLED: ${{ vars.COORDINATOR_AUTOSWEEP_ENABLED }}
+          IS_SCHEDULE: ${{ github.event_name == 'schedule' }}
+          MAX_ADMITS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_admits || '10' }}
+          RUN_ID: ${{ github.run_id }}
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const index = JSON.parse(fs.readFileSync(".repo-coordinator/index.json", "utf8"));
+
+            // Decide whether this run is permitted to actually admit.
+            const isSchedule = process.env.IS_SCHEDULE === "true";
+            const scheduleEnabled = String(process.env.SCHEDULE_ENABLED || "") === "true";
+            const dryRunInput = String(process.env.DRY_RUN || "true") !== "false";
+            const doAdmit = isSchedule ? scheduleEnabled : !dryRunInput;
+
+            const cap = index.capacity || {};
+            const limit = Number(cap.active_operator_queue_limit || 0);
+            const admittedReady = Number(cap.admitted_ready_count || 0);
+            let headroom = Math.max(0, limit - admittedReady);
+            const hardCap = Math.max(0, Number(process.env.MAX_ADMITS || "10"));
+
+            const eligible = (index.items || []).filter(it =>
+              it.lane === "ADMISSION_REVIEW" &&
+              (it.guidance || {}).action === "ADVANCE" &&
+              !(it.findings || []).some(f => f.severity === "HIGH")
+            ).sort((a, b) => a.number - b.number);
+
+            const budget = Math.min(headroom, hardCap);
+            const selected = eligible.slice(0, budget);
+            const deferred = eligible.slice(budget);
+
+            const lines = [];
+            lines.push("## Coordinator admission sweep");
+            lines.push("");
+            lines.push(`- mode: **${doAdmit ? "ADMIT" : "DRY-RUN"}**` +
+              (isSchedule ? ` (schedule; COORDINATOR_AUTOSWEEP_ENABLED=${scheduleEnabled})`
+                          : ` (workflow_dispatch; dry_run=${dryRunInput})`));
+            lines.push(`- capacity: limit ${limit}, admitted-ready ${admittedReady}, headroom ${headroom}`);
+            lines.push(`- eligible (ADVANCE / no HIGH / ADMISSION_REVIEW): ${eligible.length}`);
+            lines.push(`- budget this run: ${budget} (min of headroom ${headroom}, hard cap ${hardCap})`);
+            lines.push(`- selected: ${selected.map(x => "#" + x.number).join(", ") || "none"}`);
+            if (deferred.length) {
+              lines.push(`- deferred (over capacity/cap): ${deferred.map(x => "#" + x.number).join(", ")}`);
+            }
+            lines.push("");
+
+            let admitted = 0;
+            for (const it of selected) {
+              const evidence =
+                `coordinator-admission-sweep run ${process.env.RUN_ID}: PR #${it.number} ` +
+                `classified ADVANCE with no HIGH findings at head ${String(it.head_sha || "").slice(0, 12)}; ` +
+                `auto-admitted within capacity (limit ${limit}). Admission routing only; no merge authority.`;
+              if (!doAdmit) {
+                lines.push(`  - would admit #${it.number}`);
+                continue;
+              }
+              try {
+                await github.rest.actions.createWorkflowDispatch({
+                  owner, repo,
+                  workflow_id: "repository-admission-gate.yml",
+                  ref: "main",
+                  inputs: {
+                    decision: "ADMIT",
+                    subject_kind: "PULL_REQUEST",
+                    subject_number: String(it.number),
+                    objective_issue_number: "",
+                    evidence
+                  }
+                });
+                admitted += 1;
+                lines.push(`  - dispatched ADMIT for #${it.number}`);
+              } catch (err) {
+                lines.push(`  - FAILED to dispatch #${it.number}: ${err.message}`);
+              }
+            }
+            lines.push("");
+            lines.push(`_${doAdmit ? admitted + " ADMIT dispatch(es) issued" : "dry-run; no dispatches"}. ` +
+              `The hash-chained ledger write is performed by repository-admission-gate.yml, not by this sweep._`);
+
+            const summary = lines.join("\n") + "\n";
+            await core.summary.addRaw(summary).write();
+            core.info(summary);
