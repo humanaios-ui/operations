@@ -91,6 +91,8 @@ links:
   and regenerates TOOLS_MANIFEST.md with the repo tooling. Checks run: manifest scan, validate,
   selftest, render --check; enumeration guard 6/6; graph regression suite 24 passed.
   Merge and admission remain Z2 acts.
+- **HAIOS-TOOL-224 confirmed.** Z2 (Night) confirmed the ID in session 2026-10-15 on direct instruction. No other use of the ID exists in the repo.
+- **PR #843 admitted (routing only).** Coordinator ledger event 70 (ADMIT PULL_REQUEST #843, command ref RCC-Z2-INSTRUCTION-2026-10-15-PR843) was appended to repository-coordinator-state at a3774b7. Admission routes work only; it grants no merge authority and does not ratify this candidate.
 - **ID collision avoided.** The new tool row first received HAIOS-TOOL-223, which the ratified
   HCM record already cites. It is recorded as HAIOS-TOOL-224 here. Z2 should confirm the ID.
 - **Not done here:** no change to SESSION_RITUALS.md §A, no graph committed, no CI gate added.
