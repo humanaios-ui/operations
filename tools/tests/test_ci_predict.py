@@ -569,3 +569,12 @@ def test_rollup_workflow_is_daily_strict_and_has_no_closed_pr_trigger():
     assert "git push --set-upstream origin" in workflow
     assert "git push --force" not in workflow
     assert "tools/ci_predict_rollup_v0_1.py verify-prefix" in workflow
+
+
+def test_calibration_workflows_exclude_self_generated_rollup_activity():
+    root = TOOLS_DIR.parent / ".github/workflows"
+    pin = (root / "ci-predict-pin.yml").read_text()
+    resolve = (root / "ci-predict-resolve.yml").read_text()
+    assert "startsWith(github.event.pull_request.head.ref, 'ci-predict-consolidate/')" in pin
+    assert 'if not str(((pr.get("head") or {}).get("ref")) or "").startswith(' in resolve
+    assert 'subprocess.run(cmd, check=True)' in resolve
