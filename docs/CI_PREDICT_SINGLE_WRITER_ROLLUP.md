@@ -52,6 +52,26 @@ and pretend it subsumes contradictory outcomes.
 9. No automatic admission, approval or merge. Source evidence and
    external witness authentication remain separate.
 
+### Rolling-branch post-merge recovery
+
+When the single rolling PR is merged, **verify that the exact PR head or
+its merge commit is incorporated in `main`**, and then delete the
+`ci-predict-consolidate/rolling` remote branch through the authorized
+repository control plane. A stale, undeleted branch intentionally blocks the
+next automated rollup; it must not be silently reused from a historical tree,
+force-pushed, or allowed to revert unrelated files that advanced on `main`.
+A missing branch (git exit 2) is distinct from a remote API/network error:
+the latter blocks publication. No automatic branch deletion is performed.
+
+### Strict source retrieval
+
+The daily ledger publisher uses strict, paginated GitHub API decoding.
+Failed requests, malformed JSON, missing/invalid `check_runs` arrays,
+or mixed batches with one failed source cause the workflow to exit nonzero.
+No partially verified batch is published. The older interactive resolver
+continues to use non-strict behavior unless explicitly changed by separate
+governance review.
+
 The daily schedule is `37 4 * * *` UTC; a manual single-PR dispatch
 remains available. The 50-recently-updated-PR sweep is retained for
 compatibility; a complete cursor-based historical backfill is **not**
