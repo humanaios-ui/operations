@@ -95,7 +95,7 @@ jobs:
           result['source_head_sha']=exact
           result['source_script_commit_sha']=os.environ['PINNED_841']
           result['authority_effect']='NONE'
-          pathlib.Path(sys.argv[2]).write_text(json.dumps(result,sort_keys=True,indent=2)+'\\n',encoding='utf-8')
+          pathlib.Path(sys.argv[2]).write_text(json.dumps(result,sort_keys=True,indent=2),encoding='utf-8')
           assert result['source_head_sha']==exact
           print('Historical nodes:',len(result['nodes']),'fallbacks:',sum(x.get('date_source')=='fallback' for x in result['nodes']))
           PY
