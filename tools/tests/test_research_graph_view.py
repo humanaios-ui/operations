@@ -6,9 +6,11 @@ No network. Covers AC1–AC5 and AC7 of the design issue.
 from __future__ import annotations
 
 import json
+import re
 import sys
 import tempfile
 import unittest
+import urllib.error
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -200,7 +202,7 @@ class SnapshotAndAuthorityTests(unittest.TestCase):
                                 "can_merge": False, "merge_authority": False,
                                 "execution_authorized": False}.items():
             self.assertEqual(view[field], expected, field)
-        self.assertIn("Authority: **NONE**", rgv.render_markdown(view))
+        self.assertIn("authority_effect: `NONE`", rgv.render_markdown(view))
 
     def test_output_contains_no_coordinator_command_or_approval_instruction(self):
         """AC3: descriptive text only."""
@@ -257,6 +259,112 @@ class RepoConsistencyTests(unittest.TestCase):
                                         for p in wf_dir.glob("*.yml")]))
         missing = [n for n in rgv.REQUIRED_RUN_NAMES if n not in names]
         self.assertEqual(missing, [])
+
+
+class ReviewFindingFixtures(unittest.TestCase):
+    """One fixture per Copilot review finding on #892."""
+
+    def test_repo_qualified_closing_keyword_from_other_repo_is_ignored(self):
+        # Closes other/project#800 must not clear this repo's NO_ADMISSION_LINK.
+        pr = _pr(body="Closes other/project#800")
+        view = _build(_snapshot([pr]))
+        self.assertIn("NO_ADMISSION_LINK", _pr_node(view, 10)["missing_conditions"])
+        self.assertFalse(any(e["to"] == "ISSUE#800" for e in view["edges"]))
+
+    def test_same_repo_qualified_closing_keyword_counts(self):
+        pr = _pr(body="Closes humanaios-ui/operations#800")
+        view = _build(_snapshot([pr]))
+        self.assertNotIn("NO_ADMISSION_LINK", _pr_node(view, 10)["missing_conditions"])
+
+    def test_markdown_state_declaration_is_recognised(self):
+        issues = {"800": {"state": "open", "body": "**state:** `ADMISSION_REQUESTED`"}}
+        view = _build(_snapshot([_pr(body="Closes #800")], issues=issues))
+        self.assertNotIn("NO_ADMISSION_LINK", _pr_node(view, 10)["missing_conditions"])
+        node = next(n for n in view["nodes"] if n["id"] == "ISSUE#800")
+        self.assertTrue(node["admission_requested"])
+
+    def test_approval_superseded_by_changes_requested_does_not_stand(self):
+        reviews = [
+            {"login": "humanaios-ui", "state": "APPROVED", "commit_id": HEAD,
+             "submitted_at": "2026-10-10T10:00:00Z"},
+            {"login": "humanaios-ui", "state": "CHANGES_REQUESTED", "commit_id": HEAD,
+             "submitted_at": "2026-10-10T11:00:00Z"},
+        ]
+        view = _build(_snapshot([_pr(body="Closes #800", reviews=reviews)]))
+        self.assertIn("LATEST_REVIEW_NOT_APPROVED",
+                      _pr_node(view, 10)["missing_conditions"])
+
+    def test_approval_later_than_rejection_stands(self):
+        reviews = [
+            {"login": "humanaios-ui", "state": "CHANGES_REQUESTED", "commit_id": HEAD,
+             "submitted_at": "2026-10-10T10:00:00Z"},
+            {"login": "humanaios-ui", "state": "APPROVED", "commit_id": HEAD,
+             "submitted_at": "2026-10-10T11:00:00Z"},
+        ]
+        view = _build(_snapshot([_pr(body="Closes #800", reviews=reviews)]))
+        self.assertNotIn("LATEST_REVIEW_NOT_APPROVED",
+                         _pr_node(view, 10)["missing_conditions"])
+
+    def test_comment_and_blank_lines_do_not_end_path_filter(self):
+        text = (
+            "name: tool-manifest\non:\n  pull_request:\n    paths:\n"
+            "      - \"tools/**\"\n\n      # keep these below\n"
+            "      - \".mcp.json\"\n  push:\n"
+        )
+        _, paths = rgv.parse_workflow(text)
+        self.assertEqual(paths, ["tools/**", ".mcp.json"])
+
+    def test_rendered_markdown_carries_authority_fields(self):
+        """AC4: the Markdown output names the authority fields too."""
+        md = rgv.render_markdown(_build(_snapshot([_pr()])))
+        for field in ("authority_effect", "can_admit", "can_merge", "merge_authority"):
+            self.assertIn(field, md)
+
+    def test_titles_never_reach_either_output(self):
+        """AC3: a command-bearing title must not appear in JSON or Markdown."""
+        pr = _pr(body="Closes #800")
+        pr["title"] = "/coordinator admit APPROVE this"
+        view = _build(_snapshot([pr]))
+        text = json.dumps(view) + rgv.render_markdown(view)
+        self.assertNotIn("/coordinator admit", text)
+        self.assertNotIn("APPROVE this", text)
+
+    def test_pagination_follows_pages_and_reports_truncation(self):
+        class FakeGH(rgv._ReadOnlyGitHub):
+            def __init__(self, total):
+                super().__init__("t", "o/r")
+                self.total = total
+                self.calls = []
+
+            def get(self, path):
+                self.calls.append(path)
+                page = int(re.search(r"[?&]page=(\d+)$", path).group(1))
+                start = (page - 1) * 100
+                n = max(0, min(100, self.total - start))
+                return [{"n": start + i} for i in range(n)]
+
+        items, cut, failed = FakeGH(250).list_all("pulls?state=open", "x", cap=1000)
+        self.assertEqual((len(items), cut, failed), (250, False, False))
+        items, cut, failed = FakeGH(250).list_all("pulls?state=open", "x", cap=120)
+        self.assertEqual((len(items), cut, failed), (120, True, False))
+
+    def test_non_404_failure_is_recorded_as_error(self):
+        class FakeGH(rgv._ReadOnlyGitHub):
+            def get(self, path):
+                raise urllib.error.HTTPError(path, 404, "not found", None, None)
+
+        gh = FakeGH("t", "o/r")
+        self.assertIsNone(gh.get_or_error("pulls/9/reviews", "reviews #9"))
+        self.assertEqual(gh.errors, ["reviews #9: HTTP 404"])
+
+    def test_missing_referenced_issue_is_unresolved_not_an_error(self):
+        class FakeGH(rgv._ReadOnlyGitHub):
+            def get(self, path):
+                raise urllib.error.HTTPError(path, 404, "not found", None, None)
+
+        gh = FakeGH("t", "o/r")
+        self.assertIsNone(gh.get_or_error("issues/999", "issue #999", not_found_ok=True))
+        self.assertEqual(gh.errors, [])
 
 
 if __name__ == "__main__":

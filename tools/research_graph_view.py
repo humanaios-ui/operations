@@ -9,7 +9,7 @@ under research-graph/: graph.json and GRAPH.md.
 
 Authority: none. Every output carries authority_effect NONE, can_admit false,
 can_merge false. The view names missing conditions; it never issues commands,
-approvals, or admission state.
+approvals, or admission state. PR titles are not copied into any output.
 
 Independence: this module does NOT import or reuse the admission gate's trusted
 code (tools/repository_coordinator_*.py). Reason codes are re-implemented here.
@@ -30,11 +30,18 @@ from pathlib import Path
 
 TOOL_NAME = "research_graph_view"
 TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "reporting_tool"
+TOOL_SESSION = "research-graph-phase1"
+TOOL_ZONE = 1
+
 SCHEMA = "humanaios.research_graph.view.v0.1"
 OUT_DIR_NAME = "research-graph"
 PR_CAP = 200
 ISSUE_CAP = 100
 CLOSED_PR_SAMPLE = 30
+FILES_CAP = 3000
+REVIEWS_CAP = 1000
+RUNS_CAP = 1000
 
 # Required workflow runs, by workflow `name:` as GitHub reports it.
 # Path filters are NOT hard-coded here: they are read from the workflow file.
@@ -47,13 +54,17 @@ REQUIRED_RUN_NAMES = (
     "tool-manifest",
 )
 
+_REPO_QUALIFIER = r"(?:(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?"
 CLOSING_RE = re.compile(
     r"\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)"
-    r"\s*:?\s*(?:[\w.-]+/[\w.-]+)?#(\d{1,6})\b",
+    r"\s*:?\s*" + _REPO_QUALIFIER + r"#(?P<num>\d{1,6})\b",
     re.IGNORECASE,
 )
-REF_RE = re.compile(r"#(\d{1,6})\b")
-ADMISSION_MARKER = "state: ADMISSION_REQUESTED"
+REF_RE = re.compile(_REPO_QUALIFIER + r"#(?P<num>\d{1,6})\b")
+# Accepts the plain form ("state: ADMISSION_REQUESTED") and the Markdown form
+# ("**state:** `ADMISSION_REQUESTED`") used in issue bodies.
+ADMISSION_RE = re.compile(r"\bstate\W{0,8}?`?ADMISSION_REQUESTED`?", re.IGNORECASE)
+RELEVANT_REVIEW_STATES = ("APPROVED", "CHANGES_REQUESTED", "DISMISSED")
 
 REASON_DRAFT = "DRAFT"
 REASON_NO_ADMISSION_LINK = "NO_ADMISSION_LINK"
@@ -91,7 +102,8 @@ def parse_workflow(text: str) -> tuple[str | None, list[str] | None]:
     """Return (workflow name, pull_request path filter or None) from YAML text.
 
     Line-based on purpose: no YAML dependency, and the shape read here is the
-    one used in this repository's workflows.
+    one used in this repository's workflows. Blank lines and comment lines are
+    skipped without ending a list.
     """
     name = None
     m = re.search(r"^name:\s*(.+?)\s*$", text, re.M)
@@ -101,6 +113,8 @@ def parse_workflow(text: str) -> tuple[str | None, list[str] | None]:
     paths: list[str] | None = None
     in_pr = in_paths = False
     for line in text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
         if re.match(r"^  pull_request:\s*$", line):
             in_pr, in_paths = True, False
             continue
@@ -146,21 +160,41 @@ def glob_matches(pattern: str, path: str) -> bool:
 
 # ------------------------------------------------------------------ the view
 
-def _closing_targets(body: str) -> list[int]:
-    return sorted({int(n) for n in CLOSING_RE.findall(body or "")})
+def _local_numbers(regex: re.Pattern, body: str, repository: str) -> list[int]:
+    """Issue numbers referenced in this repository. Other repositories are ignored."""
+    found = set()
+    for m in regex.finditer(body or ""):
+        qualifier = m.group("repo")
+        if qualifier and qualifier.lower() != (repository or "").lower():
+            continue
+        found.add(int(m.group("num")))
+    return sorted(found)
 
 
-def _references(body: str, closes: list[int]) -> list[int]:
-    refs = {int(n) for n in REF_RE.findall(body or "")}
-    return sorted(refs - set(closes))
+def _closing_targets(body: str, repository: str) -> list[int]:
+    return _local_numbers(CLOSING_RE, body, repository)
 
 
-def _latest_authorized_approval(reviews, actors):
-    """Return the latest APPROVED review by an authorized actor, or None."""
-    approvals = [
-        r for r in reviews
-        if r.get("login") in actors and r.get("state") == "APPROVED"
-    ]
+def _references(body: str, repository: str, closes: list[int]) -> list[int]:
+    return sorted(set(_local_numbers(REF_RE, body, repository)) - set(closes))
+
+
+def _approval_standing(reviews, actors):
+    """Return the approval that stands, or None.
+
+    For each authorized actor, the latest relevant review decides. An approval
+    that the same actor later superseded with CHANGES_REQUESTED or DISMISSED
+    does not count.
+    """
+    latest: dict[str, dict] = {}
+    for r in reviews:
+        login = r.get("login")
+        if login not in actors or r.get("state") not in RELEVANT_REVIEW_STATES:
+            continue
+        prev = latest.get(login)
+        if prev is None or (r.get("submitted_at") or "") >= (prev.get("submitted_at") or ""):
+            latest[login] = r
+    approvals = [r for r in latest.values() if r["state"] == "APPROVED"]
     if not approvals:
         return None
     return max(approvals, key=lambda r: r.get("submitted_at") or "")
@@ -192,11 +226,16 @@ def _required_run_conditions(pr, index, required_names):
     return conditions
 
 
+def _admission_issue(issue: dict | None) -> bool:
+    return bool(issue) and bool(ADMISSION_RE.search(issue.get("body") or ""))
+
+
 def _evaluate_pr(pr, snapshot, actors, index, required_names):
-    """Return (lane, missing_conditions, edges, issue_refs) for one PR."""
+    """Return (lane, missing_conditions, edges) for one PR."""
+    repository = snapshot.get("repository") or ""
     body = pr.get("body") or ""
-    closes = _closing_targets(body)
-    refs = _references(body, closes)
+    closes = _closing_targets(body, repository)
+    refs = _references(body, repository, closes)
     edges = [{"from": f"PR#{pr['number']}", "to": f"ISSUE#{n}", "kind": "CLOSES"}
              for n in closes]
     edges += [{"from": f"PR#{pr['number']}", "to": f"ISSUE#{n}", "kind": "REFERENCES"}
@@ -209,16 +248,15 @@ def _evaluate_pr(pr, snapshot, actors, index, required_names):
         return "DRAFT", [REASON_DRAFT], edges
 
     conditions: list[str] = []
-
     admission_issues = [
         n for n in closes
-        if ADMISSION_MARKER in (snapshot["issues"].get(str(n), {}).get("body") or "")
+        if _admission_issue(snapshot["issues"].get(str(n)))
         and snapshot["issues"][str(n)].get("state") == "open"
     ]
     if not admission_issues:
         conditions.append(REASON_NO_ADMISSION_LINK)
 
-    approval = _latest_authorized_approval(pr.get("reviews", []), actors)
+    approval = _approval_standing(pr.get("reviews", []), actors)
     if approval is None:
         conditions.append(REASON_LATEST_REVIEW_NOT_APPROVED)
     elif approval.get("commit_id") != pr.get("head_sha"):
@@ -246,7 +284,6 @@ def build_view(snapshot: dict, *, actors, generated_at: str,
             "id": f"PR#{pr['number']}",
             "kind": "PULL_REQUEST",
             "number": pr["number"],
-            "title": pr.get("title", ""),
             "state": "merged" if pr.get("merged") else pr.get("state"),
             "draft": bool(pr.get("draft")),
             "head_sha": pr.get("head_sha"),
@@ -260,7 +297,7 @@ def build_view(snapshot: dict, *, actors, generated_at: str,
             state, admission = "UNRESOLVED", False
         else:
             state = issue.get("state")
-            admission = (ADMISSION_MARKER in (issue.get("body") or ""))
+            admission = _admission_issue(issue)
         nodes.append({
             "id": f"ISSUE#{number}",
             "kind": "ISSUE",
@@ -291,14 +328,24 @@ def build_view(snapshot: dict, *, actors, generated_at: str,
 # ----------------------------------------------------------------- rendering
 
 def render_markdown(view: dict) -> str:
+    def fmt(value):
+        return str(value).lower() if isinstance(value, bool) else str(value)
+
+    authority = " · ".join(
+        f"{key}: `{fmt(view[key])}`"
+        for key in ("authority_effect", "can_admit", "can_merge", "merge_authority",
+                    "execution_authorized")
+    )
     lines = [
         "# Research graph view (generated, read-only)",
         "",
         f"Schema `{view['schema']}` · generated {view['generated_at']} · "
         f"snapshot **{view['snapshot']['status']}**",
         "",
-        "> Authority: **NONE**. This view describes missing conditions; it grants no "
-        "admission, approval, or merge authority. Lanes are descriptive.",
+        f"Authority: {authority}",
+        "",
+        "This view describes missing conditions; it grants no admission, approval, "
+        "or merge authority. Lanes are descriptive.",
         "",
         "## Pull requests",
         "",
@@ -307,7 +354,7 @@ def render_markdown(view: dict) -> str:
     ]
     for node in (n for n in view["nodes"] if n["kind"] == "PULL_REQUEST"):
         conds = ", ".join(f"`{c}`" for c in node["missing_conditions"]) or "—"
-        lines.append(f"| #{node['number']} {node['title']} | {node['lane']} | {conds} |")
+        lines.append(f"| #{node['number']} | {node['lane']} | {conds} |")
     if view["snapshot"]["errors"]:
         lines += ["", "## Snapshot errors", ""]
         lines += [f"- {e}" for e in view["snapshot"]["errors"]]
@@ -345,43 +392,59 @@ class _ReadOnlyGitHub:
         with urllib.request.urlopen(req, timeout=30) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
-    def get_or_error(self, path: str, label: str):
+    def get_or_error(self, path: str, label: str, *, not_found_ok: bool = False):
+        """Return parsed JSON, or None. Every failure except an allowed 404 is recorded."""
         try:
             return self.get(path)
         except urllib.error.HTTPError as err:
-            if err.code == 404:
+            if err.code == 404 and not_found_ok:
                 return None
             self.errors.append(f"{label}: HTTP {err.code}")
         except Exception as err:  # noqa: BLE001 - recorded, snapshot marked INCOMPLETE
             self.errors.append(f"{label}: {type(err).__name__}")
         return None
 
+    def list_all(self, path: str, label: str, *, key: str | None = None, cap: int):
+        """Follow pages up to cap. Returns (items, truncated, failed)."""
+        items: list = []
+        page = 1
+        sep = "&" if "?" in path else "?"
+        while True:
+            data = self.get_or_error(f"{path}{sep}per_page=100&page={page}", label)
+            if data is None:
+                return items, False, True
+            batch = data.get(key, []) if key else data
+            items += batch
+            if len(batch) < 100:
+                return items, False, False
+            if len(items) >= cap:
+                return items[:cap], True, False
+            page += 1
+
 
 def fetch_snapshot(repo: str, token: str, workflows_dir: Path) -> dict:
     gh = _ReadOnlyGitHub(token, repo)
     truncated = False
 
-    open_prs = gh.get_or_error("pulls?state=open&per_page=100", "list open PRs") or []
-    if len(open_prs) >= PR_CAP:
-        truncated = True
+    open_prs, cut, _ = gh.list_all("pulls?state=open", "list open PRs", cap=PR_CAP)
+    truncated |= cut
     closed_prs = gh.get_or_error(
         f"pulls?state=closed&sort=updated&direction=desc&per_page={CLOSED_PR_SAMPLE}",
         "list closed PRs") or []
-    prs_raw = (open_prs[:PR_CAP] + closed_prs)
 
-    default_head = None
     pulls, issue_numbers = [], set()
-    for raw in prs_raw:
+    for raw in open_prs + closed_prs:
         n = raw["number"]
-        files = gh.get_or_error(f"pulls/{n}/files?per_page=100", f"files #{n}") or []
-        reviews = gh.get_or_error(f"pulls/{n}/reviews?per_page=100", f"reviews #{n}") or []
+        files, cut_f, _ = gh.list_all(f"pulls/{n}/files", f"files #{n}", cap=FILES_CAP)
+        reviews, cut_r, _ = gh.list_all(f"pulls/{n}/reviews", f"reviews #{n}", cap=REVIEWS_CAP)
         head = raw["head"]["sha"]
-        runs = gh.get_or_error(
-            f"actions/runs?head_sha={head}&per_page=100", f"runs #{n}") or {}
+        runs, cut_u, _ = gh.list_all(f"actions/runs?head_sha={head}", f"runs #{n}",
+                                     key="workflow_runs", cap=RUNS_CAP)
+        truncated |= cut_f or cut_r or cut_u
+        body = raw.get("body") or ""
         pulls.append({
             "number": n,
-            "title": raw.get("title", ""),
-            "body": raw.get("body") or "",
+            "body": body,
             "state": raw.get("state"),
             "draft": bool(raw.get("draft")),
             "merged": bool(raw.get("merged_at")),
@@ -394,22 +457,23 @@ def fetch_snapshot(repo: str, token: str, workflows_dir: Path) -> dict:
             "runs": [{"id": r.get("id"), "workflow_name": r.get("name"),
                       "event": r.get("event"), "head_sha": r.get("head_sha"),
                       "status": r.get("status"), "conclusion": r.get("conclusion")}
-                     for r in runs.get("workflow_runs", [])],
+                     for r in runs],
         })
-        issue_numbers |= set(_closing_targets(pulls[-1]["body"]))
-        issue_numbers |= set(_references(pulls[-1]["body"], []))
+        issue_numbers |= set(_closing_targets(body, repo))
+        issue_numbers |= set(_references(body, repo, []))
 
     issues: dict[str, dict] = {}
     for number in sorted(issue_numbers)[:ISSUE_CAP]:
-        raw = gh.get_or_error(f"issues/{number}", f"issue #{number}")
+        # A referenced issue that does not exist is UNRESOLVED, not a fetch failure.
+        raw = gh.get_or_error(f"issues/{number}", f"issue #{number}", not_found_ok=True)
         if raw is None:
             continue
         issues[str(number)] = {"state": raw.get("state"),
-                               "title": raw.get("title", ""),
                                "body": raw.get("body") or ""}
     if len(issue_numbers) > ISSUE_CAP:
         truncated = True
 
+    default_head = None
     default = gh.get_or_error("branches/main", "default branch")
     if default:
         default_head = default["commit"]["sha"]
@@ -426,12 +490,14 @@ def fetch_snapshot(repo: str, token: str, workflows_dir: Path) -> dict:
     }
 
 
+# ------------------------------------------------------------------ self-check
+
 def run_smoke_test() -> int:
     """Offline check of the pure core: authority fields, one reason code, one pass."""
     snapshot = {
         "repository": "humanaios-ui/operations",
         "default_head_sha": "c" * 40,
-        "pulls": [{"number": 1, "title": "smoke", "body": "Closes #2", "state": "open",
+        "pulls": [{"number": 1, "body": "Closes #2", "state": "open",
                    "draft": False, "merged": False, "head_sha": "a" * 40,
                    "changed_files": ["docs/x.md"], "reviews": [], "runs": []}],
         "issues": {"2": {"state": "open", "body": "state: ADMISSION_REQUESTED"}},
@@ -469,7 +535,7 @@ def main(argv=None) -> int:
     ap.add_argument("--out-dir", type=Path, default=Path(OUT_DIR_NAME))
     ap.add_argument("--smoke-test", action="store_true",
                     help="run the offline self-check and exit")
-    ap.add_argument("--snapshot-json", type=Path,
+    ap.add_argument("--snapshot-json", "--input", dest="snapshot_json", type=Path,
                     help="offline mode: build from a saved snapshot instead of the API")
     args = ap.parse_args(argv)
     if args.smoke_test:

@@ -2658,6 +2658,7 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: research_graph_view.py
+  session: research-graph-phase1
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
