@@ -8,7 +8,7 @@ descriptive view of open and recently closed PRs, and writes exactly two files
 under research-graph/: graph.json and GRAPH.md.
 
 Authority: none. Every output carries authority_effect NONE, can_admit false,
-can_merge false. The view names missing conditions; it never issues commands,
+can_merge false. The view names missing conditions; it issues no commands,
 approvals, or admission state. PR titles are not copied into any output.
 
 Independence: this module does NOT import or reuse the admission gate's trusted
