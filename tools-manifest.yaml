@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 209
+  tools: 212
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 161
+  builder_markers_present: 164
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2658,6 +2658,45 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806)
+- tool_id: HAIOS-TOOL-223
+  name: humanaios_core_machine
+  path: tools/humanaios_core_machine_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator.
+  session: issue-810
+- tool_id: HAIOS-TOOL-224
+  name: ci_predict_rollup
+  path: tools/ci_predict_rollup_v0_1.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: ci_predict_rollup_v0_1.py
+  session: issue-870
+- tool_id: HAIOS-TOOL-225
+  name: graph_lookup
+  path: tools/graph_lookup_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
+  session: Q-REPO-GRAPH-LOOKUP-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

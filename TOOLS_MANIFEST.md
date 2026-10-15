@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**209 registered tools** · 2 MCP servers · 4 excluded · 161 carrying Builder v1.7 markers
+**212 registered tools** · 2 MCP servers · 4 excluded · 164 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 209 |
-| — status `draft` | 208 |
+| Registered tools | 212 |
+| — status `draft` | 211 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 161 |
+| Builder v1.7 markers present | 164 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -65,7 +65,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-205 | graph_capture_lint | `tools/graph_capture_lint_v1_0.py` | 1.0.0 | 1 | draft | — | Scores a graph file against the nine properties of a graph that cannot be wrong from the inside; blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting baseline (crb/graph_capture_baseline.json). |
 | HAIOS-TOOL-222 | coderabbit_coverage_inventory | `tools/coderabbit_coverage_inventory.py` | 0.1.0 | 1 | draft | — | Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806) |
 
-## Calibration — `calibration_tool` (16)
+## Calibration — `calibration_tool` (17)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -85,6 +85,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-121 | smag_pr_autocapture | `tools/smag_pr_autocapture_v1_0.py` | 1.0.0 | 1 | draft | — | smag_pr_autocapture_v1_0 — auto-capture a SMAG pilot row from a merged PR |
 | HAIOS-TOOL-123 | smag_resolve | `tools/smag_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve. |
 | HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
+| HAIOS-TOOL-224 | ci_predict_rollup | `tools/ci_predict_rollup_v0_1.py` | 0.1.0 | 1 | draft | — | ci_predict_rollup_v0_1.py |
 
 ## Connectors — `connector_tool` (13)
 
@@ -115,7 +116,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-152 | strict_yaml | `.doc-control/strict_yaml.py` | unversioned | 1 | draft | no-builder-markers | A YAML loader that refuses duplicate mapping keys, for registry consumers. |
 
-## Diagnostics — `diagnostic_tool` (19)
+## Diagnostics — `diagnostic_tool` (20)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -138,6 +139,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-206 | ai_context_generator | `tools/ai_context_generator_v0_1.py` | 0.1.0 | 1 | draft | — | Generates queryable, machine-readable context from canonical repository sources. |
 | HAIOS-TOOL-212 | gner_failure_signatures_e2 | `tools/gner_failure_signatures_e2.py` | 0.1.0 | 1 | draft | — | GNER-E2: conservative cross-run failure signature candidates (no authority). |
 | HAIOS-TOOL-213 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0: offline GitHub notification lead interpreter. |
+| HAIOS-TOOL-225 | graph_lookup | `tools/graph_lookup_v0_1.py` | 0.1.0 | 1 | draft | — | graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph. |
 
 ## Governance — `governance_tool` (25)
 
@@ -285,7 +287,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (27)
+## Validation — `validation_tool` (28)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -316,6 +318,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 | HAIOS-TOOL-209 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies. |
 | HAIOS-TOOL-221 | state_continuity_verification | `tools/state_continuity_verification_v0_1.py` | 0.1.0 | 1 | draft | — | Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS / |
+| HAIOS-TOOL-223 | humanaios_core_machine | `tools/humanaios_core_machine_v0_1.py` | 0.1.0 | 1 | draft | — | Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator. |
 
 ## MCP servers (2)
 
@@ -347,10 +350,10 @@ A category says what a tool **does to the system**, not what subject it concerns
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
 | `audit_tool` | Audits artifacts or state against rules and reports findings. | 24 |
-| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
+| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 17 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
-| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 19 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 20 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 25 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
@@ -360,7 +363,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 27 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 28 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 
