@@ -157,6 +157,7 @@ class Handler(BaseHTTPRequestHandler):
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > 4096:
                     raise ValueError("JSON request must be between 1 and 4096 bytes.")
+                self.connection.settimeout(15)  # Bound stalled request bodies.
                 body = json.loads(self.rfile.read(length).decode("utf-8"))
                 if not isinstance(body, dict) or set(body) - {"objective", "source_mode"}:
                     raise ValueError("Expected only objective and source_mode.")
