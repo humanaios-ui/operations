@@ -403,6 +403,20 @@ GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # Your PAT
 **Generated:** 2026-10-01  
 **Session:** https://claude.ai/code/session_01TYKcwkeQfYEeCN5JzZ2WRi
 
+## FALSIFIER
+
+**Falsification of audit findings requires BOTH of the following:**
+
+1. **CRITICAL-1 falsified:** PR #630's PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md Step 2 contains NO `curl` option with base64 encoding; curl examples are removed entirely; guide recommends GitHub CLI only for credential deployment.
+
+2. **CRITICAL-2 falsified:** `.gitleaks.toml` allowlist does NOT exempt the PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md file; gitleaks will block real credentials matching `r8_` and `eyJhbGc` patterns placed in that file; allowlist rules do not create a blanket exemption for credential format examples.
+
+3. **CRITICAL-3 falsified:** PR #630 includes an explicit Z2 authorization gate (checked in CI); PR cannot merge without a Z2 decision hash per CLAUDE.md §Decision Routing; admissions approval is not sufficient authorization for credential deployment.
+
+**If all three are true, audit findings are REFUTED and the PR is safe to merge with the specified fixes applied.**
+
+**If any one is false, the corresponding critical finding stands and PR #630 should not merge.**
+
 ---
 
 _Audit performed per CLAUDE.md Session Rituals (§A) and B.6 receipt reconciliation_
