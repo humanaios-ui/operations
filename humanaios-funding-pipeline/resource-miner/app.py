@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+from hmac import compare_digest
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -103,6 +105,21 @@ class Handler(BaseHTTPRequestHandler):
             remaining -= len(chunk)
         return b"".join(chunks)
 
+    def _admin_allowed(self) -> bool:
+        """Deny legacy scan/record APIs to anonymous public service callers.
+
+        The public INTENT-OS objective route does not use these endpoints.
+        Store the admin token in an external secret manager, never in the UI.
+        """
+        expected = os.environ.get("RESOURCE_MINER_ADMIN_TOKEN", "")
+        supplied = self.headers.get("X-Resource-Miner-Admin-Token", "")
+        if (len(expected) >= 32 and supplied
+                and compare_digest(expected.encode("utf-8"), supplied.encode("utf-8"))):
+            return True
+        self._send_json({"error": "Admin API unavailable or unauthorized."},
+                        HTTPStatus.FORBIDDEN)
+        return False
+
     def _headers(self, status: int, content_type: str, length: int) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
@@ -143,11 +160,15 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/requirements":
                 return self._send_json({"requirements": load_requirements(DEFAULT_REQUIREMENTS)})
             if parsed.path == "/api/resources":
+                if not self._admin_allowed():
+                    return
                 rows, src = _read_jsonl(DEFAULT_OUT), "live"
                 if not rows:
                     rows, src = _read_jsonl(SNAPSHOT_OUT), "snapshot"
                 return self._send_json({"source": src, "count": len(rows), "resources": rows})
             if parsed.path == "/api/entitlement/handoff":
+                if not self._admin_allowed():
+                    return
                 resource_id = (params.get("resource_id") or [""])[0].strip()
                 if not resource_id:
                     return self._send_json({"error": "resource_id is required"}, HTTPStatus.BAD_REQUEST)
@@ -159,6 +180,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send_json({"error": "resource_id not found"}, HTTPStatus.NOT_FOUND)
                 return self._send_json({"handoff": build_entitlement_handoff(match)})
             if parsed.path == "/api/scan":
+                if not self._admin_allowed():
+                    return
                 resources = _run_scan(params)
                 persist = params.get("persist", ["0"])[0] in ("1", "true", "yes")
                 if persist:
@@ -220,6 +243,8 @@ class Handler(BaseHTTPRequestHandler):
                                        HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path != "/api/scan":
             return self._send_json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
+        if not self._admin_allowed():
+            return
         try:
             length = int(self.headers.get("Content-Length", "0") or "0")
             raw = self.rfile.read(length) if length else b"{}"
