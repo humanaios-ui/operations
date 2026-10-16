@@ -1180,7 +1180,7 @@ candidates:
     0 first, then Tier 1/2 by density). Resource allocation with per-zone cap constraints.
     Estimated 450–1800 units across 2–4 cycles.'
 - q_id: Q-PR630-CHALLENGE-EVIDENCE-01
-  title: PR #630 Challenge Evidence (10 security findings from red-team audit)
+  title: PR #630 Challenge Evidence (12 security findings from red-team audit)
   path: z1-inbox/2026-10-01/PR-630-CHALLENGE-EVIDENCE.jsonl
   submitted: '2026-10-01'
   status: awaiting_z2
