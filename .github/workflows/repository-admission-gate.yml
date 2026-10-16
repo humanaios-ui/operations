@@ -899,6 +899,7 @@ jobs:
             --state coordinator-state/COORDINATOR_STATE.json \
             --pr-payload coordinator-state/.live-pr.json \
             --comment-payload coordinator-state/.live-comment.json \
+            --event-payload "$GITHUB_EVENT_PATH" \
             --repository "$REPO" --pr-number "$PR_NUMBER" \
             --actor "$COMMENT_ACTOR" --comment-id "$COMMENT_ID" \
             --recorded-at "$COMMENT_CREATED_AT" \
