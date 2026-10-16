@@ -198,6 +198,59 @@ class HttpIntentTests(unittest.TestCase):
         self.assertTrue(handler.close_connection)
         scan.assert_not_called()
 
+    def test_legacy_admin_routes_fail_closed_without_token(self):
+        paths = ("/api/resources", "/api/entitlement/handoff?resource_id=TEST",
+                 "/api/scan?persist=1")
+        with patch.dict(app.os.environ, {"RESOURCE_MINER_ADMIN_TOKEN": "S" * 32}), \
+             patch.object(app, "_run_scan") as scan, \
+             patch.object(app, "_read_jsonl") as read:
+            for path in paths:
+                handler = object.__new__(app.Handler)
+                handler.path = path
+                handler.headers = {}
+                observed = []
+                handler._send_json = lambda data, status=200: observed.append((int(status), data))
+                handler.do_GET()
+                self.assertEqual(observed[0][0], 403, path)
+            handler = object.__new__(app.Handler)
+            handler.path = "/api/scan"
+            handler.headers = {}
+            observed = []
+            handler._send_json = lambda data, status=200: observed.append((int(status), data))
+            handler.do_POST()
+            self.assertEqual(observed[0][0], 403)
+        scan.assert_not_called()
+        read.assert_not_called()
+
+    def test_admin_requires_configured_strong_token_and_matches_exactly(self):
+        handler = object.__new__(app.Handler)
+        observed = []
+        handler._send_json = lambda data, status=200: observed.append((int(status), data))
+        secret = "T" * 32
+        for configured, given in (("", secret), ("weak", "weak"), (secret, "wrong")):
+            handler.headers = {"X-Resource-Miner-Admin-Token": given}
+            with patch.dict(app.os.environ, {"RESOURCE_MINER_ADMIN_TOKEN": configured}):
+                self.assertFalse(handler._admin_allowed())
+            self.assertEqual(observed[-1][0], 403)
+            self.assertNotIn(secret, str(observed[-1][1]))
+        handler.headers = {"X-Resource-Miner-Admin-Token": secret}
+        with patch.dict(app.os.environ, {"RESOURCE_MINER_ADMIN_TOKEN": secret}):
+            self.assertTrue(handler._admin_allowed())
+
+    def test_authorized_admin_scan_retains_existing_function(self):
+        secret = "T" * 32
+        handler = object.__new__(app.Handler)
+        handler.path = "/api/scan"
+        handler.headers = {"X-Resource-Miner-Admin-Token": secret}
+        observed = []
+        handler._send_json = lambda data, status=200: observed.append((int(status), data))
+        with patch.dict(app.os.environ, {"RESOURCE_MINER_ADMIN_TOKEN": secret}), \
+             patch.object(app, "_run_scan", return_value=[]) as scan:
+            handler.do_GET()
+        self.assertEqual(observed[0][0], 200)
+        self.assertEqual(observed[0][1]["count"], 0)
+        scan.assert_called_once()
+
     def test_oversized_request_rejected_without_reading_body(self):
         handler = object.__new__(app.Handler)
         handler.path = "/api/intent"
