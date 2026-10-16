@@ -19,5 +19,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Canonical manifest regeneration preview (read-only)
+        run: |
+          python -m pip install PyYAML
+          python .tool-control/scan.py
+          git diff -- tools-manifest.yaml
       - name: Offline safety and replay regression
         run: python -m unittest discover -s tests -p test_opd_offline.py -v
