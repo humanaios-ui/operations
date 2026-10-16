@@ -171,6 +171,11 @@ class Handler(BaseHTTPRequestHandler):
                 if mode == "live":
                     rows, source_status, warning = _intent_scan()
                 else:
+                    if not SNAPSHOT_OUT.is_file():
+                        return self._send_json(
+                            {"error": "Stored snapshot unavailable"},
+                            HTTPStatus.SERVICE_UNAVAILABLE,
+                        )
                     rows = _read_jsonl(SNAPSHOT_OUT)
                     source_status, warning = ("CURATED_SNAPSHOT_NOT_LIVE",
                         "Snapshot captured previously. Dates, eligibility and availability are unverified.")
