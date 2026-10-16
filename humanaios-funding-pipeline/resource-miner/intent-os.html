@@ -73,7 +73,9 @@ function addCard(row){
  const desc=document.createElement("p");text(desc,row.description||"No description supplied.");card.append(desc);
  const meta=document.createElement("div");meta.className="meta";
  text(meta,(row.source_name||"Source unknown")+" · "+(row.route||"WATCH")+
-   " · Eligibility: NOT ASSESSED"+(row.deadline?" · Reported deadline: "+row.deadline:""));
+   " · Eligibility: NOT ASSESSED"+(row.deadline?" · Reported deadline: "+row.deadline:"")+
+   " · Observed: "+(row.observed_at||"unknown")+
+   " · "+(row.last_verified_at?"Last verified (source claim): "+row.last_verified_at:"Not verified"));
  card.append(meta);
  const matches=document.createElement("div");
  for(const word of (Array.isArray(row.matched_terms)?row.matched_terms:[])){
@@ -101,7 +103,10 @@ form.addEventListener("submit",async event=>{
    try{
      response=await fetch("/api/intent",{method:"POST",headers:{"Content-Type":"application/json"},
        body:JSON.stringify({objective,source_mode:mode.value}),signal:controller.signal,cache:"no-store"});
-     try{result=await response.json();}catch(_){result=null;}
+     try{result=await response.json();}catch(error){
+       if(error.name==="AbortError")throw error;
+       result=null;
+     }
    }finally{clearTimeout(timer);}
    if(!response.ok)throw new Error(result?.error||"Service returned HTTP "+response.status+".");
    if(!result||typeof result!=="object"||!Array.isArray(result.candidates))
