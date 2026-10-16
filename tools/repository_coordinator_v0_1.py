@@ -256,10 +256,15 @@ def _admission_evidence(
 
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
-        evidence.append(f"coordinator state explicitly admits PR #{number}")
         metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
-        objective = metadata.get("objective_issue_number")
-        objectives.append(int(objective) if objective else -number)
+        admitted_sha = str(metadata.get("admitted_head_sha") or "")
+        live_sha = str(pr.get("head_sha") or "")
+        if not admitted_sha or admitted_sha == live_sha:
+            # Legacy unbound admissions retain their existing standing.
+            # Newly issued PR-comment admissions are exact-head scoped.
+            evidence.append(f"coordinator state explicitly admits PR #{number}")
+            objective = metadata.get("objective_issue_number")
+            objectives.append(int(objective) if objective else -number)
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
         ref = int(raw)
@@ -288,6 +293,13 @@ def _admission_scope_drift(
     metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
     objective = metadata.get("objective_issue_number")
     scope = str(metadata.get("admission_scope") or "")
+    admitted_sha = str(metadata.get("admitted_head_sha") or "")
+    if admitted_sha and admitted_sha != str(pr.get("head_sha") or ""):
+        return (
+            f"PR #{number} admission is bound to head {admitted_sha}, "
+            f"not current head {pr.get('head_sha') or 'UNSET'}; "
+            "an authorized re-admission is required for the new commit."
+        )
     if not objective:
         return None
     refs = {int(raw) for raw in ADMISSION_LINK_RE.findall(pr.get("body") or "")}
