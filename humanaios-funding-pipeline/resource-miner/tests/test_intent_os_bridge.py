@@ -4,7 +4,7 @@ from __future__ import annotations
 import io
 import json
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import app
 from resource_miner.intent_os import evaluate_objective
@@ -134,6 +134,7 @@ class HttpIntentTests(unittest.TestCase):
         raw = json.dumps(body).encode("utf-8")
         handler = object.__new__(app.Handler)
         handler.path = "/api/intent"
+        handler.connection = Mock()
         handler.headers = {"Content-Type": content_type, "Content-Length": str(len(raw))}
         handler.rfile = io.BytesIO(raw)
         observed = []
@@ -160,6 +161,7 @@ class HttpIntentTests(unittest.TestCase):
     def test_oversized_request_rejected_without_reading_body(self):
         handler = object.__new__(app.Handler)
         handler.path = "/api/intent"
+        handler.connection = Mock()
         handler.headers = {"Content-Type": "application/json", "Content-Length": "999999"}
         handler.rfile = io.BytesIO(b"")
         observed = []
@@ -213,6 +215,7 @@ class HttpIntentTests(unittest.TestCase):
         raw = b'{"objective":"Find grants"}'
         handler = object.__new__(app.Handler)
         handler.path = "/api/intent"
+        handler.connection = Mock()
         handler.headers = {"Content-Type": "application/json", "Content-Length": str(len(raw))}
         handler.rfile = io.BytesIO(raw)
         observed = []
