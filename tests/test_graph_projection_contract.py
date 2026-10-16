@@ -8,8 +8,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / "docs/graph_integration/observation_projection_v0.schema.json").read_text(encoding="utf-8"))
 
 try:
+    import jsonschema
     from jsonschema import Draft202012Validator, FormatChecker
 except ImportError:
+    jsonschema = None
     Draft202012Validator = None
     FormatChecker = None
 
@@ -105,7 +107,7 @@ class ProjectionContractTests(unittest.TestCase):
     def test_malformed_timestamp_rejected(self):
         value = copy.deepcopy(VALID)
         value["source"]["observed_at"] = "yesterday"
-        with self.assertRaises(Exception):
+        with self.assertRaises(jsonschema.ValidationError):
             validate(value)
 
 
