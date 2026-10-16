@@ -97,12 +97,12 @@ form.addEventListener("submit",async event=>{
  text(feedback,"Checking Resource Miner…");box.hidden=true;items.replaceChildren();
  try{
    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
-   let response;
+   let response, result;
    try{
      response=await fetch("/api/intent",{method:"POST",headers:{"Content-Type":"application/json"},
        body:JSON.stringify({objective,source_mode:mode.value}),signal:controller.signal,cache:"no-store"});
+     result=await response.json();
    }finally{clearTimeout(timer);}
-   const result=await response.json();
    if(!response.ok)throw new Error(result.error||"Request failed");
    text(summary,result.shown_count?
      "Found "+result.matched_count+" possible match(es); showing "+result.shown_count+
