@@ -36,6 +36,12 @@
   "content_scan_exclusions": [
     ".env",
     ".env.*",
+    "credentials*",
+    ".npmrc",
+    "id_rsa*",
+    "*.p12",
+    "*.key",
+    "*.pem",
     "*Resume*",
     "*resume*",
     "*.db",

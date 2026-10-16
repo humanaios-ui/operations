@@ -175,7 +175,7 @@ def registry(root: str = ROOT) -> list[dict]:
         requires=["pytest", "cryptography.hazmat.primitives.hashes", "jsonschema"], proves=["G4"])
     add("t3-pytest-research", "T3", "ci", "pytest tests/ (research scenarios)", _py(*pyt, "tests"), timeout=600, requires=["pytest"], proves=["G4"])
     add("t3-pytest-tools", "T3", "ci", "pytest tools/tests/", _py(*pyt, "tools/tests"), timeout=600,
-        requires=["pytest", "cryptography.hazmat.primitives.hashes"], proves=["G4"])
+        requires=["pytest", "cryptography.hazmat.primitives.hashes", "jsonschema"], proves=["G4"])
     add("t3-pytest-acat", "T3", "ci", "pytest acat/tests/", _py(*pyt, "acat/tests"), timeout=600,
         requires=["pytest", "fastapi", "jsonschema"], proves=["G4"])
     add("t3-mypy", "T3", "ci", "python3 -m mypy src/humanaios_operations (quality-baseline blocking step)",

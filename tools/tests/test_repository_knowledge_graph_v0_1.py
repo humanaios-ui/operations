@@ -24,6 +24,22 @@ from repository_knowledge_graph_v0_1 import (  # noqa: E402
 )
 
 
+_GIT_LOCATION_VARS = (
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE",
+    "GIT_CEILING_DIRECTORIES", "GIT_PREFIX",
+)
+
+
+def _clean_env(base=None) -> dict[str, str]:
+    env = dict(os.environ if base is None else base)
+    for name in _GIT_LOCATION_VARS:
+        env.pop(name, None)
+    env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    return env
+
+
 def _run(repo: Path, *args: str, env=None) -> None:
     result = subprocess.run(
         list(args),
@@ -31,7 +47,7 @@ def _run(repo: Path, *args: str, env=None) -> None:
         check=False,
         capture_output=True,
         text=True,
-        env=env,
+        env=_clean_env(env),
     )
     assert result.returncode == 0, result.stderr
 
@@ -668,18 +684,15 @@ def test_source_graph_symlink_is_rejected(tmp_path):
     raise AssertionError("symlinked source graph must be rejected")
 
 
-def test_negative_per_rule_assertion_limit_is_rejected(tmp_path):
+@pytest.mark.parametrize("limit", [0, -1, True, 1.5])
+def test_invalid_per_rule_assertion_limit_is_rejected(tmp_path, limit):
     repo = _fixture_repo(tmp_path)
     profile_path = repo / "architecture/repository-knowledge-graph/profile.json"
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
-    profile["inference"]["rules"][0]["max_assertions"] = -1
+    profile["inference"]["rules"][0]["max_assertions"] = limit
     profile_path.write_text(json.dumps(profile), encoding="utf-8")
-    try:
+    with pytest.raises(SpecLoadFailed, match="max_assertions"):
         GraphBuilder(repo).build()
-    except SpecLoadFailed as exc:
-        assert "max_assertions must be at least 1" in str(exc)
-        return
-    raise AssertionError("negative per-rule max_assertions must be rejected")
 
 
 def test_validation_applies_published_json_schema(tmp_path):
