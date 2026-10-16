@@ -109,6 +109,19 @@ class ObjectiveContractTests(unittest.TestCase):
         self.assertTrue(all(row["eligibility_assessed"] is False
                             for row in result["candidates"]))
 
+    def test_search_limit_discloses_unexamined_candidates(self):
+        rows = [candidate(resource_id=f"RES-{i}", title="Unrelated item", description="unrelated") for i in range(500)]
+        rows.append(candidate(resource_id="RES-BEYOND-LIMIT"))
+        result = self.evaluate(rows)
+        self.assertEqual(result["status"], "PARTIAL_SEARCH_NO_MATCH")
+        self.assertEqual(result["unexamined_count"], 1)
+        self.assertIn("incomplete", result["source_warning"].lower())
+
+    def test_digest_changes_when_candidate_evidence_changes(self):
+        first = self.evaluate([candidate()])["receipt_sha256"]
+        second = self.evaluate([candidate(description="Changed grant details")])["receipt_sha256"]
+        self.assertNotEqual(first, second)
+
     def test_deterministic_receipt(self):
         a = self.evaluate([candidate()])
         b = self.evaluate([candidate()])
