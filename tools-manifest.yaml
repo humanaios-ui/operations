@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 211
+  tools: 214
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 163
+  builder_markers_present: 166
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2659,6 +2659,45 @@ tools:
   builder_markers: true
   purpose: Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806)
 - tool_id: HAIOS-TOOL-223
+  name: humanaios_core_machine
+  path: tools/humanaios_core_machine_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator.
+  session: issue-810
+- tool_id: HAIOS-TOOL-224
+  name: ci_predict_rollup
+  path: tools/ci_predict_rollup_v0_1.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: ci_predict_rollup_v0_1.py
+  session: issue-870
+- tool_id: HAIOS-TOOL-225
+  name: graph_lookup
+  path: tools/graph_lookup_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
+  session: Q-REPO-GRAPH-LOOKUP-01
+- tool_id: HAIOS-TOOL-226
   name: hpra_offline_observer
   path: tools/substack_agent/observer.py
   version: 0.1.1
@@ -2670,7 +2709,7 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'HPRA v0.1: offline-only Substack RSS observation and draft projection.'
-- tool_id: HAIOS-TOOL-224
+- tool_id: HAIOS-TOOL-227
   name: hpra_research_draft
   path: tools/substack_agent/research_draft.py
   version: 0.1.1
