@@ -56,3 +56,21 @@ def test_no_repo_trace_with_evidence_is_flagged():
     area = next(n for n in snap["nodes"] if n["id"] == "A02")
     area["repo_evidence"] = ["comparison_engine.py"]
     assert any("no_repo_trace but evidence" in p for p in kg.check(snap, REPO_ROOT))
+
+
+def test_evidence_path_outside_repo_is_rejected(tmp_path):
+    snap = copy.deepcopy(_snapshot())
+    area = next(n for n in snap["nodes"] if n["id"] == "A01")
+    outside = tmp_path / "outside.txt"
+    outside.write_text("x")
+    area["repo_evidence"] = [str(outside)]
+    problems = kg.check(snap, REPO_ROOT)
+    assert any("outside repo" in p for p in problems)
+    assert any("verified_path but no evidence path exists" in p for p in problems)
+
+
+def test_evidence_path_traversal_is_rejected():
+    snap = copy.deepcopy(_snapshot())
+    area = next(n for n in snap["nodes"] if n["id"] == "A01")
+    area["repo_evidence"] = ["../outside.txt"]
+    assert any("outside repo" in p for p in kg.check(snap, REPO_ROOT))

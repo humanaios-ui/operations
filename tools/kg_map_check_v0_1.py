@@ -2,7 +2,7 @@
 """
 kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph.
 Builder v1.7 compliant
-HumanAIOS — Q-KG-REPO-MAP-01
+HumanAIOS — unassigned (no Z2 question ID yet)
 
 Reads kg/humanaios_kg_v0_1.json and checks it against this checkout:
 
@@ -26,6 +26,8 @@ import sys
 TOOL_NAME = "kg_map_check"
 TOOL_VERSION = "0.1.0"
 TOOL_CATEGORY = "validation_tool"
+TOOL_SESSION = "unassigned"
+TOOL_ZONE = 1
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(HERE)
@@ -33,6 +35,19 @@ DEFAULT_SNAPSHOT = os.path.join(REPO_ROOT, "kg", "humanaios_kg_v0_1.json")
 
 EDGE_STATUSES = {"unratified", "retracted"}
 REPO_STATUSES = {"verified_path", "partial", "no_repo_trace"}
+
+
+def _inside_repo(repo_root: str, rel: str) -> bool:
+    """True when rel is a relative path that resolves to a file inside repo_root."""
+    if not isinstance(rel, str) or not rel or os.path.isabs(rel):
+        return False
+    root = os.path.realpath(repo_root)
+    target = os.path.realpath(os.path.join(root, rel))
+    return os.path.commonpath([root, target]) == root
+
+
+def _exists_in_repo(repo_root: str, rel: str) -> bool:
+    return _inside_repo(repo_root, rel) and os.path.exists(os.path.join(repo_root, rel))
 
 
 def check(snapshot: dict, repo_root: str) -> list:
@@ -54,14 +69,14 @@ def check(snapshot: dict, repo_root: str) -> list:
                 problems.append(f"{nid}: unknown repo_status {status!r}")
                 continue
             evidence = node.get("repo_evidence", [])
-            present = [p for p in evidence if os.path.exists(os.path.join(repo_root, p))]
+            present = [p for p in evidence if _exists_in_repo(repo_root, p)]
             if status == "verified_path" and not present:
                 problems.append(f"{nid}: verified_path but no evidence path exists")
             if status == "no_repo_trace" and evidence:
                 problems.append(f"{nid}: no_repo_trace but evidence paths listed")
             for p in evidence:
-                if not os.path.exists(os.path.join(repo_root, p)):
-                    problems.append(f"{nid}: evidence path missing: {p}")
+                if not _exists_in_repo(repo_root, p):
+                    problems.append(f"{nid}: evidence path missing or outside repo: {p}")
 
     edge_ids = [e.get("id") for e in edges]
     if len(edge_ids) != len(set(edge_ids)):
@@ -101,6 +116,7 @@ def run_smoke_test() -> int:
 def main(argv: list | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     ap.add_argument("snapshot", nargs="?", default=DEFAULT_SNAPSHOT)
+    ap.add_argument("--input", dest="snapshot", help="alias for the snapshot path")
     ap.add_argument("--repo-root", default=REPO_ROOT)
     ap.add_argument("--report", help="also write a JSON report to this path")
     ap.add_argument("--smoke-test", action="store_true", help="check the committed snapshot")
