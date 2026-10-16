@@ -75,7 +75,7 @@ def _pr_node(view, number):
 class ReasonCodeTests(unittest.TestCase):
     def test_reason_code_list_is_pinned(self):
         self.assertEqual(rgv.REASON_CODES, (
-            "DRAFT", "NO_ADMISSION_LINK", "LATEST_REVIEW_NOT_APPROVED",
+            "DRAFT", "SNAPSHOT_INCOMPLETE_FOR_PR", "NO_ADMISSION_LINK", "LATEST_REVIEW_NOT_APPROVED",
             "HEAD_CHANGED_SINCE_EVALUATION", "REQUIRED_RUN_MISSING:",
             "REQUIRED_RUN_NOT_GREEN:", "REQUIRED_WORKFLOW_UNDEFINED:", "CONDITIONAL:",
         ))
@@ -177,6 +177,13 @@ class LaneAndTerminalTests(unittest.TestCase):
         self.assertEqual(node["lane"], "TERMINAL")
         self.assertEqual(node["state"], "merged")
         self.assertEqual(node["missing_conditions"], [])
+
+    def test_incomplete_pr_data_emits_no_definitive_conditions(self):
+        """Partial reviews or runs for one PR must not yield REQUIRED_RUN_MISSING etc."""
+        pr = _pr(body="Closes #800", runs=[], reviews=[], incomplete=True)
+        node = _pr_node(_build(_snapshot([pr])), 10)
+        self.assertEqual(node["lane"], "INCOMPLETE")
+        self.assertEqual(node["missing_conditions"], ["SNAPSHOT_INCOMPLETE_FOR_PR"])
 
     def test_draft_is_draft_lane(self):
         view = _build(_snapshot([_pr(draft=True)]))

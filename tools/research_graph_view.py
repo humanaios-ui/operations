@@ -67,6 +67,7 @@ ADMISSION_RE = re.compile(r"\bstate\W{0,8}?`?ADMISSION_REQUESTED`?", re.IGNORECA
 RELEVANT_REVIEW_STATES = ("APPROVED", "CHANGES_REQUESTED", "DISMISSED")
 
 REASON_DRAFT = "DRAFT"
+REASON_INCOMPLETE = "SNAPSHOT_INCOMPLETE_FOR_PR"
 REASON_NO_ADMISSION_LINK = "NO_ADMISSION_LINK"
 REASON_LATEST_REVIEW_NOT_APPROVED = "LATEST_REVIEW_NOT_APPROVED"
 REASON_HEAD_CHANGED = "HEAD_CHANGED_SINCE_EVALUATION"
@@ -78,6 +79,7 @@ CONDITIONAL = "CONDITIONAL:"
 # Every reason code this module can emit. Tests pin this list.
 REASON_CODES = (
     REASON_DRAFT,
+    REASON_INCOMPLETE,
     REASON_NO_ADMISSION_LINK,
     REASON_LATEST_REVIEW_NOT_APPROVED,
     REASON_HEAD_CHANGED,
@@ -246,6 +248,10 @@ def _evaluate_pr(pr, snapshot, actors, index, required_names):
 
     if pr.get("draft"):
         return "DRAFT", [REASON_DRAFT], edges
+
+    if pr.get("incomplete"):
+        # Partial reviews or runs cannot support a definitive condition.
+        return "INCOMPLETE", [REASON_INCOMPLETE], edges
 
     conditions: list[str] = []
     admission_issues = [
@@ -435,12 +441,13 @@ def fetch_snapshot(repo: str, token: str, workflows_dir: Path) -> dict:
     pulls, issue_numbers = [], set()
     for raw in open_prs + closed_prs:
         n = raw["number"]
-        files, cut_f, _ = gh.list_all(f"pulls/{n}/files", f"files #{n}", cap=FILES_CAP)
-        reviews, cut_r, _ = gh.list_all(f"pulls/{n}/reviews", f"reviews #{n}", cap=REVIEWS_CAP)
+        files, cut_f, fail_f = gh.list_all(f"pulls/{n}/files", f"files #{n}", cap=FILES_CAP)
+        reviews, cut_r, fail_r = gh.list_all(f"pulls/{n}/reviews", f"reviews #{n}", cap=REVIEWS_CAP)
         head = raw["head"]["sha"]
-        runs, cut_u, _ = gh.list_all(f"actions/runs?head_sha={head}", f"runs #{n}",
-                                     key="workflow_runs", cap=RUNS_CAP)
+        runs, cut_u, fail_u = gh.list_all(f"actions/runs?head_sha={head}", f"runs #{n}",
+                                          key="workflow_runs", cap=RUNS_CAP)
         truncated |= cut_f or cut_r or cut_u
+        incomplete = any((cut_f, cut_r, cut_u, fail_f, fail_r, fail_u))
         body = raw.get("body") or ""
         pulls.append({
             "number": n,
@@ -448,6 +455,7 @@ def fetch_snapshot(repo: str, token: str, workflows_dir: Path) -> dict:
             "state": raw.get("state"),
             "draft": bool(raw.get("draft")),
             "merged": bool(raw.get("merged_at")),
+            "incomplete": incomplete,
             "head_sha": head,
             "changed_files": [f["filename"] for f in files],
             "reviews": [{"login": (r.get("user") or {}).get("login"),
