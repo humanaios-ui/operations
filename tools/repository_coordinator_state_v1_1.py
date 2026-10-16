@@ -276,6 +276,21 @@ def _replay_context(events: list[dict[str, Any]]) -> dict[str, Any]:
                 ),
                 "command_ref": event.get("command_ref"),
             }
+            if (
+                kind == "PULL_REQUEST" and
+                str(event.get("command_ref") or "").startswith("RCC-GITHUB-COMMENT-")
+            ):
+                import re
+                bound = [
+                    str(v)[len("pr-head:"):]
+                    for v in (event.get("evidence") or [])
+                    if str(v).startswith("pr-head:")
+                ]
+                _require(
+                    len(bound) == 1 and re.fullmatch(r"[0-9a-f]{40}", bound[0]) is not None,
+                    f"line {index}: PR-comment admission must bind one exact head SHA",
+                )
+                active[key]["admitted_head_sha"] = bound[0]
         elif decision == "ACK_ALREADY_ADMITTED":
             _require(key in active, f"line {index}: ACK_ALREADY_ADMITTED requires active {key}")
         elif decision == "ACK_ALREADY_REVOKED":
