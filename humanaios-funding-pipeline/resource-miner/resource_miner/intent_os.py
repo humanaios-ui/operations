@@ -108,6 +108,7 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
 
     matches = []
     omitted = 0
+    unexamined_count = max(0, len(rows) - MAX_ROWS)
     for row in rows[:MAX_ROWS]:
         if not isinstance(row, dict) or row.get("source_name") not in PUBLIC_SOURCES:
             omitted += 1
@@ -151,18 +152,19 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
     shown = matches[:10]
     receipt_input = json.dumps({
         "objective": objective, "mode": source_mode, "status": source_status,
-        "candidate_ids": [x["resource_id"] for x in shown],
+        "candidates": shown, "unexamined_count": unexamined_count,
     }, sort_keys=True, separators=(",", ":"))
     return {
         "objective": objective,
-        "status": "CANDIDATES_FOR_HUMAN_REVIEW" if shown else "NO_SUPPORTED_MATCH",
+        "status": ("PARTIAL_CANDIDATES_FOR_HUMAN_REVIEW" if shown else "PARTIAL_SEARCH_NO_MATCH") if unexamined_count else ("CANDIDATES_FOR_HUMAN_REVIEW" if shown else "NO_SUPPORTED_MATCH"),
         "source_mode": source_mode,
         "source_status": source_status,
-        "source_warning": source_warning,
+        "source_warning": (source_warning + (" Search incomplete: " + str(unexamined_count) + " source row(s) were not examined." if unexamined_count else "")).strip(),
         "candidates": shown,
         "matched_count": len(matches),
         "shown_count": len(shown),
         "excluded_count": omitted,
+        "unexamined_count": unexamined_count,
         "eligibility": "NOT_ASSESSED",
         "verification": "Discovery only. Links, deadlines, applicant eligibility and availability must be checked with the official source.",
         "authority": "NONE",
