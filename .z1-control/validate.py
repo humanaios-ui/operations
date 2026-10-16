@@ -116,7 +116,7 @@ TERMINAL = {"ratified", "edit_requested", "rejected"}
 # A decision Z2 has not made. None of these may carry a signature.
 OPEN = {"awaiting_z2", "withdrawn", "superseded"}
 STATUSES = TERMINAL | OPEN
-FALSIFIER_RE = re.compile(r'^\s*#{1,6}\s*falsifier|falsifier\s*:|"falsifier"\s*:', re.IGNORECASE | re.MULTILINE)
+FALSIFIER_RE = re.compile(r'^\s*#{1,6}\s*falsifier|^\s*falsifier\s*:|^\s*"falsifier"\s*:', re.IGNORECASE | re.MULTILINE)
 
 
 def parse_date(value: object) -> datetime.date | None:
