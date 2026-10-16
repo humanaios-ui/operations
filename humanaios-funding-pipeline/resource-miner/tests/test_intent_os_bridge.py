@@ -110,7 +110,8 @@ class ObjectiveContractTests(unittest.TestCase):
                             for row in result["candidates"]))
 
     def test_search_limit_discloses_unexamined_candidates(self):
-        rows = [candidate(resource_id=f"RES-{i}", title="Unrelated item", description="unrelated") for i in range(500)]
+        rows = [candidate(resource_id=f"RES-{i}", title="Unrelated item", description="unrelated",
+                          tags=[], resource_types=[], resource_affordances=[]) for i in range(500)]
         rows.append(candidate(resource_id="RES-BEYOND-LIMIT"))
         result = self.evaluate(rows)
         self.assertEqual(result["status"], "PARTIAL_SEARCH_NO_MATCH")
@@ -180,6 +181,18 @@ class HttpIntentTests(unittest.TestCase):
         self.assertEqual(status, 200)
         scan.assert_not_called()
         self.assertEqual(result["source_status"], "CURATED_SNAPSHOT_NOT_LIVE")
+
+    def test_missing_snapshot_is_service_unavailable_not_no_match(self):
+        with patch.object(app, "SNAPSHOT_OUT") as snapshot, \
+             patch.object(app, "_read_jsonl") as read:
+            snapshot.is_file.return_value = False
+            (status, result), scan = self.invoke({
+                "objective": "Find grants", "source_mode": "snapshot",
+            })
+        self.assertEqual(status, 503)
+        self.assertEqual(result["error"], "Stored snapshot unavailable")
+        scan.assert_not_called()
+        read.assert_not_called()
 
     def test_unknown_source_and_injected_execution_are_rejected_before_scan(self):
         for body in (
