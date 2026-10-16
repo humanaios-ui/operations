@@ -1643,6 +1643,7 @@ def test_pr_comment_route_rejects_identity_forgery(tmp_path, field, value, reaso
     prior = ledger.read_bytes()
     args[field] = value
     if field == "actor":
+        args["comment_payload"]["user"]["login"] = value
         result = apply_pr_comment_v11(**args)
         assert result["reason"] == reason
     else:
