@@ -1600,6 +1600,11 @@ def _pr_comment_fixture(tmp_path, *, comment_body=None, pr_sha=None):
         "policy_path": policy, "ledger_path": ledger, "state_path": state_file,
         "repository": "humanaios-ui/operations", "pr_number": 994,
         "pr_payload": pr_payload, "comment_payload": comment,
+        "event_payload": {
+            "action": "created",
+            "issue": {"number": 994, "pull_request": {"url": "https://github.com"}},
+            "comment": json.loads(json.dumps(comment)),
+        },
         "actor": "humanaios-ui", "comment_id": "90001", "recorded_at": created,
         "source_policy_sha": POLICY_SHA,
     }
@@ -1644,6 +1649,7 @@ def test_pr_comment_route_rejects_identity_forgery(tmp_path, field, value, reaso
     args[field] = value
     if field == "actor":
         args["comment_payload"]["user"]["login"] = value
+        args["event_payload"]["comment"]["user"]["login"] = value
         result = apply_pr_comment_v11(**args)
         assert result["reason"] == reason
     else:
@@ -1681,17 +1687,20 @@ def test_pr_comment_route_revoke_and_new_head_require_fresh_admit(tmp_path):
     args["pr_payload"]["head"]["sha"] = "b" * 40
     args["comment_payload"]["body"] = "/coordinator admit " + "b" * 40
     args["comment_payload"]["id"] = 90002
+    args["event_payload"]["comment"] = json.loads(json.dumps(args["comment_payload"]))
     args["comment_id"] = "90002"
     with pytest.raises(Exception, match="ACTIVE_ADMISSION_HEAD_UNBOUND"):
         apply_pr_comment_v11(**args)
 
     # Explicit revoke at the new live head, then new exact-head admit.
     args["comment_payload"]["body"] = "/coordinator revoke " + "b" * 40
+    args["event_payload"]["comment"]["body"] = args["comment_payload"]["body"]
     revoked = apply_pr_comment_v11(**args)
     assert revoked["decision"] == "REVOKE"
     assert 994 not in verify_projection_v11(ledger, state_file)["admitted_pull_request_numbers"]
     args["comment_payload"]["body"] = "/coordinator admit " + "b" * 40
     args["comment_payload"]["id"] = 90003
+    args["event_payload"]["comment"] = json.loads(json.dumps(args["comment_payload"]))
     args["comment_id"] = "90003"
     readmitted = apply_pr_comment_v11(**args)
     assert readmitted["decision"] == "ADMIT"
@@ -1720,6 +1729,7 @@ def test_pr_comment_workflow_requires_mutated_state_receipt_and_never_merges():
     assert "pr-comment-command" in workflow
     assert "--pr-payload coordinator-state/.live-pr.json" in workflow
     assert "--comment-payload coordinator-state/.live-comment.json" in workflow
+    assert '--event-payload "$GITHUB_EVENT_PATH"' in workflow
     assert "gh api" in workflow
     assert "python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify" in workflow
     assert 'test "$LIVE" = "$EXPECTED_HEAD"' in workflow
@@ -1729,3 +1739,16 @@ def test_pr_comment_workflow_requires_mutated_state_receipt_and_never_merges():
     assert "git push origin HEAD:repository-coordinator-state" in workflow
     assert "gh pr merge" not in workflow
     assert "!github.event.issue.pull_request" in workflow
+
+
+def test_pr_comment_webhook_fails_closed_on_edit_or_cross_pr_event(tmp_path):
+    args, ledger, _ = _pr_comment_fixture(tmp_path)
+    original = ledger.read_bytes()
+    args["comment_payload"]["body"] = "/coordinator revoke " + "a" * 40
+    with pytest.raises(Exception, match="EDITED_COMMENT"):
+        apply_pr_comment_v11(**args)
+    args["comment_payload"]["body"] = args["event_payload"]["comment"]["body"]
+    args["event_payload"]["issue"]["number"] = 993
+    with pytest.raises(Exception, match="target PR"):
+        apply_pr_comment_v11(**args)
+    assert ledger.read_bytes() == original
