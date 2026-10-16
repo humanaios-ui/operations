@@ -182,7 +182,7 @@ The **existing Resource Miner HTTP service** now serves a small mobile-friendly 
 
 - Open `/intent-os` (or `/`) on the running Resource Miner service.
 - Enter one plain-language goal and choose `Public discovery + curated funding` or `Last stored funding snapshot`.
-- The page calls `POST /api/intent` on the **same origin** and displays up to 10 matching resource candidates with official-source links, provenance, limits and an unsigned reproducibility digest.
+- The page calls `POST /api/intent` on the **same origin** and displays up to 10 matching resource candidates with source links to verify, provenance, limits and an unsigned reproducibility digest.
 - Live mode uses the existing **public DEV Community adapter** plus the curated HumanAIOS funding source, and discloses any upstream failure. Snapshot mode reads the previously committed funding snapshot without network.
 - This is not the previous E0/E1 synthetic demonstration, and it does not require the user to operate GitHub or the terminal once the service is deployed. This is an HTTP integration against existing candidate models, not a new adapter protocol.
 
