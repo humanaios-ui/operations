@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph.
+Builder v1.7 compliant
+HumanAIOS — Q-KG-REPO-MAP-01
 
 Reads kg/humanaios_kg_v0_1.json and checks it against this checkout:
 
@@ -20,6 +22,10 @@ import argparse
 import json
 import os
 import sys
+
+TOOL_NAME = "kg_map_check"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "validation_tool"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(HERE)
@@ -74,16 +80,42 @@ def check(snapshot: dict, repo_root: str) -> list:
     return problems
 
 
+def write_report(path: str, problems: list) -> None:
+    """Write the check result as JSON. Used by CI and by the smoke test."""
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump({"tool": TOOL_NAME, "version": TOOL_VERSION,
+                   "ok": not problems, "problems": problems}, fh, indent=2)
+        fh.write("\n")
+
+
+def run_smoke_test() -> int:
+    """Check the committed snapshot. Exit 0 when it is clean."""
+    with open(DEFAULT_SNAPSHOT, encoding="utf-8") as fh:
+        problems = check(json.load(fh), REPO_ROOT)
+    for p in problems:
+        print(f"FAIL {p}")
+    print("smoke-test OK" if not problems else f"smoke-test FAILED: {len(problems)} problem(s)")
+    return 0 if not problems else 1
+
+
 def main(argv: list | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     ap.add_argument("snapshot", nargs="?", default=DEFAULT_SNAPSHOT)
     ap.add_argument("--repo-root", default=REPO_ROOT)
+    ap.add_argument("--report", help="also write a JSON report to this path")
+    ap.add_argument("--smoke-test", action="store_true", help="check the committed snapshot")
+    ap.add_argument("--version", action="version", version=f"{TOOL_NAME} {TOOL_VERSION}")
     args = ap.parse_args(argv)
+
+    if args.smoke_test:
+        return run_smoke_test()
 
     with open(args.snapshot, encoding="utf-8") as fh:
         snapshot = json.load(fh)
 
     problems = check(snapshot, args.repo_root)
+    if args.report:
+        write_report(args.report, problems)
     if problems:
         for p in problems:
             print(f"FAIL {p}")
