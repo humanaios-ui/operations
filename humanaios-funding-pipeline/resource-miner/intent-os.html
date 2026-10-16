@@ -101,13 +101,16 @@ form.addEventListener("submit",async event=>{
    try{
      response=await fetch("/api/intent",{method:"POST",headers:{"Content-Type":"application/json"},
        body:JSON.stringify({objective,source_mode:mode.value}),signal:controller.signal,cache:"no-store"});
-     result=await response.json();
+     try{result=await response.json();}catch(_){result=null;}
    }finally{clearTimeout(timer);}
-   if(!response.ok)throw new Error(result.error||"Request failed");
+   if(!response.ok)throw new Error(result?.error||"Service returned HTTP "+response.status+".");
+   if(!result||typeof result!=="object"||!Array.isArray(result.candidates))
+     throw new Error("Service returned an invalid response.");
    text(summary,result.shown_count?
      "Found "+result.matched_count+" possible match(es); showing "+result.shown_count+
      ". These are leads to verify, not eligibility decisions.":
-     "No supported matches in these sources. Try another goal or the other source mode.");
+     (result.unexamined_count?"No matches in the examined records. Search is incomplete.":
+     "No supported matches in these sources.")+" Try another goal or the other source mode.");
    warning.hidden=!result.source_warning;
    text(warning,result.source_warning);
    (result.candidates||[]).forEach(row=>items.append(addCard(row)));
