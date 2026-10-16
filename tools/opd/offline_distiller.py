@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OPD v0.1: advisory-only, offline, fail-closed operational trace distiller.
+"""HumanAIOS OPD v0.1: advisory-only offline trace distiller. Builder v1.7 compliant.
 
 No GitHub credentials, network calls, execution, or authority effects.
 """
@@ -8,6 +8,11 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
+
+TOOL_NAME = "opd_offline_distiller"
+TOOL_VERSION = "0.1.1"
+TOOL_CATEGORY = "diagnostic_tool"
+TOOL_ZONE = 1
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
 SAFE = {"diagnose_ci", "prepare_evidence", "suggest_patch", "classify_failure"}
@@ -48,7 +53,7 @@ def validate(trace):
         "https://github.com/humanaios-ui/operations/actions/runs/"
     ):
         return False, "invalid_evidence_reference"
-    # A pointer is NOT cryptographic verification. This tool never grants authority.
+    # A pointer is NOT cryptographic verification. This tool has no authority-granting operation.
     if trace.get("authority_effect", "NONE") != "NONE":
         return False, "authority_effect"
     return True, "accepted"
@@ -82,13 +87,13 @@ def compile_rules(traces):
               "observations": n, "distinct_heads": len(heads[k]),
               "authority_effect": "NONE"}
              for k, n in sorted(counts.items()) if len(heads[k]) >= 2]
-    # Never generates executable instructions; outputs advisory classifications.
+    # Produces advisory classifications rather than executable instructions.
     return {"schema": "humanaios.opd.policy_candidates.v0.1",
             "mode": "offline_advisory_only", "accepted": len(accepted),
             "rejected": dict(sorted(rejected.items())), "rules": rules}
 
 def replay(traces, policy):
-    """Held-out matching only; never use evaluation traces during compilation."""
+    """Held-out matching only; exclude evaluation traces from compilation."""
     hit, total, safe = 0, 0, 0
     for t in traces:
         valid, _ = validate(t)
@@ -109,12 +114,23 @@ def read_jsonl(path):
     return [json.loads(line) for line in Path(path).read_text().splitlines()
             if line.strip()]
 
+def run_smoke_test():
+    """Smoke-test that the offline policy compiler has no empty-input authority."""
+    return compile_rules([])["rules"] == []
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--train", required=True)
-    p.add_argument("--holdout", required=True)
-    p.add_argument("--out", required=True)
+    p.add_argument("--train")
+    p.add_argument("--holdout")
+    p.add_argument("--out")
+    p.add_argument("--smoke-test", action="store_true")
     args = p.parse_args()
+    if args.smoke_test:
+        assert run_smoke_test()
+        print("OPD smoke test PASS")
+        return
+    if not all([args.train, args.holdout, args.out]):
+        p.error("--train, --holdout and --out required outside smoke-test")
     train, test = read_jsonl(args.train), read_jsonl(args.holdout)
     train_ids = {(t.get("trace_id"), t.get("head_sha")) for t in train if isinstance(t, dict)}
     test_ids = {(t.get("trace_id"), t.get("head_sha")) for t in test if isinstance(t, dict)}
