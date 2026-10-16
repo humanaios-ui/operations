@@ -607,7 +607,7 @@ def apply_pr_comment_command(
     recorded_at: str,
     source_policy_sha: str,
 ) -> dict[str, Any]:
-    """Apply authenticated PR-comment routing, never merge or review approval.
+    """Apply authenticated PR-comment routing without granting merge/review approval.
 
     pr_payload and comment_payload must be fetched by the trusted workflow
     directly from GitHub API, not supplied by the PR branch or comment text.
