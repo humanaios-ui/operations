@@ -92,7 +92,7 @@ This is **not an execution failure**. The work was completed and evidence is rec
 3. **Hypothesis C:** VERDICT events recorded under different schema/type marker
    - Verification agent filtering by "VERDICT type" but events use different marker
 
-### Impact on Falsifier Doctrine
+## Falsifier
 
 Per Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 falsifier (lines 142–150):
 > Z3 executor assignment fails if...

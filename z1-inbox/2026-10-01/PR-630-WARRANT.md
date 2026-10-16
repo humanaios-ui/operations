@@ -38,7 +38,6 @@ This warrant synthesizes evidence from multiple independent streams to inform Z2
 **CHG-PR630-C001: Base64 Encoding Misrepresented as Encryption**
 - **Claim:** Curl-based credential deployment uses base64 encoding (not encryption), exposing plaintext credentials and GitHub PAT in shell history
 - **Status:** OPEN
-- **Falsifier:** Demonstrate that base64 deployments do NOT appear in bash_history, OR that base64 successfully prevents trivial reversal, OR that GitHub API encrypts without libsodium
 - **Risk If Unresolved:** Users taught to use insecure method; credential + PAT exposed in shell history
 - **Remediation Path:** Remove curl option (Patch 1); mandate GitHub CLI only
 - **Residual Risk:** LOW (if remediated)
@@ -46,7 +45,6 @@ This warrant synthesizes evidence from multiple independent streams to inform Z2
 **CHG-PR630-C002: Gitleaks Allowlist Exempts Credential Patterns**
 - **Claim:** `.gitleaks.toml` allowlist exempts credential deployment guide from scanning; real credentials matching `r8_xxx` and `eyJhbGc` patterns bypass detection
 - **Status:** OPEN
-- **Falsifier:** Test real Replicate API key (r8_...) placed in guide → gitleaks blocks it, OR allowlist does not actually exempt guide file, OR regex pattern not matched
 - **Risk If Unresolved:** Real credentials can be committed disguised as examples; audit trail obscured
 - **Remediation Path:** Remove patterns from allowlist (Patch 2); use `_SYNTHETIC_` suffix for examples
 - **Residual Risk:** LOW (if remediated)
@@ -54,7 +52,6 @@ This warrant synthesizes evidence from multiple independent streams to inform Z2
 **CHG-PR630-C003: No Admissions Approval Gate for Credentials**
 - **Claim:** No explicit Z2 authorization mechanism for credential deployment; violates CLAUDE.md §Decision Routing requirement for Z2 ratification
 - **Status:** OPEN
-- **Falsifier:** PR #630 includes Z2 authorization gate in CI, OR admissions approval is demonstrated to enforce authority (not merely informational), OR CLAUDE.md does not require Z2 ratification for credentials
 - **Risk If Unresolved:** Credentials deployable by any PR merge without Z2 oversight; violates governance model
 - **Remediation Path:** Add Z2 authorization gate (Patch 3a-c); extend CLAUDE.md authority model
 - **Residual Risk:** CRITICAL (unresolved)
@@ -171,6 +168,16 @@ This warrant tracks custody across the evidence chain to detect authority collap
 **Risk of Custody Collapse:** If same actor that authored remediation patches also approves them without independent Z2 review, governance authority collapses.
 
 **Mitigation:** Z2 must independently review and ratify all remediation patches before merge.
+
+---
+
+## Falsifier
+
+**CHG-PR630-C001 Falsifier:** Demonstrate that base64 deployments do NOT appear in bash_history, OR that base64 successfully prevents trivial reversal, OR that GitHub API encrypts without libsodium
+
+**CHG-PR630-C002 Falsifier:** Test real Replicate API key (r8_...) placed in guide → gitleaks blocks it, OR allowlist does not actually exempt guide file, OR regex pattern not matched
+
+**CHG-PR630-C003 Falsifier:** PR #630 includes Z2 authorization gate in CI, OR admissions approval is demonstrated to enforce authority (not merely informational), OR CLAUDE.md does not require Z2 ratification for credentials
 
 ---
 
