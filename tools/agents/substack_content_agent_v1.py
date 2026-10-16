@@ -99,11 +99,14 @@ class SubstackContentAgent:
         """Never present absence of source data as a publishable report."""
         raise EvidenceUnavailable("NO_VERIFIED_EVIDENCE")
 
-    def save_draft(self, post: str, output_dir: str = "/tmp") -> str:
-        """Save draft post to file."""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+    def save_draft(self, proposal: dict, output_dir: str = "/tmp") -> str:
+        """Save the complete digest-bound proposal beside its Markdown view."""
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
         filepath = Path(output_dir) / f"SUBSTACK_DRAFT_{timestamp}.md"
-        filepath.write_text(post)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        filepath.with_suffix(".json").write_text(json.dumps(proposal, sort_keys=True,
+                                                           ensure_ascii=False, indent=2), encoding="utf-8")
+        filepath.write_text(proposal["content"]["body"], encoding="utf-8")
         return str(filepath)
 
     def run_weekly_generate(self) -> bool:
@@ -125,7 +128,7 @@ class SubstackContentAgent:
         print(f"  → {len(post)} draft characters generated; authorization NONE")
 
         print("Saving draft...")
-        filepath = self.save_draft(post)
+        filepath = self.save_draft(proposal)
         print(f"  → Draft saved: {filepath}")
 
         print("✓ DRAFT_ONLY generated; no publishing authorization")

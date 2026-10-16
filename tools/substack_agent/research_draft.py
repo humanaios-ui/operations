@@ -1,9 +1,17 @@
-"""Pure, offline HPRA research-data -> draft translation. No publication capability."""
+"""Pure, offline HPRA research-data -> draft translation. No publication capability.
+
+HumanAIOS — Builder v1.7 compliant dependency.
+"""
 import hashlib
 import json
 import math
 from datetime import datetime
 from urllib.parse import urlsplit
+
+TOOL_NAME = "hpra_research_draft"
+TOOL_VERSION = "0.1.1"
+TOOL_CATEGORY = "dependency"
+TOOL_ZONE = 1
 
 class EvidenceUnavailable(ValueError):
     pass
@@ -65,3 +73,19 @@ def verified_research_draft(records):
             "content_sha256": digest, "status": "DRAFT_ONLY", "authorization": "NONE",
             "claims_status": "REQUIRES_INDEPENDENT_VERIFICATION",
             "publication": None, "human_approval": None}
+
+
+def run_smoke_test():
+    try:
+        verified_research_draft([])
+    except EvidenceUnavailable:
+        return True
+    return False
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Offline draft self-test")
+    parser.add_argument("--smoke-test", action="store_true")
+    args = parser.parse_args()
+    raise SystemExit(0 if args.smoke_test and run_smoke_test() else 1)

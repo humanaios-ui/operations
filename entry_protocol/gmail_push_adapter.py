@@ -710,10 +710,12 @@ class GmailInboundAdapter:
         gmail: GmailClient,
         store: PrivateMailLedger,
         config: GmailAdapterConfig,
+        newsletter_bridge=None,
     ) -> None:
         self.gmail = gmail
         self.store = store
         self.config = config
+        self.newsletter_bridge = newsletter_bridge
 
     def _hmac(self, domain: str, value: str) -> str:
         return hmac.new(
@@ -899,6 +901,15 @@ class GmailInboundAdapter:
             return AdapterEventResult(status="REPLAY")
 
         raw = self.gmail.get_message(message_id)
+        if self.newsletter_bridge is not None:
+            newsletter = self.newsletter_bridge.process_message(raw)
+            if newsletter is not None:
+                return AdapterEventResult(
+                    status="REPLAY" if newsletter["status"] == "REPLAY" else "PROCESSED",
+                    disposition=newsletter["status"],
+                    authority_level="Z1",
+                    outbound_status=newsletter.get("delivery", "NOT_SENT"),
+                )
         parsed = parse_gmail_message(raw)
 
         if parsed.automation_generated:

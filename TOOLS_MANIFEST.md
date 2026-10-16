@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**209 registered tools** · 2 MCP servers · 4 excluded · 161 carrying Builder v1.7 markers
+**211 registered tools** · 2 MCP servers · 4 excluded · 163 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 209 |
-| — status `draft` | 208 |
+| Registered tools | 211 |
+| — status `draft` | 210 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 161 |
+| Builder v1.7 markers present | 163 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -104,7 +104,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-174 | grant_data_loader_v1_0 | `tools/grant_data_loader_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Data Loader v1.0 |
 | HAIOS-TOOL-214 | gner_verify_e1 | `tools/gner_verify_e1.py` | 0.1.0 | 1 | draft | — | GNER-E1 explicit, read-only authenticated GitHub workflow-run reconciliation. |
 
-## Dependencies (imported, not invoked) — `dependency` (6)
+## Dependencies (imported, not invoked) — `dependency` (8)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -114,6 +114,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-132 | tier1_principles | `tools/tier1_principles.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — HumanAIOS Tier 1 Principle Library |
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-152 | strict_yaml | `.doc-control/strict_yaml.py` | unversioned | 1 | draft | no-builder-markers | A YAML loader that refuses duplicate mapping keys, for registry consumers. |
+| HAIOS-TOOL-223 | hpra_offline_observer | `tools/substack_agent/observer.py` | 0.1.1 | 1 | draft | — | HPRA v0.1: offline-only Substack RSS observation and draft projection. |
+| HAIOS-TOOL-224 | hpra_research_draft | `tools/substack_agent/research_draft.py` | 0.1.1 | 1 | draft | — | Pure, offline HPRA research-data -> draft translation. No publication capability. |
 
 ## Diagnostics — `diagnostic_tool` (19)
 
@@ -349,7 +351,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `audit_tool` | Audits artifacts or state against rules and reports findings. | 24 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
-| `dependency` | Imported by other tools; not invoked directly. | 6 |
+| `dependency` | Imported by other tools; not invoked directly. | 8 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 19 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 25 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |

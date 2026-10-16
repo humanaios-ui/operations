@@ -33,7 +33,7 @@ The publisher adapter MUST reject missing or stale references, unverifiable clai
 
 ## Legacy-agent safety issue to resolve before adoption
 
-`tools/agents/substack_content_agent_v1.py` currently returns `_mock_data()` when Supabase is unconfigured or its query fails. This is acceptable **only for clearly marked synthetic tests**; it is unacceptable for production research copy. The agent also labels draft copy `Published` prior to any independently verified publication receipt.
+The legacy generator now fails closed on missing/query-failed data, rejects marked synthetic fixtures, preserves zero-valued metrics, and marks output DRAFT_ONLY. Its saved JSON retains the full proposal and digest beside the Markdown view. Independent source authentication, adoption and protected CI remain separate requirements.
 
 Required migration:
 1. Preserve the prior implementation and identify its actual callers/triggers.
@@ -50,6 +50,10 @@ Required migration:
 - No draft or check result grants Z2 public-content approval.
 - An authenticated human review is necessary; all required independent checks and exact-head admission evidence are separately required.
 - PR #820 is historical evidence, not an alternate implementation path.
+
+## Living newsletter extension
+
+The current product intention is one participant-built newsletter shared by humanaios.ai and Substack. See `LIVING_NEWSLETTER_V0_1.md` for the implemented private reply loop, provisional deliberation, rollout boundaries and acceptance tests. A newsletter contribution is not consent to publication or a vote granting operational authority.
 
 ## First article candidate
 

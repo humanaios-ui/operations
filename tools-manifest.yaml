@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 209
+  tools: 211
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 161
+  builder_markers_present: 163
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2658,6 +2658,30 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806)
+- tool_id: HAIOS-TOOL-223
+  name: hpra_offline_observer
+  path: tools/substack_agent/observer.py
+  version: 0.1.1
+  category: dependency
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'HPRA v0.1: offline-only Substack RSS observation and draft projection.'
+- tool_id: HAIOS-TOOL-224
+  name: hpra_research_draft
+  path: tools/substack_agent/research_draft.py
+  version: 0.1.1
+  category: dependency
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Pure, offline HPRA research-data -> draft translation. No publication capability.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

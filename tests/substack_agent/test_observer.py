@@ -58,5 +58,24 @@ class TestSubstackObserver(unittest.TestCase):
             propose_draft(title="Report", body="Draft.", evidence=[item])
 
 
+class TestObserverReviewRepairs(unittest.TestCase):
+    def test_default_port_and_trailing_dot_share_identity(self):
+        a = observe_rss(FEED, feed_url="https://example.com:443/feed")
+        b = observe_rss(FEED, feed_url="https://example.com./feed")
+        self.assertEqual(a["entries"], b["entries"])
+
+    def test_malformed_ports_and_loopbacks_fail_as_observation_errors(self):
+        for url in ("https://example.com:invalid/feed", "https://[broken/feed",
+                    "https://127.1.2.3/feed", "https://localhost./feed", "https://[::1]/feed"):
+            with self.subTest(url=url), self.assertRaises(ObservationError):
+                observe_rss(FEED, feed_url=url)
+
+    def test_changed_evidence_cannot_reuse_old_digest(self):
+        item = observe_rss(FEED, feed_url="https://example.com/feed")["entries"][0]
+        item["title"] = "Changed without digest update"
+        with self.assertRaises(ObservationError):
+            propose_draft(title="Draft", body="Body", evidence=[item])
+
+
 if __name__ == "__main__":
     unittest.main()

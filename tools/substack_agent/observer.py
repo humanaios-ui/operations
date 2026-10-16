@@ -1,11 +1,14 @@
 """HPRA v0.1: offline-only Substack RSS observation and draft projection.
 
+HumanAIOS — Builder v1.7 compliant dependency.
+
 This module has no network client, credentials, publishing transport, or authorization
 mutations. XML strings and evidence are *untrusted data*, never instructions.
 """
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import json
 from datetime import datetime, timezone
 from urllib.parse import urlsplit, urlunsplit
@@ -14,6 +17,10 @@ from xml.etree import ElementTree as ET
 MAX_FEED_BYTES = 262_144
 MAX_ENTRIES = 50
 MAX_TEXT = 4000
+TOOL_NAME = "hpra_offline_observer"
+TOOL_VERSION = "0.1.1"
+TOOL_CATEGORY = "dependency"
+TOOL_ZONE = 1
 
 
 class ObservationError(ValueError):
@@ -23,13 +30,24 @@ class ObservationError(ValueError):
 def _url(value: str) -> str:
     if not isinstance(value, str) or len(value) > 2048:
         raise ObservationError("invalid URL")
-    parts = urlsplit(value.strip())
-    if (parts.scheme != "https" or not parts.hostname or parts.username
-            or parts.password or parts.fragment or parts.port not in (None, 443)):
-        raise ObservationError("only uncredentialed HTTPS URLs are supported")
-    if parts.hostname in {"localhost", "127.0.0.1", "::1"}:
-        raise ObservationError("local targets forbidden")
-    return urlunsplit((parts.scheme, parts.netloc.lower(), parts.path or "/", parts.query, ""))
+    try:
+        parts = urlsplit(value.strip())
+        host = (parts.hostname or "").lower().rstrip(".")
+        if (parts.scheme != "https" or not host or parts.username
+                or parts.password or parts.fragment or parts.port not in (None, 443)):
+            raise ValueError("only uncredentialed HTTPS URLs are supported")
+        if host == "localhost":
+            raise ValueError("local targets forbidden")
+        try:
+            address = ipaddress.ip_address(host)
+        except ValueError:
+            address = None
+        if address is not None and not address.is_global:
+            raise ValueError("non-public targets forbidden")
+    except ValueError as exc:
+        raise ObservationError(str(exc)) from exc
+    netloc = f"[{host}]" if ":" in host else host
+    return urlunsplit((parts.scheme, netloc, parts.path or "/", parts.query, ""))
 
 
 def _digest(data: object) -> str:
@@ -96,6 +114,8 @@ def propose_draft(*, title: str, body: str, evidence: list[dict]) -> dict:
                 not isinstance(e.get("observation_id"), str) or
                 not isinstance(e.get("evidence_digest"), str)):
             raise ObservationError("invalid evidence reference")
+        if e["evidence_digest"] != _digest({k: v for k, v in e.items() if k != "evidence_digest"}):
+            raise ObservationError("evidence integrity mismatch")
         refs.append({"observation_id": e["observation_id"],
                      "evidence_digest": e["evidence_digest"]})
     content = {"title": title.strip(), "body": body, "references": refs}
@@ -104,3 +124,18 @@ def propose_draft(*, title: str, body: str, evidence: list[dict]) -> dict:
             "claims_status": "REQUIRES_INDEPENDENT_VERIFICATION",
             "content": content, "content_sha256": _digest(content),
             "human_approval": None, "publication": None}
+
+
+def run_smoke_test():
+    sample = observe_rss('<rss><channel><item><title>Test</title>'
+                         '<link>https://example.org/a</link></item></channel></rss>',
+                         feed_url="https://example.org/feed")
+    return len(sample["entries"]) == 1
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Offline observer self-test")
+    parser.add_argument("--smoke-test", action="store_true")
+    args = parser.parse_args()
+    raise SystemExit(0 if args.smoke_test and run_smoke_test() else 1)
