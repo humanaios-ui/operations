@@ -157,6 +157,46 @@ class HttpIntentTests(unittest.TestCase):
         self.assertIn(b"INTENT-OS", page)
         self.assertIn(b"/api/intent", page)
         self.assertIn(b"source_mode", page)
+        self.assertIn(b"Observed: ", page)
+        self.assertIn(b"Not verified", page)
+        self.assertIn(b'if(error.name==="AbortError")throw error;', page)
+
+    def test_chunked_read_completes_under_total_deadline(self):
+        raw = b'{"objective":"Find grants"}'
+        handler = object.__new__(app.Handler)
+        handler.connection = Mock()
+        handler.rfile = Mock()
+        handler.rfile.read1.side_effect = [raw[:8], raw[8:]]
+        with patch.object(app, "monotonic", side_effect=[0.0, 0.0, 0.5, 1.0, 1.5]):
+            self.assertEqual(handler._read_intent_body(len(raw)), raw)
+        self.assertEqual(handler.rfile.read1.call_count, 2)
+        self.assertEqual(handler.connection.settimeout.call_count, 2)
+
+    def test_incomplete_body_fails_closed(self):
+        raw = b'{"objective":"Find grants"}'
+        handler = object.__new__(app.Handler)
+        handler.connection = Mock()
+        handler.rfile = io.BytesIO(raw[:8])
+        with self.assertRaisesRegex(ValueError, "Incomplete request body"):
+            handler._read_intent_body(len(raw))
+
+    def test_drip_feed_exceeds_total_deadline_and_never_scans(self):
+        raw = b'{"objective":"Find grants"}'
+        handler = object.__new__(app.Handler)
+        handler.path = "/api/intent"
+        handler.connection = Mock()
+        handler.headers = {"Content-Type": "application/json", "Content-Length": str(len(raw))}
+        handler.rfile = Mock()
+        handler.rfile.read1.side_effect = [raw[:8], raw[8:]]
+        observed = []
+        handler._send_json = lambda response, status=200: observed.append((int(status), response))
+        with patch.object(app, "monotonic", side_effect=[0, 0, 1, 1, 16]), \
+             patch.object(app, "_intent_scan") as scan:
+            handler.do_POST()
+        self.assertEqual(observed[0][0], 408)
+        self.assertEqual(observed[0][1]["error"], "Request body deadline exceeded.")
+        self.assertTrue(handler.close_connection)
+        scan.assert_not_called()
 
     def test_oversized_request_rejected_without_reading_body(self):
         handler = object.__new__(app.Handler)
