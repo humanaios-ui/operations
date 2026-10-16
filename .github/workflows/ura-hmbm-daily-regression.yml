@@ -1,6 +1,10 @@
 name: URA HMBM State-Triggered Regression (read-only)
 
 on:
+  # UTC schedule: 13:17 is 08:17 CDT / 07:17 CST.
+  # Scheduled Actions execute on the default branch only.
+  schedule:
+    - cron: '17 13 * * *'
   workflow_dispatch:
   pull_request:
     paths:
