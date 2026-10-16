@@ -602,6 +602,7 @@ def apply_pr_comment_command(
     pr_number: int,
     pr_payload: dict[str, Any],
     comment_payload: dict[str, Any],
+    event_payload: dict[str, Any],
     actor: str,
     comment_id: str,
     recorded_at: str,
@@ -624,6 +625,19 @@ def apply_pr_comment_command(
     _require(route.get("authority_effect") == AUTHORITY_EFFECT, "incorrect PR-route authority")
     _require(isinstance(pr_payload, dict) and isinstance(comment_payload, dict),
              "live GitHub PR/comment payloads required")
+    _require(isinstance(event_payload, dict) and event_payload.get("action") == "created",
+             "original issue_comment.created webhook required")
+    observed_event_comment = event_payload.get("comment") or {}
+    observed_event_issue = event_payload.get("issue") or {}
+    _require(observed_event_issue.get("number") == int(pr_number)
+             and bool(observed_event_issue.get("pull_request")),
+             "event must originate on the target PR")
+    _require(str(observed_event_comment.get("id")) == str(comment_id),
+             "event comment ID does not match")
+    _require(observed_event_comment.get("body") == comment_payload.get("body"),
+             "EDITED_COMMENT: current GitHub comment body differs from triggering event")
+    _require((observed_event_comment.get("user") or {}).get("login") == actor,
+             "event actor does not match webhook")
     _require(str(comment_payload.get("id")) == str(comment_id), "comment ID does not match API")
     _require((comment_payload.get("user") or {}).get("login") == actor,
              "comment actor does not match authenticated GitHub API")
@@ -872,6 +886,7 @@ def _parser() -> argparse.ArgumentParser:
     pr_comment.add_argument("--state", type=Path, required=True)
     pr_comment.add_argument("--pr-payload", type=Path, required=True)
     pr_comment.add_argument("--comment-payload", type=Path, required=True)
+    pr_comment.add_argument("--event-payload", type=Path, required=True)
     pr_comment.add_argument("--pr-number", type=int, required=True)
     pr_comment.add_argument("--actor", required=True)
     pr_comment.add_argument("--comment-id", required=True)
@@ -926,6 +941,7 @@ def main(argv: list[str] | None = None) -> int:
                 state_path=args.state,
                 pr_payload=json.loads(args.pr_payload.read_text(encoding="utf-8")),
                 comment_payload=json.loads(args.comment_payload.read_text(encoding="utf-8")),
+                event_payload=json.loads(args.event_payload.read_text(encoding="utf-8")),
                 repository=args.repository,
                 pr_number=args.pr_number,
                 actor=args.actor,
