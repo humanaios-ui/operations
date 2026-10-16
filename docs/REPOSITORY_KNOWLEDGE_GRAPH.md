@@ -509,7 +509,9 @@ without modifying the target repository. This is method replication, not
 certification of Lasting Light AI or proof that its research, governance,
 tests, or workflows operate as described.
 
-### Reproducibility receipt
+### Reproducibility receipt (historical)
+
+> **Note:** This receipt documents the graph state at a prior calibration point. The Lasting Light AI profile has since been updated; current profile hashes to `97dd5ddf9d127022a31ae5c0035c4609edc9188626fe21dbf449e8b6b060fd4d`. To reproduce results, pin the exact compiler version and profile state, or generate a fresh receipt with current inputs.
 
 | Field | Result |
 |---|---|
@@ -518,9 +520,9 @@ tests, or workflows operate as described.
 | Target commit | `f2cb8a60419f04d12d6f7f5ab97b272d65f41402` |
 | Worktree | `CLEAN` |
 | Profile scope | `EXTERNAL_METHOD_INPUT` |
-| Profile SHA-256 | `864fd1441ac073aed950375d9fe36ca203e851d59382b2b1656479bedaa2353e` |
+| Profile SHA-256 | `864fd1441ac073aed950375d9fe36ca203e851d59382b2b1656479bedaa2353e` (historical; see note above) |
 | Source-tree SHA-256 | `8b5f9eec74fe8b477c0958798efd04fc90f1241323511d26bffeeedaa373c245` |
-| Graph SHA-256 | `593983e59926befbcf1f8d83d0d11c62ab17021b79c9b6a30a2748fe073edbee` |
+| Graph SHA-256 | `593983e59926befbcf1f8d83d0d11c62ab17021b79c9b6a30a2748fe073edbee` (historical; see note above) |
 | Structural validation | PASS |
 | Two-build canonical match | PASS |
 | Two-build source-tree match | PASS |
