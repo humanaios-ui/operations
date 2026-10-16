@@ -171,12 +171,12 @@ python3 app.py --host 0.0.0.0 --port 8766
 - `GET /api/health` — liveness.
 - `GET /api/needs` — the current Need Graph.
 - `GET /api/requirements` — explicit Resource Requirement Objects used for deficit-aware matching.
-- `GET /api/resources` — the most recent scan output: `data/resources.jsonl` if present, else `data/resources.snapshot.jsonl`.
-- `GET|POST /api/scan` — runs the same discovery -> `enrich()` pipeline as `python3 -m resource_miner.cli scan`, accepting the same `source`/`needs`/`funding_data`/`dev_tag`/`github_query`/`rss` fields as querystring params (GET) or a JSON body (POST). Read-only by default (`persist=false`); pass `persist=1` (or `"persist": true` in a POST body) to write `data/resources.jsonl`, matching this service's Z0/Z1 read-only-discovery framing — nothing here asserts applicant eligibility.
-- `GET /api/entitlement/handoff?resource_id=<id>` — emits a typed, provenance-bearing `humanaios.resource-entitlement-handoff.v1` object for a selected live/snapshot resource. The handoff is always `VERIFY_ELIGIBILITY` with `eligibility_assessed=false` and authority effect `NONE`.
+- `GET /api/resources` — **operator-only**, returns live scan or snapshot; requires HTTP admin authentication because stored scans may include private source observations.
+- `GET|POST /api/scan` — **operator-only** HTTP scanning. Requires a separately provisioned `RESOURCE_MINER_ADMIN_TOKEN` (at least 32 characters) and matching `X-Resource-Miner-Admin-Token` header. Without these, returns HTTP 403. This endpoint accepts source/path options and can persist output, so it MUST NOT be exposed anonymously. CLI scanning remains available without the HTTP admin token.
+- `GET /api/entitlement/handoff?resource_id=<id>` — **operator-only**, emits a typed, provenance-bearing handoff from stored scans. Requires HTTP admin authentication; eligibility remains unverified and authority effect remains `NONE`.
 
 
-## INTENT-OS: human objective -> Resource Miner (public read-only bridge)
+**HTTP admin boundary:** Configure the token in your deployment secret manager, not in source code, a repository issue, a browser, or the public INTENT-OS page. The admin API is disabled without a configured strong token. Requests to `/api/scan`, `/api/resources`, and `/api/entitlement/handoff` need `X-Resource-Miner-Admin-Token`. Use a trusted non-browser operator client for those endpoints. Existing remote scan or Entitlement Navigator clients need explicit authorized credential wiring before reuse. Check reverse-proxy access logs do not store secret headers. Authentication is not authorization for arbitrary external target testing; source-specific policy still applies. The public `/intent-os` and `/api/intent` routes remain unauthenticated but read-only; deploy only with upstream rate/request-concurrency controls.\n\n## INTENT-OS: human objective -> Resource Miner (public read-only bridge)
 
 The **existing Resource Miner HTTP service** now serves a small mobile-friendly INTENT-OS page.
 
