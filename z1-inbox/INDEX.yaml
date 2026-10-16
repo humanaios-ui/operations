@@ -1179,6 +1179,41 @@ candidates:
     for all active zones. Execution sequence from Q-RBE-OPS-TIER-RANKING-01 (Tier
     0 first, then Tier 1/2 by density). Resource allocation with per-zone cap constraints.
     Estimated 450–1800 units across 2–4 cycles.'
+- q_id: Q-PR630-CHALLENGE-EVIDENCE-01
+  title: PR #630 Challenge Evidence (10 security findings from red-team audit)
+  path: z1-inbox/2026-10-01/PR-630-CHALLENGE-EVIDENCE.jsonl
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 1
+  note: JSONL artifact with challenge records CHG-PR630-C001..M012 (3 CRITICAL, 5 HIGH, 4 MEDIUM severity). Audit against PR #630 credential deployment guide.
+- q_id: Q-PR630-AUDIT-01
+  title: Red Team Audit Report for PR #630
+  path: z1-inbox/2026-10-01/RED-TEAM-AUDIT-PR-630.md
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 1
+  note: Comprehensive security audit findings for PR #630 credential deployment implementation. Supports Challenge Evidence artifacts.
+- q_id: Q-PR630-WARRANT-01
+  title: Evidence Warrant for PR #630 Challenge Findings
+  path: z1-inbox/2026-10-01/PR-630-WARRANT.md
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 1
+  note: Warrant document establishing authority and scope of PR #630 challenge audit findings.
+- q_id: Q-PR630-REMEDIATION-01
+  title: Remediation Patches for PR #630 Challenge Findings
+  path: z1-inbox/2026-10-01/PR-630-REMEDIATION-PATCHES.md
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 1
+  note: Proposed patches and remediation steps to address PR #630 CRITICAL and HIGH severity findings.
+- q_id: Q-Z3-EXEC-CYCLE-1-HANDOFF-01
+  title: Z3 Execution Cycle 1 Handoff (PR #630 Challenge Remediation)
+  path: z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 1
+  note: Execution cycle results and handoff document for Z3 work on PR #630 challenge findings. Resource reconciliation and next-cycle planning.
 records:
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide
