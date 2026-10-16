@@ -961,9 +961,10 @@ jobs:
           echo "new_state_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Publish durable PR command outcome
-        if: always() && steps.command.outcome == 'success'
+        if: always()
         uses: actions/github-script@v9
         env:
+          COMMAND_STEP_OUTCOME: ${{ steps.command.outcome }}
           SHOULD_MUTATE: ${{ steps.command.outputs.should_mutate }}
           REASON: ${{ steps.command.outputs.reason }}
           DECISION: ${{ steps.command.outputs.decision }}
@@ -973,12 +974,22 @@ jobs:
           COMMIT_STEP_OUTCOME: ${{ steps.commit.outcome }}
         with:
           script: |
-            const mutated = process.env.SHOULD_MUTATE === "true";
+            const fs = require("fs");
+            let observedReason = process.env.REASON || "";
+            if (!observedReason && fs.existsSync("coordinator-state/.pr-command-result.json")) {
+              try {
+                const result = JSON.parse(fs.readFileSync("coordinator-state/.pr-command-result.json", "utf8"));
+                observedReason = String(result.reason || "");
+              } catch (e) { observedReason = "COMMAND_RESULT_UNREADABLE"; }
+            }
+            const commandFailed = process.env.COMMAND_STEP_OUTCOME !== "success";
+            const mutated = !commandFailed && process.env.SHOULD_MUTATE === "true";
             const published = mutated && process.env.COMMIT_STEP_OUTCOME === "success"
               && /^[0-9a-f]{40}$/.test(process.env.NEW_STATE_SHA || "");
             const status = mutated
               ? (published ? "STATE_EVENT_COMMITTED" : "STATE_APPEND_FAILED")
               : "NO_STATE_CHANGE";
+            const reason = commandFailed ? "COMMAND_REJECTED" : (observedReason || "UNKNOWN");
             const body = [
               "<!-- repository-coordinator:pr-command -->",
               "## Repository Coordinator PR command receipt",
@@ -986,7 +997,7 @@ jobs:
               "- Command ID: `" + process.env.COMMENT_ID + "`",
               "- Decision: `" + (process.env.DECISION || "NONE") + "`",
               "- Status: `" + status + "`",
-              "- Reason: `" + (process.env.REASON || "UNKNOWN") + "`",
+              "- Reason: `" + reason + "`",
               "- Bound PR head: `" + (process.env.PINNED_HEAD || "UNBOUND") + "`",
               "- Previous state SHA: `" + (process.env.PRIOR_STATE_SHA || "unknown") + "`",
               "- New state SHA: `" + (published ? process.env.NEW_STATE_SHA : "NONE") + "`",
