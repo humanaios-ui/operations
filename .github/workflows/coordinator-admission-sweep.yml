@@ -27,6 +27,10 @@ name: coordinator-admission-sweep
 #       - schedule with repository variable COORDINATOR_AUTOSWEEP_ENABLED == 'true'
 #     Z2 flips that variable to activate after ratification; reverting is setting
 #     it false (no code change, no ledger rewrite).
+#
+# PREVIEW: `python3 tools/coordinator_admission_sweep_dryrun.py` reproduces this
+# selection locally (live gh/git) without dispatching; `--smoke-test` is the
+# offline self-test (wired into z2_ratification_gate.yml).
 
 on:
   schedule:
