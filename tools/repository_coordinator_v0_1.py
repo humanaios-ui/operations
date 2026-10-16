@@ -286,8 +286,8 @@ def _admission_scope_drift(
 ) -> str | None:
     """Return evidence when a v1.1 direct PR admission no longer matches its objective.
 
-    Legacy admissions without active_admissions metadata remain grandfathered;
-    commit-SHA changes alone do not constitute scope drift.
+    Head-bound admissions report scope drift on any PR head SHA change;
+    legacy admissions without admitted_head_sha remain grandfathered.
     """
     number = int(pr.get("number") or 0)
     metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
