@@ -5,6 +5,7 @@ import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from time import monotonic
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
@@ -75,6 +76,32 @@ def _intent_scan() -> tuple[list[dict[str, Any]], str, str]:
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "ResourceMiner/0.2"
+
+    def _read_intent_body(self, length: int) -> bytes:
+        """Read one bounded request body under a whole-request deadline.
+
+        BufferedReader.read(length) can wait for all bytes while a peer drips
+        input indefinitely. read1() performs one underlying read per iteration.
+        Neither an idle socket timeout nor client Content-Length is a warrant.
+        """
+        deadline = monotonic() + 15.0
+        chunks: list[bytes] = []
+        remaining = length
+        while remaining:
+            seconds_left = deadline - monotonic()
+            if seconds_left <= 0:
+                raise TimeoutError("Request body deadline exceeded.")
+            self.connection.settimeout(seconds_left)
+            chunk = self.rfile.read1(remaining)
+            if monotonic() >= deadline:
+                raise TimeoutError("Request body deadline exceeded.")
+            if not chunk:
+                raise ValueError("Incomplete request body.")
+            if len(chunk) > remaining:
+                raise ValueError("Request body exceeded declared length.")
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        return b"".join(chunks)
 
     def _headers(self, status: int, content_type: str, length: int) -> None:
         self.send_response(status)
@@ -157,8 +184,7 @@ class Handler(BaseHTTPRequestHandler):
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > 4096:
                     raise ValueError("JSON request must be between 1 and 4096 bytes.")
-                self.connection.settimeout(15)  # Bound stalled request bodies.
-                body = json.loads(self.rfile.read(length).decode("utf-8"))
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
                 if not isinstance(body, dict) or set(body) - {"objective", "source_mode"}:
                     raise ValueError("Expected only objective and source_mode.")
                 objective = body.get("objective")
@@ -183,6 +209,10 @@ class Handler(BaseHTTPRequestHandler):
                     source_status=source_status, source_warning=warning,
                 )
                 return self._send_json(result)
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request body deadline exceeded."},
+                                       HTTPStatus.REQUEST_TIMEOUT)
             except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
                 return self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
             except Exception:
