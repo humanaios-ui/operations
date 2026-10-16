@@ -2366,7 +2366,10 @@ class GraphBuilder:
             for value in config.get("forbidden_conclusion_relations") or []
         }
         forbidden = MANDATORY_FORBIDDEN_INFERENCE_RELATIONS | configured_forbidden
-        total_limit = int(config.get("max_assertions", 5_000))
+        max_assertions_value = config.get("max_assertions", 5_000)
+        if isinstance(max_assertions_value, bool) or isinstance(max_assertions_value, float):
+            raise SpecLoadFailed("inference max_assertions must be an integer")
+        total_limit = int(max_assertions_value)
         if total_limit < 1:
             raise SpecLoadFailed("inference max_assertions must be at least 1")
 
@@ -2418,7 +2421,10 @@ class GraphBuilder:
                     raise SpecLoadFailed(
                         f"unknown inference rule kind {kind}: {rule_id}"
                     )
-            rule_limit = int(rule.get("max_assertions", total_limit))
+            max_assertions_value = rule.get("max_assertions", total_limit)
+            if isinstance(max_assertions_value, bool) or isinstance(max_assertions_value, float):
+                raise SpecLoadFailed(f"inference rule {rule_id} max_assertions must be an integer")
+            rule_limit = int(max_assertions_value)
             if rule_limit < 1:
                 raise SpecLoadFailed(
                     f"inference rule {rule_id} max_assertions must be at least 1"
