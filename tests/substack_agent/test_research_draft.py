@@ -40,5 +40,11 @@ class TestResearchDraft(unittest.TestCase):
             with self.subTest(data=data), self.assertRaises(EvidenceUnavailable):
                 verified_research_draft([data])
 
+    def test_skill_above_one_rejected_and_negative_skill_preserved(self):
+        with self.assertRaises(EvidenceUnavailable):
+            verified_research_draft([{**GOOD, "p4_brier_skill_score": 1.01}])
+        draft = verified_research_draft([{**GOOD, "p4_brier_skill_score": -5.0}])
+        self.assertIn("-5.000", draft["content"]["body"])
+
 if __name__ == "__main__":
     unittest.main()

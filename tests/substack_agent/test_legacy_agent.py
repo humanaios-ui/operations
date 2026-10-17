@@ -35,7 +35,10 @@ class TestLegacyFailClosed(unittest.TestCase):
             def table(self, _):
                 raise RuntimeError("test fixture outage")
         with patch.object(self.agent, "supabase", Broken()):
-            self.assertEqual(self.agent.fetch_recent_resolutions(), [])
+            with patch("builtins.print") as output:
+                self.assertEqual(self.agent.fetch_recent_resolutions(), [])
+            self.assertIn("RuntimeError", output.call_args.args[0])
+            self.assertNotIn("test fixture outage", output.call_args.args[0])
 
     def test_saved_draft_retains_governed_proposal(self):
         import json
@@ -46,8 +49,8 @@ class TestLegacyFailClosed(unittest.TestCase):
             "p4_brier_score": 0.0, "p4_brier_skill_score": 0.0}])
         with tempfile.TemporaryDirectory() as directory:
             path = Path(self.agent.save_draft(proposal, directory))
-            self.assertEqual(json.loads(path.with_suffix(".json").read_text()), proposal)
-            self.assertEqual(path.read_text(), proposal["content"]["body"])
+            self.assertEqual(json.loads(path.with_suffix(".json").read_text(encoding="utf-8")), proposal)
+            self.assertEqual(path.read_text(encoding="utf-8"), proposal["content"]["body"])
 
     def test_absence_does_not_save_draft(self):
         with patch.object(self.agent, "save_draft", side_effect=AssertionError("must not save")):

@@ -3,7 +3,7 @@
 HumanAIOS — Builder v1.7 compliant dependency.
 
 This module has no network client, credentials, publishing transport, or authorization
-mutations. XML strings and evidence are *untrusted data*, never instructions.
+mutations. XML strings and evidence are *untrusted data*, not instructions.
 """
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def _digest(data: object) -> str:
 
 
 def observe_rss(xml: str, *, feed_url: str) -> dict:
-    """Project an explicitly supplied public RSS payload; never fetch a URL."""
+    """Project an explicitly supplied public RSS payload; without fetching a URL."""
     origin = _url(feed_url)
     if not isinstance(xml, str) or len(xml.encode("utf-8")) > MAX_FEED_BYTES:
         raise ObservationError("feed exceeds byte limit")
@@ -99,7 +99,7 @@ def observe_rss(xml: str, *, feed_url: str) -> dict:
 
 
 def propose_draft(*, title: str, body: str, evidence: list[dict]) -> dict:
-    """Return a digest-bound *proposal*, never publishing permission."""
+    """Return a digest-bound *proposal*, without publishing permission."""
     if not isinstance(title, str) or not title.strip() or len(title) > 250:
         raise ObservationError("invalid title")
     if not isinstance(body, str) or not body.strip() or len(body) > 30_000:

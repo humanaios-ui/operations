@@ -168,6 +168,65 @@ class TestLivingNewsletter(unittest.TestCase):
         finally:
             private.conn.close()
 
+    def test_oversized_newsletter_does_not_block_digest_or_cursor(self):
+        from entry_protocol.gmail_push_adapter import GmailInboundAdapter, GmailAdapterConfig, PrivateMailLedger
+        from unittest.mock import patch
+        self.bridge.send_enabled = False
+        bad = raw_mail("x" * 65537)
+        bad["id"] = "bad"
+        good = raw_mail("STATUS PR-1", From="operator@example.org", Subject="THREAD PR-1 — Review")
+        good.update(id="good", threadId="digest-thread", labelIds=["SENT", "INBOX"])
+
+        class Inbox:
+            def get_message(self, message_id):
+                return {"bad": bad, "good": good}[message_id]
+
+            def list_added_message_ids(self, **kwargs):
+                return ["bad", "good"], "200"
+
+        ledger_path = str(Path(self.temp.name) / "adapter.sqlite3")
+        private = PrivateMailLedger(ledger_path)
+        config = GmailAdapterConfig(mailbox_address="newsletter@example.org",
+            command_endpoints=("operator@example.org",), evidence_hmac_key=b"x" * 32,
+            database_path=ledger_path)
+        private.set_state("gmail_history_id", "100")
+        adapter = GmailInboundAdapter(gmail=Inbox(), store=private, config=config,
+                                      newsletter_bridge=self.bridge)
+        try:
+            batch = adapter.handle_push("200")
+            self.assertEqual(batch.results[0].disposition, "NEWSLETTER_REJECTED")
+            self.assertEqual(batch.results[1].status, "PROCESSED")
+            self.assertEqual(private.get_state("gmail_history_id"), "200")
+        finally:
+            private.conn.close()
+        restored = PrivateMailLedger(ledger_path)
+        try:
+            adapter = GmailInboundAdapter(gmail=Inbox(), store=restored, config=config,
+                                          newsletter_bridge=self.bridge)
+            with patch.object(self.bridge, "process_message", side_effect=AssertionError("quarantined")):
+                self.assertEqual(adapter.process_message_id("bad").status, "REPLAY")
+        finally:
+            restored.conn.close()
+
+    def test_newsletter_rejection_does_not_echo_private_exception(self):
+        from entry_protocol.gmail_push_adapter import GmailInboundAdapter, GmailAdapterConfig, PrivateMailLedger
+        from unittest.mock import patch
+        class Inbox:
+            def get_message(self, message_id):
+                return raw_mail()
+        private = PrivateMailLedger(":memory:")
+        try:
+            adapter = GmailInboundAdapter(gmail=Inbox(), store=private,
+                config=GmailAdapterConfig(mailbox_address="newsletter@example.org",
+                    command_endpoints=("operator@example.org",), evidence_hmac_key=b"x" * 32,
+                    database_path=":memory:"), newsletter_bridge=self.bridge)
+            with patch.object(self.bridge, "process_message", side_effect=ValueError("PRIVATE_SECRET")):
+                result = adapter.process_message_id("m1")
+                self.assertNotIn("PRIVATE_SECRET", result.detail)
+                self.assertEqual(result.disposition, "NEWSLETTER_REJECTED")
+        finally:
+            private.conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()

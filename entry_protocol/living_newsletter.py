@@ -1,6 +1,6 @@
 """Private, durable newsletter participation core. No publication or voting authority.
 
-Identity and reply routing must be attested by the calling transport, never inferred
+Identity and reply routing must be attested by the calling transport, not inferred
 from From headers or prose. Public outputs use only editor-supplied edition text.
 """
 from __future__ import annotations
@@ -42,7 +42,7 @@ def classify_reply(text):
 
 
 class NewsletterStore:
-    """SQLite belongs on private durable storage, never in the public repository."""
+    """SQLite belongs on private durable storage, excluded from the public repository."""
 
     def __init__(self, path):
         if path != ":memory:":
@@ -71,7 +71,7 @@ class NewsletterStore:
         """)
 
     def add_edition(self, edition_id, *, title, body, references):
-        """Freeze a public-safe editorial snapshot; ID reuse never overwrites it."""
+        """Freeze a public-safe editorial snapshot; ID reuse raises an integrity error."""
         if not re.fullmatch(r"NL-[A-Z0-9-]{1,64}", edition_id):
             raise ValueError("invalid edition ID")
         if not title.strip() or not body.strip() or not references:
@@ -163,7 +163,7 @@ class NewsletterStore:
                 "consensus": "NOT_ESTABLISHED", "publication_authorization": "NONE"}
 
     def claim_delivery(self, receipt_id):
-        """One send attempt. An uncertain outcome needs read-back, never blind retry."""
+        """One send attempt. An uncertain outcome needs read-back, no blind retry."""
         with self.db:
             changed = self.db.execute("UPDATE newsletter_contributions SET delivery='SENDING' "
                                       "WHERE receipt=? AND delivery='PENDING' AND "
@@ -190,7 +190,7 @@ class NewsletterStore:
         (target / f"{edition_id}.substack.md").write_text(
             f"# {content['title']}\n\nDRAFT — NOT PUBLISHED\n\n{content['body']}\n",
             encoding="utf-8")
-        # Escape all editorial text. Raw HTML/scripts from sources never execute.
+        # Escape all editorial text. Raw HTML/scripts from sources are escaped as text.
         (target / f"{edition_id}.website.html").write_text(
             "<!doctype html><meta charset='utf-8'><title>Newsletter draft</title>"
             "<main><p>DRAFT — NOT PUBLISHED</p><h1>" + html.escape(content["title"])
@@ -201,7 +201,7 @@ class NewsletterStore:
 
     def record_review(self, proposal_id, *, reviewer_ref, stance, rationale,
                       identity_verified=False):
-        """Append human deliberation, never infer quorum or ratification."""
+        """Append human deliberation, without inferring quorum or ratification."""
         if not identity_verified or stance not in {"SUPPORT", "CONCERN", "OBJECT", "WITHDRAW"}:
             raise ValueError("verified human and explicit stance required")
         if not isinstance(rationale, str) or not rationale.strip() or len(rationale) > 8000:

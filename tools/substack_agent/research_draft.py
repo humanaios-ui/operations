@@ -17,7 +17,7 @@ class EvidenceUnavailable(ValueError):
     pass
 
 def verified_research_draft(records):
-    """Validate real resolved forecasting observations; never infer authority."""
+    """Validate real resolved forecasting observations; without inferring authority."""
     if not isinstance(records, list) or not records or len(records) > 100:
         raise EvidenceUnavailable("NO_VERIFIED_EVIDENCE")
     normalized = []
@@ -48,6 +48,8 @@ def verified_research_draft(records):
             metrics[key] = float(value)
         if not 0 <= metrics["p4_brier_score"] <= 1:
             raise EvidenceUnavailable("NO_VERIFIED_EVIDENCE: invalid Brier score")
+        if metrics["p4_brier_skill_score"] > 1:
+            raise EvidenceUnavailable("NO_VERIFIED_EVIDENCE: invalid Brier skill score")
         normalized.append({"url": url, "resolved_at": resolved, **metrics})
     brier = sum(x["p4_brier_score"] for x in normalized) / len(normalized)
     skill = sum(x["p4_brier_skill_score"] for x in normalized) / len(normalized)

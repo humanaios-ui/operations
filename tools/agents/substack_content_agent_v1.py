@@ -66,11 +66,11 @@ class SubstackContentAgent:
             return result.data if result.data else []
 
         except Exception as e:
-            print("NO_VERIFIED_EVIDENCE: Supabase query failed")
+            print(f"NO_VERIFIED_EVIDENCE: query failed ({type(e).__name__})")
             return []
 
     def _mock_data(self) -> List[Dict]:
-        """SYNTHETIC_TEST_ONLY. Never use to produce public research copy."""
+        """SYNTHETIC_TEST_ONLY. Excluded from public research copy."""
         return [
             {
                 "question_url": "https://www.metaculus.com/questions/22427/",
@@ -96,7 +96,7 @@ class SubstackContentAgent:
         return verified_research_draft(resolutions)
 
     def _stub_post(self) -> str:
-        """Never present absence of source data as a publishable report."""
+        """Reject absence of source data as a publishable report."""
         raise EvidenceUnavailable("NO_VERIFIED_EVIDENCE")
 
     def save_draft(self, proposal: dict, output_dir: str = "/tmp") -> str:
