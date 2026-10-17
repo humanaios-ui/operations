@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 213
+  tools: 214
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 165
+  builder_markers_present: 166
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2710,6 +2710,17 @@ tools:
   builder_markers: true
   purpose: kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph.
   session: unassigned
+- tool_id: HAIOS-TOOL-227
+  name: azure_readiness
+  path: tools/azure_readiness.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

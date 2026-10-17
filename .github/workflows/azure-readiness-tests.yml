@@ -1,0 +1,25 @@
+name: Azure readiness report tests
+on:
+  pull_request:
+    paths:
+      - 'tools/azure_readiness.py'
+      - 'tests/test_azure_readiness.py'
+      - '.github/workflows/azure-readiness-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/azure_readiness.py'
+      - 'tests/test_azure_readiness.py'
+      - '.github/workflows/azure-readiness-tests.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - run: python3 -m unittest discover -s tests -p test_azure_readiness.py -v
+      - run: python3 tools/azure_readiness.py --smoke-test
