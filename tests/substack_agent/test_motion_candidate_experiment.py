@@ -11,7 +11,7 @@ from entry_protocol.motion_candidate_experiment import project_motion
 CASES = (
     ("Add one grant source", "I suggest adding one official grant feed to Resource Miner.", "PROPOSAL"),
     ("Correct a claim", "Correction: the eligibility description is incorrect.", "CORRECTION"),
-    ("Preserve consent", "I object to publishing participant replies without scoped consent.", "OBJECTION"),
+    ("Preserve consent", "I object to making private participant replies public.", "OBJECTION"),
     ("Improve user path", "I propose showing the source link in INTENT-OS.", "PROPOSAL"),
     ("Protect decisions", "Could we require human review for irreversible actions?", "PROPOSAL"),
 )
@@ -75,6 +75,14 @@ class MotionE0(unittest.TestCase):
                          ["SUPPORT", "OBJECT", "SUPPORT"])
         self.assertEqual(result["deliberation"]["consensus"], "NOT_ESTABLISHED")
         self.assertEqual(result["deliberation"]["ratification"], "HUMAN_PROCESS_REQUIRED")
+
+    def test_ambiguous_objection_plus_consent_requests_clarification(self):
+        result = self.store.receive(source_id="mixed-synthetic", edition_id="NL-MOTION-E0",
+                                    participant_ref="H-synthetic",
+                                    body="I object to publication without consent.",
+                                    identity_verified=True)
+        self.assertEqual(result["kind"], "NEEDS_CLARIFICATION")
+        self.assertIsNone(result["proposal_id"])
 
     def test_projection_is_read_only_and_replay_deterministic(self):
         pid = self.make_motion(0, CASES[0][1])
