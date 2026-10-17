@@ -37,8 +37,11 @@
 @description('Azure region for all resources. Defaults to the resource group\'s region.')
 param location string = resourceGroup().location
 
-@description('Container Apps Environment name. Reuse an existing one (e.g. from acat-api-containerapp.bicep) by passing its name here instead of creating a second environment.')
+@description('Container Apps Environment name in this resource group. Set useExistingEnvironment=true to reference it without changing its logging configuration.')
 param environmentName string = 'humanaios-metaculus-env'
+
+@description('Reference an existing environment without deploying an environment or Log Analytics workspace. False creates/manages both resources; review deployment changes before applying.')
+param useExistingEnvironment bool = false
 
 @description('Container Apps Job name.')
 param jobName string = 'metaculus-bot'
@@ -56,7 +59,7 @@ param registryUsername string = ''
 @description('Registry password or token. Leave empty for a public image.')
 param registryPassword string = ''
 
-@description('main.py --mode. tournament forecasts on the live seasonal + minibench competitions; metaculus_cup on the cup tournament; test_questions runs 4 hardcoded example questions with previously-forecasted skipping off — a smoke test, and what Railway currently runs.')
+@description('main.py --mode. tournament targets seasonal + minibench; metaculus_cup targets the cup. test_questions also makes provider calls and publishes forecasts for four example questions, with skipping off. Running any mode can cause external writes and provider charges; test_questions is not a read-only smoke test.')
 @allowed(['tournament', 'metaculus_cup', 'test_questions'])
 param mode string = 'test_questions'
 
@@ -122,7 +125,7 @@ var secretEnvVars = [for e in filter(envMap, m => m.has): { name: e.name, secret
 var runIdEnvVar = !empty(botRunId) ? [{ name: 'BOT_RUN_ID', value: botRunId }] : []
 var jobArgs = concat(['--mode', mode], !empty(botRunId) ? ['--run-id', botRunId] : [])
 
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = if (!useExistingEnvironment) {
   name: '${environmentName}-logs'
   location: location
   properties: {
@@ -133,15 +136,19 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   }
 }
 
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource existingEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' existing = if (useExistingEnvironment) {
+  name: environmentName
+}
+
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = if (!useExistingEnvironment) {
   name: environmentName
   location: location
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
-        customerId: logAnalytics.properties.customerId
-        sharedKey: logAnalytics.listKeys().primarySharedKey
+        customerId: logAnalytics!.properties.customerId
+        sharedKey: logAnalytics!.listKeys().primarySharedKey
       }
     }
   }
@@ -151,7 +158,7 @@ resource metaculusJob 'Microsoft.App/jobs@2024-03-01' = {
   name: jobName
   location: location
   properties: {
-    environmentId: containerAppEnvironment.id
+    environmentId: useExistingEnvironment ? existingEnvironment.id : containerAppEnvironment.id
     configuration: {
       triggerType: isScheduled ? 'Schedule' : 'Manual'
       replicaTimeout: replicaTimeoutSeconds

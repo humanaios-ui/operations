@@ -48,6 +48,28 @@ class MetaculusAzureConfigTests(unittest.TestCase):
         self.assertEqual(self.text.count("replicaCompletionCount: 1"), 2)
         self.assertEqual(self.text.count("parallelism: 1"), 2)
 
+    def test_existing_environment_does_not_deploy_logging_resources(self):
+        self.assertIn("param useExistingEnvironment bool = false", self.text)
+        for resource in ("logAnalytics", "containerAppEnvironment"):
+            self.assertRegex(
+                self.text,
+                rf"resource {resource} '[^']+' = if \(!useExistingEnvironment\)",
+            )
+        self.assertRegex(
+            self.text,
+            r"resource existingEnvironment '[^']+' existing = if \(useExistingEnvironment\)"
+            r" \{\s*name: environmentName\s*\}",
+        )
+        self.assertIn(
+            "environmentId: useExistingEnvironment ? existingEnvironment.id : containerAppEnvironment.id",
+            self.text,
+        )
+
+    def test_default_mode_discloses_external_writes(self):
+        self.assertIn("param mode string = 'test_questions'", self.text)
+        self.assertIn("test_questions also makes provider calls and publishes forecasts", self.text)
+        self.assertIn("external writes and provider charges", self.text)
+
 
 if __name__ == "__main__":
     unittest.main()
