@@ -1,12 +1,21 @@
 from __future__ import annotations
 
+from datetime import datetime
+import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Any
+from urllib.parse import urlsplit
 
 ALLOWED_ACTIVATION_STATES = {"ACTIVE", "CONDITIONAL", "INACTIVE"}
 ALLOWED_RESOLUTION_MODES = {"COMPOSE_INTERNAL", "ACQUIRE_EXTERNAL", "HYBRID"}
 ALLOWED_SUBSTITUTION_STATES = {"ADEQUATE", "PARTIAL", "INADEQUATE", "UNKNOWN"}
+ALLOWED_PRIVACY_CLASSES = {"PRIVATE", "PUBLIC_SAFE"}
+ALLOWED_IMPLEMENTATION_STATES = {"NOT_STARTED", "PROPOSED", "MERGED"}
+ALLOWED_DEPLOYMENT_STATES = {"UNVERIFIED", "OBSERVED_NOT_LIVE", "OBSERVED_LIVE"}
+THREE_SOURCE_CLAIM = "CAPABILITY_NOT_STARTED"
+SHA40 = re.compile(r"^[0-9a-f]{40}$")
 
 
 def load_resource_plan(path: str | Path) -> dict[str, Any]:
@@ -15,6 +24,204 @@ def load_resource_plan(path: str | Path) -> dict[str, Any]:
         raise ValueError("Resource plan must be a JSON object")
     validate_resource_plan(data)
     return data
+
+
+def load_three_source_pilot(path: str | Path) -> dict[str, Any]:
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Three-source pilot must be a JSON object")
+    validate_three_source_pilot(data)
+    return data
+
+
+def _exact_fields(record: dict[str, Any], expected: set[str], label: str) -> None:
+    if not isinstance(record, dict) or set(record) != expected:
+        raise ValueError(f"{label} fields do not match the contract")
+
+
+def _timestamp(value: object, label: str) -> None:
+    if not isinstance(value, str):
+        raise ValueError(f"{label} requires a timezone-aware timestamp")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError(f"{label} requires a timezone-aware timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{label} requires a timezone-aware timestamp")
+
+
+def _github_https(value: object) -> None:
+    if not isinstance(value, str) or len(value) > 500:
+        raise ValueError("repository source_url must be a bounded GitHub HTTPS URL")
+    parsed = urlsplit(value)
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != "github.com"
+        or parsed.username
+        or parsed.password
+        or parsed.port not in (None, 443)
+    ):
+        raise ValueError("repository source_url must be a bounded GitHub HTTPS URL")
+
+
+def validate_three_source_pilot(pilot: dict[str, Any]) -> None:
+    """Validate one Drive source, one Empirica finding, and one repo capability.
+
+    Source text is input-only. A private source locator and its content never appear
+    in the returned projection. This is advisory comparison, not authorization.
+    """
+    _exact_fields(
+        pilot,
+        {
+            "pilot_id", "authority_effect", "drive_document", "empirica_finding",
+            "repository_capability", "next_test",
+        },
+        "pilot",
+    )
+    if not isinstance(pilot["pilot_id"], str) or not pilot["pilot_id"].strip():
+        raise ValueError("pilot_id is required")
+    if pilot["authority_effect"] != "NONE":
+        raise ValueError("Three-source context cannot grant authority")
+
+    drive = pilot["drive_document"]
+    _exact_fields(
+        drive,
+        {"source_id", "source_locator", "source_revision", "observed_at", "privacy_class"},
+        "drive_document",
+    )
+    if not all(isinstance(drive[key], str) and drive[key].strip() for key in drive):
+        raise ValueError("drive_document fields must be nonempty strings")
+    if drive["privacy_class"] not in ALLOWED_PRIVACY_CLASSES:
+        raise ValueError("Unsupported Drive privacy_class")
+    _timestamp(drive["observed_at"], "drive_document.observed_at")
+
+    finding = pilot["empirica_finding"]
+    _exact_fields(
+        finding,
+        {"finding_id", "source_id", "claim_kind", "statement", "as_of", "epistemic_state"},
+        "empirica_finding",
+    )
+    if finding["source_id"] != drive["source_id"]:
+        raise ValueError("Empirica finding must reference the selected Drive source")
+    if finding["claim_kind"] != THREE_SOURCE_CLAIM:
+        raise ValueError("Unsupported Empirica claim_kind")
+    if finding["epistemic_state"] != "OBSERVED":
+        raise ValueError("Input finding must remain an OBSERVED historical claim")
+    if not isinstance(finding["statement"], str) or not 1 <= len(finding["statement"]) <= 1000:
+        raise ValueError("Empirica finding statement must be bounded")
+    _timestamp(finding["as_of"], "empirica_finding.as_of")
+
+    capability = pilot["repository_capability"]
+    _exact_fields(
+        capability,
+        {
+            "capability_id", "label", "source_url", "source_revision", "observed_at",
+            "implementation_state", "deployment_state",
+        },
+        "repository_capability",
+    )
+    _github_https(capability["source_url"])
+    if not SHA40.fullmatch(str(capability["source_revision"])):
+        raise ValueError("repository source_revision must be a full commit SHA")
+    _timestamp(capability["observed_at"], "repository_capability.observed_at")
+    if capability["implementation_state"] not in ALLOWED_IMPLEMENTATION_STATES:
+        raise ValueError("Unsupported implementation_state")
+    if capability["deployment_state"] not in ALLOWED_DEPLOYMENT_STATES:
+        raise ValueError("Unsupported deployment_state")
+    for key in ("capability_id", "label"):
+        if not isinstance(capability[key], str) or not capability[key].strip():
+            raise ValueError(f"repository_capability.{key} is required")
+
+    next_test = pilot["next_test"]
+    _exact_fields(
+        next_test,
+        {"objective", "steps", "success_conditions", "side_effects"},
+        "next_test",
+    )
+    if next_test["side_effects"] != "NONE":
+        raise ValueError("First pilot test must be read-only")
+    if not isinstance(next_test["objective"], str) or not next_test["objective"].strip():
+        raise ValueError("next_test.objective is required")
+    for key in ("steps", "success_conditions"):
+        values = next_test[key]
+        if (
+            not isinstance(values, list)
+            or not values
+            or len(values) > 12
+            or any(not isinstance(value, str) or not value.strip() for value in values)
+        ):
+            raise ValueError(f"next_test.{key} must be a bounded nonempty string list")
+
+
+def resolve_three_source_pilot(pilot: dict[str, Any]) -> dict[str, Any]:
+    """Build the three INTENT-OS context views without exposing private source text."""
+    validate_three_source_pilot(pilot)
+    drive = pilot["drive_document"]
+    finding = pilot["empirica_finding"]
+    capability = pilot["repository_capability"]
+
+    implementation = capability["implementation_state"]
+    deployment = capability["deployment_state"]
+    if implementation == "MERGED" and deployment == "OBSERVED_LIVE":
+        resolution = "CONTRADICTED"
+    elif implementation == "MERGED":
+        resolution = "SUPERSEDED_IN_PART"
+    elif implementation == "NOT_STARTED":
+        resolution = "SUPPORTED"
+    else:
+        resolution = "UNRESOLVED"
+
+    public_source = drive["privacy_class"] == "PUBLIC_SAFE"
+    private_ref = hashlib.sha256(
+        f"{drive['source_id']}|{drive['source_revision']}".encode("utf-8")
+    ).hexdigest()
+    source_projection = {
+        "source_ref": drive["source_id"] if public_source else f"PRIVATE-SOURCE-SHA256:{private_ref}",
+        "source_revision": drive["source_revision"],
+        "privacy_class": drive["privacy_class"],
+        "source_locator": drive["source_locator"] if public_source else "REDACTED_PRIVATE_SOURCE",
+        "source_content_included": False,
+    }
+    what_needs_proof = []
+    if deployment == "UNVERIFIED":
+        what_needs_proof.append({
+            "claim": "Public deployment and successful human use",
+            "epistemic_state": "UNVERIFIED",
+        })
+    elif deployment == "OBSERVED_NOT_LIVE":
+        what_needs_proof.append({
+            "claim": "A successful public deployment and human use",
+            "epistemic_state": "CONTRADICTED",
+        })
+
+    result = {
+        "pilot_id": pilot["pilot_id"],
+        "resolution": resolution,
+        "selected_source": source_projection,
+        "empirica_finding": {
+            "finding_id": finding["finding_id"],
+            "claim_kind": finding["claim_kind"],
+            "historical_state": finding["epistemic_state"],
+            "current_state": resolution,
+            "as_of": finding["as_of"],
+            "statement_included": False,
+        },
+        "what_we_already_have": [{
+            "capability_id": capability["capability_id"],
+            "label": capability["label"],
+            "epistemic_state": "OBSERVED",
+            "implementation_state": implementation,
+            "source_ref": f"{capability['source_url']}@{capability['source_revision']}",
+        }],
+        "what_needs_proof": what_needs_proof,
+        "smallest_next_test": dict(pilot["next_test"]),
+        "authority_effect": "NONE",
+        "execution": "DISABLED",
+    }
+    canonical = json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    result["receipt_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    result["receipt_kind"] = "UNSIGNED_CONTEXT_PROJECTION_NOT_AN_ATTESTATION"
+    return result
 
 
 def _index(records: list[dict[str, Any]], id_key: str, label: str) -> dict[str, dict[str, Any]]:
