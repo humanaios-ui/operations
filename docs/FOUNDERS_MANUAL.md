@@ -299,7 +299,7 @@ A release is: **known commit → protected CI → human approval → service bou
 
 ### Monitor
 
-- Resource Miner: `curl -fsS "$RESOURCE_MINER_URL/api/health"`, then fetch `/api/resources` with the `X-Resource-Miner-Admin-Token` header (value from `RESOURCE_MINER_ADMIN_TOKEN`, 32+ characters) and compare it with the durable snapshot.
+- Resource Miner: require `RESOURCE_MINER_URL` to use `https://`, because the admin token must not travel in cleartext. Then run `curl -fsS "$RESOURCE_MINER_URL/api/health"`, then fetch `/api/resources` with the `X-Resource-Miner-Admin-Token` header (value from `RESOURCE_MINER_ADMIN_TOKEN`, 32+ characters) and compare it with the durable snapshot.
 - ACAT: `curl -fsS "$ACAT_API_URL/api/v1/acat/health"` **[unverified route]**.
 - Repo: `git fetch && git log --oneline -n 10`. Check required PR checks and the Coordinator receipt.
 
