@@ -3,6 +3,7 @@ TOOL_NAME = "azure_readiness"
 TOOL_VERSION = "0.1.0"
 TOOL_CATEGORY = "diagnostic_tool"
 TOOL_ZONE = 1
+TOOL_SESSION = "S-20261017-AZURE-915"
 
 import argparse
 import hashlib
@@ -100,7 +101,8 @@ def collect(subscription):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     source = parser.add_mutually_exclusive_group(required=True)
-    source.add_argument("--inventory", type=Path, help="Private az resource list JSON")
+    source.add_argument("--inventory", "--input", dest="inventory", type=Path,
+                        help="Private az resource list JSON")
     source.add_argument("--subscription", help="Collect using read-only Azure CLI")
     source.add_argument("--smoke-test", action="store_true")
     args = parser.parse_args()

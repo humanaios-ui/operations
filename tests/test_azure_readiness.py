@@ -1,5 +1,9 @@
 import json
+import subprocess
+import sys
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from tools.azure_readiness import collect, project
@@ -14,6 +18,18 @@ def sample():
 
 
 class AzureReadinessTests(unittest.TestCase):
+    def test_standard_input_alias_reads_offline_inventory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            export = Path(directory) / "inventory.json"
+            export.write_text(json.dumps([sample()]))
+            result = subprocess.run(
+                [sys.executable, "tools/azure_readiness.py", "--input", str(export)],
+                capture_output=True, text=True, check=True,
+            )
+        report = json.loads(result.stdout)
+        self.assertEqual(report["resource_count"], 1)
+        self.assertEqual(report["inventory_observed_at"], "UNKNOWN")
+
     def test_projection_redacts_raw_fields_and_does_not_infer_readiness(self):
         row = sample()
         report = project([row], "2026-10-17T00:00:00Z")

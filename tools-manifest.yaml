@@ -2721,6 +2721,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
+  session: S-20261017-AZURE-915
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

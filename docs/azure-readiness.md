@@ -17,6 +17,8 @@ For an existing private export:
 python3 tools/azure_readiness.py --inventory /private/path/inventory.json
 ```
 
+The standard `--input` option is an alias for `--inventory`.
+
 Keep the export private. Output uses hashed resource IDs, service families,
 resource types and SKU labels. It excludes raw names, IDs, tags, endpoints and
 properties. Hashes are pseudonymous correlation references, not encryption or
