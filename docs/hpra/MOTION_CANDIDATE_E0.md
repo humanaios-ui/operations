@@ -18,11 +18,11 @@
 |---|---|---|---|
 | M1 | Suggest one official grant feed for Resource Miner | PROPOSAL | NONE |
 | M2 | Correct an incorrect eligibility description | CORRECTION | NONE |
-| M3 | Object to publication without scoped consent | OBJECTION | NONE |
+| M3 | Object to making private replies public | OBJECTION | NONE |
 | M4 | Propose adding an INTENT-OS source link | PROPOSAL | NONE |
 | M5 | Ask to require human review for irreversible actions | PROPOSAL | NONE |
 
-This deliberately covers different *texts*, not five independently validated governance policies. A human must determine the real scope, constraints, evidence sufficiency, and applicable authority for each proposal. No model-based matching or blending has been admitted.
+A sixth deliberately mixed objection/consent reply must request clarification and create no motion. This is the actual existing classifier boundary discovered by the first protected run (one synthetic fixture failed before repair).\n\nThis deliberately covers different *texts*, not five independently validated governance policies. A human must determine the real scope, constraints, evidence sufficiency, and applicable authority for each proposal. No model-based matching or blending has been admitted.
 
 ## Falsifiable checks and acceptance gates
 
@@ -45,7 +45,7 @@ A local, *standalone* smoke fixture reproduced the private table shapes and read
 - Actual `NewsletterStore` integration: **PENDING protected CI**.
 - Live enrollment, publication, consent enforcement, and authorization: **OUT OF SCOPE**.
 
-The new integration tests (`tests/substack_agent/test_motion_candidate_experiment.py`) exercise five synthetic `NewsletterStore` motions plus review dissent, replay, privacy, prompt-injection-as-prose, integrity failures, and bounded history. Existing `hpra-observer.yml` already runs `tests/substack_agent/**`; no new workflow or manifest entry is required.
+The new integration tests (`tests/substack_agent/test_motion_candidate_experiment.py`) exercise five synthetic `NewsletterStore` motions plus mixed-intent clarification, review dissent, replay, privacy, prompt-injection-as-prose, integrity failures, and bounded history. Existing `hpra-observer.yml` already runs `tests/substack_agent/**`; no new workflow or manifest entry is required.
 
 ## Running the experiment
 
