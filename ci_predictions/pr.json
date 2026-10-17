@@ -1,47 +1,55 @@
 {
-  "pr": 836,
-  "actor_origin_claim": "Claude Code (Z1 proposer), filing Q-MULTI-AGENT-QUEUE-PLAN-01 as a docs-only z1-inbox candidate",
+  "pr": 843,
+  "actor_origin_claim": "Claude Code session, Z1 proposal and read-only lookup tool",
   "checks": {
-    "Repository admission/backpressure gate": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "validate": {
+    "agent-principle-compliance-check": {
       "conclusion": "success",
       "p": 0.95
     },
-    "Verify Z2 Ratification Requirements": {
+    "builder-lint": {
       "conclusion": "success",
       "p": 0.93
     },
-    "Reject unauthorized internal deadline semantics": {
+    "document-control": {
+      "conclusion": "success",
+      "p": 0.96
+    },
+    "manifest-sync-gate": {
       "conclusion": "success",
       "p": 0.9
     },
-    "guard": {
+    "No-op PR guard": {
       "conclusion": "success",
       "p": 0.99
     },
-    "Secret scanning (gitleaks)": {
+    "quality-baseline": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.9
     },
-    "Python dependency vulnerability scan": {
+    "repository-admission-gate": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.8
     },
-    "Validate Configuration": {
+    "repository-coordinator": {
+      "conclusion": "success",
+      "p": 0.9
+    },
+    "security-gates": {
       "conclusion": "success",
       "p": 0.95
     },
-    "Measure molt tier from the diff (ADVISORY)": {
+    "tool-manifest": {
+      "conclusion": "success",
+      "p": 0.9
+    },
+    "workflow-lint": {
       "conclusion": "success",
       "p": 0.97
     },
-    "pin": {
+    "workflow-path-validation": {
       "conclusion": "success",
-      "p": 0.9
+      "p": 0.97
     }
   },
-  "note": "Docs-only candidate plus inbox index and this prediction file. Ready for review with an ADMIT record on the state branch, so the admission gate should read PASS / ACTIVE. Main risks: the index collision with PR #831 and the deadline-semantics gate reading the plan's prose about decision windows."
+  "note": "Adds tools/graph_lookup_v0_1.py (stdlib, read-only) and its tests. Builder v1.7 gate fixed by adding --smoke-test. Expected risk: manifest row ID and repository-admission-gate for a Z2-queued tool path."
 }
