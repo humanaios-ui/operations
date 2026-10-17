@@ -1,6 +1,6 @@
 # Founder's Ultimate Users Manual and Troubleshooting Guide for HumanAIOS
 
-**Status:** Draft v0.2 (2026-10-17). Checked against `operations` at `c05ff89`. Sources: the operations repo, seven product repos, and Google Drive.
+**Status:** Draft v0.2 (2026-10-17). Checked against `operations` at `c05ff89`. Sources: the operations repo, six product repos (`humanaios-internal` not retrieved), and Google Drive.
 
 Tags used below:
 - **[verified]**: checked in the repo at `c05ff89` on 2026-10-17.
@@ -42,7 +42,7 @@ Read in this order:
 
 **Authorized Z2 identities** are listed in `CLAUDE.md`. This document does not print them.
 
-**Escalation:** Z1 → Z2 → Admiral. A Z2 decision can be contested within 48 hours.
+**Escalation:** Z1 → Z2. Carly holds both Admiral and Z2 roles. A contested Z2 decision is re-read by the same ratifier, who signs a new RATIFY event with a new hash. The original record is not rewritten. Raise contests within 48 hours.
 
 **Founder rule for authority:** Drive is for navigation. Git and authenticated CI are for implementation truth. Z2 is for authority.
 
@@ -235,9 +235,10 @@ python3 -m unittest discover -s tests
 python3 -m resource_miner.cli scan --source devto --dev-tag devchallenge --dry-run
 python3 -m resource_miner.cli scan --source github --github-query 'is:issue is:open label:bounty' --dry-run
 
-python3 app.py --host 0.0.0.0 --port 8766
+python3 app.py --host 127.0.0.1 --port 8766
 curl -fsS http://127.0.0.1:8766/api/health
-curl -fsS http://127.0.0.1:8766/api/resources
+# Admin-gated. RESOURCE_MINER_ADMIN_TOKEN must match the service token (32+ characters).
+curl -fsS -H "X-Resource-Miner-Admin-Token: $RESOURCE_MINER_ADMIN_TOKEN" http://127.0.0.1:8766/api/resources
 ```
 
 HackerOne needs `HACKERONE_API_USERNAME` and `HACKERONE_API_TOKEN` from your local environment. Never put them in files.
@@ -286,7 +287,7 @@ Stop if local work is behind or dirty. Stage exact files only.
 
 ### Deploy Resource Miner [verified contract]
 
-Build context: `humanaios-funding-pipeline/`. Start: `cd resource-miner && python3 app.py --host 0.0.0.0 --port $PORT`. Python 3.11. Platform: Railway/Nixpacks. The exact Railway project and service IDs are not in the reviewed sources, so no deploy command is given here.
+Build context: `humanaios-funding-pipeline/`. Start: `cd resource-miner && python3 app.py --host 0.0.0.0 --port $PORT`. Python 3.11. Platform: Railway/Nixpacks. The exact Railway project and service IDs are not in the reviewed sources, so no deploy command is given here. Deploy only behind upstream rate limiting and request-concurrency controls: `/api/intent` is unauthenticated and can run live scans.
 
 A release is: **known commit → protected CI → human approval → service bound to the right root → health check → snapshot check → receipt.**
 
@@ -298,7 +299,7 @@ A release is: **known commit → protected CI → human approval → service bou
 
 ### Monitor
 
-- Resource Miner: `curl -fsS "$RESOURCE_MINER_URL/api/health"`, then compare `/api/resources` with the durable snapshot.
+- Resource Miner: `curl -fsS "$RESOURCE_MINER_URL/api/health"`, then fetch `/api/resources` with the `X-Resource-Miner-Admin-Token` header (value from `RESOURCE_MINER_ADMIN_TOKEN`, 32+ characters) and compare it with the durable snapshot.
 - ACAT: `curl -fsS "$ACAT_API_URL/api/v1/acat/health"` **[unverified route]**.
 - Repo: `git fetch && git log --oneline -n 10`. Check required PR checks and the Coordinator receipt.
 
@@ -411,7 +412,7 @@ Reference counts are not incident counts. Read the IC heading in `REGISTERED.md`
 
 **Repo (operations) [verified]:** `CLAUDE.md`, `SEED.md`, `SESSION_RITUALS.md`, `OPERATOR_RUNBOOK.md`, `REGISTERED.md`, `PRIORITY_QUEUE.md`, `ZONE_REGISTRY.md`, `.claude/PR_WORKFLOW_GUIDE.md`, `.github/workflows/z2_ratification_gate.yml`, `.github/workflows/repository-admission-gate.yml`, `.github/workflows/resource-miner-scan.yml`, `ui/intent-os-humanaios-v3_3.html`, `tools/intent_os_*.py`, `tools/decision_relay.py`, `humanaios-funding-pipeline/` (nixpacks, Dockerfile, resource-miner).
 
-**Product repos:** `humanaios-ui/humanaios`, `acat-inspect`, `acat-x`, `acat-dashboard`, `acat-observatory`, `empirica-practice-mesh`.
+**Product repos read (six):** `humanaios-ui/humanaios`, `acat-inspect`, `acat-x`, `acat-dashboard`, `acat-observatory`, `empirica-practice-mesh`. `humanaios-internal` was not retrieved (see section 4).
 
 **Google Drive (history and navigation only):** HAIOSCC_USER_MANUAL_S041226; WEBSITE_USER_MANUAL_S041226; PLAYBOOK (Aug 31); SESSION_PLAYBOOK; PLAYBOOK_2026-09-01; PHASE_0_GOVERNANCE_FILES_20260909; night_command_center_S051726-02; Systems Operations Overview; KNOWLEDGE_TRANSFER_GUIDE_V2; HUMANAIOS-INTELLIGENCE (SYSTEM_MAP, CURRENT_PRIORITIES, EVIDENCE_AND_DECISIONS).
 
