@@ -57,9 +57,12 @@ def check(snapshot: dict, repo_root: str) -> list:
     edges = snapshot.get("edges", [])
 
     node_ids = [n.get("id") for n in nodes]
-    if len(node_ids) != len(set(node_ids)):
+    valid_node_ids = [nid for nid in node_ids if isinstance(nid, str) and nid]
+    if len(valid_node_ids) != len(node_ids):
+        problems.append("missing or invalid node ids")
+    if len(valid_node_ids) != len(set(valid_node_ids)):
         problems.append("duplicate node ids")
-    known = set(node_ids)
+    known = set(valid_node_ids)
 
     for node in nodes:
         nid = node.get("id")
@@ -85,7 +88,8 @@ def check(snapshot: dict, repo_root: str) -> list:
     for edge in edges:
         eid = edge.get("id")
         for end in ("source", "target"):
-            if edge.get(end) not in known:
+            end_id = edge.get(end)
+            if not (isinstance(end_id, str) and end_id in known):
                 problems.append(f"edge {eid}: unknown {end} {edge.get(end)!r}")
         if not edge.get("rationale"):
             problems.append(f"edge {eid}: no rationale")

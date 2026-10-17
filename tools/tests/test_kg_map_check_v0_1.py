@@ -69,6 +69,15 @@ def test_evidence_path_outside_repo_is_rejected(tmp_path):
     assert any("verified_path but no evidence path exists" in p for p in problems)
 
 
+def test_null_node_id_cannot_satisfy_edge_endpoint():
+    snap = copy.deepcopy(_snapshot())
+    snap["nodes"].append({"id": None, "kind": "resource", "label": "x", "table_ref": []})
+    snap["edges"][0]["source"] = None
+    problems = kg.check(snap, REPO_ROOT)
+    assert any("missing or invalid node ids" in p for p in problems)
+    assert any("unknown source None" in p for p in problems)
+
+
 def test_evidence_path_traversal_is_rejected():
     snap = copy.deepcopy(_snapshot())
     area = next(n for n in snap["nodes"] if n["id"] == "A01")
