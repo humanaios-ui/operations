@@ -45,15 +45,10 @@ REAL proves that configured endpoint answered a read; it does not prove applicat
 schema correctness, staging persistence, a production cutover, or a live report
 from this development environment. Existing HTTP health routes keep their behavior.
 
-`infra/azure-research-budget.bicep` prepares resource-group email alerts at actual
-50/80/100 percent and forecast 100 percent. Amount, billing-currency confirmation,
-dates and recipients require explicit values. Deploying a budget remains a separate
-authorized action; this template does not stop consumption or verify program rules.
-
 `infra/metaculus-job.bicep` omits empty optional secrets. Its optional cron string
 keeps Manual as the default. Enabling a cron schedule requires a fresh Railway
-writer check and an approved handover. See the data and cutover review alongside
-this document for the remaining field-classification and ownership decisions.
+writer check and an approved handover. Budget and data/cutover review are tracked
+as a separate contribution under issue #915.
 
 Next evidence: record the deployed image digest/source SHA; perform the existing
 INTENT-OS Resource Miner smoke test; obtain explicit real-backend readiness and a

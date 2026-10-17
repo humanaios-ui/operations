@@ -8,8 +8,6 @@ on:
       - 'tests/test_metaculus_azure_config.py'
       - 'acat/api/db.py'
       - 'infra/metaculus-job.bicep'
-      - 'infra/azure-research-budget.bicep'
-      - 'tests/test_azure_budget_config.py'
       - '.github/workflows/azure-readiness-tests.yml'
   push:
     branches: [main]
@@ -20,8 +18,6 @@ on:
       - 'tests/test_metaculus_azure_config.py'
       - 'acat/api/db.py'
       - 'infra/metaculus-job.bicep'
-      - 'infra/azure-research-budget.bicep'
-      - 'tests/test_azure_budget_config.py'
       - '.github/workflows/azure-readiness-tests.yml'
 permissions:
   contents: read
@@ -38,10 +34,8 @@ jobs:
       - run: python3 -m pip install pytest
       - run: python3 -m pytest tests/test_acat_db_readiness.py -q
       - run: python3 -m unittest discover -s tests -p test_metaculus_azure_config.py -v
-      - run: python3 -m unittest discover -s tests -p test_azure_budget_config.py -v
       - name: Compile Metaculus deployment template
         uses: azure/cli@v3
         with:
           inlineScript: |
             az bicep build --file infra/metaculus-job.bicep --stdout > /dev/null
-            az bicep build --file infra/azure-research-budget.bicep --stdout > /dev/null
