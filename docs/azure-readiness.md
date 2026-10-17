@@ -31,6 +31,30 @@ readiness. Missing billing days remain unknown; the qualifying-day count is null
 Candidate service families are planning groups, not Microsoft's qualifying count.
 In particular AI_SERVICES does not establish an Azure OpenAI deployment.
 
+## Backend proof and alerts
+
+In the deployed API environment, with its normal DATABASE_URL and database driver:
+
+```sh
+python3 -c 'import json; from acat.api.db import check_database_readiness; print(json.dumps(check_database_readiness()))'
+```
+
+This explicit read-only probe distinguishes REAL, MOCK and UNAVAILABLE. It uses
+SELECT 1 with connection and statement timeouts and closes its own connection.
+REAL proves that configured endpoint answered a read; it does not prove application
+schema correctness, staging persistence, a production cutover, or a live report
+from this development environment. Existing HTTP health routes keep their behavior.
+
+`infra/azure-research-budget.bicep` prepares resource-group email alerts at actual
+50/80/100 percent and forecast 100 percent. Amount, billing-currency confirmation,
+dates and recipients require explicit values. Deploying a budget remains a separate
+authorized action; this template does not stop consumption or verify program rules.
+
+`infra/metaculus-job.bicep` omits empty optional secrets. Its optional cron string
+keeps Manual as the default. Enabling a cron schedule requires a fresh Railway
+writer check and an approved handover. See the data and cutover review alongside
+this document for the remaining field-classification and ownership decisions.
+
 Next evidence: record the deployed image digest/source SHA; perform the existing
 INTENT-OS Resource Miner smoke test; obtain explicit real-backend readiness and a
 separately authorized staging persistence test; reconcile private daily billing

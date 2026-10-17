@@ -31,7 +31,7 @@ def safe_token(value):
 
 
 def project(resources, observed_at):
-    """Allowlist fields; never copy names, URLs, tags, properties or raw identifiers."""
+    """Project allowlisted fields while omitting names, URLs, tags and properties."""
     if not isinstance(resources, list):
         raise ValueError("Inventory must be a JSON resource list")
     rows = []
