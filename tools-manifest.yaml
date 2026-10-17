@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 212
+  tools: 213
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 164
+  builder_markers_present: 165
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2697,6 +2697,19 @@ tools:
   builder_markers: true
   purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
   session: Q-REPO-GRAPH-LOOKUP-01
+- tool_id: HAIOS-TOOL-226
+  name: kg_map_check
+  path: tools/kg_map_check_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph.
+  session: unassigned
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
