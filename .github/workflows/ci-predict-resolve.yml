@@ -62,12 +62,18 @@ jobs:
               # whatever the PR's head happens to be by the time this runs —
               # those can differ if the PR was pushed to again in between.
               sha = suite.get("head_sha", "")
-              targets = [(str(pr["number"]), sha) for pr in suite.get("pull_requests") or []]
+              targets = [
+                  (str(pr["number"]), sha)
+                  for pr in suite.get("pull_requests") or []
+                  if not str(((pr.get("head") or {}).get("ref")) or "").startswith(
+                      "ci-predict-consolidate/"
+                  )
+              ]
 
           for pr_number, sha in targets:
               cmd = ["python3", "tools/ci_predict_resolve_v1_0.py", "resolve",
                      "--repo", os.environ["REPO"], "--pr", pr_number]
               if sha:
                   cmd += ["--sha", sha]
-              subprocess.run(cmd, check=False)
+              subprocess.run(cmd, check=True)
           PYEOF
