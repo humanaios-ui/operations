@@ -37,7 +37,9 @@ Start here, in this order:
 
 ## 3. Session rituals
 
-### §A: Session open (mandatory before work)
+### §A: Session open (source summary)
+
+This is a summary, not the full protocol. `SESSION_RITUALS.md` §A (lines 47–67) adds live-state fetches, halt and degraded-mode handling, a drift catalog, a Phase 1 declaration, and user acknowledgement before work. Follow the full protocol. The steps below do not replace it.
 
 1. `git fetch && git rev-parse HEAD`. Pin the SHA.
 2. Read `REGISTERED.md` at that SHA (IC-030: live-fetch, then pin).
@@ -88,7 +90,7 @@ Start here, in this order:
 | `constants/*.json` | Z2, through a molt | `molt-tier-check.yml` |
 | `NF_LEDGER.jsonl` | Code only. Append-only. | Hash-chain check |
 
-**Do not hand-edit `REGISTERED.md`.** Hand edits break the append-only rule, and CI fails.
+**Do not edit existing `REGISTERED.md` entries.** Authorized additions come through Z2-reviewed PRs (see `REGISTRY_SPEC.md`). Corrections are made by adding a new entry, not by rewriting or deleting one.
 
 ---
 
@@ -106,14 +108,15 @@ Start here, in this order:
 
 These names exist in `.github/workflows/`:
 
-- `z2_ratification_gate.yml`: the main gate. Checks the commit author is an authorized Z2 identity, runs the `.z1-control/` smoke tests, verifies ratification signatures, and blocks on inbox index drift.
-- `molt-tier-check.yml` and `molt-window-close-trigger.yml`: molt tier and window checks.
+- `z2_ratification_gate.yml`: the main gate. Its merge-authority step is **advisory**: it warns when the commit author is not an authorized Z2 identity, and exits 0. Signature checks (`ratify.py --verify`, `ratify_eco.py --verify`) are `continue-on-error`. Blocking steps are the Z1 inbox index integrity check (`validate.py`) and inbox index drift (`render.py --check`), plus the `.z1-control/` smoke tests.
+- `molt-tier-check.yml`: molt tier classification. **Advisory;** it never blocks merge.
+- `molt-window-close-trigger.yml`: window-close detection. Runs daily or manually, not on PRs.
 - `manifest-sync-gate.yml`: tool manifest sync.
 - `document-control.yml`, `governance-files.yml`: governance file rules.
 - `repository-admission-gate.yml`: repo admission state.
 - `no-op-pr-guard.yml`: blocks empty PRs.
 
-**Name correction:** `CLAUDE.md` names `falsifier_lint`, `registry_consistency`, and `molt_anti_cascade` as gates. **None of these exist in the repo.** The nearest real code is `tools/cascade_guard.py` (cascade rules) and `tests/adversarial/test_falsifiers_t1_t7.py` (falsifier tests). Treat the `CLAUDE.md` names as a known conflict until Z2 ratifies a fix.
+**Name correction:** `CLAUDE.md` names `falsifier_lint`, `registry_consistency`, and `molt_anti_cascade` as gates. **None of these exist in the repo.** The nearest real checks are: `check_anti_cascade_rules` in `molt_cycle.py` (anti-cascade rules 1, 3, and 4); the falsifier-presence check in `.z1-control/validate.py`; and `tools/cascade_guard.py` (branching findings and rescued falsifiers). Treat the `CLAUDE.md` names as a known conflict until Z2 ratifies a fix.
 
 ---
 
@@ -121,11 +124,11 @@ These names exist in `.github/workflows/`:
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Commit rejected at merge authority step | Commit author is not an authorized Z2 identity | Commit as an authorized identity, or have Z2 land it. Do not change the author to get past the check. |
+| Warning at merge authority step (advisory, does not fail) | Commit author is not an authorized Z2 identity | The warning does not block merge. Real ratification needs an explicit Z2 signature in `REGISTERED.md`. Do not change the author to clear the warning. A green step does not prove approval. |
 | `render.py --check` fails | `Z1_INBOX_INDEX.md` out of sync with inbox files | Re-render with `python3 .z1-control/render.py`, then commit. |
 | `ratify.py --verify` fails | A ratified candidate or ledger row changed | Restore the ratified content. Ratify a new hash if the change is needed. |
 | `ratify_eco.py --verify` fails | Same as above, for the ecosystem ledger | Same fix. |
-| `scan.py --check` fails | Tool manifest stale after a tool change | Re-run `.tool-control/scan.py`, then commit the manifest. |
+| `scan.py --check` fails | Tool manifest stale after a tool change | Re-run `.tool-control/scan.py`, then `.tool-control/render.py`. Commit both `tools-manifest.yaml` and the rendered `TOOLS_MANIFEST.md`. `render.py --check` blocks merge if they differ. |
 | Push refused: branch behind | Remote has commits you lack | Fetch and merge or rebase per `OPERATOR_RUNBOOK.md` §5 (IC-026). HALT if behind. |
 | `REGISTERED.md` gate fails | Hand edit or deleted line | Revert the edit. Append a new entry instead. |
 | `verify_pr_readiness.sh` fails | Local lint or manifest check failure | Read the first failing line. Fix it. Re-run. |
