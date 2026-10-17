@@ -710,10 +710,12 @@ class GmailInboundAdapter:
         gmail: GmailClient,
         store: PrivateMailLedger,
         config: GmailAdapterConfig,
+        newsletter_bridge=None,
     ) -> None:
         self.gmail = gmail
         self.store = store
         self.config = config
+        self.newsletter_bridge = newsletter_bridge
 
     def _hmac(self, domain: str, value: str) -> str:
         return hmac.new(
@@ -895,10 +897,30 @@ class GmailInboundAdapter:
         return "ACK_SENT"
 
     def process_message_id(self, message_id: str) -> AdapterEventResult:
+        rejected_key = "newsletter-rejected:" + self._hmac("rejected-message", message_id)
+        if self.store.get_state(rejected_key):
+            return AdapterEventResult(status="REPLAY", disposition="NEWSLETTER_REJECTED")
         if self.store.has_message(message_id):
             return AdapterEventResult(status="REPLAY")
 
         raw = self.gmail.get_message(message_id)
+        if self.newsletter_bridge is not None:
+            try:
+                newsletter = self.newsletter_bridge.process_message(raw)
+            except ValueError:
+                # Persist a terminal private receipt so one invalid reply does
+                # not repeatedly stop the shared mailbox's history cursor.
+                # Exception text can contain private data; retain a fixed code.
+                self.store.set_state(rejected_key, "NEWSLETTER_INPUT_REJECTED")
+                return AdapterEventResult(status="IGNORED", disposition="NEWSLETTER_REJECTED",
+                                          detail="newsletter input rejected; private review required")
+            if newsletter is not None:
+                return AdapterEventResult(
+                    status="REPLAY" if newsletter["status"] == "REPLAY" else "PROCESSED",
+                    disposition=newsletter["status"],
+                    authority_level="Z1",
+                    outbound_status=newsletter.get("delivery", "NOT_SENT"),
+                )
         parsed = parse_gmail_message(raw)
 
         if parsed.automation_generated:
