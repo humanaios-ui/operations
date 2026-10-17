@@ -1,3 +1,12 @@
+---
+doc_id: HAIOS-PROC-006
+title: "Founder's Ultimate Users Manual and Troubleshooting Guide for HumanAIOS"
+area: PROC
+canonical_repo: operations
+canonical_path: docs/FOUNDERS_MANUAL.md
+status: draft
+---
+
 # Founder's Ultimate Users Manual and Troubleshooting Guide for HumanAIOS
 
 **Status:** Draft v0.2 (2026-10-17). Checked against `operations` at `c05ff89`. Sources: the operations repo, six product repos (`humanaios-internal` not retrieved), and Google Drive.
@@ -138,11 +147,11 @@ Every candidate starts with `eligibility_assessed=false`. The Miner never emits 
 
 **Routes [verified]** in `app.py`: `/api/health`, `/api/needs`, `/api/requirements`, `/api/resources`, `/api/entitlement/handoff`, `/api/scan`, `/api/intent`.
 
-**Tests [verified]:** 173 tests pass (`python3 -m unittest discover -s tests`).
+**Regression suite [head-specific verification pending]:** A previous review reported 173 passing tests. Re-run `python3 -m unittest discover -s tests` at the exact proposed head. Prior test counts do not establish production acceptance.
 
 **Snapshot state:** `data/resources.jsonl` is ephemeral. `data/resources.snapshot.jsonl` is durable and checked in.
 
-**Daily automation [verified]:** `.github/workflows/resource-miner-scan.yml` runs at **06:15 UTC**. It runs tests, resolves mines, scans, reconciles, and commits the snapshot.
+**Daily automation [source-verified; runtime not accepted]:** `.github/workflows/resource-miner-scan.yml` is scheduled for **06:15 UTC** and declares tests, mine resolution, scanning, reconciliation, and snapshot commits. As inspected on 2026-10-17, its command `python3 -m resource_miner.cli reconcile` is not registered by the CLI parser. Treat the reconciliation step as **at risk of failure** until the command is repaired and its workflow run verified; a declared workflow is not evidence of success.
 
 **Deploy [verified]:** `humanaios-funding-pipeline/nixpacks.toml` starts with `cd resource-miner && python3 app.py --host 0.0.0.0 --port $PORT`. The Dockerfile builds from `humanaios-funding-pipeline/`, not `resource-miner/` alone, because `app.py` reads `../data/sources.json`.
 
@@ -224,6 +233,8 @@ python3 -m unittest discover -s tests
 ### "I have an intent"
 
 `Intent → INTENT-OS → bounded question → Resource Miner if resources matter → inspect evidence → human decision → Coordinator admission if code changes → protected CI → merge or execute → receipt → update founder view.`
+
+**Operational acceptance (2026-10-17):** A bounded local probe of the Miner objective API and matching code reported **21 checks passing** with stubbed external adapters. This establishes neither production deployment nor authenticated founder review, a persisted `WATCH` choice, or a durable outcome receipt. The full workflow is **UNVERIFIED** until a founder selection is independently authenticated, saved, reloaded, and verified without initiating an application or external action. The `/api/intent` selection digest is unsigned and must not be used as execution authorization.
 
 ### Mine resources safely [verified commands]
 
