@@ -1,0 +1,156 @@
+[
+  {
+    "name": "Microsoft for Startups",
+    "mine_kind": "PROGRAM_PLATFORM",
+    "canonical_url": "https://www.microsoft.com/en-us/startups",
+    "resolver": "configured_mine",
+    "enabled": true,
+    "cadence": "daily",
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
+    "config": {
+      "opportunities": [
+        {
+          "title": "Microsoft for Startups — entry Startup credits",
+          "url": "https://learn.microsoft.com/en-us/startups/microsoft-for-startups/getting-started-mfs",
+          "opportunity_kind": "startup_credit_entry",
+          "source_category": "compute_credit",
+          "sponsor": "Microsoft",
+          "tags": [
+            "startup",
+            "azure",
+            "startup-credit"
+          ],
+          "description": "Current Microsoft for Startups entry credit path. Treat published credit amounts and eligibility as observations to re-verify, not as entitlement.",
+          "observe_url": true
+        },
+        {
+          "title": "Microsoft for Startups — progressive Startup credits",
+          "url": "https://learn.microsoft.com/en-us/startups/microsoft-for-startups/overview",
+          "opportunity_kind": "startup_credit_progression",
+          "source_category": "compute_credit",
+          "sponsor": "Microsoft",
+          "tags": [
+            "startup",
+            "azure",
+            "startup-credit",
+            "progression"
+          ],
+          "description": "Current progression path for additional Startup credits based on verified progress, service adoption, and sustained Azure usage.",
+          "observe_url": true
+        },
+        {
+          "title": "Microsoft for Startups — Marketplace and co-sell access",
+          "url": "https://learn.microsoft.com/en-us/startups/microsoft-for-startups/overview",
+          "opportunity_kind": "go_to_market_access",
+          "sponsor": "Microsoft",
+          "tags": [
+            "startup",
+            "marketplace",
+            "co-sell",
+            "go-to-market"
+          ],
+          "description": "Program access path to Microsoft Marketplace and co-sell opportunities. Eligibility and activation remain downstream verification.",
+          "observe_url": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "HackerOne",
+    "mine_kind": "PROGRAM_PLATFORM",
+    "canonical_url": "https://hackerone.com",
+    "resolver": "hackerone_api",
+    "enabled": true,
+    "cadence": "daily",
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
+    "config": {
+      "dependency_issues": [
+        680,
+        683
+      ],
+      "dependency_prs": [
+        682,
+        684
+      ],
+      "resolution_unit": "program_x_bounty_eligible_scope_asset",
+      "authority_effect": "NONE"
+    }
+  },
+  {
+    "name": "humanaios-ui/operations",
+    "mine_kind": "GITHUB_REPOSITORY",
+    "canonical_url": "https://github.com/humanaios-ui/operations",
+    "resolver": "github_repository",
+    "enabled": true,
+    "cadence": "daily",
+    "roles": [
+      "EVIDENCE_SOURCE",
+      "GOVERNED_SYSTEM"
+    ],
+    "config": {
+      "repository": "humanaios-ui/operations"
+    }
+  },
+  {
+    "name": "humanaios-ui/humanaios",
+    "mine_kind": "GITHUB_REPOSITORY",
+    "canonical_url": "https://github.com/humanaios-ui/humanaios",
+    "resolver": "github_repository",
+    "enabled": true,
+    "cadence": "daily",
+    "roles": [
+      "EVIDENCE_SOURCE",
+      "GOVERNED_SYSTEM"
+    ],
+    "config": {
+      "repository": "humanaios-ui/humanaios"
+    }
+  },
+  {
+    "name": "humanaios-ui/lasting-light-ai",
+    "mine_kind": "GITHUB_REPOSITORY",
+    "canonical_url": "https://github.com/humanaios-ui/lasting-light-ai",
+    "resolver": "github_repository",
+    "enabled": true,
+    "cadence": "daily",
+    "roles": [
+      "EVIDENCE_SOURCE",
+      "GOVERNED_SYSTEM"
+    ],
+    "config": {
+      "repository": "humanaios-ui/lasting-light-ai"
+    }
+  },
+  {
+    "name": "aioshuman@gmail.com — Private Gmail",
+    "mine_kind": "MAILBOX",
+    "canonical_url": "gmail://aioshuman@gmail.com/",
+    "resolver": "private_gmail_connector",
+    "enabled": true,
+    "cadence": "event_driven",
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
+    "config": {
+      "provider": "gmail",
+      "mailbox": "aioshuman@gmail.com",
+      "transport": "entry_protocol/gmail_push_adapter.py",
+      "projection_env": "HUMANAIOS_GMAIL_MINE_SNAPSHOT",
+      "query": "-in:spam -in:trash",
+      "content_trust": "UNTRUSTED_EVIDENCE",
+      "instruction_authority": "NONE",
+      "authority_effect": "NONE",
+      "raw_mail_storage": "PRIVATE_LEDGER_ONLY",
+      "public_projection": "PRIVACY_MINIMIZED_PROPOSITIONS_ONLY",
+      "command_processing": "SEPARATE_AUTHORITY_PATH",
+      "dependency_doc": "docs/DAILY_DIGEST_GMAIL_ADAPTER_PHASE_B.md"
+    }
+  }
+]

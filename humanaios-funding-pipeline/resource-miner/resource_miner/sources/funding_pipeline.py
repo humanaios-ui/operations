@@ -33,4 +33,12 @@ def discover(path: str | Path):
         )
         candidate.deadline = row.get("deadline") or candidate.deadline
         candidate.status = str(row.get("status") or candidate.status).upper()
+        explicit_affordances = {
+            str(x).strip()
+            for x in row.get("affordances") or []
+            if str(x).strip()
+        }
+        candidate.resource_affordances = sorted(
+            set(candidate.resource_affordances) | explicit_affordances
+        )
         yield candidate

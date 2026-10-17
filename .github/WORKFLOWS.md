@@ -48,7 +48,7 @@ These 10 workflows must pass before a PR can merge to main:
 | `temporal-dissolution-gate.yml` | Policy enforcement: reject unauthorized internal deadline semantics (audit-critical, S-070726) | PR to main | Policy |
 | `builder-lint.yml` | Lint builders and infrastructure-as-code | PR to main | Linting |
 | `workflow-lint.yml` | Lint GitHub Actions workflows themselves | PR to main | Linting |
-| `repository-admission-gate.yml` | Fail-closed admission/backpressure routing from trusted default-branch policy plus exact replayed coordinator state; manual dispatch appends authorized ADMIT/REVOKE state events | PR/review events; manual dispatch from main for authorized state mutators | Governance |
+| `repository-admission-gate.yml` | Fail-closed admission/backpressure routing from trusted default-branch policy plus exact replayed coordinator state; RCC-linked manual/issue mutations, terminal PR lifecycle reconciliation, and durable RCD decision comments | PR/review events; PR closed lifecycle events; authorized issue comments; manual dispatch from main for authorized state mutators | Governance |
 
 **Why this stays small:** These gates cover the critical path (code quality, security, governance, policy). Additional audits run on schedule or event-trigger but do not block merges—by design, to prevent audit overhead from becoming a merge blocker.
 
@@ -113,7 +113,7 @@ Three intentionally separate workflows form a real-time prediction loop:
 
 ---
 
-## Infrastructure & Maintenance (15 workflows)
+## Infrastructure & Maintenance (16 workflows)
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
@@ -130,6 +130,7 @@ Three intentionally separate workflows form a real-time prediction loop:
 | `priority-queue-triage.yml` | Priority queue triage automation | Scheduled |
 | `haios-harmonizer-pulse.yml` | System pulse monitoring | Every 8 hours |
 | `intent-os-refresh.yml` | INTENT-OS state refresh | Scheduled + dispatch |
+| `intent-form-browser.yml` | Intent form tests, including Playwright browser checks in headless Chromium; a missing browser fails the run under CI | PR touching `ui/intent-form.html`, `intent.md`, or the intent form tests; manual dispatch |
 | `industry-telemetry.yml` | Industry telemetry capture (Q4 2026 forecasts) | Mon 09:30 UTC |
 | `deploy-acat-api-azure.yml` | Deploy ACAT API to Azure Container Apps — Microsoft for Startups M3 proof-of-concept; builds/lints on every PR touching Dockerfile.acat-api/bicep/acat/api paths, deploys only on manual dispatch behind an environment gate | PR/push (build-validate only); manual dispatch (deploy) |
 

@@ -28,16 +28,17 @@ from pathlib import Path
 from typing import Any
 
 TOOL_NAME = "machine_graph_collect_macos"
-TOOL_VERSION = "0.1.0"
+TOOL_VERSION = "0.1.1"
 TOOL_CATEGORY = "pipeline_tool"
 TOOL_SESSION = "#596"
 TOOL_ZONE = 1
 
-COLLECTOR_VERSION = "0.1.0"
+COLLECTOR_VERSION = "0.1.1"
 
 DEFAULT_TOOLS = [
     "git", "python3", "pip3", "brew", "docker", "node", "npm",
     "java", "osqueryi", "ollama", "code",
+    "curl", "openssl", "jq", "gh", "xcodebuild", "adb", "swift", "codesign",
 ]
 
 EXCLUDED_DIR_NAMES = {
@@ -218,6 +219,19 @@ def read_app_metadata(app: Path) -> dict[str, Any]:
     return meta
 
 
+def software_installation_identity(meta: dict[str, Any]) -> str:
+    """Return an installation-scoped identity.
+
+    Bundle identifiers are useful product metadata but are not guaranteed to be
+    unique across distinct installed app bundles. The canonical bundle path
+    therefore participates in node identity so two installed applications that
+    share a bundle identifier remain distinct graph nodes.
+    """
+    path = str(Path(str(meta["path"])).expanduser().resolve())
+    bundle_identifier = str(meta.get("bundle_identifier") or "")
+    return f"{bundle_identifier}|{path}"
+
+
 def collect_apps(graph: dict[str, Any], host_id: str) -> None:
     roots = [Path("/Applications"), Path.home() / "Applications"]
     for root in roots:
@@ -242,13 +256,16 @@ def collect_apps(graph: dict[str, Any], host_id: str) -> None:
 
         for app in apps:
             meta = read_app_metadata(app)
-            key = meta["bundle_identifier"] or meta["path"]
-            node_id = stable_id("software", key)
+            identity = software_installation_identity(meta)
+            node_id = stable_id("software", identity)
             node = {
                 "id": node_id,
                 "type": "SoftwareAsset",
                 "state": OBSERVED_AVAILABLE,
-                "observed": meta,
+                "observed": {
+                    **meta,
+                    "identity_basis": "bundle_identifier+canonical_path",
+                },
                 "provenance": {"method": "application bundle metadata"},
             }
             add_node(graph, node)
@@ -258,8 +275,10 @@ def collect_apps(graph: dict[str, Any], host_id: str) -> None:
 def tool_version(name: str, path: str) -> dict[str, Any]:
     if name == "java":
         r = run([path, "-version"])
-    elif name == "brew":
-        r = run([path, "--version"])
+    elif name == "xcodebuild":
+        r = run([path, "-version"])
+    elif name == "openssl":
+        r = run([path, "version"])
     else:
         r = run([path, "--version"])
 
@@ -528,7 +547,20 @@ def smoke_test() -> int:
     assert stable_id("tool", "git") == stable_id("tool", "git")
     assert stable_id("tool", "git") != stable_id("tool", "node")
 
-    print("smoke-test OK — graph integrity and stable_id are deterministic; full collection is darwin-only.")
+    shared_bundle_a = {
+        "path": "/Applications/ChatGPT.app",
+        "bundle_identifier": "com.openai.codex",
+    }
+    shared_bundle_b = {
+        "path": "/Applications/Codex.app",
+        "bundle_identifier": "com.openai.codex",
+    }
+    assert software_installation_identity(shared_bundle_a) != software_installation_identity(shared_bundle_b)
+    assert stable_id("software", software_installation_identity(shared_bundle_a)) != stable_id(
+        "software", software_installation_identity(shared_bundle_b)
+    )
+
+    print("smoke-test OK — graph integrity, stable_id, and installation identity are deterministic; full collection is darwin-only.")
     return 0
 
 

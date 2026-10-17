@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 TOOL_NAME = "repository_coordinator_state"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_ZONE = 1
 TOOL_SESSION = "REPOSITORY-COORDINATOR-STATE-01"
@@ -230,6 +230,10 @@ def load_and_replay(ledger_path: Path) -> tuple[str, list[dict[str, Any]], dict[
 
 
 def verify_projection(ledger_path: Path, state_path: Path) -> dict[str, Any]:
+    ledger_text = ledger_path.read_text(encoding="utf-8")
+    if "humanaios.repository-coordinator-event.v2" in ledger_text:
+        from repository_coordinator_state_v1_1 import verify_projection as verify_v1_1
+        return verify_v1_1(ledger_path, state_path)
     _, _, expected = load_and_replay(ledger_path)
     try:
         actual = json.loads(state_path.read_text(encoding="utf-8"))
@@ -340,6 +344,144 @@ def append_event(
     return {"event": event, "state": state, "prior_ledger_sha256": sha256_text(old_text)}
 
 
+
+ISSUE_STATE_RE = re.compile(
+    r"\*\*state:\*\*\s*\`?([A-Z_]+)\`?",
+    re.I,
+)
+
+
+def _issue_state(issue_body: str) -> str:
+    match = ISSUE_STATE_RE.search(issue_body or "")
+    return match.group(1).upper() if match else ""
+
+
+def apply_issue_command(
+    *,
+    policy_path: Path,
+    ledger_path: Path,
+    state_path: Path,
+    issue_number: int,
+    issue_body: str,
+    comment_body: str,
+    actor: str,
+    comment_id: str,
+    recorded_at: str,
+    source_policy_sha: str,
+) -> dict[str, Any]:
+    """Apply an authorized exact issue-route command to local state files.
+
+    This function does not push Git refs. It verifies the current materialized
+    projection, validates the policy-declared issue route, performs no-op
+    detection, then delegates the actual append/replay to append_event().
+    """
+    try:
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise StateError(f"invalid policy JSON: {exc}") from exc
+    _require(isinstance(policy, dict), "policy must be an object")
+
+    state_cfg = policy.get("state") or {}
+    route = state_cfg.get("issue_route") or {}
+    _require(route.get("enabled") is True, "issue route is not enabled")
+    _require(
+        route.get("authority_effect") == AUTHORITY_EFFECT,
+        "issue route authority_effect must be ADMISSION_ROUTING_ONLY",
+    )
+    _require(route.get("merge_authority") is False, "issue route merge authority must be false")
+    _require(route.get("subject_kind") == "ISSUE", "issue route must be ISSUE-only")
+
+    authorized = {str(value) for value in state_cfg.get("authorized_mutators") or []}
+    _require(actor in authorized, f"actor {actor!r} is not authorized to mutate coordinator state")
+
+    commands = route.get("commands") or {}
+    command = comment_body or ""
+    if command == str(commands.get("admit") or ""):
+        decision = "ADMIT"
+    elif command == str(commands.get("revoke") or ""):
+        decision = "REVOKE"
+    else:
+        return {
+            "should_mutate": False,
+            "reason": "NOT_COORDINATOR_COMMAND",
+            "decision": None,
+            "subject_kind": "ISSUE",
+            "subject_number": int(issue_number),
+            "authority_effect": AUTHORITY_EFFECT,
+            "merge_authority": False,
+        }
+
+    verified = verify_projection(ledger_path, state_path)
+    key = f"ISSUE#{int(issue_number)}"
+    active_event_id = (verified.get("active_event_ids") or {}).get(key)
+
+    if decision == "ADMIT":
+        required_state = str(route.get("required_admit_issue_state") or "ADMISSION_REQUESTED").upper()
+        observed_state = _issue_state(issue_body)
+        _require(
+            observed_state == required_state,
+            f"issue state must be {required_state} for admission; observed {observed_state or 'UNSET'}",
+        )
+        if active_event_id:
+            return {
+                "should_mutate": False,
+                "reason": "ALREADY_ADMITTED",
+                "decision": decision,
+                "subject_kind": "ISSUE",
+                "subject_number": int(issue_number),
+                "active_event_id": active_event_id,
+                "prior_ledger_sha256": verified["ledger_sha256"],
+                "authority_effect": AUTHORITY_EFFECT,
+                "merge_authority": False,
+            }
+    else:
+        if not active_event_id:
+            return {
+                "should_mutate": False,
+                "reason": "ALREADY_REVOKED_OR_NEVER_ADMITTED",
+                "decision": decision,
+                "subject_kind": "ISSUE",
+                "subject_number": int(issue_number),
+                "prior_ledger_sha256": verified["ledger_sha256"],
+                "authority_effect": AUTHORITY_EFFECT,
+                "merge_authority": False,
+            }
+
+    evidence = [
+        f"authorized issue-route command {command!r} by @{actor}",
+        f"issue #{int(issue_number)} comment id {comment_id}",
+    ]
+    if decision == "ADMIT":
+        evidence.append(
+            f"issue declares {str(route.get('required_admit_issue_state') or 'ADMISSION_REQUESTED').upper()}"
+        )
+
+    result = append_event(
+        ledger_path=ledger_path,
+        state_path=state_path,
+        decision=decision,
+        subject_kind="ISSUE",
+        subject_number=int(issue_number),
+        objective_issue_number=int(issue_number),
+        actor=actor,
+        evidence=evidence,
+        recorded_at=recorded_at,
+        source_policy_sha=source_policy_sha,
+    )
+    return {
+        "should_mutate": True,
+        "reason": "EVENT_APPENDED",
+        "decision": decision,
+        "subject_kind": "ISSUE",
+        "subject_number": int(issue_number),
+        "event": result["event"],
+        "state": result["state"],
+        "prior_ledger_sha256": result["prior_ledger_sha256"],
+        "authority_effect": AUTHORITY_EFFECT,
+        "merge_authority": False,
+    }
+
+
 def run_smoke_test() -> bool:
     first = make_event(
         decision="ADMIT",
@@ -385,6 +527,18 @@ def _parser() -> argparse.ArgumentParser:
     append.add_argument("--evidence", action="append", required=True)
     append.add_argument("--recorded-at", required=True)
     append.add_argument("--source-policy-sha", required=True)
+
+    issue_command = sub.add_parser("issue-command")
+    issue_command.add_argument("--policy", type=Path, required=True)
+    issue_command.add_argument("--ledger", type=Path, required=True)
+    issue_command.add_argument("--state", type=Path, required=True)
+    issue_command.add_argument("--issue-number", type=int, required=True)
+    issue_command.add_argument("--issue-body-file", type=Path, required=True)
+    issue_command.add_argument("--comment-body", required=True)
+    issue_command.add_argument("--actor", required=True)
+    issue_command.add_argument("--comment-id", required=True)
+    issue_command.add_argument("--recorded-at", required=True)
+    issue_command.add_argument("--source-policy-sha", required=True)
     return parser
 
 
@@ -417,6 +571,22 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8",
             )
             print(json.dumps(state, indent=2, sort_keys=True))
+            return 0
+
+        if args.command == "issue-command":
+            result = apply_issue_command(
+                policy_path=args.policy,
+                ledger_path=args.ledger,
+                state_path=args.state,
+                issue_number=args.issue_number,
+                issue_body=args.issue_body_file.read_text(encoding="utf-8"),
+                comment_body=args.comment_body,
+                actor=args.actor,
+                comment_id=args.comment_id,
+                recorded_at=args.recorded_at,
+                source_policy_sha=args.source_policy_sha,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True))
             return 0
 
         result = append_event(
