@@ -1,0 +1,20 @@
+{
+  "schema": "humanaios.codebase-atlas.components.v0.1",
+  "selection_rule": "First matching glob owns each tracked file; this is a view, not a runtime declaration.",
+  "components": [
+    {"id":"coordinator", "label":"Repository Coordinator", "patterns":["tools/repository_coordinator*", "REPOSITORY_COORDINATOR_POLICY.json", ".github/workflows/repository-*", "tools/tests/test_repository_coordinator*"]},
+    {"id":"scvc", "label":"State Continuity · SCVC", "patterns":["experiments/scvc_v02/*", "tests/test_scvc*", "tests/test_state_continuity*", ".github/workflows/scvc-*"]},
+    {"id":"evidence", "label":"Evidence & Calibration Graph", "patterns":["EVIDENCE_GRAPH.json", "crb/*", "tools/graph_capture_*", "tools/graph_convergence_*", "tools/tests/test_graph_capture*"]},
+    {"id":"session", "label":"Session & Longitudinal Graph", "patterns":["chat_graph/*", "CURRENT.md", "SESSION_RITUALS.md", "REGISTERED.md"]},
+    {"id":"resource", "label":"Resource Miner", "patterns":["humanaios-funding-pipeline/resource-miner/*", "src/resource_miner/*", "tools/resource_*", "tests/test_opportunity_surface.py"]},
+    {"id":"ura", "label":"Universal Resource Adapter", "patterns":["tools/universal_resource_adapter*", "tests/test_universal_resource_adapter.py", "tests/test_hmbm_compat.py", "tools/hmbm_compat.py"]},
+    {"id":"intent", "label":"INTENT-OS", "patterns":["tools/intent_os_*", "ui/intent-os-*", "INTENT_GRAPH.*", "tests/test_intent_os_*"]},
+    {"id":"acat", "label":"ACAT & Research", "patterns":["acat/*", "tools/acat_*", "tests/test_acat*"]},
+    {"id":"governance", "label":"Governance & Canonical State", "patterns":["GOVERNANCE.md", "SEED.md", "PRINCIPLES_SEED_V1_0.md", "system_graph.json", "system_graph_generator.py", "architecture/SYSTEM_MAP.mermaid"]},
+    {"id":"continuous", "label":"Continuous Integration", "patterns":[".github/workflows/*", ".github/CODEOWNERS"]},
+    {"id":"web", "label":"Web & Operator UI", "patterns":["site/*", "frontend/*", "ui/*"]},
+    {"id":"tools", "label":"Operational Tools", "patterns":["tools/*", "scripts/*", "bin/*"]},
+    {"id":"docs", "label":"Docs & Design", "patterns":["docs/*", "architecture/*"]},
+    {"id":"services", "label":"Integration Services", "patterns":["services/*", "integrations/*", "src/*", "humanaios-resource-system/*"]}
+  ]
+}
