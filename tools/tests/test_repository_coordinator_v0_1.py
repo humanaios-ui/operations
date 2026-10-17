@@ -585,6 +585,56 @@ def test_v1_1_direct_pr_admission_detects_objective_scope_drift():
     assert gate_decision(idx, 726)["gate"] == "FAIL"
 
 
+def test_orthogonal_time_observation_metadata_cannot_grant_admission():
+    """Different observation times, same source/state => same routing and gate."""
+    target = pr(1, body="Fixes #77")
+    target["head_sha"] = "a" * 40
+    target["created_at"] = "2001-01-01T00:00:00Z"
+    target["updated_at"] = "2001-01-02T00:00:00Z"
+    admitted_policy = policy(issues=[77])
+    first = run([target], items=_admitted_item(77), policy_data=admitted_policy)
+
+    later = dict(target, created_at="2026-10-14T00:00:00Z",
+                 updated_at="2026-10-14T01:00:00Z")
+    second = run([later], items=_admitted_item(77), policy_data=admitted_policy)
+    a, b = item(first, 1), item(second, 1)
+    assert "OBSERVATIONAL_TIME_IS_NOT_AUTHORITY" in first["invariants"]
+    assert (a["lane"], a["guidance"], a["admission"], a["canonical_gates"]) == (
+        b["lane"], b["guidance"], b["admission"], b["canonical_gates"]
+    )
+    assert gate_decision(first, 1) == gate_decision(second, 1)
+    assert gate_decision(first, 1)["merge_authority"] is False
+
+
+def test_orthogonal_time_state_change_recomputes_admission_at_same_clock():
+    """State revocation matters; advancing a timestamp must not stand in for it."""
+    target = pr(1, body="Fixes #77")
+    target["head_sha"] = "a" * 40
+    target["created_at"] = "2026-10-14T00:00:00Z"
+    issued = run([target], items=_admitted_item(77),
+                 policy_data=policy(), state_data=state(issues=[77]))
+    revoked = run([target], items=_admitted_item(77),
+                  policy_data=policy(), state_data=state(issues=[]))
+    assert item(issued, 1)["lane"] == "ACTIVE"
+    assert item(revoked, 1)["lane"] == "ADMISSION_REVIEW"
+    assert gate_decision(issued, 1)["gate"] == "PASS"
+    assert gate_decision(revoked, 1)["gate"] == "FAIL"
+    assert gate_decision(revoked, 1)["merge_authority"] is False
+
+
+def test_orthogonal_time_source_head_drift_is_receipted_without_clock_change():
+    """Same observation time, new source head => different exact-head receipt."""
+    target = pr(1, body="Fixes #77")
+    target["created_at"] = "2026-10-14T00:00:00Z"
+    target["head_sha"] = "a" * 40
+    before = run([target], items=_admitted_item(77), policy_data=policy(issues=[77]))
+    target["head_sha"] = "b" * 40
+    after = run([target], items=_admitted_item(77), policy_data=policy(issues=[77]))
+    assert gate_decision(before, 1)["target_head_sha"] == "a" * 40
+    assert gate_decision(after, 1)["target_head_sha"] == "b" * 40
+    assert gate_decision(before, 1)["target_head_sha"] != gate_decision(after, 1)["target_head_sha"]
+
+
 def test_gate_decision_fails_closed_for_unknown_pr():
     idx = run([pr(1)], policy_data=policy())
     assert gate_decision(idx, 999)["gate"] == "FAIL"

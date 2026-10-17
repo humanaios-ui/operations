@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 207
+  tools: 213
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 159
+  builder_markers_present: 165
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2634,6 +2634,82 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact.'
+- tool_id: HAIOS-TOOL-221
+  name: state_continuity_verification
+  path: tools/state_continuity_verification_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
+- tool_id: HAIOS-TOOL-222
+  name: coderabbit_coverage_inventory
+  path: tools/coderabbit_coverage_inventory.py
+  version: 0.1.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806)
+- tool_id: HAIOS-TOOL-223
+  name: humanaios_core_machine
+  path: tools/humanaios_core_machine_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator.
+  session: issue-810
+- tool_id: HAIOS-TOOL-224
+  name: ci_predict_rollup
+  path: tools/ci_predict_rollup_v0_1.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: ci_predict_rollup_v0_1.py
+  session: issue-870
+- tool_id: HAIOS-TOOL-225
+  name: graph_lookup
+  path: tools/graph_lookup_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
+  session: Q-REPO-GRAPH-LOOKUP-01
+- tool_id: HAIOS-TOOL-226
+  name: kg_map_check
+  path: tools/kg_map_check_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph.
+  session: unassigned
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
