@@ -1559,3 +1559,196 @@ def test_oracle_rejects_authority_inflation():
     bad["authority"]["can_authorize"] = True
     with pytest.raises(ValueError, match="can_authorize"):
         oracle_engine.WorkspaceOracle().project(bad)
+
+
+# --- #893: authenticated exact-head PR comment route ----------------------
+from repository_coordinator_state_v1_1 import (
+    apply_pr_comment_command as apply_pr_comment_v11,
+    verify_projection as verify_projection_v11,
+)
+from repository_coordinator_v0_1 import (
+    _admission_evidence as pr_admission_evidence,
+    _admission_scope_drift as pr_admission_scope_drift,
+)
+
+
+def _pr_comment_fixture(tmp_path, *, comment_body=None, pr_sha=None):
+    sha = pr_sha or "a" * 40
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    policy = tmp_path / "pr_route_policy.json"
+    policy.write_text(json.dumps({
+        "capacity": {"active_operator_queue": 9},
+        "state": {
+            "authorized_mutators": ["humanaios-ui"],
+            "pr_route": {"enabled": True, "authority_effect": AUTHORITY_EFFECT,
+                         "merge_authority": False}
+        }
+    }), encoding="utf-8")
+    created = "2026-10-16T08:34:00Z"
+    comment = {
+        "id": 90001,
+        "user": {"login": "humanaios-ui"},
+        "created_at": created,
+        "issue_url": "https://api.github.com/repos/humanaios-ui/operations/issues/994",
+        "body": comment_body if comment_body is not None else f"/coordinator admit {sha}",
+    }
+    pr_payload = {
+        "number": 994, "state": "open", "merged": False, "draft": False,
+        "head": {"sha": sha},
+    }
+    kwargs = {
+        "policy_path": policy, "ledger_path": ledger, "state_path": state_file,
+        "repository": "humanaios-ui/operations", "pr_number": 994,
+        "pr_payload": pr_payload, "comment_payload": comment,
+        "event_payload": {
+            "action": "created",
+            "issue": {"number": 994, "pull_request": {"url": "https://github.com"}},
+            "comment": json.loads(json.dumps(comment)),
+        },
+        "actor": "humanaios-ui", "comment_id": "90001", "recorded_at": created,
+        "source_policy_sha": POLICY_SHA,
+    }
+    return kwargs, ledger, state_file
+
+
+def test_pr_comment_route_accepts_only_authenticated_exact_head(tmp_path):
+    args, ledger, state_file = _pr_comment_fixture(tmp_path)
+    old = ledger.read_bytes()
+    result = apply_pr_comment_v11(**args)
+    assert result["should_mutate"] is True
+    assert result["decision"] == "ADMIT"
+    assert result["merge_authority"] is False
+    assert ledger.read_bytes().startswith(old)
+    projected = verify_projection_v11(ledger, state_file)
+    assert 994 in projected["admitted_pull_request_numbers"]
+    assert projected["active_admissions"]["PULL_REQUEST#994"]["admitted_head_sha"] == "a" * 40
+    evidence = result["event"]["evidence"]
+    assert "pr-head:" + "a" * 40 in evidence
+    assert result["event"]["source_locator"].endswith(":pull:994:comment:90001")
+    assert result["event"]["command_ref"] == "RCC-GITHUB-COMMENT-90001"
+    assert apply_pr_comment_v11(**args)["reason"] == "DUPLICATE_COMMAND"
+
+
+def test_pr_comment_route_bare_command_produces_explicit_noop(tmp_path):
+    args, ledger, _ = _pr_comment_fixture(tmp_path, comment_body="/coordinator admit")
+    previous = ledger.read_bytes()
+    result = apply_pr_comment_v11(**args)
+    assert result["should_mutate"] is False
+    assert "FULL_HEAD_SHA_REQUIRED" in result["reason"]
+    assert ledger.read_bytes() == previous
+
+
+@pytest.mark.parametrize("field,value,reason", [
+    ("actor", "intruder", "REJECTED_UNAUTHORIZED_ACTOR"),
+    ("comment_id", "99999", "comment ID"),
+    ("recorded_at", "2026-10-15T00:00:00Z", "timestamp"),
+])
+def test_pr_comment_route_rejects_identity_forgery(tmp_path, field, value, reason):
+    args, ledger, _ = _pr_comment_fixture(tmp_path)
+    prior = ledger.read_bytes()
+    args[field] = value
+    if field == "actor":
+        args["comment_payload"]["user"]["login"] = value
+        args["event_payload"]["comment"]["user"]["login"] = value
+        result = apply_pr_comment_v11(**args)
+        assert result["reason"] == reason
+    else:
+        with pytest.raises(Exception, match=reason):
+            apply_pr_comment_v11(**args)
+    assert ledger.read_bytes() == prior
+
+
+def test_pr_comment_route_rejects_changed_head_and_closed_or_draft_pr(tmp_path):
+    args, ledger, _ = _pr_comment_fixture(tmp_path)
+    prior = ledger.read_bytes()
+    args["pr_payload"]["head"]["sha"] = "b" * 40
+    with pytest.raises(Exception, match="STALE_HEAD"):
+        apply_pr_comment_v11(**args)
+    args["pr_payload"]["head"]["sha"] = "a" * 40
+    for field, value in (("state", "closed"), ("draft", True), ("merged", True)):
+        args["pr_payload"][field] = value
+        with pytest.raises(Exception, match="open, unmerged and ready"):
+            apply_pr_comment_v11(**args)
+        args["pr_payload"][field] = False if field in ("draft", "merged") else "open"
+    assert ledger.read_bytes() == prior
+
+
+def test_pr_comment_route_revoke_and_new_head_require_fresh_admit(tmp_path):
+    args, ledger, state_file = _pr_comment_fixture(tmp_path)
+    apply_pr_comment_v11(**args)
+    state = verify_projection_v11(ledger, state_file)
+    good = {"number": 994, "body": "", "head_sha": "a" * 40}
+    wrong = {"number": 994, "body": "", "head_sha": "b" * 40}
+    assert pr_admission_evidence(good, state, {})[0] is True
+    assert pr_admission_evidence(wrong, state, {})[0] is False
+    assert "bound to head" in pr_admission_scope_drift(wrong, state)
+
+    # An owner comment on a different head must not replay old standing.
+    args["pr_payload"]["head"]["sha"] = "b" * 40
+    args["comment_payload"]["body"] = "/coordinator admit " + "b" * 40
+    args["comment_payload"]["id"] = 90002
+    args["event_payload"]["comment"] = json.loads(json.dumps(args["comment_payload"]))
+    args["comment_id"] = "90002"
+    with pytest.raises(Exception, match="ACTIVE_ADMISSION_HEAD_UNBOUND"):
+        apply_pr_comment_v11(**args)
+
+    # Explicit revoke at the new live head, then new exact-head admit.
+    args["comment_payload"]["body"] = "/coordinator revoke " + "b" * 40
+    args["event_payload"]["comment"]["body"] = args["comment_payload"]["body"]
+    revoked = apply_pr_comment_v11(**args)
+    assert revoked["decision"] == "REVOKE"
+    assert 994 not in verify_projection_v11(ledger, state_file)["admitted_pull_request_numbers"]
+    args["comment_payload"]["body"] = "/coordinator admit " + "b" * 40
+    args["comment_payload"]["id"] = 90003
+    args["event_payload"]["comment"] = json.loads(json.dumps(args["comment_payload"]))
+    args["comment_id"] = "90003"
+    readmitted = apply_pr_comment_v11(**args)
+    assert readmitted["decision"] == "ADMIT"
+    assert verify_projection_v11(ledger, state_file)[
+        "active_admissions"]["PULL_REQUEST#994"]["admitted_head_sha"] == "b" * 40
+
+
+def test_pr_comment_route_does_not_override_capacity(tmp_path):
+    args, ledger, state_file = _pr_comment_fixture(tmp_path)
+    policy = json.loads(args["policy_path"].read_text())
+    policy["capacity"]["active_operator_queue"] = 0
+    args["policy_path"].write_text(json.dumps(policy))
+    with pytest.raises(Exception, match="capacity"):
+        apply_pr_comment_v11(**args)
+    assert 994 not in verify_projection_v11(ledger, state_file)["admitted_pull_request_numbers"]
+
+
+def test_pr_comment_workflow_requires_mutated_state_receipt_and_never_merges():
+    workflow = (
+        Path(__file__).resolve().parents[2] /
+        ".github/workflows/repository-admission-gate.yml"
+    ).read_text()
+    assert "pr_comment_mutate:" in workflow
+    assert "github.event.issue.pull_request != null" in workflow
+    assert "github.event.issue.pull_request" in workflow
+    assert "pr-comment-command" in workflow
+    assert "--pr-payload coordinator-state/.live-pr.json" in workflow
+    assert "--comment-payload coordinator-state/.live-comment.json" in workflow
+    assert '--event-payload "$GITHUB_EVENT_PATH"' in workflow
+    assert "gh api" in workflow
+    assert "python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify" in workflow
+    assert 'test "$LIVE" = "$EXPECTED_HEAD"' in workflow
+    assert "PR command receipt" in workflow
+    assert "STATE_EVENT_COMMITTED" in workflow
+    assert "ADMISSION_ROUTING_ONLY" in workflow
+    assert "git push origin HEAD:repository-coordinator-state" in workflow
+    assert "gh pr merge" not in workflow
+    assert "!github.event.issue.pull_request" in workflow
+
+
+def test_pr_comment_webhook_fails_closed_on_edit_or_cross_pr_event(tmp_path):
+    args, ledger, _ = _pr_comment_fixture(tmp_path)
+    original = ledger.read_bytes()
+    args["comment_payload"]["body"] = "/coordinator revoke " + "a" * 40
+    with pytest.raises(Exception, match="EDITED_COMMENT"):
+        apply_pr_comment_v11(**args)
+    args["comment_payload"]["body"] = args["event_payload"]["comment"]["body"]
+    args["event_payload"]["issue"]["number"] = 993
+    with pytest.raises(Exception, match="target PR"):
+        apply_pr_comment_v11(**args)
+    assert ledger.read_bytes() == original
