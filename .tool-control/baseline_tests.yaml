@@ -56,6 +56,14 @@ baseline_tests:
     requires: []
     description: Repository coordinator tests
 
+  - path: tools/tests/test_graph_lookup_v0_1.py
+    requires: []
+    description: Read-only graph lookup for the section A session-open step (Q-REPO-GRAPH-LOOKUP-01)
+
+  - path: tools/tests/test_kg_map_check_v0_1.py
+    requires: []
+    description: Repo snapshot checker for the HumanAIOS knowledge graph map
+
   - path: tools/tests/test_humanaios_core_machine_v0_1.py
     requires: []
     description: HumanAIOS Core Machine deterministic bytecode and authority-boundary regressions

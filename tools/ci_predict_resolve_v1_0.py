@@ -13,11 +13,14 @@ must point to, mirroring the mandatory `--source` on nf_ledger_v0_1.py's own
 
 TERMINAL VS PENDING
 --------------------
-Only a check whose `status` is `completed` has a meaningful `conclusion`. A check
-still `in_progress` or `queued` is left unresolved this run; re-running later
-picks it up. This mirrors smag_resolve_v1_0.py's "pending rows self-heal" design
-and is why this tool is idempotent: it never guesses at a running check's outcome,
-and never re-resolves one it already resolved.
+A check needs `status=completed` and a known conclusion to resolve a PIN.
+When a forecast predicts a real check execution (`success`, `failure`, etc.),
+`skipped` is not a failed execution: it is excluded from that forecast's
+candidate runs. A later `skipped` job cannot overwrite an earlier executed
+outcome on the same commit. If only skipped jobs exist, the forecast stays
+unresolved. An explicit forecast of `skipped` is evaluated against skipped
+results, preserving the declared conclusion vocabulary. Queued and running
+checks remain unresolved until GitHub provides a terminal result.
 
 WHY THIS IS NOT auto_scored
 -----------------------------
@@ -138,33 +141,38 @@ def compute_resolutions(pin_payload: dict, check_runs: List[dict],
     omitted — not recorded as a miss. Silence here means "ask again later," never
     "predicted correctly."
 
-    Among duplicate check-runs sharing a name (a rerun), the one with the
-    highest `id` wins — check-run ids are monotonically increasing, so this is
-    the most recent run, never a stale completed run masking a fresher one.
-    Only genuinely completed runs are considered at all.
+    Candidate selection is per prediction. A GitHub job with conclusion
+    `skipped` did not execute its check, so it is ineligible to score a
+    forecast expecting some other conclusion. A forecast explicitly expecting
+    `skipped` remains scoreable. Among eligible completed runs of the same
+    name, the highest check-run ID wins. This also handles newer skipped
+    workflow-path jobs after an earlier executed success or failure.
     """
     already_done = already_done or set()
-    by_name: Dict[str, dict] = {}
+    by_name: Dict[str, List[dict]] = {}
     for run in check_runs:
         name = run.get("name")
-        if not name or run.get("status") != "completed":
+        if not name or run.get("status") != "completed" or run.get("conclusion") is None:
             continue
-        existing = by_name.get(name)
-        if existing is None or run.get("id", 0) > existing.get("id", 0):
-            by_name[name] = run
+        by_name.setdefault(name, []).append(run)
 
     resolutions: Dict[str, dict] = {}
     for check_name, spec in pin_payload.get("checks", {}).items():
         if check_name in already_done:
             continue
-        run = by_name.get(check_name)
-        if run is None:
+        expected = spec["conclusion"]
+        eligible = [
+            run for run in by_name.get(check_name, [])
+            if run["conclusion"] != "skipped" or expected == "skipped"
+        ]
+        if not eligible:
             continue
-        actual = run.get("conclusion")
+        run = max(eligible, key=lambda item: item.get("id") or 0)
+        actual = run["conclusion"]
         resolutions[check_name] = {
-            "predicted_conclusion": spec["conclusion"],
+            "predicted_conclusion": expected,
             "actual_conclusion": actual,
-            "outcome": "YES" if actual == spec["conclusion"] else "NO",
+            "outcome": "YES" if actual == expected else "NO",
             "source": run.get("html_url", ""),
         }
     return resolutions
@@ -322,6 +330,19 @@ def run_smoke_test() -> bool:
         {"name": "flaky", "status": "in_progress"},
     ]
     resolutions = compute_resolutions(pin_payload, check_runs)
+    # Real GitHub provenance in issue #870: the first job executed and passed;
+    # a later workflow path skipped a different job with the same check name.
+    executed = {"name": "quality", "status": "completed", "conclusion": "success",
+                "id": 116157977703, "html_url": "https://example/executed"}
+    skipped = {"name": "quality", "status": "completed", "conclusion": "skipped",
+               "id": 116339835553, "html_url": "https://example/skipped"}
+    same_head = compute_resolutions(pin_payload, [executed, skipped])
+    ok = ok and same_head["quality"]["outcome"] == "YES"
+    ok = ok and same_head["quality"]["source"] == "https://example/executed"
+    skipped_only = compute_resolutions(pin_payload, [skipped])
+    ok = ok and "quality" not in skipped_only
+    explicit_skip = {"checks": {"quality": {"conclusion": "skipped", "p": 0.7}}}
+    ok = ok and compute_resolutions(explicit_skip, [skipped])["quality"]["outcome"] == "YES"
     ok = ok and resolutions["quality"]["outcome"] == "YES"
     ok = ok and resolutions["guard"]["outcome"] == "NO"
     ok = ok and "flaky" not in resolutions  # still running: not silently scored
