@@ -61,14 +61,14 @@ Read in this order:
 
 ### §A: Session open (source summary)
 
-This is a summary, not the full protocol. `SESSION_RITUALS.md` §A (lines 47–67) adds live-state fetches, halt and degraded-mode handling, a drift catalog, a Phase 1 declaration, and user acknowledgement. Follow the full protocol. The steps below do not replace it.
+This is a summary, not the full protocol. `SESSION_RITUALS.md` §A (lines 47–67) adds live-state fetches, halt and degraded-mode handling, a drift catalog, a Phase 1 declaration, and user acknowledgement. Follow the full protocol. The items below are not an execution order and do not replace the full protocol.
 
-1. `git fetch && git rev-parse HEAD`. Pin the SHA.
-2. Read `REGISTERED.md` at that SHA (IC-030: live-fetch, then pin).
-3. Read `PRIORITY_QUEUE.md`.
-4. Read `ZONE_REGISTRY.md` at that SHA. Check the active repo count.
-5. Verify each file's sha256 against the manifest.
-6. State: **Position · Destination · Probability.**
+- `git fetch && git rev-parse HEAD`. Pin the SHA.
+- Read `REGISTERED.md` at that SHA (IC-030: live-fetch, then pin).
+- Read `PRIORITY_QUEUE.md`.
+- Read `ZONE_REGISTRY.md` at that SHA. Check the active repo count.
+- Verify each file's sha256 against the manifest.
+- State: **Position · Destination · Probability.**
 
 ### §B: Session close
 
@@ -147,7 +147,7 @@ Every candidate starts with `eligibility_assessed=false`. The Miner never emits 
 
 **Routes [verified]** in `app.py`: `/api/health`, `/api/needs`, `/api/requirements`, `/api/resources`, `/api/entitlement/handoff`, `/api/scan`, `/api/intent`.
 
-**Regression suite [head-specific verification pending]:** A previous review reported 173 passing tests. Re-run `python3 -m unittest discover -s tests` at the exact proposed head. Prior test counts do not establish production acceptance.
+**Regression suite [head-specific verification pending]:** A previous review reported 173 passing tests. From `humanaios-funding-pipeline/resource-miner/`, re-run `python3 -m unittest discover -s tests` at the exact proposed head. Prior test counts do not establish production acceptance.
 
 **Snapshot state:** `data/resources.jsonl` is ephemeral. `data/resources.snapshot.jsonl` is durable and checked in.
 
