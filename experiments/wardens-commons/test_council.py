@@ -94,3 +94,23 @@ def test_comments_and_limit(c):
         c.comment("R1", "b", p, "Spam")
     with pytest.raises(CouncilError, match="not in room"):
         c.list_comments("R2", p)
+
+
+def test_azure_shadow_opt_in_and_redaction(c):
+    from azure_shadow import project_room
+    prop = c.create('R1', 'a', 'design', 'Secret private story', 'Do not export this narrative')
+    c.comment('R1', 'b', prop, 'Private text must stay local')
+    assert project_room(c.path, 'R1', 'P' * 36) == []
+    obs = project_room(c.path, 'R1', 'P' * 36, enabled=True)
+    assert len(obs) == 3
+    raw = str(obs)
+    for word in ['Private', 'Secret', 'R1', 'Do not', "'a'", "'b'"]:
+        assert word not in raw
+    assert all(event['schema'] == 'wardens_council_observation.v1' for event in obs)
+
+
+def test_azure_shadow_egress_disabled_and_https():
+    from azure_shadow import send_shadow
+    assert send_shadow('https://example.org/collector', 'X'*30, [{}]) == 0
+    with pytest.raises(ValueError, match='https'):
+        send_shadow('http://example.org/collector', 'X'*30, [{}], enabled=True)
