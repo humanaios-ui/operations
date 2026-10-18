@@ -1,6 +1,6 @@
 # Wardens' Council — HumanAIOS × cooperative campaign (prototype)
 
-**Scope:** A separately deployable governance *prototype* for the existing **Wardens of the Craft** campaign. Its live game is currently hosted at `last-ward.cheeky-amber-5256.chatgpt.site`. This package does **not** modify that hosted site's source. It does not deploy Azure resources. The existing campaign co-op and versus remain the authoritative gameplay implementation (2–8 players, three shared heroes, first valid move wins; campaign saves preserved). The 33 previously reported game checks do not validate this package. This prototype has its own tests.
+**Scope:** A separately deployable governance *prototype* for the existing **Wardens of the Craft** campaign. Its live game is currently hosted at `last-ward.cheeky-amber-5256.chatgpt.site`. This package does **not** modify that hosted site's source. It does not deploy Azure resources. The existing campaign co-op and versus remain the authoritative gameplay implementation (2–8 players, three shared heroes, first valid move wins; campaign saves preserved). The 33 previously reported game checks do not validate this package. This prototype has its own tests; 9 local tests passed on 2026-10-18.
 
 ## Game experience
 
@@ -55,6 +55,19 @@ mountWardensCouncil(document.getElementById('council'), {
 Link to **operations #915 / #918** and the `aioshuman-1045` Foundry project in `westus3`. Reuse existing Azure architecture and the approved **Azure shadow/secondary** ownership. Do not deploy a parallel game arbiter, duplicate the campaign saves, or enable billing without the existing budget/approval controls.
 
 Target: existing backend emits **opted-in, schema-bounded, non-text** governance observations through an outbox. A single Azure Container App ingests/validates the observations and stores them in controlled PostgreSQL tables when the already planned Postgres service is deployed. Existing room play keeps working if Azure is offline. Later, use Azure Web PubSub for *Council notifications*, not for authoritative movement resolution, if latency and cost justify it. Azure Foundry AI agents may draft **advisory** proposals only: they are marked `agent`, never counted as unique human voters, and cannot execute code or merge PRs. GitHub feature proposals are translated into human-reviewed issues/PRs with protected CI, CodeRabbit and authenticated admission checks.
+
+
+### Opt-in Azure observation export
+
+`azure_shadow.py` reads Council event metadata **read-only**. By default it returns no events and makes **zero outbound requests**. After game-specific consent, privacy, Azure endpoint and budget review, the game backend can project a room's events and POST them to an explicitly authorized HTTPS collector. The exporter uses separate HMAC pseudonyms for room and proposal IDs. It never ships room codes, player IDs, player text, title, comment, ballot content, or game saves:
+
+```python
+from azure_shadow import project_room, send_shadow
+observations = project_room(database_path, room_code, privacy_key, enabled=consent_granted)
+send_shadow(approved_azure_url, collector_credential, observations, enabled=consent_granted)
+```
+
+This is **outbound client wiring only**. An authenticated receiving API, Azure resource deployment, dead-letter/retry/idempotency policy, provenance checks, and Postgres migration remain unimplemented. Do not mistake a projected event for a proof of consent, personhood, or a verified Azure ingestion.
 
 ### Deployment blockers (intentional)
 
