@@ -45,12 +45,41 @@ TYPE_AFFORDANCES: dict[str, tuple[str, ...]] = {
     "training": ("skill_development",),
     "research_access": ("research_access",),
     "dissemination_access": ("dissemination_access",),
-    "privacy_tool": (
-        "data_minimization",
-        "redaction",
-        "identifier_compartmentalization",
-        "profile_visibility_control",
-        "local_processing",
+    # Privacy-tool capabilities must be supported by candidate evidence below;
+    # the broad type alone cannot establish a specific control.
+    "privacy_tool": (),
+}
+
+PRIVACY_AFFORDANCE_RULES: dict[str, tuple[str, ...]] = {
+    "data_minimization": (
+        "data minimization",
+        "data minimisation",
+        "minimize data",
+        "minimise data",
+        "data removal",
+    ),
+    "redaction": ("redaction", "redact", "pii masking", "mask pii"),
+    "identifier_compartmentalization": (
+        "compartmentalization",
+        "compartmentalisation",
+        "identifier alias",
+        "email alias",
+        "account separation",
+    ),
+    "profile_visibility_control": (
+        "profile visibility",
+        "visibility control",
+        "audience control",
+        "private profile",
+    ),
+    "local_processing": (
+        "local processing",
+        "on-device",
+        "on device",
+        "client-side",
+        "client side",
+        "runs locally",
+        "offline processing",
     ),
 }
 
@@ -186,10 +215,18 @@ def classify_types(
     return out or ["general_resource"]
 
 
-def classify_affordances(resource_types: list[str]) -> list[str]:
+def classify_affordances(
+    resource_types: list[str],
+    evidence_text: str = "",
+) -> list[str]:
     affordances: set[str] = set()
     for resource_type in resource_types:
         affordances.update(TYPE_AFFORDANCES.get(resource_type, ()))
+    if "privacy_tool" in resource_types:
+        evidence = evidence_text.casefold()
+        for affordance, phrases in PRIVACY_AFFORDANCE_RULES.items():
+            if any(phrase in evidence for phrase in phrases):
+                affordances.add(affordance)
     return sorted(affordances)
 
 
@@ -235,7 +272,7 @@ def normalize_generic(
         published_at=published_at,
         deadline=deadline,
         resource_types=resource_types,
-        resource_affordances=classify_affordances(resource_types),
+        resource_affordances=classify_affordances(resource_types, combined),
         tags=sorted({str(x).lower() for x in (tags or []) if str(x).strip()}),
         value_text="; ".join(m.group(0) for m in MONEY_RE.finditer(combined)),
         cash_mentions_usd=cash_mentions(combined),

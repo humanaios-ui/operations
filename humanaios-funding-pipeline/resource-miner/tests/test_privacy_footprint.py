@@ -1,8 +1,10 @@
 import json
 import subprocess
 import sys
+import time
 import unittest
 from dataclasses import replace
+from datetime import datetime, timezone
 from pathlib import Path
 
 from resource_miner.mines import load_mines, resolve_mines
@@ -20,6 +22,11 @@ from resource_miner.privacy_footprint import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+FIXED_EXECUTION_AT = datetime(2026, 10, 18, 22, 45, tzinfo=timezone.utc)
+
+
+def fixed_clock():
+    return FIXED_EXECUTION_AT
 
 
 def load_fixture():
@@ -59,6 +66,7 @@ class PrivacyFootprintMineTests(unittest.TestCase):
             query,
             sources,
             pseudonymization_key=key,
+            clock=fixed_clock,
         )
 
         self.assertEqual(result.state, "FINDINGS_FOR_HUMAN_REVIEW")
@@ -102,6 +110,10 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         self.assertEqual(result.receipt.authority_effect, "NONE")
         self.assertEqual(result.receipt.execution, "DISABLED")
         self.assertEqual(
+            result.receipt.observed_at,
+            FIXED_EXECUTION_AT.isoformat(),
+        )
+        self.assertEqual(
             result.receipt.receipt_kind,
             "UNSIGNED_LOCAL_COMMITMENT_NOT_AN_ATTESTATION",
         )
@@ -121,13 +133,17 @@ class PrivacyFootprintMineTests(unittest.TestCase):
     def test_same_key_is_repeatable_and_different_key_breaks_linkability(self):
         grant, query, sources, key = fixture_objects()
         first = run_privacy_footprint_audit(
-            grant, query, sources, pseudonymization_key=key
+            grant, query, sources, pseudonymization_key=key, clock=fixed_clock
         )
         second = run_privacy_footprint_audit(
-            grant, query, sources, pseudonymization_key=key
+            grant, query, sources, pseudonymization_key=key, clock=fixed_clock
         )
         isolated = run_privacy_footprint_audit(
-            grant, query, sources, pseudonymization_key=b"z" * 32
+            grant,
+            query,
+            sources,
+            pseudonymization_key=b"z" * 32,
+            clock=fixed_clock,
         )
         self.assertEqual(first.receipt.output_sha256, second.receipt.output_sha256)
         self.assertEqual(first.receipt.receipt_id, second.receipt.receipt_id)
@@ -161,13 +177,21 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         outside = replace(query, source_ids=("SRC-FFFFFFFFFFFFFFFF",))
         with self.assertRaises(AuditDenied):
             run_privacy_footprint_audit(
-                grant, outside, sources[:1], pseudonymization_key=key
+                grant,
+                outside,
+                sources[:1],
+                pseudonymization_key=key,
+                clock=fixed_clock,
             )
 
-        expired = replace(query, requested_at="2026-10-18T18:00:01-05:00")
+        expired = replace(query, requested_at="2100-01-01T00:00:00Z")
         with self.assertRaises(AuditDenied):
             run_privacy_footprint_audit(
-                grant, expired, sources, pseudonymization_key=key
+                grant,
+                expired,
+                sources,
+                pseudonymization_key=key,
+                clock=fixed_clock,
             )
 
         revoked_grant = replace(
@@ -175,14 +199,76 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         )
         with self.assertRaises(AuditDenied):
             run_privacy_footprint_audit(
-                revoked_grant, query, sources, pseudonymization_key=key
+                revoked_grant,
+                query,
+                sources,
+                pseudonymization_key=key,
+                clock=fixed_clock,
             )
 
         substituted_query = replace(query, query_id="RQY-FFFFFFFFFFFFFFFF")
         with self.assertRaises(AuditDenied):
             run_privacy_footprint_audit(
-                grant, substituted_query, sources, pseudonymization_key=key
+                grant,
+                substituted_query,
+                sources,
+                pseudonymization_key=key,
+                clock=fixed_clock,
             )
+
+    def test_trusted_execution_time_blocks_backdated_expiry_and_revocation(self):
+        grant, query, sources, key = fixture_objects()
+        expired_before_execution = replace(
+            grant,
+            expires_at="2026-10-18T22:40:00Z",
+        )
+        with self.assertRaises(AuditDenied):
+            run_privacy_footprint_audit(
+                expired_before_execution,
+                query,
+                sources,
+                pseudonymization_key=key,
+                clock=fixed_clock,
+            )
+
+        revoked_after_request = replace(
+            grant,
+            revoked_at="2026-10-18T22:40:00Z",
+        )
+        with self.assertRaises(AuditDenied):
+            run_privacy_footprint_audit(
+                revoked_after_request,
+                query,
+                sources,
+                pseudonymization_key=key,
+                clock=fixed_clock,
+            )
+
+    def test_email_scan_rejects_punctuation_suffix_retry_path(self):
+        grant, query, sources, key = fixture_objects()
+        scan_grant = replace(
+            grant,
+            allowed_operations=("EXPLICIT_PII_SCAN",),
+        )
+        scan_query = replace(
+            query,
+            source_ids=(sources[0].source_id,),
+            operations=("EXPLICIT_PII_SCAN",),
+        )
+        punctuation_source = replace(sources[0], content="!" * (64 * 1024))
+
+        started = time.perf_counter()
+        result = run_privacy_footprint_audit(
+            scan_grant,
+            scan_query,
+            (punctuation_source,),
+            pseudonymization_key=key,
+            clock=fixed_clock,
+        )
+        elapsed = time.perf_counter() - started
+
+        self.assertEqual(result.state, "ZERO_MATCHES_OBSERVED")
+        self.assertLess(elapsed, 1.0)
 
     def test_explicit_scan_alone_does_not_join_sources(self):
         grant, query, sources, key = fixture_objects()
@@ -199,6 +285,7 @@ class PrivacyFootprintMineTests(unittest.TestCase):
             scan_query,
             sources,
             pseudonymization_key=key,
+            clock=fixed_clock,
         )
         self.assertNotIn(
             "CROSS_SOURCE_LINKAGE",
@@ -229,12 +316,13 @@ class PrivacyFootprintMineTests(unittest.TestCase):
                 inference_query,
                 sources,
                 pseudonymization_key=key,
+                clock=fixed_clock,
             )
 
     def test_human_confirmation_and_repair_intent_remain_separate(self):
         grant, query, sources, key = fixture_objects()
         result = run_privacy_footprint_audit(
-            grant, query, sources, pseudonymization_key=key
+            grant, query, sources, pseudonymization_key=key, clock=fixed_clock
         )
         email = next(
             finding
@@ -269,7 +357,7 @@ class PrivacyFootprintMineTests(unittest.TestCase):
     def test_confirmed_privacy_requirement_matches_privacy_tool_candidate(self):
         grant, query, sources, key = fixture_objects()
         result = run_privacy_footprint_audit(
-            grant, query, sources, pseudonymization_key=key
+            grant, query, sources, pseudonymization_key=key, clock=fixed_clock
         )
         email = next(
             finding
@@ -299,6 +387,28 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         self.assertEqual(matches[0].requirement_id, "RR-PRIVACY-EMAIL-CONTROL-001")
         self.assertEqual(matches[0].gap_status, "CONFIRMED")
 
+    def test_privacy_tool_type_does_not_invent_local_processing(self):
+        requirement = {
+            "requirement_id": "RR-PRIVACY-LOCAL-TEST-001",
+            "gap_status": "CONFIRMED",
+            "label": "Local-only privacy processing",
+            "resource_types": ["privacy_tool"],
+            "affordances": ["local_processing"],
+            "signals": ["privacy", "local processing"],
+        }
+        hosted = normalize_generic(
+            title="Hosted privacy redaction service",
+            url="https://example.test/hosted-redaction",
+            source_name="Synthetic",
+            discovery_method="test",
+            source_category="privacy_tool",
+            body_text="Cloud-hosted email redaction only.",
+            observed_at="2026-10-18T22:30:00Z",
+        )
+
+        self.assertEqual(hosted.resource_affordances, ["redaction"])
+        self.assertEqual(map_to_requirements(hosted, [requirement]), [])
+
     def test_zero_matches_abstains(self):
         grant, query, sources, key = fixture_objects()
         clean_sources = tuple(
@@ -306,7 +416,11 @@ class PrivacyFootprintMineTests(unittest.TestCase):
             for source in sources
         )
         result = run_privacy_footprint_audit(
-            grant, query, clean_sources, pseudonymization_key=key
+            grant,
+            query,
+            clean_sources,
+            pseudonymization_key=key,
+            clock=fixed_clock,
         )
         self.assertEqual(result.state, "ZERO_MATCHES_OBSERVED")
         self.assertEqual(result.findings, ())

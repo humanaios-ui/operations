@@ -19,7 +19,7 @@ import hmac
 import ipaddress
 import json
 import re
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 __all__ = [
     "AuditDenied",
@@ -56,7 +56,7 @@ _IDENTIFIER = re.compile(r"^(?:OAG|RQY|SRC|SUBJ)-[A-F0-9]{16}$")
 _REFERENCE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9:._/-]{2,199}$")
 _PROVIDER = re.compile(r"^[A-Z][A-Z0-9_-]{1,63}$")
 _EMAIL = re.compile(
-    r"(?<![\w.+-])"
+    r"(?<![A-Z0-9.!#$%&'*+/=?^_`{|}~-])"
     r"[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+"
     r"@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?"
     r"(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+"
@@ -342,7 +342,18 @@ def _finding_id(state: str, basis_type: str, commitment: str) -> str:
     return "PFF-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16].upper()
 
 
-def _validate_boundary(grant: PrivacyAuditGrant, query: PrivacyAuditQuery) -> None:
+def _execution_instant(clock: Callable[[], datetime] | None) -> datetime:
+    executed_at = datetime.now(timezone.utc) if clock is None else clock()
+    if not isinstance(executed_at, datetime) or executed_at.tzinfo is None:
+        raise AuditDenied("trusted execution clock must return a timezone-aware datetime")
+    return executed_at.astimezone(timezone.utc)
+
+
+def _validate_boundary(
+    grant: PrivacyAuditGrant,
+    query: PrivacyAuditQuery,
+    executed_at: datetime,
+) -> None:
     _require_identifier(grant.grant_id, "OAG", "grant_id")
     _require_identifier(grant.query_id, "RQY", "grant query_id")
     _require_identifier(grant.subject_ref, "SUBJ", "subject_ref")
@@ -381,12 +392,18 @@ def _validate_boundary(grant: PrivacyAuditGrant, query: PrivacyAuditQuery) -> No
     requested = _parse_instant(query.requested_at, "requested_at")
     if expires <= issued:
         raise AuditDenied("grant expiration must follow issuance")
-    if requested < issued or requested > expires:
+    if requested < issued or requested >= expires:
         raise AuditDenied("query falls outside the grant time window")
+    if executed_at < issued or executed_at >= expires:
+        raise AuditDenied("grant is not active at trusted execution time")
+    if requested > executed_at:
+        raise AuditDenied("query request time cannot postdate trusted execution time")
     if grant.revoked_at is not None:
         revoked = _parse_instant(grant.revoked_at, "revoked_at")
-        if revoked <= requested:
-            raise AuditDenied("grant was revoked before the query")
+        if revoked < issued:
+            raise AuditDenied("grant revocation cannot predate issuance")
+        if revoked <= requested or revoked <= executed_at:
+            raise AuditDenied("grant was revoked before query execution")
 
 
 def _validate_sources(query: PrivacyAuditQuery, sources: Iterable[PrivacySource]) -> tuple[PrivacySource, ...]:
@@ -498,9 +515,15 @@ def run_privacy_footprint_audit(
     sources: Iterable[PrivacySource],
     *,
     pseudonymization_key: bytes | bytearray,
+    clock: Callable[[], datetime] | None = None,
 ) -> PrivacyAuditResult:
-    """Run one consent-bound, in-memory, non-executing privacy audit."""
-    _validate_boundary(grant, query)
+    """Run one consent-bound, in-memory, non-executing privacy audit.
+
+    ``clock`` is an injectable trusted-host clock for deterministic tests. The
+    CLI does not expose it to request payloads.
+    """
+    executed_at = _execution_instant(clock)
+    _validate_boundary(grant, query, executed_at)
     source_rows = _validate_sources(query, sources)
     key = _key_bytes(pseudonymization_key)
 
@@ -588,6 +611,7 @@ def run_privacy_footprint_audit(
     payload_for_digest = {
         "schema": "humanaios.privacy-footprint-audit.v0.1",
         "query_id": query.query_id,
+        "observed_at": executed_at.isoformat(),
         "state": state,
         "findings": [finding.to_dict() for finding in findings],
         "resource_requirements": requirements,
@@ -607,7 +631,7 @@ def run_privacy_footprint_audit(
         grant_id=grant.grant_id,
         query_id=query.query_id,
         state=state,
-        observed_at=query.requested_at,
+        observed_at=executed_at.isoformat(),
         source_commitments=source_commitments,
         finding_count=len(findings),
         requirement_count=len(requirements),

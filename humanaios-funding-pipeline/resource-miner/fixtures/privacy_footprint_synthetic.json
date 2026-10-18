@@ -15,7 +15,7 @@
       "EXACT_IDENTIFIER_LINKAGE"
     ],
     "issued_at": "2026-10-18T17:00:00-05:00",
-    "expires_at": "2026-10-18T18:00:00-05:00",
+    "expires_at": "2099-01-01T00:00:00Z",
     "human_authorization_ref": "consent-receipt:synthetic-001"
   },
   "query": {

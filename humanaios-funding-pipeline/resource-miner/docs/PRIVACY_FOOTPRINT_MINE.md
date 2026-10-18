@@ -26,6 +26,7 @@ it automatically or turn private source text into a public opportunity.
 ## Implemented now
 
 - One explicit OAG-style grant bound to one exact RQY query ID.
+- Trusted execution-time checks for issuance, expiry, and revocation.
 - User-supplied AI chat exports, public-profile snapshots, or activity logs.
 - In-memory detection of email addresses, phone numbers, and IPv4 addresses.
 - Exact normalized-identifier recurrence across supplied sources.
@@ -88,6 +89,14 @@ The current grant carries a caller-supplied human-authorization receipt
 reference, but this slice does not verify a cryptographic signature or maintain
 a spent-grant ledger. Binding the OAG to one exact RQY prevents substitution;
 authenticated consent-origin and replay enforcement remain later controls.
+Both the request timestamp and the trusted host execution instant must be inside
+the grant window, and neither may be at or after revocation. The Python API has
+an injectable clock for deterministic tests; the CLI always uses its host clock
+and accepts no request-supplied execution-time override.
+
+A normalized `privacy_tool` type does not by itself establish every privacy
+capability. Specific affordances such as `redaction` or `local_processing` are
+attached only when the candidate's evidence text supports them.
 
 ## Synthetic test
 
@@ -104,4 +113,6 @@ Longitudinal comparison belongs in a local client that calls the Python API with
 a protected caller-owned key.
 
 The committed fixture uses reserved example data only: `example.test`, a 555
-number, and the documentation address block `192.0.2.0/24`.
+number, and the documentation address block `192.0.2.0/24`. Its synthetic grant
+has a deliberately long test-only expiry so the command remains reproducible;
+real clients should issue short-lived grants.
