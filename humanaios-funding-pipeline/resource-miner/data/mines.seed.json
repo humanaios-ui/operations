@@ -152,5 +152,26 @@
       "command_processing": "SEPARATE_AUTHORITY_PATH",
       "dependency_doc": "docs/DAILY_DIGEST_GMAIL_ADAPTER_PHASE_B.md"
     }
+  },
+  {
+    "name": "My AI Footprint — Privacy Footprint Mine",
+    "mine_kind": "USER_CONTROLLED_DATASET",
+    "canonical_url": "privacy-footprint://local/",
+    "resolver": "privacy_footprint_local",
+    "enabled": true,
+    "cadence": "on_demand",
+    "roles": [
+      "EVIDENCE_SOURCE"
+    ],
+    "config": {
+      "activation": "ONE_QUERY_PER_EXPLICIT_GRANT",
+      "source_mode": "USER_SUPPLIED_ONLY",
+      "network_access": "NONE",
+      "raw_storage": "CALLER_CONTROLLED_ONLY",
+      "public_projection": "NONE",
+      "attribute_inference": "NOT_IMPLEMENTED",
+      "authority_effect": "NONE",
+      "execution": "DISABLED"
+    }
   }
 ]

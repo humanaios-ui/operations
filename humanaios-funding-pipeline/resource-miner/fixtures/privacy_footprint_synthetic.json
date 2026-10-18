@@ -1,0 +1,50 @@
+{
+  "fixture": "SYNTHETIC_ONLY",
+  "pseudonymization_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "grant": {
+    "grant_id": "OAG-0123456789ABCDEF",
+    "query_id": "RQY-0123456789ABCDEF",
+    "subject_ref": "SUBJ-0123456789ABCDEF",
+    "purpose": "PERSONAL_PRIVACY_AUDIT",
+    "allowed_source_ids": [
+      "SRC-1111111111111111",
+      "SRC-2222222222222222"
+    ],
+    "allowed_operations": [
+      "EXPLICIT_PII_SCAN",
+      "EXACT_IDENTIFIER_LINKAGE"
+    ],
+    "issued_at": "2026-10-18T17:00:00-05:00",
+    "expires_at": "2026-10-18T18:00:00-05:00",
+    "human_authorization_ref": "consent-receipt:synthetic-001"
+  },
+  "query": {
+    "query_id": "RQY-0123456789ABCDEF",
+    "grant_id": "OAG-0123456789ABCDEF",
+    "source_ids": [
+      "SRC-1111111111111111",
+      "SRC-2222222222222222"
+    ],
+    "operations": [
+      "EXPLICIT_PII_SCAN",
+      "EXACT_IDENTIFIER_LINKAGE"
+    ],
+    "requested_at": "2026-10-18T17:30:00-05:00"
+  },
+  "sources": [
+    {
+      "source_id": "SRC-1111111111111111",
+      "source_kind": "AI_CHAT_EXPORT",
+      "provider_id": "SYNTHETIC_CHAT",
+      "observed_at": "2026-10-18T17:10:00-05:00",
+      "content": "Synthetic user wrote alice@example.test and (850) 555-0100.\nSynthetic log saw 192.0.2.10."
+    },
+    {
+      "source_id": "SRC-2222222222222222",
+      "source_kind": "PUBLIC_PROFILE_SNAPSHOT",
+      "provider_id": "SYNTHETIC_PROFILE",
+      "observed_at": "2026-10-18T17:20:00-05:00",
+      "content": "Synthetic contact: Alice@Example.Test. No real person is represented."
+    }
+  ]
+}
