@@ -164,7 +164,8 @@
       "EVIDENCE_SOURCE"
     ],
     "config": {
-      "activation": "ONE_QUERY_PER_EXPLICIT_GRANT",
+      "activation": "EXPLICIT_GRANT_BOUND_TO_ONE_QUERY_ID",
+      "replay_prevention": "NOT_IMPLEMENTED",
       "source_mode": "USER_SUPPLIED_ONLY",
       "network_access": "NONE",
       "raw_storage": "CALLER_CONTROLLED_ONLY",

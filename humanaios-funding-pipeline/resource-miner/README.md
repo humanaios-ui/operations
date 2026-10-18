@@ -446,7 +446,7 @@ The initial registry includes:
 - Microsoft for Startups — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; bounded program endpoints are re-observed daily.
 - HackerOne — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; the intended resolution unit is `Program x bounty-eligible ScopeAsset`. It remains dependency-gated until the scope-hydrated #680/#683 implementation is present.
 - the HumanAIOS repositories — `EVIDENCE_SOURCE | GOVERNED_SYSTEM`; ordinary issues are not promoted into resources.
-- My AI Footprint — `EVIDENCE_SOURCE` only; an explicit one-query grant may inspect user-supplied text in memory, but persistent Mine resolution emits `ROLE_ONLY` and cannot read private content.
+- My AI Footprint — `EVIDENCE_SOURCE` only; an explicit grant bound to one query ID may inspect user-supplied text in memory, but replay prevention is not implemented, and persistent Mine resolution emits `ROLE_ONLY` without reading private content.
 
 Run a Mine resolution manually:
 

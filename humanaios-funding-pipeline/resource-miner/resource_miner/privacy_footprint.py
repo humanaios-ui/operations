@@ -57,16 +57,17 @@ _REFERENCE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9:._/-]{2,199}$")
 _PROVIDER = re.compile(r"^[A-Z][A-Z0-9_-]{1,63}$")
 _EMAIL = re.compile(
     r"(?<![A-Z0-9.!#$%&'*+/=?^_`{|}~-])"
-    r"[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+"
+    r"[A-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}"
     r"@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?"
     r"(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+"
     r"(?![\w-])",
     re.IGNORECASE,
 )
 _PHONE = re.compile(
-    r"(?<!\d)(?:\+?1[ .-]?)?(?:\(\d{3}\)|\d{3})[ .-]\d{3}[ .-]\d{4}(?!\d)"
+    r"(?<![0-9])(?:\+?1[ .-]?)?(?:\([0-9]{3}\)|[0-9]{3})"
+    r"[ .-][0-9]{3}[ .-][0-9]{4}(?![0-9])"
 )
-_IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?!\w)")
+_IPV4 = re.compile(r"(?<![\w.])(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?!\w)")
 
 _REQUIREMENT_TEMPLATES: dict[str, dict[str, Any]] = {
     "EMAIL_ADDRESS": {
@@ -260,8 +261,21 @@ def _require_identifier(value: str, prefix: str, label: str) -> None:
         raise AuditDenied(f"{label} must be a privacy-safe {prefix} identifier")
 
 
+def _require_text(value: Any, label: str) -> str:
+    if not isinstance(value, str):
+        raise AuditDenied(f"{label} must be text")
+    return value
+
+
 def _require_unique(values: Iterable[str], label: str) -> tuple[str, ...]:
-    rows = tuple(values)
+    if isinstance(values, (str, bytes)):
+        raise AuditDenied(f"{label} must be a sequence of strings")
+    try:
+        rows = tuple(values)
+    except TypeError as exc:
+        raise AuditDenied(f"{label} must be a sequence of strings") from exc
+    if not all(isinstance(value, str) for value in rows):
+        raise AuditDenied(f"{label} must contain only strings")
     if not rows or len(rows) != len(set(rows)):
         raise AuditDenied(f"{label} must be non-empty and unique")
     return rows
@@ -296,7 +310,7 @@ def _locator(source: PrivacySource, match: re.Match[str], content_commitment: st
 
 
 def _normalized_phone(value: str) -> str | None:
-    digits = "".join(character for character in value if character.isdigit())
+    digits = "".join(character for character in value if "0" <= character <= "9")
     if len(digits) == 11 and digits.startswith("1"):
         digits = digits[1:]
     return digits if len(digits) == 10 else None
@@ -354,6 +368,23 @@ def _validate_boundary(
     query: PrivacyAuditQuery,
     executed_at: datetime,
 ) -> None:
+    for label, value in (
+        ("grant_id", grant.grant_id),
+        ("grant query_id", grant.query_id),
+        ("subject_ref", grant.subject_ref),
+        ("purpose", grant.purpose),
+        ("issued_at", grant.issued_at),
+        ("expires_at", grant.expires_at),
+        ("human_authorization_ref", grant.human_authorization_ref),
+        ("authority_effect", grant.authority_effect),
+        ("query_id", query.query_id),
+        ("query grant_id", query.grant_id),
+        ("requested_at", query.requested_at),
+    ):
+        _require_text(value, label)
+    if grant.revoked_at is not None:
+        _require_text(grant.revoked_at, "revoked_at")
+
     _require_identifier(grant.grant_id, "OAG", "grant_id")
     _require_identifier(grant.query_id, "RQY", "grant query_id")
     _require_identifier(grant.subject_ref, "SUBJ", "subject_ref")
@@ -406,10 +437,29 @@ def _validate_boundary(
             raise AuditDenied("grant was revoked before query execution")
 
 
-def _validate_sources(query: PrivacyAuditQuery, sources: Iterable[PrivacySource]) -> tuple[PrivacySource, ...]:
-    rows = tuple(sources)
+def _validate_sources(
+    query: PrivacyAuditQuery,
+    sources: Iterable[PrivacySource],
+) -> tuple[PrivacySource, ...]:
+    if isinstance(sources, (str, bytes)):
+        raise AuditDenied("sources must be a sequence of PrivacySource records")
+    try:
+        rows = tuple(sources)
+    except TypeError as exc:
+        raise AuditDenied("sources must be a sequence of PrivacySource records") from exc
     if not rows or len(rows) > MAX_SOURCES:
         raise AuditDenied(f"audit requires 1 to {MAX_SOURCES} supplied sources")
+    for source in rows:
+        if not isinstance(source, PrivacySource):
+            raise AuditDenied("sources must contain only PrivacySource records")
+        for name in (
+            "source_id",
+            "source_kind",
+            "provider_id",
+            "observed_at",
+            "content",
+        ):
+            _require_text(getattr(source, name), f"source {name}")
     ids = tuple(source.source_id for source in rows)
     if len(ids) != len(set(ids)) or set(ids) != set(query.source_ids):
         raise AuditDenied("supplied sources must exactly match unique query source_ids")
@@ -420,10 +470,8 @@ def _validate_sources(query: PrivacyAuditQuery, sources: Iterable[PrivacySource]
         _require_identifier(source.source_id, "SRC", "source_id")
         if source.source_kind not in SOURCE_KINDS:
             raise AuditDenied("unsupported source kind")
-        if not _PROVIDER.fullmatch(source.provider_id or ""):
+        if not _PROVIDER.fullmatch(source.provider_id):
             raise AuditDenied("provider_id must be a bounded non-personal label")
-        if not isinstance(source.content, str):
-            raise AuditDenied("source content must be text")
         observed = _parse_instant(source.observed_at, "source observed_at")
         if observed > requested:
             raise AuditDenied("source observation cannot postdate the query")

@@ -163,6 +163,11 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         self.assertEqual(mine.cadence, "on_demand")
         self.assertIn("EVIDENCE_SOURCE", mine.roles)
         self.assertNotIn("OPPORTUNITY_SOURCE", mine.roles)
+        self.assertEqual(
+            mine.config["activation"],
+            "EXPLICIT_GRANT_BOUND_TO_ONE_QUERY_ID",
+        )
+        self.assertEqual(mine.config["replay_prevention"], "NOT_IMPLEMENTED")
         self.assertEqual(mine.config["network_access"], "NONE")
         self.assertEqual(mine.config["execution"], "DISABLED")
 
@@ -255,7 +260,10 @@ class PrivacyFootprintMineTests(unittest.TestCase):
             source_ids=(sources[0].source_id,),
             operations=("EXPLICIT_PII_SCAN",),
         )
-        punctuation_source = replace(sources[0], content="!" * (64 * 1024))
+        punctuation_source = replace(
+            sources[0],
+            content=("a!" * 500_000) + " " + ("a" * 65) + "@example.test",
+        )
 
         started = time.perf_counter()
         result = run_privacy_footprint_audit(
@@ -268,7 +276,60 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         elapsed = time.perf_counter() - started
 
         self.assertEqual(result.state, "ZERO_MATCHES_OBSERVED")
-        self.assertLess(elapsed, 1.0)
+        self.assertLess(elapsed, 2.0)
+
+    def test_unicode_digits_are_not_phone_or_ip_identifiers(self):
+        grant, query, sources, key = fixture_objects()
+        scan_grant = replace(
+            grant,
+            allowed_operations=("EXPLICIT_PII_SCAN",),
+        )
+        scan_query = replace(
+            query,
+            source_ids=(sources[0].source_id,),
+            operations=("EXPLICIT_PII_SCAN",),
+        )
+        unicode_source = replace(
+            sources[0],
+            content="Synthetic: ٨٥٠ ٥٥٥ ٠١٠٠ and ١٩٢.٠.٢.١٠.",
+        )
+
+        result = run_privacy_footprint_audit(
+            scan_grant,
+            scan_query,
+            (unicode_source,),
+            pseudonymization_key=key,
+            clock=fixed_clock,
+        )
+
+        self.assertEqual(result.state, "ZERO_MATCHES_OBSERVED")
+        self.assertEqual(result.findings, ())
+
+    def test_malformed_field_types_fail_with_audit_denied(self):
+        grant, query, sources, key = fixture_objects()
+        malformed_query = replace(
+            query,
+            source_ids=([sources[0].source_id],),
+        )
+        with self.assertRaises(AuditDenied):
+            run_privacy_footprint_audit(
+                grant,
+                malformed_query,
+                sources,
+                pseudonymization_key=key,
+                clock=fixed_clock,
+            )
+
+        malformed_source = replace(sources[0], provider_id=7)
+        single_query = replace(query, source_ids=(sources[0].source_id,))
+        with self.assertRaises(AuditDenied):
+            run_privacy_footprint_audit(
+                grant,
+                single_query,
+                (malformed_source,),
+                pseudonymization_key=key,
+                clock=fixed_clock,
+            )
 
     def test_explicit_scan_alone_does_not_join_sources(self):
         grant, query, sources, key = fixture_objects()
@@ -462,6 +523,7 @@ class PrivacyFootprintMineTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
+            cwd=ROOT,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)
@@ -470,6 +532,22 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         self.assertNotIn("alice@example.test", completed.stdout.lower())
         self.assertNotIn("850) 555-0100", completed.stdout)
         self.assertNotIn("192.0.2.10", completed.stdout)
+
+    def test_local_cli_denies_malformed_types_without_traceback(self):
+        request = load_fixture()
+        request["sources"][0]["provider_id"] = 7
+        completed = subprocess.run(
+            [sys.executable, "-m", "resource_miner.privacy_footprint_cli"],
+            input=json.dumps(request),
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("privacy audit denied", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
 
 
 if __name__ == "__main__":
