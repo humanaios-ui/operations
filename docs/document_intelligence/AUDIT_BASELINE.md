@@ -54,6 +54,15 @@ For bounded pages, add `--limit N`. Resume with the same exact commit and the pr
 
 ## Review matrix and open tests
 
+Validation was performed against the census code/artifact state at PR head `e46456a4013e987cfbee3b031edf098ff3612285`:
+
+- Focused census tests: 14 passed; census smoke test passed.
+- Builder per-file and corpus checks: passed (159/159 corpus files).
+- Behavioral per-file check passed; corpus was 87%, above its 70% floor, with existing failures in other files.
+- Tool-control and document-control checks passed; repository health reported 100/100.
+- The 55-file CI pytest baseline could not start because `pytest` is not installed. Ruff and mypy are also unavailable in this environment. No packages were added.
+- CodeQL reported zero alerts. The parallel code-review leg reported no comments but also could not initialize its requested model; treat independent code review as unavailable.
+
 | File/surface | Requested review focus | Status |
 |---|---|---|
 | `tools/coderabbit_coverage_inventory.py` | NUL-safe tree parsing, classification, checkpoint/cursor handling, provenance and authority boundary | CodeRabbit **PENDING** |
@@ -61,7 +70,7 @@ For bounded pages, add `--limit N`. Resume with the same exact commit and the pr
 | `tools-manifest.yaml`, `TOOLS_MANIFEST.md` | Declared tool version and generated-manifest ownership | CodeRabbit **PENDING** |
 | `docs/document_intelligence/fixed_head_inventory.json`, `fixed_head_dashboard.md`, `AUDIT_BASELINE.md` | Exact-tree completeness, exceptions, no overclaimed review, unresolved values | CodeRabbit **PENDING** |
 
-At the baseline PR head `fdf2847484b449965d86ca818b4da2f93626d53e`, CodeRabbit reported that automatic review was skipped because PR #924 is a draft ([skip notice](https://github.com/humanaios-ui/operations/pull/924#issuecomment-6255290852)). This is not a review receipt and no findings are claimed. The coordinator state observed on its state branch did not include issue #923 or PR #924; this PR therefore remains draft/workbench. The available admission-gate run was triggered by an issue comment and skipped, with no failed jobs; no PR-context gate pass is claimed.
+At the initial PR head `fdf2847484b449965d86ca818b4da2f93626d53e`, CodeRabbit reported that automatic review was skipped because PR #924 is a draft ([skip notice](https://github.com/humanaios-ui/operations/pull/924#issuecomment-6255290852)). At census head `e46456a4013e987cfbee3b031edf098ff3612285`, its status again said review skipped for the draft. Neither is a review receipt and no findings are claimed. The coordinator-state snapshot retrieved for this task did not include issue #923 or PR #924. The latest PR-context admission-gate workflow for `e46456a4013e987cfbee3b031edf098ff3612285` ended `action_required` with zero jobs; an earlier issue-comment invocation was skipped. No admission-gate pass is claimed; this PR remains draft/workbench.
 
 ## Required next partitions
 
