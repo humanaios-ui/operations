@@ -280,6 +280,29 @@ class CoverageTests(unittest.TestCase):
         self.assertNotIn(chr(0x202e), rendered)
         self.assertIn(chr(92) + "u202e", rendered)
 
+    def test_dashboard_distinguishes_newline_and_literal_backslash_n_paths(self):
+        from copy import deepcopy
+
+        report = self.fixture()
+        prototype = report["files"][1]
+        literal = deepcopy(prototype)
+        newline = deepcopy(prototype)
+        literal["path"] = "same" + chr(92) + "nname.pdf"
+        newline["path"] = "same" + chr(10) + "name.pdf"
+        for row in (literal, newline):
+            row["path_bytes_hex"] = row["path"].encode("utf-8", errors="surrogateescape").hex()
+        report["files"].extend([literal, newline])
+        report["files"].sort(key=lambda row: row["path"].encode("utf-8", errors="surrogateescape"))
+        report["checkpoint"]["total_tree_paths"] = len(report["files"])
+        report["checkpoint"]["covered_paths"] = len(report["files"])
+        report["summary"] = mod.validate(report)
+        dashboard = mod.render_dashboard(report)
+        self.assertNotEqual(literal["path_bytes_hex"], newline["path_bytes_hex"])
+        self.assertIn("path_bytes_hex: `" + literal["path_bytes_hex"] + "`", dashboard)
+        self.assertIn("path_bytes_hex: `" + newline["path_bytes_hex"] + "`", dashboard)
+        self.assertEqual(dashboard.count("path_bytes_hex:"), 3)
+        self.assertIn("**NOT_VERIFIED**", dashboard)
+
     def test_rejects_reviewed_even_if_receipt_is_embedded(self):
         d = self.fixture()
         d["files"][0].update(status="REVIEWED", reason="claimed", review_receipt={"signed": True})
