@@ -39,6 +39,7 @@ def fake_http(rows):
     negative = response(execution.NEGATIVE, rows)
     return [
         (200, "text/html", b"<html>INTENT-OS /api/intent</html>"),
+        (200, "text/html", b'<html>UNVERIFIED <input id="import"></html>'),
         (200, "application/json", json.dumps(positive).encode()),
         (200, "application/json", json.dumps(negative).encode()),
     ]
