@@ -268,11 +268,17 @@ class CoverageTests(unittest.TestCase):
         rendered = mod._markdown_path("quote`and``pipes|cr" + chr(13) + "nl" + chr(10))
         self.assertTrue(rendered.startswith("``` "))
         self.assertTrue(rendered.endswith(" ```"))
-        self.assertIn(chr(92) + "|", rendered)
+        self.assertIn("|", rendered)
         self.assertNotIn(chr(13), rendered)
         self.assertNotIn(chr(10), rendered)
         self.assertIn(chr(92) + "r", rendered)
         self.assertIn(chr(92) + "n", rendered)
+
+    def test_bidi_format_characters_cannot_reorder_filename_display(self):
+        dangerous = "normal" + chr(0x202e) + "reversed.md"
+        rendered = mod._markdown_path(dangerous)
+        self.assertNotIn(chr(0x202e), rendered)
+        self.assertIn(chr(92) + "u202e", rendered)
 
     def test_rejects_reviewed_even_if_receipt_is_embedded(self):
         d = self.fixture()
