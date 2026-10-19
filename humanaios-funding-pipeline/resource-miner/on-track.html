@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'none'; object-src 'none'">
+<title>INTENT-OS · What Moved Our Goal?</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf2fc;background:#0b1423;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0}main{max-width:840px;margin:0 auto;padding:26px 16px 75px}
+a{color:#86d9fa}a:focus-visible,input:focus-visible{outline:3px solid #8dd3ee;outline-offset:3px}
+.brand{font-size:.75rem;letter-spacing:.14em;color:#81c5e9;font-weight:750}
+h1{font-size:clamp(1.55rem,5vw,2.5rem);line-height:1.18;margin:14px 0}
+h2{font-size:1.1rem}p{line-height:1.55}.muted{color:#a8bbd0;font-size:.88rem}
+section{padding:19px;margin:18px 0;border:1px solid #344966;background:#14243a;border-radius:12px}
+.notice{border-left:4px solid #e5b66e;padding:11px 14px;background:#372b21;margin:14px 0}
+.stat{font-weight:bold;font-size:1.2rem}small{color:#b1c7dc}
+table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{padding:10px 7px;border-bottom:1px solid #39506e;text-align:left;vertical-align:top}
+th{color:#b4daef}td{overflow-wrap:anywhere}code{font-size:.8rem;overflow-wrap:anywhere}
+input{max-width:100%}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.cards>div{padding:12px;background:#0d1b2e;border-radius:8px}#scope{white-space:pre-wrap}
+</style>
+</head>
+<body>
+<main>
+<p class="brand">HUMANAIOS / INTENT-OS / ON-TRACK REFLEX</p>
+<h1>What actually moved our goal?</h1>
+<p>One goal: a human can ask INTENT-OS for resources, review grounded leads, and decide what to do. We measure that path. We do not count merged PRs as user success.</p>
+<p><a href="/intent-os">← Back to Resource Miner</a></p>
+<section aria-labelledby="state-title">
+<h2 id="state-title">Current evidence</h2>
+<div id="warning" class="notice" role="status" aria-live="polite">UNVERIFIED — No observation has been imported. No deployment or human success is claimed.</div>
+<div class="cards">
+<div>Actual human outcome<br><span class="stat" id="human">UNVERIFIED</span></div>
+<div>Miner HTTP test<br><span class="stat" id="technical">UNVERIFIED</span></div>
+<div>Production service<br><span class="stat" id="production">UNVERIFIED</span></div>
+</div>
+<p id="detail" class="muted">The local test and production task are distinct.</p>
+</section>
+<section>
+<h2>Observed work toward the goal</h2>
+<p id="scope" class="muted">No work report loaded. Open and unmapped items may exist outside any bounded report.</p>
+<div style="overflow-x:auto"><table aria-label="Evidence-linked work items">
+<thead><tr><th>Work</th><th>Declared link</th><th>Next check</th></tr></thead>
+<tbody id="work"></tbody></table></div>
+</section>
+<section>
+<h2>Bring an observation here</h2>
+<p>Import <code>on_track_progress.json</code> from an authorized GitHub Actions run. This stays in your browser. Nothing is uploaded or saved. An imported file is still unsigned and may be out of date.</p>
+<label for="import">Progress JSON file:</label> <input id="import" type="file" accept=".json,application/json">
+<p class="muted" id="status" role="status">Use the workflow artifact for a bounded report. This page makes no direct GitHub or private account requests.</p>
+</section>
+<section>
+<h2>Next measured milestone</h2>
+<p id="next">Prove a real public deployment and an independently witnessed human objective → Miner result → source review. Do not treat local test success as that outcome.</p>
+<p class="muted">Limits: a recorded HTTP test is not a signed witness. Listed work comes only from explicitly declared mappings. The reflex cannot authorize code, claims, deployments, or decisions.</p>
+</section>
+</main>
+<!--@@EMBED_SNAPSHOT@@-->
+<script>
+"use strict";
+const find=id=>document.getElementById(id);
+const text=(id,value)=>{find(id).textContent=String(value??"");};
+function show(value){
+ if(!value||value.schema!=="humanaios.on_track_progress/v0.2"
+    ||value.overall!=="UNVERIFIED"||value.human_user_outcome!=="UNVERIFIED"
+    ||value.production_deployment!=="UNVERIFIED"||value.authority_effect!=="NONE"
+    ||value.merge_authority!==false||value.deployment_authority!==false
+    ||!Array.isArray(value.linked_work)||value.linked_work.length>30
+    ||!value.technical_execution||!value.observed_scope)
+    throw new Error("This is not a bounded, advisory On-Track report.");
+ const scope=value.observed_scope;
+ if(scope.repository!=="humanaios-ui/operations")throw new Error("Wrong repository.");
+ const technical=value.technical_execution;
+ if(!["UNVERIFIED","TESTED_LOCAL_HTTP"].includes(technical.state))
+    throw new Error("Unknown technical status.");
+ text("human","UNVERIFIED");
+ text("technical",technical.state==="TESTED_LOCAL_HTTP"?"LOCAL TEST PASSED":"UNVERIFIED");
+ text("production","UNVERIFIED");
+ text("warning","UNVERIFIED — Work and local HTTP observations are not proof of deployed human success.");
+ text("detail",technical.state==="TESTED_LOCAL_HTTP"?
+    "A running loopback service returned "+Number(technical.candidate_count)+
+    " public-looking candidates from a stored snapshot. External links, current terms, and user completion remain unverified.":
+    "No HTTP execution receipt was supplied.");
+ text("scope",Number(scope.inspected)+" sampled items. "+Number(scope.mapped_declarations)+
+    " explicitly mapped, "+Number(scope.unmapped)+" not mapped. "+
+    (scope.partial_sample?"PARTIAL COVERAGE; excludes some historical work or other repositories.":"Scope is repository-specific.")+
+    " Digest: "+String(scope.source_digest).slice(0,64));
+ const tbody=find("work");tbody.replaceChildren();
+ for(const row of value.linked_work){
+   if(typeof row.url!=="string"||
+      !/^https:\/\/github\.com\/humanaios-ui\/operations\/(issues|pull)\/[0-9]+$/.test(row.url))
+     throw new Error("Invalid work link.");
+   if(!["DECLARED_ANCHOR","DECLARED_BY_AUTHOR"].includes(row.goal_mapping))
+     throw new Error("Work link not declared.");
+   const tr=document.createElement("tr"),a=document.createElement("a");
+   a.href=row.url;a.target="_blank";a.rel="noopener noreferrer";
+   a.textContent=String(row.ref||"Work")+
+      " — "+String(row.title||"").slice(0,160);
+   const c1=document.createElement("td");c1.append(a);
+   const c2=document.createElement("td");c2.textContent=String(row.goal_mapping);
+   const c3=document.createElement("td");c3.textContent=String(row.next_action||"").slice(0,220);
+   tr.append(c1,c2,c3);tbody.append(tr);
+ }
+ text("next",String(value.next_milestone||"Verify the human outcome.").slice(0,300));
+ text("status","Report loaded. This file is unsigned. No authority or independent production verification is implied.");
+}
+find("import").addEventListener("change",async e=>{
+ try{
+  const f=e.target.files?.[0];
+  if(!f||f.size>1048576)throw new Error("File absent or too large.");
+  show(JSON.parse(await f.text()));
+ }catch(error){
+  text("status","Refused imported report: "+error.message);
+  text("warning","UNVERIFIED — Imported report was refused.");
+ }
+});
+try{
+ const node=find("embedded-progress");
+ if(node)show(JSON.parse(node.textContent));
+}catch(error){
+ text("status","Embedded evidence refused: "+error.message);
+ text("warning","UNVERIFIED — Embedded report was refused.");
+}
+</script>
+</body>
+</html>
