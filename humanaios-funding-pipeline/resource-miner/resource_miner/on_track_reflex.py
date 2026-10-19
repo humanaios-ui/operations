@@ -199,6 +199,7 @@ def build_report(items: list[dict], repo: str = REPO, *,
 def _markdown_cell(text: object) -> str:
     # Untrusted issue titles must never inject tables, links, or job-summary commands.
     s = str(text).replace("|", "/").replace(chr(96), "'")
+    s = re.sub(r"[\[\]()]","", s)
     s = re.sub(r"[\x00-\x1f\x7f]+", " ", s)
     return s[:130]
 
