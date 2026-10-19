@@ -251,7 +251,7 @@ class CoverageTests(unittest.TestCase):
         }
         report["summary"] = mod.validate(report)
         dashboard = mod.render_dashboard(report)
-        self.assertIn("`hidden\\\\npath.png`", dashboard)
+        self.assertIn("`hidden" + chr(92) + "npath.png`", dashboard)
         self.assertIn("`.env`", dashboard)
         self.assertEqual(dashboard.count("potentially sensitive"), 1)
         self.assertIn("CodeRabbit is not called or authenticated", dashboard)
