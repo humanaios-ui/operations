@@ -236,8 +236,27 @@ def validate(doc):
     }
 
 
-def _markdown_path(path):
-    return "`" + path.replace("\\", "\\\\").replace("`", "\\`").replace("\n", "\\n").replace("|", "\\|") + "`"
+def _markdown_path(path, path_bytes_hex=None):
+    """Render arbitrary Git paths without raw surrogates or unsafe Markdown fences."""
+    try:
+        path.encode("utf-8", errors="strict")
+    except UnicodeEncodeError:
+        raw_hex = path_bytes_hex or path.encode("utf-8", errors="surrogateescape").hex()
+        safe = "non-UTF8 filename bytes: 0x" + raw_hex
+    else:
+        safe = (path.replace("\\", "\\\\")
+                    .replace("\r", "\\r")
+                    .replace("\n", "\\n")
+                    .replace("\t", "\\t")
+                    .replace("|", "\\|"))
+        safe = "".join(
+            f"\\x{ord(ch):02x}" if ord(ch) < 32 or ord(ch) == 127 else ch
+            for ch in safe
+        )
+        safe = safe.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+    longest_run = max((len(m.group(0)) for m in re.finditer(r"`+", safe)), default=0)
+    fence = "`" * (longest_run + 1)
+    return f"{fence} {safe} {fence}" if longest_run else f"{fence}{safe}{fence}"
 
 
 def render_dashboard(doc):
@@ -279,7 +298,7 @@ def render_dashboard(doc):
     lines.extend(["", "## Individually listed exceptions", ""])
     if exceptions:
         lines.extend(
-            f'- {_markdown_path(row["path"])} — {row["file_kind"]}; {row["disposition"]}: {row["reason"]}.'
+            f'- {_markdown_path(row["path"], row.get("path_bytes_hex"))} — {row["file_kind"]}; {row["disposition"]}: {row["reason"]}.'
             for row in exceptions
         )
     else:
