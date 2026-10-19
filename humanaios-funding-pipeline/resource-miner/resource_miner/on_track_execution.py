@@ -100,6 +100,10 @@ def run_probe(origin: str = ORIGIN, *, checkout_sha: str = "UNVERIFIED") -> dict
     if "text/html" not in ctype.lower() or b"/api/intent" not in page or b"INTENT-OS" not in page:
         raise ValueError("Human-facing route unavailable")
     checks = ["GET /intent-os:200"]
+    _, progress_type, progress_page = _request("/on-track")
+    if "text/html" not in progress_type.lower() or b"UNVERIFIED" not in progress_page or b'id="import"' not in progress_page:
+        raise ValueError("Human-facing on-track progress route unavailable")
+    checks.append("GET /on-track:200")
     _, ctype, raw = _request("/api/intent", {"objective": OBJECTIVE, "source_mode": "snapshot"})
     if "application/json" not in ctype:
         raise ValueError("Expected JSON response")
