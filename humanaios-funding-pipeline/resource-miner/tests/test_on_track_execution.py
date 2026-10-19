@@ -112,7 +112,7 @@ class TechnicalWitnessTests(unittest.TestCase):
 
     def test_bad_response_content_type(self):
         samples = fake_http([candidate()])
-        samples[1] = (200, "text/html", samples[1][2])
+        samples[2] = (200, "text/html", samples[2][2])
         with patch.object(execution, "_request", side_effect=samples):
             with self.assertRaises(ValueError):
                 execution.run_probe()
