@@ -1,0 +1,100 @@
+# Read-only technical measurement; neither a deploy nor a governance/admission gate.
+name: on-track-reflex-execution
+
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/**'
+      - '.github/workflows/on-track-reflex-execution.yml'
+      - '.github/workflows/on-track-reflex-observe.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  inspect:
+    if: github.repository == 'humanaios-ui/operations'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Run bounded reflex and execution tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 -m unittest discover -s tests -p 'test_on_track_*.py' -v
+          python3 -m resource_miner.on_track_execution --smoke-test
+          python3 -m resource_miner.on_track_progress --smoke-test
+
+      - name: Obtain fresh issue/PR observation (not independent corroboration)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 -m resource_miner.on_track_reflex --repo humanaios-ui/operations \
+            --max-pages 3 --json-out ../../outputs/on_track_reflex.json \
+            --markdown-out ../../outputs/on_track_reflex.md
+
+      - name: Start actual local Miner and witness the HTTP path
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          CHECKOUT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 app.py --host 127.0.0.1 --port 8766 >/tmp/on_track_miner.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if python3 -c 'from urllib.request import urlopen; urlopen("http://127.0.0.1:8766/intent-os", timeout=1).close()' 2>/dev/null; then break; fi
+            sleep 1
+          done
+          python3 -m resource_miner.on_track_execution \
+            --origin http://127.0.0.1:8766 \
+            --checkout-sha "$CHECKOUT_SHA" --output ../../outputs/on_track_execution.json
+
+      - name: Join technical evidence into human-facing progress
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 -m resource_miner.on_track_progress \
+            --report ../../outputs/on_track_reflex.json \
+            --receipt ../../outputs/on_track_execution.json \
+            --template on-track.html \
+            --json-out ../../outputs/on_track_progress.json \
+            --html-out ../../outputs/on_track_progress.html
+
+      - name: Publish honest summary
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          p = json.load(open('outputs/on_track_progress.json', encoding='utf-8'))
+          print("## INTENT-OS goal progress — non-authoritative")
+          print()
+          print("**Human outcome: UNVERIFIED. Production: UNVERIFIED.**")
+          print()
+          print("Local Miner HTTP:", p["technical_execution"]["state"])
+          print("Candidates seen in local snapshot:", p["technical_execution"]["candidate_count"])
+          print("Declared goal links:", p["observed_scope"]["mapped_declarations"])
+          print("Partial coverage:", p["observed_scope"]["partial_sample"])
+          print("Unsigned report digest:", p["sha256"])
+          print()
+          print("Read the attached HTML and JSON. This job cannot merge, admit, deploy or grant eligibility.")
+          PY
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: on-track-execution-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            outputs/on_track_reflex.json
+            outputs/on_track_reflex.md
+            outputs/on_track_execution.json
+            outputs/on_track_progress.json
+            outputs/on_track_progress.html
+          retention-days: 30
