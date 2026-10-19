@@ -46,8 +46,8 @@ jobs:
           python3 -m resource_miner.on_track_reflex \
             --repo humanaios-ui/operations \
             --max-pages 3 \
-            --json-out ../../../outputs/on_track_reflex.json \
-            --markdown-out ../../../outputs/on_track_reflex.md
+            --json-out ../../outputs/on_track_reflex.json \
+            --markdown-out ../../outputs/on_track_reflex.md
 
       - name: Show the operator the evidence gaps
         run: cat outputs/on_track_reflex.md >> "$GITHUB_STEP_SUMMARY"
