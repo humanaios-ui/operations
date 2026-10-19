@@ -75,11 +75,11 @@ function show(value){
  if(!["UNVERIFIED","TESTED_LOCAL_HTTP"].includes(technical.state))
     throw new Error("Unknown technical status.");
  text("human","UNVERIFIED");
- text("technical",technical.state==="TESTED_LOCAL_HTTP"?"LOCAL TEST PASSED":"UNVERIFIED");
+ text("technical",technical.state==="TESTED_LOCAL_HTTP"?"LOCAL TEST REPORTED":"UNVERIFIED");
  text("production","UNVERIFIED");
  text("warning","UNVERIFIED — Work and local HTTP observations are not proof of deployed human success.");
  text("detail",technical.state==="TESTED_LOCAL_HTTP"?
-    "A running loopback service returned "+Number(technical.candidate_count)+
+    "An unsigned run reports that a loopback service returned "+Number(technical.candidate_count)+
     " public-looking candidates from a stored snapshot. External links, current terms, and user completion remain unverified.":
     "No HTTP execution receipt was supplied.");
  text("scope",Number(scope.inspected)+" sampled items. "+Number(scope.mapped_declarations)+
