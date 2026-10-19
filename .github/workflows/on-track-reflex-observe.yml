@@ -49,6 +49,20 @@ jobs:
             --json-out ../../outputs/on_track_reflex.json \
             --markdown-out ../../outputs/on_track_reflex.md
 
+      - name: Echo bounded evidence counts to run logs
+        run: |
+          python3 - <<'PY'
+          import json
+          r = json.load(open('outputs/on_track_reflex.json', encoding='utf-8'))
+          print('scope:', json.dumps(r['scope'], sort_keys=True))
+          print('counts:', json.dumps(r['counts'], sort_keys=True))
+          print('overall:', r['overall'], 'digest:', r['snapshot_sha256'])
+          for item in r['items']:
+              if item['goal_mapping'] != 'UNMAPPED':
+                  print(item['ref'], item['goal_mapping'], item['landing_state'],
+                        item['exact_head_ci'], item['operator_outcome'])
+          PY
+
       - name: Show the operator the evidence gaps
         run: cat outputs/on_track_reflex.md >> "$GITHUB_STEP_SUMMARY"
 
