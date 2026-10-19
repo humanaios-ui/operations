@@ -1,0 +1,62 @@
+# Advisory observer only. No rights to alter repository files, issues, PRs or admission.
+# Event-driven sampling, not a time-based governance clock.
+name: on-track-reflex-observe
+
+on:
+  workflow_dispatch: {}
+  issues:
+    types: [opened, edited, reopened, closed, labeled, unlabeled]
+  pull_request:
+    types: [opened, edited, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: on-track-reflex-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  observe:
+    if: github.repository == 'humanaios-ui/operations'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Prove observer boundaries with synthetic tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 -m unittest discover -s tests -p 'test_on_track_reflex.py' -v
+          python3 -m resource_miner.on_track_reflex --smoke-test
+
+      - name: Observe bounded GitHub work inventory
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 -m resource_miner.on_track_reflex \
+            --repo humanaios-ui/operations \
+            --max-pages 3 \
+            --json-out ../../../outputs/on_track_reflex.json \
+            --markdown-out ../../../outputs/on_track_reflex.md
+
+      - name: Show the operator the evidence gaps
+        run: cat outputs/on_track_reflex.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish non-authoritative observation
+        uses: actions/upload-artifact@v7
+        with:
+          name: on-track-reflex-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            outputs/on_track_reflex.json
+            outputs/on_track_reflex.md
+          retention-days: 30
