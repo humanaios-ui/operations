@@ -15,6 +15,7 @@ import json
 import re
 import sys
 import subprocess
+import unicodedata
 from pathlib import Path
 
 STATES = {"PENDING", "REVIEWED", "NOT_APPLICABLE", "UNSUPPORTED", "SKIPPED_LIMIT", "FAILED"}
@@ -244,16 +245,15 @@ def _markdown_path(path, path_bytes_hex=None):
         raw_hex = path_bytes_hex or path.encode("utf-8", errors="surrogateescape").hex()
         safe = "non-UTF8 filename bytes: 0x" + raw_hex
     else:
-        safe = (path.replace("\\", "\\\\")
-                    .replace("\r", "\\r")
+        # Inside a Markdown code span, pipes and backslashes are literal.
+        safe = (path.replace("\r", "\\r")
                     .replace("\n", "\\n")
-                    .replace("\t", "\\t")
-                    .replace("|", "\\|"))
+                    .replace("\t", "\\t"))
         safe = "".join(
-            f"\\x{ord(ch):02x}" if ord(ch) < 32 or ord(ch) == 127 else ch
+            (f"\\u{ord(ch):04x}" if unicodedata.category(ch) == "Cf" else
+             f"\\x{ord(ch):02x}" if ord(ch) < 32 or ord(ch) == 127 else ch)
             for ch in safe
         )
-        safe = safe.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     longest_run = max((len(m.group(0)) for m in re.finditer(r"`+", safe)), default=0)
     fence = "`" * (longest_run + 1)
     return f"{fence} {safe} {fence}" if longest_run else f"{fence}{safe}{fence}"
