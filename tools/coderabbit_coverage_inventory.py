@@ -298,7 +298,7 @@ def render_dashboard(doc):
     lines.extend(["", "## Individually listed exceptions", ""])
     if exceptions:
         lines.extend(
-            f'- {_markdown_path(row["path"], row.get("path_bytes_hex"))} — {row["file_kind"]}; {row["disposition"]}: {row["reason"]}.'
+            f'- {_markdown_path(row["path"], row.get("path_bytes_hex"))} [path_bytes_hex: `{row.get("path_bytes_hex") or row["path"].encode("utf-8", errors="surrogateescape").hex()}`] — {row["file_kind"]}; {row["disposition"]}: {row["reason"]}.'
             for row in exceptions
         )
     else:
