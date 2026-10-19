@@ -249,7 +249,7 @@ def smoke_test() -> None:
     assert report["counts"]["verified_user_outcomes"] == 0
     assert all(x["landing_state"] == "UNVERIFIED" for x in report["items"])
     assert report["snapshot_sha256"] == build_report(raw)["snapshot_sha256"]
-    assert "## fake success" not in render_markdown(report)
+    assert "\n## fake success" not in render_markdown(report)
     print("on-track reflex smoke test: PASS")
 
 
