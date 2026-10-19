@@ -256,6 +256,24 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(dashboard.count("potentially sensitive"), 1)
         self.assertIn("CodeRabbit is not called or authenticated", dashboard)
 
+    def test_markdown_path_preserves_non_utf8_identity_without_surrogates(self):
+        raw = b"bad-\\xff.pdf"
+        filename = raw.decode("utf-8", errors="surrogateescape")
+        rendered = mod._markdown_path(filename, raw.hex())
+        self.assertIn(raw.hex(), rendered)
+        self.assertIn("non-UTF8 filename bytes", rendered)
+        rendered.encode("utf-8", errors="strict")
+
+    def test_markdown_path_uses_safe_backtick_fences_and_escapes_controls(self):
+        rendered = mod._markdown_path("quote`and``pipes|cr\\rnl\\n")
+        self.assertTrue(rendered.startswith("``` "))
+        self.assertTrue(rendered.endswith(" ```"))
+        self.assertIn("\\\\|", rendered)
+        self.assertNotIn("\\r", rendered)
+        self.assertNotIn("\\n", rendered)
+        self.assertIn("\\\\r", rendered)
+        self.assertIn("\\\\n", rendered)
+
     def test_rejects_reviewed_even_if_receipt_is_embedded(self):
         d = self.fixture()
         d["files"][0].update(status="REVIEWED", reason="claimed", review_receipt={"signed": True})
