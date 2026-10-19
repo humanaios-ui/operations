@@ -87,6 +87,7 @@ def projection(report: dict, receipt: dict | None) -> dict:
         checks = receipt.get("checks")
         if not isinstance(checks, list) or checks != [
             "GET /intent-os:200",
+            "GET /on-track:200",
             "POST /api/intent snapshot:matching public candidates",
             "POST /api/intent unrelated goal:abstains",
         ]:
