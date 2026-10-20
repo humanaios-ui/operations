@@ -1,3 +1,7 @@
+# Candidate-code functional test, NOT an independent security or admission gate.
+# pull_request executes candidate-controlled tests and this workflow is editable
+# by the PR. No privileged secrets/tokens are passed to those tests. Trusted
+# default-branch security/admission checks and Z2 review remain separate.
 name: INTENT-OS collaboration boundary
 
 on:
