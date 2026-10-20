@@ -30,7 +30,7 @@ The private first practice case is not committed. Public repository code contain
 | Actor code | Stable HMAC-derived pseudonym for that login | Public identity or eligibility |
 | Finder acceptance | The verified finder accepted a fingerprint of the shown terms | Service-owner agreement |
 | Principal confirmation | A different verified actor confirmed the same exact terms fingerprint | Authority to accept contracts for that person |
-| Introduction authorization | The finder approved one named lead under matched terms | Message delivery, application, contract, or payment |
+| Introduction authorization | A verified finder submitted one lead ID and a terms fingerprint | Matched terms, message delivery, application, contract, or payment |
 | Outcome report | An actor reported an outcome | Independent verification of that outcome |
 
 Hard invariants:
@@ -59,13 +59,13 @@ One actor code cannot sign both sides of a relationship event. A service owner m
 - The Worker has no collaboration database in v0.1. Export/import is the deliberate two-person handoff.
 - Clearing site data removes the browser copy. Exported files remain under the user’s control.
 
-The HMAC receipt proves that an authenticated actor submitted a fingerprint. It does not prove the hidden content was true. It carries `authority_effect: NONE` and `execution: DISABLED`.
+The HMAC receipt proves only that an authenticated actor submitted a fingerprint. The Worker is stateless: it does not require prior principal/finder receipts before signing an introduction digest. An independent reviewer must verify the full capsule chain: a valid finder receipt, a valid different-actor principal receipt over the same exact terms digest, and an introduction artifact whose terms digest matches those two receipts. The browser's checks are not server-side enforcement. It does not prove the hidden content was true. It carries `authority_effect: NONE` and `execution: DISABLED`.
 
 ## Resource Miner bridge
 
 The cockpit proxies authenticated `POST /api/intent` requests to the existing Resource Miner service through `RESOURCE_MINER_ORIGIN`. The proxy accepts only `objective` and `source_mode`, preserves the 500-character objective limit, caps response size, rejects redirects, and discloses upstream failure.
 
-Candidate relevance remains discovery only. Every attached lead is stored with `eligibility: NOT_ASSESSED`.
+Candidate relevance remains discovery only. Every attached lead is stored with `eligibility: NOT_ASSESSED`. The Worker's read-only proxy uses `redirect: manual` (supported by Cloudflare Workers) and rejects all 3xx responses without following their Location.
 
 ## First-user setup
 
@@ -80,6 +80,10 @@ These are deployment actions for the human operator. A merge does not perform th
 7. Import the private practice capsule or create a new local finder draft. Accept the finder role.
 
 For the second user, add their identity to both Access and the Worker allow-list. They import the exported capsule, log in with their own identity, choose the exact terms, and export it back. The first user imports it and reaccepts the exact fingerprint.
+
+## CI trust boundary
+
+The path-specific `pull_request` workflow runs candidate-controlled scripts on candidate-controlled code. Its green result demonstrates bounded functional tests, **not an independent security verdict**. Required trusted default-branch security/admission checks, exact-head independent review, and Z2 approval remain separate. No live credentials are exposed to the pull-request tests.
 
 ## Deployment checks
 
