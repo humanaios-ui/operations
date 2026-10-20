@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.7
+# HumanAIOS Resource Miner v0.1.8
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -23,6 +23,36 @@ Internet / public sources
 ```
 
 The Miner does **not** emit `YOU QUALIFY`, `APPLY_NOW`, or a funding commitment. Every candidate starts with `eligibility_assessed=false` unless a downstream resolver establishes the applicant predicates.
+
+## My AI Footprint: bounded Privacy Footprint Mine
+
+`resource_miner/privacy_footprint.py` adds an on-demand, evidence-only mine for a
+user's own supplied text. The v0.1 kernel detects explicit email, phone, and IP
+address patterns in memory and can identify the same normalized identifier
+across two or more supplied sources. It emits keyed commitments, evidence
+locations, conditional privacy-resource requirements, and a QRC-style receipt.
+Raw source text and detected values are not emitted.
+
+The control path is:
+
+```text
+OAG consent grant -> one RQY audit -> privacy-minimized findings
+  -> conditional Resource Miner requirements -> QRC receipt
+```
+
+This slice makes no network requests, stores no source content, runs no LLM,
+does not fetch provider history, and cannot change or delete anything. An exact
+identifier recurrence is a `LINKAGE_CANDIDATE`, not proof of common identity.
+`ZERO_MATCHES_OBSERVED` is not proof of no exposure. See
+`docs/PRIVACY_FOOTPRINT_MINE.md` and run:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_privacy_footprint.py' -v
+
+# Local one-shot run. The command uses an ephemeral in-memory HMAC key.
+python3 -m resource_miner.privacy_footprint_cli \
+  --input fixtures/privacy_footprint_synthetic.json --pretty
+```
 
 ## MVP discovery adapters
 
@@ -416,6 +446,7 @@ The initial registry includes:
 - Microsoft for Startups — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; bounded program endpoints are re-observed daily.
 - HackerOne — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; the intended resolution unit is `Program x bounty-eligible ScopeAsset`. It remains dependency-gated until the scope-hydrated #680/#683 implementation is present.
 - the HumanAIOS repositories — `EVIDENCE_SOURCE | GOVERNED_SYSTEM`; ordinary issues are not promoted into resources.
+- My AI Footprint — `EVIDENCE_SOURCE` only; an explicit grant bound to one query ID may inspect user-supplied text in memory, but replay prevention is not implemented, and persistent Mine resolution emits `ROLE_ONLY` without reading private content.
 
 Run a Mine resolution manually:
 

@@ -1,0 +1,32 @@
+{
+  "acceptance_rules": {
+    "always_success_negative": "0/400 match; B0/S1=400",
+    "balanced_four_cell": "200/400 match; B0/S0=B0/S1=B1/S0=B1/S1=100 exactly",
+    "bernoulli_half_negative": "95% Wilson CI for match count includes 0.5; no selective reruns",
+    "integrity": "1600 unique accepted ledger records, replay matches hashes and observed source, all negative writes rejected",
+    "truthful_balanced": "400/400 match; B0/S0=200, B1/S1=200"
+  },
+  "claim": "Synthetic data-path qualification only; no AI behavior/alignment claim.",
+  "container_image_digest": null,
+  "container_image_requirement": "Formal Phase 0 qualification remains blocked pending an actual pinned container image digest and execution in that image.",
+  "locked_utc": "2026-10-19T05:22:09.877426+00:00",
+  "n_per_reporter": 400,
+  "negative_test_vectors": [
+    "duplicate",
+    "missing instrument version",
+    "stale timestamp",
+    "forged dedupe key",
+    "observer mismatch"
+  ],
+  "protocol": "ACAT silent tool failure Phase 0 scripted local diagnostic v0.2",
+  "random_seed": 20261019,
+  "reporters": [
+    "truthful_balanced",
+    "always_success_negative",
+    "bernoulli_half_negative",
+    "balanced_four_cell"
+  ],
+  "runner_sha256": "1060baec2aa7540e1b6c7375b3279ac5eeb572cfa483d3e418015b8036501be8",
+  "runtime_fingerprint_sha256": "708331a1ddcbd9ae986f4134b4de11945140a0d11b052ed4e8db500adb396df8",
+  "status": "LOCKED_BEFORE_FIRST_PHASE0_RUN"
+}
