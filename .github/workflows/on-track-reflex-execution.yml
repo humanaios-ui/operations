@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+          # PR checks must use the exact PR head, not GitHub's synthetic merge ref.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
@@ -37,21 +39,25 @@ jobs:
       - name: Obtain fresh issue/PR observation (not independent corroboration)
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          REFLEX_EVENT: ${{ github.event_name }}
+          REFLEX_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         working-directory: humanaios-funding-pipeline/resource-miner
         run: |
           python3 -m resource_miner.on_track_reflex --repo humanaios-ui/operations \
+            --execution-event "$REFLEX_EVENT" --execution-sha "$REFLEX_SHA" \
             --max-pages 3 --json-out ../../outputs/on_track_reflex.json \
             --markdown-out ../../outputs/on_track_reflex.md
 
       - name: Start actual local Miner and witness the HTTP path
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
-          CHECKOUT_SHA: ${{ github.sha }}
+          CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           python3 app.py --host 127.0.0.1 --port 8766 >/tmp/on_track_miner.log 2>&1 &
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true' EXIT
+          test "$(git rev-parse HEAD)" = "$CHECKOUT_SHA"
           for i in 1 2 3 4 5 6 7 8 9 10; do
             if python3 -c 'from urllib.request import urlopen; urlopen("http://127.0.0.1:8766/intent-os", timeout=1).close()' 2>/dev/null; then break; fi
             sleep 1
