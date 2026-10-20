@@ -278,6 +278,39 @@ class PrivacyFootprintMineTests(unittest.TestCase):
         self.assertEqual(result.state, "ZERO_MATCHES_OBSERVED")
         self.assertLess(elapsed, 2.0)
 
+    def test_unicode_email_lookalike_never_links_to_ascii_identifier(self):
+        grant, query, sources, key = fixture_objects()
+        unicode_sources = (
+            replace(sources[0], content="Synthetic aliſe@example.test"),
+            replace(sources[1], content="Synthetic alise@example.test"),
+        )
+        result = run_privacy_footprint_audit(
+            grant, query, unicode_sources,
+            pseudonymization_key=key, clock=fixed_clock,
+        )
+        self.assertNotIn(
+            "CROSS_SOURCE_LINKAGE",
+            {finding.finding_type for finding in result.findings},
+        )
+        emails = [
+            finding for finding in result.findings
+            if finding.finding_type == "EMAIL_ADDRESS"
+        ]
+        self.assertEqual(len(emails), 1)
+        self.assertEqual(emails[0].source_ids, (sources[1].source_id,))
+
+    def test_generic_data_removal_does_not_invent_privacy_tool(self):
+        candidate = normalize_generic(
+            title="Synthetic generic data removal service",
+            url="https://example.test/data-removal",
+            source_name="Synthetic",
+            discovery_method="test",
+            body_text="Data removal.",
+            observed_at="2026-10-18T22:30:00Z",
+        )
+        self.assertNotIn("privacy_tool", candidate.resource_types)
+        self.assertNotIn("data_minimization", candidate.resource_affordances)
+
     def test_unicode_digits_are_not_phone_or_ip_identifiers(self):
         grant, query, sources, key = fixture_objects()
         scan_grant = replace(
