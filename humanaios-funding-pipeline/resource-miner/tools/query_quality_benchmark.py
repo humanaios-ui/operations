@@ -3,7 +3,7 @@
 Caller-supplied search baselines are NOT observed or verified by this script.
 The script performs no network I/O, stores no objectives and changes no state.
 Run from the resource-miner directory:
-  python3 tools/query_quality_benchmark.py fixtures/query_quality_synthetic.json
+  python3 -m tools.query_quality_benchmark fixtures/query_quality_synthetic.json
 """
 from __future__ import annotations
 
