@@ -43,13 +43,13 @@ GITHUB_TOKEN='<read-only token>' python3 -m resource_miner.on_track_reflex \
     --json-out outputs/report.json --markdown-out outputs/report.md
 ```
 
-Use the GitHub Actions `on-track-reflex-observe` manual run or an issue/PR change to generate a run summary and downloadable JSON/Markdown artifact. It fetches up to three pages (100 entries each) of **open** GitHub issues including PRs, plus closed objective anchor #822. The report indicates if pagination was truncated and **always** declares missing closed-work history and all other repositories. API failures produce a failed job, not an optimistic result.
+Use the GitHub Actions `on-track-reflex-observe` manual run or an issue/PR change to generate a run summary and downloadable JSON/Markdown artifact. It fetches up to three pages (100 entries each) of **open** GitHub issues including PRs, plus closed objective anchor #822. Offset pagination is not a point-in-time snapshot; the report **never claims a complete open-work inventory**, even when the last page has no next link. It signals repeated rows as sampling instability, and explicitly omits closed-work history and other repositories. API failures produce a failed job, not an optimistic result.
 
 No credentials are stored in the JSON. No issue, pull request, workflow, deployment, source-of-truth file, or protected setting is changed by the workflow.
 
 ### Declaration for work truly associated with the goal
 
-Place this single exact line at the start of an issue or PR body:
+Place this single exact line as the **first non-empty line** of an issue or PR body. CRLF or LF is accepted. All later declarations are checked for contradictions. A fenced example elsewhere in the body is not a declaration:
 
 ```text
 on_track_target: INTENT_OS_RESOURCE_MINER_USABLE
@@ -82,3 +82,7 @@ Repeat on real GitHub observations. **No status check promotion, automatic admis
 Add a read-only *exact-commit CI receipt* adapter and an independent, replayable `/intent-os` production smoke receipt: user objective submitted → candidates visible → official source accessible → eligibility uncertainty accurately communicated. Only then can the INTENT-OS operator panel show **TESTED** or **OBSERVED** with honest provenance.
 
 **Falsifier:** A merged PR, a README claim, a model-written test claim, a proposed graph relation, or a successful workflow alone produces a verified real-world outcome. If any can, reject the reflex.
+
+## Security and provenance of candidate code
+
+Pull-request workflow runs execute PR-controlled candidate code; the read-only API token must not be treated as a witness credential. Every report and Actions summary labels the event and checkout commit and marks PR events as `candidate_code: true`. The observation never grants authority and does not establish independence. `complete_open_work_inventory` stays `false` for offset pagination, and dangerous issue titles are HTML-escaped before Markdown and HTML rendering.
