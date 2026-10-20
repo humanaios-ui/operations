@@ -1,0 +1,79 @@
+# Advisory observer only. No rights to alter repository files, issues, PRs or admission.
+# Event-driven sampling, not a time-based governance clock.
+name: on-track-reflex-observe
+
+on:
+  workflow_dispatch: {}
+  issues:
+    types: [opened, edited, reopened, closed, labeled, unlabeled]
+  pull_request:
+    types: [opened, edited, synchronize, reopened, closed, labeled, unlabeled]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: on-track-reflex-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  observe:
+    if: github.repository == 'humanaios-ui/operations'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Prove observer boundaries with synthetic tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 -m unittest discover -s tests -p 'test_on_track_reflex.py' -v
+          python3 -m resource_miner.on_track_reflex --smoke-test
+
+      - name: Observe bounded GitHub work inventory
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REFLEX_EVENT: ${{ github.event_name }}
+          REFLEX_SHA: ${{ github.sha }}
+        run: |
+          python3 -m resource_miner.on_track_reflex \
+            --repo humanaios-ui/operations \
+            --execution-event "$REFLEX_EVENT" --execution-sha "$REFLEX_SHA" \
+            --max-pages 3 \
+            --json-out ../../outputs/on_track_reflex.json \
+            --markdown-out ../../outputs/on_track_reflex.md
+
+      - name: Echo bounded evidence counts to run logs
+        run: |
+          python3 - <<'PY'
+          import json
+          r = json.load(open('outputs/on_track_reflex.json', encoding='utf-8'))
+          print('scope:', json.dumps(r['scope'], sort_keys=True))
+          print('counts:', json.dumps(r['counts'], sort_keys=True))
+          print('overall:', r['overall'], 'digest:', r['snapshot_sha256'])
+          for item in r['items']:
+              if item['goal_mapping'] != 'UNMAPPED':
+                  print(item['ref'], item['goal_mapping'], item['landing_state'],
+                        item['exact_head_ci'], item['operator_outcome'])
+          PY
+
+      - name: Show the operator the evidence gaps
+        run: cat outputs/on_track_reflex.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish non-authoritative observation
+        uses: actions/upload-artifact@v7
+        with:
+          name: on-track-reflex-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            outputs/on_track_reflex.json
+            outputs/on_track_reflex.md
+          retention-days: 30
