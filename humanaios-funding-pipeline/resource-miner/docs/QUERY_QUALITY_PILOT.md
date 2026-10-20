@@ -75,7 +75,7 @@ cooling the mark out. Those are **possible adversarial risk lenses**, not
 verified observations about any named organization or source.
 
 Apply them to **resist misleading opportunity promotion**, not to manipulate
-users: expose source identity and actual official URLs rather than trusting
+users: expose source identity and candidate source URLs requiring official-source verification rather than trusting
 an authority-sounding title; preserve negative/unknown evidence; flag
 unsupported guarantee/pressure language for human review; avoid ranking
 based on claimed effort or a persuasive tone. A bounded `source_risk.py` implementation now surfaces only lexical review flags for
