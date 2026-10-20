@@ -199,11 +199,11 @@ check("Miner proxy refuses redirects even if redirect body claims JSON",
   r.status === 502 && /redirect/i.test((await r.json()).error));
 minerRedirect = false;
 r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work", persist: true }), collabEnv);
-check("intent proxy refuses execution-shaped fields before the upstream call", r.status === 400 && minerCalls === 1);
+check("intent proxy refuses execution-shaped fields before the upstream call", r.status === 400 && minerCalls === 2);
 r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work", source_mode: "live" }), {
   ...collabEnv, RESOURCE_MINER_ORIGIN: "http://miner.example.test",
 });
-check("non-HTTPS or missing Resource Miner origin fails explicitly", r.status === 503 && minerCalls === 1);
+check("non-HTTPS or missing Resource Miner origin fails explicitly", r.status === 503 && minerCalls === 2);
 
 r = await worker.fetch(req("/collaborate", authHeaders), collabEnv);
 check("/collaborate redirects a verified user to the practice cockpit",
