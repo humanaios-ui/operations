@@ -133,7 +133,7 @@
         "focus_areas": [],
         "workflow_health_signal": "consolidation produced PRs weeks 1 & 3 (merged); weeks 4 & 5 (pending merge); week 2 status unclear"
       },
-      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Monitor PRs #724, #817, #931 for merge completion. Diagnose week 2 consolidation status. Once workflow confirmed healthy and 4-5 observations accumulated, re-run:\ntools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44\nto measure true accuracy trend and calibration drift on full sample.",
+      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Monitor PRs #724, #817, #931 for merge completion. Diagnose week 2 consolidation status. Once workflow confirmed healthy and 4-5 observations accumulated, re-run:\npython3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44\nto measure true accuracy trend and calibration drift on full sample.",
       "smag_generated": true,
       "meta_signal": true,
       "timestamp": "2026-10-20T10:01:27Z"

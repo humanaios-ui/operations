@@ -28,12 +28,14 @@
 
 ### Weekly Consolidation Cycle Inventory
 
-Expected consolidation PRs (weekly Mon 06:17 UTC):
-- Week 1 (2026-09-15 ~ 2026-09-22): ✅ PR #432 (opened 2026-09-21, merged 2026-09-21)
-- Week 2 (2026-09-22 ~ 2026-09-29): ⏭️ (no open tracking; verify if workflow ran)
-- Week 3 (2026-09-29 ~ 2026-10-06): ✅ PR #573 (opened 2026-09-28, merged 2026-10-01)
-- Week 4 (2026-10-06 ~ 2026-10-13): 🔄 PR #724 (opened 2026-10-05, status: open)
-- Week 5 (2026-10-13 ~ 2026-10-20): 🔄 PR #817 (opened 2026-10-12, status: open) · 🔄 PR #931 (opened 2026-10-19, status: open)
+Expected consolidation PRs (weekly Mon 06:17 UTC; grouped by listed opening date):
+- 2026-09-21: ✅ PR #432 (merged 2026-09-21)
+- 2026-09-28: ✅ PR #573 (merged 2026-10-01)
+- 2026-10-05: 🔄 PR #724 (status: open)
+- 2026-10-12: 🔄 PR #817 (status: open)
+- 2026-10-19: 🔄 PR #931 (status: open)
+
+Workflow execution status for any unobserved run remains unverified pending history inspection.
 
 ### Confidence Assessment
 
@@ -45,24 +47,24 @@ Expected consolidation PRs (weekly Mon 06:17 UTC):
 | **Calibration stability** | Cannot assess (need ≥3 observations) |
 | **Recommendation** | Extend window 2 more weeks (until 2026-11-03) |
 
-### Root Cause: Missing Consolidation Runs
+### Open Question: Week 2 Consolidation Status
 
-**Hypothesis:** Consolidation workflow did not execute on schedule in weeks 2, 4, 5.
+**Hypothesis:** Consolidation workflow may not have executed in week 2. Weeks 4 and 5 produced PRs that are still open.
 
 **Action needed (Z2/Z3):** 
-1. Check `.github/workflows/smag-consolidate.yml` execution history
+1. Check `.github/workflows/smag-consolidate.yml` execution history for week 2
 2. If workflow failed: diagnose and fix root cause
 3. If workflow was skipped/not triggered: verify cron or trigger manually
-4. Once fixed: re-trigger missing consolidation PRs or wait for next scheduled runs
+4. Track merge of PRs #724, #817, #931 before extended deadline (2026-11-03)
 
-**Data recovery:** Could manually run `workflow_dispatch` for missed weeks if needed.
+**Data recovery:** Could manually run `workflow_dispatch` for the missing week 2 run if needed.
 
 ### Decision Recommendation
 
 **Per META_SMAG_REVIEW_SCHEDULE.md § When to Review Early (Override):**
 
-Condition: `Zero PRs measured` (interpreted as <3 PRs) → Check workflow health  
-Status: ✅ Applicable
+Condition: `Zero PRs measured` (no consolidation activity) → Check workflow health  
+Status: ❌ Not applicable (2 PRs measured)
 
 **Recommended action:**
 - ✅ Extend window 2 more weeks (until ~2026-11-03) to accumulate ≥3 observations
@@ -77,7 +79,7 @@ Status: ✅ Applicable
 **Related files:**
 - `META_SMAG_REVIEW_SCHEDULE.md` — Review window economics and thresholds
 - `.github/workflows/smag-consolidate.yml` — Consolidation workflow schedule (Mon 06:17 UTC)
-- `data/lessons_learned_ledger.json` — Upserts SMAG-META-CALIBRATION-SELF-ACCURACY entry
+- `data/lessons_learned_ledger.json` — Adds SMAG-META-CALIBRATION-4WEEK-CHECKPOINT entry
 
 **Confidence threshold for decision:** ≥3 observations, or <0.60 accuracy if observed  
 **Current status:** Window extension recommended (2026-10-20 → 2026-11-03)
@@ -88,5 +90,5 @@ Status: ✅ Applicable
 
 **Scheduled:** 2026-11-03 (extended window, ~6 weeks total data)  
 **Expected data:** 4-5 consolidation PRs with smag_p_meta predictions  
-**Expected confidence:** "stable" (sufficient for Z2 decision on weighting/recalibration)
+**Expected confidence:** "stable" if the calibration gap is ≤5% (sufficient for Z2 decision on weighting/recalibration)
 
