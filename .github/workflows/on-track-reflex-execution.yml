@@ -29,12 +29,17 @@ jobs:
         with:
           python-version: '3.11'
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
       - name: Run bounded reflex and execution tests
         working-directory: humanaios-funding-pipeline/resource-miner
         run: |
           python3 -m unittest discover -s tests -p 'test_on_track_*.py' -v
           python3 -m resource_miner.on_track_execution --smoke-test
           python3 -m resource_miner.on_track_progress --smoke-test
+          node --test tests/test_on_track_browser.cjs
 
       - name: Obtain fresh issue/PR observation (not independent corroboration)
         env:
