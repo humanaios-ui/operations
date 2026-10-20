@@ -60,6 +60,24 @@ await rejects("principal confirmation names the finder",
 await rejects("introduction authorization names one opportunity",
   () => validateAttestation({ ...base, event_type: "INTRODUCTION_AUTHORIZED", counterparty_actor_id: davidId }, nightId), /requires an opportunity/);
 
+for (const [field, input] of [
+  ["event_type", ["INTRODUCTION_AUTHORIZED"]],
+  ["actor_role", ["FINDER"]],
+  ["relationship_id", ["REL-TESTCASE0001"]],
+  ["artifact_sha256", ["a".repeat(64)]],
+  ["counterparty_actor_id", [davidId]],
+  ["opportunity_id", ["OPP-TEST-001"]],
+]) {
+  await rejects(`reject array-valued ${field} before signing`,
+    () => issueAttestation({ ...base, [field]: input }, night, env), /string|invalid|unsupported/);
+}
+await rejects("array counterparty cannot evade self-counterparty check",
+  () => validateAttestation({ ...base, counterparty_actor_id: [nightId] }, nightId), /counterparty/);
+await rejects("array event cannot bypass introduction requirements",
+  () => issueAttestation({
+    ...base, event_type: ["INTRODUCTION_AUTHORIZED"], actor_role: "FINDER",
+  }, night, env), /event/);
+
 const issued = await issueAttestation(base, night, env, {
   now: new Date("2026-10-20T03:00:00.000Z"),
   uuid: "12345678-1234-1234-1234-1234567890ab",
