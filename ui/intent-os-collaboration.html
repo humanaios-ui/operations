@@ -75,11 +75,12 @@ footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:v
     <input id="commissionExact" type="number" min="0" max="100" step="0.1">
   </div>
   <div class="row">
-    <label class="button" for="importCapsule">Import capsule</label>
-    <input id="importCapsule" type="file" accept="application/json,.json" hidden>
+    <label for="importCapsule">Import a private capsule (keyboard accessible)</label>
+    <input id="importCapsule" type="file" accept="application/json,.json">
     <button id="exportCapsule" class="secondary" disabled>Export capsule</button>
   </div>
   <div id="relationshipSummary" class="notice" hidden></div>
+  <p class="quiet">After a draft is created or imported, the displayed offer fields are read-only. To change an offer, create a new capsule and gather fresh signatures.</p>
 </section>
 
 <section class="panel locked" id="minerPanel" aria-labelledby="minerTitle">
@@ -98,6 +99,9 @@ footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:v
   </form>
   <div id="minerWarning" class="notice" hidden></div>
   <div id="results" class="cards"></div>
+  <h3>Attached leads in this capsule</h3>
+  <p class="quiet">Select a saved lead after import. No new mining request is needed.</p>
+  <div id="attachedResults" class="cards"></div>
 </section>
 
 <section class="panel locked" id="introPanel" aria-labelledby="introTitle">
