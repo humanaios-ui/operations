@@ -12,6 +12,7 @@ import json
 import re
 from urllib.parse import urlsplit
 
+from .source_risk import promotional_claim_flags
 from .query_quality import (
     blocked_resource_types, fuse_rankings, has_exact_anchors, query_terms,
 )
@@ -129,6 +130,8 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             "resource_id": str(row.get("resource_id") or "")[:100],
             "title": title,
             "description": desc[:280],
+            "review_flags": promotional_claim_flags(" ".join((title, desc))),
+            "review_flags_kind": "TEXT_PATTERN_MATCH_NOT_FRAUD_DETERMINATION",
             "source_name": row["source_name"],
             "source_url": url,
             "observed_at": str(row.get("discovered_at") or "")[:50],
