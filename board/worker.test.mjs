@@ -13,10 +13,12 @@ const pair = await gen(), other = await gen(), rotated = await gen();
 const pub = async (k) => { const j = await crypto.subtle.exportKey("jwk", k.publicKey); return { kty: j.kty, n: j.n, e: j.e, alg: "RS256", use: "sig" }; };
 const KID = "kid-1", KID2 = "kid-2";
 let KEYS = [{ kid: KID, ...(await pub(pair)) }]; // what the stubbed certs endpoint serves right now
-let certsDown = false, certsCalls = 0, minerCalls = 0;
+let certsDown = false, certsCalls = 0, minerCalls = 0, minerRedirect = false;
 const fetchStub = async (url, options = {}) => {
   if (url === "https://miner.example.test/api/intent") {
     minerCalls++;
+    if (options.redirect !== "manual") throw new Error("Worker proxy did not enforce manual redirects");
+    if (minerRedirect) return new Response('{"candidates":[]}', { status: 302, headers: { "Content-Type": "application/json", Location: "https://offsite.example.test" } });
     const body = JSON.parse(options.body || "{}");
     return new Response(JSON.stringify({
       candidates: [{ resource_id: "OPP-TEST-001", title: "Agent work", source_name: "Test", source_url: "https://example.test/work" }],
@@ -191,6 +193,11 @@ const mined = await r.json();
 check("verified cockpit proxies a bounded objective to Resource Miner",
   r.status === 200 && minerCalls === 1 && mined.shown_count === 1
   && r.headers.get("X-Resource-Miner-Mode") === "AUTHENTICATED_PROXY");
+minerRedirect = true;
+r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work" }), collabEnv);
+check("Miner proxy refuses redirects even if redirect body claims JSON",
+  r.status === 502 && /redirect/i.test((await r.json()).error));
+minerRedirect = false;
 r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work", persist: true }), collabEnv);
 check("intent proxy refuses execution-shaped fields before the upstream call", r.status === 400 && minerCalls === 1);
 r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work", source_mode: "live" }), {
