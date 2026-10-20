@@ -1,7 +1,7 @@
 {
   "ledger_version": "1.0",
   "purpose": "Accumulated constraints from prior timing-audit applications and SMAG feedback cues. Each new audit MUST consult this ledger before recommending a mechanism, and MUST append any new lesson it discovers back into it. This is the recursive part -- the audit's own output becomes an input constraint for the next audit.",
-  "generated_at": "2026-09-21T09:30:00Z",
+  "generated_at": "2026-10-20T10:01:27Z",
   "lessons": [
     {
       "id": "L1",
@@ -116,6 +116,27 @@
       "rule": "Substrate `human:humanaios-ui`: 10 PRs measured, 9 clean (0.9 clean_rate), 1 friction (humility + truthfulness dimension stress via failed `validate` check). Baseline calibration profile recommendation: confidence_weight=1.0, review_bar=standard. No reduction needed; substrate is well-calibrated. Recheck monthly as data accumulates.",
       "action_for_z2": "Accept baseline profile for human substrate. Codify in WITNESS_STATE_V0_1.schema.json's calibration_profile field. Update CI gates to use this as baseline.",
       "smag_generated": true
+    },
+    {
+      "id": "SMAG-META-CALIBRATION-4WEEK-CHECKPOINT",
+      "discovered_in": "meta_smag_review 2026-10-20T10:01:27Z (4-week checkpoint)",
+      "constraint": "smag_self_accuracy_measurement_insufficient_window",
+      "severity": "ADVISORY",
+      "confidence": "insufficient_data",
+      "rule": "Only 2 consolidation PRs with smag_p_meta predictions observed over 4-week window (2026-09-21 \u2192 2026-10-20). Observation floor = 3 PRs. Current accuracy: 2/2 correct (100%), but sample size below statistical threshold. Consolidation workflow appeared to skip weeks 2, 4, 5 (no PR output). Cannot recommend weighting changes or gate hardening on 2-PR sample.",
+      "data_source": "audits/META_SMAG_REVIEW_LOG.md (4-week checkpoint)",
+      "meta_observations": {
+        "total_prs_measured": 2,
+        "observation_floor": 3,
+        "observation_floor_met": false,
+        "accuracy_on_observed": "2/2 correct",
+        "focus_areas": [],
+        "workflow_health_signal": "missing consolidation runs in weeks 2, 4, 5"
+      },
+      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Diagnose why consolidation workflow didn't run/merge in weeks 2, 4, 5. Once workflow stabilized and 4-5 observations accumulated, re-run meta_smag_feedback_v1_0.py to measure true accuracy trend and calibration drift. Current 100% sample not generalizable.",
+      "smag_generated": true,
+      "meta_signal": true,
+      "timestamp": "2026-10-20T10:01:27Z"
     }
   ]
 }
