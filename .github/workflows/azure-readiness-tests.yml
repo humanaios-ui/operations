@@ -1,0 +1,41 @@
+name: Azure readiness report tests
+on:
+  pull_request:
+    paths:
+      - 'tools/azure_readiness.py'
+      - 'tests/test_azure_readiness.py'
+      - 'tests/test_acat_db_readiness.py'
+      - 'tests/test_metaculus_azure_config.py'
+      - 'acat/api/db.py'
+      - 'infra/metaculus-job.bicep'
+      - '.github/workflows/azure-readiness-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/azure_readiness.py'
+      - 'tests/test_azure_readiness.py'
+      - 'tests/test_acat_db_readiness.py'
+      - 'tests/test_metaculus_azure_config.py'
+      - 'acat/api/db.py'
+      - 'infra/metaculus-job.bicep'
+      - '.github/workflows/azure-readiness-tests.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - run: python3 -m unittest discover -s tests -p test_azure_readiness.py -v
+      - run: python3 tools/azure_readiness.py --smoke-test
+      - run: python3 -m pip install pytest
+      - run: python3 -m pytest tests/test_acat_db_readiness.py -q
+      - run: python3 -m unittest discover -s tests -p test_metaculus_azure_config.py -v
+      - name: Compile Metaculus deployment template
+        uses: azure/cli@v3
+        with:
+          inlineScript: |
+            az bicep build --file infra/metaculus-job.bicep --stdout > /dev/null
