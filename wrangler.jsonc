@@ -3,13 +3,15 @@
 // root directory "/", no build command, deploy command
 // `npx wrangler deploy --var BOARD_COMMIT:$WORKERS_CI_COMMIT_SHA` — the commit stamp the Worker returns as
 // X-Board-Commit). Nothing runs from a laptop.
-// Serves two pages of ui/ — the board and the test dashboard — and only after board/worker.mjs has verified a
-// Cloudflare Access login; run_worker_first makes that check precede the asset router on every path. The Z2
-// reviewer under ui/ reads ../z1-inbox/ at runtime, which is not in the bundle, so the Worker does not offer it.
+// Serves an explicit allow-list of board and collaboration assets from ui/, and only after board/worker.mjs has
+// verified a Cloudflare Access login; run_worker_first makes that check precede the asset router on every path.
+// The Z2 reviewer under ui/ reads ../z1-inbox/ at runtime, which is not in the bundle, so it is not offered.
 // wrangler itself is pinned in package.json (+ package-lock.json) so Workers Builds installs that version.
 // ACCESS_TEAM_DOMAIN, ACCESS_AUD and ACCESS_ALLOWED_EMAILS are set in the dashboard (Settings → Variables), kept
 // by keep_vars; until all three are set the Worker answers 401 to everything but /healthz (d17 holds until d31
 // rules). The Worker enforces the allow-list itself: a valid login for an unlisted identity is 403.
+// The optional delegated-collaboration rehearsal also requires secret COLLAB_HMAC_KEY (32+ bytes) and the HTTPS
+// variable RESOURCE_MINER_ORIGIN. Missing values fail only those APIs closed; no secret belongs in this file.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "intent-os-board",
