@@ -37,7 +37,10 @@
         "complete_open_work_inventory",
         "may_omit_closed_work",
         "sampling_truncated",
-        "cross_repository_coverage"
+        "cross_repository_coverage",
+        "execution_event",
+        "execution_sha",
+        "candidate_code"
       ],
       "additionalProperties": false,
       "properties": {
@@ -65,6 +68,21 @@
         },
         "cross_repository_coverage": {
           "const": false
+        },
+        "execution_event": {
+          "enum": [
+            "OFFLINE_FIXTURE",
+            "pull_request",
+            "issues",
+            "workflow_dispatch"
+          ]
+        },
+        "execution_sha": {
+          "type": "string",
+          "pattern": "^(UNVERIFIED|[0-9a-f]{40})$"
+        },
+        "candidate_code": {
+          "type": "boolean"
         }
       }
     },
@@ -97,7 +115,7 @@
     },
     "items": {
       "type": "array",
-      "maxItems": 500,
+      "maxItems": 501,
       "items": {
         "type": "object",
         "additionalProperties": false,
