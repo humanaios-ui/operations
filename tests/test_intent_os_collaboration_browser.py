@@ -92,7 +92,7 @@ class CollaborationHandler(BaseHTTPRequestHandler):
                 "execution": "DISABLED",
                 "statement": "Test receipt; no authority or execution.",
             }
-            self._json(201, {
+            envelope = {
                 "receipt": receipt,
                 "receipt_sha256": "a" * 64,
                 "signature": {
@@ -100,14 +100,24 @@ class CollaborationHandler(BaseHTTPRequestHandler):
                     "key_scope": "INTENT_OS_COLLABORATION_WORKER",
                     "value": "b" * 64,
                 },
-            })
+            }
+            with self.server.receipt_lock:
+                self.server.issued_envelopes[receipt_id] = envelope
+            self._json(201, envelope)
             return
         if self.path == "/api/collaboration/verify":
+            supplied = body.get("receipt") if isinstance(body, dict) else None
+            receipt_id = supplied.get("receipt_id") if isinstance(supplied, dict) else None
+            with self.server.receipt_lock:
+                authentic = self.server.issued_envelopes.get(receipt_id)
+            if authentic != body:
+                self._json(400, {"valid": False, "reason": "untrusted envelope"})
+                return
             self._json(200, {
                 "valid": True,
-                "receipt_id": body["receipt"]["receipt_id"],
-                "actor_id": body["receipt"]["actor_id"],
-                "event_type": body["receipt"]["event_type"],
+                "receipt_id": receipt_id,
+                "actor_id": supplied["actor_id"],
+                "event_type": supplied["event_type"],
                 "authority_effect": "NONE",
             })
             return
@@ -136,6 +146,7 @@ def app_server():
     server = ThreadingHTTPServer(("127.0.0.1", 0), CollaborationHandler)
     server.receipt_count = 0
     server.receipt_lock = threading.Lock()
+    server.issued_envelopes = {}
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     host, port = server.server_address
@@ -243,14 +254,41 @@ def test_two_verified_users_match_terms_before_one_unsent_introduction(browser, 
         )
         sync_api.expect(finder.locator("#introStatus")).to_have_text("SELECT A LEAD")
 
-        finder.click("#mine")
-        finder.get_by_role("button", name="Select attached lead").click()
+        # Already attached leads remain selectable after a two-user import.
+        finder.locator("#attachedResults").get_by_role("button", name="Select attached lead").click()
         sync_api.expect(finder.locator("#introStatus")).to_have_text("READY")
         finder.click("#authorizeIntro")
         sync_api.expect(finder.locator("#introStatus")).to_have_text("AUTHORIZED · NOT SENT")
         assert finder.locator("#authorizeIntro").is_disabled()
         sync_api.expect(finder.locator("#introText")).to_contain_text("Nothing was sent")
 
+        # A forged principal envelope with the ID of a genuine finder receipt
+        # must not inherit trust from the verified original.
+        before_attack = tmp_path / "before-attack.private.json"
+        current = _export(finder, before_attack)
+        tampered = json.loads(json.dumps(current))
+        originals = tampered["receipts"]
+        finder_receipt = next(
+            row for row in reversed(originals)
+            if row["receipt"]["event_type"] == "FINDER_ROLE_ACCEPTED"
+        )
+        forged = json.loads(json.dumps(finder_receipt))
+        forged["receipt"]["event_type"] = "PRINCIPAL_MANDATE_CONFIRMED"
+        forged["receipt"]["actor_role"] = "PRINCIPAL"
+        forged["receipt"]["actor_id"] = ACTORS["principal"]
+        forged["receipt"]["counterparty_actor_id"] = ACTORS["finder"]
+        tampered["receipts"] = [
+            row for row in originals
+            if row["receipt"]["event_type"] != "PRINCIPAL_MANDATE_CONFIRMED"
+        ] + [forged]
+        forged_file = tmp_path / "forged.private.json"
+        forged_file.write_text(json.dumps(tampered), encoding="utf-8")
+        finder.set_input_files("#importCapsule", forged_file)
+        sync_api.expect(finder.locator("#relationshipStatus")).not_to_have_text("READY_FOR_INTRODUCTION_REVIEW")
+        assert finder.locator("#authorizeIntro").is_disabled()
+
+        finder.set_input_files("#importCapsule", before_attack)
+        sync_api.expect(finder.locator("#relationshipStatus")).to_have_text("READY_FOR_INTRODUCTION_REVIEW")
         final_export = tmp_path / "authorized.private.json"
         final_capsule = _export(finder, final_export)
         events = [item["receipt"]["event_type"] for item in final_capsule["receipts"]]
