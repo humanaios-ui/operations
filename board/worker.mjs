@@ -1,4 +1,11 @@
-// board/worker.mjs — the Intent-OS board and dashboard, served only behind a Cloudflare Access login.
+// board/worker.mjs — the Intent-OS board and collaboration cockpit, served only behind Cloudflare Access.
+
+import {
+  actorIdFor,
+  collaborationConfigured,
+  issueAttestation,
+  verifyAttestationEnvelope,
+} from "./collaboration.mjs";
 //
 // Z2's direction (2026-09-18): "I don't want any public, I want to have to login to open the board."
 // d17 (2026-09-14) ruled the board local only; d31 (z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md) asks to
@@ -17,9 +24,12 @@
 //   * ACCESS_TEAM_DOMAIN, ACCESS_AUD or ACCESS_ALLOWED_EMAILS unset → 401 "Access is not configured". Fails
 //     closed: a deploy without the login and the list in front of it publishes nothing.
 //   * `assets.run_worker_first` in wrangler.jsonc makes this code run BEFORE the asset router, so no path
-//     under ui/ is reachable without passing the check above — and only the pages in SERVED are served at
-//     all (the board, its four section pages, the test dashboard): the Z2 reviewer under ui/ reads
+//     under ui/ is reachable without passing the check above — and only the paths in SERVED are served at
+//     all (the board, its four section pages, the test dashboard, and collaboration cockpit assets). The Z2 reviewer under ui/ reads
 //     ../z1-inbox/ at runtime, which is not in the bundle, so it is not offered here rather than offered broken.
+//   * the collaboration cockpit is local-first. The Worker returns a pseudonymous actor code, signs only
+//     bounded artifact digests, and proxies the existing read-only Resource Miner intent endpoint. It has no
+//     collaboration database and no message, application, contract, invoice, or payment execution path.
 //   * the relay is untouched: the board still POSTs to it cross-origin with its own HMAC and gate; the
 //     Content-Security-Policy below names the relay and raw.githubusercontent.com (the dashboard's live
 //     read) as the only connect targets. CSP_CONNECT_SRC (a Worker variable) overrides that list if the
@@ -45,10 +55,14 @@
 // Self-test: `node board/worker.test.mjs` (no network; a generated key signs the test tokens).
 
 const BOARD = "/intent-os-humanaios-v3_3.html";
-// the board, its four section pages (generated from it by tools/intent_os_pages_v1_0.py) and the test dashboard —
-// nothing else under ui/ (the Z2 reviewer reads ../z1-inbox at runtime, which is not in the bundle)
+const COLLABORATION = "/intent-os-collaboration.html";
+// Explicit static allow-list. Nothing else under ui/ is served (the Z2 reviewer reads ../z1-inbox at runtime,
+// which is not in the bundle).
 const SERVED = new Set([BOARD, "/intent-os-decisions.html", "/intent-os-commitments.html", "/intent-os-records.html",
-  "/intent-os-arena.html", "/intent-os-test-dashboard-v1_0.html"]);
+  "/intent-os-arena.html", "/intent-os-test-dashboard-v1_0.html", COLLABORATION,
+  "/intent-os-collaboration.js"]);
+const MAX_JSON_BODY = 16 * 1024;
+const MAX_MINER_RESPONSE = 1024 * 1024;
 const CERTS_TTL_MS = 5 * 60 * 1000; // within this window the snapshot is used without a fetch
 const CERTS_REFRESH_MIN_MS = 30 * 1000; // an unknown kid forces a refresh at most this often
 const CERTS_MAX_AGE_MS = 24 * 60 * 60 * 1000; // last-known-good bound when the certs endpoint fails
@@ -145,7 +159,8 @@ export async function verifyAccessJwt(token, env, fetchFn = fetch, nowSec = Date
   // only an identity on ACCESS_ALLOWED_EMAILS gets the page. A widened Access policy is therefore not enough.
   const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
   if (!email || !allowedEmails(env).has(email)) return { ok: false, status: 403, why: "identity is not on the allow-list" };
-  return { ok: true, email };
+  const subject = typeof payload.sub === "string" ? payload.sub.trim() : "";
+  return { ok: true, email, subject, issuer: payload.iss };
 }
 
 // every answer this Worker gives is uncacheable, unindexed, unframed, un-sniffed and leaks no referrer —
@@ -172,20 +187,172 @@ function commitOf(env) {
   return (env && typeof env.BOARD_COMMIT === "string" && env.BOARD_COMMIT.trim()) || "unknown";
 }
 
+function jsonAnswer(env, status, value, extra = {}) {
+  return answer(env, status, JSON.stringify(value), {
+    "Content-Type": "application/json; charset=utf-8",
+    ...extra,
+  });
+}
+
+async function readBoundedBytes(stream, maxBytes) {
+  if (!stream) return new Uint8Array();
+  const reader = stream.getReader();
+  const chunks = [];
+  let size = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > maxBytes) {
+      await reader.cancel("body limit exceeded");
+      throw new Error("body is too large");
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return bytes;
+}
+
+async function readBoundedJson(request, maxBytes = MAX_JSON_BODY) {
+  const contentType = (request.headers.get("Content-Type") || "").toLowerCase();
+  if (!contentType.startsWith("application/json")) throw new Error("Content-Type must be application/json");
+  const claimed = Number(request.headers.get("Content-Length") || "0");
+  if (Number.isFinite(claimed) && claimed > maxBytes) throw new Error("JSON body is too large");
+  const bytes = await readBoundedBytes(request.body, maxBytes);
+  if (!bytes.byteLength) throw new Error("JSON body is required");
+  let parsed;
+  try { parsed = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); }
+  catch { throw new Error("JSON body is invalid"); }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("JSON body must be an object");
+  return parsed;
+}
+
+function resourceMinerOrigin(env) {
+  const raw = env && typeof env.RESOURCE_MINER_ORIGIN === "string"
+    ? env.RESOURCE_MINER_ORIGIN.trim() : "";
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash
+      || (url.pathname !== "/" && url.pathname !== "")) return "";
+    return url.origin;
+  } catch { return ""; }
+}
+
+function validIntentRequest(body) {
+  const keys = Object.keys(body);
+  if (keys.some((key) => !["objective", "source_mode"].includes(key))) return false;
+  if (typeof body.objective !== "string" || body.objective.trim().length < 3
+    || body.objective.trim().length > 500) return false;
+  return body.source_mode === undefined || ["live", "snapshot"].includes(body.source_mode);
+}
+
+async function proxyIntent(request, env) {
+  const origin = resourceMinerOrigin(env);
+  if (!origin) return jsonAnswer(env, 503, { error: "Resource Miner is not configured for this cockpit." });
+  let body;
+  try { body = await readBoundedJson(request, 4096); }
+  catch (error) { return jsonAnswer(env, 400, { error: error.message }); }
+  if (!validIntentRequest(body)) return jsonAnswer(env, 400, { error: "Invalid objective or source_mode." });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45_000);
+  try {
+    const upstream = await fetch(`${origin}/api/intent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        objective: body.objective.trim(),
+        source_mode: body.source_mode || "live",
+      }),
+      redirect: "error",
+      signal: controller.signal,
+    });
+    const contentType = (upstream.headers.get("Content-Type") || "").toLowerCase();
+    const claimed = Number(upstream.headers.get("Content-Length") || "0");
+    if (!contentType.startsWith("application/json")
+      || (Number.isFinite(claimed) && claimed > MAX_MINER_RESPONSE)) {
+      return jsonAnswer(env, 502, { error: "Resource Miner returned an invalid response." });
+    }
+    let bytes;
+    try { bytes = await readBoundedBytes(upstream.body, MAX_MINER_RESPONSE); }
+    catch { return jsonAnswer(env, 502, { error: "Resource Miner response was too large." }); }
+    let value;
+    try { value = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); }
+    catch { return jsonAnswer(env, 502, { error: "Resource Miner returned invalid JSON." }); }
+    return jsonAnswer(env, upstream.status, value, { "X-Resource-Miner-Mode": "AUTHENTICATED_PROXY" });
+  } catch (error) {
+    return jsonAnswer(env, 503, {
+      error: error && error.name === "AbortError"
+        ? "Resource Miner timed out." : "Resource Miner is unavailable.",
+    });
+  } finally { clearTimeout(timer); }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const readOnly = request.method === "GET" || request.method === "HEAD";
     if (url.pathname === "/healthz") {
       if (!readOnly) return refuse(env, 405, "read-only surface");
-      return answer(env, 200, JSON.stringify({ board: "ok", access_configured: configured(env) }), { "Content-Type": "application/json" });
+      return answer(env, 200, JSON.stringify({
+        board: "ok",
+        access_configured: configured(env),
+        collaboration_configured: collaborationConfigured(env),
+        resource_miner_configured: !!resourceMinerOrigin(env),
+      }), { "Content-Type": "application/json" });
     }
     const v = await verifyAccessJwt(tokenFrom(request), env); // an unauthenticated request learns nothing but 401
     if (!v.ok) return refuse(env, v.status || 401, v.why); // 403 only for a valid token whose identity is not listed
     const stamp = { "X-Board-Commit": commitOf(env) }; // only a logged-in identity learns the commit
+    if (url.pathname === "/api/session") {
+      if (request.method !== "GET") return jsonAnswer(env, 405, { error: "GET required." }, stamp);
+      if (!collaborationConfigured(env)) {
+        return jsonAnswer(env, 503, { error: "Collaboration receipts are not configured." }, stamp);
+      }
+      try {
+        return jsonAnswer(env, 200, {
+          actor_id: await actorIdFor(v, env),
+          authentication: "CLOUDFLARE_ACCESS_JWT_VERIFIED",
+          identity_disclosure: "PSEUDONYMOUS_ACTOR_ID_ONLY",
+          onboarding_storage: "BROWSER_LOCAL",
+          authority_effect: "NONE",
+          execution: "DISABLED",
+        }, stamp);
+      } catch { return jsonAnswer(env, 503, { error: "Verified session could not be created." }, stamp); }
+    }
+    if (url.pathname === "/api/intent") {
+      if (request.method !== "POST") return jsonAnswer(env, 405, { error: "POST required." }, stamp);
+      const response = await proxyIntent(request, env);
+      const headers = new Headers(response.headers);
+      headers.set("X-Board-Commit", stamp["X-Board-Commit"]);
+      return new Response(response.body, { status: response.status, headers });
+    }
+    if (url.pathname === "/api/collaboration/attest") {
+      if (request.method !== "POST") return jsonAnswer(env, 405, { error: "POST required." }, stamp);
+      if (!collaborationConfigured(env)) {
+        return jsonAnswer(env, 503, { error: "Collaboration receipts are not configured." }, stamp);
+      }
+      try {
+        const body = await readBoundedJson(request);
+        return jsonAnswer(env, 201, await issueAttestation(body, v, env), stamp);
+      } catch (error) { return jsonAnswer(env, 400, { error: error.message }, stamp); }
+    }
+    if (url.pathname === "/api/collaboration/verify") {
+      if (request.method !== "POST") return jsonAnswer(env, 405, { error: "POST required." }, stamp);
+      try {
+        const body = await readBoundedJson(request);
+        const result = await verifyAttestationEnvelope(body, env);
+        return jsonAnswer(env, result.valid ? 200 : 400, result, stamp);
+      } catch (error) { return jsonAnswer(env, 400, { valid: false, reason: error.message }, stamp); }
+    }
     if (!readOnly) return refuse(env, 405, "read-only surface", stamp);
     if (url.pathname === "/" || url.pathname === "/board" || url.pathname === "/board/") {
       return answer(env, 302, null, { Location: `${url.origin}${BOARD}`, ...stamp });
+    }
+    if (url.pathname === "/collaborate" || url.pathname === "/collaborate/") {
+      return answer(env, 302, null, { Location: `${url.origin}${COLLABORATION}`, ...stamp });
     }
     if (!SERVED.has(url.pathname)) return refuse(env, 404, "not a page this surface serves", stamp);
     const res = await env.ASSETS.fetch(request);

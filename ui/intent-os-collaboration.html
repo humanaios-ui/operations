@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>INTENT-OS · Collaboration practice</title>
+<style>
+:root{color-scheme:dark;--bg:#07110f;--panel:#10211d;--line:#285047;--ink:#eef9f5;--muted:#a9c5bb;--good:#6ee7b7;--warn:#fbbf24;--bad:#fb7185;--button:#d8f3e8;--buttonInk:#092019}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#15352d 0,#07110f 48%);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif}
+main{width:min(980px,calc(100% - 28px));margin:0 auto;padding:32px 0 64px}header{margin-bottom:24px}h1{font-size:clamp(2rem,7vw,4rem);line-height:1;margin:.2rem 0 1rem}h2{font-size:1.35rem;margin:0 0 .75rem}h3{margin:.2rem 0}.eyebrow{color:var(--good);font-weight:800;letter-spacing:.12em;text-transform:uppercase}.lead{font-size:1.08rem;max-width:70ch;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.panel{background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:18px;padding:20px;margin:16px 0;box-shadow:0 16px 50px #0004}.panel[hidden],[hidden]{display:none!important}
+.step{display:flex;align-items:center;gap:10px;margin-bottom:12px}.num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--line);font-weight:900}.status{display:inline-flex;padding:4px 9px;border-radius:999px;border:1px solid var(--line);font-size:.78rem;font-weight:800;letter-spacing:.04em}.status.good{color:var(--good)}.status.warn{color:var(--warn)}.status.bad{color:var(--bad)}
+label{display:block;font-weight:750;margin:.8rem 0 .3rem}input,select,textarea{width:100%;background:#071713;color:var(--ink);border:1px solid #38675d;border-radius:10px;padding:11px 12px;font:inherit}textarea{min-height:92px;resize:vertical}.checks label{display:flex;gap:10px;align-items:flex-start;font-weight:500}.checks input{width:auto;margin-top:.3rem}.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.row>*{flex:1 1 160px}.row button,.row .status{flex:0 0 auto}
+button,.button{display:inline-block;border:0;border-radius:10px;padding:11px 15px;background:var(--button);color:var(--buttonInk);font:inherit;font-weight:850;cursor:pointer;text-decoration:none}button.secondary{background:#1f4038;color:var(--ink);border:1px solid #4d756c}button:disabled{opacity:.42;cursor:not-allowed}.quiet{color:var(--muted);font-size:.92rem}.notice{border-left:4px solid var(--warn);background:#2d260e;padding:12px 14px;border-radius:8px}.error{border-left-color:var(--bad);background:#32131a}.success{border-left-color:var(--good);background:#0c2a21}.mono{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}.cards{display:grid;gap:12px}.card{border:1px solid var(--line);border-radius:12px;padding:14px;background:#0a1916}.card p{margin:.45rem 0}.card a{color:var(--good)}.receipt{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}.locked{opacity:.7}.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:650px){.split{grid-template-columns:1fr}}
+footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">INTENT-OS · verified collaboration rehearsal</div>
+  <h1>Act with another person.</h1>
+  <p class="lead">Login proves who touched the record. It does not let one user speak for another. This cockpit keeps the service owner, finder, opportunity, introduction, contract, and payment as separate rocks.</p>
+</header>
+
+<div id="feedback" class="notice" role="status" aria-live="polite">Checking the verified login…</div>
+
+<section class="panel" aria-labelledby="loginTitle">
+  <div class="step"><span class="num">1</span><h2 id="loginTitle">Verified login</h2><span id="loginStatus" class="status warn">CHECKING</span></div>
+  <p>Cloudflare Access checks the login. INTENT-OS receives only a stable private actor code.</p>
+  <p class="mono" id="actorId">No verified actor yet.</p>
+  <p class="quiet">No email address is placed in the collaboration capsule.</p>
+</section>
+
+<section class="panel locked" id="onboardingPanel" aria-labelledby="onboardingTitle">
+  <div class="step"><span class="num">2</span><h2 id="onboardingTitle">First-user onboarding</h2><span id="onboardingStatus" class="status warn">LOCKED</span></div>
+  <label for="displayName">Name shown on this device</label>
+  <input id="displayName" maxlength="80" autocomplete="off" placeholder="Your chosen name">
+  <div class="checks">
+    <label><input id="identityBoundary" type="checkbox"> This login proves only my identity.</label>
+    <label><input id="authorityBoundary" type="checkbox"> Another person must confirm their own offer and limits.</label>
+    <label><input id="actionBoundary" type="checkbox"> Every introduction needs a separate human choice.</label>
+  </div>
+  <button id="completeOnboarding" disabled>Complete onboarding</button>
+  <div id="onboardingReceipt" class="quiet mono"></div>
+</section>
+
+<section class="panel locked" id="relationshipPanel" aria-labelledby="relationshipTitle">
+  <div class="step"><span class="num">3</span><h2 id="relationshipTitle">Finder relationship</h2><span id="relationshipStatus" class="status warn">LOCKED</span></div>
+  <p class="quiet">Private offer text stays in this browser and in files you export. The Worker signs only a SHA-256 fingerprint.</p>
+  <div class="grid">
+    <div>
+      <label for="principalLabel">Service owner label</label>
+      <input id="principalLabel" maxlength="80" autocomplete="off" placeholder="Person or organization">
+      <label for="serviceUrl">Public service page</label>
+      <input id="serviceUrl" type="url" maxlength="500" autocomplete="off" placeholder="https://example.com/services">
+    </div>
+    <div>
+      <div class="split">
+        <div><label for="commissionMin">Minimum %</label><input id="commissionMin" type="number" min="0" max="100" step="0.1"></div>
+        <div><label for="commissionMax">Maximum %</label><input id="commissionMax" type="number" min="0" max="100" step="0.1"></div>
+      </div>
+      <label for="trigger">Payment trigger</label>
+      <textarea id="trigger" maxlength="500" placeholder="What must happen before payment could be due?"></textarea>
+    </div>
+  </div>
+  <div class="row">
+    <button id="createRelationship" disabled>Create finder draft</button>
+    <button id="acceptFinder" class="secondary" disabled>Accept finder role</button>
+    <button id="confirmPrincipal" class="secondary" disabled>Confirm as service owner</button>
+  </div>
+  <div id="principalExact" hidden>
+    <label for="commissionExact">Exact commission % being confirmed</label>
+    <input id="commissionExact" type="number" min="0" max="100" step="0.1">
+  </div>
+  <div class="row">
+    <label class="button" for="importCapsule">Import capsule</label>
+    <input id="importCapsule" type="file" accept="application/json,.json" hidden>
+    <button id="exportCapsule" class="secondary" disabled>Export capsule</button>
+  </div>
+  <div id="relationshipSummary" class="notice" hidden></div>
+</section>
+
+<section class="panel locked" id="minerPanel" aria-labelledby="minerTitle">
+  <div class="step"><span class="num">4</span><h2 id="minerTitle">Find work for the service owner</h2><span id="minerStatus" class="status warn">LOCKED</span></div>
+  <form id="minerForm">
+    <label for="objective">What work should Resource Miner find?</label>
+    <textarea id="objective" maxlength="500" placeholder="Find contract work that matches the service owner's public capabilities"></textarea>
+    <p class="quiet">This objective is sent to Resource Miner for this request. Do not paste private offer terms or personal data here.</p>
+    <div class="row">
+      <select id="sourceMode" aria-label="Resource source">
+        <option value="live">Public live discovery</option>
+        <option value="snapshot">Stored snapshot</option>
+      </select>
+      <button id="mine" disabled>Mine opportunities</button>
+    </div>
+  </form>
+  <div id="minerWarning" class="notice" hidden></div>
+  <div id="results" class="cards"></div>
+</section>
+
+<section class="panel locked" id="introPanel" aria-labelledby="introTitle">
+  <div class="step"><span class="num">5</span><h2 id="introTitle">Introduction gate</h2><span id="introStatus" class="status warn">BLOCKED</span></div>
+  <p id="introText">Both people must sign the same exact terms. Then the finder can authorize one selected introduction.</p>
+  <button id="authorizeIntro" disabled>Authorize selected introduction</button>
+  <p class="quiet">This records a choice. It does not send a message, apply, negotiate, accept a contract, invoice, or collect money.</p>
+</section>
+
+<footer>
+  Browser-local rehearsal. Raw private terms do not leave this page. Signed receipts carry fingerprints only. Clear this site’s browser data to remove the local copy. Keep exported capsules private.
+</footer>
+</main>
+<script type="module" src="/intent-os-collaboration.js"></script>
+</body>
+</html>

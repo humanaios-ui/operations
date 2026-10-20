@@ -1,0 +1,47 @@
+name: INTENT-OS collaboration boundary
+
+on:
+  pull_request:
+    paths:
+      - 'board/collaboration.mjs'
+      - 'board/collaboration.test.mjs'
+      - 'board/collaboration-ui.test.mjs'
+      - 'board/worker.mjs'
+      - 'board/worker.test.mjs'
+      - 'ui/intent-os-collaboration.html'
+      - 'ui/intent-os-collaboration.js'
+      - 'schemas/intent_os_collaboration_capsule_v0_1.schema.json'
+      - '.github/workflows/intent-os-collaboration.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'board/collaboration.mjs'
+      - 'board/collaboration.test.mjs'
+      - 'board/collaboration-ui.test.mjs'
+      - 'board/worker.mjs'
+      - 'board/worker.test.mjs'
+      - 'ui/intent-os-collaboration.html'
+      - 'ui/intent-os-collaboration.js'
+      - 'schemas/intent_os_collaboration_capsule_v0_1.schema.json'
+      - '.github/workflows/intent-os-collaboration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Existing Access gate regression
+        run: node board/worker.test.mjs
+      - name: Delegated-collaboration contract
+        run: node board/collaboration.test.mjs
+      - name: Browser surface safety contract
+        run: node board/collaboration-ui.test.mjs
+      - name: Parse capsule schema
+        run: python3 -m json.tool schemas/intent_os_collaboration_capsule_v0_1.schema.json >/dev/null
