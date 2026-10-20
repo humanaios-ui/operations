@@ -99,6 +99,19 @@ class QueryQualityTests(unittest.TestCase):
         self.assertEqual(result["excluded_count"], 1)
         self.assertEqual(result["source_diversity"]["visible_sources"], 1)
 
+    def test_promotional_cue_flags_are_not_fraud_or_rank_verdicts(self):
+        result = search("Find grant", [
+            candidate("RES-A", "Grant funding",
+                      description="Government-approved! Guaranteed approval! Act now!"),
+        ])
+        row = result["candidates"][0]
+        self.assertIn("UNVERIFIED_OUTCOME_PROMISE", row["review_flags"])
+        self.assertIn("AUTHORITY_CLAIM_REQUIRES_SOURCE_CHECK", row["review_flags"])
+        self.assertIn("URGENCY_OR_SCARCITY_LANGUAGE", row["review_flags"])
+        self.assertEqual(row["review_flags_kind"],
+                         "TEXT_PATTERN_MATCH_NOT_FRAUD_DETERMINATION")
+        self.assertEqual(result["authority"], "NONE")
+
     def test_uncertain_no_match_is_not_no_entitlement(self):
         result = search("unrelated orbital launcher", [
             candidate("RES-A", "Research grant")
