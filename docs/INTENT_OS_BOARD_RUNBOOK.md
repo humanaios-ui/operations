@@ -377,7 +377,7 @@ first hardening pass):
   that page's memory). The CSP and `frame-ancestors 'none'` bound what a script injection could do; they do
   not make the board something other than a control surface. Keep the allow-list to identities that need it.
 
-If d31 rules `stay local`, the whole surface is removed in one PR: `board/` (`worker.mjs`, `worker.test.mjs`),
+If d31 rules `stay local`, the whole surface is removed in one PR: `board/` (`worker.mjs`, `worker.test.mjs`, `collaboration.mjs`, `collaboration.test.mjs`, `collaboration-ui.test.mjs`), `ui/intent-os-collaboration.html`, `ui/intent-os-collaboration.js`, `schemas/intent_os_collaboration_capsule_v0_1.schema.json`, `tests/test_intent_os_collaboration_browser.py`, `.github/workflows/intent-os-collaboration.yml`, `docs/INTENT_OS_DELEGATED_COLLABORATION_V0_1.md`,
 `wrangler.jsonc`, the root `package.json` and `package-lock.json`, the two `!/package…` lines in `.gitignore`
 that un-ignore them, this section's table, and the three board seals for those files (`board/worker.mjs`,
 `wrangler.jsonc`, `package.json`). `later` leaves all of it inert.
