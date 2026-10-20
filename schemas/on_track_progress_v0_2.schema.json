@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Non-authorizing INTENT-OS On-Track projection v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "question",
+    "overall",
+    "technical_execution",
+    "human_user_outcome",
+    "production_deployment",
+    "observed_scope",
+    "linked_work",
+    "next_milestone",
+    "limitations",
+    "authority_effect",
+    "merge_authority",
+    "deployment_authority",
+    "sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.on_track_progress/v0.2"
+    },
+    "question": {
+      "type": "string"
+    },
+    "overall": {
+      "const": "UNVERIFIED"
+    },
+    "human_user_outcome": {
+      "const": "UNVERIFIED"
+    },
+    "production_deployment": {
+      "const": "UNVERIFIED"
+    },
+    "technical_execution": {
+      "type": "object",
+      "required": [
+        "state",
+        "environment",
+        "candidate_count",
+        "receipt_digest",
+        "provenance"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "UNVERIFIED",
+            "TESTED_LOCAL_HTTP"
+          ]
+        },
+        "environment": {
+          "enum": [
+            "NOT_TESTED",
+            "LOCAL_LOOPBACK_HTTP"
+          ]
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "receipt_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "provenance": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "observed_scope": {
+      "type": "object",
+      "required": [
+        "repository",
+        "inspected",
+        "mapped_declarations",
+        "unmapped",
+        "partial_sample",
+        "source_digest"
+      ],
+      "properties": {
+        "repository": {
+          "const": "humanaios-ui/operations"
+        },
+        "inspected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mapped_declarations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unmapped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "partial_sample": {
+          "type": "boolean"
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "linked_work": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "required": [
+          "url",
+          "ref",
+          "title",
+          "goal_mapping",
+          "landing_state",
+          "next_action"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "pattern": "^https://github.com/humanaios-ui/operations/(issues|pull)/[0-9]+$"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "goal_mapping": {
+            "enum": [
+              "DECLARED_ANCHOR",
+              "DECLARED_BY_AUTHOR"
+            ]
+          },
+          "landing_state": {
+            "enum": [
+              "UNVERIFIED",
+              "AT_RISK"
+            ]
+          },
+          "next_action": {
+            "type": "string",
+            "maxLength": 220
+          }
+        }
+      }
+    },
+    "next_milestone": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "string"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "merge_authority": {
+      "const": false
+    },
+    "deployment_authority": {
+      "const": false
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
