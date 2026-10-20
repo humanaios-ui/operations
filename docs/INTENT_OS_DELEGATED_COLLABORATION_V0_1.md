@@ -89,6 +89,7 @@ Run locally:
 node board/worker.test.mjs
 node board/collaboration.test.mjs
 node board/collaboration-ui.test.mjs
+python3 -m pytest tests/test_intent_os_collaboration_browser.py -q -rs
 ```
 
 Then verify the deployed surface:

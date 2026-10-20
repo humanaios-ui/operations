@@ -223,6 +223,19 @@ function receiptMatches(eventType, digest, actor, counterparty = undefined, oppo
   });
 }
 
+function introductionAuthorizationRecorded(opportunity) {
+  if (!capsule || !opportunity) return false;
+  return capsule.receipts.some((envelope) => {
+    const receipt = envelope.receipt || {};
+    return verifiedReceiptIds.has(receipt.receipt_id)
+      && receipt.event_type === "INTRODUCTION_AUTHORIZED"
+      && receipt.relationship_id === capsule.relationship_id
+      && receipt.actor_id === capsule.finder.actor_id
+      && receipt.counterparty_actor_id === capsule.principal.actor_id
+      && receipt.opportunity_id === opportunity.opportunity_id;
+  });
+}
+
 async function verifyEnvelope(envelope) {
   try {
     const result = await api("/api/collaboration/verify", {
@@ -313,12 +326,17 @@ async function refresh() {
   setStatus(ui.minerStatus, miningAllowed ? "DISCOVERY OPEN" : "LOCKED", miningAllowed ? "good" : "warn");
 
   const selected = capsule?.opportunities.find((item) => item.opportunity_id === selectedOpportunityId) || null;
-  const introReady = state === "READY_FOR_INTRODUCTION_REVIEW" && currentIsFinder && !!selected;
+  const introAuthorized = introductionAuthorizationRecorded(selected);
+  const introReady = state === "READY_FOR_INTRODUCTION_REVIEW" && currentIsFinder && !!selected && !introAuthorized;
   unlock(ui.introPanel, state === "READY_FOR_INTRODUCTION_REVIEW");
   ui.authorizeIntro.disabled = !introReady;
-  setStatus(ui.introStatus, introReady ? "READY" : state === "READY_FOR_INTRODUCTION_REVIEW" ? "SELECT A LEAD" : "BLOCKED",
-    introReady ? "good" : "warn");
-  text(ui.introText, selected
+  setStatus(ui.introStatus,
+    introAuthorized ? "AUTHORIZED · NOT SENT"
+      : introReady ? "READY" : state === "READY_FOR_INTRODUCTION_REVIEW" ? "SELECT A LEAD" : "BLOCKED",
+    introAuthorized || introReady ? "good" : "warn");
+  text(ui.introText, introAuthorized
+    ? `Authorization receipt recorded for ${selected.title}. Nothing was sent.`
+    : selected
     ? `Selected: ${selected.title}. Both people must hold the same exact terms before this finder can authorize this one introduction.`
     : "Both people must sign the same exact terms. Then the finder can authorize one selected introduction.");
   saveLocal();
@@ -500,6 +518,9 @@ async function authorizeIntroduction() {
   if (capsule.finder.actor_id !== session.actor_id) throw new Error("Only the finder can authorize their introduction.");
   const opportunity = capsule.opportunities.find((item) => item.opportunity_id === selectedOpportunityId);
   if (!opportunity) throw new Error("Select one attached opportunity.");
+  if (introductionAuthorizationRecorded(opportunity)) {
+    throw new Error("This introduction is already authorized and remains unsent.");
+  }
   const artifact = {
     relationship_terms_sha256: await sha256(termsView(capsule)),
     opportunity,

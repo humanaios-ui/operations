@@ -8,6 +8,7 @@ on:
       - 'board/collaboration-ui.test.mjs'
       - 'board/worker.mjs'
       - 'board/worker.test.mjs'
+      - 'tests/test_intent_os_collaboration_browser.py'
       - 'ui/intent-os-collaboration.html'
       - 'ui/intent-os-collaboration.js'
       - 'schemas/intent_os_collaboration_capsule_v0_1.schema.json'
@@ -20,6 +21,7 @@ on:
       - 'board/collaboration-ui.test.mjs'
       - 'board/worker.mjs'
       - 'board/worker.test.mjs'
+      - 'tests/test_intent_os_collaboration_browser.py'
       - 'ui/intent-os-collaboration.html'
       - 'ui/intent-os-collaboration.js'
       - 'schemas/intent_os_collaboration_capsule_v0_1.schema.json'
@@ -31,17 +33,26 @@ permissions:
 jobs:
   boundary-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install browser test dependencies
+        run: |
+          python3 -m pip install --quiet pytest playwright
+          python3 -m playwright install --with-deps chromium
       - name: Existing Access gate regression
         run: node board/worker.test.mjs
       - name: Delegated-collaboration contract
         run: node board/collaboration.test.mjs
       - name: Browser surface safety contract
         run: node board/collaboration-ui.test.mjs
+      - name: Two-user browser handoff
+        run: python3 -m pytest tests/test_intent_os_collaboration_browser.py -q -rs
       - name: Parse capsule schema
         run: python3 -m json.tool schemas/intent_os_collaboration_capsule_v0_1.schema.json >/dev/null
