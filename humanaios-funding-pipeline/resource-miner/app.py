@@ -149,6 +149,11 @@ class Handler(BaseHTTPRequestHandler):
                 self._headers(200, "text/html; charset=utf-8", len(page))
                 self.wfile.write(page)
                 return
+            if parsed.path == "/on-track":
+                page = (ROOT / "on-track.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
             if parsed.path == "/api/health":
                 return self._send_json({
                     "ok": True,
