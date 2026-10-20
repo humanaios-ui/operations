@@ -14,7 +14,7 @@ const ui = Object.fromEntries([
   "createRelationship", "acceptFinder", "confirmPrincipal", "principalExact",
   "commissionExact", "importCapsule", "exportCapsule", "relationshipSummary",
   "minerPanel", "minerStatus", "minerForm", "objective", "sourceMode", "mine",
-  "minerWarning", "results", "introPanel", "introStatus", "introText", "authorizeIntro",
+  "minerWarning", "results", "attachedResults", "introPanel", "introStatus", "introText", "authorizeIntro",
 ].map((id) => [id, byId(id)]));
 
 let session = null;
@@ -198,6 +198,29 @@ function normalizeCapsule(value) {
   };
 }
 
+function syncRelationshipForm() {
+  const locked = !!capsule;
+  for (const field of [ui.principalLabel, ui.serviceUrl, ui.commissionMin, ui.commissionMax, ui.trigger]) {
+    field.readOnly = locked;
+  }
+  if (!capsule) return;
+  ui.principalLabel.value = capsule.principal.display_label;
+  ui.serviceUrl.value = capsule.principal.public_service_url;
+  ui.commissionMin.value = String(capsule.offer.minimum_percent);
+  ui.commissionMax.value = String(capsule.offer.maximum_percent);
+  ui.trigger.value = capsule.offer.trigger;
+  ui.commissionExact.value = capsule.offer.exact_percent === null
+    ? "" : String(capsule.offer.exact_percent);
+}
+function renderAttachedLeads() {
+  ui.attachedResults.replaceChildren();
+  for (const candidate of capsule?.opportunities || []) {
+    const card = candidateCard(candidate);
+    if (card) ui.attachedResults.append(card);
+  }
+  if (!ui.attachedResults.childElementCount) text(ui.attachedResults, "No attached leads yet.");
+}
+
 function termsView(value) {
   return {
     schema_version: value.schema_version,
@@ -318,6 +341,8 @@ async function refresh() {
   const state = await relationshipState();
   if (serial !== refreshSerial) return;
   if (capsule) capsule.state = state;
+  syncRelationshipForm();
+  renderAttachedLeads();
   const hasCapsule = !!capsule;
   const currentIsFinder = hasCapsule && (!capsule.finder.actor_id || capsule.finder.actor_id === session?.actor_id);
   const currentIsPrincipal = hasCapsule && capsule.finder.actor_id
@@ -333,8 +358,10 @@ async function refresh() {
   if (capsule) {
     text(ui.relationshipSummary,
       `${capsule.finder.display_label} acts as finder for ${capsule.principal.display_label}. `
+      + `Service page: ${capsule.principal.public_service_url}. `
       + `Offer: ${capsule.offer.minimum_percent}–${capsule.offer.maximum_percent}% when ${capsule.offer.trigger || "the stated trigger occurs"}. `
-      + `Exact terms: ${capsule.offer.exact_percent ?? "not confirmed"}. ${renderReceipts()}`);
+      + `Evidence note: ${capsule.offer.evidence_note || "none"}. `
+      + `Exact commission: ${capsule.offer.exact_percent ?? "not confirmed"}%. ${renderReceipts()}`);
   }
 
   const miningAllowed = ready && hasCapsule && [
@@ -557,8 +584,9 @@ async function authorizeIntroduction() {
 function protect(action) {
   return async (event) => {
     event?.preventDefault?.();
-    try { await action(event); await refresh(); }
+    try { await action(event); }
     catch (error) { feedback(error.message || "Action failed.", "error"); }
+    finally { await refresh(); }
   };
 }
 
