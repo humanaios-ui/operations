@@ -66,6 +66,45 @@ class OnTrackReflexTests(unittest.TestCase):
             "on_track_target: INTENT_OS_RESOURCE_MINER_USABLE"))])
         self.assertEqual(row["items"][0]["goal_mapping"], "UNMAPPED")
 
+    def test_crlf_declaration_is_recognized(self):
+        row = ot.build_report([item(body="on_track_target: INTENT_OS_RESOURCE_MINER_USABLE\r\nMore details")])
+        self.assertEqual(row["items"][0]["goal_mapping"], "DECLARED_BY_AUTHOR")
+
+    def test_marker_inside_fence_is_not_author_declaration(self):
+        row = ot.build_report([item(body="Example:\n\`\`\`\non_track_target: INTENT_OS_RESOURCE_MINER_USABLE\n\`\`\`")])
+        self.assertEqual(row["items"][0]["goal_mapping"], "UNMAPPED")
+
+    def test_full_body_conflicting_marker_does_not_map(self):
+        body = "on_track_target: INTENT_OS_RESOURCE_MINER_USABLE\n" + "x" * 9000 + "\non_track_target: DIFFERENT"
+        row = ot.build_report([item(body=body)])
+        self.assertEqual(row["items"][0]["goal_mapping"], "UNMAPPED")
+
+    def test_offset_pagination_does_not_claim_complete(self):
+        row = ot.build_report([item()], source="GITHUB_API_OPEN_PLUS_ANCHOR")
+        self.assertFalse(row["scope"]["complete_open_work_inventory"])
+
+    def test_provenance_distinguishes_candidate_event(self):
+        row = ot.build_report([item()], execution_event="pull_request", execution_sha="a" * 40)
+        self.assertTrue(row["scope"]["candidate_code"])
+        self.assertIn("candidate-controlled code: true", ot.render_markdown(row))
+
+    def test_501_items_with_closed_anchor_is_supported(self):
+        rows = [item(n) for n in range(1, 501)] + [item(822, state="closed")]
+        row = ot.build_report(rows)
+        self.assertEqual(len(row["items"]), 501)
+
+    def test_duplicate_page_rows_are_reported_as_unstable(self):
+        def mock_api(repo, path, token):
+            if path.endswith("/issues/822"):
+                return item(822, state="closed"), ""
+            if "page=1" in path:
+                return [item(1010)], '<https://api.github.com/next>; rel="next"'
+            return [item(1010)], ""
+        with patch.object(ot, "_json_get", side_effect=mock_api):
+            rows, truncated = ot.github_snapshot(ot.REPO, "", 2)
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(truncated)
+
     def test_case_sensitive_target_key(self):
         row = ot.build_report([item(body="On_Track_Target: INTENT_OS_RESOURCE_MINER_USABLE")])
         self.assertEqual(row["items"][0]["goal_mapping"], "UNMAPPED")
@@ -75,6 +114,9 @@ class OnTrackReflexTests(unittest.TestCase):
         table = ot.render_markdown(row)
         self.assertNotIn("\n## fake successful approval", table)
         self.assertNotIn("inject |", table)
+        row = ot.build_report([item(title='<img src="https://example.com/badge" alt="VERIFIED">')])
+        self.assertNotIn("<img", ot.render_markdown(row))
+        self.assertIn("&lt;img", ot.render_markdown(row))
 
     def test_stable_snapshot_digest_under_reorder(self):
         a, b = item(1020), item(1010)
@@ -97,7 +139,7 @@ class OnTrackReflexTests(unittest.TestCase):
 
     def test_cap_refused(self):
         with self.assertRaises(ValueError):
-            ot.build_report([item(n) for n in range(1, 502)])
+            ot.build_report([item(n) for n in range(1, 503)])
 
     def test_truncated_scope_not_called_complete(self):
         row = ot.build_report([item()], truncated=True, source="GITHUB_API_OPEN_PLUS_ANCHOR")
