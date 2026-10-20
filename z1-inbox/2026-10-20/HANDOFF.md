@@ -8,7 +8,7 @@
 
 ## Findings Scan
 
-No F/IC/H candidates extracted from checkpoint analysis. All findings are observational and already recorded in the checkpoint entry (SMAG-META-CALIBRATION-4WEEK-CHECKPOINT).
+No F/IC/H candidates extracted from checkpoint analysis. All findings are observational and already recorded in the checkpoint entry (SMAG-META-CALIBRATION-SELF-ACCURACY).
 
 ---
 
@@ -20,15 +20,15 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 **Claim:** Observation floor is 3 PRs; current sample (2 resolved) is insufficient for stable signal.  
 **Evidence:** META_SMAG_REVIEW_SCHEDULE.md § Scheduled Review Checkpoint defines floor = 3 PRs.  
-**Tree Entry:** data/lessons_learned_ledger.json § SMAG-META-CALIBRATION-4WEEK-CHECKPOINT.
+**Tree Entry:** data/lessons_learned_ledger.json § SMAG-META-CALIBRATION-SELF-ACCURACY.
 
 **Claim:** Extend review window to 2026-11-03 per checkpoint step 5 (insufficient_data condition).  
 **Evidence:** audits/META_SMAG_REVIEW_SCHEDULE.md § When to Review Early (Override) table; current status (2 observations < 3-PR floor) triggers scheduled extension.  
 **Tree Entry:** audits/META_SMAG_REVIEW_LOG.md § Decision Recommendation.
 
-**Claim:** Week 2 consolidation workflow status unclear; weeks 4–5 produced PRs (now open, not missing).  
-**Evidence:** Weeks 1 & 3 produced merged PRs; weeks 4 & 5 produced open PRs #724, #817, #931 with pinned creation dates. Week 2 status unverified.  
-**Tree Entry:** audits/META_SMAG_REVIEW_LOG.md § Open Question: Week 2 Consolidation Status.
+**Claim:** Weeks 1–2 produced merged PRs; weeks 3–5 produced open PRs (not missing workflow runs).  
+**Evidence:** Week 1 (2026-09-21) #432 merged, Week 2 (2026-09-28) #573 merged; Week 3 (2026-10-05) #724 open, Week 4 (2026-10-12) #817 open, Week 5 (2026-10-19) #931 open with pinned creation dates.  
+**Tree Entry:** audits/META_SMAG_REVIEW_LOG.md § Weekly Consolidation Cycle Inventory.
 
 ---
 
@@ -45,7 +45,7 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 | Blocker | Authority | Action | Window |
 |:--------|:----------|:--------|:---------|
-| **Z2 Admission Ratification** | Z2 (Night) | Ratify SMAG-META-CALIBRATION-4WEEK-CHECKPOINT candidate block; emit Z2 hash on PR #936 | Within 48h (routine decision window) |
+| **Z2 Admission Ratification** | Z2 (Night) | Ratify SMAG-META-CALIBRATION-SELF-ACCURACY candidate block; emit Z2 hash on PR #936 | Within 48h (routine decision window) |
 | **Consolidation PR Merge** | Z3 (executor per repo) | Rebase & merge PRs #724, #817, #931 against updated main | Before 2026-11-03 (monitoring deadline) |
 | **Week 2 Workflow Diagnosis** | Z2 (Night) / Z3 (executor) | Verify whether smag-consolidate.yml executed week 2 (2026-09-28); if failed, diagnose root cause | Optional for checkpoint completion; useful for operational health |
 
@@ -57,7 +57,7 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 **Status:** PR #936 ready for Z2 admission review. Checkpoint record is canonical for next re-run on 2026-11-03.
 
-**Z2 Decision Needed:** Ratify checkpoint findings (SMAG-META-CALIBRATION-4WEEK-CHECKPOINT) and emit authorization hash on PR #936 to clear admission gate.
+**Z2 Decision Needed:** Ratify checkpoint findings (SMAG-META-CALIBRATION-SELF-ACCURACY) and emit authorization hash on PR #936 to clear admission gate.
 
 **Next Measurement:** 2026-11-03, rerun `python3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44` with full 4-5 observations for stable confidence signal.
 
