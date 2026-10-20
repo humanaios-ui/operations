@@ -2649,7 +2649,7 @@ tools:
 - tool_id: HAIOS-TOOL-222
   name: coderabbit_coverage_inventory
   path: tools/coderabbit_coverage_inventory.py
-  version: 0.1.0
+  version: 0.2.0
   category: audit_tool
   zone: 1
   status: draft
