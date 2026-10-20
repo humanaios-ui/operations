@@ -42,7 +42,7 @@ ALIASES = {
 }
 _IDENTIFIER_RE = re.compile(r"(?<!\w)[a-z][a-z0-9]*[-_][a-z0-9_-]*\d[a-z0-9_-]*(?!\w)")
 _FINANCING_NEGATION = re.compile(
-    r"(?<!\w)(?:no|without|avoid|excluding)\s+(?:a\s+)?(?:loans?|debt|borrowing)(?!\w)"
+    r"(?<!\w)(?:no|without|avoid|excluding|do\\s+not\\s+want|don['’]?t\\s+want)\s+(?:a\s+)?(?:loans?|debt|borrowing)(?!\w)"
 )
 
 
@@ -55,11 +55,14 @@ def query_terms(text: str) -> set[str]:
     """Stable Unicode-aware bounded term normalization; no query rewriting."""
     if not isinstance(text, str):
         return set()
-    return {
+    folded = _fold(text)
+    words = {
         ALIASES.get(word, word)
-        for word in re.findall(r"[^\W_]{3,}", _fold(text), re.UNICODE)
+        for word in re.findall(r"[^\\W_]{3,}", folded, re.UNICODE)
         if word not in STOPWORDS
     }
+    # Preserve short structured IDs (AB-12, H-1B) in both query and evidence.
+    return words | set(_IDENTIFIER_RE.findall(folded))
 
 
 def exact_anchors(objective: str) -> frozenset[str]:
