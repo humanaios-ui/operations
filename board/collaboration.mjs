@@ -107,6 +107,10 @@ function exactKeys(value, allowed) {
 export function validateAttestation(value, authenticatedActorId) {
   if (!exactKeys(value, INPUT_KEYS)) throw new Error("attestation has unknown fields");
   if (value.version !== ATTESTATION_VERSION) throw new Error("unsupported attestation version");
+  if (typeof value.event_type !== "string" || typeof value.actor_role !== "string"
+    || typeof value.relationship_id !== "string" || typeof value.artifact_sha256 !== "string") {
+    throw new Error("event, role, relationship and artifact fields must be strings");
+  }
   const roles = EVENT_ROLES[value.event_type];
   if (!roles) throw new Error("unsupported collaboration event");
   if (!roles.has(value.actor_role)) throw new Error("actor role is not valid for this event");
@@ -115,7 +119,7 @@ export function validateAttestation(value, authenticatedActorId) {
   if (!ACTOR_ID.test(authenticatedActorId || "")) throw new Error("invalid authenticated actor");
 
   const counterparty = value.counterparty_actor_id ?? null;
-  if (counterparty !== null && !ACTOR_ID.test(counterparty)) throw new Error("invalid counterparty_actor_id");
+  if (counterparty !== null && (typeof counterparty !== "string" || !ACTOR_ID.test(counterparty))) throw new Error("invalid counterparty_actor_id");
   if (counterparty === authenticatedActorId) throw new Error("one actor cannot be both sides of a relationship event");
   if (value.event_type === "PRINCIPAL_MANDATE_CONFIRMED" && counterparty === null) {
     throw new Error("principal confirmation requires the finder actor id");
@@ -125,7 +129,7 @@ export function validateAttestation(value, authenticatedActorId) {
   }
 
   const opportunity = value.opportunity_id ?? null;
-  if (opportunity !== null && !OPPORTUNITY_ID.test(opportunity)) throw new Error("invalid opportunity_id");
+  if (opportunity !== null && (typeof opportunity !== "string" || !OPPORTUNITY_ID.test(opportunity))) throw new Error("invalid opportunity_id");
   if (["INTRODUCTION_AUTHORIZED", "INTRODUCTION_SENT_RECORDED", "CONTRACT_REPORTED", "COMMISSION_REPORTED"]
     .includes(value.event_type) && opportunity === null) {
     throw new Error("this event requires an opportunity_id");
@@ -180,12 +184,16 @@ function receiptShapeValid(receipt) {
   if (!receipt || typeof receipt !== "object" || Array.isArray(receipt)) return false;
   if (Object.keys(receipt).sort().join("\n") !== RECEIPT_KEYS.slice().sort().join("\n")) return false;
   if (receipt.schema_version !== RECEIPT_VERSION || !RECEIPT_ID.test(receipt.receipt_id || "")) return false;
-  if (!EVENT_ROLES[receipt.event_type] || !EVENT_ROLES[receipt.event_type].has(receipt.actor_role)) return false;
-  if (!RELATIONSHIP_ID.test(receipt.relationship_id || "") || !SHA256.test(receipt.artifact_sha256 || "")) return false;
-  if (!ACTOR_ID.test(receipt.actor_id || "")) return false;
-  if (receipt.counterparty_actor_id !== null && !ACTOR_ID.test(receipt.counterparty_actor_id || "")) return false;
+  if (typeof receipt.event_type !== "string" || typeof receipt.actor_role !== "string"
+    || !EVENT_ROLES[receipt.event_type] || !EVENT_ROLES[receipt.event_type].has(receipt.actor_role)) return false;
+  if (typeof receipt.relationship_id !== "string" || typeof receipt.artifact_sha256 !== "string"
+    || !RELATIONSHIP_ID.test(receipt.relationship_id) || !SHA256.test(receipt.artifact_sha256)) return false;
+  if (typeof receipt.actor_id !== "string" || !ACTOR_ID.test(receipt.actor_id)) return false;
+  if (receipt.counterparty_actor_id !== null
+    && (typeof receipt.counterparty_actor_id !== "string" || !ACTOR_ID.test(receipt.counterparty_actor_id))) return false;
   if (receipt.counterparty_actor_id === receipt.actor_id) return false;
-  if (receipt.opportunity_id !== null && !OPPORTUNITY_ID.test(receipt.opportunity_id || "")) return false;
+  if (receipt.opportunity_id !== null
+    && (typeof receipt.opportunity_id !== "string" || !OPPORTUNITY_ID.test(receipt.opportunity_id))) return false;
   if (["PRINCIPAL_MANDATE_CONFIRMED", "INTRODUCTION_AUTHORIZED"].includes(receipt.event_type)
     && receipt.counterparty_actor_id === null) return false;
   if (["INTRODUCTION_AUTHORIZED", "INTRODUCTION_SENT_RECORDED", "CONTRACT_REPORTED", "COMMISSION_REPORTED"]
