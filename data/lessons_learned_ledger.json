@@ -123,7 +123,7 @@
       "constraint": "smag_self_accuracy_measurement_insufficient_window",
       "severity": "ADVISORY",
       "confidence": "insufficient_data",
-      "rule": "Only 2 consolidation PRs with smag_p_meta predictions observed over 4-week window (2026-09-21 \u2192 2026-10-20). Observation floor = 3 PRs. Current accuracy: 2/2 correct (100%), but sample size below statistical threshold. Consolidation workflow produced PRs in weeks 1\u20132 (merged: #432 Sep 21, #573 Sep 28) and weeks 3\u20135 (pending merge: #724 Oct 5, #817 Oct 12, #931 Oct 19). Cannot recommend weighting changes or gate hardening on 2-PR sample.",
+      "rule": "Only 2 consolidation PRs with smag_p_meta predictions observed over 4-week window (2026-09-21 \u2192 2026-10-20). Observation floor = 3 PRs. Current accuracy: 2/2 correct (100%), but sample size below statistical threshold. Consolidation workflow produced PRs in weeks 1\u20132 (merged: #432 Sep 21, #573 Oct 1) and weeks 3\u20135 (pending merge: #724 Oct 5, #817 Oct 12, #931 Oct 19). Cannot recommend weighting changes or gate hardening on 2-PR sample.",
       "data_source": "audits/META_SMAG_REVIEW_LOG.md (4-week checkpoint)",
       "accuracy_measured": 1.0,
       "accuracy_note": "observed accuracy from resolved PRs: 2 correct / 2 measured = 100%",
