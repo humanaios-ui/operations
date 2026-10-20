@@ -12,35 +12,17 @@ import json
 import re
 from urllib.parse import urlsplit
 
+from .query_quality import (
+    blocked_resource_types, fuse_rankings, has_exact_anchors, query_terms,
+)
+
 MAX_OBJECTIVE = 500
 MAX_ROWS = 500
 PUBLIC_SOURCES = {"HumanAIOS Funding Pipeline", "DEV Community"}
-STOPWORDS = {
-    "a", "about", "an", "and", "are", "can", "could", "find", "for", "from",
-    "help", "humanaios", "i", "in", "me", "my", "need", "of", "on", "our",
-    "please", "resource", "resources", "some", "that", "the", "to", "us",
-    "want", "we", "with", "would",
-}
-ALIASES = {
-    "grants": "grant", "grant": "grant", "fund": "funding", "funds": "funding",
-    "money": "funding", "capital": "funding", "financing": "funding",
-    "jobs": "work", "job": "work", "employment": "work", "paid": "work",
-    "certificates": "training", "certificate": "training",
-    "certifications": "training", "certification": "training",
-    "courses": "training", "course": "training",
-    "cloud": "compute", "credits": "credit", "gpus": "gpu",
-    "competitions": "challenge", "contest": "challenge",
-    "contests": "challenge", "hackathons": "hackathon",
-    "researchers": "research", "evaluations": "evaluation",
-    "partnerships": "partner",
-}
+
 
 def _words(value: str) -> set[str]:
-    return {
-        ALIASES.get(word, word)
-        for word in re.findall(r"[a-z0-9]{3,}", value.lower())
-        if word not in STOPWORDS
-    }
+    return query_terms(value)
 
 
 def _public_https(value: object) -> str | None:
@@ -127,7 +109,17 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         labels = " ".join(
             str(n.get("label") or "")[:80] for n in needs[:10] if isinstance(n, dict)
         )
+        # Only explicit negative mechanism constraints filter candidate types.
+        if blocked_resource_types(objective) & {
+            str(value).casefold() for value in types[:15]
+        }:
+            omitted += 1
+            continue
+        # Never approximate a structured ID from loose semantic tokens.
+        if not has_exact_anchors(objective, " ".join((title, desc, terms, labels))):
+            continue
         title_hits = wanted & _words(title)
+        taxonomy_hits = wanted & _words(" ".join((terms, labels)))
         other_hits = wanted & _words(" ".join((desc, terms, labels)))
         hits = title_hits | other_hits
         if not hits:
@@ -145,10 +137,11 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             "route": row.get("route") if row.get("route") in {"VERIFY_NOW", "WATCH"} else "WATCH",
             "matched_terms": sorted(hits),
             "relevance_score": score,
+            "_taxonomy_hit_count": len(taxonomy_hits),
             "eligibility_assessed": False,
             "action": "Review official source and verify current rules before pursuing.",
         })
-    matches.sort(key=lambda r: (-r["relevance_score"], r["title"].lower(), r["resource_id"]))
+    matches = fuse_rankings(matches)
     shown = matches[:10]
     receipt_input = json.dumps({
         "objective": objective, "mode": source_mode, "status": source_status,
@@ -171,4 +164,11 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         "execution": "DISABLED",
         "receipt_sha256": hashlib.sha256(receipt_input.encode("utf-8")).hexdigest(),
         "receipt_kind": "UNSIGNED_INPUT_AND_SELECTION_DIGEST_NOT_AN_ATTESTATION",
+        "ranking_strategy": "LEXICAL_PLUS_DECLARED_TAXONOMY_RRF_K60_V1",
+        "retrieval_scope": "COLLECTED_PUBLIC_CANDIDATES_ONLY_NOT_OPEN_WEB_SEARCH",
+        "language_support": "BOUNDED_ENGLISH_SPANISH_TERMS_NOT_GENERAL_TRANSLATION",
+        "source_diversity": {
+            "visible_sources": len({row["source_name"] for row in shown}),
+            "visible_source_urls": len({row["source_url"] for row in shown}),
+        },
     }
