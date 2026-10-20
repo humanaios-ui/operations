@@ -8,6 +8,7 @@ import sys
 import unittest
 
 from resource_miner.intent_os import evaluate_objective
+from tools.query_quality_benchmark import score
 from resource_miner.query_quality import (
     blocked_resource_types, exact_anchors, fuse_rankings, query_terms,
 )
@@ -68,6 +69,65 @@ class QueryQualityTests(unittest.TestCase):
         self.assertEqual([c["resource_id"] for c in result["candidates"]], ["RES-GRANT"])
         self.assertEqual(result["excluded_count"], 1)
         self.assertEqual(blocked_resource_types("Research loans"), frozenset())
+
+    def test_short_structured_identifier_is_a_valid_standalone_objective(self):
+        rows = [
+            candidate("RES-OTHER", "AB-120 research grant"),
+            candidate("RES-AB12", "AB-12 research grant"),
+        ]
+        result = search("Find AB-12", rows)
+        self.assertEqual([row["resource_id"] for row in result["candidates"]],
+                         ["RES-AB12"])
+        self.assertIn("ab-12", query_terms("AB-12"))
+        self.assertIn("h-1b", query_terms("H-1B"))
+
+    def test_canonical_resource_id_can_be_queried_directly(self):
+        result = search("Find RES-1234", [
+            candidate("RES-1234", "General research grant"),
+            candidate("RES-4321", "General research grant"),
+        ])
+        self.assertEqual([row["resource_id"] for row in result["candidates"]],
+                         ["RES-1234"])
+
+    def test_negative_mechanism_scans_entire_type_list(self):
+        rows = [
+            candidate("RES-LOAN", "Funding options",
+                      resource_types=["unrelated_type"] * 16 + ["financing"]),
+            candidate("RES-GRANT", "Funding options", resource_types=["grant"]),
+        ]
+        result = search("Funding without loans", rows)
+        self.assertEqual([c["resource_id"] for c in result["candidates"]],
+                         ["RES-GRANT"])
+
+    def test_do_not_want_and_dont_want_are_respected(self):
+        rows = [
+            candidate("RES-LOAN", "Funding options", resource_types=["loan"]),
+            candidate("RES-GRANT", "Funding options", resource_types=["grant"]),
+        ]
+        for objective in ("I do not want loans; find funding",
+                          "I don't want loans; find funding"):
+            with self.subTest(objective=objective):
+                result = search(objective, rows)
+                self.assertEqual([c["resource_id"] for c in result["candidates"]],
+                                 ["RES-GRANT"])
+
+    def test_repeated_candidate_id_is_not_double_counted(self):
+        rows = [
+            candidate("RES-SAME", "Research grant"),
+            candidate("RES-SAME", "Research grant", description="Repeated listing"),
+        ]
+        result = search("Research grant", rows)
+        self.assertEqual(result["shown_count"], 1)
+        self.assertEqual(result["matched_count"], 1)
+        self.assertEqual(result["duplicate_resource_ids_excluded"], 1)
+
+    def test_benchmark_duplicate_ids_cannot_inflate_metrics(self):
+        observed = score(["RES-A", "RES-A", "RES-A"], {"RES-A"})
+        self.assertEqual(observed["recall_at_10"], 1.0)
+        self.assertEqual(observed["ndcg_at_10"], 1.0)
+        self.assertEqual(observed["precision_at_10"], 0.1)
+        self.assertEqual(score(["RES-OTHER", "RES-A", "RES-A"], {"RES-A"})
+                         ["mrr_at_10"], 0.5)
 
     def test_taxonomy_lane_improves_actionable_type_match(self):
         rows = [
