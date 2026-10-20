@@ -16,7 +16,7 @@ from resource_miner.intent_os import evaluate_objective
 
 
 def score(ids: list[str], relevant: set[str], k: int = 10) -> dict:
-    selected = ids[:k]
+    selected = list(dict.fromkeys(ids))[:k]
     hits = [1 if item in relevant else 0 for item in selected]
     first = next((i for i, hit in enumerate(hits, 1) if hit), None)
     dcg = sum(hit / math.log2(i + 1) for i, hit in enumerate(hits, 1))
