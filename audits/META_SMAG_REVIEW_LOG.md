@@ -13,23 +13,27 @@
 
 ### Data Collected
 
-| PR | Title | Merged | smag_p_meta | Outcome | Accuracy |
+| PR | Title | Status | smag_p_meta | Outcome | Accuracy |
 |:---|:------|:-------|:-----------|:--------|:---------|
-| #432 | SMAG: consolidate ledger + refresh gap report | ✅ 2026-09-21 | 0.85 | ✅ Success | Correct |
-| #573 | SMAG: consolidate ledger + refresh gap report | ✅ 2026-10-01 | 0.85 | ✅ Success | Correct |
+| #432 | SMAG: consolidate ledger + refresh gap report | ✅ Merged (2026-09-21) | 0.85 | ✅ Success | Correct |
+| #573 | SMAG: consolidate ledger + refresh gap report | ✅ Merged (2026-10-01) | 0.85 | ✅ Success | Correct |
+| #724 | SMAG: consolidate ledger + refresh gap report | 🔄 Open (since 2026-10-05) | 0.85 | ⏳ Pending | Awaiting merge |
+| #817 | SMAG: consolidate ledger + refresh gap report | 🔄 Open (since 2026-10-12) | 0.85 | ⏳ Pending | Awaiting merge |
+| #931 | SMAG: consolidate ledger + refresh gap report | 🔄 Open (since 2026-10-19) | 0.85 | ⏳ Pending | Awaiting merge |
 
-**Total observations:** 2 PRs  
+**Resolved observations:** 2 PRs (merged, measurements complete)  
+**Pending observations:** 3 PRs (open, outcomes unresolved)  
 **Observation floor:** 3 PRs (minimum for stable signal per schedule)  
-**Data sufficiency:** BELOW FLOOR
+**Data sufficiency:** 2 resolved < 3-PR floor; 3 pending may resolve before 2026-11-03
 
-### Missing Data
+### Weekly Consolidation Cycle Inventory
 
 Expected consolidation PRs (weekly Mon 06:17 UTC):
-- Week 1 (2026-09-15 ~ 2026-09-22): ✅ PR #432 (2026-09-21)
-- Week 2 (2026-09-22 ~ 2026-09-29): ❌ **Missing** (expected ~2026-09-29)
-- Week 3 (2026-09-29 ~ 2026-10-06): ✅ PR #573 (2026-10-01)
-- Week 4 (2026-10-06 ~ 2026-10-13): ❌ **Missing** (expected ~2026-10-13)
-- Week 5 (2026-10-13 ~ 2026-10-20): ❌ **Missing** (expected ~2026-10-20)
+- Week 1 (2026-09-15 ~ 2026-09-22): ✅ PR #432 (opened 2026-09-21, merged 2026-09-21)
+- Week 2 (2026-09-22 ~ 2026-09-29): ⏭️ (no open tracking; verify if workflow ran)
+- Week 3 (2026-09-29 ~ 2026-10-06): ✅ PR #573 (opened 2026-09-28, merged 2026-10-01)
+- Week 4 (2026-10-06 ~ 2026-10-13): 🔄 PR #724 (opened 2026-10-05, status: open)
+- Week 5 (2026-10-13 ~ 2026-10-20): 🔄 PR #817 (opened 2026-10-12, status: open) · 🔄 PR #931 (opened 2026-10-19, status: open)
 
 ### Confidence Assessment
 
