@@ -100,7 +100,7 @@ TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("training", ("training", "certification", "credential")),
     ("research_access", ("dataset", "research access", "lab access", "model access")),
     ("dissemination_access", ("publishing", "publication support", "publication access")),
-    ("privacy_tool", ("privacy tool", "privacy control", "redaction tool", "data removal")),
+    ("privacy_tool", ("privacy tool", "privacy control", "redaction tool")),
 ]
 
 
