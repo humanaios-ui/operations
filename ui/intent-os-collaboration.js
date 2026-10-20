@@ -21,7 +21,8 @@ let session = null;
 let profile = null;
 let capsule = null;
 let selectedOpportunityId = null;
-let verifiedReceiptIds = new Set();
+// Trust binds to exact signed bytes, not a copied receipt ID.
+let verifiedEnvelopeKeys = new Set();
 let refreshSerial = 0;
 
 function text(element, value) { element.textContent = String(value ?? ""); }
@@ -210,11 +211,18 @@ function termsView(value) {
     authority: value.authority,
   };
 }
+function envelopeKey(envelope) { return canonicalJson(envelope); }
+function envelopeVerified(envelope) {
+  return !!envelope && verifiedEnvelopeKeys.has(envelopeKey(envelope));
+}
+function markIssuedEnvelope(envelope) {
+  verifiedEnvelopeKeys.add(envelopeKey(envelope));
+}
 function receiptMatches(eventType, digest, actor, counterparty = undefined, opportunity = undefined) {
   if (!capsule) return false;
   return capsule.receipts.some((envelope) => {
     const receipt = envelope.receipt || {};
-    return verifiedReceiptIds.has(receipt.receipt_id)
+    return envelopeVerified(envelope)
       && receipt.event_type === eventType
       && receipt.artifact_sha256 === digest
       && receipt.actor_id === actor
@@ -223,13 +231,23 @@ function receiptMatches(eventType, digest, actor, counterparty = undefined, oppo
   });
 }
 
-function introductionAuthorizationRecorded(opportunity) {
+async function introductionArtifactDigest(opportunity) {
+  return sha256({
+    relationship_terms_sha256: await sha256(termsView(capsule)),
+    opportunity,
+    proposed_action: "INTRODUCE_SERVICE_OWNER_TO_OPPORTUNITY_CONTACT",
+    execution: "DISABLED",
+  });
+}
+async function introductionAuthorizationRecorded(opportunity) {
   if (!capsule || !opportunity) return false;
+  const digest = await introductionArtifactDigest(opportunity);
   return capsule.receipts.some((envelope) => {
     const receipt = envelope.receipt || {};
-    return verifiedReceiptIds.has(receipt.receipt_id)
+    return envelopeVerified(envelope)
       && receipt.event_type === "INTRODUCTION_AUTHORIZED"
       && receipt.relationship_id === capsule.relationship_id
+      && receipt.artifact_sha256 === digest
       && receipt.actor_id === capsule.finder.actor_id
       && receipt.counterparty_actor_id === capsule.principal.actor_id
       && receipt.opportunity_id === opportunity.opportunity_id;
@@ -243,11 +261,13 @@ async function verifyEnvelope(envelope) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(envelope),
     });
-    if (result.valid && result.receipt_id) verifiedReceiptIds.add(result.receipt_id);
+    if (result.valid && result.receipt_id === envelope?.receipt?.receipt_id) {
+      verifiedEnvelopeKeys.add(envelopeKey(envelope));
+    }
   } catch { /* Invalid imported receipts remain untrusted and unused. */ }
 }
 async function verifyStoredReceipts() {
-  verifiedReceiptIds = new Set();
+  verifiedEnvelopeKeys = new Set();
   const envelopes = [];
   if (profile?.onboarding_receipt) envelopes.push(profile.onboarding_receipt);
   if (capsule?.receipts) envelopes.push(...capsule.receipts);
@@ -256,7 +276,7 @@ async function verifyStoredReceipts() {
 
 function profileReady() {
   return !!(profile && profile.actor_id === session?.actor_id && profile.display_label
-    && verifiedReceiptIds.has(profile.onboarding_receipt?.receipt?.receipt_id));
+    && envelopeVerified(profile.onboarding_receipt));
 }
 async function relationshipState() {
   if (!capsule) return "NO_RELATIONSHIP";
@@ -277,7 +297,7 @@ async function relationshipState() {
 
 function renderReceipts() {
   if (!capsule) return "";
-  const valid = capsule.receipts.filter((item) => verifiedReceiptIds.has(item.receipt?.receipt_id));
+  const valid = capsule.receipts.filter(envelopeVerified);
   return `${valid.length}/${capsule.receipts.length} receipt(s) verified by this Worker.`;
 }
 
@@ -326,7 +346,9 @@ async function refresh() {
   setStatus(ui.minerStatus, miningAllowed ? "DISCOVERY OPEN" : "LOCKED", miningAllowed ? "good" : "warn");
 
   const selected = capsule?.opportunities.find((item) => item.opportunity_id === selectedOpportunityId) || null;
-  const introAuthorized = introductionAuthorizationRecorded(selected);
+  const introAuthorized = state === "READY_FOR_INTRODUCTION_REVIEW"
+    && !!selected && await introductionAuthorizationRecorded(selected);
+  if (serial !== refreshSerial) return;
   const introReady = state === "READY_FOR_INTRODUCTION_REVIEW" && currentIsFinder && !!selected && !introAuthorized;
   unlock(ui.introPanel, state === "READY_FOR_INTRODUCTION_REVIEW");
   ui.authorizeIntro.disabled = !introReady;
@@ -357,7 +379,7 @@ async function completeOnboarding() {
   const relationship = `REL-ONBOARDING-${session.actor_id.slice(-12)}`;
   const envelope = await attest("ONBOARDING_BOUNDARY_ACCEPTED", "USER", relationship, await sha256(record));
   profile = { ...record, relationship_id: relationship, onboarding_receipt: envelope };
-  verifiedReceiptIds.add(envelope.receipt.receipt_id);
+  markIssuedEnvelope(envelope);
   text(ui.onboardingReceipt, `Receipt ${envelope.receipt.receipt_id} · authority NONE · execution DISABLED`);
   feedback("First-user onboarding recorded. Login and authority remain separate.", "success");
   await refresh();
@@ -408,7 +430,7 @@ async function acceptFinderRole() {
     capsule.principal.actor_id, null,
   );
   capsule.receipts.push(envelope);
-  verifiedReceiptIds.add(envelope.receipt.receipt_id);
+  markIssuedEnvelope(envelope);
   feedback(capsule.principal.actor_id
     ? "Finder accepted the exact terms. The relationship can now reach the introduction review gate."
     : "Finder role accepted. Discovery may continue. Introductions remain blocked until the service owner confirms exact terms.", "success");
@@ -437,7 +459,7 @@ async function confirmAsPrincipal() {
     digest, capsule.finder.actor_id, null,
   );
   capsule.receipts.push(envelope);
-  verifiedReceiptIds.add(envelope.receipt.receipt_id);
+  markIssuedEnvelope(envelope);
   feedback("Service owner confirmation recorded. Export this capsule back to the finder for final matching acceptance.", "success");
 }
 
@@ -518,22 +540,16 @@ async function authorizeIntroduction() {
   if (capsule.finder.actor_id !== session.actor_id) throw new Error("Only the finder can authorize their introduction.");
   const opportunity = capsule.opportunities.find((item) => item.opportunity_id === selectedOpportunityId);
   if (!opportunity) throw new Error("Select one attached opportunity.");
-  if (introductionAuthorizationRecorded(opportunity)) {
+  if (await introductionAuthorizationRecorded(opportunity)) {
     throw new Error("This introduction is already authorized and remains unsent.");
   }
-  const artifact = {
-    relationship_terms_sha256: await sha256(termsView(capsule)),
-    opportunity,
-    proposed_action: "INTRODUCE_SERVICE_OWNER_TO_OPPORTUNITY_CONTACT",
-    execution: "DISABLED",
-  };
-  const digest = await sha256(artifact);
+  const digest = await introductionArtifactDigest(opportunity);
   const envelope = await attest(
     "INTRODUCTION_AUTHORIZED", "FINDER", capsule.relationship_id, digest,
     capsule.principal.actor_id, opportunity.opportunity_id,
   );
   capsule.receipts.push(envelope);
-  verifiedReceiptIds.add(envelope.receipt.receipt_id);
+  markIssuedEnvelope(envelope);
   feedback("This introduction is authorized in the capsule. Nothing was sent.", "success");
   setStatus(ui.introStatus, "AUTHORIZED · NOT SENT", "good");
 }
