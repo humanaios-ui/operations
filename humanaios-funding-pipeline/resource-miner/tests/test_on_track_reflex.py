@@ -220,6 +220,16 @@ class ThrottleRetryTests(unittest.TestCase):
         self.assertEqual(payload, {"number": 822})
         self.assertEqual(sleep.call_args_list, [call(7), call(ot.MAX_RETRY_AFTER_SECONDS)])
 
+    def test_nonnumeric_retry_after_uses_backoff(self):
+        with patch.object(ot, "urlopen", side_effect=[
+            _throttled(429, {"Retry-After": "invalid"}),
+            _ok_response([]),
+        ]) as opened, patch.object(ot, "_sleep") as sleep:
+            payload, _ = ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "")
+        self.assertEqual(payload, [])
+        self.assertEqual(opened.call_count, 2)
+        sleep.assert_called_once_with(2)
+
     def test_persistent_403_still_fails_closed_after_bounded_attempts(self):
         with patch.object(ot, "urlopen", side_effect=_throttled(403)) as opened, \
              patch.object(ot, "_sleep") as sleep:
