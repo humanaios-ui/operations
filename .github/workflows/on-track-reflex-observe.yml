@@ -7,7 +7,7 @@ on:
   issues:
     types: [opened, edited, reopened, closed, labeled, unlabeled]
   pull_request:
-    types: [opened, edited, synchronize, reopened, closed]
+    types: [opened, edited, synchronize, reopened, closed, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -42,9 +42,12 @@ jobs:
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          REFLEX_EVENT: ${{ github.event_name }}
+          REFLEX_SHA: ${{ github.sha }}
         run: |
           python3 -m resource_miner.on_track_reflex \
             --repo humanaios-ui/operations \
+            --execution-event "$REFLEX_EVENT" --execution-sha "$REFLEX_SHA" \
             --max-pages 3 \
             --json-out ../../outputs/on_track_reflex.json \
             --markdown-out ../../outputs/on_track_reflex.md
