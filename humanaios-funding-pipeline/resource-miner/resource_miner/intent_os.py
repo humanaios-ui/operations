@@ -112,22 +112,25 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         )
         # Only explicit negative mechanism constraints filter candidate types.
         if blocked_resource_types(objective) & {
-            str(value).casefold() for value in types[:15]
+            str(value).casefold() for value in types
         }:
             omitted += 1
             continue
         # Never approximate a structured ID from loose semantic tokens.
-        if not has_exact_anchors(objective, " ".join((title, desc, terms, labels))):
+        candidate_id = str(row.get("resource_id") or "")[:100]
+        if not has_exact_anchors(objective, " ".join(
+            (candidate_id, title, desc, terms, labels)
+        )):
             continue
         title_hits = wanted & _words(title)
         taxonomy_hits = wanted & _words(" ".join((terms, labels)))
-        other_hits = wanted & _words(" ".join((desc, terms, labels)))
+        other_hits = wanted & _words(" ".join((candidate_id, desc, terms, labels)))
         hits = title_hits | other_hits
         if not hits:
             continue
         score = 3 * len(title_hits) + len(other_hits)
         matches.append({
-            "resource_id": str(row.get("resource_id") or "")[:100],
+            "resource_id": candidate_id,
             "title": title,
             "description": desc[:280],
             "review_flags": promotional_claim_flags(" ".join((title, desc))),
@@ -144,7 +147,13 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             "eligibility_assessed": False,
             "action": "Review official source and verify current rules before pursuing.",
         })
-    matches = fuse_rankings(matches)
+    # One visible result per resource identity, independent of repeated feeds.
+    # Use the first eligible observation rather than merging unverified claims.
+    unique_matches: dict[str, dict] = {}
+    for match in matches:
+        unique_matches.setdefault(match["resource_id"], match)
+    duplicate_count = len(matches) - len(unique_matches)
+    matches = fuse_rankings(list(unique_matches.values()))
     shown = matches[:10]
     receipt_input = json.dumps({
         "objective": objective, "mode": source_mode, "status": source_status,
@@ -160,6 +169,7 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         "matched_count": len(matches),
         "shown_count": len(shown),
         "excluded_count": omitted,
+        "duplicate_resource_ids_excluded": duplicate_count,
         "unexamined_count": unexamined_count,
         "eligibility": "NOT_ASSESSED",
         "verification": "Discovery only. Links, deadlines, applicant eligibility and availability must be checked with the official source.",
