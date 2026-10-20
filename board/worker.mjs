@@ -266,9 +266,15 @@ async function proxyIntent(request, env) {
         objective: body.objective.trim(),
         source_mode: body.source_mode || "live",
       }),
-      redirect: "error",
+      redirect: "manual",
       signal: controller.signal,
     });
+    // Cloudflare workerd does not support redirect:error. Never follow the
+    // upstream Location or treat a 3xx JSON body as a Resource Miner result.
+    if (upstream.status >= 300 && upstream.status < 400) {
+      try { await upstream.body?.cancel(); } catch {}
+      return jsonAnswer(env, 502, { error: "Resource Miner returned a redirect." });
+    }
     const contentType = (upstream.headers.get("Content-Type") || "").toLowerCase();
     const claimed = Number(upstream.headers.get("Content-Length") || "0");
     if (!contentType.startsWith("application/json")
