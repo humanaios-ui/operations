@@ -1,6 +1,10 @@
 """Synthetic, deterministic release checks for public Miner query quality."""
 from __future__ import annotations
 
+import json
+from pathlib import Path
+import subprocess
+import sys
 import unittest
 
 from resource_miner.intent_os import evaluate_objective
@@ -111,6 +115,20 @@ class QueryQualityTests(unittest.TestCase):
         self.assertEqual(row["review_flags_kind"],
                          "TEXT_PATTERN_MATCH_NOT_FRAUD_DETERMINATION")
         self.assertEqual(result["authority"], "NONE")
+
+    def test_offline_benchmark_never_invents_web_search_results(self):
+        root = Path(__file__).resolve().parents[1]
+        completed = subprocess.run(
+            [sys.executable, "-m", "tools.query_quality_benchmark",
+             "fixtures/query_quality_synthetic.json"],
+            cwd=root, capture_output=True, text=True, check=True, timeout=10,
+        )
+        report = json.loads(completed.stdout)
+        self.assertEqual(report["search_engine_data"], "NOT_FETCHED_OR_VERIFIED")
+        self.assertEqual(len(report["cases"]), 5)
+        self.assertTrue(all(case["web_search"] == "NOT_MEASURED"
+                            for case in report["cases"]))
+        self.assertEqual(report["cases"][0]["miner"]["ndcg_at_10"], 1.0)
 
     def test_uncertain_no_match_is_not_no_entitlement(self):
         result = search("unrelated orbital launcher", [
