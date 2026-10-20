@@ -61,6 +61,14 @@ input{max-width:100%}.cards{display:grid;grid-template-columns:repeat(auto-fit,m
 "use strict";
 const find=id=>document.getElementById(id);
 const text=(id,value)=>{find(id).textContent=String(value??"");};
+function resetEvidence(){
+ text("human","UNVERIFIED");text("technical","UNVERIFIED");text("production","UNVERIFIED");
+ text("warning","UNVERIFIED — No accepted observation. No deployment or human success is claimed.");
+ text("detail","No accepted HTTP execution receipt.");
+ text("scope","No accepted work report. Coverage is unknown.");
+ find("work").replaceChildren();
+ text("next","Prove a real public deployment and a witnessed human task.");
+}
 function show(value){
  if(!value||value.schema!=="humanaios.on_track_progress/v0.2"
     ||value.overall!=="UNVERIFIED"||value.human_user_outcome!=="UNVERIFIED"
@@ -69,26 +77,30 @@ function show(value){
     ||!Array.isArray(value.linked_work)||value.linked_work.length>30
     ||!value.technical_execution||!value.observed_scope)
     throw new Error("This is not a bounded, advisory On-Track report.");
- const scope=value.observed_scope;
- if(scope.repository!=="humanaios-ui/operations")throw new Error("Wrong repository.");
- const technical=value.technical_execution;
+ const scope=value.observed_scope, technical=value.technical_execution;
+ if(scope.repository!=="humanaios-ui/operations"||
+    !Number.isInteger(scope.inspected)||scope.inspected<0||
+    !Number.isInteger(scope.mapped_declarations)||scope.mapped_declarations<0||
+    !Number.isInteger(scope.unmapped)||scope.unmapped<0||
+    !/^[0-9a-f]{64}$/.test(String(scope.source_digest)))
+    throw new Error("Untrusted work scope.");
  if(!["UNVERIFIED","TESTED_LOCAL_HTTP"].includes(technical.state))
     throw new Error("Unknown technical status.");
- text("human","UNVERIFIED");
- text("technical",technical.state==="TESTED_LOCAL_HTTP"?"LOCAL TEST REPORTED":"UNVERIFIED");
- text("production","UNVERIFIED");
- text("warning","UNVERIFIED — Work and local HTTP observations are not proof of deployed human success.");
- text("detail",technical.state==="TESTED_LOCAL_HTTP"?
-    "An unsigned run reports that a loopback service returned "+Number(technical.candidate_count)+
-    " public-looking candidates from a stored snapshot. External links, current terms, and user completion remain unverified.":
-    "No HTTP execution receipt was supplied.");
- text("scope",Number(scope.inspected)+" sampled items. "+Number(scope.mapped_declarations)+
-    " explicitly mapped, "+Number(scope.unmapped)+" not mapped. "+
-    (scope.partial_sample?"PARTIAL COVERAGE; excludes some historical work or other repositories.":"Scope is repository-specific.")+
-    " Digest: "+String(scope.source_digest).slice(0,64));
- const tbody=find("work");tbody.replaceChildren();
+ if(technical.state==="TESTED_LOCAL_HTTP"){
+   if(technical.environment!=="LOCAL_LOOPBACK_HTTP"
+       ||!Number.isInteger(technical.candidate_count)||technical.candidate_count<1
+       ||technical.candidate_count>10
+       ||!/^[0-9a-f]{64}$/.test(String(technical.receipt_digest))
+       ||technical.provenance!=="UNSIGNED_WORKFLOW_ARTIFACT_NOT_INDEPENDENT_ATTESTATION")
+     throw new Error("Invalid local test receipt prerequisites.");
+ }else if(technical.environment!=="NOT_TESTED"||technical.candidate_count!==0||
+          technical.receipt_digest!==null||technical.provenance!=="NO_EXECUTION_RECEIPT"){
+   throw new Error("Unverified technical state has contradictory evidence.");
+ }
+ // Validate *all* rows and construct a detached fragment before touching UI.
+ const fragment=document.createDocumentFragment();
  for(const row of value.linked_work){
-   if(typeof row.url!=="string"||
+   if(!row||typeof row.url!=="string"||
       !/^https:\/\/github\.com\/humanaios-ui\/operations\/(issues|pull)\/[0-9]+$/.test(row.url))
      throw new Error("Invalid work link.");
    if(!["DECLARED_ANCHOR","DECLARED_BY_AUTHOR"].includes(row.goal_mapping))
@@ -100,10 +112,23 @@ function show(value){
    const c1=document.createElement("td");c1.append(a);
    const c2=document.createElement("td");c2.textContent=String(row.goal_mapping);
    const c3=document.createElement("td");c3.textContent=String(row.next_action||"").slice(0,220);
-   tr.append(c1,c2,c3);tbody.append(tr);
+   tr.append(c1,c2,c3);fragment.append(tr);
  }
+ // Commit a fully checked projection, never a half-loaded or rejected report.
+ resetEvidence();
+ find("work").replaceChildren(fragment);
+ text("technical",technical.state==="TESTED_LOCAL_HTTP"?"LOCAL TEST REPORTED":"UNVERIFIED");
+ text("warning","UNVERIFIED — This unsigned report is not independently authenticated or a deployed human outcome.");
+ text("detail",technical.state==="TESTED_LOCAL_HTTP"?
+    "An unsigned run reports that a loopback service returned "+technical.candidate_count+
+    " public-looking candidates from a stored snapshot. Current sources and user success remain unverified.":
+    "No HTTP execution receipt was supplied.");
+ text("scope",scope.inspected+" sampled items. "+scope.mapped_declarations+
+    " explicitly mapped, "+scope.unmapped+" not mapped. "+
+    (scope.partial_sample?"PARTIAL COVERAGE; excludes some historical work or other repositories.":"Scope is repository-specific.")+
+    " Digest: "+scope.source_digest);
  text("next",String(value.next_milestone||"Verify the human outcome.").slice(0,300));
- text("status","Report loaded. This file is unsigned. No authority or independent production verification is implied.");
+ text("status","Unsigned report loaded. It cannot establish independent verification or grant authority.");
 }
 find("import").addEventListener("change",async e=>{
  try{
@@ -111,16 +136,16 @@ find("import").addEventListener("change",async e=>{
   if(!f||f.size>1048576)throw new Error("File absent or too large.");
   show(JSON.parse(await f.text()));
  }catch(error){
+  resetEvidence();
   text("status","Refused imported report: "+error.message);
-  text("warning","UNVERIFIED — Imported report was refused.");
  }
 });
 try{
  const node=find("embedded-progress");
  if(node)show(JSON.parse(node.textContent));
 }catch(error){
+ resetEvidence();
  text("status","Embedded evidence refused: "+error.message);
- text("warning","UNVERIFIED — Embedded report was refused.");
 }
 </script>
 </body>
