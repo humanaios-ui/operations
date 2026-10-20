@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import os
 import re
@@ -28,7 +29,7 @@ ANCHORS = frozenset((822, 928))  # Issue #822 is a declared product objective; #
 MARKER = re.compile(r"(?m)^[ \t]*on_track_target:[ \t]*([A-Z0-9_]+)[ \t]*$")
 BLOCK_LABELS = frozenset(("blocked", "needs-human", "needs_human", "on-hold"))
 API = "https://api.github.com"
-MAX_ITEMS = 500
+MAX_ITEMS = 501
 
 
 def _digest(value: object) -> str:
@@ -57,6 +58,7 @@ def github_snapshot(repo: str, token: str, max_pages: int) -> tuple[list[dict], 
     if repo != REPO or not 1 <= max_pages <= 5:
         raise ValueError("Only the operations repository and 1-5 pages are supported")
     items: list[dict] = []
+    seen: set[int] = set()
     truncated = False
     for page in range(1, max_pages + 1):
         payload, link = _json_get(repo,
@@ -64,7 +66,15 @@ def github_snapshot(repo: str, token: str, max_pages: int) -> tuple[list[dict], 
             token)
         if not isinstance(payload, list):
             raise ValueError("Unexpected GitHub issue list response")
-        items.extend(payload)
+        for value in payload:
+            number = value.get("number") if isinstance(value, dict) else None
+            if number in seen:
+                # Offset pagination can repeat or omit rows after concurrent edits.
+                # A duplicate is evidence of sampling instability, not an error to hide.
+                truncated = True
+                continue
+            seen.add(number)
+            items.append(value)
         next_page = bool(re.search(r'<[^>]+>;\s*rel="next"', link))
         if not next_page:
             break
@@ -95,8 +105,12 @@ def _goal_link(item: dict) -> tuple[str, str]:
     if not isinstance(body, str):
         body = ""
     # Markers in issue text are only untrusted declarations, never an authorization.
-    markers = set(MARKER.findall(body[:8000]))
-    if markers == {TARGET}:
+    # The first nonempty line is the declaration. A fenced example later
+    # cannot declare a goal. Scan the entire body to catch conflicting claims.
+    normalized = "\n".join(body.splitlines())
+    logical = next((line for line in normalized.split("\n") if line.strip()), "")
+    markers = set(MARKER.findall(normalized))
+    if markers == {TARGET} and MARKER.fullmatch(logical):
         return "DECLARED_BY_AUTHOR", "Explicit goal marker (not independent corroboration)"
     if markers:
         return "UNMAPPED", "Unknown or conflicting marker; requires human mapping"
@@ -153,11 +167,17 @@ def _row(item: dict, repo: str) -> dict:
 
 
 def build_report(items: list[dict], repo: str = REPO, *,
-                 truncated: bool = False, source: str = "OFFLINE_FIXTURE") -> dict:
+                 truncated: bool = False, source: str = "OFFLINE_FIXTURE",
+                 execution_event: str = "OFFLINE_FIXTURE",
+                 execution_sha: str = "UNVERIFIED") -> dict:
     if repo != REPO:
         raise ValueError("Only allowlisted repo supported in v0.1")
     if not isinstance(items, list) or len(items) > MAX_ITEMS:
         raise ValueError("Invalid or oversized item collection")
+    if execution_event not in {"OFFLINE_FIXTURE", "pull_request", "issues", "workflow_dispatch"}:
+        raise ValueError("Unrecognized observation event")
+    if execution_sha != "UNVERIFIED" and not re.fullmatch(r"[a-f0-9]{40}", execution_sha):
+        raise ValueError("Invalid execution SHA")
     by_number = {}
     for item in items:
         row = _row(item, repo)
@@ -173,9 +193,11 @@ def build_report(items: list[dict], repo: str = REPO, *,
         "goal_id": TARGET,
         "goal_description": "Usable INTENT-OS human objective -> Resource Miner candidates -> independently observed user outcome",
         "scope": {"repository": repo, "source": source, "items_examined": len(rows),
-                  "complete_open_work_inventory": not truncated and source == "GITHUB_API_OPEN_PLUS_ANCHOR",
+                  "complete_open_work_inventory": False,
                   "may_omit_closed_work": True, "sampling_truncated": bool(truncated),
-                  "cross_repository_coverage": False},
+                  "cross_repository_coverage": False,
+                  "execution_event": execution_event, "execution_sha": execution_sha,
+                  "candidate_code": execution_event == "pull_request"},
         "counts": {"mapped_declarations": len(mapped), "unmapped": len(rows) - len(mapped),
                    "at_risk_mapped": sum(r["landing_state"] == "AT_RISK" for r in mapped),
                    "verified_user_outcomes": 0},
@@ -190,6 +212,8 @@ def build_report(items: list[dict], repo: str = REPO, *,
             "Exact-head CI and deployed human usability have not been checked by this pilot.",
             "A green status is intentionally impossible without an independent outcome verifier.",
             "Intent and evidence graphs may contain PROPOSED mappings; this report does not ratify them.",
+            "Offset-paginated GitHub observations are not a point-in-time or complete inventory.",
+            "Pull-request events run candidate-controlled code; observations do not independently attest deployment.",
         ],
     }
     report["snapshot_sha256"] = _digest(report)
@@ -201,7 +225,7 @@ def _markdown_cell(text: object) -> str:
     s = str(text).replace("|", "/").replace(chr(96), "'")
     s = re.sub(r"[\[\]()]","", s)
     s = re.sub(r"[\x00-\x1f\x7f]+", " ", s)
-    return s[:130]
+    return html.escape(s[:130], quote=True)
 
 
 def render_markdown(report: dict, limit: int = 30) -> str:
@@ -215,7 +239,10 @@ def render_markdown(report: dict, limit: int = 30) -> str:
         f"**Overall: UNVERIFIED.** No live user outcome has been independently verified by this observer.",
         f"**Scope:** {s['repository']}; {s['items_examined']} items inspected; "
         f"open-work inventory complete: {str(s['complete_open_work_inventory']).lower()}; "
-        f"cross-repository: false.",
+        f"cross-repository: false; sampling truncated: {str(s['sampling_truncated']).lower()}; "
+        f"closed history omitted: {str(s['may_omit_closed_work']).lower()}.",
+        f"**Observation provenance:** event `{s['execution_event']}`; checkout `{s['execution_sha']}`; "
+        f"candidate-controlled code: {str(s['candidate_code']).lower()}.",
         f"**Declared mapping:** {c['mapped_declarations']} mapped / {c['unmapped']} unmapped; "
         f"{c['at_risk_mapped']} mapped with blocker labels. Verified user outcomes: 0.",
         "",
@@ -228,7 +255,8 @@ def render_markdown(report: dict, limit: int = 30) -> str:
         label = _markdown_cell(row["ref"] + " " + row["title"])
         lines.append(f"| [{label}]({row['url']}) | {row['goal_mapping']} | "
                      f"{row['landing_state']} | {_markdown_cell(row['next_action'])} |")
-    lines += ["", f"Showing {min(limit,len(report['items']))} of {len(report['items'])} inspected items.",
+    lines += ["", "**Limitations:**", *("- " + str(x) for x in report["limitations"]),
+              "", f"Showing {min(limit,len(report['items']))} of {len(report['items'])} inspected items.",
               f"Snapshot SHA-256: {report['snapshot_sha256']}",
               "",
               "Advisory only. No admission, authorization, deploy, write, or merge effects.",
@@ -258,6 +286,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--input", type=Path, help="Offline JSON list or {items, truncated} specimen")
     p.add_argument("--repo", default=REPO, choices=(REPO,))
     p.add_argument("--max-pages", type=int, default=3)
+    p.add_argument("--execution-event", choices=("OFFLINE_FIXTURE", "pull_request", "issues", "workflow_dispatch"), default="OFFLINE_FIXTURE")
+    p.add_argument("--execution-sha", default="UNVERIFIED")
     p.add_argument("--json-out", type=Path)
     p.add_argument("--markdown-out", type=Path)
     p.add_argument("--smoke-test", action="store_true")
@@ -274,7 +304,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             items, truncated = github_snapshot(args.repo, os.getenv("GITHUB_TOKEN", ""), args.max_pages)
             source = "GITHUB_API_OPEN_PLUS_ANCHOR"
-        report = build_report(items, args.repo, truncated=truncated, source=source)
+        report = build_report(items, args.repo, truncated=truncated, source=source,
+                              execution_event=args.execution_event, execution_sha=args.execution_sha)
         rendered = render_markdown(report)
         if args.json_out:
             args.json_out.parent.mkdir(parents=True, exist_ok=True)
