@@ -123,7 +123,7 @@
       "constraint": "smag_self_accuracy_measurement_insufficient_window",
       "severity": "ADVISORY",
       "confidence": "insufficient_data",
-      "rule": "Only 2 consolidation PRs with smag_p_meta predictions observed over 4-week window (2026-09-21 \u2192 2026-10-20). Observation floor = 3 PRs. Current accuracy: 2/2 correct (100%), but sample size below statistical threshold. Consolidation workflow appeared to skip weeks 2, 4, 5 (no PR output). Cannot recommend weighting changes or gate hardening on 2-PR sample.",
+      "rule": "Only 2 consolidation PRs with smag_p_meta predictions observed over 4-week window (2026-09-21 \u2192 2026-10-20). Observation floor = 3 PRs. Current accuracy: 2/2 correct (100%), but sample size below statistical threshold. Consolidation workflow produced PRs in weeks 1, 3 (merged) and weeks 4, 5 (pending merge). Week 2 status unclear. Cannot recommend weighting changes or gate hardening on 2-PR sample.",
       "data_source": "audits/META_SMAG_REVIEW_LOG.md (4-week checkpoint)",
       "meta_observations": {
         "total_prs_measured": 2,
@@ -131,9 +131,9 @@
         "observation_floor_met": false,
         "accuracy_on_observed": "2/2 correct",
         "focus_areas": [],
-        "workflow_health_signal": "missing consolidation runs in weeks 2, 4, 5"
+        "workflow_health_signal": "consolidation produced PRs weeks 1 & 3 (merged); weeks 4 & 5 (pending merge); week 2 status unclear"
       },
-      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Diagnose why consolidation workflow didn't run/merge in weeks 2, 4, 5. Once workflow stabilized and 4-5 observations accumulated, re-run meta_smag_feedback_v1_0.py to measure true accuracy trend and calibration drift. Current 100% sample not generalizable.",
+      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Monitor PRs #724, #817, #931 for merge completion. Diagnose week 2 consolidation status. Once workflow confirmed healthy and 4-5 observations accumulated, re-run:\ntools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44\nto measure true accuracy trend and calibration drift on full sample.",
       "smag_generated": true,
       "meta_signal": true,
       "timestamp": "2026-10-20T10:01:27Z"
