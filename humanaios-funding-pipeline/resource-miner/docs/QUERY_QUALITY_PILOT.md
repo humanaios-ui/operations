@@ -31,7 +31,7 @@ From this Resource Miner directory:
 ```sh
 python3 -m unittest discover -s tests -p 'test_query_quality.py' -v
 python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
-python3 tools/query_quality_benchmark.py fixtures/query_quality_synthetic.json
+python3 -m tools.query_quality_benchmark fixtures/query_quality_synthetic.json
 ```
 
 The synthetic fixture is not observational evidence of production gains.
@@ -78,8 +78,10 @@ Apply them to **resist misleading opportunity promotion**, not to manipulate
 users: expose source identity and actual official URLs rather than trusting
 an authority-sounding title; preserve negative/unknown evidence; flag
 unsupported guarantee/pressure language for human review; avoid ranking
-based on claimed effort or a persuasive tone. Speech intonation and eye-line
-cannot be inferred from a plain text record. Never assign a fraud verdict
+based on claimed effort or a persuasive tone. A bounded `source_risk.py` implementation now surfaces only lexical review flags for
+unsupported outcome promises, claimed official endorsement, urgency language,
+and unusual payment requests. Flags do not alter ranking or assign fraud.
+Speech intonation and eye-line cannot be inferred from a plain text record. Never assign a fraud verdict
 from regex matches. A separate witness review, consent, and appropriate
 evidence are required for higher-risk conclusions.
 
