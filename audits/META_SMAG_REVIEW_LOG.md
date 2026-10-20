@@ -79,7 +79,7 @@ Status: ❌ Not applicable (2 PRs measured)
 **Related files:**
 - `META_SMAG_REVIEW_SCHEDULE.md` — Review window economics and thresholds
 - `.github/workflows/smag-consolidate.yml` — Consolidation workflow schedule (Mon 06:17 UTC)
-- `data/lessons_learned_ledger.json` — Adds SMAG-META-CALIBRATION-4WEEK-CHECKPOINT entry
+- `data/lessons_learned_ledger.json` — Updates SMAG-META-CALIBRATION-SELF-ACCURACY entry (latest accuracy checkpoint)
 
 **Confidence threshold for decision:** ≥3 observations, or <0.60 accuracy if observed  
 **Current status:** Window extension recommended (2026-10-20 → 2026-11-03)
