@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.7
+# HumanAIOS Resource Miner v0.1.8
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -23,6 +23,36 @@ Internet / public sources
 ```
 
 The Miner does **not** emit `YOU QUALIFY`, `APPLY_NOW`, or a funding commitment. Every candidate starts with `eligibility_assessed=false` unless a downstream resolver establishes the applicant predicates.
+
+## My AI Footprint: bounded Privacy Footprint Mine
+
+`resource_miner/privacy_footprint.py` adds an on-demand, evidence-only mine for a
+user's own supplied text. The v0.1 kernel detects explicit email, phone, and IP
+address patterns in memory and can identify the same normalized identifier
+across two or more supplied sources. It emits keyed commitments, evidence
+locations, conditional privacy-resource requirements, and a QRC-style receipt.
+Raw source text and detected values are not emitted.
+
+The control path is:
+
+```text
+OAG consent grant -> one RQY audit -> privacy-minimized findings
+  -> conditional Resource Miner requirements -> QRC receipt
+```
+
+This slice makes no network requests, stores no source content, runs no LLM,
+does not fetch provider history, and cannot change or delete anything. An exact
+identifier recurrence is a `LINKAGE_CANDIDATE`, not proof of common identity.
+`ZERO_MATCHES_OBSERVED` is not proof of no exposure. See
+`docs/PRIVACY_FOOTPRINT_MINE.md` and run:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_privacy_footprint.py' -v
+
+# Local one-shot run. The command uses an ephemeral in-memory HMAC key.
+python3 -m resource_miner.privacy_footprint_cli \
+  --input fixtures/privacy_footprint_synthetic.json --pretty
+```
 
 ## MVP discovery adapters
 
@@ -171,10 +201,43 @@ python3 app.py --host 0.0.0.0 --port 8766
 - `GET /api/health` — liveness.
 - `GET /api/needs` — the current Need Graph.
 - `GET /api/requirements` — explicit Resource Requirement Objects used for deficit-aware matching.
-- `GET /api/resources` — the most recent scan output: `data/resources.jsonl` if present, else `data/resources.snapshot.jsonl`.
-- `GET|POST /api/scan` — runs the same discovery -> `enrich()` pipeline as `python3 -m resource_miner.cli scan`, accepting the same `source`/`needs`/`funding_data`/`dev_tag`/`github_query`/`rss` fields as querystring params (GET) or a JSON body (POST). Read-only by default (`persist=false`); pass `persist=1` (or `"persist": true` in a POST body) to write `data/resources.jsonl`, matching this service's Z0/Z1 read-only-discovery framing — nothing here asserts applicant eligibility.
-- `GET /api/entitlement/handoff?resource_id=<id>` — emits a typed, provenance-bearing `humanaios.resource-entitlement-handoff.v1` object for a selected live/snapshot resource. The handoff is always `VERIFY_ELIGIBILITY` with `eligibility_assessed=false` and authority effect `NONE`.
+- `GET /api/resources` — **operator-only**, returns live scan or snapshot; requires HTTP admin authentication because stored scans may include private source observations.
+- `GET|POST /api/scan` — **operator-only** HTTP scanning. Requires a separately provisioned `RESOURCE_MINER_ADMIN_TOKEN` (at least 32 characters) and matching `X-Resource-Miner-Admin-Token` header. Without these, returns HTTP 403. This endpoint accepts source/path options and can persist output, so it MUST NOT be exposed anonymously. CLI scanning remains available without the HTTP admin token.
+- `GET /api/entitlement/handoff?resource_id=<id>` — **operator-only**, emits a typed, provenance-bearing handoff from stored scans. Requires HTTP admin authentication; eligibility remains unverified and authority effect remains `NONE`.
 
+
+**HTTP admin boundary:** Configure the token in your deployment secret manager, not in source code, a repository issue, a browser, or the public INTENT-OS page. The admin API is disabled without a configured strong token. Requests to `/api/scan`, `/api/resources`, and `/api/entitlement/handoff` need `X-Resource-Miner-Admin-Token`. Use a trusted non-browser operator client for those endpoints. Existing remote scan or Entitlement Navigator clients need explicit authorized credential wiring before reuse. Check reverse-proxy access logs do not store secret headers. Authentication is not authorization for arbitrary external target testing; source-specific policy still applies. The public `/intent-os` and `/api/intent` routes remain unauthenticated but read-only; deploy only with upstream rate/request-concurrency controls.
+
+## INTENT-OS: human objective -> Resource Miner (public read-only bridge)
+
+The **existing Resource Miner HTTP service** now serves a small mobile-friendly INTENT-OS page.
+
+- Open `/intent-os` (or `/`) on the running Resource Miner service.
+- Enter one plain-language goal and choose `Public discovery + curated funding` or `Last stored funding snapshot`.
+- The page calls `POST /api/intent` on the **same origin** and displays up to 10 matching resource candidates with source links to verify, provenance, limits and an unsigned reproducibility digest.
+- Live mode uses the existing **public DEV Community adapter** plus the curated HumanAIOS funding source, and discloses any upstream failure. Snapshot mode reads the previously committed funding snapshot without network.
+- This is not the previous E0/E1 synthetic demonstration, and it does not require the user to operate GitHub or the terminal once the service is deployed. This is an HTTP integration against existing candidate models, not a new adapter protocol.
+
+Example:
+
+```bash
+python3 app.py --host 127.0.0.1 --port 8766
+# Open http://127.0.0.1:8766/intent-os
+curl -sS -X POST http://127.0.0.1:8766/api/intent \
+  -H 'Content-Type: application/json' \
+  -d '{"objective":"Find compute credits for AI research","source_mode":"live"}'
+```
+
+**Privacy / authority:** Do not enter private identifying details. The HTTP service does not persist the objective. No cookies, third-party scripts, account access, applications, purchases, outreach, eligibility determination or authorization are performed. The returned SHA-256 selection digest is *not* an authenticated witness receipt. Resource descriptions are untrusted text rendered as text, not instructions. Only the public funding pipeline and DEV candidate classes are allowed through this new route; private Gmail and HackerOne discovery are excluded even if they exist elsewhere in the repository.
+
+**Operational limits:** The live feed may be unavailable; the service will say so and show labeled curated results instead. The funding catalog is not a live eligibility source. The existing deployed service must be updated to the approved commit before the new page works. Reusing the existing Railway start command is sufficient; do not treat a green PR as evidence that public deployment has happened.
+
+Tests:
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+```
 
 ## HackerOne scope and authorization boundary
 
@@ -383,6 +446,7 @@ The initial registry includes:
 - Microsoft for Startups — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; bounded program endpoints are re-observed daily.
 - HackerOne — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; the intended resolution unit is `Program x bounty-eligible ScopeAsset`. It remains dependency-gated until the scope-hydrated #680/#683 implementation is present.
 - the HumanAIOS repositories — `EVIDENCE_SOURCE | GOVERNED_SYSTEM`; ordinary issues are not promoted into resources.
+- My AI Footprint — `EVIDENCE_SOURCE` only; an explicit grant bound to one query ID may inspect user-supplied text in memory, but replay prevention is not implemented, and persistent Mine resolution emits `ROLE_ONLY` without reading private content.
 
 Run a Mine resolution manually:
 
