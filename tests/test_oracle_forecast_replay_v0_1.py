@@ -280,7 +280,7 @@ def test_aggregation_caps_correlated_duplicate_influence() -> None:
     with pytest.raises(ForecastContractError, match="different manifests"):
         aggregate_forecasts([
             {"forecast": high, "independence_group": "model-family-a"},
-            {"forecast": _episode("FC-OTHER", 0.2)["forecasts"][0], "independence_group": "model-family-b"},
+            {"forecast": oracle._seal({**_episode("FC-OTHER", 0.2)["forecasts"][0], "predictor_id": "other-independent"}), "independence_group": "model-family-b"},
         ])
 
 
