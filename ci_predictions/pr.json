@@ -1,47 +1,27 @@
 {
-  "pr": 836,
-  "actor_origin_claim": "Claude Code (Z1 proposer), filing Q-MULTI-AGENT-QUEUE-PLAN-01 as a docs-only z1-inbox candidate",
+  "pr": 948,
+  "actor_origin_claim": "Claude Code session; Z1 proposal and test-only change to an archived Phase 0 import",
   "checks": {
-    "Repository admission/backpressure gate": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "validate": {
-      "conclusion": "success",
-      "p": 0.95
-    },
-    "Verify Z2 Ratification Requirements": {
-      "conclusion": "success",
-      "p": 0.93
-    },
-    "Reject unauthorized internal deadline semantics": {
+    "quality": {
       "conclusion": "success",
       "p": 0.9
     },
     "guard": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.95
     },
     "Secret scanning (gitleaks)": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.97
     },
     "Python dependency vulnerability scan": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.92
     },
-    "Validate Configuration": {
+    "Repository admission/backpressure gate": {
       "conclusion": "success",
-      "p": 0.95
-    },
-    "Measure molt tier from the diff (ADVISORY)": {
-      "conclusion": "success",
-      "p": 0.97
-    },
-    "pin": {
-      "conclusion": "success",
-      "p": 0.9
+      "p": 0.8
     }
   },
-  "note": "Docs-only candidate plus inbox index and this prediction file. Ready for review with an ADMIT record on the state branch, so the admission gate should read PASS / ACTIVE. Main risks: the index collision with PR #831 and the deadline-semantics gate reading the plan's prose about decision windows."
+  "note": "Declared in commit 3720f377 (first commit on this PR to add this file). Predictions were not revised after CI results. Changes: one stdlib test file under acat/research/silent-tool-failure/phase0/. No constants, gates, or workflow files touched."
 }
