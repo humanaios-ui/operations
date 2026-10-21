@@ -184,6 +184,8 @@ class RestTransportRegressionTests(unittest.TestCase):
     def test_compare_ref_traversal_and_unpinned_refs_denied(self):
         invalid = [
             PRE + "/compare/../../private",
+            PRE + "/compare/main",
+            PRE + "/compare/%2e%2e/private",
             PRE + "/compare/" + "a" * 40 + ".." + "b" * 40,
             PRE + "/compare/main...evil",
             PRE + "/compare/" + "a" * 40 + "...." + "b" * 40,

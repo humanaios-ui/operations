@@ -79,7 +79,7 @@ class GitHubReadOnly:
         # preventing every live witness run immediately after OIDC succeeded.
         root = f"repos/{REPO}"
         # GitHub compare refs use an intentional three-dot delimiter. Match
-        # that endpoint by exact shape and SHA-only refs before permitting it.
+        # every compare request by exact shape and SHA-only refs before permitting it.
         # Other dot-dot sequences remain denied as traversal candidates.
         sha_compare = (
             isinstance(path, str) and re.fullmatch(
@@ -89,6 +89,7 @@ class GitHubReadOnly:
         )
         if (not isinstance(path, str)
                 or not (path == root or path.startswith(root + "/"))
+                or (path.startswith(root + "/compare/") and not sha_compare)
                 or (".." in path and not sha_compare)
                 or "\\" in path or len(path) > 600):
             raise WitnessError("API_PATH_DENIED")
