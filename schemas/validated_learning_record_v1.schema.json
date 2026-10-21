@@ -1,0 +1,459 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/validated_learning_record_v1.schema.json",
+  "title": "HumanAIOS Validated Learning Record v1",
+  "description": "Non-authoritative, source-pinned learning pointer. Shape validation does not authenticate receipts or authorize use.",
+  "$comment": "A VLR is not evidence, a warrant, admission, permission, or authorization. Independently resolve every receipt and current scope before retrieval. Never store source content, secrets, or raw private records here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "domain",
+    "created_at",
+    "source_commit",
+    "source_refs",
+    "observation_refs",
+    "correction_refs",
+    "validation_receipts",
+    "validity_window",
+    "applicability",
+    "confidence",
+    "uncertainty",
+    "supersession",
+    "privacy_scope",
+    "retrieval",
+    "revocation",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "humanaios.validated_learning_record.v1"
+    },
+    "record_id": {
+      "type": "string",
+      "pattern": "^VLR-[A-Za-z0-9._:-]{1,96}$"
+    },
+    "domain": {
+      "enum": ["human", "lasting-light-ai", "operations"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_commit": {
+      "$ref": "#/$defs/commit"
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    },
+    "observation_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/observationRef"
+      }
+    },
+    "correction_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/correctionRef"
+      }
+    },
+    "validation_receipts": {
+      "type": "array",
+      "minItems": 1,
+      "$comment": "Receipt fields are untrusted snapshots. Consumers must independently verify issuer identity, run metadata, source protection, and scope; JSON Schema cannot authenticate them.",
+      "contains": {
+        "type": "object",
+        "properties": {
+          "issuer_claimed_verification_status": {
+            "const": "VERIFIED"
+          }
+        },
+        "required": ["issuer_claimed_verification_status"]
+      },
+      "items": {
+        "$ref": "#/$defs/validationReceipt"
+      }
+    },
+    "validity_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valid_from", "expires_at"],
+      "properties": {
+        "valid_from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "applicability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_refs", "constraints"],
+      "properties": {
+        "contract_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/contractRef"
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/applicabilityConstraint"
+          }
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "method_ref"],
+      "properties": {
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "method_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "reason_codes"],
+      "properties": {
+        "level": {
+          "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+        },
+        "reason_codes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "LIMITED_SAMPLE",
+              "SOURCE_DISAGREEMENT",
+              "SOURCE_UNAVAILABLE",
+              "CONTRACT_CHANGED",
+              "APPLICABILITY_UNTESTED",
+              "MODEL_INFERENCE",
+              "OTHER"
+            ]
+          }
+        }
+      }
+    },
+    "supersession": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supersedes", "superseded_by"],
+      "properties": {
+        "supersedes": {
+          "$ref": "#/$defs/recordIdList"
+        },
+        "superseded_by": {
+          "$ref": "#/$defs/recordIdList"
+        }
+      }
+    },
+    "privacy_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner_domain",
+        "allowed_domains",
+        "purpose",
+        "consent_ref",
+        "data_classes",
+        "retention_until",
+        "deletion_supported"
+      ],
+      "properties": {
+        "owner_domain": {
+          "enum": ["human", "lasting-light-ai", "operations"]
+        },
+        "allowed_domains": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["human", "lasting-light-ai", "operations"]
+          }
+        },
+        "purpose": {
+          "enum": ["learning", "research", "operations"]
+        },
+        "consent_ref": {
+          "type": ["string", "null"]
+        },
+        "data_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["PUBLIC", "INTERNAL", "PERSONAL", "RECOVERY", "SECRET"]
+          }
+        },
+        "retention_until": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "deletion_supported": {
+          "const": true
+        }
+      }
+    },
+    "retrieval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "eligible_domains", "eligibility_checked_at"],
+      "properties": {
+        "state": {
+          "enum": ["ELIGIBLE", "INELIGIBLE", "STALE", "CONFLICTED", "REVOKED"]
+        },
+        "eligible_domains": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["human", "lasting-light-ai", "operations"]
+          }
+        },
+        "eligibility_checked_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "event_ref", "changed_at"],
+      "properties": {
+        "state": {
+          "enum": ["ACTIVE", "REVOKED", "DELETE_REQUESTED", "DELETED"]
+        },
+        "event_ref": {
+          "type": ["string", "null"]
+        },
+        "changed_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  },
+  "$defs": {
+    "commit": {
+      "type": "string",
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
+    "recordIdList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^VLR-[A-Za-z0-9._:-]{1,96}$"
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_type",
+        "repository",
+        "source_commit",
+        "locator",
+        "content_sha256"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_type": {
+          "enum": ["repository_file", "issue", "pull_request", "ledger_event", "external"]
+        },
+        "repository": {
+          "type": ["string", "null"],
+          "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$"
+        },
+        "source_commit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/commit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "observationRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_id", "source_id", "observed_at", "recorded_at", "kind"],
+      "properties": {
+        "observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "kind": {
+          "enum": ["FAILURE", "CORRECTION", "VALIDATION", "OUTCOME", "CONFLICT"]
+        }
+      }
+    },
+    "correctionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correction_id", "corrects_observation_id", "source_id", "corrected_at"],
+      "properties": {
+        "correction_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "corrects_observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "corrected_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "validationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_id",
+        "issuer_repository",
+        "workflow_path",
+        "run_id",
+        "run_attempt",
+        "workflow_commit",
+        "subject_commit",
+        "conclusion",
+        "issuer_claimed_verification_status",
+        "verification_evidence_ref",
+        "verified_at"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issuer_repository": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$"
+        },
+        "workflow_path": {
+          "type": "string",
+          "pattern": "^\\.github/workflows/[A-Za-z0-9._/-]+\\.ya?ml$"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "workflow_commit": {
+          "$ref": "#/$defs/commit"
+        },
+        "subject_commit": {
+          "$ref": "#/$defs/commit"
+        },
+        "conclusion": {
+          "enum": ["success", "failure", "cancelled", "skipped", "unknown"]
+        },
+        "issuer_claimed_verification_status": {
+          "enum": ["VERIFIED", "REJECTED", "PENDING"]
+        },
+        "verification_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "contractRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "path", "commit"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "$ref": "#/$defs/commit"
+        }
+      }
+    },
+    "applicabilityConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {
+          "enum": ["repository", "workflow", "environment", "operation", "domain"]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

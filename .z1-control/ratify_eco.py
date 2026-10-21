@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact.
 
+Builder v1.7 compliant · governance_tool
+
 Substrate Map binding D2: "a Z2 ECO-accept emits a signed, append-only RATIFY row,
 preserving the sha256 audit trail." D1: the signed mark is recorded back into the
 Empirica graph, which is the system of record.
@@ -35,6 +37,11 @@ Pipe an Empirica decision straight in:
             --by Night --decision ACCEPT
 """
 from __future__ import annotations
+
+TOOL_NAME = "ratify_eco"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1
 
 import argparse
 import datetime

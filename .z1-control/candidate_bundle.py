@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle.
 
+Builder v1.7 compliant · governance_tool
+
 Substrate Map build item B3 (closes category A+B): "one schema so an F/IC/H block is
 literally an Empirica node+edge bundle; a template for Z1 to emit it in one
 `log-artifacts`." A governance candidate and an Empirica artifact bundle stop being two
@@ -27,6 +29,11 @@ Pipe straight into Empirica:
     candidate_bundle.py --emit-bundle Q-F-GOVERNANCE-03.yaml | empirica log-artifacts -
 """
 from __future__ import annotations
+
+TOOL_NAME = "candidate_bundle"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1
 
 import argparse
 import json

@@ -8,6 +8,14 @@
 #            [gh_cli] = GitHub CLI must be available and authenticated
 
 baseline_tests:
+  - path: tests/test_opportunity_surface.py
+    requires: []
+    description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
+
+  - path: test_humanaios_core_tier1.py
+    requires: []
+    description: Non-authoritative HumanAIOS governance conformance and HCM translation regressions
+
   - path: tools/tests/test_ai_context_generator_v0_1.py
     requires: [gh_cli]
     description: AI Context Generator smoke tests (skips if GitHub CLI unavailable)
@@ -32,6 +40,10 @@ baseline_tests:
     requires: []
     description: Intake schema validation
 
+  - path: tools/tests/test_outlier_public_adapter_v0_1.py
+    requires: []
+    description: Public-only Outlier adapter synthetic regression tests
+
   - path: tools/tests/test_orchestrator_molt.py
     requires: []
     description: Orchestrator molt tests
@@ -43,6 +55,18 @@ baseline_tests:
   - path: tools/tests/test_repository_coordinator_v0_1.py
     requires: []
     description: Repository coordinator tests
+
+  - path: tools/tests/test_graph_lookup_v0_1.py
+    requires: []
+    description: Read-only graph lookup for the section A session-open step (Q-REPO-GRAPH-LOOKUP-01)
+
+  - path: tools/tests/test_kg_map_check_v0_1.py
+    requires: []
+    description: Repo snapshot checker for the HumanAIOS knowledge graph map
+
+  - path: tools/tests/test_humanaios_core_machine_v0_1.py
+    requires: []
+    description: HumanAIOS Core Machine deterministic bytecode and authority-boundary regressions
 
   - path: tools/tests/test_registry_site_generator.py
     requires: []

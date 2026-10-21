@@ -1,0 +1,121 @@
+{
+  "fixture_version": "humanaios.hlks.synthetic_scenarios.v1",
+  "synthetic_only": true,
+  "external_io": false,
+  "cases": [
+    {
+      "id": "A",
+      "label": "observed failure",
+      "input_refs": ["OBS-SYNTHETIC-FAILURE-A"],
+      "expected": {
+        "state": "OBSERVED_UNVERIFIED",
+        "authority_effect": "NONE"
+      }
+    },
+    {
+      "id": "B",
+      "label": "corrected with authenticated validation",
+      "input_refs": [
+        "VLR-SYNTHETIC-CORRECTED-001",
+        "RECEIPT-SYNTHETIC-WITNESS-B"
+      ],
+      "test_verifier": "fixture:synthetic-verifier:issuer-001",
+      "expected": {
+        "state": "ELIGIBLE_IN_FIXTURE_ONLY",
+        "authority_effect": "NONE",
+        "must_verify_issuer_outside_record": true
+      }
+    },
+    {
+      "id": "C",
+      "label": "new agent retrieval",
+      "request": {
+        "requesting_domain": "operations",
+        "purpose": "learning",
+        "contract_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "at": "2026-10-15T12:00:00Z"
+      },
+      "input_refs": ["VLR-SYNTHETIC-CORRECTED-001"],
+      "expected": {
+        "state": "RETURN_PROVENANCE_AND_UNCERTAINTY",
+        "authority_effect": "NONE",
+        "authorization_returned": false
+      }
+    },
+    {
+      "id": "D",
+      "label": "changed contract invalidates record",
+      "request": {
+        "requesting_domain": "operations",
+        "purpose": "learning",
+        "contract_commit": "cccccccccccccccccccccccccccccccccccccccc",
+        "at": "2026-10-15T12:00:00Z"
+      },
+      "input_refs": ["VLR-SYNTHETIC-CORRECTED-001"],
+      "expected": {
+        "state": "STALE_REQUIRES_REVALIDATION",
+        "authority_effect": "NONE"
+      }
+    },
+    {
+      "id": "F1",
+      "label": "fabricated memory",
+      "input": {
+        "claim": "fabricated approval",
+        "source_refs": [],
+        "authority_effect": "APPROVED"
+      },
+      "expected": {
+        "state": "REJECT_OR_QUARANTINE",
+        "retrievable": false,
+        "authority_effect": "NONE"
+      }
+    },
+    {
+      "id": "F2",
+      "label": "forged receipt",
+      "receipt_trust": "LOCAL_HASH_CHAIN_ONLY",
+      "input_refs": ["RECEIPT-SYNTHETIC-WITNESS-B"],
+      "expected": {
+        "state": "UNAUTHENTICATED",
+        "retrievable": false,
+        "authority_effect": "NONE"
+      }
+    },
+    {
+      "id": "F3",
+      "label": "conflicting and stale records",
+      "input_refs": [
+        "VLR-SYNTHETIC-CORRECTED-001",
+        "fixture:incompatible-record"
+      ],
+      "expected": {
+        "state": "CONFLICTED_OR_STALE",
+        "retrievable_as_current": false,
+        "authority_effect": "NONE"
+      }
+    },
+    {
+      "id": "F4",
+      "label": "cross-domain private recovery data request",
+      "request": {
+        "requesting_domain": "operations",
+        "purpose": "learning",
+        "requested_data_class": "RECOVERY",
+        "source_domain": "human",
+        "current_exact_scope_consent": false
+      },
+      "expected": {
+        "state": "DENIED",
+        "content_returned": false,
+        "replicated": false,
+        "authority_effect": "NONE"
+      }
+    }
+  ],
+  "test_limits": [
+    "The trusted issuer is a synthetic fixture identity, not a live GitHub Actions issuer.",
+    "Schema validation checks shape only and cannot authenticate receipts.",
+    "Passing these cases would not prove host protection, cross-domain isolation, or integration."
+  ]
+}
