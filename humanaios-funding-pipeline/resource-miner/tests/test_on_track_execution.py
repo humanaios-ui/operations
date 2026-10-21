@@ -119,6 +119,35 @@ class TechnicalWitnessTests(unittest.TestCase):
 
 
 class ProgressProjectionTests(unittest.TestCase):
+    def test_refuses_unsupported_mapped_landing_state_even_if_rehashed(self):
+        for mapping in ("DECLARED_ANCHOR", "DECLARED_BY_AUTHOR"):
+            for state in ("ON_TRACK", "OBSERVED", "", None, True, [], {}):
+                with self.subTest(mapping=mapping, state=state):
+                    report = declared_report()
+                    row = next(r for r in report["items"] if r["goal_mapping"] == mapping)
+                    row["landing_state"] = state
+                    report["snapshot_sha256"] = reflex._digest(
+                        {k: v for k, v in report.items() if k != "snapshot_sha256"}
+                    )
+                    with self.assertRaisesRegex(ValueError, "Unsupported landing state"):
+                        progress.projection(report, None)
+
+    def test_preserves_valid_mapped_landing_states_without_human_green(self):
+        for mapping in ("DECLARED_ANCHOR", "DECLARED_BY_AUTHOR"):
+            for state in ("UNVERIFIED", "AT_RISK"):
+                with self.subTest(mapping=mapping, state=state):
+                    report = declared_report()
+                    row = next(r for r in report["items"] if r["goal_mapping"] == mapping)
+                    row["landing_state"] = state
+                    report["snapshot_sha256"] = reflex._digest(
+                        {k: v for k, v in report.items() if k != "snapshot_sha256"}
+                    )
+                    view = progress.projection(report, None)
+                    projected = next(r for r in view["linked_work"] if r["ref"] == row["ref"])
+                    self.assertEqual(projected["landing_state"], state)
+                    self.assertEqual(view["overall"], "UNVERIFIED")
+                    self.assertEqual(view["human_user_outcome"], "UNVERIFIED")
+
     def test_observer_and_http_link_without_human_green(self):
         view = progress.projection(declared_report(), observed_receipt())
         self.assertEqual(view["technical_execution"]["state"], "TESTED_LOCAL_HTTP")

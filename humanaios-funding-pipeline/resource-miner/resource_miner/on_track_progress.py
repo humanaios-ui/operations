@@ -55,6 +55,8 @@ def projection(report: dict, receipt: dict | None) -> dict:
             continue
         if row.get("authority_effect") != "NONE" or row.get("operator_outcome") != "UNVERIFIED":
             raise ValueError("Unverified claim elevated")
+        if row.get("landing_state", "UNVERIFIED") not in ("UNVERIFIED", "AT_RISK"):
+            raise ValueError("Unsupported landing state")
         url = row.get("url")
         if not isinstance(url, str) or not REF_URL.fullmatch(url):
             raise ValueError("Unsafe work link")
