@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'humanaios-funding-pipeline/resource-miner/resource_miner/oracle_smag_experiment.py'
+      - 'oracles/engine/forecast_replay_v0_1.py'
       - 'humanaios-funding-pipeline/resource-miner/fixtures/oracle_smag_*.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_oracle_smag_experiment.py'
       - '.github/workflows/oracle-smag-miner-experiment.yml'
@@ -18,6 +19,8 @@ jobs:
         working-directory: humanaios-funding-pipeline/resource-miner
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
