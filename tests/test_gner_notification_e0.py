@@ -1,6 +1,9 @@
 """GNER-E0 bounded offline tests."""
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,6 +66,38 @@ class RelayTests(unittest.TestCase):
     def test_oversize_denied(self):
         with self.assertRaises(ValueError):
             gner.parse_notification(SUBJECT, "x" * 25001)
+
+    def test_smoke_test_and_cli_contract(self):
+        expected_names = [
+            "parse_notification_valid",
+            "parse_notification_oversized",
+            "correlate_valid",
+            "redact_canonical_url",
+            "redact_private_ip",
+        ]
+        result = gner.run_smoke_test()
+        self.assertEqual([item["test"] for item in result["tests"]], expected_names)
+        self.assertTrue(all(item["passed"] for item in result["tests"]))
+        self.assertEqual(result["summary"], "5/5 tests passed")
+
+        command = [sys.executable, str(ROOT / "tools/gner_notification_e0.py")]
+        completed = subprocess.run(
+            command + ["--smoke-test"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0)
+        self.assertEqual(json.loads(completed.stdout)["summary"], "5/5 tests passed")
+
+        missing_flag = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(missing_flag.returncode, 0)
+        self.assertIn("--smoke-test is required", missing_flag.stderr)
 
 
 if __name__ == "__main__":
