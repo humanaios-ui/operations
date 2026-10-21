@@ -13,6 +13,24 @@ from resource_miner.oracle_smag_experiment import offline_fixture_report
 
 
 class FirstUserLearningCycleTests(unittest.TestCase):
+    def test_existing_intent_os_projection_is_connected(self):
+        result = project_first_user_preflight()
+        intent = result["intent_os"]
+        self.assertEqual(intent["objective"], SYNTHETIC_INTENT[1]["text"])
+        self.assertEqual(intent["source_mode"], "snapshot")
+        self.assertEqual(intent["source_status"], "SYNTHETIC_EMPTY_SOURCE_SET")
+        self.assertEqual(intent["status"], "NO_SUPPORTED_MATCH")
+        self.assertEqual(intent["authority"], "NONE")
+        self.assertEqual(intent["execution"], "DISABLED")
+        self.assertEqual(intent["eligibility"], "NOT_ASSESSED")
+        self.assertIn("UNSIGNED", intent["receipt_kind"])
+
+    def test_no_supported_match_is_not_no_resource_entitlement(self):
+        result = project_first_user_preflight()
+        self.assertNotEqual(result["intent_os"]["status"], "NO_ENTITLEMENT")
+        self.assertEqual(result["verification_frontier"]["candidate_count"], 5)
+        self.assertEqual(result["qualification"]["first_user"], "NOT_QUALIFIED_LIVE")
+
     def test_existing_oracle_smag_miner_is_actually_invoked(self):
         report = project_first_user_preflight()
         replay = offline_fixture_report()
