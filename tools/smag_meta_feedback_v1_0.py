@@ -146,7 +146,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
             f'created:>={cutoff_date}'
         )
         result = subprocess.run(
-            ["gh", "pr", "list", "--search", query, "--json", "number,title,state,mergedAt,body"],
+            ["gh", "pr", "list", "--repo", repo, "--state", "all", "--limit", "100", "--search", query, "--json", "number,title,state,mergedAt,body"],
             capture_output=True,
             text=True,
             check=False,
@@ -284,7 +284,7 @@ def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
     calibration_gap = outcome["calibration_gap"]
     accuracy = outcome["actual_success_rate"]
     if accuracy is None:
-        return {"status": "INSUFFICIENT_RESOLVED_DATA", **outcome}
+        return {**outcome, "status": "INSUFFICIENT_RESOLVED_DATA", "message": "No independently resolved PR outcomes; pending forecasts remain censored."}
 
     # Determine confidence based on gap magnitude and sample size
     abs_gap = abs(calibration_gap)
