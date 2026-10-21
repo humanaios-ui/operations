@@ -11,6 +11,7 @@ import hashlib
 import importlib.util
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,18 @@ FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 _SHA = re.compile(r"^[a-f0-9]{40}$")
 PROBABILITY_BASELINE = 0.5
 MAX_CASES = 30
+
+
+def _instant(value: str) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError("invalid observation timestamp")
+    try:
+        instant = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("invalid observation timestamp") from exc
+    if instant.tzinfo is None:
+        raise ValueError("observation timestamps must carry a timezone")
+    return instant.astimezone(timezone.utc)
 
 
 def oracle_module():
@@ -60,6 +73,7 @@ def project_experiment(predictions: dict[str, Any], outcomes: dict[str, Any]) ->
     snapshot_at = predictions.get("snapshot_at")
     if snapshot_at != outcomes.get("snapshot_at") or not isinstance(snapshot_at, str):
         raise ValueError("observation times must match")
+    snapshot_instant = _instant(snapshot_at)
     oracle = oracle_module()
     # Semantic target: GitHub merge status by a fixed evaluation snapshot.
     # It does not mean admitted, successful CI, quality, or verified user outcome.
@@ -82,7 +96,7 @@ def project_experiment(predictions: dict[str, Any], outcomes: dict[str, Any]) ->
             raise ValueError("unsupported observation state; closed-unmerged is not scored")
         if (status == "MERGED") != isinstance(merged_at, str):
             raise ValueError("resolved state and merged_at mismatch")
-        if status == "MERGED" and merged_at > snapshot_at:
+        if status == "MERGED" and _instant(merged_at) > snapshot_instant:
             raise ValueError("future merge cannot be observed at snapshot time")
         locator = f"https://github.com/humanaios-ui/operations/pull/{number}"
         manifest = oracle.build_manifest(
