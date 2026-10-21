@@ -1,55 +1,27 @@
 {
-  "pr": 843,
-  "actor_origin_claim": "Claude Code session, Z1 proposal and read-only lookup tool",
+  "pr": 948,
+  "actor_origin_claim": "Claude Code session; Z1 proposal and test-only change to an archived Phase 0 import",
   "checks": {
-    "agent-principle-compliance-check": {
+    "quality": {
+      "conclusion": "success",
+      "p": 0.9
+    },
+    "guard": {
       "conclusion": "success",
       "p": 0.95
     },
-    "builder-lint": {
+    "Secret scanning (gitleaks)": {
       "conclusion": "success",
-      "p": 0.93
+      "p": 0.97
     },
-    "document-control": {
+    "Python dependency vulnerability scan": {
       "conclusion": "success",
-      "p": 0.96
+      "p": 0.92
     },
-    "manifest-sync-gate": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "No-op PR guard": {
-      "conclusion": "success",
-      "p": 0.99
-    },
-    "quality-baseline": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "repository-admission-gate": {
+    "Repository admission/backpressure gate": {
       "conclusion": "success",
       "p": 0.8
-    },
-    "repository-coordinator": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "security-gates": {
-      "conclusion": "success",
-      "p": 0.95
-    },
-    "tool-manifest": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "workflow-lint": {
-      "conclusion": "success",
-      "p": 0.97
-    },
-    "workflow-path-validation": {
-      "conclusion": "success",
-      "p": 0.97
     }
   },
-  "note": "Adds tools/graph_lookup_v0_1.py (stdlib, read-only) and its tests. Builder v1.7 gate fixed by adding --smoke-test. Expected risk: manifest row ID and repository-admission-gate for a Z2-queued tool path."
+  "note": "Declared for head commit that adds this file. Changes: one stdlib test file under acat/research/silent-tool-failure/phase0/. No constants, gates, or workflow files touched."
 }
