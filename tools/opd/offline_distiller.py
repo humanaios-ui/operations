@@ -25,8 +25,11 @@ SCHEMA = "humanaios.opd.trace.v0.1"
 def validate(trace):
     if not isinstance(trace, dict) or not REQUIRED.issubset(trace):
         return False, "missing_fields"
-    if trace["schema"] != SCHEMA or not SHA.fullmatch(str(trace["head_sha"])):
+    if (trace["schema"] != SCHEMA or not isinstance(trace["head_sha"], str)
+            or not SHA.fullmatch(trace["head_sha"])):
         return False, "invalid_schema_or_head"
+    if not isinstance(trace["trace_id"], str) or not trace["trace_id"]:
+        return False, "invalid_trace_id"
     if trace["repository"] != "humanaios-ui/operations":
         return False, "repository_mismatch"
     if not isinstance(trace["state"], dict):
@@ -36,13 +39,14 @@ def validate(trace):
         return False, "invalid_actions"
     if not isinstance(a.get("kind"), str) or not isinstance(b.get("kind"), str):
         return False, "invalid_action_kind"
-    if b["kind"] not in SAFE or a["kind"] in FORBIDDEN:
+    if a["kind"] not in SAFE or b["kind"] not in SAFE:
         return False, "unsafe_action"
     if set(a) - {"kind", "category"} or set(b) - {"kind", "category"}:
         return False, "unbounded_action_payload"
     if not isinstance(a.get("category"), str) or not isinstance(b.get("category"), str):
         return False, "missing_category"
-    if not re.fullmatch(r"[a-z0-9_]{1,64}", b["category"]):
+    if (not re.fullmatch(r"[a-z0-9_]{1,64}", a["category"])
+            or not re.fullmatch(r"[a-z0-9_]{1,64}", b["category"])):
         return False, "invalid_category"
     outcome, ev = trace["outcome"], trace["evidence"]
     if not isinstance(outcome, dict) or outcome.get("status") != "verified":
@@ -126,14 +130,15 @@ def main():
     p.add_argument("--smoke-test", action="store_true")
     args = p.parse_args()
     if args.smoke_test:
-        assert run_smoke_test()
+        if not run_smoke_test():
+            raise SystemExit("OPD smoke test FAIL")
         print("OPD smoke test PASS")
         return
     if not all([args.train, args.holdout, args.out]):
         p.error("--train, --holdout and --out required outside smoke-test")
     train, test = read_jsonl(args.train), read_jsonl(args.holdout)
-    train_ids = {(t.get("trace_id"), t.get("head_sha")) for t in train if isinstance(t, dict)}
-    test_ids = {(t.get("trace_id"), t.get("head_sha")) for t in test if isinstance(t, dict)}
+    train_ids = {t["head_sha"] for t in train if validate(t)[0]}
+    test_ids = {t["head_sha"] for t in test if validate(t)[0]}
     if train_ids & test_ids:
         p.error("train/holdout leakage")
     policy = compile_rules(train)
