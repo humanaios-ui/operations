@@ -201,8 +201,8 @@ def build_manifest(
         "subject_ref": _required_text(subject_ref, "subject_ref"),
         "mode": mode,
         "outcome_space": ["NO", "YES"],
-        "created_at": created_at,
-        "closes_at": closes_at,
+        "created_at": _normalized_timestamp(created_at),
+        "closes_at": _normalized_timestamp(closes_at) if closes_at else None,
         "evidence_cutoff": cutoff,
         "resolution_rule": _required_text(resolution_rule, "resolution_rule"),
         "resolution_sources": _required_text_list(
@@ -297,6 +297,7 @@ def _sealed_snapshot(
     recorded_at: str,
     evidence_refs: Sequence[str],
     prior_seal_sha256: str | None = None,
+    manifest_seal_sha256: str,
     challenge_ids: Sequence[str] = (),
     source_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -320,6 +321,7 @@ def _sealed_snapshot(
             _required_text(item, "evidence_refs") for item in evidence_refs
         ],
         "prior_seal_sha256": prior_seal_sha256,
+        "manifest_seal_sha256": manifest_seal_sha256,
         "challenge_ids": list(challenge_ids),
         "source_binding": copy.deepcopy(dict(source_binding)) if source_binding else None,
         "state": "SEALED",
@@ -335,6 +337,8 @@ def verify_snapshot_seal(snapshot: Mapping[str, Any]) -> None:
         raise ForecastContractError("forecast snapshot stage is invalid")
     _required_text(snapshot.get("predictor_id"), "forecast predictor_id")
     _probability(snapshot.get("probability"), str(snapshot.get("stage")))
+    if not isinstance(snapshot.get("manifest_seal_sha256"), str) or len(snapshot["manifest_seal_sha256"]) != 64:
+        raise ForecastContractError("forecast missing manifest binding")
     _timestamp(str(snapshot.get("recorded_at") or ""), "forecast snapshot")
     _required_text_list(
         list(snapshot.get("evidence_refs") or []), "forecast evidence_refs"
@@ -364,6 +368,7 @@ def start_episode(
     verify_manifest_seal(manifest)
     f1 = _sealed_snapshot(
         stage="F1",
+        manifest_seal_sha256=manifest["seal_sha256"],
         predictor_id=predictor_id,
         probability=probability,
         recorded_at=recorded_at,
@@ -406,6 +411,8 @@ def challenge_episode(
             "F2", episode["manifest"]["forecast_id"], challenger, recorded_at, *reason_list
         ),
         "stage": "F2",
+        "manifest_seal_sha256": episode["manifest"]["seal_sha256"],
+        "f1_seal_sha256": f1["seal_sha256"],
         "challenger_id": challenger,
         "reasons": reason_list,
         "evidence_refs": [
@@ -445,6 +452,7 @@ def correct_episode(
     f1 = episode["forecasts"][0]
     f3 = _sealed_snapshot(
         stage="F3",
+        manifest_seal_sha256=episode["manifest"]["seal_sha256"],
         predictor_id=predictor_id,
         probability=probability,
         recorded_at=recorded_at,
@@ -511,6 +519,9 @@ def resolve_episode(
             *refs,
         ),
         "status": "RESOLVED",
+        "manifest_seal_sha256": episode["manifest"]["seal_sha256"],
+        "terminal_forecast_seal_sha256": episode["forecasts"][-1]["seal_sha256"],
+        "challenge_seals": [item["seal_sha256"] for item in episode["challenges"]],
         "outcome": outcome,
         "resolver_id": resolver,
         "witness_role": _required_text(witness_role, "witness_role"),
@@ -561,10 +572,13 @@ def annul_episode(
             "ANNUL", episode["manifest"]["forecast_id"], resolver, resolved_at
         ),
         "status": "ANNULLED",
+        "manifest_seal_sha256": episode["manifest"]["seal_sha256"],
+        "terminal_forecast_seal_sha256": episode["forecasts"][-1]["seal_sha256"],
+        "challenge_seals": [item["seal_sha256"] for item in episode["challenges"]],
         "outcome": None,
         "resolver_id": resolver,
         "witness_role": "INDEPENDENT_RESOLUTION_WITNESS",
-        "verification_status": "VERIFIED",
+        "verification_status": "ASSERTED",
         "source_refs": _required_text_list(list(source_refs), "annul source_refs"),
         "resolved_at": resolved_at,
         "reason": _required_text(reason, "annul reason"),
@@ -589,7 +603,13 @@ def validate_episode(episode: Mapping[str, Any]) -> None:
         raise ForecastContractError("v0.1 permits F1 and at most one F3")
     for snapshot in forecasts:
         verify_snapshot_seal(snapshot)
+        if snapshot.get("manifest_seal_sha256") != manifest["seal_sha256"]:
+            raise ForecastContractError("forecast snapshot belongs to a different manifest")
         recorded_at = _timestamp(snapshot["recorded_at"], "forecast.recorded_at")
+        if manifest["evidence_cutoff"]["kind"] == "TIMESTAMP":
+            cutoff = _timestamp(manifest["evidence_cutoff"]["ref"], "evidence_cutoff.ref")
+            if cutoff > recorded_at:
+                raise ForecastContractError("future evidence cutoff exceeds forecast recording")
         created_at = _timestamp(manifest["created_at"], "manifest.created_at")
         if recorded_at < created_at:
             raise ForecastContractError("forecast cannot precede its manifest")
@@ -614,6 +634,9 @@ def validate_episode(episode: Mapping[str, Any]) -> None:
     for item in challenges:
         _validate_authority(item, "challenge")
         _verify_seal(item, "challenge")
+        if (item.get("manifest_seal_sha256") != manifest["seal_sha256"]
+                or item.get("f1_seal_sha256") != forecasts[0]["seal_sha256"]):
+            raise ForecastContractError("challenge belongs to another forecast manifest or F1")
         if item.get("stage") != "F2":
             raise ForecastContractError("challenge stage must be F2")
         if item.get("challenger_id") in predictors:
@@ -641,6 +664,9 @@ def validate_episode(episode: Mapping[str, Any]) -> None:
             raise ForecastContractError("F3 must bind every admitted F2 challenge")
         if not challenge_ids:
             raise ForecastContractError("F3 requires an F2 challenge")
+        f3_at = _timestamp(forecasts[1]["recorded_at"], "F3.recorded_at")
+        if any(_timestamp(item["recorded_at"], "F2.recorded_at") > f3_at for item in challenges):
+            raise ForecastContractError("F3 cannot precede its F2 challenge")
 
     resolution = episode.get("resolution")
     if resolution is None:
@@ -649,6 +675,12 @@ def validate_episode(episode: Mapping[str, Any]) -> None:
         raise ForecastContractError("resolution must be an object or null")
     _validate_authority(resolution, "resolution")
     _verify_seal(resolution, "resolution")
+    if resolution.get("manifest_seal_sha256") != manifest["seal_sha256"]:
+        raise ForecastContractError("resolution belongs to a different manifest")
+    if resolution.get("terminal_forecast_seal_sha256") != forecasts[-1]["seal_sha256"]:
+        raise ForecastContractError("resolution belongs to a different forecast lineage")
+    if resolution.get("challenge_seals") != [item["seal_sha256"] for item in challenges]:
+        raise ForecastContractError("resolution challenge lineage is inconsistent")
     if resolution.get("status") not in {"RESOLVED", "ANNULLED"}:
         raise ForecastContractError("resolution status must be RESOLVED or ANNULLED")
     if resolution.get("resolver_id") in predictors:
@@ -769,11 +801,21 @@ def aggregate_forecasts(members: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         "freshness_weight",
         "manipulation_resistance_weight",
     )
+    seen_predictors: set[str] = set()
+    seen_seals: set[str] = set()
+    manifest_seals: set[str] = set()
     for member in members:
         snapshot = member.get("forecast")
         if not isinstance(snapshot, Mapping):
             raise ForecastContractError("aggregation member requires a sealed forecast")
         verify_snapshot_seal(snapshot)
+        if snapshot["seal_sha256"] in seen_seals or snapshot["predictor_id"] in seen_predictors:
+            raise ForecastContractError("duplicate forecaster or forecast seal in aggregation")
+        seen_predictors.add(snapshot["predictor_id"])
+        seen_seals.add(snapshot["seal_sha256"])
+        manifest_seals.add(snapshot["manifest_seal_sha256"])
+        if len(manifest_seals) > 1:
+            raise ForecastContractError("cannot aggregate forecasts for different manifests")
         group = _required_text(member.get("independence_group"), "independence_group")
         raw = 1.0
         for name in weight_names:
@@ -817,7 +859,7 @@ def _calibration_bins(receipts: Sequence[Mapping[str, Any]], width: float = 0.2)
     grouped: dict[int, list[Mapping[str, Any]]] = defaultdict(list)
     count = round(1.0 / width)
     for receipt in receipts:
-        index = min(count - 1, int(float(receipt["probability"]) / width))
+        index = min(count - 1, math.floor(float(receipt["probability"]) * count + 1e-9))
         grouped[index].append(receipt)
     bins = []
     for index in sorted(grouped):
@@ -892,7 +934,11 @@ def score_cohort(
     )
     homogeneous = len(question_keys) == 1 and len(question_contracts) == 1
     synthetic = "SYNTHETIC" in provenance_kinds
-    claim_ready = (
+    # No independent frame/witness attestation is checked by this module.
+    # Self-declared bools, hash strings and even a content-sealed frame are not
+    # proof of pre-outcome independent registration. Fail closed on readiness.
+    claim_ready = False
+    candidate_gate_satisfied = (
         sampling_complete
         and sampling_provenance_present
         and sampling_frame_sealed_before_outcomes
@@ -930,6 +976,7 @@ def score_cohort(
         report["claim_blockers"].append("SAMPLING_FRAME_PROVENANCE_MISSING")
     if not sampling_frame_sealed_before_outcomes:
         report["claim_blockers"].append("SAMPLING_FRAME_NOT_PRECOMMITTED")
+    report["claim_blockers"].append("INDEPENDENT_COHORT_ATTESTATION_UNAVAILABLE")
     if not homogeneous:
         report["claim_blockers"].append("MIXED_QUESTION_CONTRACTS")
     if synthetic:
@@ -967,7 +1014,12 @@ def verify_hash_chain(rows: Sequence[Mapping[str, Any]]) -> None:
             raise ForecastContractError(f"ledger prev_hash break at sequence {sequence}")
         recorded_hash = row.get("hash")
         body = {key: value for key, value in row.items() if key != "hash"}
-        if not isinstance(recorded_hash, str) or _sha256(body) != recorded_hash:
+        # NF ledger hashes use json.dumps(..., ensure_ascii=True) by default;
+        # Oracle's own seals use ensure_ascii=False. They are separate contracts.
+        legacy_encoded = json.dumps(body, sort_keys=True, separators=(",", ":"),
+                                    ensure_ascii=True).encode("utf-8")
+        legacy_hash = hashlib.sha256(legacy_encoded).hexdigest()
+        if not isinstance(recorded_hash, str) or legacy_hash != recorded_hash:
             raise ForecastContractError(f"ledger content hash break at sequence {sequence}")
         previous_hash = recorded_hash
         previous_sequence = sequence
