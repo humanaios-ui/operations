@@ -30,14 +30,13 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 205
+  tools: 214
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 152
+  builder_markers_present: 166
   missing_from_tree: 0
-  unclassified: 6
+  unclassified: 0
 categories:
-- analysis_tool
 - analytics_tool
 - audit_tool
 - calibration_tool
@@ -53,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2530,32 +2528,32 @@ tools:
 - tool_id: HAIOS-TOOL-212
   name: b4_fold_execute
   path: .z1-control/b4_fold_execute.py
-  version: unversioned
-  category: unclassified
+  version: 1.0.0
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
   smoke_test: true
-  builder_markers: false
+  builder_markers: true
   purpose: 'b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification.'
 - tool_id: HAIOS-TOOL-213
   name: b4_migrate
   path: .z1-control/b4_migrate.py
-  version: unversioned
-  category: unclassified
+  version: 2.0.0
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
   smoke_test: true
-  builder_markers: false
+  builder_markers: true
   purpose: b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store.
 - tool_id: HAIOS-TOOL-214
   name: board_monitor
   path: .z1-control/board_monitor.py
-  version: unversioned
-  category: unclassified
+  version: 1.0.0
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2566,38 +2564,38 @@ tools:
 - tool_id: HAIOS-TOOL-215
   name: candidate_bundle
   path: .z1-control/candidate_bundle.py
-  version: unversioned
-  category: unclassified
+  version: 1.0.0
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
   smoke_test: true
-  builder_markers: false
+  builder_markers: true
   purpose: 'candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle.'
 - tool_id: HAIOS-TOOL-216
   name: leak_guard
   path: .z1-control/leak_guard.py
-  version: unversioned
-  category: unclassified
+  version: 1.0.0
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
   smoke_test: true
-  builder_markers: false
+  builder_markers: true
   purpose: 'leak_guard.py — B6: bound the two Empirica session leaks.'
 - tool_id: HAIOS-TOOL-217
   name: ratify_eco
   path: .z1-control/ratify_eco.py
-  version: unversioned
-  category: unclassified
+  version: 1.0.0
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
   smoke_test: true
-  builder_markers: false
+  builder_markers: true
   purpose: 'ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact.'
 - tool_id: HAIOS-TOOL-218
   name: gner_notification_e0
@@ -2611,6 +2609,119 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'GNER-E0: offline GitHub notification lead interpreter.'
+- tool_id: HAIOS-TOOL-219
+  name: azure_readiness
+  path: tools/azure_readiness.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  session: S-20261017-AZURE-915
+- tool_id: HAIOS-TOOL-220
+  name: ci_predict_rollup
+  path: tools/ci_predict_rollup_v0_1.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: ci_predict_rollup_v0_1.py
+  session: issue-870
+- tool_id: HAIOS-TOOL-221
+  name: coderabbit_coverage_inventory
+  path: tools/coderabbit_coverage_inventory.py
+  version: 0.2.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: This tool does NOT invoke CodeRabbit and cannot authenticate review receipts.
+- tool_id: HAIOS-TOOL-222
+  name: gner_failure_signatures_e2
+  path: tools/gner_failure_signatures_e2.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'GNER-E2: conservative cross-run failure signature candidates (no authority).'
+- tool_id: HAIOS-TOOL-223
+  name: gner_verify_e1
+  path: tools/gner_verify_e1.py
+  version: 0.1.0
+  category: connector_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: GNER-E1 explicit, read-only authenticated GitHub workflow-run reconciliation.
+  session: read_only_github_api
+- tool_id: HAIOS-TOOL-224
+  name: graph_lookup
+  path: tools/graph_lookup_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
+  session: Q-REPO-GRAPH-LOOKUP-01
+- tool_id: HAIOS-TOOL-225
+  name: humanaios_core_machine
+  path: tools/humanaios_core_machine_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Compiles a bounded instruction stream for the Operations evidence chain:'
+  session: issue-810
+- tool_id: HAIOS-TOOL-226
+  name: kg_map_check
+  path: tools/kg_map_check_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph.
+  session: unassigned
+- tool_id: HAIOS-TOOL-227
+  name: state_continuity_verification
+  path: tools/state_continuity_verification_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

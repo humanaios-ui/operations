@@ -3,11 +3,11 @@
 Email is untrusted discovery only; GitHub receipts are verified *outside* this
 module. No Gmail/GitHub API calls, I/O, authority, or execution.
 
-Builder v1.7 compliant · cli_tool
+Builder v1.7 compliant · diagnostic_tool
 
 TOOL_NAME = "gner_notification_e0"
 TOOL_VERSION = "0.1.0"
-TOOL_CATEGORY = "analysis_tool"
+TOOL_CATEGORY = "diagnostic_tool"
 TOOL_ZONE = 1
 """
 from __future__ import annotations
@@ -20,7 +20,7 @@ from urllib.parse import urlsplit
 
 TOOL_NAME = "gner_notification_e0"
 TOOL_VERSION = "0.1.0"
-TOOL_CATEGORY = "analysis_tool"
+TOOL_CATEGORY = "diagnostic_tool"
 TOOL_ZONE = 1
 
 REPO = "humanaios-ui/operations"
@@ -167,3 +167,5 @@ if __name__ == "__main__":
         result = run_smoke_test()
         print(json.dumps(result, indent=2))
         sys.exit(0 if all(t.get("passed") for t in result["tests"]) else 1)
+    else:
+        parser.error("--smoke-test is required")
