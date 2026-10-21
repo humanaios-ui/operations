@@ -65,9 +65,11 @@ _harm / autonomy / value are not mechanically attributable from merge+CI alone; 
 
 ## Gap drivers (which checks fail)
 
+Each check is counted at most once per PR.
+
 | failing check | PRs |
 |---|---|
-| `Repository admission/backpressure gate` | 38 |
+| `Repository admission/backpressure gate` | 21 |
 | `Vercel – resource-miner` | 10 |
 | `Verify Z2 Ratification Requirements` | 4 |
 | `Check principles (P19)` | 4 |

@@ -129,7 +129,7 @@
       "id": "SMAG-FEEDBACK-DRIVER-REPOSITORY-ADMISSION-BACKPRESSURE-GATE-36318ba5",
       "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (94 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
-      "rule": "The check `Repository admission/backpressure gate` failed on 38 pinned-prediction PR(s) (overall gap_rate 0.337). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "rule": "The check `Repository admission/backpressure gate` failed on 21 distinct pinned-prediction PR(s), counting the check at most once per PR (38 recorded failing check entries; overall gap_rate 0.337). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
       "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
       "smag_generated": true
     },

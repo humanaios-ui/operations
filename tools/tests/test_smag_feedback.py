@@ -66,6 +66,17 @@ def test_cues_at_or_above_threshold():
     assert r["cues"] == [{"check": "flaky-gate", "n": 3, "gap_rate": r["cues"][0]["gap_rate"]}]
 
 
+def test_repeated_check_runs_count_once_per_pr():
+    rows = [
+        {**_row("0.6", failing=["gate", "gate", "other"]), "pr": "1"},
+        {**_row("0.7", failing=["gate", "gate"], day=2), "pr": "2"},
+    ]
+    analysis = analyze(rows)
+    assert analysis["gap_drivers"] == {"gate": 2, "other": 1}
+    result = fb.compute_cues(analysis, min_calibration_rows=2, driver_threshold=3)
+    assert result["status"] == "NO_DRIVERS"
+
+
 def test_driver_below_threshold_is_not_a_cue():
     rows = [_row("0.6", failing=["rare-flake"], day=1)]
     rows += [_row("0.7", day=i + 2) for i in range(10)]

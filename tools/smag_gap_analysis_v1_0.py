@@ -99,13 +99,14 @@ def map_dimensions(rows: list[dict]) -> dict:
 
 
 def gap_drivers(rows: list[dict]) -> dict:
-    """Which named checks drive the friction? Tally failing_checks across rows.
+    """Which named checks drive the friction? Count each check once per PR.
+    The consolidated ledger contains one row per PR.
     A single check failing on nearly every PR (e.g. a broken/advisory gate) means
     the gap is one systemic issue, not many independent quality misses — read the
     gap_rate accordingly."""
     tally: dict = defaultdict(int)
     for r in rows:
-        for name in r.get("failing_checks", []) or []:
+        for name in dict.fromkeys(r.get("failing_checks", []) or []):
             tally[name] += 1
     return dict(sorted(tally.items(), key=lambda kv: -kv[1]))
 
@@ -222,7 +223,8 @@ def render_md(a: dict) -> str:
     ]
     drivers = a.get("gap_drivers", {})
     if drivers:
-        lines += ["| failing check | PRs |", "|---|---|"]
+        lines += ["Each check is counted at most once per PR.", "",
+                  "| failing check | PRs |", "|---|---|"]
         for name, n in drivers.items():
             lines.append(f"| `{name}` | {n} |")
         top = next(iter(drivers))
