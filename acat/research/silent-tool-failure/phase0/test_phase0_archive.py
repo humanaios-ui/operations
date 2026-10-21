@@ -1,6 +1,6 @@
 """Archive checks for the ACAT Phase 0 import. Standard library only; no model calls, no network.
 
-Run from this directory: python3 -I -m unittest test_phase0_archive -v
+Run from this directory: python3 -I -m unittest discover -s . -p 'test_phase0_archive.py' -v
 """
 import hashlib
 import json
