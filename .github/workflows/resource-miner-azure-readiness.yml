@@ -64,7 +64,10 @@ jobs:
                                  ("/on-track", b"INTENT-OS")):
               with urllib.request.urlopen(base + path, timeout=5) as r:
                   assert r.status == 200
-                  assert expected in r.read(100000)
+                  assert r.headers.get_content_type() == "text/html"
+                  body = r.read(100000)
+                  assert b"<!doctype html>" in body.lower()
+                  assert expected in body
           request = urllib.request.Request(
               base + "/api/intent",
               data=json.dumps({
