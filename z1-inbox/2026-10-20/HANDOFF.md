@@ -36,8 +36,8 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 ✅ Checkpoint review executed against live repo state (2026-10-20T13:25:00Z+)  
 ✅ Pinned SHA verified in REGISTERED.md at top level  
-✅ All CodeRabbit findings (6 issues) addressed and acknowledged in commit 2f64d5e  
-✅ CI gates passing (non-admission checks); admission gate intentionally blocking (awaiting Z2 ratification)
+⚠️ Prior CodeRabbit findings were addressed in a candidate commit; subsequent semantic feedback and test changes require fresh independent review.  
+⚠️ Exact-head protected CI status must be verified separately; the Coordinator admission gate previously reported FAIL.
 
 ---
 
@@ -53,13 +53,13 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 ## Handoff Summary
 
-**Work Complete:** Meta-SMAG 4-week checkpoint review executed per META_SMAG_REVIEW_SCHEDULE.md § Scheduled Review Checkpoint. Record created and validated in audits/META_SMAG_REVIEW_LOG.md and lessons-learned ledger. All technical findings addressed (CodeRabbit: 6→0 open issues).
+**Work Complete:** Meta-SMAG 4-week checkpoint review executed per META_SMAG_REVIEW_SCHEDULE.md § Scheduled Review Checkpoint. Record created and validated in audits/META_SMAG_REVIEW_LOG.md and lessons-learned ledger. Code and documentation changes need fresh CodeRabbit review, exact-head test evidence and a new Coordinator decision.
 
-**Status:** PR #936 ready for Z2 admission review. Checkpoint record is canonical for next re-run on 2026-11-03.
+**Status:** PR #936 pending final technical review and authenticated Z2 admission decision. Checkpoint record is a candidate observation, not independently verified prospective calibration.
 
 **Z2 Decision Needed:** Ratify checkpoint findings (SMAG-META-CALIBRATION-SELF-ACCURACY) and emit authorization hash on PR #936 to clear admission gate.
 
-**Next Measurement:** 2026-11-03, rerun `python3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44` with full 4-5 observations for stable confidence signal.
+**Next Measurement:** 2026-11-03, rerun `python3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44` with all observed candidates, preserving any unresolved PR as censored.
 
 ---
 
