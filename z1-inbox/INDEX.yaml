@@ -3,7 +3,7 @@ generated: '2026-10-14'
 decision_window_days: 2
 counts:
   candidates: 110
-  records: 62
+  records: 65
 ratifiers:
 - Night
 candidates:
@@ -22,35 +22,16 @@ candidates:
   title: Multi-agent plan to work the intentionally backed-up PR queue as a governed experiment
   path: z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md
   submitted: '2026-10-14'
-  status: ratified
+  status: awaiting_z2
   tier: 1
-  note: 'Ten-agent roster (orchestrator, cartographer, supersession analyst, single-writer
-    manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration
-    recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in
-    five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched
-    into Decision Sheet 1 (twelve rows, ~86 RAT-min prior; four answered in-session on
-    2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier
-    F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md.
-    Touches no constants, gates, workflows, or REGISTERED.md.'
-  ratified_by: Night
-  ratified_at: "2026-10-15"
-  z2_ruling: "z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md"
-  z2_hash: "a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573"
+  note: 'Ten-agent roster (orchestrator, cartographer, supersession analyst, single-writer manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched into Decision Sheet 1 (twelve rows, ~86 RAT-min prior; four answered in-session on 2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md. Touches no constants, gates, workflows, or REGISTERED.md.'
 - q_id: Q-QUEUE-SWEEP-PIN-SPEC-01
   title: Queue sweep and pin spec for 56 open PRs, with four Z2 decisions (S1-S4)
   path: z1-inbox/2026-10-15/QUEUE_SWEEP_PIN_SPEC_2026-10-15.md
   submitted: '2026-10-15'
-  status: ratified
+  status: awaiting_z2
   tier: 0
-  note: 'Opening move of P0 for Q-MULTI-AGENT-QUEUE-PLAN-01. Lane-based gate-conclusion
-    priors per open PR (queue_pins_2026-10-15.json), lane source per row. Asks Z2 for
-    four decisions (S1 window and resolver, S2 priors, S3 read the UNREAD receipts,
-    S4 one ci-predict consolidate PR at a time). Falsifier stated under "## Falsifier". No
-    signature, admission, label, or merge action.'
-  ratified_by: Night
-  ratified_at: "2026-10-15"
-  z2_ruling: "z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md"
-  z2_hash: "91a12f00732dad61a2ff0497e5edc84519af91ada0d7aed602dc124b3d60ad23"
+  note: Opening move of P0 for Q-MULTI-AGENT-QUEUE-PLAN-01. Lane-based gate-conclusion priors per open PR (queue_pins_2026-10-15.json), lane source per row. Asks Z2 for four decisions (S1 window and resolver, S2 priors, S3 read the UNREAD receipts, S4 one ci-predict consolidate PR at a time). Falsifier stated under "## Falsifier". No signature, admission, label, or merge action.
 - q_id: Q-GRAPH-CAPTURE-LINT-01
   title: graph_capture_lint — score every graph file against the nine properties of a self-sealing graph; block on the three that make a graph unauditable
   path: z1-inbox/2026-10-01/Q-GRAPH-CAPTURE-LINT-01.md
@@ -838,10 +819,6 @@ candidates:
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
 records:
-- path: z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md
-  title: "Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py)"
-  note: "Written by ratify.py --apply. One file per decision date; each\
-    \ signature appends a section carrying its own sha256."
 - title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
   submitted: '2026-10-15'
@@ -1010,4 +987,16 @@ records:
 - path: z1-inbox/2026-10-02/SESSION_FINDINGS.md
   title: Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop
   note: 'Session close handoff for five friction point implementations and establishment of TENSION_FINDINGS.md governance feedback mechanism. Completed: all five friction points coded, governance integrity issue fixed (real digests recorded in CLAUDE.md), and feedback loop created for continuous guidance improvement. Receipt reconciliation: all claims verified against ledger with zero gaps. Also created root-level TENSION_FINDINGS.md artifact with template and backfilled findings from this and prior sessions. No Z2 ratification requested; Z1 reference handoff documenting completed work and filing Z2 governance decisions needed for PR #642 admission. Indexed as a record, not a live candidate.'
+- path: z1-inbox/2026-10-01/RED-TEAM-AUDIT-PR-630.md
+  title: 'Red-Team Audit Report — PR #630 Credential Deployment Findings'
+  note: 'Security audit documenting 12 challenges (3 critical, 5 high, 4 medium) in PR #630 credential deployment guide. Records authoritative findings from Claude Code red-team session for Z2 ratification decision. Findings indexed separately under Q-PR630-AUDIT-01 candidate.'
+- path: z1-inbox/2026-10-01/PR-630-WARRANT.md
+  title: 'WARRANT: PR #630 Admissions Approval & Credential Deployment'
+  note: 'Evidence synthesis warrant integrating CI results, red-team audit findings, and governance compliance assessment. Recommends Option B (accept with mandatory remediation). Filed as Q-PR630-WARRANT-01 awaiting Z2 ratification.'
+- path: z1-inbox/2026-10-01/PR-630-REMEDIATION-PATCHES.md
+  title: 'PR #630 Remediation Patches — 6 Actionable Fixes'
+  note: 'Proposed remediation patches for 12 challenges identified in red-team audit. Patches 1–6 address credential deployment security, gitleaks allowlist hardening, authorization gates, and audit logging. Filed as Q-PR630-REMEDIATION-01 supporting Option B ratification path.'
+- path: z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md
+  title: 'Z3 Execution Cycle 1 Handoff — Results & Verification Gaps'
+  note: 'Z3 execution summary for Cycle 1 operations. Documents VERDICT emissions, falsifier assessment, and capacity allocation across zones. Awaiting Z2 ratification as Q-Z3-EXEC-CYCLE-1-HANDOFF-01 to close Phase 2 execution and advance Phase 3.'
 excluded: []
