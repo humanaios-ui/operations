@@ -117,7 +117,7 @@ def _timestamp(value: str, where: str) -> datetime:
 
 def _normalized_timestamp(value: str) -> str:
     parsed = _timestamp(value, "source event")
-    return parsed.isoformat(timespec="seconds").replace("+00:00", "Z")
+    return parsed.isoformat(timespec="auto").replace("+00:00", "Z")
 
 
 def _required_text(value: object, where: str) -> str:
