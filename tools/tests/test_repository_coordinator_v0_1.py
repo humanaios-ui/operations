@@ -1752,3 +1752,212 @@ def test_pr_comment_webhook_fails_closed_on_edit_or_cross_pr_event(tmp_path):
     with pytest.raises(Exception, match="target PR"):
         apply_pr_comment_v11(**args)
     assert ledger.read_bytes() == original
+
+
+# Autosweep regressions: run the workflow's JavaScript with synthetic GitHub
+# responses so selection and delivery checks exercise the deployed script.
+def _sweep_script(step_name):
+    import textwrap
+    workflow = (TOOLS.parent / ".github/workflows/coordinator-admission-sweep.yml").read_text()
+    step = workflow.split(f"      - name: {step_name}", 1)[1].split("\n      - name:", 1)[0]
+    return textwrap.dedent(step.split("          script: |\n", 1)[1])
+
+
+def _run_sweep_script(step_name, config):
+    import subprocess
+    runner = r'''
+const fs = require("fs");
+const {script, config: c} = JSON.parse(fs.readFileSync(0, "utf8"));
+const out = {dispatches: [], failures: [], files: {}, gets: 0, summary: ""};
+let latest, polls = 0;
+const run = () => ({id: 77, display_title: `Admission dispatch ${latest.inputs.dispatch_id}`,
+  status: c.pending ? "queued" : "completed", conclusion: c.gateFailure ? "failure" : "success",
+  html_url: "https://example.test/gate/77"});
+const actions = {
+  createWorkflowDispatch: async args => {
+    out.dispatches.push(args); latest = args;
+    if ((c.dispatchFailures || []).includes(Number(args.inputs.subject_number))) throw Error("delivery rejected");
+  },
+  getWorkflowRun: async () => ({data: run()}),
+  listWorkflowRuns: "runs", listJobsForWorkflowRun: "jobs"
+};
+const github = {rest: {actions,
+  git: {getCommit: async () => ({data: {tree: {sha: "tree"}}}),
+        getTree: async () => ({data: {truncated: !!c.truncated, tree: []}})},
+  repos: {getBranch: async () => ({data: {commit: {sha: "state-sha"}}}),
+          getContent: async () => ({data: {type: "file", content: Buffer.from(JSON.stringify({
+            merge_authority: false})).toString("base64")}})},
+  pulls: {list: "pulls", listFiles: "files", listReviews: "reviews",
+    get: async ({pull_number: n}) => {
+      out.gets++;
+      const item = (c.index?.items || []).find(it => it.number === n);
+      const mergeable_state = (c.mergeability || ["clean"])[Math.min(out.gets - 1, (c.mergeability || [1]).length - 1)];
+      return {data: {number: n, state: c.closed ? "closed" : "open", draft: !!c.draft,
+        head: {sha: c.changedHead ? "changed" : item?.head_sha || "head"},
+        mergeable: mergeable_state === "unknown" ? null : mergeable_state !== "dirty", mergeable_state}};
+    }}, issues: {get: async () => {throw Error("unexpected issue lookup");}}},
+  paginate: async method => {
+    if (method === "runs") {
+      polls++;
+      return c.noRun || polls === 1 && c.delayed ? [] : [run()];
+    }
+    if (method === "jobs") return [{name: "Append coordinator state event", conclusion: c.skipMutation ? "skipped" : "success"}];
+    if (method === "pulls") return [{number: 1, user: {login: "builder"}, head: {sha: "head"}}];
+    if (method === "files") return [{filename: "README.md"}];
+    if (method === "reviews") return [];
+    throw Error(`unexpected pagination: ${method}`);
+  }};
+const core = {setFailed: message => out.failures.push(message), info: () => {},
+  summary: {addRaw: text => {out.summary = text; return {write: async () => {}};}}};
+const fakeRequire = name => name === "fs" ? {
+  readFileSync: path => path.endsWith("index.json") ? JSON.stringify(c.index) :
+    path.endsWith("policy.sha") ? "policy-sha" : JSON.stringify({
+      state: {branch: "repository-coordinator-state", ledger_path: "ledger", projection_path: "state"}}),
+  writeFileSync: (path, text) => out.files[path] = text
+} : require(name);
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+(async () => {
+  try {
+    await new AsyncFunction("require", "github", "context", "core", "process", "setTimeout", script)(
+      fakeRequire, github, {repo: {owner: "o", repo: "r"}, payload: {repository: {default_branch: "main"}}},
+      core, {env: {DRY_RUN: "false", MAX_ADMITS: "10", RUN_ID: "1", ...c.env}}, fn => fn());
+  } catch (e) {out.error = e.message;}
+  console.log(JSON.stringify(out));
+})();
+'''
+    result = subprocess.run(["node", "-e", runner], input=json.dumps({
+        "script": _sweep_script(step_name), "config": config,
+    }), capture_output=True, text=True, check=True)
+    return json.loads(result.stdout)
+
+
+def _autosweep_index():
+    rows = [dict(pr(n, body=f"Closes #{objective}", files=[f"file{n}.py"]),
+                 head_sha=f"head{n}") for n, objective in [(1, 10), (2, 20), (3, 20), (4, 30)]]
+    return analyze({"pull_requests": rows}, "", policy=policy(limit=9), state=state(prs=[1]))
+
+
+def test_sweep_reserves_objectives_in_both_selectors():
+    from coordinator_admission_sweep_dryrun import plan
+    index = _autosweep_index()
+    # PR #1's declared issue is claimed even for legacy subject-only admission.
+    assert index["items"][0]["admission"]["declared_objectives"]
+    active_duplicate = dict(index["items"][0], number=5, lane="ADMISSION_REVIEW")
+    active_duplicate["admission"] = {"declared_objectives": [10]}
+    index["items"].append(active_duplicate)
+    preview = plan(index)
+    assert [x["number"] for x in preview["selected"]] == [2, 4]
+    assert [x["number"] for x in preview["conflicting"]] == [3]
+    result = _run_sweep_script("Select ADVANCE PRs within capacity and (optionally) admit", {"index": index})
+    assert [x["inputs"]["subject_number"] for x in result["dispatches"]] == ["2", "4"]
+    assert result["failures"] == []
+    assert "2 successful ADMIT dispatch(es)" in result["summary"]
+
+
+@pytest.mark.parametrize("config,expected,failed", [
+    ({"changedHead": True}, 0, False),
+    ({"closed": True}, 0, False),
+    ({"draft": True}, 0, False),
+    ({"gateFailure": True}, 2, True),
+    ({"skipMutation": True}, 2, True),
+    ({"noRun": True}, 2, True),
+    ({"pending": True}, 2, True),
+    ({"dispatchFailures": [2]}, 2, True),
+    ({"delayed": True}, 2, False),
+    ({"env": {"IS_SCHEDULE": "true", "SCHEDULE_ENABLED": "false"}}, 0, False),
+    ({"env": {"DRY_RUN": "true"}}, 0, False),
+])
+def test_sweep_requires_current_head_and_gate_success(config, expected, failed):
+    result = _run_sweep_script("Select ADVANCE PRs within capacity and (optionally) admit", {
+        "index": _autosweep_index(), **config})
+    assert "error" not in result, result
+    assert len(result["dispatches"]) == expected
+    assert bool(result["failures"]) is failed
+    if config.get("gateFailure") or config.get("skipMutation") or config.get("noRun") or config.get("pending"):
+        assert "0 successful ADMIT dispatch(es)" in result["summary"]
+    if config.get("dispatchFailures"):
+        assert "1 successful ADMIT dispatch(es)" in result["summary"]
+
+
+def test_sweep_fails_closed_on_truncated_tree():
+    result = _run_sweep_script("Collect full open-PR queue snapshot + state", {"truncated": True})
+    assert "truncated" in result["error"]
+    assert ".repo-coordinator/sweep-snapshot.json" not in result["files"]
+
+
+@pytest.mark.parametrize("states,gets,last", [
+    (["unknown", "unknown", "clean"], 3, "clean"),
+    (["unknown"], 4, "unknown"),
+    (["dirty"], 1, "dirty"),
+    (["behind"], 1, "behind"),
+])
+def test_sweep_waits_for_mergeability_and_excludes_unresolved(states, gets, last):
+    from coordinator_admission_sweep_dryrun import plan
+    result = _run_sweep_script("Collect full open-PR queue snapshot + state", {"mergeability": states})
+    assert "error" not in result, result
+    assert result["gets"] == gets
+    snapshot = json.loads(result["files"][".repo-coordinator/sweep-snapshot.json"])
+    assert snapshot["pull_requests"][0]["mergeable_state"] == last
+    index = analyze(snapshot, "", policy=policy(), state=state())
+    preview = plan(index)
+    assert bool(preview["selected"]) is (last == "clean")
+    dispatched = _run_sweep_script("Select ADVANCE PRs within capacity and (optionally) admit", {"index": index})
+    assert bool(dispatched["dispatches"]) is (last == "clean")
+
+
+@pytest.mark.parametrize("connection", ["files", "reviews"])
+@pytest.mark.parametrize("page_info", [{"hasNextPage": True, "endCursor": "next"}, {}])
+def test_sweep_preview_rejects_partial_connections(connection, page_info):
+    from coordinator_admission_sweep_dryrun import _row
+    node = {"number": 1, "labels": {"nodes": []},
+            "files": {"pageInfo": {"hasNextPage": False}, "nodes": [{"path": "x.py"}]},
+            "reviews": {"pageInfo": {"hasNextPage": False}, "nodes": []}}
+    node[connection]["pageInfo"] = page_info
+    with pytest.raises(SystemExit, match=f"incomplete {connection}"):
+        _row(node, set())
+
+
+def test_sweep_preview_rejects_failed_main_tree_lookup(monkeypatch):
+    import subprocess
+    import coordinator_admission_sweep_dryrun as sweep
+    monkeypatch.setattr(sweep, "_sh", lambda args: subprocess.CompletedProcess(args, 128, "", "bad ref"))
+    with pytest.raises(SystemExit, match="git ls-tree failed"):
+        sweep._main_paths()
+
+
+@pytest.mark.parametrize("tamper", [False, True])
+def test_sweep_preview_pins_and_verifies_live_projection(monkeypatch, tamper):
+    import base64
+    import subprocess
+    import coordinator_admission_sweep_dryrun as sweep
+    calls = []
+    events = [state_event()]
+    ledger_text = state_ledger_text(events)
+    projection = replay_events(events, ledger_text=ledger_text)
+    if tamper:
+        projection["admitted_pull_request_numbers"] = [99]
+
+    def gh(args):
+        path = args[-1]
+        calls.append(path)
+        if "/branches/" in path:
+            payload = {"commit": {"sha": "exact-state-commit"}}
+        else:
+            text = ledger_text if "/ledger?" in path else json.dumps(projection)
+            payload = {"type": "file", "encoding": "base64",
+                       "content": base64.b64encode(text.encode()).decode()}
+        return subprocess.CompletedProcess(args, 0, json.dumps(payload), "")
+
+    monkeypatch.setattr(sweep, "_sh", gh)
+    policy_data = {"state": {"branch": "repository-coordinator-state",
+                             "ledger_path": "ledger", "projection_path": "projection"}}
+    if tamper:
+        with pytest.raises(StateError, match="diverges"):
+            sweep._live_state("o", "r", policy_data)
+    else:
+        current, receipt = sweep._live_state("o", "r", policy_data)
+        assert current == projection
+        assert receipt["state_sha"] == "exact-state-commit"
+    assert calls == ["repos/o/r/branches/repository-coordinator-state",
+                     "repos/o/r/contents/ledger?ref=exact-state-commit",
+                     "repos/o/r/contents/projection?ref=exact-state-commit"]

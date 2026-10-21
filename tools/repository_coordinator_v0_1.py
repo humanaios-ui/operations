@@ -396,6 +396,9 @@ def _base_lane(
         "evaluation_admitted": eval_admitted,
         "evidence": evidence + eval_evidence,
         "objectives": list(dict.fromkeys(objectives + eval_objectives)),
+        "declared_objectives": sorted({
+            int(raw) for raw in ADMISSION_LINK_RE.findall(pr.get("body") or "")
+        }),
         "evaluation_approvers": eval_approvers,
         "maintenance": maintenance,
         "control_plane": control_plane,
