@@ -42,3 +42,9 @@ The read-only offline script lists seven proof categories necessary for this qua
 - **Forecast quality**: a prospective, pre-registered, independently witnessed cohort with unaltered questions and outcome criteria, including negatives and pending/annulled records. Retrospective two-positive PR analysis is not statistical forecasting evidence.
 
 All three verdicts must remain separate. Admission is routing only and never merge authority. The work here creates no authorizations, emails, live enrollments, automated polling or scheduled jobs.
+
+## Actual INTENT-OS reuse (not only a simulated role)
+
+The offline bridge now invokes the **existing** `resource_miner.intent_os.evaluate_objective` directly on the preserved **corrected synthetic objective** with an **empty synthetic public-source set** (`source_mode=snapshot`). Its expected `NO_SUPPORTED_MATCH` response is an intentionally honest negative control: it does **not** mean no opportunity exists and cannot mean no entitlement. It checks unchanged corrected wording, `eligibility=NOT_ASSESSED`, `authority=NONE`, `execution=DISABLED`, and the original INTENT-OS unsigned digest disclaimer. The Oracle–SMAG–Miner replay separately provides the bounded repository verification frontier. We do **not** pass internal verification candidates through the public funding-resource allowlist or spoof a live funding source.
+
+This couples **four existing executable surfaces**—INTENT-OS objective projection, Oracle forecast replay, SMAG scoring, and Resource Miner document-source reflex—without claiming the actual browser/Access login or a human decision occurred. Those require the live proof categories above.
