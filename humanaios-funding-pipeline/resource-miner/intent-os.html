@@ -72,6 +72,11 @@ function addCard(row){
  const card=document.createElement("article");card.className="item";
  const heading=document.createElement("h3");text(heading,row.title||"Resource candidate");card.append(heading);
  const desc=document.createElement("p");text(desc,row.description||"No description supplied.");card.append(desc);
+ if(Array.isArray(row.review_flags)&&row.review_flags.length){
+   const caution=document.createElement("p");
+   text(caution,"Source claims need verification ("+row.review_flags.join(", ")+"). Text pattern only; not a fraud determination.");
+   card.append(caution);
+ }
  const meta=document.createElement("div");meta.className="meta";
  text(meta,(row.source_name||"Source unknown")+" · "+(row.route||"WATCH")+
    " · Eligibility: NOT ASSESSED"+(row.deadline?" · Reported deadline: "+row.deadline:"")+
