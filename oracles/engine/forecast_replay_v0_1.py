@@ -477,6 +477,7 @@ def resolve_episode(
     verification_status: str = "ASSERTED",
     source_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Record an outcome; verification_status is only the caller's declaration."""
     validate_episode(episode)
     if episode.get("resolution") is not None:
         raise ForecastContractError("episode already has a terminal resolution")
@@ -711,6 +712,8 @@ def validate_episode(episode: Mapping[str, Any]) -> None:
         if isinstance(resolution.get("outcome"), bool) or resolution.get("outcome") not in (0, 1):
             raise ForecastContractError("resolved outcome must be 0 or 1")
     else:
+        if resolution.get("verification_status") != "ASSERTED":
+            raise ForecastContractError("annulment verification_status must be ASSERTED")
         if resolution.get("outcome") is not None:
             raise ForecastContractError("annulled episode cannot carry an outcome")
         _required_text(resolution.get("reason"), "annul reason")
@@ -809,9 +812,10 @@ def aggregate_forecasts(members: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         if not isinstance(snapshot, Mapping):
             raise ForecastContractError("aggregation member requires a sealed forecast")
         verify_snapshot_seal(snapshot)
-        if snapshot["seal_sha256"] in seen_seals or snapshot["predictor_id"] in seen_predictors:
+        predictor_id = _required_text(snapshot["predictor_id"], "forecast predictor_id")
+        if snapshot["seal_sha256"] in seen_seals or predictor_id in seen_predictors:
             raise ForecastContractError("duplicate forecaster or forecast seal in aggregation")
-        seen_predictors.add(snapshot["predictor_id"])
+        seen_predictors.add(predictor_id)
         seen_seals.add(snapshot["seal_sha256"])
         manifest_seals.add(snapshot["manifest_seal_sha256"])
         if len(manifest_seals) > 1:
@@ -884,9 +888,9 @@ def score_cohort(
 ) -> dict[str, Any]:
     """Score a cohort while keeping accuracy claims fail-closed.
 
-    Metrics remain descriptive unless the caller supplies the complete eligible
-    sampling frame, every eligible item is resolved, the question contract is
-    homogeneous, no record is synthetic, and ``minimum_claim_n`` is met.
+    Metrics remain descriptive: this module does not independently verify
+    outcome sources, witnesses, or sampling-frame attestations. Receipt
+    verification_status values are caller declarations, not verification.
     """
     if minimum_claim_n < 1:
         raise ForecastContractError("minimum_claim_n must be positive")
@@ -894,7 +898,7 @@ def score_cohort(
     question_keys: set[str] = set()
     question_contracts: set[str] = set()
     provenance_kinds: set[str] = set()
-    outcome_receipts_verified = True
+    outcome_receipts_verified = False
     receipts: list[dict[str, Any]] = []
     not_scored: list[dict[str, Any]] = []
     for episode in episodes:
@@ -915,8 +919,6 @@ def score_cohort(
         receipt = score_episode(episode)
         if receipt["status"] == "SCORED":
             receipts.append(receipt)
-            if episode["resolution"].get("verification_status") != "VERIFIED":
-                outcome_receipts_verified = False
         else:
             not_scored.append(receipt)
     if len(set(all_ids)) != len(all_ids):

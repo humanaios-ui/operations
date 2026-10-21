@@ -263,6 +263,21 @@ def test_annulment_is_preserved_but_not_scored() -> None:
     assert episode["resolution"]["reason"]
 
 
+@pytest.mark.parametrize("verification_status", ["VERIFIED", "RECORDED_NOT_REVERIFIED"])
+def test_imported_annulment_requires_asserted_status(verification_status: str) -> None:
+    episode = annul_episode(
+        _episode(), resolver_id="independent-witness", reason="unresolved",
+        source_refs=["fixture:unverified"], resolved_at="2026-10-21T10:00:00Z",
+    )
+    episode["resolution"] = oracle._seal({
+        **episode["resolution"], "verification_status": verification_status,
+    })
+    original = copy.deepcopy(episode)
+    with pytest.raises(ForecastContractError, match="annulment verification_status must be ASSERTED"):
+        validate_episode(episode)
+    assert episode == original
+
+
 def test_aggregation_caps_correlated_duplicate_influence() -> None:
     high = _episode("FC-HIGH", 0.8)["forecasts"][0]
     low = oracle._seal({**high, "predictor_id": "independent-model-b", "probability": 0.2})
@@ -281,6 +296,24 @@ def test_aggregation_caps_correlated_duplicate_influence() -> None:
         aggregate_forecasts([
             {"forecast": high, "independence_group": "model-family-a"},
             {"forecast": oracle._seal({**_episode("FC-OTHER", 0.2)["forecasts"][0], "predictor_id": "other-independent"}), "independence_group": "model-family-b"},
+        ])
+
+
+@pytest.mark.parametrize("first_id,second_id", [
+    ("oracle-assembly", " oracle-assembly "),
+    (" oracle-assembly ", "oracle-assembly"),
+    (" oracle-assembly ", "\toracle-assembly\n"),
+])
+def test_aggregation_rejects_whitespace_disguised_duplicates(
+    first_id: str, second_id: str,
+) -> None:
+    snapshot = _episode()["forecasts"][0]
+    first = oracle._seal({**snapshot, "predictor_id": first_id})
+    second = oracle._seal({**snapshot, "predictor_id": second_id})
+    with pytest.raises(ForecastContractError, match="duplicate forecaster"):
+        aggregate_forecasts([
+            {"forecast": first, "independence_group": "model-family-a"},
+            {"forecast": second, "independence_group": "model-family-b"},
         ])
 
 
@@ -395,6 +428,7 @@ def test_real_ci_resolutions_follow_pins_and_bind_sources() -> None:
         assert resolution_sequence > pin_sequence
         assert resolution["resolver_id"] != episode["forecasts"][0]["predictor_id"]
         assert resolution["source_refs"][0].startswith("https://github.com/")
+        assert resolution["verification_status"] == "RECORDED_NOT_REVERIFIED"
 
 
 def test_real_ci_ledger_tampering_is_refused_before_scoring() -> None:
@@ -446,8 +480,16 @@ def test_imported_f3_before_its_challenge_rejected() -> None:
         validate_episode(episode)
 
 
-def test_caller_only_frame_and_verified_flag_never_grant_claim_readiness() -> None:
-    episodes = [_resolved_episode("FC-ONE"), _resolved_episode("FC-TWO")]
+@pytest.mark.parametrize("verification_status", sorted(oracle.VERIFICATION_STATUSES))
+def test_caller_only_frame_and_verified_flag_never_grant_claim_readiness(
+    verification_status: str,
+) -> None:
+    episodes = [resolve_episode(
+        _episode(forecast_id), outcome=1, resolver_id="independent-witness",
+        source_refs=["fixture:outcome"], resolved_at="2026-10-21T10:00:00Z",
+        verification_status=verification_status,
+    ) for forecast_id in ("FC-ONE", "FC-TWO")]
+    original = copy.deepcopy(episodes)
     report = score_cohort(
         episodes, eligible_forecast_ids={"FC-ONE", "FC-TWO"},
         sampling_frame_ref="caller:says:precommitted",
@@ -455,6 +497,19 @@ def test_caller_only_frame_and_verified_flag_never_grant_claim_readiness() -> No
     )
     assert report["claim_status"] == "DESCRIPTIVE_ONLY"
     assert "INDEPENDENT_COHORT_ATTESTATION_UNAVAILABLE" in report["claim_blockers"]
+    assert report["outcome_receipts_verified"] is False
+    assert "OUTCOME_RECEIPTS_NOT_INDEPENDENTLY_VERIFIED" in report["claim_blockers"]
+    assert episodes == original
+
+
+@pytest.mark.parametrize("has_pending_episode", [False, True])
+def test_cohort_without_outcomes_does_not_report_verification(
+    has_pending_episode: bool,
+) -> None:
+    report = score_cohort([_episode()] if has_pending_episode else [])
+    assert report["status"] == "NO_SCOREABLE_FORECASTS"
+    assert report["outcome_receipts_verified"] is False
+    assert report["claim_status"] == "DESCRIPTIVE_ONLY"
 
 
 def test_calibration_bin_boundary_at_point_six() -> None:
