@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml.
+Builder v1.7 compliant - governance_tool
 
 Reproduces, outside of Actions, exactly what `.github/workflows/coordinator-
 admission-sweep.yml` would select — so an operator can see which PRs the sweep
@@ -259,7 +260,7 @@ def _smoke() -> int:
     # (admission is evidence-driven; the plan() headroom math is what we assert)
     idx2 = analyze(snap_full, "", policy=policy, state=state_full)
     p2 = plan(idx2, hard_cap=DEFAULT_HARD_CAP)
-    assert p2["budget"] <= p2["headroom"], "budget must never exceed headroom"
+    assert p2["budget"] <= p2["headroom"], "budget exceeds headroom"
     assert p2["budget"] == min(p2["headroom"], DEFAULT_HARD_CAP)
 
     # hard cap clamps below headroom
