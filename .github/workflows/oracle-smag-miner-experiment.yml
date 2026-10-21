@@ -1,0 +1,40 @@
+name: Oracle SMAG Miner Offline Experiment
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/oracle_smag_experiment.py'
+      - 'humanaios-funding-pipeline/resource-miner/fixtures/oracle_smag_*.json'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_oracle_smag_experiment.py'
+      - '.github/workflows/oracle-smag-miner-experiment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: humanaios-funding-pipeline/resource-miner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run separate-input regression
+        run: python3 -m unittest discover -s tests -p 'test_oracle_smag_experiment.py' -v
+      - name: Replay and assert abstention from calibration authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m resource_miner.oracle_smag_experiment > "$RUNNER_TEMP/oracle-smag.json"
+          python3 - "$RUNNER_TEMP/oracle-smag.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d["oracle_claim_status"] == "DESCRIPTIVE_ONLY"
+          assert d["authority_effect"] == "NONE"
+          assert d["merge_authority"] is False
+          assert d["resolved_count"] == 2 and d["pending_count"] == 3
+          assert d["retrospective_precommitment_authenticated"] is False
+          assert d["outcomes_independently_attested"] is False
+          PY
