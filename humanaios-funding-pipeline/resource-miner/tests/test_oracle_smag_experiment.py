@@ -66,6 +66,24 @@ class OracleSMAGMinerExperimentTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "future merge"):
                     project_experiment(f, o)
 
+    def test_equivalent_snapshot_offsets_are_accepted(self):
+        baseline = offline_fixture_report()
+        for forecast_time, outcome_time in (
+            ("2026-10-21T20:00:00Z", "2026-10-21T22:00:00+02:00"),
+            ("2026-10-21T19:00:00-01:00", "2026-10-21T20:00:00.000+00:00"),
+        ):
+            with self.subTest(forecast=forecast_time, outcome=outcome_time):
+                f, o = load_snapshots()
+                f["snapshot_at"] = forecast_time
+                o["snapshot_at"] = outcome_time
+                self.assertEqual(project_experiment(f, o), baseline)
+
+    def test_different_snapshot_instants_fail(self):
+        f, o = load_snapshots()
+        o["snapshot_at"] = "2026-10-21T20:00:00.001Z"
+        with self.assertRaisesRegex(ValueError, "observation times must match"):
+            project_experiment(f, o)
+
     def test_unrecognized_closed_state_does_not_become_failure(self):
         f, o = load_snapshots()
         o["rows"][0]["status"] = "CLOSED"

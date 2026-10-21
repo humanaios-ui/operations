@@ -71,9 +71,9 @@ def project_experiment(predictions: dict[str, Any], outcomes: dict[str, Any]) ->
     if set(forecast_rows) != set(outcome_rows):
         raise ValueError("prediction and outcome sampling frames disagree")
     snapshot_at = predictions.get("snapshot_at")
-    if snapshot_at != outcomes.get("snapshot_at") or not isinstance(snapshot_at, str):
-        raise ValueError("observation times must match")
     snapshot_instant = _instant(snapshot_at)
+    if snapshot_instant != _instant(outcomes.get("snapshot_at")):
+        raise ValueError("observation times must match")
     oracle = oracle_module()
     # Semantic target: GitHub merge status by a fixed evaluation snapshot.
     # It does not mean admitted, successful CI, quality, or verified user outcome.

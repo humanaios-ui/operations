@@ -16,7 +16,7 @@ import json
 import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 __all__ = [
@@ -112,7 +112,7 @@ def _timestamp(value: str, where: str) -> datetime:
         raise ForecastContractError(f"{where} has invalid ISO timestamp {value!r}") from exc
     if parsed.tzinfo is None:
         raise ForecastContractError(f"{where} timestamp must include a timezone")
-    return parsed.astimezone(UTC)
+    return parsed.astimezone(timezone.utc)
 
 
 def _normalized_timestamp(value: str) -> str:

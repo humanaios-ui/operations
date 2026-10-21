@@ -24,6 +24,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -44,18 +45,6 @@ jobs:
           assert report["pending_count"] == 3
           assert report["verification_frontier"]["action_authorized"] is False
           PY
-      - name: Replay and assert abstention from calibration authority
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m resource_miner.oracle_smag_experiment > "$RUNNER_TEMP/oracle-smag.json"
-          python3 - "$RUNNER_TEMP/oracle-smag.json" <<'PY'
-          import json, sys
-          d = json.load(open(sys.argv[1]))
-          assert d["oracle_claim_status"] == "DESCRIPTIVE_ONLY"
-          assert d["authority_effect"] == "NONE"
-          assert d["merge_authority"] is False
-          assert d["resolved_count"] == 2 and d["pending_count"] == 3
-          assert d["retrospective_precommitment_authenticated"] is False
-          assert d["outcomes_independently_attested"] is False
-          PY
+      # Admission assertions live in oracle-smag-miner-policy.yml on the trusted base.
+      - name: Replay offline experiment
+        run: python3 -m resource_miner.oracle_smag_experiment
