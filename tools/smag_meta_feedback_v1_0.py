@@ -70,7 +70,7 @@ def meta_lesson_for_self_accuracy(
         "rule": (
             f"SMAG's own consolidation PRs: {total_prs} measured over lookback window. "
             f"Observed resolved outcome rate: {accuracy:.1%}. Confidence: {confidence}. "
-            f"Meta-gap suggests SMAG should {'increase conservatism' if accuracy < 0.75 else 'maintain calibration'}. "
+            "Gap magnitude and outcome quality require independent Z2 review before recalibration. "
             f"Focus areas: {', '.join(focus_areas) if focus_areas else 'none identified'}. "
             "Only the GitHub merged/not-merged state is observed as a proxy; "
             "zero rework, CI quality and governance admission remain unverified."
