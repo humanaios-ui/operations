@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**107 candidates** — ⏳ awaiting Z2 97 · ✅ ratified 10 · **57 records**
+**111 candidates** — ⏳ awaiting Z2 97 · ✅ ratified 14 · **62 records**
 
 ## Awaiting Z2 (97)
 
@@ -110,7 +110,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-11 | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Governance registry structural repair — 162 entries, 127 defects | `z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md` |
 | 2026-10-16 | **Q-ISSUE-TRIAGE-CONVENTION-01** | Labels, assignees, and triage for repository issues | `z1-inbox/2026-10-14/Q-ISSUE-TRIAGE-CONVENTION-01.md` |
 
-## Decided (10)
+## Decided (14)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -124,6 +124,10 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-BOARD-RULING-02** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`b80131eba24815480dfd83630cfbdd69672fb017bf4e264e081a9a05326f3c6a` |
 | ✅ ratified | **Q-BOARD-RULING-14** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`27c98b653cefe16826fe3b2b76fcfdc822cb87b00a5ce81dc7c256112a7f51eb` |
 | ✅ ratified | **Q-MAIL-EVIDENCE-LEDGER-01** | Night | 2026-09-24 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md`<br>`d52a583d659c4230b1456042193748e2c4ec1d32c3aaf395e000aabfe6f40f78` |
+| ✅ ratified | **Q-HCM-CORE-MACHINE-01** | Night | 2026-10-14 | `z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md`<br>`9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd` |
+| ✅ ratified | **Q-MULTI-AGENT-QUEUE-PLAN-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md`<br>`a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573` |
+| ✅ ratified | **Q-QUEUE-SWEEP-PIN-SPEC-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md`<br>`91a12f00732dad61a2ff0497e5edc84519af91ada0d7aed602dc124b3d60ad23` |
+| ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md`<br>`d80d38e5fa2041f3c6a3e79ad7706dee3bcf6f3879987e63ee1c4b4ba832ff6c` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -477,7 +481,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (57)
+## Records (62)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -539,6 +543,11 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-01/HANDOFF.md` | Z1 Session Handoff — Phase 2B Salvage Complete |
 | `z1-inbox/2026-10-02/SESSION_FINDINGS.md` | Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop |
 | `z1-inbox/2026-10-10/HANDOFF.md` | Session Handoff — Manifest Integrity Fix (GNER E0/E1/E2) |
+| `z1-inbox/2026-10-14/HANDOFF.md` | Session Handoff — Multi-agent queue plan (Q-MULTI-AGENT-QUEUE-PLAN-01) |
+| `z1-inbox/2026-10-14/QUEUE_MAP_2026-10-14.md` | QUEUE_MAP — open PRs and issues of operations, 2026-10-14 |
+| `z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md` | Z2 rulings — 2026-10-14 (signed via .z1-control/ratify.py) |
+| `z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md` | Night ratification record for Q-REPO-GRAPH-LOOKUP-01 |
+| `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md` | Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
