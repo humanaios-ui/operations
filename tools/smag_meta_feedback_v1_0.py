@@ -279,7 +279,7 @@ def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
         else:
             return {"status": "NO_PREDICTIONS", "message": f"Found {outcome['total_prs']} PRs but none had smag_p_meta predictions."}
 
-    # Never overwrite a measured outcome rate with mean predicted confidence.
+    # Separate measured outcome rates from mean predicted confidence in stored lessons.
     # Pending PRs are censored; they cannot enter the resolved denominator.
     calibration_gap = outcome["calibration_gap"]
     accuracy = outcome["actual_success_rate"]
