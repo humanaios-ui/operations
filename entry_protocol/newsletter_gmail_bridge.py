@@ -20,7 +20,11 @@ class NewsletterGmailBridge:
         self.send_enabled = send_enabled
 
     def process_message(self, raw):
-        """Return None for non-newsletter threads so existing digest handling runs."""
+        """Return None for non-newsletter threads so existing digest handling runs.
+
+        Resolvers may raise living_newsletter.NewsletterInputError for permanently
+        invalid input. Other failures propagate for retry or reconciliation.
+        """
         parsed = parse_gmail_message(raw)
         edition_id = self.resolve_edition(parsed.gmail_thread_id)
         if not edition_id:

@@ -35,6 +35,7 @@ from entry_protocol.inbound_command_processor import (
     ResolutionState,
     ThreadState,
 )
+from entry_protocol.living_newsletter import NewsletterInputError
 
 
 AUTOMATION_HEADER = "X-HumanAIOS-Automation"
@@ -907,7 +908,7 @@ class GmailInboundAdapter:
         if self.newsletter_bridge is not None:
             try:
                 newsletter = self.newsletter_bridge.process_message(raw)
-            except ValueError:
+            except NewsletterInputError:
                 # Persist a terminal private receipt so one invalid reply does
                 # not repeatedly stop the shared mailbox's history cursor.
                 # Exception text can contain private data; retain a fixed code.

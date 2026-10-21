@@ -16,6 +16,10 @@ import uuid
 from entry_protocol.inbound_command_processor import extract_new_text
 
 
+class NewsletterInputError(ValueError):
+    """Permanently invalid reply input, eligible for terminal rejection."""
+
+
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
                                     separators=(",", ":")).encode()).hexdigest()
@@ -110,9 +114,9 @@ class NewsletterStore:
         if not identity_verified:
             return {"status": "IDENTITY_VERIFICATION_REQUIRED"}
         if not isinstance(source_id, str) or not source_id or len(source_id) > 512:
-            raise ValueError("source ID required")
+            raise NewsletterInputError("source ID required")
         if not isinstance(body, str) or len(body.encode()) > 65536:
-            raise ValueError("reply exceeds byte limit")
+            raise NewsletterInputError("reply exceeds byte limit")
         self.edition(edition_id)
         with self.db:
             # Serialize read+write so concurrent deliveries cannot create two proposals.

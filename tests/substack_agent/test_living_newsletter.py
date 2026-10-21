@@ -3,10 +3,11 @@ import base64
 from email import message_from_bytes
 import json
 from pathlib import Path
+import sqlite3
 import tempfile
 import unittest
 
-from entry_protocol.living_newsletter import NewsletterStore
+from entry_protocol.living_newsletter import NewsletterInputError, NewsletterStore
 from entry_protocol.newsletter_gmail_bridge import NewsletterGmailBridge
 
 
@@ -220,10 +221,74 @@ class TestLivingNewsletter(unittest.TestCase):
                 config=GmailAdapterConfig(mailbox_address="newsletter@example.org",
                     command_endpoints=("operator@example.org",), evidence_hmac_key=b"x" * 32,
                     database_path=":memory:"), newsletter_bridge=self.bridge)
-            with patch.object(self.bridge, "process_message", side_effect=ValueError("PRIVATE_SECRET")):
-                result = adapter.process_message_id("m1")
-                self.assertNotIn("PRIVATE_SECRET", result.detail)
-                self.assertEqual(result.disposition, "NEWSLETTER_REJECTED")
+            for resolver in ("resolve_edition", "resolve_identity"):
+                with self.subTest(resolver=resolver), patch.object(
+                        self.bridge, resolver, side_effect=NewsletterInputError("PRIVATE_SECRET")):
+                    result = adapter.process_message_id(resolver)
+                    self.assertNotIn("PRIVATE_SECRET", result.detail)
+                    self.assertEqual(result.disposition, "NEWSLETTER_REJECTED")
+                    self.assertEqual(adapter.process_message_id(resolver).status, "REPLAY")
+        finally:
+            private.conn.close()
+
+    def test_resolver_failures_preserve_cursor_and_allow_retry(self):
+        from entry_protocol.gmail_push_adapter import GmailInboundAdapter, GmailAdapterConfig, PrivateMailLedger
+        from unittest.mock import patch
+        self.bridge.send_enabled = False
+
+        class Inbox:
+            def get_message(self, message_id):
+                message = raw_mail()
+                message["id"] = message_id
+                return message
+
+            def list_added_message_ids(self, **kwargs):
+                return [source_id], "200"
+
+        for resolver in ("resolve_edition", "resolve_identity"):
+            for error_type in (ValueError, TimeoutError, sqlite3.OperationalError):
+                with self.subTest(resolver=resolver, error=error_type.__name__):
+                    source_id = f"{resolver}-{error_type.__name__}"
+                    private = PrivateMailLedger(":memory:")
+                    private.set_state("gmail_history_id", "100")
+                    adapter = GmailInboundAdapter(gmail=Inbox(), store=private,
+                        config=GmailAdapterConfig(mailbox_address="newsletter@example.org",
+                            command_endpoints=("operator@example.org",), evidence_hmac_key=b"x" * 32,
+                            database_path=":memory:"), newsletter_bridge=self.bridge)
+                    try:
+                        with patch.object(self.bridge, resolver, side_effect=error_type("PRIVATE_SECRET")):
+                            with self.assertRaises(error_type):
+                                adapter.handle_push("200")
+                        self.assertEqual(private.get_state("gmail_history_id"), "100")
+                        self.assertEqual(private.conn.execute(
+                            "SELECT count(*) FROM adapter_state WHERE value='NEWSLETTER_INPUT_REJECTED'"
+                        ).fetchone()[0], 0)
+                        batch = adapter.handle_push("200")
+                        self.assertEqual(batch.results[0].disposition, "RECORDED")
+                        self.assertEqual(private.get_state("gmail_history_id"), "200")
+                    finally:
+                        private.conn.close()
+
+    def test_edition_integrity_failure_is_not_terminal_input_rejection(self):
+        from entry_protocol.gmail_push_adapter import GmailInboundAdapter, GmailAdapterConfig, PrivateMailLedger
+
+        class Inbox:
+            def get_message(self, message_id):
+                return raw_mail()
+
+        private = PrivateMailLedger(":memory:")
+        adapter = GmailInboundAdapter(gmail=Inbox(), store=private,
+            config=GmailAdapterConfig(mailbox_address="newsletter@example.org",
+                command_endpoints=("operator@example.org",), evidence_hmac_key=b"x" * 32,
+                database_path=":memory:"), newsletter_bridge=self.bridge)
+        self.store.db.execute("UPDATE newsletter_editions SET payload='{}'")
+        self.store.db.commit()
+        try:
+            with self.assertRaisesRegex(ValueError, "edition integrity mismatch"):
+                adapter.process_message_id("m1")
+            self.assertEqual(private.conn.execute(
+                "SELECT count(*) FROM adapter_state"
+            ).fetchone()[0], 0)
         finally:
             private.conn.close()
 
