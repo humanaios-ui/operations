@@ -194,6 +194,22 @@ def _clean_relation(value: str) -> str:
     return cleaned or "RELATED_TO"
 
 
+_GIT_LOCATION_VARS = (
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE",
+    "GIT_CEILING_DIRECTORIES", "GIT_PREFIX",
+)
+
+
+def _clean_env(base: dict[str, str] | None = None) -> dict[str, str]:
+    env = dict(os.environ if base is None else base)
+    for name in _GIT_LOCATION_VARS:
+        env.pop(name, None)
+    env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    return env
+
+
 def _run(
     command: list[str],
     *,
@@ -207,7 +223,7 @@ def _run(
         check=False,
         capture_output=True,
         text=text,
-        env=env,
+        env=_clean_env(env),
     )
     if result.returncode != 0:
         stderr = result.stderr if text else result.stderr.decode("utf-8", "replace")

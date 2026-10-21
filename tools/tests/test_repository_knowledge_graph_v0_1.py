@@ -17,27 +17,12 @@ from repository_knowledge_graph_v0_1 import (  # noqa: E402
     GraphBuilder,
     SpecLoadFailed,
     TOOL_VERSION,
+    _clean_env,
     _graph_digest,
     query_graph,
     validate_graph,
     write_outputs,
 )
-
-
-_GIT_LOCATION_VARS = (
-    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE",
-    "GIT_CEILING_DIRECTORIES", "GIT_PREFIX",
-)
-
-
-def _clean_env(base=None) -> dict[str, str]:
-    env = dict(os.environ if base is None else base)
-    for name in _GIT_LOCATION_VARS:
-        env.pop(name, None)
-    env["GIT_CONFIG_GLOBAL"] = os.devnull
-    env["GIT_CONFIG_NOSYSTEM"] = "1"
-    return env
 
 
 def _run(repo: Path, *args: str, env=None) -> None:
@@ -374,6 +359,26 @@ def test_build_is_deterministic_and_valid(tmp_path):
     assert first["integrity"]["sha256"] == second["integrity"]["sha256"]
     assert first["source"]["source_tree_sha256"] == second["source"]["source_tree_sha256"]
     assert validate_graph(first)["valid"]
+
+
+def test_fixture_and_builder_ignore_inherited_git_locations_and_config(tmp_path, monkeypatch):
+    for name in (
+        "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE",
+        "GIT_CEILING_DIRECTORIES", "GIT_PREFIX",
+    ):
+        monkeypatch.setenv(name, str(tmp_path / "unrelated"))
+    config = tmp_path / "gitconfig"
+    config.write_text("[commit]\n\tgpgsign = true\n", encoding="utf-8")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(config))
+    monkeypatch.setenv("GIT_CONFIG_SYSTEM", str(config))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "0")
+
+    repo = _fixture_repo(tmp_path)
+    assert (repo / ".git" / "index").is_file()
+    graph = GraphBuilder(repo).build()
+    assert validate_graph(graph)["valid"]
+    assert any(node["id"] == "artifact:README.md" for node in graph["nodes"])
 
 
 def test_namespaces_declared_graphs_instead_of_collapsing_identity(tmp_path):
@@ -744,6 +749,7 @@ def test_method_output_inside_target_repository_is_rejected(tmp_path):
         check=False,
         capture_output=True,
         text=True,
+        env=_clean_env(),
     )
     assert result.returncode != 0
     assert "method output must resolve outside the target repository" in (
@@ -905,6 +911,7 @@ def test_real_method_receipt_pins_compiler_and_private_bridge(tmp_path):
         capture_output=True,
         text=True,
         check=False,
+        env=_clean_env(),
     )
     assert result.returncode == 0, result.stderr
     receipt = json.loads((destination / "method-receipt.json").read_text())
