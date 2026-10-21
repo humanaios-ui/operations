@@ -1,0 +1,32 @@
+{
+  "schema": "humanaios.oracle_smag_forecasts.offline_v0_1",
+  "capture_note": "Current PR body smag_p_meta declarations captured for an offline retrospective pilot. Ex-ante immutability UNVERIFIED; no prospective accuracy claim.",
+  "snapshot_at": "2026-10-21T20:00:00Z",
+  "rows": [
+    {
+      "pr": 432,
+      "smag_p_meta": 0.85,
+      "declared_at": "2026-09-21T06:52:16Z"
+    },
+    {
+      "pr": 573,
+      "smag_p_meta": 0.85,
+      "declared_at": "2026-09-28T06:58:01Z"
+    },
+    {
+      "pr": 724,
+      "smag_p_meta": 0.85,
+      "declared_at": "2026-10-05T07:03:21Z"
+    },
+    {
+      "pr": 817,
+      "smag_p_meta": 0.85,
+      "declared_at": "2026-10-12T07:05:01Z"
+    },
+    {
+      "pr": 931,
+      "smag_p_meta": 0.85,
+      "declared_at": "2026-10-19T06:55:37Z"
+    }
+  ]
+}
