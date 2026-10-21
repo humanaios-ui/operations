@@ -12,6 +12,7 @@ import json
 from typing import Any
 
 from .oracle_smag_experiment import offline_fixture_report
+from .intent_os import evaluate_objective
 
 SCHEMA = "humanaios.first_user_learning_cycle.offline_v0_1"
 SYNTHETIC_INTENT = (
@@ -88,8 +89,32 @@ def project_first_user_preflight(
     if (not isinstance(gaps, list) or source.get("miner_candidate_count") != len(gaps)
             or not all(type(code) is str and code in allowed_gaps for code in gaps)):
         raise ValueError("Resource Miner output is not bounded evidence-only")
+    # Exercise the *existing* INTENT-OS projection with the preserved corrected
+    # synthetic wording and an empty synthetic source set. A no-match is not
+    # proof of no opportunities; the API result cannot grant any authority.
+    intent = evaluate_objective(
+        script[1]["text"], [], source_mode="snapshot",
+        source_status="SYNTHETIC_EMPTY_SOURCE_SET",
+        source_warning="Offline fixture: no live/public source was queried.",
+    )
+    if (intent["objective"] != script[1]["text"] or intent["authority"] != "NONE"
+            or intent["execution"] != "DISABLED"
+            or intent["eligibility"] != "NOT_ASSESSED"
+            or intent["status"] != "NO_SUPPORTED_MATCH"):
+        raise ValueError("INTENT-OS projection promoted a synthetic query or modified intent")
     report = {
         "schema": SCHEMA,
+        "intent_os": {
+            "objective": intent["objective"],
+            "status": intent["status"],
+            "source_mode": intent["source_mode"],
+            "source_status": intent["source_status"],
+            "eligibility": intent["eligibility"],
+            "verification": intent["verification"],
+            "authority": intent["authority"],
+            "execution": intent["execution"],
+            "receipt_kind": intent["receipt_kind"],
+        },
         "scope": "OFFLINE_SYNTHETIC_PREFLIGHT",
         "intent_events": script,  # preserved in original order; not parsed into permissions
         "question_preserved": script[0]["text"],
