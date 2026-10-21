@@ -3,7 +3,7 @@ generated: '2026-10-14'
 decision_window_days: 2
 counts:
   candidates: 110
-  records: 61
+  records: 65
 ratifiers:
 - Night
 candidates:
@@ -987,4 +987,16 @@ records:
 - path: z1-inbox/2026-10-02/SESSION_FINDINGS.md
   title: Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop
   note: 'Session close handoff for five friction point implementations and establishment of TENSION_FINDINGS.md governance feedback mechanism. Completed: all five friction points coded, governance integrity issue fixed (real digests recorded in CLAUDE.md), and feedback loop created for continuous guidance improvement. Receipt reconciliation: all claims verified against ledger with zero gaps. Also created root-level TENSION_FINDINGS.md artifact with template and backfilled findings from this and prior sessions. No Z2 ratification requested; Z1 reference handoff documenting completed work and filing Z2 governance decisions needed for PR #642 admission. Indexed as a record, not a live candidate.'
+- path: z1-inbox/2026-10-01/RED-TEAM-AUDIT-PR-630.md
+  title: 'Red-Team Audit Report — PR #630 Credential Deployment Findings'
+  note: 'Security audit documenting 12 challenges (3 critical, 5 high, 4 medium) in PR #630 credential deployment guide. Records authoritative findings from Claude Code red-team session for Z2 ratification decision. Findings indexed separately under Q-PR630-AUDIT-01 candidate.'
+- path: z1-inbox/2026-10-01/PR-630-WARRANT.md
+  title: 'WARRANT: PR #630 Admissions Approval & Credential Deployment'
+  note: 'Evidence synthesis warrant integrating CI results, red-team audit findings, and governance compliance assessment. Recommends Option B (accept with mandatory remediation). Filed as Q-PR630-WARRANT-01 awaiting Z2 ratification.'
+- path: z1-inbox/2026-10-01/PR-630-REMEDIATION-PATCHES.md
+  title: 'PR #630 Remediation Patches — 6 Actionable Fixes'
+  note: 'Proposed remediation patches for 12 challenges identified in red-team audit. Patches 1–6 address credential deployment security, gitleaks allowlist hardening, authorization gates, and audit logging. Filed as Q-PR630-REMEDIATION-01 supporting Option B ratification path.'
+- path: z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md
+  title: 'Z3 Execution Cycle 1 Handoff — Results & Verification Gaps'
+  note: 'Z3 execution summary for Cycle 1 operations. Documents VERDICT emissions, falsifier assessment, and capacity allocation across zones. Awaiting Z2 ratification as Q-Z3-EXEC-CYCLE-1-HANDOFF-01 to close Phase 2 execution and advance Phase 3.'
 excluded: []
