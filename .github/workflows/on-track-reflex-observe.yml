@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   # One observation per PR (or issue, or manual run). A shared repo-wide group
-  # cancelled unrelated PRs' runs and bursted the GitHub API into 403s.
+  # cancelled unrelated PRs' runs. Whether that also caused the 403s is unverified.
   group: on-track-reflex-observe-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
   cancel-in-progress: true
 
