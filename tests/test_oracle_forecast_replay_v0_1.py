@@ -470,3 +470,23 @@ def test_annulment_must_not_self_attest_as_verified() -> None:
     )
     assert episode["resolution"]["verification_status"] == "ASSERTED"
 
+
+def test_subsecond_forecast_boundaries_are_preserved() -> None:
+    manifest = copy.deepcopy(_episode()["manifest"])
+    manifest["created_at"] = "2026-10-20T10:00:00.900Z"
+    manifest["closes_at"] = "2026-10-20T10:00:01.900Z"
+    manifest["evidence_cutoff"]["ref"] = "2026-10-20T10:00:00.100Z"
+    manifest = oracle._seal(manifest)
+    args = dict(
+        predictor_id="oracle-assembly", probability=0.6,
+        evidence_refs=["fixture:timing"],
+    )
+    with pytest.raises(ForecastContractError, match="cannot precede its manifest"):
+        oracle.start_episode(manifest, recorded_at="2026-10-20T10:00:00.800Z", **args)
+    valid = oracle.start_episode(
+        manifest, recorded_at="2026-10-20T10:00:01.800Z", **args
+    )
+    oracle.validate_episode(valid)
+    with pytest.raises(ForecastContractError, match="after the close"):
+        oracle.start_episode(manifest, recorded_at="2026-10-20T10:00:01.901Z", **args)
+    assert oracle._normalized_timestamp("2026-10-20T10:00:00.900Z").startswith("2026-10-20T10:00:00.900")
