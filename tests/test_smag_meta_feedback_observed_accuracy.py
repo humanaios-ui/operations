@@ -52,7 +52,7 @@ class MetaAccuracyTests(unittest.TestCase):
             self.assertEqual(lesson["observed_outcome_rate"], 1.0)
             self.assertAlmostEqual(lesson["mean_forecast_probability"], 0.85)
             self.assertEqual(lesson["pending_prs"], 3)
-            # Idempotent rerun never rebrands probability as measured accuracy.
+            # Idempotent rerun retains the measured-accuracy meaning.
             with patch.object(smag, "measure_consolidation_pr_outcomes", return_value=observation):
                 smag.run("humanaios-ui/operations", "SMAG: consolidate", ledger, 44)
             self.assertEqual(json.loads(ledger.read_text())["lessons"][0]["accuracy_measured"], 1.0)
