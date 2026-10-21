@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 import hashlib
+import hmac
 import json
 from pathlib import Path
 import re
+import secrets
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -16,6 +18,9 @@ ALLOWED_IMPLEMENTATION_STATES = {"NOT_STARTED", "PROPOSED", "MERGED"}
 ALLOWED_DEPLOYMENT_STATES = {"UNVERIFIED", "OBSERVED_NOT_LIVE", "OBSERVED_LIVE"}
 THREE_SOURCE_CLAIM = "CAPABILITY_NOT_STARTED"
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
+# Keep the pseudonymization secret in local process memory, never in projections.
+# Private references are stable within this process and rotate on restart.
+_PRIVATE_SOURCE_KEY = secrets.token_bytes(32)
 
 
 def load_resource_plan(path: str | Path) -> dict[str, Any]:
@@ -172,11 +177,16 @@ def resolve_three_source_pilot(pilot: dict[str, Any]) -> dict[str, Any]:
         resolution = "UNRESOLVED"
 
     public_source = drive["privacy_class"] == "PUBLIC_SAFE"
-    private_ref = hashlib.sha256(
-        f"{drive['source_id']}|{drive['source_revision']}".encode("utf-8")
-    ).hexdigest()
+    source_ref = drive["source_id"]
+    if not public_source:
+        private_ref = hmac.new(
+            _PRIVATE_SOURCE_KEY,
+            f"{drive['source_id']}|{drive['source_revision']}".encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        source_ref = f"PRIVATE-SOURCE-SHA256:{private_ref}"
     source_projection = {
-        "source_ref": drive["source_id"] if public_source else f"PRIVATE-SOURCE-SHA256:{private_ref}",
+        "source_ref": source_ref,
         "source_revision": drive["source_revision"],
         "privacy_class": drive["privacy_class"],
         "source_locator": drive["source_locator"] if public_source else "REDACTED_PRIVATE_SOURCE",
@@ -193,6 +203,24 @@ def resolve_three_source_pilot(pilot: dict[str, Any]) -> dict[str, Any]:
             "claim": "A successful public deployment and human use",
             "epistemic_state": "CONTRADICTED",
         })
+    elif deployment == "OBSERVED_LIVE":
+        what_needs_proof.append({
+            "claim": "Successful human use",
+            "epistemic_state": "UNVERIFIED",
+        })
+
+    capability_projection = {
+        "capability_id": capability["capability_id"],
+        "label": capability["label"],
+        "epistemic_state": "OBSERVED",
+        "implementation_state": implementation,
+        "source_ref": f"{capability['source_url']}@{capability['source_revision']}",
+    }
+    what_we_already_have = []
+    if implementation == "MERGED":
+        what_we_already_have.append(capability_projection)
+    else:
+        what_needs_proof.append(capability_projection)
 
     result = {
         "pilot_id": pilot["pilot_id"],
@@ -206,13 +234,7 @@ def resolve_three_source_pilot(pilot: dict[str, Any]) -> dict[str, Any]:
             "as_of": finding["as_of"],
             "statement_included": False,
         },
-        "what_we_already_have": [{
-            "capability_id": capability["capability_id"],
-            "label": capability["label"],
-            "epistemic_state": "OBSERVED",
-            "implementation_state": implementation,
-            "source_ref": f"{capability['source_url']}@{capability['source_revision']}",
-        }],
+        "what_we_already_have": what_we_already_have,
         "what_needs_proof": what_needs_proof,
         "smallest_next_test": dict(pilot["next_test"]),
         "authority_effect": "NONE",

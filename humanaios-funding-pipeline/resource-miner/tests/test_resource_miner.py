@@ -1,7 +1,10 @@
+import hashlib
+import hmac
 import json
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 from resource_miner.miner import enrich
 from resource_miner.entitlement_handoff import build_entitlement_handoff
@@ -290,8 +293,9 @@ class ResourceMinerTests(unittest.TestCase):
 
     def test_three_source_pilot_redacts_private_drive_source_and_statement(self):
         pilot = three_source_pilot()
+        pilot["empirica_finding"]["statement"] = "Resource Miner était inactif — 未開始."
         result = resolve_three_source_pilot(pilot)
-        encoded = json.dumps(result)
+        encoded = json.dumps(result, ensure_ascii=False)
         self.assertNotIn(pilot["drive_document"]["source_id"], encoded)
         self.assertNotIn(pilot["drive_document"]["source_locator"], encoded)
         self.assertNotIn(pilot["empirica_finding"]["statement"], encoded)
@@ -299,6 +303,28 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertTrue(result["selected_source"]["source_ref"].startswith("PRIVATE-SOURCE-SHA256:"))
         self.assertFalse(result["selected_source"]["source_content_included"])
         self.assertFalse(result["empirica_finding"]["statement_included"])
+
+    def test_three_source_pilot_private_reference_uses_local_hmac_key(self):
+        pilot = three_source_pilot()
+        drive = pilot["drive_document"]
+        message = f"{drive['source_id']}|{drive['source_revision']}".encode("utf-8")
+        references = []
+        for key in (b"a" * 32, b"b" * 32):
+            with self.subTest(key=key), patch("resource_miner.planning._PRIVATE_SOURCE_KEY", key):
+                result = resolve_three_source_pilot(pilot)
+                expected = "PRIVATE-SOURCE-SHA256:" + hmac.new(key, message, hashlib.sha256).hexdigest()
+                self.assertEqual(result["selected_source"]["source_ref"], expected)
+                self.assertNotIn(key.decode("ascii"), json.dumps(result))
+                references.append(expected)
+        self.assertNotEqual(*references)
+
+    def test_three_source_pilot_preserves_public_source(self):
+        pilot = three_source_pilot()
+        drive = pilot["drive_document"]
+        drive["privacy_class"] = "PUBLIC_SAFE"
+        result = resolve_three_source_pilot(pilot)
+        self.assertEqual(result["selected_source"]["source_ref"], drive["source_id"])
+        self.assertEqual(result["selected_source"]["source_locator"], drive["source_locator"])
 
     def test_three_source_pilot_receipt_is_deterministic(self):
         first = resolve_three_source_pilot(three_source_pilot())["receipt_sha256"]
@@ -320,12 +346,49 @@ class ResourceMinerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "selected Drive source"):
             resolve_three_source_pilot(pilot)
 
+    def test_three_source_pilot_rejects_invalid_source_provenance(self):
+        cases = [
+            ("repository_capability", "source_url", "https://example.com/repo", "repository source_url"),
+            ("repository_capability", "source_revision", "c8e95d1", "repository source_revision must be a full commit SHA"),
+            ("drive_document", "observed_at", "2026-10-17T20:08:33", r"drive_document\.observed_at requires a timezone-aware timestamp"),
+        ]
+        for section, field, value, error in cases:
+            with self.subTest(field=f"{section}.{field}"):
+                pilot = three_source_pilot()
+                pilot[section][field] = value
+                with self.assertRaisesRegex(ValueError, error):
+                    resolve_three_source_pilot(pilot)
+
+    def test_three_source_pilot_only_merged_capabilities_are_available(self):
+        for implementation in ("MERGED", "PROPOSED", "NOT_STARTED"):
+            with self.subTest(implementation=implementation):
+                pilot = three_source_pilot()
+                capability = pilot["repository_capability"]
+                capability["implementation_state"] = implementation
+                result = resolve_three_source_pilot(pilot)
+                projection = {
+                    "capability_id": capability["capability_id"],
+                    "label": capability["label"],
+                    "epistemic_state": "OBSERVED",
+                    "implementation_state": implementation,
+                    "source_ref": f"{capability['source_url']}@{capability['source_revision']}",
+                }
+                if implementation == "MERGED":
+                    self.assertEqual(result["what_we_already_have"], [projection])
+                    self.assertNotIn(projection, result["what_needs_proof"])
+                else:
+                    self.assertEqual(result["what_we_already_have"], [])
+                    self.assertIn(projection, result["what_needs_proof"])
+
     def test_observed_live_capability_contradicts_not_started_claim(self):
         pilot = three_source_pilot()
         pilot["repository_capability"]["deployment_state"] = "OBSERVED_LIVE"
         result = resolve_three_source_pilot(pilot)
         self.assertEqual(result["resolution"], "CONTRADICTED")
-        self.assertEqual(result["what_needs_proof"], [])
+        self.assertEqual(result["what_needs_proof"], [{
+            "claim": "Successful human use",
+            "epistemic_state": "UNVERIFIED",
+        }])
 
     def test_primary_currentness_closes_candidate_durably(self):
         row = {
