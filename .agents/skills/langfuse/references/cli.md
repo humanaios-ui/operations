@@ -9,13 +9,15 @@ Documentation: https://langfuse.com/docs/api-and-data-platform/features/cli
 
 ## Install
 
+Use the exact `1.2.4` pin below for both runners. Review the package source, provenance, and integrity before credentialed use; review updates separately. Install or populate caches without `LANGFUSE_SECRET_KEY` or other credentials in the environment, then expose credentials only to the reviewed CLI. A controlled installation must use a reviewed lockfile and frozen dependency installation. Do not use unversioned packages, tags, or version ranges with either `npx` or `bunx`.
+
 ```bash
 # Run directly (recommended)
-npx langfuse-cli api <resource> <action>
-bunx langfuse-cli api <resource> <action>
+npx langfuse-cli@1.2.4 api <resource> <action>
+bunx langfuse-cli@1.2.4 api <resource> <action>
 
 # Or install globally
-npm i -g langfuse-cli
+npm i -g langfuse-cli@1.2.4
 langfuse api <resource> <action>
 ```
 
@@ -50,8 +52,8 @@ export LANGFUSE_BASE_URL=https://cloud.langfuse.com
 - Use `--json` for machine-readable JSON output
 - Use `--curl` to preview the HTTP request without executing
 - All list commands support filtering — check `<resource> <action> --help` for available options
-- Prefer `observations` over `legacy-observations-v1s` — `observations` is the modern high-performance endpoint (cursor pagination, selective field groups); `legacy-observations-v1s` is the deprecated v1
-- Prefer `metrics` over `legacy-metrics-v1s` for the same reason
+- Check the Langfuse deployment version before selecting read endpoints (use deployment metadata or ask the administrator; do not infer it from the CLI version). On Cloud and self-hosted v4+, prefer `observations` (`GET /api/public/v2/observations`, cursor pagination and selective field groups). For pre-v4 self-hosted deployments, use the supported v1 Observations API (`GET /api/public/observations`, exposed as `legacy-observations-v1s` where available); confirm the operation in that deployment's API reference and CLI schema/help.
+- On Cloud and self-hosted v4+, prefer `metrics` over `legacy-metrics-v1s`; on earlier deployments, use the supported endpoint in the deployment's API reference.
 - Prefer `scores` over `legacy-score-v1s` for list/get operations
-- Always query via `observations`, not `traces`, even when the user phrases the request in terms of traces — the `traces` endpoints are outdated (add `--trace-id` to scope to a known trace). See the [Observations API docs](https://langfuse.com/docs/api-and-data-platform/features/observations-api) for the v1 → v2 mapping.
+- For trace reads on Cloud and self-hosted v4+, query via `observations` (add `--trace-id` to scope to a known trace). For pre-v4 self-hosted deployments, use the supported v1 observations or traces endpoint documented by that deployment. See the [Observations API docs](https://langfuse.com/docs/api-and-data-platform/features/observations-api) for compatibility and the v1 → v2 mapping.
 - Pagination: legacy v1 endpoints use `--limit` and `--page`; modern endpoints (`observations`, `metrics`, `scores`) use cursor-based pagination — pass `--limit`, then thread `meta.cursor` from the response into the next request's `--cursor`

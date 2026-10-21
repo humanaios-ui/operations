@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -78,6 +79,37 @@ class ComplementarityTests(unittest.TestCase):
         rows[0]["evidence"] = [{"kind": "discovery", "url": "https://wrong.example/"}]
         out = evaluate_combinations(rows, cfg)
         self.assertEqual(out["rejected"]["A"], "NO_BOUND_SOURCE_EVIDENCE")
+
+    def test_other_account_on_same_host_cannot_supply_evidence(self):
+        rows, cfg = setup()
+        rows[0]["source_url"] = "https://github.com/provider/program"
+        for path in ("/other/program", "/provider/program-other", "/provider/program/../../other/program"):
+            with self.subTest(path=path):
+                rows[0]["evidence"] = [{"url": "https://github.com" + path}]
+                out = evaluate_combinations(rows, cfg)
+                self.assertEqual(out["rejected"]["A"], "NO_BOUND_SOURCE_EVIDENCE")
+        rows[0]["evidence"] = [{"url": "https://github.com/provider/program/docs"}]
+        self.assertNotIn("A", evaluate_combinations(rows, cfg)["rejected"])
+
+    def test_snapshot_reference_tracks_loaded_content_and_checks_claim(self):
+        rows, cfg = setup()
+        expected_ref = "sha256:" + hashlib.sha256(
+            json.dumps(rows, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        for claim in (None, "sha256:" + "0" * 64, CONFIG["source_snapshot_ref"], expected_ref):
+            with self.subTest(claim=claim):
+                if claim is not None:
+                    cfg["source_snapshot_ref"] = claim
+                out = evaluate_combinations(rows, cfg)
+                self.assertEqual(out["source_snapshot_ref"], expected_ref)
+                self.assertEqual(out["configured_source_snapshot_ref"], claim)
+                status = "NOT_PROVIDED" if claim is None else (
+                    "VERIFIED" if claim == expected_ref else "UNCHECKED_CLAIM")
+                self.assertEqual(out["configured_source_snapshot_ref_status"], status)
+        rows[0]["title"] = "Changed input"
+        changed = evaluate_combinations(rows, cfg)
+        self.assertNotEqual(changed["source_snapshot_ref"], expected_ref)
+        self.assertEqual(changed["configured_source_snapshot_ref_status"], "UNCHECKED_CLAIM")
 
     def test_missing_ids_or_duplicate_observation_rejected(self):
         rows, cfg = setup()

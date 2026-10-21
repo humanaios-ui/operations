@@ -47,6 +47,13 @@ python3 -m unittest discover -s tests -v
 Use `--config <file>` and `--snapshot <file>` to replay an alternative bounded
 scenario. The module has no network or write capability.
 
+Receipts identify the loaded rows with `source_snapshot_ref=sha256:<digest>`.
+The digest is SHA-256 of UTF-8 `json.dumps(rows, sort_keys=True, separators=(",", ":"))`,
+so paths and JSONL whitespace do not affect it. A configured `source_snapshot_ref`
+is retained separately as `configured_source_snapshot_ref` and marked `VERIFIED`
+only when it matches this digest. Other references, including Git references that
+have not been checked against the loaded input, are marked `UNCHECKED_CLAIM`.
+
 At a hypothetical 120-minute budget, the existing Resource Miner individual
 ranking (captured need/requirement matches, using its `_ranking_score`) ranks
 Microsoft first in this 3-candidate subset. That top singleton covers one of

@@ -26,8 +26,12 @@ def required_live_settings(env: dict[str, str]) -> list[str]:
     names = ("CEREBRAS_API_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_BASE_URL")
     missing = [n for n in names if not env.get(n, "").strip()]
     url = env.get("LANGFUSE_BASE_URL", "")
-    u = urlsplit(url)
-    if url and (u.scheme != "https" or not u.hostname or u.username or u.password or u.query):
+    try:
+        u = urlsplit(url)
+        invalid_url = u.scheme != "https" or not u.hostname or u.username or u.password or u.query
+    except ValueError:
+        invalid_url = True
+    if url and invalid_url:
         missing.append("LANGFUSE_BASE_URL_HTTPS_REQUIRED")
     return missing
 

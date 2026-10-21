@@ -7,6 +7,7 @@ description: Set up or extend agent regression checks / gating in GitHub Actions
 
 ## Checklist
 
+- [ ] Before any Langfuse resource or GitHub-secret mutation, confirm the target repository and environment, Langfuse host and project, and the connection to use. Present the proposed changes and proceed only after the user explicitly approves that scope. Read-only inspection may precede approval; credentials or access alone are not approval. Confirm and obtain approval again if the target or scope changes.
 - [ ] Follow the [CI/CD docs page](https://langfuse.com/docs/evaluation/experiments/experiments-ci-cd) and the [langfuse/experiment-action README](https://github.com/langfuse/experiment-action)
 - [ ] Inspect whether the local repository is a GitHub repo. If not, `langfuse/experiment-action` is not applicable. Follow the guide for other [CI/CD systems](https://langfuse.com/docs/evaluation/experiments/experiments-ci-cd#other-cicd-systems) instead
 - [ ] Ask the user which [evaluators and run evaluators](https://langfuse.com/docs/evaluation/experiments/experiments-via-sdk#evaluators) they want to set up
@@ -19,7 +20,7 @@ description: Set up or extend agent regression checks / gating in GitHub Actions
 
 ### GitHub specific checklist
 - [ ] Ask the user how they want the [workflow to be triggered](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
-- [ ] If available, use the `gh` CLI to check secret existence / set secrets for:
+- [ ] If available, use the `gh` CLI to check secret existence; set secrets only after the approval gate above for:
       - Langfuse credentials
       - Credentials required by the evaluator task (e.g. OpenAI or Anthropic API keys)
 

@@ -123,6 +123,8 @@ The seed is not applicant eligibility. It tests whether Resource Miner can repre
 
 ## Run
 
+Requires Python 3.11 or newer, including the optional `observability` extra.
+
 From `humanaios-funding-pipeline/resource-miner/`:
 
 ```bash

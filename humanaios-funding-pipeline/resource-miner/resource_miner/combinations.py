@@ -6,11 +6,13 @@ verified value, eligibility, permission, or authority to act.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import itertools
 import json
+import posixpath
 from datetime import date
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 from typing import Any
 
 from .miner import _ranking_score
@@ -46,6 +48,21 @@ def _check_config(config: dict[str, Any]) -> tuple[date, list[str], dict[str, in
     return as_of, targets, costs, budget
 
 
+def _evidence_matches_source(source_url: str, evidence_url: str) -> bool:
+    try:
+        source, evidence = urlsplit(source_url), urlsplit(evidence_url)
+        if (evidence.scheme != "https" or evidence.username or evidence.password
+                or (evidence.hostname, evidence.port) != (source.hostname, source.port)):
+            return False
+    except ValueError:
+        return False
+    source_path = posixpath.normpath(unquote(source.path or "/")).rstrip("/")
+    evidence_path = posixpath.normpath(unquote(evidence.path or "/")).rstrip("/")
+    return (evidence_path == source_path or evidence_path.startswith(source_path + "/")) and (
+        not source.query or evidence.query == source.query
+    )
+
+
 def _exclusion(row: dict[str, Any], as_of: date) -> str | None:
     if row.get("authority_effect", "NONE") != "NONE":
         return "CLAIMED_AUTHORITY"
@@ -58,12 +75,17 @@ def _exclusion(row: dict[str, Any], as_of: date) -> str | None:
     if row.get("resource_state") not in {"CANDIDATE", "ALREADY_ACQUIRED"}:
         return "UNSUPPORTED_RESOURCE_STATE"
     url = row.get("source_url") or row.get("canonical_url") or ""
-    if urlsplit(url).scheme != "https" or not urlsplit(url).hostname:
+    try:
+        source = urlsplit(url)
+        valid_source = source.scheme == "https" and bool(source.hostname)
+    except ValueError:
+        valid_source = False
+    if not valid_source:
         return "MISSING_PUBLIC_SOURCE"
     evidence = row.get("evidence")
     if not isinstance(evidence, list) or not evidence or not any(
         isinstance(ref, dict) and isinstance(ref.get("url"), str)
-        and urlsplit(ref["url"]).hostname == urlsplit(url).hostname
+        and _evidence_matches_source(url, ref["url"])
         for ref in evidence
     ):
         return "NO_BOUND_SOURCE_EVIDENCE"
@@ -140,10 +162,21 @@ def evaluate_combinations(snapshot: list[dict[str, Any]], config: dict[str, Any]
     legacy_first = candidate((sorted(legacy_pool, key=_legacy_sort_key)[0],)) if legacy_pool else None
     best = bundles[0] if bundles else None
     delta = (best["coverage_count"] - baseline["coverage_count"]) if best and baseline else None
+    # Hash the rows actually evaluated, independent of file path or JSONL formatting.
+    snapshot_ref = "sha256:" + hashlib.sha256(
+        json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    configured_ref = config.get("source_snapshot_ref")
     return {
         "schema": "humanaios.resource-complementarity-observation.v0.1",
         "as_of": as_of.isoformat(),
-        "source_snapshot_ref": config.get("source_snapshot_ref", "UNPINNED"),
+        "source_snapshot_ref": snapshot_ref,
+        "source_snapshot_digest_basis": "CANONICAL_JSON_LOADED_ROWS",
+        "configured_source_snapshot_ref": configured_ref,
+        "configured_source_snapshot_ref_status": (
+            "NOT_PROVIDED" if configured_ref is None else
+            "VERIFIED" if configured_ref == snapshot_ref else "UNCHECKED_CLAIM"
+        ),
         "metric": "count_of_distinct_reported_target_affordances_NOT_value_or_outcome",
         "target_affordances": targets,
         "review_budget_minutes": budget,

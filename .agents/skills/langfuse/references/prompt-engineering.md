@@ -27,7 +27,9 @@ Identify the target model if you can — tuning differs by model, so when you kn
 | Technique | Standard (GPT) | Reasoning (Claude latest) |
 |-----------|----------------|---------------------------|
 | Instruction density | High, prescriptive | Goal-level; don't micro-manage steps |
-| Reasoning | Add explicit chain-of-thought | Native thinking; "think thoroughly" + tune `effort` |
+| Reasoning | Request a concise rationale or structured evidence fields | Native thinking; "think thoroughly" + tune `effort`; return only a concise rationale or structured evidence fields |
 | Emphasis language | Strong directives fine | Dial back `MUST`/`CRITICAL` |
 | Output format | Prefilling/scaffolds | Prefill removed (4.6+); structured outputs + "no preamble" |
 | Roles | `developer` > `user` > `assistant` | `system` role + `user`/`assistant` |
+
+Keep private reasoning out of user-visible output and traces; do not request or log internal chain-of-thought.

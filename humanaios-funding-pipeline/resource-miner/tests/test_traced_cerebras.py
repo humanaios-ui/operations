@@ -95,6 +95,19 @@ class TracedCerebrasTests(unittest.TestCase):
         self.assertEqual(result["external_calls"], 0)
         self.assertEqual(result["mode"], "PREFLIGHT_ONLY")
 
+    def test_malformed_host_is_reported_through_preflight(self):
+        for url in ("https://[invalid", "https://[not-ipv6]/", "https://bad\uff0fhost.example"):
+            with self.subTest(url=url), patch("sys.argv", ["traced_cerebras"]), patch.dict(
+                "os.environ", {"LANGFUSE_BASE_URL": url}, clear=True
+            ):
+                stream = io.StringIO()
+                with redirect_stdout(stream):
+                    main()
+                result = __import__("json").loads(stream.getvalue())
+                self.assertIn("LANGFUSE_BASE_URL_HTTPS_REQUIRED", result["missing_setting_names"])
+                self.assertEqual(result["external_calls"], 0)
+                self.assertNotIn(url, stream.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

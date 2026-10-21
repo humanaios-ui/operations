@@ -2,7 +2,7 @@ import json
 import unittest
 from pathlib import Path
 
-from resource_miner.combinations import load_snapshot
+from resource_miner.combinations import evaluate_combinations, load_snapshot
 from resource_miner.outcome_probe import (run_shadow_trial, runtime_prerequisites, verify_source_queue)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +35,25 @@ class OutcomeShadowTests(unittest.TestCase):
         self.assertEqual(out["items"][0]["actual_access"], "NOT_INDEPENDENTLY_VERIFIED")
         self.assertEqual(out["items"][0]["eligibility"], "UNASSESSED")
         self.assertEqual(out["authorization_state"], "NOT_REQUESTED")
+
+    def test_receipt_delta_uses_selected_miner_baseline(self):
+        rows = [dict(row) for row in self.rows]
+        first, second = CONFIG["candidate_ids"][:2]
+        for row in rows:
+            if row.get("resource_id") == first:
+                row["route"] = "VERIFY_NOW"
+            elif row.get("resource_id") == second:
+                row["resource_affordances"] = CONFIG["target_affordances"][:2]
+        comparison = evaluate_combinations(rows, CONFIG)
+        self.assertEqual(comparison["baseline_single"]["coverage_count"], 2)
+        self.assertEqual(comparison["existing_miner_first_feasible"]["resource_ids"], [first])
+        self.assertEqual(comparison["existing_miner_first_feasible"]["coverage_count"], 1)
+        self.assertEqual(comparison["incremental_reported_coverage"], 1)
+        receipt = run_shadow_trial(rows, CONFIG)
+        self.assertEqual(receipt["comparison"]["baseline"]["resource_ids"], [first])
+        self.assertEqual(receipt["comparison"]["reported_affordance_delta"], 2)
+        self.assertEqual(receipt["source_snapshot_ref"], comparison["source_snapshot_ref"])
+        self.assertEqual(receipt["configured_source_snapshot_ref_status"], "UNCHECKED_CLAIM")
 
     def test_fake_access_and_status_do_not_elevate_work_product(self):
         rid = CONFIG["candidate_ids"][0]

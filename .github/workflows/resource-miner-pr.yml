@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
@@ -59,6 +61,7 @@ jobs:
           assert row['mode'] == 'LOCAL_REAL_EXECUTION_NO_EXTERNAL_PROVIDERS'
           assert row['comparison']['baseline']['generated_verification_questions'] == 1
           assert row['comparison']['bundle']['generated_verification_questions'] == 3
+          assert row['comparison']['reported_affordance_delta'] == 2
           assert row['comparison']['verified_outcome_delta'] == 0
           assert row['provider_live_preflight']['provider_live_trial'] == 'BLOCKED_MISSING_RUNTIME'
           assert row['authority_effect'] == 'NONE'
@@ -67,7 +70,7 @@ jobs:
           PY
 
       - name: Preserve M2 comparison evidence artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: resource-complementarity-m2-shadow
           path: /tmp/humanaios-m2-shadow.json

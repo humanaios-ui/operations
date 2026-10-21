@@ -26,6 +26,7 @@ You as a coding agent and the user go through this together to perform a full er
 
 ## Rules CRITICAL
 - Perform interactions with the user's Langfuse instance yourself rather than telling the user to do them.
+- Before any Langfuse resource or GitHub-secret mutation, confirm the target repository and environment, Langfuse host and project, and the connection to use. Present the proposed changes and proceed only after the user explicitly approves that scope. Read-only inspection may precede approval; credentials or access alone are not approval. Confirm and obtain approval again if the target or scope changes.
 - The user performs the open-coding review and supplies human labels; do not do this on their behalf.
 - Where a step needs the user's judgment or input, pause and ask before acting.
 - Use charts where possible to display data.

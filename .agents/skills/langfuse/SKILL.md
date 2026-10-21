@@ -5,14 +5,14 @@ description: >-
 allowed-tools:
   - WebFetch(domain:langfuse.com)
   - Bash(curl *langfuse.com/*)
-  - Bash(npx langfuse-cli api __schema *)
-  - Bash(npx langfuse-cli api * --help *)
-  - Bash(npx langfuse-cli api * list *)
-  - Bash(npx langfuse-cli api * get *)
-  - Bash(bunx langfuse-cli api __schema *)
-  - Bash(bunx langfuse-cli api * --help *)
-  - Bash(bunx langfuse-cli api * list *)
-  - Bash(bunx langfuse-cli api * get *)
+  - Bash(npx langfuse-cli@1.2.4 api __schema *)
+  - Bash(npx langfuse-cli@1.2.4 api * --help *)
+  - Bash(npx langfuse-cli@1.2.4 api * list *)
+  - Bash(npx langfuse-cli@1.2.4 api * get *)
+  - Bash(bunx langfuse-cli@1.2.4 api __schema *)
+  - Bash(bunx langfuse-cli@1.2.4 api * --help *)
+  - Bash(bunx langfuse-cli@1.2.4 api * list *)
+  - Bash(bunx langfuse-cli@1.2.4 api * get *)
 ---
 
 # Langfuse
@@ -48,19 +48,19 @@ Follow these principles for ALL Langfuse work:
 
 ## 1. Langfuse API via CLI
 
-Use the `langfuse-cli` to interact with the full Langfuse REST API from the command line. Run via npx (no install required):
+Use the `langfuse-cli` to interact with the full Langfuse REST API from the command line. Examples pin `langfuse-cli@1.2.4`. Review that exact package's source, provenance, and integrity before use; version updates require a new review. Both `npx` and `bunx` must use this exact pin, never an unversioned package, tag, or version range. Install or populate the runner cache without `LANGFUSE_SECRET_KEY` or other credentials present, then supply credentials only to the reviewed CLI. Alternatively, use a controlled installation with a reviewed lockfile and frozen dependency installation. See [references/cli.md](references/cli.md).
 
 Start by discovering the schema and available arguments:
 
 ```bash
 # Discover all available resources
-npx langfuse-cli api __schema
+npx langfuse-cli@1.2.4 api __schema
 
 # List actions for a resource
-npx langfuse-cli api <resource> --help
+npx langfuse-cli@1.2.4 api <resource> --help
 
 # Show args/options for a specific action
-npx langfuse-cli api <resource> <action> --help
+npx langfuse-cli@1.2.4 api <resource> <action> --help
 ```
 
 ### Credentials

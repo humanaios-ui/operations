@@ -7,6 +7,8 @@ description: Calibrate a new or existing LLM-as-a-Judge against labeled examples
 
 ## 1. Prepare the calibration
 
+Before any Langfuse resource or GitHub-secret mutation, confirm the target repository and environment, Langfuse host and project, and the connection to use. Present the proposed changes and proceed only after the user explicitly approves that scope. Read-only inspection may precede approval; credentials or access alone are not approval. Confirm and obtain approval again if the target or scope changes.
+
 The calibration data must:
 
 - match the information the judge receives in a real execution, based on a representative production trace, filter rules, and variable mappings;
@@ -15,9 +17,10 @@ The calibration data must:
 - contain expected outputs in exactly the judge's output shape and vocabulary, without passing them to the judge.
 
 1. Fetch the current docs for [LLM-as-a-Judge](https://langfuse.com/docs/evaluation/evaluation-methods/llm-as-a-judge), [datasets](https://langfuse.com/docs/evaluation/experiments/datasets), [experiments via SDK](https://langfuse.com/docs/evaluation/experiments/experiments-via-sdk), [prompt versions and labels](https://langfuse.com/docs/prompt-management/data-model), and [LLM connections](https://langfuse.com/docs/administration/llm-connection). Use the current API schema and SDK rather than assuming fields or methods.
-2. For a new judge, immediately create its evaluator, production filters, mappings, score definition, and model, but leave its rule inactive. If no LLM connection exists, ask the user to create one and explain that the judge needs it; otherwise use the default connection unless the user specified another one.
+2. For a new judge, after approval, create its evaluator, production filters, mappings, score definition, and model, but leave its rule inactive. If no LLM connection exists, ask the user to create one and explain that the judge needs it; otherwise confirm the intended connection as part of the approval gate above.
 3. Use one dataset per judge. If it does not exist, create `judge-calibration/<judge-name>` from labeled examples or known good and bad traces. If an existing calibration dataset is not in a folder intended for future judge-calibration datasets, ask before moving it and leave it where it is if the user declines.
 4. Save the candidate prompt as `judge-calibration/<judge-name>`. If the judge was calibrated before and its prompt already exists, create a new version for the change.
+5. Establish a task-specific human baseline from independent human ratings on representative examples. Before running calibration, agree with the user on overall and per-category acceptance thresholds, including sample sizes and treatment of label disagreements. If a human baseline is unavailable, state that limitation and do not claim human equivalence.
 
 ## 2. Run the calibration
 
@@ -33,7 +36,7 @@ Wait for every task and evaluator execution to finish before reviewing results, 
 ## 3. Review the results
 
 1. Concisely explain what you did and link to the tested prompt version and that experiment run's results screen. On the first round only, also link to the dataset and, for a new judge, the inactive judge.
-2. Inspect the accuracy and every mismatch. Treat 85% overall accuracy as quite good—about the same as human judgment—only if accuracy is also acceptable in every category; always state that benchmark and explain the mistakes, even when accuracy exceeds it.
+2. Inspect accuracy and every mismatch against the task-specific human baseline and the predeclared overall and per-category thresholds. Report sample sizes, uncertainty, and label disagreements; explain the mistakes even when thresholds are met. Do not infer human equivalence from a universal accuracy percentage.
 3. Show all mistakes in a table with columns `Dataset input`, `Expected output`, and `Actual output`.
 4. If some labels look like debatable edge cases, group those first as items whose expected labels the user may want to revisit. Otherwise, or when the user is confident in the labels, group mistakes by actual output category.
 

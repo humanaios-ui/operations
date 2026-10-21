@@ -17,7 +17,7 @@ If the user supplied metrics, review them against the application, available dat
 
 If the user did not supply metrics:
 
-- **Online:** The user likely doesn't know what they want. Execute the complete [User Feedback](user-feedback.md) workflow, backfill derivable signals where possible. Explain to the user why this is the right step to take. People often say they want evals without knowing what they actually need. This is one such case. You are completing their request by executing the user-feedback workflow.
+- **Online:** Inspect the application and available signals read-only, then propose signals tied to the user's intended decisions. Present and refine that proposal with the user using the metric table below. Do not begin the [User Feedback](user-feedback.md) workflow, backfill signals, or implement anything until the user explicitly confirms the metric set.
 - **Offline:** inspect existing datasets and experiment results, then ask questions to determine:
   1. is the user happy with their datasets, or do they want to evaluate something they don't have a dataset for?
   2. if they want to use an existing dataset, do they already manually review experiment outputs on that dataset, and if yes, what do they look for?
@@ -30,7 +30,7 @@ Present the resulting metric set as one table with: Priority; Status (existing o
 
 After the metric set is confirmed:
 
-- **Online:** follow [Writing good evaluators](https://langfuse.com/academy/evaluate/writing-evaluators), then implement and verify the online evaluators.
+- **Online:** execute [User Feedback](user-feedback.md) and backfill derivable signals where needed for the confirmed metrics. Follow [Writing good evaluators](https://langfuse.com/academy/evaluate/writing-evaluators), then implement and verify the online evaluators.
 - **Offline:** confirm that an appropriate dataset exists. If not, execute [Dataset Construction](create-dataset.md). Then implement the evaluators and run the experiment.
 
 Do not default to an LLM-as-a-judge. When methods have significant trade-offs and none is clearly superior, present the options and let the user decide.

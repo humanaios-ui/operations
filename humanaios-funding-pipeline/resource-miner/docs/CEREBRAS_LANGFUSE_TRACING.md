@@ -6,7 +6,7 @@ Read `SKILL.md` and `references/instrumentation.md` before changing tracing.
 The code uses **Langfuse Python SDK v5 / OpenTelemetry**, not the deprecated v2
 trace/span API. For self-hosted Langfuse, verify server >= v4.59 first.
 
-## Install dependencies (Python 3.11 or newer recommended)
+## Install dependencies (Python 3.11 or newer required)
 
 From `humanaios-funding-pipeline/resource-miner`:
 

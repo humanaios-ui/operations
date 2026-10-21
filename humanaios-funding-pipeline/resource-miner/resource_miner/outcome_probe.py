@@ -100,6 +100,9 @@ def run_shadow_trial(snapshot: list[dict[str, Any]], config: dict[str, Any]) -> 
         "schema": "humanaios.resource-complementarity-outcome-shadow.v0.1",
         "task": "CREATE_RESOURCE_VERIFICATION_QUEUE",
         "source_snapshot_ref": comparison["source_snapshot_ref"],
+        "source_snapshot_digest_basis": comparison["source_snapshot_digest_basis"],
+        "configured_source_snapshot_ref": comparison["configured_source_snapshot_ref"],
+        "configured_source_snapshot_ref_status": comparison["configured_source_snapshot_ref_status"],
         "as_of": comparison["as_of"],
         "mode": "LOCAL_REAL_EXECUTION_NO_EXTERNAL_PROVIDERS",
         "comparison": {
@@ -121,7 +124,7 @@ def run_shadow_trial(snapshot: list[dict[str, Any]], config: dict[str, Any]) -> 
             },
             "verified_outcome_delta": (bundle_artifact["verified_task_outcomes"]
                                        - base_artifact["verified_task_outcomes"]),
-            "reported_affordance_delta": comparison["incremental_reported_coverage"],
+            "reported_affordance_delta": comparison["delta_vs_existing_miner_first"],
         },
         "interpretation": "NO_VERIFIED_PROVIDER_SYNERGY_OR_COMPLETED_VERIFICATION_OUTCOME",
         "elapsed_time_note": "Measured local Python processing only; not provider latency or founder effort",
