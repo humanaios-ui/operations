@@ -48,6 +48,12 @@
       "event_id": "RCSEVT-BOOTSTRAP-PR-000690",
       "objective_issue_number": null
     },
+    "PULL_REQUEST#809": {
+      "admission_scope": "subject:PULL_REQUEST#809",
+      "command_ref": "RCC-GITHUB-ACTIONS-39670951657",
+      "event_id": "RCSEVT-24A1BE751EF5B0FB",
+      "objective_issue_number": null
+    },
     "PULL_REQUEST#864": {
       "admission_scope": "subject:PULL_REQUEST#864",
       "command_ref": "RCC-GITHUB-ACTIONS-38779118583",
@@ -64,6 +70,7 @@
     "PULL_REQUEST#581": "RCSEVT-BOOTSTRAP-PR-000581",
     "PULL_REQUEST#593": "RCSEVT-BOOTSTRAP-PR-000593",
     "PULL_REQUEST#690": "RCSEVT-BOOTSTRAP-PR-000690",
+    "PULL_REQUEST#809": "RCSEVT-24A1BE751EF5B0FB",
     "PULL_REQUEST#864": "RCSEVT-3A27F050C2C00013"
   },
   "admitted_issue_numbers": [
@@ -77,6 +84,7 @@
     581,
     593,
     690,
+    809,
     864
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
@@ -111,6 +119,7 @@
     "RCC-GITHUB-ACTIONS-38742577673",
     "RCC-GITHUB-ACTIONS-38779118583",
     "RCC-GITHUB-ACTIONS-38780542405",
+    "RCC-GITHUB-ACTIONS-39670951657",
     "RCC-GITHUB-COMMENT-6082515675",
     "RCC-GITHUB-COMMENT-6179637755",
     "RCC-GITHUB-COMMENT-6180556109",
@@ -142,14 +151,14 @@
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "be13832cc22c071602b37c6887a493787f51922d1f778eddd0a0a86a370e2a84",
-  "last_event_id": "RCSEVT-BE13832CC22C0716",
-  "last_sequence": 85,
-  "ledger_event_count": 85,
-  "ledger_sha256": "28c78a3dd4d58bcf65f15ebe538830a42ac4d857ad7c27fb6fa6df6d5d66a3a2",
+  "last_event_hash": "24a1be751ef5b0fb5fd1f47ca959109e1fab49006e40753ef9e950c14cd3e450",
+  "last_event_id": "RCSEVT-24A1BE751EF5B0FB",
+  "last_sequence": 86,
+  "ledger_event_count": 86,
+  "ledger_sha256": "15e961ef06b430892f4026a76e59c8fb0134a8a5d52189a2178bf54a7545dc96",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
-  "source_policy_sha": "83eb4d07ca38b97f1182e78e9f8ca8b120d2e42a",
+  "source_policy_sha": "b8c830b5c9ff5bb5bd831a32acd4029124e6afad",
   "state_branch": "repository-coordinator-state"
 }
