@@ -20,6 +20,19 @@ _MEASURE = frozenset(("value", "unit", "sample_size", "ci_lower", "ci_upper"))
 _UNKNOWN = frozenset(("UNKNOWN", "UNAVAILABLE"))
 
 
+def _is_unknown(value: str) -> bool:
+    return value.strip().upper() in _UNKNOWN
+
+
+def _finite_number(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def _exact_fields(obj: object, keys: frozenset[str], label: str) -> dict:
     if not isinstance(obj, dict) or set(obj) != keys:
         raise ValueError(f"{label}: missing or unexpected fields")
@@ -53,7 +66,7 @@ def validate_observation(data: object) -> dict:
 
     s = _exact_fields(d["subject"], _SUBJECT, "subject")
     for key in _SUBJECT:
-        if _name(s[key], key) in _UNKNOWN:
+        if _is_unknown(_name(s[key], key)):
             raise ValueError("tested-system identity is unresolved")
 
     o = _exact_fields(d["origin"], _ORIGIN, "origin")
@@ -66,7 +79,7 @@ def validate_observation(data: object) -> dict:
     _time(o["observed_at"])
 
     m = _exact_fields(d["method"], _METHOD, "method")
-    if m["lens"] not in LENSES:
+    if not isinstance(m["lens"], str) or m["lens"] not in LENSES:
         raise ValueError("unsupported comparison lens")
     for key in _METHOD - {"lens"}:
         _name(m[key], key)
@@ -74,8 +87,7 @@ def validate_observation(data: object) -> dict:
     v = _exact_fields(d["measurement"], _MEASURE, "measurement")
     _name(v["unit"], "unit")
     value = v["value"]
-    if value is not None and (isinstance(value, bool) or not isinstance(value, (float, int))
-                              or not math.isfinite(value)):
+    if value is not None and not _finite_number(value):
         raise ValueError("value must be finite number or explicit null")
     n = v["sample_size"]
     if n is not None and (type(n) is not int or n < 0):
@@ -84,8 +96,7 @@ def validate_observation(data: object) -> dict:
     if (lower is None) != (upper is None):
         raise ValueError("uncertainty bounds must both be present or both null")
     if lower is not None:
-        if any(isinstance(k, bool) or not isinstance(k, (int, float)) or not math.isfinite(k)
-               for k in (lower, upper)):
+        if not all(_finite_number(k) for k in (lower, upper)):
             raise ValueError("confidence bounds must be finite")
         if not lower <= upper or (value is not None and not lower <= value <= upper):
             raise ValueError("inconsistent confidence bounds")
@@ -100,9 +111,9 @@ def comparison_eligibility(a: dict, b: dict) -> dict:
     reasons = []
     for key in ("lens", "metric_key", "protocol_id", "dataset_version",
                 "harness_version", "task_scope"):
-        if ma[key] != mb[key] or ma[key] in _UNKNOWN:
+        if ma[key] != mb[key] or _is_unknown(ma[key]) or _is_unknown(mb[key]):
             reasons.append("METHOD_MISMATCH_OR_UNKNOWN:" + key)
-    if va["unit"] != vb["unit"]:
+    if va["unit"] != vb["unit"] or _is_unknown(va["unit"]) or _is_unknown(vb["unit"]):
         reasons.append("UNIT_MISMATCH")
     if a["subject"]["system_id"] == b["subject"]["system_id"]:
         reasons.append("SAME_TESTED_SYSTEM")

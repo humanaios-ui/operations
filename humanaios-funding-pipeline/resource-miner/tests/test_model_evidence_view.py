@@ -71,6 +71,35 @@ class ModelEvidenceFixtureTests(unittest.TestCase):
         b["method"]["dataset_version"] = "dataset-v2"
         self.assertEqual(comparison_eligibility(self.a, b)["eligibility"], "NOT_COMPARABLE")
 
+    def test_unknown_method_fields_abstain(self):
+        for key in self.a["method"].keys() - {"lens"}:
+            for unknown in ("UNKNOWN", "unknown", " UnKnOwN ", "UNAVAILABLE", " unavailable "):
+                for side in ("left", "right", "both"):
+                    a, b = copy.deepcopy(self.a), copy.deepcopy(self.b)
+                    if side in ("left", "both"):
+                        a["method"][key] = unknown
+                    if side in ("right", "both"):
+                        b["method"][key] = unknown
+                    with self.subTest(key=key, unknown=unknown, side=side):
+                        result = comparison_eligibility(a, b)
+                        self.assertEqual(result["eligibility"], "NOT_COMPARABLE")
+                        self.assertEqual(result["reason_codes"],
+                                         ["METHOD_MISMATCH_OR_UNKNOWN:" + key])
+
+    def test_unknown_or_different_units_abstain(self):
+        for unit in ("UNKNOWN", "unknown", " UnKnOwN ", "UNAVAILABLE", " unavailable ", "percent"):
+            sides = ("left", "right") if unit == "percent" else ("left", "right", "both")
+            for side in sides:
+                a, b = copy.deepcopy(self.a), copy.deepcopy(self.b)
+                if side in ("left", "both"):
+                    a["measurement"]["unit"] = unit
+                if side in ("right", "both"):
+                    b["measurement"]["unit"] = unit
+                with self.subTest(unit=unit, side=side):
+                    result = comparison_eligibility(a, b)
+                    self.assertEqual(result["eligibility"], "NOT_COMPARABLE")
+                    self.assertEqual(result["reason_codes"], ["UNIT_MISMATCH"])
+
     def test_usage_and_capability_are_not_one_scale(self):
         b = copy.deepcopy(self.b)
         b["method"]["lens"] = "USAGE"
@@ -88,6 +117,15 @@ class ModelEvidenceFixtureTests(unittest.TestCase):
         b["measurement"]["ci_upper"] = None
         self.assertIn("UNCERTAINTY_UNKNOWN",
                       comparison_eligibility(self.a, b)["reason_codes"])
+
+    def test_null_measurements_preserve_unknown_reason_codes(self):
+        b = copy.deepcopy(self.b)
+        for key in ("value", "ci_lower", "ci_upper", "sample_size"):
+            b["measurement"][key] = None
+        result = comparison_eligibility(self.a, b)
+        self.assertEqual(result["eligibility"], "NOT_COMPARABLE")
+        self.assertEqual(result["reason_codes"],
+                         ["NOT_MEASURED", "SAMPLE_SIZE_UNKNOWN", "UNCERTAINTY_UNKNOWN"])
 
     def test_underpowered_preference_abstains(self):
         a = record(lens="PREFERENCE", n=5)
@@ -128,10 +166,36 @@ class ModelEvidenceFixtureTests(unittest.TestCase):
                 validate_observation(a)
 
     def test_rejects_identity_alias_without_exact_version(self):
-        a = copy.deepcopy(self.a)
-        a["subject"]["model_version"] = "UNKNOWN"
-        with self.assertRaises(ValueError):
-            validate_observation(a)
+        for key in self.a["subject"]:
+            for unknown in ("UNKNOWN", "unknown", " UnKnOwN ", "UNAVAILABLE", " unavailable "):
+                a = copy.deepcopy(self.a)
+                a["subject"][key] = unknown
+                with self.subTest(key=key, unknown=unknown), self.assertRaises(ValueError):
+                    validate_observation(a)
+
+    def test_rejects_non_string_lenses(self):
+        for lens in (None, True, 1, [], {}, ["CAPABILITY"]):
+            a = copy.deepcopy(self.a)
+            a["method"]["lens"] = lens
+            with self.subTest(lens=lens), self.assertRaises(ValueError):
+                validate_observation(a)
+
+    def test_rejects_malformed_measurement_numbers(self):
+        invalid = (True, False, "0.7", "UNKNOWN", [], {}, float("nan"),
+                   float("inf"), -float("inf"), 10 ** 1000, -(10 ** 1000))
+        for key in ("value", "ci_lower", "ci_upper"):
+            for value in invalid:
+                a = copy.deepcopy(self.a)
+                a["measurement"][key] = value
+                with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                    validate_observation(a)
+
+    def test_accepts_finite_integer_and_float_measurements(self):
+        for value, lower, upper in ((1, 0, 2), (0.7, 0.6, 0.8)):
+            a = copy.deepcopy(self.a)
+            a["measurement"].update(value=value, ci_lower=lower, ci_upper=upper)
+            with self.subTest(value=value):
+                self.assertEqual(validate_observation(a), a)
 
     def test_rejects_forged_authority(self):
         a = copy.deepcopy(self.a)

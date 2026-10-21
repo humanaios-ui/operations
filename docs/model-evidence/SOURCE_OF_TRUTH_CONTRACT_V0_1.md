@@ -59,10 +59,10 @@ Every input explicitly includes:
 - `subject`: tested-system ID, model version, scaffold (not just vendor name);
 - `origin`: immutable per-fixture source URI, original publishing group, observed UTC time, `SIMULATED` origin and `PUBLIC_SYNTHETIC` visibility;
 - `method`: lens, metric, protocol, dataset/harness and task scope;
-- `measurement`: score and unit, N, uncertainty interval or explicit `UNKNOWN` value;
+- `measurement`: score and unit, N, uncertainty interval; unknown `value`, `ci_lower`, `ci_upper`, and `sample_size` fields use JSON `null`, never the string `"UNKNOWN"` (both uncertainty bounds must be null together);
 - `authority_effect: NONE`.
 
-It deterministically labels a pair `NOT_COMPARABLE` for edition, metric, protocol, task, unit or model-version gaps. A duplicate origin is *not* a second independent source. It never fabricates a hash, signature, confidence interval or license. Missing source/method/certainty fields cause explicit rejection or an `UNKNOWN` label, not fake zeros. Runtime metadata/cost measurements in a real deployment need separate manifest and rights review before widening the contract.
+It deterministically labels a pair `NOT_COMPARABLE` for edition, metric, protocol, task, unit or model-version gaps. A duplicate origin is *not* a second independent source. It never fabricates a hash, signature, confidence interval or license. Missing source/method/certainty fields cause explicit rejection or comparison reason codes, not fake zeros. Unknown measurement states are reported as `NOT_MEASURED`, `UNCERTAINTY_UNKNOWN`, and `SAMPLE_SIZE_UNKNOWN` reason codes. Runtime metadata/cost measurements in a real deployment need separate manifest and rights review before widening the contract.
 
 ### Reproduction (no external calls)
 
@@ -72,7 +72,7 @@ From `humanaios-funding-pipeline/resource-miner`:
 python3 -m unittest discover -s tests -p 'test_model_evidence_view.py' -v
 ```
 
-Fixture cases: incompatible harness, unregistered source identity, duplicate origin, stale origin, underpowered human preference, absent uncertainty, source-class/metric conflation, forged `authority_effect`, scope/visibility leakage, stable sorting, and ability to abstain. All results are **synthetic experimental data**.
+Fixture cases: incompatible harness, unresolved model identity, duplicate origin, stale origin, underpowered human preference, absent uncertainty, source-class/metric conflation, forged `authority_effect`, scope/visibility leakage, stable sorting, and ability to abstain. All results are **synthetic experimental data**.
 
 ## Gate / next implementation
 
