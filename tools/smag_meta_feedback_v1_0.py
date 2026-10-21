@@ -46,7 +46,11 @@ DEFAULT_LESSONS = "data/lessons_learned_ledger.json"
 DEFAULT_LOOKBACK_DAYS = 30
 
 
-def meta_lesson_for_self_accuracy(accuracy: float, total_prs: int, focus_areas: list[str], confidence: str = None) -> dict:
+def meta_lesson_for_self_accuracy(
+    accuracy: float, total_prs: int, focus_areas: list[str],
+    confidence: str = None, *, mean_forecast_probability: float | None = None,
+    pending_prs: int = 0,
+) -> dict:
     """Lesson recording SMAG's own calibration accuracy."""
     # Apply minimum observation floor (similar to author calibration's 10-row floor)
     # For Phase 1, we use a lower floor of 3 PRs since consolidation is less frequent
@@ -65,7 +69,7 @@ def meta_lesson_for_self_accuracy(accuracy: float, total_prs: int, focus_areas: 
         "confidence": confidence,
         "rule": (
             f"SMAG's own consolidation PRs: {total_prs} measured over lookback window. "
-            f"Predicted accuracy: {accuracy:.1%}. Confidence: {confidence}. "
+            f"Observed resolved outcome rate: {accuracy:.1%}. Confidence: {confidence}. "
             f"Meta-gap suggests SMAG should {'increase conservatism' if accuracy < 0.75 else 'maintain calibration'}. "
             f"Focus areas: {', '.join(focus_areas) if focus_areas else 'none identified'}. "
             "This is SMAG measuring itself, not an external audit."
@@ -77,6 +81,9 @@ def meta_lesson_for_self_accuracy(accuracy: float, total_prs: int, focus_areas: 
         "smag_generated": True,
         "meta_signal": True,
         "accuracy_measured": accuracy,
+        "observed_outcome_rate": accuracy,
+        "mean_forecast_probability": mean_forecast_probability,
+        "pending_prs": pending_prs,
         "total_prs_measured": total_prs,
         "focus_areas": focus_areas,
     }
@@ -136,10 +143,10 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         query = (
             f'repo:{repo} '
             f'title:"{prefix}" '
-            f'closed:>={cutoff_date}'
+            f'created:>={cutoff_date}'
         )
         result = subprocess.run(
-            ["gh", "pr", "list", "--search", query, "--json", "number,title,state,mergedAt,body"],
+            ["gh", "pr", "list", "--repo", repo, "--state", "all", "--limit", "100", "--search", query, "--json", "number,title,state,mergedAt,body"],
             capture_output=True,
             text=True,
             check=False,
@@ -167,6 +174,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         successful = 0
         reworked = 0
         reverted = 0
+        pending = 0
         focus_areas_set = set()
 
         meta_pattern = re.compile(r"(?im)^\s*smag_p_meta\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
@@ -192,8 +200,8 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
             if merged:
                 successful += 1
             else:
-                reworked += 1
-                focus_areas_set.add("pr_not_merged")
+                # OPEN is censored, not a failed consolidation.
+                pending += 1
 
         predicted_count = len(predictions)
 
@@ -214,8 +222,12 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
             }
 
         predicted_avg = sum(predictions) / predicted_count
-        actual_success_rate = successful / predicted_count if predicted_count > 0 else 0.0
-        calibration_gap = predicted_avg - actual_success_rate
+        resolved_count = successful + reworked + reverted
+        actual_success_rate = successful / resolved_count if resolved_count else None
+        calibration_gap = (
+            predicted_avg - actual_success_rate
+            if actual_success_rate is not None else None
+        )
 
         return {
             "total_prs": len(prs),
@@ -223,6 +235,8 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
             "successful": successful,
             "reworked": reworked,
             "reverted": reverted,
+            "pending_prs": pending,
+            "resolved_prs": resolved_count,
             "predicted_accuracy": predicted_avg,
             "actual_success_rate": actual_success_rate,
             "calibration_gap": calibration_gap,
@@ -265,14 +279,16 @@ def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
         else:
             return {"status": "NO_PREDICTIONS", "message": f"Found {outcome['total_prs']} PRs but none had smag_p_meta predictions."}
 
-    # Use calibration gap (predicted - actual success rate) as accuracy metric
-    # Gap of 0 = perfect calibration; positive gap = overconfident; negative gap = underconfident
+    # Never overwrite a measured outcome rate with mean predicted confidence.
+    # Pending PRs are censored; they cannot enter the resolved denominator.
     calibration_gap = outcome["calibration_gap"]
-    accuracy = outcome["predicted_accuracy"]  # Use predicted avg as baseline calibration score
+    accuracy = outcome["actual_success_rate"]
+    if accuracy is None:
+        return {**outcome, "status": "INSUFFICIENT_RESOLVED_DATA", "message": "No independently resolved PR outcomes; pending forecasts remain censored."}
 
     # Determine confidence based on gap magnitude and sample size
     abs_gap = abs(calibration_gap)
-    if outcome["predicted_prs"] < 3:
+    if outcome["resolved_prs"] < 3:
         confidence = "insufficient_data"
     elif abs_gap <= 0.05:
         confidence = "stable"
@@ -283,9 +299,11 @@ def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
 
     lesson = meta_lesson_for_self_accuracy(
         accuracy,
-        outcome["predicted_prs"],
+        outcome["resolved_prs"],
         outcome["focus_areas"],
         confidence=confidence,
+        mean_forecast_probability=outcome["predicted_accuracy"],
+        pending_prs=outcome["pending_prs"],
     )
 
     if not dry_run:
@@ -296,25 +314,26 @@ def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
     outcome["status"] = "META_SIGNAL_CAPTURED"
     outcome["lesson_confidence"] = confidence
     outcome["calibration_assessment"] = (
-        f"Predicted {accuracy:.1%}, actual success {outcome['actual_success_rate']:.1%}, gap {calibration_gap:+.1%}"
+        f"Predicted {outcome['predicted_accuracy']:.1%}, observed resolved {accuracy:.1%}, gap {calibration_gap:+.1%}"
     )
     return outcome
 
 
 def render_report(result: dict) -> str:
     status = result.get("status")
-    if status in ("NO_DATA", "NO_PREDICTIONS", "API_ERROR"):
+    if status in ("NO_DATA", "NO_PREDICTIONS", "API_ERROR", "INSUFFICIENT_RESOLVED_DATA"):
         return f"META FEED BACK: {status} — {result.get('message', 'No data available.')}"
 
     outcome = result
-    accuracy_pct = outcome.get("predicted_accuracy", outcome.get("accuracy", 0)) * 100 if isinstance(outcome.get("predicted_accuracy", outcome.get("accuracy")), float) else 0
+    actual = outcome.get("actual_success_rate")
+    accuracy_pct = actual * 100 if isinstance(actual, float) else 0
     successful = outcome.get("successful", 0)
     reworked = outcome.get("reworked", 0)
     reverted = outcome.get("reverted", 0)
     total_prs = outcome.get("total_prs", 0)
     return (
         f"META FEED BACK: {total_prs} consolidation PRs measured. "
-        f"Accuracy: {accuracy_pct:.0f}% (successful={successful}, "
+        f"Observed resolved success: {accuracy_pct:.0f}% (successful={successful}, "
         f"reworked={reworked}, reverted={reverted}). "
         f"Focus areas: {', '.join(outcome['focus_areas']) if outcome['focus_areas'] else 'none'}."
     )
