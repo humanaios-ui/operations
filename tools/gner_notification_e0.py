@@ -158,14 +158,18 @@ def run_smoke_test() -> dict:
     }
 
 
-if __name__ == "__main__":
+def main(argv=None, smoke_test_runner=run_smoke_test) -> int:
     parser = argparse.ArgumentParser(description="GNER-E0 notification lead interpreter")
     parser.add_argument("--smoke-test", action="store_true", help="Run smoke tests and exit")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.smoke_test:
-        result = run_smoke_test()
+        result = smoke_test_runner()
         print(json.dumps(result, indent=2))
-        sys.exit(0 if all(t.get("passed") for t in result["tests"]) else 1)
+        return 0 if all(t.get("passed") for t in result["tests"]) else 1
     else:
         parser.error("--smoke-test is required")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

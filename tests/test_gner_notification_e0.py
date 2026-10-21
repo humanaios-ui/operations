@@ -1,5 +1,7 @@
 """GNER-E0 bounded offline tests."""
+import contextlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import subprocess
@@ -98,6 +100,17 @@ class RelayTests(unittest.TestCase):
         )
         self.assertNotEqual(missing_flag.returncode, 0)
         self.assertIn("--smoke-test is required", missing_flag.stderr)
+
+    def test_cli_returns_nonzero_for_failed_smoke_check(self):
+        failed_result = {
+            "tests": [{"test": "synthetic_failure", "passed": False}],
+            "summary": "0/1 tests passed",
+        }
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(
+                gner.main(["--smoke-test"], lambda: failed_result),
+                1,
+            )
 
 
 if __name__ == "__main__":
