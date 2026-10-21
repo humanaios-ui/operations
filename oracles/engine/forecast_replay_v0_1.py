@@ -938,17 +938,6 @@ def score_cohort(
     # Self-declared bools, hash strings and even a content-sealed frame are not
     # proof of pre-outcome independent registration. Fail closed on readiness.
     claim_ready = False
-    candidate_gate_satisfied = (
-        sampling_complete
-        and sampling_provenance_present
-        and sampling_frame_sealed_before_outcomes
-        and homogeneous
-        and not synthetic
-        and outcome_receipts_verified
-        and not not_scored
-        and len(receipts) >= minimum_claim_n
-    )
-
     report: dict[str, Any] = {
         "status": "SCORED" if receipts else "NO_SCOREABLE_FORECASTS",
         "claim_status": (
