@@ -353,8 +353,9 @@ def render_report(result: dict) -> str:
     closed_unmerged = outcome.get("closed_unmerged_prs", 0)
     pending = outcome.get("pending_prs", 0)
     total_prs = outcome.get("total_prs", 0)
+    predicted_prs = outcome.get("predicted_prs", 0)
     return (
-        f"META FEED BACK: {total_prs} consolidation PRs measured. "
+        f"META FEED BACK: {total_prs} consolidation PRs queried; {predicted_prs} prediction-bearing PRs measured. "
         f"Observed merge-state proxy among resolved: {accuracy_pct:.0f}% (merged={successful}, "
         f"reworked={reworked}, reverted={reverted}, closed_unmerged={closed_unmerged}, pending={pending}). "
         f"Focus areas: {', '.join(outcome['focus_areas']) if outcome['focus_areas'] else 'none'}."
