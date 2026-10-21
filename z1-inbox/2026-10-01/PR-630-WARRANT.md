@@ -36,9 +36,9 @@ This warrant synthesizes evidence from multiple independent streams to inform Z2
 ### Critical Challenges (Merge Blockers if Unresolved)
 
 **CHG-PR630-C001: Base64 Encoding Misrepresented as Encryption**
-- **Claim:** Curl-based credential deployment uses base64 encoding (not encryption), exposing plaintext credentials and GitHub PAT in shell history
+- **Claim:** The curl guide uses base64 encoding rather than encryption. Earlier literal credential assignments may remain in history, and expanded curl arguments can expose the PAT; the curl command itself retains literal variable references in history
 - **Status:** OPEN
-- **Risk If Unresolved:** Users taught to use insecure method; credential + PAT exposed in shell history
+- **Risk If Unresolved:** Users follow an insecure method; literal credential assignments can persist in history and the PAT can be exposed through process arguments
 - **Remediation Path:** Remove curl option (Patch 1); mandate GitHub CLI only
 - **Residual Risk:** LOW (if remediated)
 
@@ -232,7 +232,7 @@ This warrant tracks custody across the evidence chain to detect authority collap
 
 ## RECOMMENDED DISPOSITION
 
-**Z2 Decision:** OPTION B — ACCEPT WITH MANDATORY REMEDIATION
+**Recommended Disposition:** OPTION B — ACCEPT WITH MANDATORY REMEDIATION
 
 **Rationale:**
 1. All 12 challenges are remediable (no architectural issues)

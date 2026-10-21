@@ -53,11 +53,29 @@ Z3 execution of Tier 0 critical infrastructure achieved 12/14 candidates success
 ```
 Total available: 675 units/cycle (9 full-cap zones: 600 units + 3 limited-cap zones: 75 units)
 Tier 0 executed: 190 units (28% utilization)
-Tier 0 remaining: 485 units available for Tier 1/2 in this cycle
+Aggregate arithmetic remainder: 485 units; not an available Z-000 budget
 Efficiency: All executions within per-candidate 50-unit envelope
 ```
 
-**Distribution by Zone:** All candidates mapped to Z-000 (operations); no zone overages; per-zone caps respected.
+**Distribution by Zone (reported allocation, pending ledger verification):** The 12 candidate rows sum to 190 units. The handoff attributes all of them to Z-000, whose cap is 80 units/cycle in ZONE_REGISTRY.md. That allocation exceeds its cap by 110 units; ecosystem-wide headroom does not establish per-zone compliance.
+
+| Zone | Cap per cycle | Tier 0 units attributed here | Balance against cap |
+|:-----|--------------:|----------------------------:|--------------------:|
+| Z-000 | 80 | 190 | -110 (over cap) |
+| Z-001 | 100 | 0 | 100 |
+| Z-002 | 80 | 0 | 80 |
+| Z-003 | 60 | 0 | 60 |
+| Z-004 | 60 | 0 | 60 |
+| Z-005 | 50 | 0 | 50 |
+| Z-006 | 40 | 0 | 40 |
+| Z-007 | 70 | 0 | 70 |
+| Z-012 | 60 | 0 | 60 |
+| Z-008 | 30 | 0 | 30 |
+| Z-009 | 20 | 0 | 20 |
+| Z-010 | 25 | 0 | 25 |
+| **Total** | **675** | **190** | **485 (aggregate only)** |
+
+Zero means no Tier 0 units attributed by this handoff, not verified absence of other cycle consumption. Reconcile each candidate's actual zone and units against execution receipts and all other cycle consumption before claiming compliance. If all 190 units belong to Z-000, record the overage and obtain Z2 resolution under the cap rules; do not redistribute units without evidence. Tier 1 remains blocked pending that reconciliation.
 
 **Consumption by Activity Type:**
 - Execution (code, infrastructure setup, measurement): 155 units (82%)
@@ -98,10 +116,9 @@ Per Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 falsifier (lines 142–150):
 > Z3 executor assignment fails if...
 > 5. Z3 executor assignment fails to emit VERDICT event for any executed candidate (per-candidate measurement mandatory)
 
-**Status:** Falsifier condition 5 potentially triggered (VERDICT events emitted by agents but not persisted to ledger). This requires Z2 review to:
-- Clarify whether VERDICT → NF_LEDGER.jsonl persistence is in scope for this phase
-- If in scope: investigate why persistence failed and whether to retry or adjust measurement model
-- If out of scope: amend falsifier or execution plan to separate emission from persistence
+**Status:** Condition 5 triggers only if an executed candidate fails to emit a VERDICT. The reported journal evidence contains VERDICT emissions for all 12 executed candidates, so missing NF_LEDGER.jsonl entries alone do not trigger it. The two deferred candidates were not executed and do not require an execution VERDICT yet.
+
+Track the missing ledger entries separately as a persistence gap. Verify the per-candidate journal emissions, then have Z2 clarify the persistence requirement and resolve missing writes or stale reads. If any executed candidate has no emitted VERDICT, record that candidate as a condition 5 failure independently of persistence.
 
 ---
 
@@ -111,14 +128,14 @@ Per Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 falsifier (lines 142–150):
 
 1. **VERDICT Recording Gap** — Determine whether VERDICT → NF_LEDGER.jsonl is mandatory for this execution phase
    - If yes: Fix persistence and re-run verification
-   - If no: Amend falsifier and proceed with caution (measurement model gap remains)
+   - If no: Document persistence as deferred separately from condition 5; zone-cap reconciliation remains required
 
 2. **Deferred Candidate Ratification** — Q-GOVGATE-01 and Q-FRAMEWORK-MAPPING-INTEGRATION-01 still awaiting Z2 hash
    - Recommend batch ratification with Tier 1 execution authorization (single Z2 decision event)
 
 3. **Zone Cap Verification** — Verification agent blocked from validating per-zone consumption
-   - Current 675-unit budget and 190-unit Tier 0 consumption support Tier 1/2 (485 units remaining)
-   - But ledger disconnect prevents formal validation
+   - The reported Z-000 allocation is 190 units against an 80-unit cap (110-unit overage)
+   - The 485-unit aggregate remainder cannot fund more Z-000 work without reconciliation and Z2 resolution; other cycle consumption also needs verification
 
 4. **Measurement Audit Trail** — No per-candidate execution logs in ledger
    - Verification agent cannot independently confirm 12 candidates × 8–40 units = 190 units
@@ -141,8 +158,8 @@ Per Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 falsifier (lines 142–150):
 
 3. **Authorize Tier 1 execution with confidence bounds:**
    - Tier 1 realistic estimate: 80–120 units (per Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 resource budget)
-   - Available after Tier 0: 485 units (189% headroom)
-   - **Proceed with Tier 1** if Z2 accepts measurement-in-Phase-2 model
+   - Aggregate remainder after Tier 0: 485 units; zone-specific availability is unverified and Z-000 is over cap under the reported allocation
+   - **Proceed with Tier 1** only after zone-cap reconciliation and Z2 resolution, plus an accepted persistence plan
 
 ### Medium-term (Resolve before Cycle 2)
 
@@ -162,11 +179,11 @@ Per Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01 falsifier (lines 142–150):
 
 ## Tier 1 Planning (Conditional on Z2 Unblock)
 
-If Z2 authorizes Tier 1 advance despite measurement gap:
+If Z2 resolves the zone-cap discrepancy and authorizes Tier 1 advance despite the persistence gap:
 
 **Tier 1 scope:** 46 candidates (3 Band A + 43 Band B by density)  
-**Estimated consumption:** 80–120 units (7% of cycle budget)  
-**Available budget:** 485 units (sufficient headroom)  
+**Estimated consumption:** 80–120 units (12–18% of the 675-unit aggregate cycle budget)
+**Available budget:** Unverified by zone; 485 units is the aggregate arithmetic remainder, with a reported 110-unit Z-000 overage
 **Execution sequence:** By density ranking per Q-RBE-OPS-TIER-RANKING-01  
 **Readiness:** All Tier 0 infrastructure in place (NF ledger, RBE resource tracking, molt cycle, witness ledger)
 
@@ -190,7 +207,7 @@ If Z2 authorizes Tier 1 advance despite measurement gap:
 
 **Z2 Decision Required:** Ratify or amend before 2026-10-03 (48h window)
 
-1. **ACCEPT + Authorize Tier 1:** Proceed with Tier 1 execution; resolve VERDICT persistence in Phase 2
+1. **ACCEPT + Authorize Tier 1:** Reconcile the zone allocation and resolve the Z-000 overage before Tier 1 execution; document any deferred VERDICT persistence separately
 2. **EDIT:** Clarify measurement requirements; amend falsifier if needed
 3. **REJECT:** Return proposal to Z1 for redesign
 
@@ -200,7 +217,7 @@ If Z2 authorizes Tier 1 advance despite measurement gap:
 
 - Claim: 12 Tier 0 candidates executed (Q-RFM-01, Q-NF-SCHEMA-01, Q-NF-ADAPTER-01, Q-RBE-01, Q-FRAMEWORK-MAPPING-01, Q-PHASE1-2-ROLLOUT-01, Q-INTENT-OS-WITNESS-LEDGER-01, Q-588-CONVERGENCE-MATRIX-01, Q-TOOL-MANIFEST-DRIFT-PREVENTION-01, Q-MOLT-TEMPORAL-PURITY-01, Q-GATE-PATHS-TEST-LOGIC-01, Q-WITNESS-LEDGER-TIER0-EXTENSION-01)
 - Tree: 12 VERDICT events visible in workflow journal; 190-unit consumption recorded in agent results
-- Match: ✓ (all claims covered; no RECEIPT-GAP)
+- Match: Candidate totals sum to 190; ledger persistence and zone-cap reconciliation remain open receipt gaps
 - 2 deferred candidates documented and escalated to Z2
 
 ---

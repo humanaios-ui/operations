@@ -11,9 +11,8 @@ paths = [
     "z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE\\.md$"
 ]
 
-# Allow patterns like: sk_test_, sk_live_, service_key_, r8_xxx (Replicate), eyJ (JWT) in test/doc files only
+# Allow patterns like: sk_live_, service_key_, r8_xxx (Replicate), eyJ (JWT) in test/doc files only
 regexes = [
-    "sk_test_",
     "sk_live_",
     "sk_FAKETEST",
     "service_key_",

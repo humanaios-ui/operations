@@ -40,7 +40,7 @@ curl -X PUT \
 **Problem:**
 - Base64 is **encoding, not encryption** — any attacker with shell history or process list can decode it immediately
 - Both `$REPLICATE_KEY` and `$GITHUB_TOKEN` (GitHub PAT) appear in plaintext in the command
-- The command itself appears in shell history with full credentials
+- Shell history records literal variable references in the curl command; earlier literal credential assignments may remain, and expanded process arguments may expose the PAT
 - GitHub API payload is exposed during transmission (if TLS fails or man-in-the-middle occurs)
 - User may believe credential is "encrypted" when it's only base64-encoded
 
@@ -53,7 +53,7 @@ curl -X PUT \
 
 **Why GitHub CLI Is Better:**
 - GitHub CLI automatically uses libsodium public-key encryption (required by GitHub API)
-- No credentials appear in command-line arguments or shell history
+- Use the CLI hidden prompt or secure stdin so credential values do not enter command arguments or new shell-history entries; encryption alone does not prevent either exposure
 - Credentials never sent in plaintext over the wire
 
 **Severity:** CRITICAL  
@@ -111,7 +111,7 @@ r8_1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t  # ← REAL CREDENTIAL, PASSES GITLE
 - PR description suggests credentials will be "auto-deployed" to GitHub Secrets via "admissions approval"
 - No evidence of an actual approval mechanism in the code
 - Admissions approval appears to be advisory only (review-only, not permission-gating)
-- Credentials can be deployed by any PR that merges
+- An authorized operator can be misled into manually deploying credentials by following a modified guide after merge
 - No verification that the PR author is authorized to access Supabase/Replicate projects
 - No audit trail of who approved credential deployment or from which account
 
@@ -127,8 +127,8 @@ r8_1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t  # ← REAL CREDENTIAL, PASSES GITLE
 4. Submits PR; description claims "testing Phase 3 locally"
 5. PR passes admissions approval (advisory, not blocking)
 6. PR merges to main branch
-7. Next CI run deploys attacker's credentials to GitHub Secrets
-8. All subsequent CI runs now use attacker's credentials:
+7. An authorized operator follows the modified guide and manually sets the attacker's credentials as GitHub Secrets; merging the PR does not write secrets
+8. Subsequent CI runs that explicitly consume those secrets may use the attacker's credentials:
    - Replicate model calls → attacker's account, attacker's billing, data sent to attacker's infrastructure
    - Supabase writes → attacker's project, all test data exfiltrated to attacker's database
 9. Attacker monitors CI job logs → sees query results, model outputs, any debug information
@@ -163,7 +163,7 @@ source ~/.env.local
 
 **Risks:**
 - File is in home directory → backed up by Time Machine, cloud sync (iCloud, OneDrive), or corporate backup systems
-- Credentials appear in shell history when sourcing the file
+- Literal credential assignments typed into the shell may remain in history; shell tracing can expose values while sourcing the file
 - No .gitignore guidance → users might accidentally commit `~/.env.local` if they symlink it
 - File permissions (`chmod 600`) don't prevent access by same user's other processes
 - System logs might capture environment variables during debugging
@@ -219,12 +219,12 @@ GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # Your PAT
 **File:** Step 3, "Deploy Supabase Credentials"
 
 **Problem:**
-- Guide doesn't specify whether to use `anon` key (public, read-only) or `service_role` key (private, full access)
+- Guide doesn't specify whether to use `anon` key (public; read-only only when grants and RLS enforce it) or `service_role` key (private, full access)
 - Step 5 (migration) mentions using `service_role` as fallback if permissions fail, but doesn't explain privilege difference
 - No least-privilege recommendation (always prefer `anon` key where possible)
 
 **Severity:** HIGH  
-**Fix:** Require `anon` key for CI (read-only). Document explicit RLS policies. Require security review for `service_role` usage.
+**Fix:** Use an `anon` key for CI with grants and RLS policies that enforce the required access; read-only tests require read-only grants and policies. Document explicit RLS policies. Require security review for `service_role` usage.
 
 ---
 
@@ -334,7 +334,8 @@ GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # Your PAT
 2. Learns base64 encoding is used (trivial to reverse)
 3. Attacker forks repo, modifies guide with attacker's credentials
 4. PR merges (admissions approval is advisory only)
-5. CI runs with attacker's credentials → data exfiltration
+5. An authorized operator follows the modified guide and manually sets the attacker's credentials as GitHub Secrets
+6. Subsequent CI runs that consume those secrets may send data to the attacker's project
 
 **After Fixes:**
 1. Attacker submits PR with malicious credentials
@@ -349,16 +350,16 @@ GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # Your PAT
 
 **Before Fixes:**
 1. User follows Step 2C (curl with base64)
-2. User's shell history captures: `curl ... "ghp_xxxxx"... "ENCRYPTED=<base64>"...`
+2. Shell history records the literal `$GITHUB_TOKEN` and `$ENCRYPTED` references in the curl command. Earlier literal credential assignments may remain in history; separately, expanded curl arguments may expose the PAT through process arguments
 3. Attacker gains access to user's machine (phishing, malware)
-4. Attacker reads shell history, decodes base64, obtains credential
+4. Attacker recovers credentials from earlier literal assignments in history, or captures the PAT from curl process arguments; the literal variable references alone do not reveal their values
 5. Attacker uses Supabase credential to exfiltrate test data
 
 **After Fixes:**
-1. User uses GitHub CLI (only option available)
-2. No credentials appear in shell history
-3. GitHub CLI handles authentication securely via encrypted session
-4. Attacker cannot recover credential from shell history
+1. User uses `gh secret set NAME` and supplies the credential at its hidden prompt, with shell tracing disabled
+2. The command in shell history contains the secret name, with no credential value
+3. GitHub CLI encrypts the secret for GitHub; prompt entry prevents new credential values from entering command history or arguments
+4. Earlier history entries containing credentials still require cleanup and credential rotation
 
 ---
 

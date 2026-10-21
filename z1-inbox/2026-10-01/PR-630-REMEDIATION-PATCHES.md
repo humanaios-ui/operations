@@ -41,7 +41,7 @@ gh secret list | grep REPLICATE
 
 **Rationale:**
 - Base64 is not encryption (trivially reversible)
-- Credentials and GitHub PAT exposed in plaintext in shell history
+- Earlier literal credential assignments may remain in shell history; expanded curl arguments can expose the PAT through process listings
 - GitHub CLI handles encryption correctly using libsodium
 - Only option should be GitHub CLI
 
@@ -49,23 +49,21 @@ gh secret list | grep REPLICATE
 ```markdown
 ### Recommended Method: GitHub CLI
 
-Use this method for all credential deployments. GitHub CLI automatically encrypts credentials using GitHub's public-key encryption and stores no credentials in shell history.
+Use this method for all credential deployments. GitHub CLI encrypts the secret for GitHub using its public key. Enter the value at the hidden prompt (or provide it on stdin from a secure source); encryption does not prevent shell-history or process-argument exposure when values are passed on the command line. Disable shell tracing while handling credentials.
 
 ```bash
 # Authenticate with GitHub (if not already)
 gh auth login
 
-# Set the secret in GitHub
-gh secret set REPLICATE_API_KEY --body "r8_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-# Replace r8_xxx... with your actual Replicate API key
+# Set the repository secret; paste the value at the hidden prompt
+gh secret set REPLICATE_API_KEY  # Paste the approved value at the hidden prompt
 # Verify it was set
 gh secret list | grep REPLICATE
 ```
 
 ### Why Not Other Methods?
 
-- **curl + GitHub API:** Requires base64 encoding, which is NOT encryption. Both your credential and GitHub PAT appear in plaintext in shell history, CI logs, and process listings. **Do not use.**
+- **The removed curl example:** Base64 is not encryption, and GitHub requires public-key encryption for secret uploads. Shell history records literal variable references in the curl command, but earlier literal credential assignments may remain in history, and expanded arguments can expose the PAT through process listings. Use the CLI prompt instead.
 - **GitHub Web UI:** OK for one-time manual setup, but error-prone and non-auditable. Prefer CLI for repeatable deployments.
 ```
 
@@ -100,29 +98,26 @@ regexes = [
 
 **New Version (Secure):**
 ```toml
-[allowlist]
-description = "Allow SYNTHETIC test-only credential patterns (never real credentials)"
+[extend]
+useDefault = true
 
-# Only test files with explicit SYNTHETIC/TEST markers — NOT documentation or guides
-paths = [
-    "tools/tests/test_holographic_integration\\.py$",
-    "tools/holographic_orchestrator\\.py$",
-]
-
-# Allow ONLY synthetic patterns with explicit TEST_ or _SYNTHETIC_ prefix
-# Do NOT allowlist patterns that match real credentials (r8_xxx, eyJhbGc, etc.)
-regexes = [
-    "sk_test_",                           # Stripe test key pattern (safe, clearly marked)
-    "sk_FAKETEST",                        # Explicitly marked fake (safe)
-    "REPLICATE_API_KEY_SYNTHETIC_TEST",   # Synthetic example (safe, marked SYNTHETIC)
-    "SUPABASE_KEY_SYNTHETIC_TEST",        # Synthetic example (safe, marked SYNTHETIC)
-]
+# No global credential-pattern exceptions. sk_test_ keys can be real credentials.
+# Only if a fixture needs an exception: use its exact synthetic value AND
+# exact test path, scoped to the detecting rule (Gitleaks 8.25+ syntax).
+[[rules]]
+id = "stripe-access-token"
+[[rules.allowlists]]
+description = "Exact synthetic credential-redaction fixture"
+condition = "AND"
+paths = ['^tools/tests/test_holographic_integration\.py$']
+regexTarget = "secret"
+regexes = ['^sk_test_SYNTHETICONLY0123456789ABC$']
 ```
 
 **Rationale:**
-- Remove credential patterns (r8_xxx, eyJhbGc) from allowlist entirely
+- Remove credential patterns (sk_test_, r8_xxx, eyJhbGc) from global allowlists entirely
 - Never allowlist real credential patterns, even in documentation
-- Use synthetic patterns with explicit `_TEST_` or `_SYNTHETIC_` suffix
+- A synthetic marker alone is insufficient: any required exception must match the exact synthetic value AND its test path
 - This prevents real credentials from bypassing gitleaks
 
 ---
@@ -138,22 +133,93 @@ regexes = [
 
 **File:** `.github/workflows/ci-predict-pin.yml`
 
-**Add new step:**
+**Add a job under `jobs`:** The authorization must already be recorded on the trusted base. A PR cannot authorize itself by editing its own index or registry. The signed proposal must list the SHA-256 of each approved file's complete bytes in the `credential_files` JSON block below (`null` authorizes deletion). Register the accepted signature as an exact line in `REGISTERED.md`: `RATIFY <Q-ID> sha256:<digest> decision:ACCEPT`. This proposed gate checks that registration, the indexed Z2 ruling, and the content signature; Git provenance of the trusted base supplies operator identity, since a SHA-256 digest alone does not authenticate a signer.
+
 ```yaml
   credential_authorization:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: proposed
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - run: python3 -m pip install pyyaml
       - name: Verify Z2 authorization for credential changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          # Check if PR modifies credential deployment guide or .gitleaks.toml
-          if git diff origin/main HEAD --name-only | grep -E "PHASE3.*DEPLOYMENT|\.gitleaks\.toml"; then
-            echo "❌ ERROR: This PR modifies credential deployment configuration"
-            echo "Credential changes require explicit Z2 (Night) authorization per CLAUDE.md"
-            echo "Please obtain Z2 signature on the credential proposal before merge"
-            exit 1
-          fi
+          set -euo pipefail
+          # Run diff separately: a missing ref or any diff error fails the job.
+          git -C proposed diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-paths.txt
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          import re
+          import sys
+
+          trusted = Path('trusted').resolve()
+          sys.path.insert(0, str(trusted / '.z1-control'))
+          from ratify import signature
+          from validate import INDEX, StrictLoader, load_index
+          import yaml
+
+          changed = {
+              p for p in Path('changed-paths.txt').read_text().splitlines()
+              if re.search(r'PHASE3.*DEPLOYMENT|\.gitleaks\.toml', p)
+          }
+          if not changed:
+              sys.exit(0)
+          index = load_index(INDEX)
+          registered = (trusted / 'REGISTERED.md').read_text().splitlines()
+          records = {r['path'] for r in index.get('records', [])}
+          approved = set()
+          for c in index.get('candidates', []):
+              digest = str(c.get('z2_hash', ''))
+              if (c.get('status') != 'ratified'
+                      or c.get('ratified_by') not in index['ratifiers']
+                      or not re.fullmatch(r'[0-9a-f]{64}', digest)
+                      or c.get('z2_ruling') not in records):
+                  continue
+              if f"RATIFY {c['q_id']} sha256:{digest} decision:ACCEPT" not in registered:
+                  continue
+              proposal = (trusted / c['path']).read_bytes()
+              if signature(proposal, c['ratified_by'], str(c['ratified_at']), 'ACCEPT') != digest:
+                  continue
+              if digest not in (trusted / c['z2_ruling']).read_text():
+                  continue
+              block = re.search(rb'```json\n(.*?)\n```', proposal, re.S)
+              if not block:
+                  continue
+              allowed = yaml.load(block[1], Loader=StrictLoader).get('credential_files', {})
+              for p in changed:
+                  target = Path('proposed') / p
+                  if target.is_symlink():
+                      sys.exit('Credential paths must be regular files: ' + p)
+                  actual = hashlib.sha256(target.read_bytes()).hexdigest() if target.exists() else None
+                  if p in allowed and allowed[p] == actual:
+                      approved.add(p)
+          missing = changed - approved
+          if missing:
+              sys.exit('Missing or invalid registered Z2 RATIFY authorization: ' + ', '.join(sorted(missing)))
+          print('Registered Z2 authorization verified for every credential path')
+          PY
 ```
+
+No matching credential paths requires no authorization. Matching paths pass only when their exact proposed contents have valid registered authorization. Missing or invalid authorization fails the job. This is a proposed gate, pending implementation and Z2 review.
 
 ### Change 3b: Document in CLAUDE.md
 
@@ -171,7 +237,7 @@ Credentials (API keys, database passwords, authentication tokens) are Z2-ratifie
 1. Z1 proposes credential addition in z1-inbox/<date>/Q-<NAME>-CREDENTIAL-REQUEST.md
 2. Z1 includes falsifier: "Credential is revoked within 30 days if not rotated"
 3. Z2 reads proposal and signs: sha256(proposal | by=Night | at=timestamp | decision=ACCEPT)
-4. Z3 deploys only after Z2 hash is verified in REGISTERED.md
+4. Register the signature and indexed ruling on the trusted base; Z3 deploys only after the signature and approved file hashes verify
 5. Z2 maintains credential rotation schedule and revocation procedures
 
 **Authority:** Z2 sole authority over credentials (per dual-authority model)
@@ -183,7 +249,7 @@ Credentials (API keys, database passwords, authentication tokens) are Z2-ratifie
 
 **File:** Create `z1-inbox/.templates/Q-CREDENTIAL-REQUEST.md`
 
-```markdown
+````markdown
 # Q-[SERVICE]-CREDENTIAL-REQUEST — [Service] Credentials for [Purpose]
 
 **Proposed by:** Z1 (Claude)  
@@ -200,6 +266,19 @@ Credentials (API keys, database passwords, authentication tokens) are Z2-ratifie
 - **Expiration:** [Date, recommend 30 days from deployment]
 - **Rotation Policy:** [Procedure to rotate if compromised]
 
+## Approved File Contents
+
+Include each changed credential path and the SHA-256 of its proposed complete bytes. Use `null` for an approved deletion. Z2 signs these values as part of the proposal before the credential-change PR is evaluated.
+
+```json
+{
+  "credential_files": {
+    "z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md": "<64-character SHA-256>",
+    ".gitleaks.toml": "<64-character SHA-256>"
+  }
+}
+```
+
 ## Falsifier
 
 This credential request will be proven wrong if:
@@ -215,7 +294,7 @@ Z2 must decide: ACCEPT, EDIT, or REJECT by [DATE].
 ---
 
 Generated by [Claude Code](https://claude.ai/code)
-```
+````
 
 ---
 
@@ -256,22 +335,23 @@ echo "Supabase Key: ${SUPABASE_KEY:0:20}..."  # Show only first 20 chars
 
 For local testing, we recommend **NOT** storing credentials in .env files. Instead:
 
-### Option A: GitHub CLI (Recommended)
+### Repository-Secret Management (CI)
 
 ```bash
-# GitHub CLI automatically manages your GitHub token securely
+# Authenticate to manage GitHub repository secrets
 gh auth login
-gh secret list  # Lists your credentials without exposing them
+gh secret list  # Lists secret names and metadata, never their values
 ```
 
-### Option B: Temporary Session Tokens
+This manages repository secrets for GitHub Actions. It does not download provider credentials or make them available to local tests. Workflows must explicitly pass the needed secrets to their test processes.
 
-```bash
-# Use Replicate's temporary tokens (if available)
-curl -X POST https://api.replicate.com/v1/auth/tokens/temporary
+### Local Testing: Provider Authentication
 
-# Use Supabase's OAuth flow for temporary database access
-```
+Follow the documented authentication flow for each provider:
+- **Replicate:** Use the [API token guide](https://replicate.com/docs/topics/security/api-tokens) to create and manage an authorized token.
+- **Supabase:** Follow the [API key guide](https://supabase.com/docs/guides/api/api-keys) and, for user sessions, the [Auth guide](https://supabase.com/docs/guides/auth).
+
+Supply the resulting credentials to the local test process through a secure credential manager or a hidden prompt with shell tracing disabled. Follow provider documentation for token lifetimes and revocation; do not assume an unauthenticated endpoint can mint temporary credentials.
 
 ### Option C: CI-Only Testing
 
@@ -280,9 +360,9 @@ If you don't need to test locally, skip local credential setup entirely. Push to
 ### ⚠️ DO NOT use .env files or .env.local
 
 - Files in home directory are backed up by cloud sync (iCloud, OneDrive) and system backups
-- Credentials appear in shell history when sourcing
+- Literal credential assignments typed into a shell may remain in history; shell tracing can expose values when sourcing a file
 - Risk of accidental git commit is high
-- Instead, use GitHub Secrets for CI and temporary tokens for local testing
+- Use GitHub Secrets for CI; authenticate local tests through the documented provider flows above
 ```
 
 ---
@@ -320,7 +400,7 @@ If you don't need to test locally, skip local credential setup entirely. Push to
 ### Step 2: Update GitHub Secrets
 
 ```bash
-gh secret set REPLICATE_API_KEY --body "r8_[NEW_KEY]"
+gh secret set REPLICATE_API_KEY  # Paste the approved value at the hidden prompt
 ```
 
 ### Step 3: Verify New Key Works
@@ -347,13 +427,13 @@ Wait for CI to pass with new key.
 
 1. Visit Supabase dashboard → Settings → API
 2. Click "Generate new key"
-3. Type: `service_role` (if needed) or `anon` (for read-only)
+3. Type: `anon` (subject to grants and RLS policies); use `service_role` only with explicit Z2 approval
 4. Copy key
 
 ### Step 2: Update GitHub Secrets
 
 ```bash
-gh secret set SUPABASE_KEY --body "[NEW_KEY]"
+gh secret set SUPABASE_KEY  # Paste the approved value at the hidden prompt
 ```
 
 ### Step 3: Verify
@@ -375,9 +455,9 @@ If you suspect a credential is compromised:
 # IMMEDIATELY revoke in Replicate/Supabase
 # (Visit their dashboards and click "Revoke")
 
-# Update GitHub Secrets with temporary/empty value
-gh secret set REPLICATE_API_KEY --body "REVOKED_[DATE]"
-gh secret set SUPABASE_KEY --body "REVOKED_[DATE]"
+# Remove revoked repository secrets so CI cannot keep using them
+gh secret delete REPLICATE_API_KEY
+gh secret delete SUPABASE_KEY
 
 # Notify Z2 (Night): carly.r.anderson@gmail.com
 # Subject: "URGENT: Credential compromise — Phase 3 [SERVICE] key revoked"
@@ -419,12 +499,12 @@ Credential rotation is confirmed when:
 
 ### Which API Key Type?
 
-**For CI (recommended):** Use `anon` key (public, read-only)
-- Least privilege
-- Cannot modify database schema
-- Restricted by Row-Level Security (RLS) policies
+**For CI (recommended):** Use the public `anon` key with grants and Row-Level Security (RLS) policies limited to the operations the tests need.
+- The key is read-only only when the project's grants and RLS policies enforce read-only access
+- Public does not mean read-only: permitted writes are possible when grants and RLS allow them
+- Verify the effective permissions before running CI
 
-**For local development:** Use `anon` key with temporary token
+**For local development:** Follow the documented Supabase authentication flow and apply the same grants and RLS restrictions
 
 **ONLY if necessary:** Use `service_role` key (private, full access)
 - Requires explicit Z2 approval (see CLAUDE.md § Credentials)
@@ -438,7 +518,7 @@ Credential rotation is confirmed when:
 # From Supabase dashboard → Settings → API
 # Copy the "anon" key (public, not service_role)
 
-gh secret set SUPABASE_KEY --body "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+gh secret set SUPABASE_KEY  # Paste the approved value at the hidden prompt
 ```
 
 ### Deploy service_role Key (Requires Z2 Approval)
@@ -447,7 +527,7 @@ gh secret set SUPABASE_KEY --body "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 # Only if explicitly approved by Z2
 # Mark the approval in REGISTERED.md before deploying
 
-gh secret set SUPABASE_KEY --body "[SERVICE_ROLE_KEY]"
+gh secret set SUPABASE_KEY  # Paste the approved value at the hidden prompt
 ```
 ```
 
