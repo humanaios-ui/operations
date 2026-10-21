@@ -6,6 +6,9 @@ on:
       - 'oracles/engine/forecast_replay_v0_1.py'
       - 'humanaios-funding-pipeline/resource-miner/fixtures/oracle_smag_*.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_oracle_smag_experiment.py'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/first_user_learning_cycle.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_first_user_learning_cycle.py'
+      - 'humanaios-funding-pipeline/resource-miner/docs/FIRST_USER_LEARNING_CYCLE_V0_1.md'
       - '.github/workflows/oracle-smag-miner-experiment.yml'
   workflow_dispatch:
 permissions:
@@ -26,6 +29,21 @@ jobs:
           python-version: '3.11'
       - name: Run separate-input regression
         run: python3 -m unittest discover -s tests -p 'test_oracle_smag_experiment.py' -v
+      - name: Prove first-user offline preflight does not claim human qualification
+        run: |
+          python3 -m unittest discover -s tests -p 'test_first_user_learning_cycle.py' -v
+          python3 -m resource_miner.first_user_learning_cycle > "$RUNNER_TEMP/founder-preflight.json"
+          python3 - "$RUNNER_TEMP/founder-preflight.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as f:
+              report = json.load(f)
+          assert report["scope"] == "OFFLINE_SYNTHETIC_PREFLIGHT"
+          assert report["qualification"]["first_user"] == "NOT_QUALIFIED_LIVE"
+          assert report["authority_effect"] == "NONE"
+          assert report["execution"] == "DISABLED"
+          assert report["pending_count"] == 3
+          assert report["verification_frontier"]["action_authorized"] is False
+          PY
       - name: Replay and assert abstention from calibration authority
         shell: bash
         run: |
