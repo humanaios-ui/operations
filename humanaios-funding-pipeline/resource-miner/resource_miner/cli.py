@@ -10,6 +10,7 @@ from .mines import load_mines, receipts_to_jsonl, resolve_mines
 from .opportunity_claim import claims_from_propositions, write_claims_jsonl
 from .proposition import propositions_from_candidates, write_propositions_jsonl
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .reconcile import reconcile_snapshot
 from .policy_adjudication import adjudicate_ranked_candidate
 from .security_authorization import TestingMode
 from .security_capability import profile_from_machine_graph, unknown_capability_profile
@@ -75,6 +76,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Emit only externally mineable Resource Requirement Objects",
     )
+
+    reconcile = sub.add_parser("reconcile", help="Reconcile durable resource state against receipts")
+    reconcile.add_argument("--snapshot", default=str(ROOT / "data" / "resources.snapshot.jsonl"))
+    reconcile.add_argument("--receipts", default=str(ROOT / "data" / "resource_state.receipts.jsonl"))
+    reconcile.add_argument("--out", default=None, help="Defaults to rewriting --snapshot in place")
+    reconcile.add_argument("--audit-out", default=None)
     return parser
 
 

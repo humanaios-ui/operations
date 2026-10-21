@@ -39,6 +39,21 @@ Read in this order:
 3. `SESSION_RITUALS.md`: how a session opens and closes.
 4. `REGISTERED.md`: the append-only registry of findings (F), corrections (IC), and hypotheses (H).
 
+### Current state (checked 2026-10-20)
+
+This is a snapshot. Re-check before acting on it.
+
+- **PR backlog.** Several PRs are blocked by CI and merge issues. Work is queued, not lost.
+- **#910 (manual v0.2 draft).** Merged as `ad44c46f`. Its admission check failed at merge. The admission record is missing. Standing is a human decision.
+- **#913 (reconcile fix and manual update).** Open, not draft. Head `ed3fa746`. `mergeable_state` is `unstable`. The `Repository admission/backpressure gate` check fails: no admission record. Admission is a human decision. Do not post admit commands on the author's behalf.
+- **Reconcile bug.** The daily `resource-miner-scan.yml` calls `reconcile`. The parser lacked that subcommand. The fix is on `6ec0e37b` and in #913. It is not verified until a scheduled run goes green after merge.
+- **Coordinator checks on #913.** `observe` passes. `inspect` passes on the latest head. Other coordinator apply jobs skip by design.
+- **Harness.** RED. `repo_health.py` and `validate_skills.py` reject `--smoke-test`. One Metaculus check is missing `forecasting_tools`.
+- **Board.** `intent_os_board_check` returns STALE (see section 13).
+- **Coordinator index.** Reported degraded at older head `3dea9a46`. The current advisory index build passes on `ed3fa746`.
+- **Operational acceptance.** 21 checks are UNVERIFIED. Do not cite them as passed.
+- **Drive copy.** Old v0.1 Google Doc trashed on 2026-10-20. Google Doc v0.2 is a snapshot and may lag this file. The Claude Doc is the live copy.
+
 ---
 
 ## 2. Roles
