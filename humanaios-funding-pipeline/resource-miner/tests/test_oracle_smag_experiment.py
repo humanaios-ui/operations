@@ -58,6 +58,14 @@ class OracleSMAGMinerExperimentTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "future merge"):
             project_experiment(f, o)
 
+    def test_future_merge_subsecond_and_timezone_offsets_fail(self):
+        for future in ("2026-10-21T20:00:00.500Z", "2026-10-21T19:30:00-01:00"):
+            with self.subTest(future=future):
+                f, o = load_snapshots()
+                o["rows"][0]["merged_at"] = future
+                with self.assertRaisesRegex(ValueError, "future merge"):
+                    project_experiment(f, o)
+
     def test_unrecognized_closed_state_does_not_become_failure(self):
         f, o = load_snapshots()
         o["rows"][0]["status"] = "CLOSED"
