@@ -47,15 +47,17 @@ class MetaAccuracyTests(unittest.TestCase):
             with patch.object(smag, "measure_consolidation_pr_outcomes", return_value=observation):
                 out = smag.run("humanaios-ui/operations", "SMAG: consolidate", ledger, 44)
             self.assertEqual(out["lesson_confidence"], "insufficient_data")
-            lesson = json.loads(ledger.read_text())["lessons"][0]
+            first_ledger = json.loads(ledger.read_text())
+            lesson = first_ledger["lessons"][0]
             self.assertEqual(lesson["accuracy_measured"], 1.0)
             self.assertEqual(lesson["observed_outcome_rate"], 1.0)
             self.assertAlmostEqual(lesson["mean_forecast_probability"], 0.85)
             self.assertEqual(lesson["pending_prs"], 3)
-            # Idempotent rerun retains the measured-accuracy meaning.
+            # Idempotent rerun preserves the complete ledger.
             with patch.object(smag, "measure_consolidation_pr_outcomes", return_value=observation):
                 smag.run("humanaios-ui/operations", "SMAG: consolidate", ledger, 44)
-            self.assertEqual(json.loads(ledger.read_text())["lessons"][0]["accuracy_measured"], 1.0)
+            second_ledger = json.loads(ledger.read_text())
+            self.assertEqual(second_ledger, first_ledger)
 
     def test_only_open_items_do_not_claim_observed_accuracy(self):
         with patch("subprocess.run", return_value=SimpleNamespace(
