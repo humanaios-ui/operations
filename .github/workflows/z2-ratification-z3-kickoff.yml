@@ -41,34 +41,53 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 - <<'PYTHON'
-          import json, os
+          import json, os, re
           from pathlib import Path
 
           def parse_yaml_front_matter(content, id_filter=None):
               """Extract YAML front matter from REGISTERED.md entries."""
               entries = {}
+              entry_id = None
+              in_fence = False
               in_yaml = False
               yaml_block = []
 
               for line in content.split('\n'):
-                  if line.strip() == '---':
+                  stripped = line.strip()
+                  if stripped.startswith('```'):
+                      if in_fence or stripped not in ('```', '```yaml'):
+                          entry_id = None
+                      in_fence = not in_fence
+                      in_yaml = False
+                      yaml_block = []
+                      continue
+                  if not in_yaml and not in_fence:
+                      heading = re.match(r'^#{2,3} ([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)(?:\s|$)', line)
+                      if heading:
+                          entry_id = heading.group(1)
+                          continue
+                  if stripped == '---':
                       if not in_yaml:
-                          in_yaml = True
+                          # Only the first block directly after an entry heading is front matter.
+                          in_yaml = entry_id is not None
                       else:
                           if yaml_block:
                               yaml_text = '\n'.join(yaml_block)
                               try:
                                   import yaml
                                   entry = yaml.safe_load(yaml_text)
-                                  if entry and entry.get('id'):
+                                  if entry and entry.get('id') == entry_id:
                                       if not id_filter or entry['id'].startswith(id_filter):
                                           entries[entry['id']] = entry
                               except:
                                   pass
                           in_yaml = False
                           yaml_block = []
+                          entry_id = None
                   elif in_yaml:
                       yaml_block.append(line)
+                  elif stripped:
+                      entry_id = None
 
               return entries
 
