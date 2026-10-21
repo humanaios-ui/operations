@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**214 registered tools** · 2 MCP servers · 4 excluded · 166 carrying Builder v1.7 markers
+**215 registered tools** · 2 MCP servers · 4 excluded · 167 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 214 |
-| — status `draft` | 213 |
+| Registered tools | 215 |
+| — status `draft` | 214 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 166 |
+| Builder v1.7 markers present | 167 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -142,7 +142,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-225 | graph_lookup | `tools/graph_lookup_v0_1.py` | 0.1.0 | 1 | draft | — | graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph. |
 | HAIOS-TOOL-227 | azure_readiness | `tools/azure_readiness.py` | 0.1.0 | 1 | draft | — | — |
 
-## Governance — `governance_tool` (25)
+## Governance — `governance_tool` (26)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -171,6 +171,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-218 | candidate_bundle | `.z1-control/candidate_bundle.py` | 1.0.0 | 1 | draft | — | candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle. |
 | HAIOS-TOOL-219 | leak_guard | `.z1-control/leak_guard.py` | 1.0.0 | 1 | draft | — | leak_guard.py — B6: bound the two Empirica session leaks. |
 | HAIOS-TOOL-220 | ratify_eco | `.z1-control/ratify_eco.py` | 1.0.0 | 1 | draft | — | ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact. |
+| HAIOS-TOOL-228 | coordinator_admission_sweep_dryrun | `tools/coordinator_admission_sweep_dryrun.py` | 1.0.0 | 1 | draft | — | coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -356,7 +357,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 21 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 25 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 26 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
