@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - 'tools/iew/**'
+      - 'tools/repository_coordinator_v0_1.py'
       - '.github/workflows/iew-001-admission-negative-controls.yml'
   push:
     branches: [main]
@@ -20,6 +21,7 @@ permissions:
 
 jobs:
   independent-negative-controls:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     name: IEW-001 / coordinator negative controls (PR = untrusted smoke)
     runs-on: ubuntu-latest
     timeout-minutes: 5

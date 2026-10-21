@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,6 +10,11 @@ class IEW003Witness(unittest.TestCase):
         self.fixture = Path(__file__).parent / "fixtures" / "witness_fixture.py"
     def test_real_subprocess_result(self):
         observed = capture(self.fixture)
+        self.assertEqual(observed["outcome_class"], "EXITED")
+        self.assertEqual(observed["stdout_sha256"], sha(b"RESULT=42\n"))
+        self.assertEqual(observed["exit_code"], 0)
+    def test_relative_fixture_path(self):
+        observed = capture(os.path.relpath(self.fixture))
         self.assertEqual(observed["outcome_class"], "EXITED")
         self.assertEqual(observed["stdout_sha256"], sha(b"RESULT=42\n"))
         self.assertEqual(observed["exit_code"], 0)

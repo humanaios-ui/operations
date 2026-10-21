@@ -1,4 +1,8 @@
-"""IEW-003: runner captures output, never accepts author-reported execution."""
+"""IEW-003: runner captures subprocess output in place of author-reported outcomes.
+
+Builder v1.7 compliant - iew_runner
+HumanAIOS
+"""
 import hashlib
 import json
 import os
@@ -6,12 +10,15 @@ from pathlib import Path
 import subprocess
 import sys
 
-PIN = "152fd8310c230460826dc3642ace430a32106fc990d5cffe4d9f36167f1b5f6c"
+TOOL_NAME = "iew_runner"
+TOOL_VERSION = "0.1.0"
+
+PIN = "c1137e7bfe1f92376729a83e96ab6dcd7a40b1a93cf6bcbc754b55c66da983d1"
 def sha(value):
     return hashlib.sha256(value).hexdigest()
 
 def capture(source, stdin=b"42\n", timeout=3):
-    source = Path(source)
+    source = Path(source).resolve()
     source_bytes = source.read_bytes()
     if sha(source_bytes) != PIN:
         raise ValueError("SOURCE_BINDING_MISMATCH")
@@ -25,6 +32,11 @@ def capture(source, stdin=b"42\n", timeout=3):
     except subprocess.TimeoutExpired:
         return {"source_sha256": sha(source_bytes), "input_sha256": sha(stdin),
                 "outcome_class": "TIMEOUT", "timeout_seconds": timeout}
+
+def run_smoke_test():
+    source = Path(__file__).resolve().parent / "fixtures" / "witness_fixture.py"
+    observation = capture(source)
+    return observation.get("outcome_class") == "EXITED" and observation.get("exit_code") == 0
 
 if __name__ == "__main__":
     src = Path(__file__).resolve().parent / "fixtures" / "witness_fixture.py"

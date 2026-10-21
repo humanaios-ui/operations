@@ -35,6 +35,15 @@ class WitnessGateAttacks(unittest.TestCase):
         self.assertEqual(self.verify({"stdout":"ACTUAL", "exit_code":0},
                                      {**OBSERVED, "input_sha256":"0"*64})["result"], "BLOCKED")
 
+    def test_malformed_stdout_digest_blocked(self):
+        for value in (None, 42, b"0" * 64, "", "0" * 63, "0" * 65,
+                      "g" * 64, "é" * 64, "0" * 63 + "\n"):
+            with self.subTest(stdout_sha256=value):
+                got = self.verify({"stdout": "ACTUAL", "exit_code": 0},
+                                  {**OBSERVED, "stdout_sha256": value})
+                self.assertEqual(got["result"], "BLOCKED")
+                self.assertEqual(got["reason"], "WITNESS_FIELDS_INVALID")
+
     def test_matching_observed_bytes_still_not_authorization(self):
         got = self.verify({"stdout":"ACTUAL", "exit_code":0}, OBSERVED)
         self.assertEqual(got["result"], "OUTCOME_MATCH")

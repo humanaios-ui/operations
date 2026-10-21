@@ -1,13 +1,21 @@
 """IEW-002: distinguish self-reported receipts from trusted execution observations.
 
-This module deliberately does NOT grant admission, validate GitHub runner identity,
-or execute arbitrary submitted code. It is a strict evidence translation boundary.
+This module compares witness-captured bytes with receipt declarations.
+Admission, GitHub runner identity validation, and submitted code execution are
+outside this evidence translation boundary.
+
+Builder v1.7 compliant - iew_witness_gate
+HumanAIOS
 """
 from __future__ import annotations
 import hashlib
 import hmac
 import json
+import re
 from typing import Mapping, Any
+
+TOOL_NAME = "iew_witness_gate"
+TOOL_VERSION = "0.1.0"
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -15,11 +23,12 @@ def digest(data: bytes) -> str:
 def classify_evidence(receipt: Mapping[str, Any], *, observed: Mapping[str, Any] | None,
                       expected_source_sha256: str, expected_input_sha256: str,
                       trusted_context: bool = False) -> dict[str, Any]:
-    """Compare witness-captured bytes with declarations, never promote authority.
+    """Compare witness-captured byte digests and exit status with declarations.
 
-    The observed dictionary MUST originate outside the candidate's control.
-    trusted_context is assigned by the caller's protected infrastructure, never
-    parsed from a receipt. Passing it here is not itself an identity attestation.
+    The caller is responsible for obtaining observed outside candidate control
+    and assigning trusted_context through protected infrastructure rather than
+    receipt data. A match describes evidence consistency, not authorization or
+    an identity attestation.
     """
     base = {"admission_effect": "NONE", "merge_authority": False,
             "independently_attested": False, "result": "BLOCKED"}
@@ -29,6 +38,8 @@ def classify_evidence(receipt: Mapping[str, Any], *, observed: Mapping[str, Any]
     if any(key not in observed for key in required):
         return {**base, "reason": "WITNESS_FIELDS_MISSING"}
     if not all(isinstance(observed[k], str) for k in required[:3]):
+        return {**base, "reason": "WITNESS_FIELDS_INVALID"}
+    if re.fullmatch(r"[0-9a-fA-F]{64}", observed["stdout_sha256"]) is None:
         return {**base, "reason": "WITNESS_FIELDS_INVALID"}
     if observed["source_sha256"] != expected_source_sha256 or observed["input_sha256"] != expected_input_sha256:
         return {**base, "reason": "SOURCE_OR_INPUT_MISMATCH"}
@@ -45,3 +56,16 @@ def classify_evidence(receipt: Mapping[str, Any], *, observed: Mapping[str, Any]
         return {**base, "reason": "OUTCOME_MISMATCH"}
     return {**base, "result": "OUTCOME_MATCH", "reason": "EVIDENCE_CONSISTENT_NOT_AUTHORIZATION",
             "independently_attested": False}
+
+def run_smoke_test():
+    source_sha256, input_sha256 = digest(b"source"), digest(b"input")
+    result = classify_evidence(
+        {"stdout": "ACTUAL", "exit_code": 0},
+        observed={"source_sha256": source_sha256, "input_sha256": input_sha256,
+                  "stdout_sha256": digest(b"ACTUAL"), "exit_code": 0},
+        expected_source_sha256=source_sha256, expected_input_sha256=input_sha256,
+        trusted_context=True)
+    return result["result"] == "OUTCOME_MATCH" and result["admission_effect"] == "NONE"
+
+if __name__ == "__main__":
+    raise SystemExit(0 if run_smoke_test() else 1)
