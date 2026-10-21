@@ -59,8 +59,10 @@ class LedgerRehydrateTest(unittest.TestCase):
 
     def test_refuses_to_overwrite_existing_output(self):
         self.assertEqual(self._rehydrate().returncode, 0)
+        original = self.out.read_bytes()
         second = self._rehydrate()
         self.assertNotEqual(second.returncode, 0)
+        self.assertEqual(self.out.read_bytes(), original)
 
     def test_replay_matches_receipt_chain(self):
         self.assertEqual(self._rehydrate().returncode, 0)

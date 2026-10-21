@@ -23,5 +23,5 @@
       "p": 0.8
     }
   },
-  "note": "Declared for head commit that adds this file. Changes: one stdlib test file under acat/research/silent-tool-failure/phase0/. No constants, gates, or workflow files touched."
+  "note": "Declared in commit 3720f377 (first commit on this PR to add this file). Predictions were not revised after CI results. Changes: one stdlib test file under acat/research/silent-tool-failure/phase0/. No constants, gates, or workflow files touched."
 }
