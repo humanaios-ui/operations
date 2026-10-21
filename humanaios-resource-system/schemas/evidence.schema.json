@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:humanaios:resource-system:evidence:1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "predicate": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "value": {
+      "type": "boolean"
+    },
+    "classification": {
+      "enum": [
+        "LOCAL",
+        "GLOBAL",
+        "DISQUALIFYING",
+        "CONTRADICTORY",
+        "SUFFICIENT"
+      ]
+    },
+    "material": {
+      "type": "boolean"
+    },
+    "resource_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "provenance_type": {
+      "enum": [
+        "REPOSITORY",
+        "RESUME",
+        "PUBLICATION",
+        "CREDENTIAL",
+        "FILE",
+        "HUMAN_ATTESTED"
+      ]
+    },
+    "observed_on": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "predicate",
+    "value",
+    "classification",
+    "material",
+    "resource_ids",
+    "source_url",
+    "provenance_type",
+    "observed_on"
+  ],
+  "additionalProperties": false
+}

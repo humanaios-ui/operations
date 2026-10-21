@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/chat-longitudinal-graph-v0.2.schema.json",
+  "title": "HumanAIOS Cross-chat Longitudinal Evidence Graph",
+  "type": "object",
+  "required": [
+    "graph_id",
+    "version",
+    "status",
+    "predecessor",
+    "sources",
+    "entities",
+    "assertions",
+    "events",
+    "invariants"
+  ],
+  "properties": {
+    "graph_id": {
+      "const": "humanaios-cross-chat-longitudinal-evidence-graph"
+    },
+    "version": {
+      "type": "string"
+    },
+    "status": {
+      "const": "DERIVED_NON_CANONICAL"
+    },
+    "planning_surface": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "predecessor": {
+      "type": "object",
+      "required": [
+        "sha256",
+        "nodes",
+        "edges",
+        "status"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "nodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "edges": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "evidence_class",
+          "authority_effect"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "locator": {
+            "type": "string"
+          },
+          "evidence_class": {
+            "type": "string"
+          },
+          "authority_effect": {
+            "const": "NONE"
+          }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "semantic_type",
+          "hydration_state",
+          "source_refs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "const": "semantic_entity"
+          },
+          "semantic_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hydration_state": {
+            "enum": [
+              "CHAT_DERIVED",
+              "SOURCE_LOCATED",
+              "SOURCE_OBSERVED",
+              "CROSS_VERIFIED",
+              "CONTESTED"
+            ]
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "subject",
+          "predicate",
+          "epistemic_state",
+          "source_refs",
+          "authority_effect"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "predicate": {
+            "type": "string"
+          },
+          "epistemic_state": {
+            "enum": [
+              "CHAT_DERIVED",
+              "SOURCE_LOCATED",
+              "SOURCE_OBSERVED",
+              "OBSERVED",
+              "CROSS_VERIFIED",
+              "CONTESTED",
+              "SUPERSEDED"
+            ]
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "authority_effect": {
+            "const": "NONE"
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "observed_on",
+          "authority_effect"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "observed_on": {
+            "type": "string"
+          },
+          "authority_effect": {
+            "const": "NONE"
+          }
+        }
+      }
+    }
+  }
+}

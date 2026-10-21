@@ -13,11 +13,14 @@ must point to, mirroring the mandatory `--source` on nf_ledger_v0_1.py's own
 
 TERMINAL VS PENDING
 --------------------
-Only a check whose `status` is `completed` has a meaningful `conclusion`. A check
-still `in_progress` or `queued` is left unresolved this run; re-running later
-picks it up. This mirrors smag_resolve_v1_0.py's "pending rows self-heal" design
-and is why this tool is idempotent: it never guesses at a running check's outcome,
-and never re-resolves one it already resolved.
+A check needs `status=completed` and a known conclusion to resolve a PIN.
+When a forecast predicts a real check execution (`success`, `failure`, etc.),
+`skipped` is not a failed execution: it is excluded from that forecast's
+candidate runs. A later `skipped` job cannot overwrite an earlier executed
+outcome on the same commit. If only skipped jobs exist, the forecast stays
+unresolved. An explicit forecast of `skipped` is evaluated against skipped
+results, preserving the declared conclusion vocabulary. Queued and running
+checks remain unresolved until GitHub provides a terminal result.
 
 WHY THIS IS NOT auto_scored
 -----------------------------
@@ -39,8 +42,10 @@ import subprocess
 import sys
 from typing import Any, Dict, List, Optional
 
+from ci_predict_pin_v1_0 import pin_payload_is_pr_bound
+
 TOOL_NAME = "ci_predict_resolve"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 
 PIN_MARKER = "<!-- ci-predict:pin -->"
 RESOLVE_MARKER = "<!-- ci-predict:resolve -->"
@@ -87,7 +92,7 @@ def extract_payload(comment_body: str, marker: str) -> Optional[dict]:
         return None
 
 
-def find_latest_pin(comments: List[dict], head_sha: str) -> Optional[dict]:
+def find_latest_pin(comments: List[dict], head_sha: str, expected_pr: str | None = None) -> Optional[dict]:
     """The most recent, trusted pin comment for this exact head SHA, or None.
 
     Keyed on head_sha, not just presence, so a stale pin from a prior push on the
@@ -99,7 +104,11 @@ def find_latest_pin(comments: List[dict], head_sha: str) -> Optional[dict]:
         if not is_trusted(comment):
             continue
         payload = extract_payload(comment.get("body", ""), PIN_MARKER)
-        if payload and payload.get("head_sha") == head_sha:
+        if (
+            payload
+            and payload.get("head_sha") == head_sha
+            and pin_payload_is_pr_bound(payload, expected_pr)
+        ):
             candidates.append((comment.get("created_at", ""), payload))
     if not candidates:
         return None
@@ -132,33 +141,38 @@ def compute_resolutions(pin_payload: dict, check_runs: List[dict],
     omitted — not recorded as a miss. Silence here means "ask again later," never
     "predicted correctly."
 
-    Among duplicate check-runs sharing a name (a rerun), the one with the
-    highest `id` wins — check-run ids are monotonically increasing, so this is
-    the most recent run, never a stale completed run masking a fresher one.
-    Only genuinely completed runs are considered at all.
+    Candidate selection is per prediction. A GitHub job with conclusion
+    `skipped` did not execute its check, so it is ineligible to score a
+    forecast expecting some other conclusion. A forecast explicitly expecting
+    `skipped` remains scoreable. Among eligible completed runs of the same
+    name, the highest check-run ID wins. This also handles newer skipped
+    workflow-path jobs after an earlier executed success or failure.
     """
     already_done = already_done or set()
-    by_name: Dict[str, dict] = {}
+    by_name: Dict[str, List[dict]] = {}
     for run in check_runs:
         name = run.get("name")
-        if not name or run.get("status") != "completed":
+        if not name or run.get("status") != "completed" or run.get("conclusion") is None:
             continue
-        existing = by_name.get(name)
-        if existing is None or run.get("id", 0) > existing.get("id", 0):
-            by_name[name] = run
+        by_name.setdefault(name, []).append(run)
 
     resolutions: Dict[str, dict] = {}
     for check_name, spec in pin_payload.get("checks", {}).items():
         if check_name in already_done:
             continue
-        run = by_name.get(check_name)
-        if run is None:
+        expected = spec["conclusion"]
+        eligible = [
+            run for run in by_name.get(check_name, [])
+            if run["conclusion"] != "skipped" or expected == "skipped"
+        ]
+        if not eligible:
             continue
-        actual = run.get("conclusion")
+        run = max(eligible, key=lambda item: item.get("id") or 0)
+        actual = run["conclusion"]
         resolutions[check_name] = {
-            "predicted_conclusion": spec["conclusion"],
+            "predicted_conclusion": expected,
             "actual_conclusion": actual,
-            "outcome": "YES" if actual == spec["conclusion"] else "NO",
+            "outcome": "YES" if actual == expected else "NO",
             "source": run.get("html_url", ""),
         }
     return resolutions
@@ -196,7 +210,11 @@ def gh_json(path: str):
         return None
 
 
-def gh_json_paginated(path: str, key: Optional[str] = None) -> List[dict]:
+class GitHubApiFailure(RuntimeError):
+    """A required GitHub API response was unavailable or malformed."""
+
+
+def gh_json_paginated(path: str, key: Optional[str] = None, *, strict: bool = False) -> List[dict]:
     """Fetch every page of a paginated GitHub list endpoint via gh.
 
     `--slurp` makes gh emit one JSON array of pages instead of one bare object
@@ -211,17 +229,32 @@ def gh_json_paginated(path: str, key: Optional[str] = None) -> List[dict]:
     proc = subprocess.run(["gh", "api", "--paginate", "--slurp", path],
                           capture_output=True, text=True, timeout=60)
     if proc.returncode != 0:
+        if strict:
+            raise GitHubApiFailure(f"GitHub API request failed for {path}: exit {proc.returncode}")
         return []
     try:
-        pages = json.loads(proc.stdout) or []
-    except json.JSONDecodeError:
+        pages = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        if strict:
+            raise GitHubApiFailure(f"malformed GitHub API JSON for {path}") from exc
         return []
+    if strict and not isinstance(pages, list):
+        raise GitHubApiFailure(f"malformed GitHub API pages for {path}")
     items: List[dict] = []
-    for page in pages:
+    for page in pages or []:
         if key is not None and isinstance(page, dict):
-            items.extend(page.get(key, []))
-        elif isinstance(page, list):
-            items.extend(page)
+            payload = page.get(key)
+        elif isinstance(page, list) and key is None:
+            payload = page
+        else:
+            if strict:
+                raise GitHubApiFailure(f"unexpected GitHub API page shape for {path}")
+            continue
+        if not isinstance(payload, list) or (strict and any(not isinstance(x, dict) for x in payload)):
+            if strict:
+                raise GitHubApiFailure(f"invalid GitHub API item list for {path}")
+            continue
+        items.extend(payload)
     return items
 
 
@@ -256,7 +289,7 @@ def run(repo: str, pr_number: str, sha: str = "") -> int:
         head_sha = (pr.get("head") or {}).get("sha", "")
     comments = gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments")
 
-    pin_payload = find_latest_pin(comments, head_sha)
+    pin_payload = find_latest_pin(comments, head_sha, expected_pr=pr_number)
     if pin_payload is None:
         print(f"no pin found for {head_sha[:12]}; nothing to resolve")
         return 0
@@ -280,8 +313,9 @@ def run_smoke_test() -> bool:
     """Pure-logic smoke test against fixture data. No network."""
     ok = True
     pin_payload = {
-        "schema": "ci_predict_pin_v1", "pr": "42", "head_sha": "a" * 40,
+        "schema": "ci_predict_pin_v2", "pr": "42", "head_sha": "a" * 40,
         "predictor": "Claude Code",
+        "declaration_binding": {"declared_pr": "42", "changed_from_base": True},
         "checks": {
             "quality": {"conclusion": "success", "p": 0.9},
             "guard": {"conclusion": "success", "p": 0.8},
@@ -296,6 +330,19 @@ def run_smoke_test() -> bool:
         {"name": "flaky", "status": "in_progress"},
     ]
     resolutions = compute_resolutions(pin_payload, check_runs)
+    # Real GitHub provenance in issue #870: the first job executed and passed;
+    # a later workflow path skipped a different job with the same check name.
+    executed = {"name": "quality", "status": "completed", "conclusion": "success",
+                "id": 116157977703, "html_url": "https://example/executed"}
+    skipped = {"name": "quality", "status": "completed", "conclusion": "skipped",
+               "id": 116339835553, "html_url": "https://example/skipped"}
+    same_head = compute_resolutions(pin_payload, [executed, skipped])
+    ok = ok and same_head["quality"]["outcome"] == "YES"
+    ok = ok and same_head["quality"]["source"] == "https://example/executed"
+    skipped_only = compute_resolutions(pin_payload, [skipped])
+    ok = ok and "quality" not in skipped_only
+    explicit_skip = {"checks": {"quality": {"conclusion": "skipped", "p": 0.7}}}
+    ok = ok and compute_resolutions(explicit_skip, [skipped])["quality"]["outcome"] == "YES"
     ok = ok and resolutions["quality"]["outcome"] == "YES"
     ok = ok and resolutions["guard"]["outcome"] == "NO"
     ok = ok and "flaky" not in resolutions  # still running: not silently scored
@@ -321,14 +368,15 @@ def run_smoke_test() -> bool:
     # never be selected once a pin for the current head SHA exists.
     from ci_predict_pin_v1_0 import build_payload, render_pin_comment
     bot = {"login": TRUSTED_LOGIN}
+    binding = {"declared_pr": "42", "changed_from_base": True}
     stale_pin = render_pin_comment(build_payload("42", "b" * 40, "Claude Code", {
-        "checks": {"quality": {"conclusion": "success", "p": 0.5}}}))
+        "pr": 42, "checks": {"quality": {"conclusion": "success", "p": 0.5}}}, binding=binding))
     current_pin = render_pin_comment(build_payload("42", "a" * 40, "Claude Code", {
-        "checks": {"quality": {"conclusion": "success", "p": 0.9}}}))
+        "pr": 42, "checks": {"quality": {"conclusion": "success", "p": 0.9}}}, binding=binding))
     latest = find_latest_pin(
         [{"body": stale_pin, "created_at": "2026-01-01", "user": bot},
          {"body": current_pin, "created_at": "2026-01-02", "user": bot}],
-        "a" * 40,
+        "a" * 40, expected_pr="42",
     )
     ok = ok and latest is not None and latest["head_sha"] == "a" * 40
     ok = ok and latest["checks"]["quality"]["p"] == 0.9  # the current push's stated p, not the stale one's
@@ -337,9 +385,29 @@ def run_smoke_test() -> bool:
     # for the exact current head SHA and even with the latest timestamp.
     forged = find_latest_pin(
         [{"body": current_pin, "created_at": "2026-01-02", "user": {"login": "some-user"}}],
-        "a" * 40,
+        "a" * 40, expected_pr="42",
     )
     ok = ok and forged is None
+
+    legacy = dict(pin_payload)
+    legacy["schema"] = "ci_predict_pin_v1"
+    legacy_comment = (
+        PIN_MARKER + "\n```json\n" + json.dumps(legacy) + "\n```"
+    )
+    ok = ok and find_latest_pin(
+        [{"body": legacy_comment, "created_at": "2026-01-03", "user": bot}],
+        "a" * 40, expected_pr="42",
+    ) is None
+
+    wrong_pr = dict(pin_payload)
+    wrong_pr["declaration_binding"] = {"declared_pr": "41", "changed_from_base": True}
+    wrong_comment = (
+        PIN_MARKER + "\n```json\n" + json.dumps(wrong_pr) + "\n```"
+    )
+    ok = ok and find_latest_pin(
+        [{"body": wrong_comment, "created_at": "2026-01-04", "user": bot}],
+        "a" * 40, expected_pr="42",
+    ) is None
 
     # The same trust boundary applies to already_resolved_checks.
     resolve_comment = render_resolve_comment("42", "a" * 40, resolutions)

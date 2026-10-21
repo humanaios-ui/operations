@@ -1,0 +1,80 @@
+name: PR challenge dialogue router
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: challenge-dialogue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  route:
+    if: github.event.issue.pull_request && github.event.issue.number == 630
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted default branch
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Fetch PR evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${REPO}/pulls/${PR}" --jq '.head.sha' > /tmp/current-head.txt
+          gh api --paginate "repos/${REPO}/pulls/${PR}/files?per_page=100" --jq '.[].filename' > /tmp/changed-files.txt
+          gh api --paginate "repos/${REPO}/issues/${PR}/comments?per_page=100" --slurp > /tmp/comment-pages.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          pages = json.loads(Path("/tmp/comment-pages.json").read_text())
+          comments = []
+          for page in pages:
+              if isinstance(page, list):
+                  comments.extend(page)
+          Path("/tmp/existing-comments.json").write_text(json.dumps(comments))
+          PY
+
+      - name: Route challenge turn
+        id: route
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python3 tools/pr_challenge_dialogue_router_v0_1.py \
+            --event "$GITHUB_EVENT_PATH" \
+            --changed-files /tmp/changed-files.txt \
+            --existing-comments /tmp/existing-comments.json \
+            --current-head "$(cat /tmp/current-head.txt)" \
+            --repository "$REPO" \
+            --pilot-pr 630 > /tmp/router-result.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          result = json.loads(Path("/tmp/router-result.json").read_text())
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("should_reply=" + ("true" if result.get("should_reply") else "false") + "\n")
+          if result.get("should_reply"):
+              Path("/tmp/router-comment.md").write_text(result["comment"])
+          PY
+
+      - name: Post one authority-neutral next turn
+        if: steps.route.outputs.should_reply == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          BODY="$(cat /tmp/router-comment.md)"
+          gh api --method POST "repos/${REPO}/issues/${PR}/comments" -f body="$BODY"

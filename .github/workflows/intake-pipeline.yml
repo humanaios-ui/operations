@@ -12,7 +12,6 @@ on:
     branches: [main]
     paths:
       - "_inbox_files*/**"
-      - ".doc-control/intake_state.json"
 
 permissions:
   contents: read

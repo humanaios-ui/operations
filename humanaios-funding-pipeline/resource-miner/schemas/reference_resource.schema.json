@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/humanaios-ui/operations/reference_resource.schema.json",
+  "title": "HumanAIOS Reference Resource",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reference_id",
+    "state",
+    "consent_status",
+    "availability_status",
+    "evidence_domains",
+    "supported_resource_ids",
+    "private_contact_ref"
+  ],
+  "properties": {
+    "reference_id": {"type": "string", "pattern": "^REF-[A-Z0-9-]+$"},
+    "state": {"enum": ["CANDIDATE", "VERIFIED", "CONSENTED", "USED", "RETIRED"]},
+    "consent_status": {"enum": ["NOT_REQUESTED", "REQUESTED", "CONSENTED", "DECLINED", "REVOKED"]},
+    "availability_status": {"enum": ["UNKNOWN", "AVAILABLE", "UNAVAILABLE", "CONDITIONAL"]},
+    "relationship_class": {
+      "enum": [
+        "SUPERVISOR",
+        "COLLEAGUE",
+        "COLLABORATOR",
+        "RESEARCH_PEER",
+        "CLIENT",
+        "COMMUNITY_LEADER",
+        "OTHER",
+        "UNSPECIFIED"
+      ]
+    },
+    "evidence_domains": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "EXECUTION",
+          "JUDGMENT",
+          "RESEARCH_RIGOR",
+          "QUALITY_RIGOR",
+          "LEADERSHIP",
+          "TECHNICAL_DEPTH",
+          "COLLABORATION",
+          "ENTREPRENEURSHIP"
+        ]
+      }
+    },
+    "supported_resource_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "private_contact_ref": {
+      "type": ["string", "null"],
+      "description": "Opaque pointer to a private contact store. Never raw name/email/phone."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Non-identifying operational notes only."
+    }
+  }
+}

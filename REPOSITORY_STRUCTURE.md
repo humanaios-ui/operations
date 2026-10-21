@@ -202,7 +202,9 @@ docs/_archive/ does not exist yet — it is where a retired board or dashboard g
 | `.github/workflows/priority-queue-triage.yml` | triage over `PRIORITY_QUEUE.md` and the inbox |
 | `.github/workflows/intent-os-refresh.yml` | on every push to `main` (event-driven, no clock schedule; job pinned to `main`): seal check, drift classification, harness, receipt as artifact; report-only until d23, then refresh PR (mechanical) or `intent-os-stale` issue (human) |
 | `.github/workflows/pages.yml` | deploys `site/` — the board is excluded by ruling d17 |
-| `.github/workflows/auto-request-copilot-review.yml` · `.github/workflows/copilot-base-guard.yml` | Copilot review on PRs; base guard |
+| `.coderabbit.yaml` | CodeRabbit advisory PR-review policy; active only when the CodeRabbit GitHub App is installed/authorized for this repository |
+| `.github/workflows/auto-request-copilot-review.yml` | Legacy/manual Copilot provenance stub; no automatic PR review |
+| `.github/workflows/copilot-base-guard.yml` | Copilot-related base guard |
 | `.github/CODEOWNERS` · `.github/PULL_REQUEST_TEMPLATE.md` · `.github/copilot-instructions.md` · `.github/dependabot.yml` | ownership, PR shape, reviewer instructions, dependency updates |
 | `.github/ISSUE_TEMPLATE/code-quality.md` · `.github/ISSUE_TEMPLATE/seed-amendment.md` | the two issue templates |
 

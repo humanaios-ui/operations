@@ -1,0 +1,1109 @@
+[
+  {
+    "project_id": "PER-HUMANAIOS-ACAT-001",
+    "title": "HumanAIOS / ACAT Research Infrastructure",
+    "organization": "HumanAIOS LLC",
+    "source_role": "Founder & Principal Investigator",
+    "time_window": "2026-Present",
+    "mandate": "Build an open, evidence-bearing AI evaluation and behavioral observability research program.",
+    "objective": "Design, operate, validate, and publicly document ACAT and associated research/data infrastructure.",
+    "scope": [
+      "research protocol",
+      "public dataset",
+      "behavioral rubrics",
+      "data validation",
+      "quality flags",
+      "corrections ledger",
+      "automation",
+      "provenance",
+      "public observatory"
+    ],
+    "stakeholders": [
+      "research collaborators",
+      "AI model providers",
+      "open-source users",
+      "external reviewers"
+    ],
+    "constraints": [
+      "pre-revenue environment",
+      "open-source/public evidence requirement",
+      "claims must remain bounded by available validation evidence"
+    ],
+    "resources_controlled": [
+      "GitHub repositories",
+      "public dataset",
+      "automation stack",
+      "AI model/API access",
+      "research documentation"
+    ],
+    "risks_dependencies": [
+      "data quality",
+      "model/provider variability",
+      "automation reliability",
+      "external validation gap"
+    ],
+    "execution": [
+      "designed ACAT protocol",
+      "built quality-flag and corrections-ledger infrastructure",
+      "migrated automation from Make.com toward GitHub Actions and n8n",
+      "coordinated independent research outreach",
+      "maintained transparent operational governance"
+    ],
+    "deliverables": [
+      "ACAT instrument",
+      "public assessment dataset",
+      "corrections ledger",
+      "validation workflows",
+      "research documentation",
+      "public observatory"
+    ],
+    "validation": [
+      "quality-flag system",
+      "corrections ledger",
+      "inter-rater reliability protocols",
+      "statistical validation",
+      "public reproducibility artifacts"
+    ],
+    "outcomes": [
+      "open-source evaluation infrastructure deployed",
+      "public dataset and methodology made available"
+    ],
+    "metrics": [
+      "629+ assessments reported in current resume",
+      "16-sheet archived dataset reported in current resume"
+    ],
+    "capability_tags": [
+      "AI_EVALUATION",
+      "RESEARCH_OPERATIONS",
+      "DATA_VALIDATION",
+      "PROGRAM_DESIGN",
+      "AUTOMATION",
+      "PROVENANCE",
+      "OPEN_SOURCE"
+    ],
+    "evidence": [
+      {
+        "claim": "Designed and launched ACAT with public instrument, dataset, and methodology.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Key Achievements / AI Research & Open-Source Innovation"
+      },
+      {
+        "claim": "Built end-to-end validation and corrections-ledger infrastructure with explicit quality flags.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Key Achievements / AI Research & Open-Source Innovation"
+      },
+      {
+        "claim": "Managed migration from Make.com to GitHub Actions + n8n.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / HumanAIOS LLC"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "program_budget",
+        "reason": "Current resume does not state total project budget or spend authority.",
+        "interrogation_prompt": "What budget, cloud-credit, API, contractor, or software spend have you directly planned or controlled for HumanAIOS?",
+        "market_signal_ids": [
+          "JRS-BUDGET-001"
+        ]
+      },
+      {
+        "field": "roadmap_governance",
+        "reason": "Resume shows roadmap and governance work but not formal planning cadence or artifact set.",
+        "interrogation_prompt": "Did you use formal milestones, release plans, dependency maps, status reviews, or decision logs? Which artifacts exist?",
+        "market_signal_ids": [
+          "JRS-PROGRAM-CONTROLS-001"
+        ]
+      },
+      {
+        "field": "external_user_scale",
+        "reason": "Resume does not state number of collaborators, users, contributors, or reviewers.",
+        "interrogation_prompt": "How many humans, AI agents, collaborators, reviewers, or external users have materially participated in HumanAIOS/ACAT?",
+        "market_signal_ids": [
+          "JRS-STAKEHOLDER-SCALE-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "project_id": "PER-PIONEERS-EMR-001",
+    "title": "Enterprise Healthcare Data Migration & Quality Program",
+    "organization": "Pioneers Medical Center",
+    "source_role": "Director of Quality Assurance and Risk Management",
+    "time_window": "2021-2024",
+    "mandate": "Preserve data integrity, quality, and regulatory performance during a major EMR conversion.",
+    "objective": "Lead quality/risk controls, analytics, validation, corrective processes, and reporting through system migration.",
+    "scope": [
+      "EMR conversion",
+      "data integrity",
+      "quality reporting",
+      "risk management",
+      "executive dashboards",
+      "grant-funded program compliance",
+      "document-control and incident-reporting systems"
+    ],
+    "stakeholders": [
+      "hospital leadership",
+      "clinical departments",
+      "quality/risk staff",
+      "regulatory stakeholders",
+      "grant-program stakeholders"
+    ],
+    "constraints": [
+      "regulated healthcare environment",
+      "continuity of operations",
+      "data migration accuracy",
+      "auditability"
+    ],
+    "resources_controlled": [
+      "quality/risk systems",
+      "three departments",
+      "four direct/managed employees",
+      "analytics/reporting workflows"
+    ],
+    "risks_dependencies": [
+      "migration errors",
+      "regulatory noncompliance",
+      "incorrect quality reporting",
+      "post-conversion defects"
+    ],
+    "execution": [
+      "led data validation through system migration",
+      "validated post-conversion accuracy",
+      "managed quality/risk software",
+      "translated raw data into executive dashboards",
+      "monitored grant-program metrics and reporting",
+      "led implementation work for the Colorado Medicaid Hospital Transformation Program",
+      "administered incident-reporting, document-control, and data-analytics systems",
+      "coordinated interdepartmental handoffs and program work"
+    ],
+    "deliverables": [
+      "validated migrated data",
+      "quality reports",
+      "executive dashboards",
+      "corrective records",
+      "grant compliance reports"
+    ],
+    "validation": [
+      "post-conversion validation",
+      "regulatory audit context",
+      "data-integrity checks",
+      "performance monitoring"
+    ],
+    "outcomes": [
+      "system migration supported with explicit data-integrity and quality oversight"
+    ],
+    "metrics": [
+      "managed 3 departments",
+      "managed 4 employees"
+    ],
+    "capability_tags": [
+      "PROGRAM_MANAGEMENT",
+      "HEALTHCARE",
+      "DATA_MIGRATION",
+      "QUALITY_SYSTEMS",
+      "RISK_MANAGEMENT",
+      "EXECUTIVE_REPORTING",
+      "REGULATORY"
+    ],
+    "evidence": [
+      {
+        "claim": "Led data integrity and validation for a system-wide migration under regulatory audit.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Pioneers Medical Center"
+      },
+      {
+        "claim": "Managed quality and risk software systems and executive dashboards.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Pioneers Medical Center"
+      },
+      {
+        "claim": "Oversaw compliance for multiple grant-funded programs.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Pioneers Medical Center"
+      },
+      {
+        "claim": "Oversaw hospital and ancillary-clinic quality/risk systems, including infection-prevention reporting, patient safety, and risk analysis.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Pioneers Medical Center"
+      },
+      {
+        "claim": "Led state-directed program work including implementation of the Colorado Medicaid Hospital Transformation Program.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Pioneers Medical Center"
+      },
+      {
+        "claim": "Managed incident-reporting, document-control, and data-analytics systems for hospital and clinics.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Pioneers Medical Center"
+      },
+      {
+        "claim": "Coordinated interdepartmental handoffs and program work.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Pioneers Medical Center"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "measurable_outcome",
+        "reason": "Resume does not state defect rates, error reductions, audit results, or go-live performance.",
+        "interrogation_prompt": "What measurable migration outcomes can you document: defects found, correction rates, audit findings, downtime, user adoption, reporting accuracy, or timeline performance?",
+        "market_signal_ids": [
+          "JRS-METRICS-001"
+        ]
+      },
+      {
+        "field": "emr_vendor_and_scale",
+        "reason": "Historical and current resumes support EMR migration responsibility but not the exact Epic/Cerner/Athena attribution or quantified user/site scale.",
+        "interrogation_prompt": "Resolve from contemporaneous project records before external use of vendor names or scale.",
+        "market_signal_ids": [
+          "JRS-IMPLEMENTATION-SCALE-001"
+        ]
+      },
+      {
+        "field": "cutover_and_schedule",
+        "reason": "Specific scheduling, cutover, go-live, downtime-planning and stabilization tasks remain human-attested rather than documentary-supported.",
+        "interrogation_prompt": "Retrieve project plans/checklists if a target role requires this level of detail.",
+        "market_signal_ids": [
+          "JRS-PROGRAM-CONTROLS-001"
+        ]
+      },
+      {
+        "field": "vendor_management",
+        "reason": "Direct vendor communication remains human-attested; no contemporaneous vendor/project record was recovered.",
+        "interrogation_prompt": "Retrieve vendor email/ticket/project records before external use.",
+        "market_signal_ids": [
+          "JRS-VENDOR-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "project_id": "PER-BENEWAH-LAB-001",
+    "title": "Hospital Laboratory Operations & Platform Validation",
+    "organization": "Benewah Community Hospital",
+    "source_role": "Director of Laboratory Services",
+    "time_window": "2020-2021",
+    "mandate": "Direct inpatient and outpatient hospital laboratory operations.",
+    "objective": "Maintain reliable clinical laboratory service, technical quality, staffing, and operational continuity.",
+    "scope": [
+      "laboratory operations",
+      "staff management",
+      "technical quality",
+      "service continuity",
+      "platform/instrument oversight",
+      "material management",
+      "laboratory budgeting"
+    ],
+    "stakeholders": [
+      "hospital leadership",
+      "clinicians",
+      "laboratory staff",
+      "patients",
+      "vendors/regulators",
+      "hospital governance committees"
+    ],
+    "constraints": [
+      "hospital service continuity",
+      "regulated laboratory environment",
+      "patient-safety consequences"
+    ],
+    "resources_controlled": [
+      "hospital laboratory operations",
+      "10 employees"
+    ],
+    "risks_dependencies": [
+      "instrument downtime",
+      "staff coverage",
+      "quality failures",
+      "turnaround delays",
+      "regulatory compliance"
+    ],
+    "execution": [
+      "directed inpatient/outpatient laboratory operations",
+      "managed laboratory staff",
+      "oversaw technical and operational requirements",
+      "managed quality assurance/control and material management",
+      "managed laboratory budgeting"
+    ],
+    "deliverables": [
+      "continuous laboratory service",
+      "staff coverage",
+      "validated/controlled laboratory processes"
+    ],
+    "validation": [
+      "clinical laboratory quality controls",
+      "regulated laboratory oversight"
+    ],
+    "outcomes": [
+      "directed regional hospital laboratory operations"
+    ],
+    "metrics": [
+      "managed 10 employees"
+    ],
+    "capability_tags": [
+      "LAB_OPERATIONS",
+      "PEOPLE_MANAGEMENT",
+      "QUALITY",
+      "HEALTHCARE",
+      "TECHNICAL_OPERATIONS",
+      "SERVICE_CONTINUITY"
+    ],
+    "evidence": [
+      {
+        "claim": "Directed inpatient and outpatient hospital laboratory operations and managed 10 employees.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Benewah Community Hospital"
+      },
+      {
+        "claim": "Managed technologist bench work, laboratory quality assurance/control, and material management.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Benewah Community Hospital"
+      },
+      {
+        "claim": "Demonstrated laboratory budgeting responsibility.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Benewah Community Hospital"
+      },
+      {
+        "claim": "Participated in hospital governance as a committee member.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Benewah Community Hospital"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "quality_metrics",
+        "reason": "No turnaround-time, proficiency, inspection, or error-rate outcomes are listed.",
+        "interrogation_prompt": "What measurable laboratory outcomes improved or were maintained under your leadership: TAT, proficiency testing, inspection findings, errors, staffing coverage, cost, or send-out volume?",
+        "market_signal_ids": [
+          "JRS-METRICS-001"
+        ]
+      },
+      {
+        "field": "instrumentation_and_platforms",
+        "reason": "Current evidence supports laboratory/platform oversight generally, but the Siemens Atellica, Beckman Coulter, and Abbott POC specifics remain human-attested.",
+        "interrogation_prompt": "Retrieve validation files, service records, or contemporaneous resume/project evidence before using named platforms externally.",
+        "market_signal_ids": [
+          "JRS-TECHNICAL-PLATFORM-001"
+        ]
+      },
+      {
+        "field": "budget_procurement",
+        "reason": "Budgeting and material management are source-supported; vendor contracts, capital approvals, and specific equipment-procurement authority remain incompletely evidenced.",
+        "interrogation_prompt": "Retrieve budget/procurement records only if a target role requires those finer-grained claims.",
+        "market_signal_ids": [
+          "JRS-BUDGET-001",
+          "JRS-VENDOR-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "project_id": "PER-LABCORP-QUALITY-001",
+    "title": "Regulatory Quality & Analytical Method Validation Program",
+    "organization": "Labcorp",
+    "source_role": "Quality & Regulatory Team Supervisor / Special Chemistry Technologist",
+    "time_window": "2017-2020",
+    "mandate": "Improve laboratory regulatory compliance, analytical reliability, and regional quality operations.",
+    "objective": "Build quality measurement, audit, validation, corrective-action, and process-improvement capability.",
+    "scope": [
+      "ISO/CAP/CLIA audits",
+      "analytical method validation",
+      "immunoassay QC",
+      "mass-spectrometry QC",
+      "compliance metrics",
+      "staff workflows",
+      "process improvement",
+      "regulatory surveys and applications",
+      "multi-site continuous improvement"
+    ],
+    "stakeholders": [
+      "regional laboratories",
+      "corporate quality leadership",
+      "laboratory staff",
+      "regulators/accreditors",
+      "cross-functional Midwest regional quality/regulatory team"
+    ],
+    "constraints": [
+      "regulated laboratory environment",
+      "analytical accuracy",
+      "audit deadlines",
+      "multi-site consistency"
+    ],
+    "resources_controlled": [
+      "divisional quality data platform",
+      "quality/regulatory workflows",
+      "one managed employee"
+    ],
+    "risks_dependencies": [
+      "noncompliance",
+      "method-performance failures",
+      "inconsistent regional processes",
+      "audit findings"
+    ],
+    "execution": [
+      "developed divisional compliance data platform",
+      "supervised quality/regulatory operations",
+      "performed ISO/CAP/CLIA audits",
+      "provided method-validation expertise",
+      "implemented regional process improvements",
+      "managed laboratory operations during regulatory surveys and applications",
+      "led multi-site continuous-improvement initiatives"
+    ],
+    "deliverables": [
+      "compliance metrics platform",
+      "audit findings/follow-up",
+      "method-validation support",
+      "corporate performance reports",
+      "improved procedures"
+    ],
+    "validation": [
+      "regulatory audits",
+      "method-validation protocols",
+      "quality-control protocols",
+      "follow-up/corrective action"
+    ],
+    "outcomes": [
+      "established measurable regional quality/compliance workflows"
+    ],
+    "metrics": [
+      "managed 1 employee"
+    ],
+    "capability_tags": [
+      "QUALITY_SYSTEMS",
+      "REGULATORY",
+      "ANALYTICAL_CHEMISTRY",
+      "AUDIT",
+      "METHOD_VALIDATION",
+      "DATA_PLATFORM",
+      "PROCESS_IMPROVEMENT"
+    ],
+    "evidence": [
+      {
+        "claim": "Developed a divisional data platform for regulatory compliance metrics and quality trends.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Labcorp"
+      },
+      {
+        "claim": "Performed ISO, CAP, and CLIA regulatory audits and follow-up.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Labcorp"
+      },
+      {
+        "claim": "Provided technical expertise in immunoassay and mass-spectrometry method validation/QC.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Labcorp"
+      },
+      {
+        "claim": "Led a cross-functional quality/regulatory team supporting the Midwest region.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / LabCorp"
+      },
+      {
+        "claim": "Created a real-time compliance-metrics data-management system to improve audit readiness.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / LabCorp"
+      },
+      {
+        "claim": "Managed laboratory operations during regulatory surveys and applications.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / LabCorp"
+      },
+      {
+        "claim": "Led continuous-improvement initiatives across multiple sites, with the historical resume reporting reduced regulatory violations.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / LabCorp"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "audit_scale",
+        "reason": "Documentary evidence supports multi-site audit/readiness work but does not quantify site, audit, finding, or closure counts.",
+        "interrogation_prompt": "Use audit logs/inspection records if quantitative scale is needed.",
+        "market_signal_ids": [
+          "JRS-INSPECTION-READINESS-001",
+          "JRS-METRICS-001"
+        ]
+      },
+      {
+        "field": "capa_and_document_control",
+        "reason": "Formal CAPA, deviations, nonconformances, SOP/document-control, competency, change-control, and effectiveness-check ownership remains human-attested from the completed frontier.",
+        "interrogation_prompt": "Promote only after locating contemporaneous quality-system evidence or a source document explicitly naming these functions.",
+        "market_signal_ids": [
+          "JRS-CAPA-001",
+          "JRS-DOCUMENT-CONTROL-001"
+        ]
+      },
+      {
+        "field": "cross_functional_scope",
+        "reason": "Cross-functional regional quality/regulatory work is source-supported; the full list of teams named in the interrogation remains human-attested.",
+        "interrogation_prompt": "Retrieve organizational/project evidence only if exact stakeholder breadth is material.",
+        "market_signal_ids": [
+          "JRS-STAKEHOLDER-SCALE-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "project_id": "PER-WAFFLE-OPS-001",
+    "title": "24/7 Operations & P&L Management",
+    "organization": "Waffle House",
+    "source_role": "Unit Manager",
+    "time_window": "2025-2026",
+    "mandate": "Operate a continuously staffed, high-volume service unit with direct accountability for people, inventory, cash, quality, safety, and P&L.",
+    "objective": "Maintain reliable 24/7 operations while controlling labor, inventory, service quality, safety, and cost.",
+    "scope": [
+      "staffing",
+      "scheduling",
+      "inventory",
+      "food cost",
+      "cash handling",
+      "P&L",
+      "incident response",
+      "customer operations",
+      "quality and safety"
+    ],
+    "stakeholders": [
+      "27 employees",
+      "customers",
+      "district/corporate leadership",
+      "suppliers"
+    ],
+    "constraints": [
+      "continuous coverage",
+      "high-volume service",
+      "labor availability",
+      "perishable inventory",
+      "real-time incidents"
+    ],
+    "resources_controlled": [
+      "27-person workforce",
+      "inventory",
+      "unit cash operations",
+      "operating schedule",
+      "store-level P&L"
+    ],
+    "risks_dependencies": [
+      "coverage gaps",
+      "inventory loss",
+      "food safety",
+      "service failures",
+      "cost overruns"
+    ],
+    "execution": [
+      "built and maintained shift coverage",
+      "resolved operational/customer incidents",
+      "managed inventory and food cost",
+      "maintained quality/safety standards",
+      "held store-level P&L accountability"
+    ],
+    "deliverables": [
+      "continuous staffing",
+      "daily operations",
+      "inventory control",
+      "service delivery",
+      "P&L performance"
+    ],
+    "validation": [
+      "corporate quality and safety standards",
+      "store operating metrics"
+    ],
+    "outcomes": [
+      "maintained continuous high-volume unit operations"
+    ],
+    "metrics": [
+      "managed 27 employees",
+      "24/7 operating environment"
+    ],
+    "capability_tags": [
+      "OPERATIONS",
+      "P_AND_L",
+      "STAFFING",
+      "SCHEDULING",
+      "INCIDENT_RESPONSE",
+      "INVENTORY",
+      "PEOPLE_MANAGEMENT"
+    ],
+    "evidence": [
+      {
+        "claim": "Managed 24/7 operations with staffing, scheduling, inventory, food-cost, cash, and P&L accountability.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Key Achievements / Operational Leadership"
+      },
+      {
+        "claim": "Managed 27 employees.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Waffle House"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "p_and_l_scale",
+        "reason": "Resume does not state revenue, cost base, budget, or improvement magnitude.",
+        "interrogation_prompt": "What was the approximate unit sales/P&L scale, and did you improve labor cost, food cost, waste, sales, margin, or customer metrics?",
+        "market_signal_ids": [
+          "JRS-BUDGET-001",
+          "JRS-METRICS-001"
+        ]
+      },
+      {
+        "field": "hiring_and_performance",
+        "reason": "Management is clear, but hiring, performance reviews, coaching, and retention are not stated.",
+        "interrogation_prompt": "Did you hire, onboard, train, coach, discipline, promote, or conduct performance reviews? Can any staffing/retention improvements be quantified?",
+        "market_signal_ids": [
+          "JRS-PEOPLE-PROGRAM-001"
+        ]
+      },
+      {
+        "field": "vendor_supply_chain",
+        "reason": "Inventory responsibility is stated but supplier/vendor management is not.",
+        "interrogation_prompt": "Did you order supplies, manage vendor shortages/escalations, negotiate substitutions, or coordinate deliveries?",
+        "market_signal_ids": [
+          "JRS-VENDOR-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "project_id": "PER-VALLEYVIEW-SAFETY-001",
+    "title": "Patient Safety Program",
+    "organization": "Valley View Hospital",
+    "source_role": "Patient Safety Coordinator",
+    "time_window": "2024-2025",
+    "mandate": "Operate organizational patient-safety coordination and support a statewide value-based transformation program.",
+    "objective": "Maintain safety-event infrastructure, coordinate committees, educate staff, and support measurable patient-safety improvement.",
+    "scope": [
+      "patient-safety database",
+      "organizational committees",
+      "staff education",
+      "Medicaid Hospital Transformation Program",
+      "patient-safety protocol implementation",
+      "incident investigation and reporting",
+      "policy/procedure support"
+    ],
+    "stakeholders": [
+      "hospital leadership",
+      "clinical staff",
+      "quality/safety committees",
+      "state program stakeholders"
+    ],
+    "constraints": [
+      "patient safety",
+      "regulatory/reporting requirements",
+      "cross-functional clinical participation"
+    ],
+    "resources_controlled": [
+      "patient-safety database administration",
+      "committee coordination",
+      "education workflows"
+    ],
+    "risks_dependencies": [
+      "under-reporting",
+      "data-quality issues",
+      "delayed corrective action",
+      "stakeholder engagement"
+    ],
+    "execution": [
+      "administered patient-safety database",
+      "coordinated organizational committees",
+      "educated staff",
+      "co-owned Medicaid Hospital Transformation Program work",
+      "led development and implementation of patient-safety protocols",
+      "administered internal incident-reporting workflows and task assignment",
+      "investigated patient-safety and quality events and supported policy/procedure updates",
+      "advised senior management on risk-reduction strategies"
+    ],
+    "deliverables": [
+      "safety records",
+      "committee workflows",
+      "staff education",
+      "program reporting/contributions"
+    ],
+    "validation": [
+      "patient-safety program monitoring",
+      "state transformation-program measures"
+    ],
+    "outcomes": [
+      "supported organizational patient-safety operations and value-based transformation work"
+    ],
+    "metrics": [],
+    "capability_tags": [
+      "PATIENT_SAFETY",
+      "PROGRAM_COORDINATION",
+      "HEALTHCARE",
+      "TRAINING",
+      "DATA_ADMINISTRATION",
+      "COMMITTEE_MANAGEMENT"
+    ],
+    "evidence": [
+      {
+        "claim": "Held organizational responsibility for Patient Safety Program and Press Ganey Patient Safety administration.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Valley View Hospital"
+      },
+      {
+        "claim": "Co-owned Medicaid Hospital Transformation Program work.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Professional Experience / Valley View Hospital"
+      },
+      {
+        "claim": "Led development and implementation of patient-safety protocols and coordinated risk-management/quality-care initiatives.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Valley View Hospital"
+      },
+      {
+        "claim": "Administered the internal incident-reporting system, including task-assignment logistics and data management.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Valley View Hospital"
+      },
+      {
+        "claim": "Investigated patient-safety and quality events and assisted with policy/procedure writing and editing.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Valley View Hospital"
+      },
+      {
+        "claim": "Worked across nursing, medical staff, and administrative departments and advised senior management on liability/risk reduction.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Valley View Hospital"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "safety_event_scale",
+        "reason": "Historical evidence supports event-management and investigation responsibility, but 'hundreds' of events/cases remains human-attested.",
+        "interrogation_prompt": "Use patient-safety database reports if numeric volume is required.",
+        "market_signal_ids": [
+          "JRS-CAPA-001",
+          "JRS-METRICS-001"
+        ]
+      },
+      {
+        "field": "committee_scope",
+        "reason": "Committee coordination is source-supported; exact named committees and monthly/weekly cadence remain human-attested.",
+        "interrogation_prompt": "Use committee charters/minutes if exact cadence is required.",
+        "market_signal_ids": [
+          "JRS-PROGRAM-CONTROLS-001"
+        ]
+      },
+      {
+        "field": "training_scale",
+        "reason": "Staff education is source-supported; typical 10-20 participant group size remains human-attested.",
+        "interrogation_prompt": "Use training rosters if numeric training scale is required.",
+        "market_signal_ids": [
+          "JRS-PEOPLE-PROGRAM-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "project_id": "PER-HUMANAIOS-BOT-001",
+    "title": "AI Forecasting Infrastructure / HumanAIOSBot",
+    "organization": "HumanAIOS LLC",
+    "source_role": "Founder & Principal Investigator",
+    "time_window": "2026",
+    "mandate": "Deploy an automated forecasting agent into a live external competition environment.",
+    "objective": "Build and operate a model/API forecasting pipeline with secrets, rate-limit, and cost controls.",
+    "scope": [
+      "model integration",
+      "API integration",
+      "secrets management",
+      "rate-limit triage",
+      "cost modeling",
+      "live competition deployment",
+      "Supabase behavioral logging",
+      "Metaculus comment-posting integration"
+    ],
+    "stakeholders": [
+      "Metaculus platform",
+      "model/API providers",
+      "HumanAIOS research program"
+    ],
+    "constraints": [
+      "API limits",
+      "secrets/security",
+      "operating cost",
+      "competition rules"
+    ],
+    "resources_controlled": [
+      "model API access",
+      "bot code",
+      "secrets",
+      "automation infrastructure"
+    ],
+    "risks_dependencies": [
+      "API failure",
+      "rate limits",
+      "cost overruns",
+      "model reliability"
+    ],
+    "execution": [
+      "integrated Claude Sonnet 4.5 reasoning model",
+      "registered/deployed competition bot",
+      "documented secrets management",
+      "triaged rate limits",
+      "modeled operating cost"
+    ],
+    "deliverables": [
+      "live forecasting bot",
+      "deployment documentation",
+      "cost model",
+      "versioned Metaculus forecasting implementation"
+    ],
+    "validation": [
+      "live external competition execution",
+      "operating-cost observation",
+      "forecasting-tools compatibility smoke workflow"
+    ],
+    "outcomes": [
+      "automated forecasting infrastructure deployed to Metaculus competition"
+    ],
+    "metrics": [
+      "resume reports realistic operating cost estimate of $10-$25/month"
+    ],
+    "capability_tags": [
+      "AI_INFRASTRUCTURE",
+      "AUTOMATION",
+      "API_INTEGRATION",
+      "COST_MODELING",
+      "OPERATIONS",
+      "EXTERNAL_DEPLOYMENT"
+    ],
+    "evidence": [
+      {
+        "claim": "Deployed HumanAIOSBot using Claude Sonnet 4.5 into Metaculus Spring 2026 competitions.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Key Achievements / AI Research & Open-Source Innovation"
+      },
+      {
+        "claim": "Documented API-key secrets, rate-limit triage, and cost modeling.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Key Achievements / AI Research & Open-Source Innovation"
+      },
+      {
+        "claim": "Repository contains a functioning HumanAIOS Metaculus bot implementation with tournament, MiniBench, and test-question execution paths.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "REPOSITORY",
+        "locator": "operations/tools/Metaculus/main.py"
+      },
+      {
+        "claim": "Repository implements P1/P2/P3 Supabase logging, model provenance, comment posting, and non-blocking error handling for the forecasting pipeline.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "REPOSITORY",
+        "locator": "operations/tools/Metaculus/main.py"
+      },
+      {
+        "claim": "Repository contains a compatibility smoke workflow that imports the exact forecasting-tools API surface and checks tournament identifiers.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "REPOSITORY",
+        "locator": "operations/.github/workflows/forecasting-tools-031-smoke.yml"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "release_incident_process",
+        "reason": "Operational controls are mentioned but incident/change process is not.",
+        "interrogation_prompt": "Did you use release/version control, incident logs, postmortems, rollback, monitoring alerts, or change approval for the bot?",
+        "market_signal_ids": [
+          "JRS-INCIDENT-001",
+          "JRS-PROGRAM-CONTROLS-001"
+        ]
+      },
+      {
+        "field": "performance_results",
+        "reason": "Technical implementation is source-supported, but public leaderboard placement, forecast accuracy, resolved-forecast count, and competition outcome remain unresolved.",
+        "interrogation_prompt": "Resolve only from Metaculus/public run data or repository receipts; do not re-interrogate the human.",
+        "market_signal_ids": [
+          "JRS-METRICS-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "project_id": "PER-STJOES-HPLC-001",
+    "title": "Biochemical Genetics HPLC Laboratory Build & LC/MS Research Lab Launch",
+    "organization": "St. Joseph's Hospital and Medical Center / Barrow's Neurological Institute",
+    "source_role": "Biochemical Genetics Technologist / Junior Research Technician",
+    "time_window": "2004-2011",
+    "mandate": "Build and standardize biochemical-genetics analytical capability and help launch proteomics research infrastructure.",
+    "objective": "Establish a CAP-recognized biochemical-genetics HPLC section with controlled methods, reporting, training, quality systems, and research extension.",
+    "scope": [
+      "HPLC body-fluid amino-acid analysis",
+      "biochemical genetics",
+      "SOP development",
+      "LIS integration",
+      "training/competency",
+      "QA/proficiency testing",
+      "document control",
+      "budget/purchasing",
+      "clinical trials",
+      "LC/MS proteomics research"
+    ],
+    "stakeholders": [
+      "pediatric geneticist",
+      "neurologist/research leadership",
+      "laboratory staff",
+      "CAP",
+      "clinical users",
+      "vendors/suppliers"
+    ],
+    "constraints": [
+      "clinical laboratory quality requirements",
+      "method standardization",
+      "CAP inspection requirements",
+      "instrument/reagent reliability"
+    ],
+    "resources_controlled": [
+      "HPLC instrumentation/reagents",
+      "section budget and purchasing",
+      "LIS/reporting workflow",
+      "training/competency documentation"
+    ],
+    "risks_dependencies": [
+      "instrument performance",
+      "method validity",
+      "specimen integrity",
+      "reporting accuracy",
+      "CAP proficiency/inspection requirements"
+    ],
+    "execution": [
+      "developed HPLC amino-acid analyzer into standardized biochemical-genetics section",
+      "authored SOPs for instrumentation/LIS/specimen processing",
+      "established training and skill-evaluation documentation",
+      "validated and maintained QA/proficiency/document control",
+      "integrated LIS reporting",
+      "managed budget/purchasing",
+      "established clinical-trial/research extensions",
+      "co-launched LC/MS proteomics research laboratory"
+    ],
+    "deliverables": [
+      "CAP-recognized biochemical-genetics section",
+      "controlled SOP set",
+      "training/competency system",
+      "QA/proficiency program",
+      "LIS reporting workflow",
+      "clinical/research extensions",
+      "LC/MS proteomics research laboratory"
+    ],
+    "validation": [
+      "recurrent CAP inspection requirements",
+      "QA/proficiency policies and procedures",
+      "controlled documentation",
+      "peer-reviewed MALDI-TOF publication for related research activity"
+    ],
+    "outcomes": [
+      "standardized biochemical-genetics analytical section established",
+      "research capability expanded into LC/MS proteomics"
+    ],
+    "metrics": [],
+    "capability_tags": [
+      "LAB_BUILDOUT",
+      "HPLC",
+      "BIOCHEMICAL_GENETICS",
+      "SOP_DEVELOPMENT",
+      "LIS",
+      "QUALITY_SYSTEMS",
+      "CAP",
+      "BUDGETING",
+      "PROCUREMENT",
+      "CLINICAL_RESEARCH",
+      "LCMS",
+      "BUILD_FROM_ZERO"
+    ],
+    "evidence": [
+      {
+        "claim": "Worked at St. Joseph's Hospital and Medical Center in Phoenix from June 2004 to August 2011 as a Biochemical Genetics Technologist.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+      },
+      {
+        "claim": "Developed a body-fluid amino-acid HPLC analyzer into a standardized biochemical-genetics section recognized by CAP.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+      },
+      {
+        "claim": "Authored SOPs for instrumentation, LIS, and specimen processing; established training and skill-evaluation documentation; maintained QA, proficiency policies, and document control.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+      },
+      {
+        "claim": "Integrated LIS reporting, managed budget and purchasing, and extended the laboratory into clinical-trial/research applications.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+      },
+      {
+        "claim": "Co-launched an LC/MS proteomics research laboratory at Barrow's Neurological Institute.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "RESUME",
+        "locator": "Google Drive: Resume UTD 2024.docx / Barrow's Neurological Institute"
+      },
+      {
+        "claim": "Coauthored a peer-reviewed 2009 MALDI-TOF mass-spectrometry paper.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "PUBLICATION",
+        "locator": "PubMed PMID 19940340"
+      }
+    ],
+    "unknowns": [
+      {
+        "field": "capital_request_amount",
+        "reason": "Historical resume supports budget/purchasing responsibility but not the >$1,000,000 capital-request amount supplied in the interrogation.",
+        "interrogation_prompt": "Locate capital request/purchase records before using the amount externally.",
+        "market_signal_ids": [
+          "JRS-BUDGET-001"
+        ]
+      },
+      {
+        "field": "quantified_operational_outcome",
+        "reason": "Historical resume supports section standardization and recurrent inspection success, but does not quantify test volume, turnaround time, cost savings, staffing, or go-live performance.",
+        "interrogation_prompt": "Use historical QA/CAP/project records if a target role needs numeric outcomes.",
+        "market_signal_ids": [
+          "JRS-METRICS-001"
+        ]
+      }
+    ],
+    "authority_effect": "NONE"
+  }
+]
