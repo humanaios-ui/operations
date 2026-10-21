@@ -62,7 +62,7 @@ Open the HTML in a browser. It is self-contained: no CDN and no GitHub writes. T
 
 - RKG source must declare `DERIVED_READ_MODEL`, pass its own validation, and identify the exact 40-character repository head.
 - Atlas must carry the correct repository name, 40-character head, and explicitly prohibit merge authority.
-- If Atlas and RKG full commit pins differ, output is `DIFFERENT_HEAD_NO_CONVERGENCE_CLAIM`. Do not patch over it.
+- `project()` rejects inputs with `ValueError` when the RKG, Atlas, and timeline full commit heads differ.
 - Historical dates in #841 are observed git file dates when `date_source: git`. Fallback dates remain **FALLBACK_DATE**; they do not prove implementation timestamps.
 - Identity joins use only exact RKG `artifact:<path>` and Atlas evidence paths. No keyword matching, name similarity, or source agreement grants proof.
 - A declared edge is not a test pass or production execution. The UI is a review tool, not an admission evaluator.

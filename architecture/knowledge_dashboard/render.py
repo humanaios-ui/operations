@@ -54,7 +54,7 @@ const N=DATA.nodes, E=DATA.edges, byId=new Map(N.map(n=>[n.id,n]));
 const canvas=document.getElementById('graph'), ctx=canvas.getContext('2d');
 const $=id=>document.getElementById(id);
 $('nodes').textContent=N.length;$('links').textContent=E.length;
-$('status').textContent=DATA.sources.atlas.status==='EXACT_HEAD'?'Matched':'Different heads';
+$('status').textContent=DATA.sources.atlas.status==='SAME_EXACT_HEAD_VERIFIED'?'Matched':'Different heads';
 const dates=[...new Set(N.map(n=>n.provenance?.first_seen).filter(Boolean))].sort();
 const slider=$('date');slider.min=0;slider.max=dates.length;slider.value=dates.length;
 let cutoff='9999-12-31',move=!matchMedia('(prefers-reduced-motion: reduce)').matches,frame=0,zoom=1,filter='';

@@ -32,11 +32,16 @@ class TestProjection(unittest.TestCase):
         bridge.smoke_test()
 
     def test_exact_path_and_no_authority(self):
-        result = bridge.project(*fixtures())
+        inputs = fixtures()
+        inputs[0]["edges"] = [{"from": "artifact:REGISTERED.md", "to": "artifact:REGISTERED.md"}]
+        inputs[2]["edges"] = [{"source": "REG", "target": "REG"}]
+        result = bridge.project(*inputs)
         self.assertEqual(result["authority_effect"], "NONE")
         self.assertFalse(result["can_authorize"])
         self.assertFalse(result["merge_authority"])
         self.assertIn("EXACT_PATH_WITNESS", [e["relation"] for e in result["edges"]])
+        self.assertIn("SOURCE_EDGE", [e["relation"] for e in result["edges"]])
+        self.assertIn("TIMELINE_SOURCE_EDGE", [e["relation"] for e in result["edges"]])
         self.assertIn("FALLBACK_DATE", [e["standing"] for e in result["edges"]])
 
     def test_stale_head_rejected(self):
@@ -83,6 +88,92 @@ class TestProjection(unittest.TestCase):
 
     def test_deterministic(self):
         self.assertEqual(bridge.project(*fixtures()), bridge.project(*fixtures()))
+
+    def test_record_identifiers_and_endpoints_must_be_strings(self):
+        cases = ((0, "nodes", "id"), (0, "edges", "from"), (0, "edges", "to"),
+                 (1, "nodes", "id"), (1, "edges", "source"), (1, "edges", "target"),
+                 (2, "nodes", "id"), (2, "edges", "source"), (2, "edges", "target"))
+        missing = object()
+        for source, collection, field in cases:
+            for value in (missing, None, 1, True, [], {}):
+                with self.subTest(source=source, collection=collection, field=field, value=value):
+                    inputs = fixtures()
+                    inputs[0]["edges"] = [{"from": "artifact:REGISTERED.md", "to": "artifact:REGISTERED.md"}]
+                    inputs[2]["edges"] = [{"source": "REG", "target": "REG"}]
+                    record = inputs[source][collection][0]
+                    if value is missing:
+                        record.pop(field)
+                    else:
+                        record[field] = value
+                    with self.assertRaises(ValueError):
+                        bridge.project(*inputs)
+
+    def test_non_object_records_rejected(self):
+        for source in range(3):
+            for collection in ("nodes", "edges"):
+                for value in (None, 1, "record", []):
+                    with self.subTest(source=source, collection=collection, value=value):
+                        inputs = fixtures()
+                        inputs[source][collection] = [value]
+                        with self.assertRaises(ValueError):
+                            bridge.project(*inputs)
+
+    def test_record_collections_must_be_lists(self):
+        for source in range(3):
+            for collection in ("nodes", "edges"):
+                for value in (None, 1, "records", {}):
+                    with self.subTest(source=source, collection=collection, value=value):
+                        inputs = fixtures()
+                        inputs[source][collection] = value
+                        with self.assertRaises(ValueError):
+                            bridge.project(*inputs)
+
+    def test_optional_edge_and_node_types_must_be_strings(self):
+        cases = ((0, "nodes", "type"), (0, "edges", "relation"),
+                 (0, "edges", "evidence_state"), (1, "edges", "kind"),
+                 (2, "edges", "edge_type"))
+        for source, collection, field in cases:
+            for value in (None, 1, [], {}):
+                with self.subTest(source=source, field=field, value=value):
+                    inputs = fixtures()
+                    inputs[0]["edges"] = [{"from": "artifact:REGISTERED.md", "to": "artifact:REGISTERED.md"}]
+                    inputs[2]["edges"] = [{"source": "REG", "target": "REG"}]
+                    inputs[source][collection][0][field] = value
+                    with self.assertRaises(ValueError):
+                        bridge.project(*inputs)
+
+    def test_provenance_and_path_collections_must_be_lists(self):
+        for source, collection, field in ((0, "nodes", "provenance"),
+                                           (1, "edges", "evidence"), (2, "nodes", "files")):
+            for value in (None, 1, "path", {}):
+                with self.subTest(source=source, field=field, value=value):
+                    inputs = fixtures()
+                    inputs[source][collection][0][field] = value
+                    with self.assertRaises(ValueError):
+                        bridge.project(*inputs)
+
+    def test_evidence_paths_must_be_strings(self):
+        for witness in (None, [], {}, {"source": None}, {"source": 1}, {"source": []}):
+            with self.subTest(witness=witness):
+                inputs = fixtures()
+                inputs[1]["edges"][0]["evidence"] = [witness]
+                with self.assertRaises(ValueError):
+                    bridge.project(*inputs)
+        for path in (None, 1, [], {}):
+            with self.subTest(path=path):
+                inputs = fixtures()
+                inputs[2]["nodes"][0]["files"] = [path]
+                with self.assertRaises(ValueError):
+                    bridge.project(*inputs)
+
+    def test_provenance_is_limited_to_three_records(self):
+        inputs = fixtures()
+        records = [{"path": f"source-{i}.py"} for i in range(4)]
+        inputs[0]["nodes"][0]["provenance"] = records
+        result = bridge.project(*inputs)
+        rkg_node = next(node for node in result["nodes"] if node["id"].startswith("rkg:"))
+        self.assertEqual(rkg_node["provenance"]["records"], records[:3])
+        self.assertEqual(inputs[0]["nodes"][0]["provenance"], records)
 
 
 if __name__ == "__main__":

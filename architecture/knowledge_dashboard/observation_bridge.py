@@ -29,6 +29,19 @@ def _read(path: str) -> dict:
         raise ValueError("source root must be object")
     return obj
 
+def _list_field(record: dict, field: str) -> list:
+    value = record.get(field, [])
+    if not isinstance(value, list):
+        raise ValueError(f"{field} must be a list")
+    return value
+
+def _require_strings(record: dict, required: tuple, optional: tuple = ()) -> None:
+    if not isinstance(record, dict):
+        raise ValueError("source record must be an object")
+    for field in required + tuple(field for field in optional if field in record):
+        if not isinstance(record.get(field), str):
+            raise ValueError(f"{field} must be a string")
+
 def project(rkg: dict, atlas: dict, timeline: dict) -> dict:
     """Create review-only edges without elevating inferred or historical claims."""
     src = rkg.get("source") or {}
@@ -66,42 +79,52 @@ def project(rkg: dict, atlas: dict, timeline: dict) -> dict:
             raise ValueError("dangling source edge")
         edges.append({"from": start, "to": end, "relation": relation,
                       "source": source, "standing": standing, "authority_effect": "NONE"})
-    for x in rkg.get("nodes", []):
+    for x in _list_field(rkg, "nodes"):
+        _require_strings(x, ("id",), ("type",))
         key = "rkg:" + x["id"]
         node(key, "RKG_" + x.get("type", "node"), x.get("label", x["id"]),
-             {"source": "#630", "records": x.get("provenance", [])[:3], "head": r_head})
+             {"source": "#630", "records": _list_field(x, "provenance")[:3], "head": r_head})
         if x["id"].startswith("artifact:"):
             path_nodes[x["id"][9:]] = key
-    for x in rkg.get("edges", []):
+    for x in _list_field(rkg, "edges"):
+        _require_strings(x, ("from", "to"), ("relation", "evidence_state"))
         link("rkg:" + x["from"], "rkg:" + x["to"], x.get("relation", "SOURCE_EDGE"),
              "#630", x.get("evidence_state", "CLAIMED"))
     atlas_ids = set()
-    for x in atlas.get("nodes", []):
+    for x in _list_field(atlas, "nodes"):
+        _require_strings(x, ("id",))
         aid = x["id"]
         atlas_ids.add(aid)
         node("atlas:" + aid, "ATLAS_COMPONENT", x.get("label", aid),
              {"source": "#835", "head": a_head, "file_count": x.get("file_count", 0)})
-    for x in atlas.get("edges", []):
+    for x in _list_field(atlas, "edges"):
+        _require_strings(x, ("source", "target"), ("kind",))
         link("atlas:" + x["source"], "atlas:" + x["target"],
              "ATLAS_" + x.get("kind", "REFERENCE"), "#835", "STATIC_SOURCE_ASSOCIATION")
-        for witness in x.get("evidence", []):
-            path = witness.get("source")
+        for witness in _list_field(x, "evidence"):
+            _require_strings(witness, ("source",))
+            path = witness["source"]
             # Bind exact paths only; labels, guesses and PR comments do not establish identity.
             if path in path_nodes:
                 link("atlas:" + x["source"], path_nodes[path], "EXACT_PATH_WITNESS",
                      "#835", "STATIC_SOURCE_ASSOCIATION")
     for x in timeline["nodes"]:
+        _require_strings(x, ("id",))
+        files = _list_field(x, "files")
+        if not all(isinstance(path, str) for path in files):
+            raise ValueError("timeline file paths must be strings")
         nid = "time:" + x["id"]
         status = x.get("date_source", "unknown")
         node(nid, "TIMELINE_OBSERVATION", x.get("name", x["id"]),
              {"source": "#841", "source_head_abbrev": timeline.get("head"),
               "first_seen": x.get("first_seen"), "last_changed": x.get("last_changed"),
-              "date_source": status, "files": x.get("files", [])})
-        for path in x.get("files", []):
+              "date_source": status, "files": files})
+        for path in files:
             if path in path_nodes:
                 link(nid, path_nodes[path], "HISTORICAL_EXACT_PATH_REFERENCE",
                      "#841", "GIT_DATE_OBSERVATION" if status == "git" else "FALLBACK_DATE")
     for x in timeline["edges"]:
+        _require_strings(x, ("source", "target"), ("edge_type",))
         link("time:" + x["source"], "time:" + x["target"],
              "TIMELINE_" + x.get("edge_type", "SOURCE_EDGE"),
              "#841", "HISTORICAL_DECLARATION")
