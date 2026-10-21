@@ -15,7 +15,9 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: on-track-reflex-${{ github.repository }}
+  # One observation per PR (or issue, or manual run). A shared repo-wide group
+  # cancelled unrelated PRs' runs and bursted the GitHub API into 403s.
+  group: on-track-reflex-observe-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
