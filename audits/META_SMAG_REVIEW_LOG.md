@@ -41,7 +41,7 @@ Workflow execution status for any unobserved run remains unverified pending hist
 
 | Dimension | Finding |
 |:----------|:--------|
-| **Accuracy measured** | 2/2 correct (100% on observed PRs) |
+| **Observed resolved merge fraction** | 2/2 (100% among resolved, not independently verified rework-free success) |
 | **Accuracy confidence** | `insufficient_data` — below 3-PR floor |
 | **Focus areas** | None (sample too small for pattern analysis) |
 | **Calibration stability** | Cannot assess (need ≥3 observations) |
@@ -49,15 +49,15 @@ Workflow execution status for any unobserved run remains unverified pending hist
 
 ### Open Question: Week 2 Consolidation Status
 
-**Hypothesis:** Consolidation workflow may not have executed in week 2. Weeks 4 and 5 produced PRs that are still open.
+**Uncertainty:** Week 2 produced PR #573, later merged on October 1. Whether the scheduled workflow ran at its expected time remains unverified; weeks 3–5 produced open PRs.
 
 **Action needed (Z2/Z3):** 
 1. Check `.github/workflows/smag-consolidate.yml` execution history for week 2
 2. If workflow failed: diagnose and fix root cause
-3. If workflow was skipped/not triggered: verify cron or trigger manually
+3. If workflow was skipped/not triggered: investigate cron before any authorized prospective rerun; never backdate evidence
 4. Track merge of PRs #724, #817, #931 before extended deadline (2026-11-03)
 
-**Data recovery:** Could manually run `workflow_dispatch` for the missing week 2 run if needed.
+**Data recovery:** A new workflow_dispatch is not evidence of the historical week 2 execution.
 
 ### Decision Recommendation
 
@@ -68,8 +68,8 @@ Status: ❌ Not applicable (2 PRs measured)
 
 **Recommended action:**
 - ✅ Extend window 2 more weeks (until ~2026-11-03) to accumulate ≥3 observations
-- ⚠️ Investigate why weeks 2, 4, 5 consolidations didn't produce PRs
-- ↻ Re-run this review on 2026-11-03 with full 4-week sample (expected 4-5 PRs)
+- ⚠️ Verify week 2 workflow scheduling separately; monitor the open PRs #724, #817, #931
+- ↻ Re-run this review on 2026-11-03 with extended lookback (outcome sample size remains unknown)
 
 ---
 
@@ -89,6 +89,6 @@ Status: ❌ Not applicable (2 PRs measured)
 ## Next Checkpoint
 
 **Scheduled:** 2026-11-03 (extended window, ~6 weeks total data)  
-**Expected data:** 4-5 consolidation PRs with smag_p_meta predictions  
-**Expected confidence:** "stable" if the calibration gap is ≤5% (sufficient for Z2 decision on weighting/recalibration)
+**Expected data:** Up to five identified PRs; pending outcomes cannot be assumed resolved  
+**Expected confidence:** "stable" requires a gap ≤5% **and** independently verified resolved observations meeting the floor; otherwise insufficient_data
 
