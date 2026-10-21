@@ -11,6 +11,8 @@ class TestEvaluator(unittest.TestCase):
  def check(self):return m.evaluate(self.data,self.root)
  def test_valid_advisory(self):
   r=self.check();self.assertEqual(r['status'],'PASS');self.assertFalse(r['admitted'])
+ def test_smoke_test(self):
+  self.assertIs(m.run_smoke_test(),True)
  def test_missing_evidence(self):
   self.data['governance_pins']={};self.assertEqual(self.check()['status'],'FAIL')
  def test_fake_pin(self):
@@ -19,6 +21,12 @@ class TestEvaluator(unittest.TestCase):
   self.data['claimed_authority']='Z2';self.assertEqual(self.check()['status'],'FAIL')
  def test_alias(self):
   self.data['changed_files']=['./REGISTERED.md'];self.assertEqual(self.check()['status'],'FAIL')
+ def test_manifest_requires_ratification_with_matching_pin(self):
+  for path in ('.gov-control/governance-files.yaml','./.gov-control/governance-files.yaml'):
+   with self.subTest(path=path):
+    self.data['changed_files']=[path]
+    r=self.check();self.assertEqual(r['status'],'FAIL')
+    self.assertEqual(r['reasons'],['RATIFICATION_REQUIRED:.gov-control/governance-files.yaml'])
  def test_distinct_events(self):
   ids=[x['id'] for x in self.check()['event_nodes']];self.assertTrue(set(('A1','A3','B6','B6b'))<=set(ids))
  def test_diff_mismatch(self):
