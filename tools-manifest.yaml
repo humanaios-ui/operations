@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 214
+  tools: 215
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 166
+  builder_markers_present: 167
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2722,6 +2722,19 @@ tools:
   smoke_test: true
   builder_markers: true
   session: S-20261017-AZURE-915
+- tool_id: HAIOS-TOOL-228
+  name: pre_submit
+  path: tools/pre_submit.py
+  version: 1.0.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: pre_submit.py — run the PR pre-submission checks in one command.
+  session: S-101126-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
