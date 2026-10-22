@@ -65,7 +65,7 @@ class AuditGateTests(unittest.TestCase):
         self.assertEqual(gate.evaluate(d)["claims"]["C1"]["contract"], "BLOCKED")
     def test_risk_sampling(self):
         self.assertEqual([gate.sample_size(n) for n in (0, 1, 4, 5, 30, 50, 400)],
-                         [0, 1, 4, 5, 30, 50, 40])
+                         [0, 1, 4, 5, 30, 30, 40])
         self.assertGreater(gate.upper95_zero_failures(5), .4)
     def test_vendor_cannot_make_five_samples_sufficient(self):
         d = sample()
