@@ -5,7 +5,9 @@ on:
   pull_request:
     paths:
       - 'agent_coordination/reflex.py'
+      - 'agent_coordination/acat_loop.py'
       - 'tests/test_agent_coordination_reflex.py'
+      - 'tests/test_agent_coordination_acat_loop.py'
       - 'docs/AGENT_COORDINATION_REFLEX_PILOT.md'
       - 'AGENTS.md'
       - 'CLAUDE.md'
@@ -16,7 +18,9 @@ on:
     branches: [main]
     paths:
       - 'agent_coordination/reflex.py'
+      - 'agent_coordination/acat_loop.py'
       - 'tests/test_agent_coordination_reflex.py'
+      - 'tests/test_agent_coordination_acat_loop.py'
       - '.github/workflows/agent-coordination-reflex-pilot.yml'
 
 permissions:
@@ -32,6 +36,6 @@ jobs:
         with:
           python-version: '3.11'
       - name: Verify syntax
-        run: python3 -m py_compile agent_coordination/reflex.py tests/test_agent_coordination_reflex.py
+        run: python3 -m py_compile agent_coordination/reflex.py agent_coordination/acat_loop.py tests/test_agent_coordination_reflex.py tests/test_agent_coordination_acat_loop.py
       - name: Deterministic offline tests
-        run: python3 -m unittest discover -s tests -p 'test_agent_coordination_reflex.py' -v
+        run: python3 -m unittest discover -s tests -p 'test_agent_coordination_*.py' -v
