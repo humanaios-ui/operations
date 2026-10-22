@@ -1,0 +1,110 @@
+[
+  {
+    "signal_id":"JRS-PROGRAM-CONTROLS-001",
+    "role_families":["AI/Technical Program Management","Quality Program Management","Research Operations"],
+    "signal":"Formal project controls: milestones, schedules, dependency tracking, risk registers, status reporting, governance cadence, and acceptance criteria.",
+    "market_basis":"Recurring requirement pattern in current public program/project-management descriptions reviewed 2026-10-02.",
+    "resume_coverage":"PARTIAL",
+    "project_ids":["PER-HUMANAIOS-ACAT-001","PER-PIONEERS-EMR-001","PER-VALLEYVIEW-SAFETY-001","PER-HUMANAIOS-BOT-001"],
+    "rule":"Create an interrogation target; do not convert market demand into a candidate-experience claim."
+  },
+  {
+    "signal_id":"JRS-BUDGET-001",
+    "role_families":["Program Management","Operations","Research Operations"],
+    "signal":"Budget ownership, resource planning, financial tracking, procurement, and cost accountability.",
+    "market_basis":"Recurring across public program/operations descriptions; current resume directly supports P&L and some cost modeling but omits scale for most projects.",
+    "resume_coverage":"PARTIAL",
+    "project_ids":["PER-WAFFLE-OPS-001","PER-HUMANAIOS-ACAT-001","PER-BENEWAH-LAB-001"],
+    "rule":"Ask for scale, decision rights, and documented outcomes."
+  },
+  {
+    "signal_id":"JRS-VENDOR-001",
+    "role_families":["Technical Program Management","Quality Operations","Clinical/Lab Operations"],
+    "signal":"Vendor, contractor, supplier, service-agreement, implementation-partner, or procurement management.",
+    "market_basis":"Common in cross-functional implementation and quality/operations roles.",
+    "resume_coverage":"UNKNOWN",
+    "project_ids":["PER-PIONEERS-EMR-001","PER-BENEWAH-LAB-001","PER-WAFFLE-OPS-001"],
+    "rule":"Missing from resume is not evidence of absence."
+  },
+  {
+    "signal_id":"JRS-METRICS-001",
+    "role_families":["All sampled role families"],
+    "signal":"Quantified outcomes: defects, cycle time, audit findings, budget variance, adoption, quality, throughput, incident reduction, delivery performance.",
+    "market_basis":"Current descriptions consistently emphasize measurable delivery/outcomes.",
+    "resume_coverage":"PARTIAL",
+    "project_ids":["PER-HUMANAIOS-ACAT-001","PER-PIONEERS-EMR-001","PER-BENEWAH-LAB-001","PER-LABCORP-QUALITY-001","PER-WAFFLE-OPS-001","PER-VALLEYVIEW-SAFETY-001","PER-HUMANAIOS-BOT-001"],
+    "rule":"Prefer measured facts; do not manufacture percentages."
+  },
+  {
+    "signal_id":"JRS-CAPA-001",
+    "role_families":["Quality Systems","Clinical Quality","Regulated Operations"],
+    "signal":"Deviation/nonconformance investigation, CAPA or corrective-action ownership, root-cause analysis, and closure effectiveness.",
+    "market_basis":"Recurring in current quality-management descriptions.",
+    "resume_coverage":"PARTIAL_TO_SUPPORTED",
+    "project_ids":["PER-LABCORP-QUALITY-001","PER-PIONEERS-EMR-001","PER-VALLEYVIEW-SAFETY-001"],
+    "rule":"Use CAPA terminology only if the underlying process actually used CAPA; otherwise preserve 'corrective action/root-cause analysis'."
+  },
+  {
+    "signal_id":"JRS-DOCUMENT-CONTROL-001",
+    "role_families":["Quality Systems","Clinical Quality"],
+    "signal":"SOP ownership, controlled documents, training records, change control, inspection-ready evidence.",
+    "market_basis":"Recurring requirement in quality-system job descriptions.",
+    "resume_coverage":"UNKNOWN",
+    "project_ids":["PER-LABCORP-QUALITY-001","PER-PIONEERS-EMR-001"],
+    "rule":"Do not infer GxP/GMP/GCP or document-control ownership from ISO/CAP/CLIA experience."
+  },
+  {
+    "signal_id":"JRS-INSPECTION-READINESS-001",
+    "role_families":["Quality Systems","Clinical Quality","Regulated Program Management"],
+    "signal":"Audit/inspection readiness, finding management, evidence packages, regulatory response, and closure tracking.",
+    "market_basis":"Recurring in public regulated-quality roles.",
+    "resume_coverage":"SUPPORTED",
+    "project_ids":["PER-LABCORP-QUALITY-001","PER-PIONEERS-EMR-001"],
+    "rule":"Map to ISO/CAP/CLIA and healthcare audit evidence; do not relabel it as FDA/GCP/GMP without support."
+  },
+  {
+    "signal_id":"JRS-PEOPLE-PROGRAM-001",
+    "role_families":["Operations Management","Program Management","Research Operations"],
+    "signal":"Hiring, onboarding, coaching, performance management, training programs, workload planning, and team development.",
+    "market_basis":"Common in manager-level descriptions.",
+    "resume_coverage":"PARTIAL",
+    "project_ids":["PER-WAFFLE-OPS-001","PER-BENEWAH-LAB-001","PER-VALLEYVIEW-SAFETY-001"],
+    "rule":"Team size is supported; hiring/performance-management details require human confirmation."
+  },
+  {
+    "signal_id":"JRS-IMPLEMENTATION-SCALE-001",
+    "role_families":["Technical Program Management","Healthcare IT","Enterprise Transformation"],
+    "signal":"Implementation scale: users, sites, systems, data volume, geographic reach, rollout phases, go-live/cutover scope.",
+    "market_basis":"Recurring in enterprise transformation descriptions.",
+    "resume_coverage":"UNKNOWN",
+    "project_ids":["PER-PIONEERS-EMR-001"],
+    "rule":"Ask for exact scale and ownership boundary."
+  },
+  {
+    "signal_id":"JRS-TECHNICAL-PLATFORM-001",
+    "role_families":["Technical Program Management","Clinical/Lab Operations","AI Program Management"],
+    "signal":"Named systems/platforms, integrations, architecture, SDLC/release practices, technical interfaces, and tooling.",
+    "market_basis":"Common in technical program and regulated-operations descriptions.",
+    "resume_coverage":"PARTIAL",
+    "project_ids":["PER-HUMANAIOS-ACAT-001","PER-PIONEERS-EMR-001","PER-BENEWAH-LAB-001","PER-HUMANAIOS-BOT-001"],
+    "rule":"Existing resume names several AI/automation tools but omits many healthcare/lab platforms."
+  },
+  {
+    "signal_id":"JRS-STAKEHOLDER-SCALE-001",
+    "role_families":["Program Management","Research Operations","Quality Leadership"],
+    "signal":"Cross-functional stakeholder scale, executive governance, steering committees, external partners, regulators, vendors, and collaborators.",
+    "market_basis":"Recurring across manager/program descriptions.",
+    "resume_coverage":"PARTIAL",
+    "project_ids":["PER-HUMANAIOS-ACAT-001","PER-PIONEERS-EMR-001","PER-LABCORP-QUALITY-001"],
+    "rule":"Resume supports cross-functional work, but scale and decision rights remain under-specified."
+  },
+  {
+    "signal_id":"JRS-INCIDENT-001",
+    "role_families":["Technical Program Management","Operations","AI/Data Operations"],
+    "signal":"Incident management, escalation, rollback, postmortem, monitoring, and corrective follow-through.",
+    "market_basis":"Common in production/technical operations descriptions.",
+    "resume_coverage":"PARTIAL",
+    "project_ids":["PER-WAFFLE-OPS-001","PER-HUMANAIOS-BOT-001","PER-HUMANAIOS-ACAT-001"],
+    "rule":"Do not translate general problem-solving into formal incident-management practice without evidence."
+  }
+]

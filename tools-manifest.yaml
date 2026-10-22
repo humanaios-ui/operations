@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 197
+  tools: 215
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 150
+  builder_markers_present: 167
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2233,7 +2233,7 @@ tools:
 - tool_id: HAIOS-TOOL-188
   name: repository_coordinator
   path: tools/repository_coordinator_v0_1.py
-  version: 0.2.1
+  version: 0.3.0
   category: diagnostic_tool
   zone: 1
   status: draft
@@ -2475,7 +2475,7 @@ tools:
 - tool_id: HAIOS-TOOL-208
   name: machine_graph_collect_macos
   path: tools/machine_graph/collect_macos.py
-  version: 0.1.0
+  version: 0.1.1
   category: pipeline_tool
   zone: 1
   status: draft
@@ -2499,8 +2499,168 @@ tools:
   purpose: Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies.
   session: '#596'
 - tool_id: HAIOS-TOOL-210
-  name: calibration_graph_validate
-  path: tools/calibration_graph/validate_graph.py
+  name: repository_coordinator_state
+  path: tools/repository_coordinator_state_v1.py
+  version: 1.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Repository Coordinator state ledger + deterministic projection.
+  session: REPOSITORY-COORDINATOR-STATE-01
+- tool_id: HAIOS-TOOL-211
+  name: repository_coordinator_state_v1_1
+  path: tools/repository_coordinator_state_v1_1.py
+  version: 1.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation,
+    and durable RCD receipt primitives.
+  session: REPOSITORY-COORDINATOR-STATE-02
+- tool_id: HAIOS-TOOL-212
+  name: gner_failure_signatures_e2
+  path: tools/gner_failure_signatures_e2.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'GNER-E2: conservative cross-run failure signature candidates (no authority).'
+- tool_id: HAIOS-TOOL-213
+  name: gner_notification_e0
+  path: tools/gner_notification_e0.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'GNER-E0: offline GitHub notification lead interpreter.'
+- tool_id: HAIOS-TOOL-214
+  name: gner_verify_e1
+  path: tools/gner_verify_e1.py
+  version: 0.1.0
+  category: connector_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: GNER-E1 explicit, read-only authenticated GitHub workflow-run reconciliation.
+  session: read_only_github_api
+- tool_id: HAIOS-TOOL-215
+  name: b4_fold_execute
+  path: .z1-control/b4_fold_execute.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification.'
+- tool_id: HAIOS-TOOL-216
+  name: b4_migrate
+  path: .z1-control/b4_migrate.py
+  version: 2.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store.
+- tool_id: HAIOS-TOOL-217
+  name: board_monitor
+  path: .z1-control/board_monitor.py
+  version: 1.0.0
+  category: monitoring_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Mesh build-board monitor — surfaces board status changes at end of turn.
+- tool_id: HAIOS-TOOL-218
+  name: candidate_bundle
+  path: .z1-control/candidate_bundle.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle.'
+- tool_id: HAIOS-TOOL-219
+  name: leak_guard
+  path: .z1-control/leak_guard.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'leak_guard.py — B6: bound the two Empirica session leaks.'
+- tool_id: HAIOS-TOOL-220
+  name: ratify_eco
+  path: .z1-control/ratify_eco.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact.'
+- tool_id: HAIOS-TOOL-221
+  name: state_continuity_verification
+  path: tools/state_continuity_verification_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
+- tool_id: HAIOS-TOOL-222
+  name: coderabbit_coverage_inventory
+  path: tools/coderabbit_coverage_inventory.py
+  version: 0.2.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806)
+- tool_id: HAIOS-TOOL-223
+  name: humanaios_core_machine
+  path: tools/humanaios_core_machine_v0_1.py
   version: 0.1.0
   category: validation_tool
   zone: 1
@@ -2509,8 +2669,71 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
-  session: '#595'
+  purpose: Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator.
+  session: issue-810
+- tool_id: HAIOS-TOOL-224
+  name: ci_predict_rollup
+  path: tools/ci_predict_rollup_v0_1.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: ci_predict_rollup_v0_1.py
+  session: issue-870
+- tool_id: HAIOS-TOOL-225
+  name: graph_lookup
+  path: tools/graph_lookup_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph.
+  session: Q-REPO-GRAPH-LOOKUP-01
+- tool_id: HAIOS-TOOL-226
+  name: kg_map_check
+  path: tools/kg_map_check_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph.
+  session: unassigned
+- tool_id: HAIOS-TOOL-227
+  name: azure_readiness
+  path: tools/azure_readiness.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  session: S-20261017-AZURE-915
+- tool_id: HAIOS-TOOL-228
+  name: coordinator_admission_sweep_dryrun
+  path: tools/coordinator_admission_sweep_dryrun.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

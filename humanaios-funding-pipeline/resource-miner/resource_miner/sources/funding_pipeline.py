@@ -16,6 +16,7 @@ def discover(path: str | Path):
             continue
         notes = str(row.get("notes") or "")
         value = str(row.get("award_size") or "")
+        category = str(row.get("category") or "")
         tags = [str(x) for x in row.get("eligibility_tags") or []]
         candidate = normalize_generic(
             title=title,
@@ -24,11 +25,20 @@ def discover(path: str | Path):
             discovery_method="canonical_funding_pipeline",
             description=" ".join(x for x in [value, notes] if x),
             sponsor=str(row.get("sponsor") or ""),
-            tags=[str(row.get("category") or ""), *tags],
+            tags=[category, *tags],
             body_text=notes,
             observed_at=observed,
             raw=row,
+            source_category=category,
         )
         candidate.deadline = row.get("deadline") or candidate.deadline
         candidate.status = str(row.get("status") or candidate.status).upper()
+        explicit_affordances = {
+            str(x).strip()
+            for x in row.get("affordances") or []
+            if str(x).strip()
+        }
+        candidate.resource_affordances = sorted(
+            set(candidate.resource_affordances) | explicit_affordances
+        )
         yield candidate

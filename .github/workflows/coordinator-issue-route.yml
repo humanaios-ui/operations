@@ -1,0 +1,33 @@
+name: coordinator-issue-route
+
+# Retired route: responds with a notice only; never mutates admission state.
+# Trusted issue handling lives in repository-admission-gate.yml.
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  # Limit overlapping notices for the same issue; later notices cancel earlier ones.
+  group: coordinator-issue-route-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+# Legacy free-form comment dispatcher is intentionally disabled.
+# Issue commands are handled by the policy-bound 'issue_mutate' job in
+# repository-admission-gate.yml. PR admission requires authenticated
+# exact-head approval and must never follow a comment-only dispatch.
+jobs:
+  route:
+    name: Reject legacy comment-only coordinator dispatch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Fail closed and direct operators to trusted path
+        run: |
+          echo "::notice::Legacy comment-only workflow dispatch disabled. Use policy-bound issue_mutate for issues; PR admission requires independent authenticated approval."
