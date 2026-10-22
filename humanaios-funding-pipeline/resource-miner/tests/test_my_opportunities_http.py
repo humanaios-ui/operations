@@ -51,7 +51,7 @@ class MyOpportunitiesHttpTests(unittest.TestCase):
         self.assertIn("text/html", mime)
         self.assertIn(b"My Opportunities", page)
         self.assertIn(b"/api/my-opportunities/project", page)
-        self.assertIn(b"Import your local journey JSON", page)
+        self.assertIn(b"Import local journey or private evidence bundle JSON", page)
         _, _, home = self.get("/intent-os")
         self.assertIn(b'href="/my-opportunities"', home)
         self.assertIn(b"myOpportunitiesLink", home)
