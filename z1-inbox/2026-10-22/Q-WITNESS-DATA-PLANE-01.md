@@ -67,7 +67,7 @@ proposed_decisions:
   - id: D2-VISIBILITY
     rule: "Operator access to user data requires a user-issued grant with purpose and expiry, recorded in an append-only log that the user can read."
   - id: D3-KEY
-    rule: "Key derived in the browser. Server receives ciphertext and public metadata only. Recovery code shown once, at setup."
+    rule: "Key derived in the browser. Persistent workspace storage holds ciphertext and public metadata only. Recovery code shown once, at setup. This rule scopes persistence only: transient plaintext processing during a scan is governed by D4 and D5 and is not restricted here."
   - id: D4-SCAN-IN-MEMORY
     rule: "Identifiers are sent per scan over TLS and held in process memory for the duration of that scan. The scan route must not call any logger, write to disk, or write to a volume with identifiers in the payload."
   - id: D5-RESULTS
