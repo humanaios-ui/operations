@@ -1,0 +1,37 @@
+{
+  "schema": "humanaios.oracle_smag_outcomes.offline_v0_1",
+  "capture_note": "Separate GitHub PR metadata observation. Merge is not proof of admission, CI success or rework-free quality.",
+  "snapshot_at": "2026-10-21T20:00:00Z",
+  "rows": [
+    {
+      "pr": 432,
+      "head_sha": "6d00c2b761eec6a3176601ff47019146b47574b8",
+      "status": "MERGED",
+      "merged_at": "2026-09-21T10:05:23Z"
+    },
+    {
+      "pr": 573,
+      "head_sha": "ff35312915a8e742645b4d210986e71e24ee2552",
+      "status": "MERGED",
+      "merged_at": "2026-10-01T23:25:49Z"
+    },
+    {
+      "pr": 724,
+      "head_sha": "a8c96458a579f40788dd23c11a94c5bfc94ef92a",
+      "status": "OPEN",
+      "merged_at": null
+    },
+    {
+      "pr": 817,
+      "head_sha": "7d1062f92b6d40bfa31c5648159cde9a7b0d6fba",
+      "status": "OPEN",
+      "merged_at": null
+    },
+    {
+      "pr": 931,
+      "head_sha": "a8cd2a66ae229fbc9a60c4f886126867afcca3b9",
+      "status": "OPEN",
+      "merged_at": null
+    }
+  ]
+}
