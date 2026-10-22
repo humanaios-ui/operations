@@ -8,6 +8,8 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
+import oracles.engine.forecast_replay_v0_1 as oracle
+
 from oracles.engine.forecast_replay_v0_1 import (
     ForecastContractError,
     adapt_ci_predict_ledger,
@@ -86,6 +88,44 @@ def test_manifest_matches_schema_and_seal() -> None:
     schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     Draft202012Validator(schema, format_checker=FormatChecker()).validate(manifest)
     verify_manifest_seal(manifest)
+
+
+def test_subsecond_creation_and_close_boundaries_survive_utc_normalization() -> None:
+    manifest = build_manifest(
+        forecast_id="FC-FRACTIONAL",
+        question_key="subsecond_v1",
+        question="Will the subsecond event occur?",
+        subject_ref="fixture:subsecond",
+        created_at="2026-10-20T10:00:00.100Z",
+        closes_at="2026-10-20T10:00:00.900Z",
+        evidence_cutoff={
+            "kind": "TIMESTAMP", "sequence": 0,
+            "ref": "2026-10-20T10:00:00.000Z",
+        },
+        resolution_rule="YES iff the witness observes the event.",
+        resolution_sources=["fixture:subsecond"],
+        owner="oracle-test",
+    )
+    assert manifest["created_at"].endswith("00.100000Z")
+    assert manifest["closes_at"].endswith("00.900000Z")
+    valid = start_episode(
+        manifest, predictor_id="subsecond-model", probability=0.5,
+        recorded_at="2026-10-20T10:00:00.800Z",
+        evidence_refs=["fixture:pre-outcome"],
+    )
+    validate_episode(valid)
+    with pytest.raises(ForecastContractError, match="cannot precede"):
+        start_episode(
+            manifest, predictor_id="subsecond-model", probability=0.5,
+            recorded_at="2026-10-20T10:00:00.050Z",
+            evidence_refs=["fixture:pre-outcome"],
+        )
+    with pytest.raises(ForecastContractError, match="after the close"):
+        start_episode(
+            manifest, predictor_id="subsecond-model", probability=0.5,
+            recorded_at="2026-10-20T10:00:00.950Z",
+            evidence_refs=["fixture:pre-outcome"],
+        )
 
 
 def test_manifest_tampering_breaks_seal() -> None:
@@ -261,24 +301,58 @@ def test_annulment_is_preserved_but_not_scored() -> None:
     assert episode["resolution"]["reason"]
 
 
+@pytest.mark.parametrize("verification_status", ["VERIFIED", "RECORDED_NOT_REVERIFIED"])
+def test_imported_annulment_requires_asserted_status(verification_status: str) -> None:
+    episode = annul_episode(
+        _episode(), resolver_id="independent-witness", reason="unresolved",
+        source_refs=["fixture:unverified"], resolved_at="2026-10-21T10:00:00Z",
+    )
+    episode["resolution"] = oracle._seal({
+        **episode["resolution"], "verification_status": verification_status,
+    })
+    original = copy.deepcopy(episode)
+    with pytest.raises(ForecastContractError, match="annulment verification_status must be ASSERTED"):
+        validate_episode(episode)
+    assert episode == original
+
+
 def test_aggregation_caps_correlated_duplicate_influence() -> None:
     high = _episode("FC-HIGH", 0.8)["forecasts"][0]
-    low = _episode("FC-LOW", 0.2)["forecasts"][0]
+    low = oracle._seal({**high, "predictor_id": "independent-model-b", "probability": 0.2})
     two_voice = aggregate_forecasts([
         {"forecast": high, "independence_group": "model-family-a"},
         {"forecast": low, "independence_group": "model-family-b"},
     ])
-    duplicated = aggregate_forecasts([
-        {"forecast": high, "independence_group": "model-family-a"},
-        {"forecast": copy.deepcopy(high), "independence_group": "model-family-a"},
-        {"forecast": low, "independence_group": "model-family-b"},
-    ])
     assert two_voice["probability"] == pytest.approx(0.5)
-    assert duplicated["probability"] == pytest.approx(0.5)
-    assert duplicated["member_count"] == 3
-    assert duplicated["independence_group_count"] == 2
-    assert duplicated["authority_effect"] == "NONE"
-    assert duplicated["can_authorize"] is False
+    with pytest.raises(ForecastContractError, match="duplicate"):
+        aggregate_forecasts([
+            {"forecast": high, "independence_group": "model-family-a"},
+            {"forecast": copy.deepcopy(high), "independence_group": "model-family-a"},
+            {"forecast": low, "independence_group": "model-family-b"},
+        ])
+    with pytest.raises(ForecastContractError, match="different manifests"):
+        aggregate_forecasts([
+            {"forecast": high, "independence_group": "model-family-a"},
+            {"forecast": oracle._seal({**_episode("FC-OTHER", 0.2)["forecasts"][0], "predictor_id": "other-independent"}), "independence_group": "model-family-b"},
+        ])
+
+
+@pytest.mark.parametrize("first_id,second_id", [
+    ("oracle-assembly", " oracle-assembly "),
+    (" oracle-assembly ", "oracle-assembly"),
+    (" oracle-assembly ", "\toracle-assembly\n"),
+])
+def test_aggregation_rejects_whitespace_disguised_duplicates(
+    first_id: str, second_id: str,
+) -> None:
+    snapshot = _episode()["forecasts"][0]
+    first = oracle._seal({**snapshot, "predictor_id": first_id})
+    second = oracle._seal({**snapshot, "predictor_id": second_id})
+    with pytest.raises(ForecastContractError, match="duplicate forecaster"):
+        aggregate_forecasts([
+            {"forecast": first, "independence_group": "model-family-a"},
+            {"forecast": second, "independence_group": "model-family-b"},
+        ])
 
 
 def test_cohort_metrics_are_descriptive_without_sampling_frame() -> None:
@@ -305,8 +379,8 @@ def test_complete_homogeneous_prospective_cohort_can_be_claim_ready() -> None:
         sampling_frame_sealed_before_outcomes=True,
         minimum_claim_n=2,
     )
-    assert report["claim_status"] == "CALIBRATION_CLAIM_READY"
-    assert report["claim_blockers"] == []
+    assert report["claim_status"] == "DESCRIPTIVE_ONLY"
+    assert "INDEPENDENT_COHORT_ATTESTATION_UNAVAILABLE" in report["claim_blockers"]
 
 
 def test_asserted_outcome_receipt_blocks_a_calibration_claim() -> None:
@@ -392,6 +466,7 @@ def test_real_ci_resolutions_follow_pins_and_bind_sources() -> None:
         assert resolution_sequence > pin_sequence
         assert resolution["resolver_id"] != episode["forecasts"][0]["predictor_id"]
         assert resolution["source_refs"][0].startswith("https://github.com/")
+        assert resolution["verification_status"] == "RECORDED_NOT_REVERIFIED"
 
 
 def test_real_ci_ledger_tampering_is_refused_before_scoring() -> None:
@@ -399,3 +474,112 @@ def test_real_ci_ledger_tampering_is_refused_before_scoring() -> None:
     rows[1]["p"] = 0.01
     with pytest.raises(ForecastContractError, match="content hash"):
         adapt_ci_predict_ledger(rows)
+
+
+def test_resealed_manifest_from_another_episode_is_rejected() -> None:
+    episode = _resolved_episode()
+    other = _episode("FC-OTHER")["manifest"]
+    episode["manifest"] = other  # Both manifests have individually valid seals.
+    with pytest.raises(ForecastContractError, match="different manifest"):
+        validate_episode(episode)
+
+
+def test_resolution_cannot_be_transplanted_from_another_episode() -> None:
+    one = _resolved_episode("FC-ONE")
+    other = _resolved_episode("FC-TWO")
+    one["resolution"] = copy.deepcopy(other["resolution"])
+    with pytest.raises(ForecastContractError, match="different manifest"):
+        validate_episode(one)
+
+
+def test_future_evidence_window_is_rejected_even_with_valid_seal() -> None:
+    episode = _episode()
+    manifest = episode["manifest"]
+    manifest["evidence_cutoff"]["ref"] = "2026-10-22T10:00:00Z"
+    episode["manifest"] = oracle._seal(manifest)
+    episode["forecasts"][0]["manifest_seal_sha256"] = episode["manifest"]["seal_sha256"]
+    episode["forecasts"][0] = oracle._seal(episode["forecasts"][0])
+    with pytest.raises(ForecastContractError, match="future evidence cutoff"):
+        validate_episode(episode)
+
+
+def test_imported_f3_before_its_challenge_rejected() -> None:
+    episode = challenge_episode(
+        _episode(), challenger_id="jester", reasons=["test"],
+        evidence_refs=["fixture:challenger"], recorded_at="2026-10-20T11:00:00Z",
+    )
+    episode = correct_episode(
+        episode, predictor_id="oracle-assembly", probability=0.5,
+        recorded_at="2026-10-20T12:00:00Z", evidence_refs=["fixture:corrected"],
+    )
+    episode["forecasts"][1]["recorded_at"] = "2026-10-20T10:30:00Z"
+    episode["forecasts"][1] = oracle._seal(episode["forecasts"][1])
+    with pytest.raises(ForecastContractError, match="F3 cannot precede"):
+        validate_episode(episode)
+
+
+@pytest.mark.parametrize("verification_status", sorted(oracle.VERIFICATION_STATUSES))
+def test_caller_only_frame_and_verified_flag_never_grant_claim_readiness(
+    verification_status: str,
+) -> None:
+    episodes = [resolve_episode(
+        _episode(forecast_id), outcome=1, resolver_id="independent-witness",
+        source_refs=["fixture:outcome"], resolved_at="2026-10-21T10:00:00Z",
+        verification_status=verification_status,
+    ) for forecast_id in ("FC-ONE", "FC-TWO")]
+    original = copy.deepcopy(episodes)
+    report = score_cohort(
+        episodes, eligible_forecast_ids={"FC-ONE", "FC-TWO"},
+        sampling_frame_ref="caller:says:precommitted",
+        sampling_frame_sealed_before_outcomes=True, minimum_claim_n=2,
+    )
+    assert report["claim_status"] == "DESCRIPTIVE_ONLY"
+    assert "INDEPENDENT_COHORT_ATTESTATION_UNAVAILABLE" in report["claim_blockers"]
+    assert report["outcome_receipts_verified"] is False
+    assert "OUTCOME_RECEIPTS_NOT_INDEPENDENTLY_VERIFIED" in report["claim_blockers"]
+    assert episodes == original
+
+
+@pytest.mark.parametrize("has_pending_episode", [False, True])
+def test_cohort_without_outcomes_does_not_report_verification(
+    has_pending_episode: bool,
+) -> None:
+    report = score_cohort([_episode()] if has_pending_episode else [])
+    assert report["status"] == "NO_SCOREABLE_FORECASTS"
+    assert report["outcome_receipts_verified"] is False
+    assert report["claim_status"] == "DESCRIPTIVE_ONLY"
+
+
+def test_calibration_bin_boundary_at_point_six() -> None:
+    rows = [{"probability": 0.6, "outcome": 1}]
+    bins = oracle._calibration_bins(rows)
+    assert bins[0]["lower"] == pytest.approx(0.6)
+
+
+def test_annulment_must_not_self_attest_as_verified() -> None:
+    episode = annul_episode(
+        _episode(), resolver_id="independent-witness", reason="unresolved",
+        source_refs=["fixture:unverified"], resolved_at="2026-10-21T10:00:00Z",
+    )
+    assert episode["resolution"]["verification_status"] == "ASSERTED"
+
+
+def test_subsecond_forecast_boundaries_are_preserved() -> None:
+    manifest = copy.deepcopy(_episode()["manifest"])
+    manifest["created_at"] = "2026-10-20T10:00:00.900Z"
+    manifest["closes_at"] = "2026-10-20T10:00:01.900Z"
+    manifest["evidence_cutoff"]["ref"] = "2026-10-20T10:00:00.100Z"
+    manifest = oracle._seal(manifest)
+    args = dict(
+        predictor_id="oracle-assembly", probability=0.6,
+        evidence_refs=["fixture:timing"],
+    )
+    with pytest.raises(ForecastContractError, match="cannot precede its manifest"):
+        oracle.start_episode(manifest, recorded_at="2026-10-20T10:00:00.800Z", **args)
+    valid = oracle.start_episode(
+        manifest, recorded_at="2026-10-20T10:00:01.800Z", **args
+    )
+    oracle.validate_episode(valid)
+    with pytest.raises(ForecastContractError, match="after the close"):
+        oracle.start_episode(manifest, recorded_at="2026-10-20T10:00:01.901Z", **args)
+    assert oracle._normalized_timestamp("2026-10-20T10:00:00.900Z").startswith("2026-10-20T10:00:00.900")
