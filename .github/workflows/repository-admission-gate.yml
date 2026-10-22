@@ -1010,18 +1010,28 @@ jobs:
             // prior step. A PR-comment API failure here (rate limit, 403,
             // transient outage) must not bury that outcome — write it to the
             // durable job summary regardless of comment delivery.
+            // Bounded retry: a transient failure must not lose the receipt
+            // for a committed state event. Full reconciliation keyed to the
+            // ledger is tracked separately (see PR body).
             let commentError = null;
-            try {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: Number(process.env.PR_NUMBER),
-                body
-              });
-            } catch (err) {
-              commentError = err;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: Number(process.env.PR_NUMBER),
+                  body
+                });
+                commentError = null;
+                break;
+              } catch (err) {
+                commentError = err;
+                if (attempt < 3) await new Promise((r) => setTimeout(r, 2000 * attempt));
+              }
+            }
+            if (commentError) {
               core.warning(
-                "receipt comment failed to post (" + err.message + "); " +
+                "receipt comment failed to post after 3 attempts (" + commentError.message + "); " +
                 "recording the receipt in the job summary instead"
               );
             }
