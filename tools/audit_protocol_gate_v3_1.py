@@ -30,34 +30,49 @@ def upper95_zero_failures(n):
     return 1 - .05 ** (1 / n) if type(n) is int and n > 0 else None
 
 def evaluate(data):
-    scope = data.get("scope", {})
+    if not isinstance(data, dict):
+        raise ValueError("AUDIT_INPUT_NOT_OBJECT")
+    scope = data.get("scope_manifest", data.get("scope", {}))
+    if not isinstance(scope, dict):
+        raise ValueError("SCOPE_NOT_OBJECT")
+    records = data.get("claims", {})
+    if not isinstance(records, dict):
+        raise ValueError("CLAIMS_NOT_OBJECT")
     scope_ok = isinstance(scope, dict) and bool(re.fullmatch(
-        r"[0-9a-fA-F]{40}", str(scope.get("commit", ""))))
-    scope_ok &= bool(scope.get("target") and scope.get("environment")
+        r"[0-9a-fA-F]{40}", str(scope.get("repo_commit_40hex", scope.get("commit", "")))))
+    scope_ok &= bool((scope.get("target_name") or scope.get("target")) and scope.get("environment")
                      and scope.get("auditor") and scope.get("operator")
                      and scope.get("authorization_receipt")
                      and scope["auditor"] != scope["operator"])
     output = {"schema": "audit.v3.1", "independent_authentication": "UNVERIFIED",
               "authority_effect": "NONE", "merge_authority": False, "claims": {}}
     for claim, required in CONTROLS.items():
-        item = data.get("claims", {}).get(claim, {})
+        item = records.get(claim) or {}
+        if not isinstance(item, dict):
+            raise ValueError("CLAIM_NOT_OBJECT")
         if item.get("applicability") == "NOT_CLAIMED":
             output["claims"][claim] = {"contract": "NOT_CLAIMED", "claim": "NOT_CLAIMED", "gaps": []}
             continue
         gaps = [] if scope_ok else ["INVALID_SCOPE"]
         if item.get("applicability") != "CLAIMED":
             gaps.append("UNDECLARED_APPLICABILITY")
-        controls = item.get("controls", {})
+        controls = item.get("controls") or {}
+        if not isinstance(controls, dict):
+            raise ValueError("CONTROLS_NOT_OBJECT")
         for key in required:
-            test = controls.get(key, {})
+            test = controls.get(key) or {}
+            if not isinstance(test, dict):
+                raise ValueError("CONTROL_NOT_OBJECT")
             if test.get("state") != "OBSERVED_PASS":
                 gaps.append(key + ":NOT_PASSED")
-            if type(test.get("score")) is not int or test["score"] < 3:
+            if type(test.get("score")) is not int or not 3 <= test["score"] <= 4:
                 gaps.append(key + ":BELOW_FLOOR")
             if test.get("tier") not in ("E1", "E2") or not test.get("receipt"):
                 gaps.append(key + ":NO_INDEPENDENT_RECEIPT")
         if claim == "C1":
-            sample = item.get("risk_sample", {})
+            sample = item.get("risk_sample") or {}
+            if not isinstance(sample, dict):
+                raise ValueError("RISK_SAMPLE_NOT_OBJECT")
             n = sample.get("eligible")
             if type(n) is not int or n < 30:
                 gaps.append("A5:INSUFFICIENT_RISK_SAMPLE")
@@ -66,7 +81,9 @@ def evaluate(data):
             if sample.get("unauthorized_bypasses") != 0:
                 gaps.append("A5:BYPASS_UNKNOWN_OR_PRESENT")
         else:
-            training = item.get("training", {})
+            training = item.get("training") or {}
+            if not isinstance(training, dict):
+                raise ValueError("TRAINING_NOT_OBJECT")
             for field in ("teacher_version", "student_version", "baseline",
                           "sealed_holdout", "witness"):
                 if not training.get(field):
@@ -76,9 +93,13 @@ def evaluate(data):
                 gaps.append("B3:FEWER_THAN_THREE_CYCLES")
             elif any(type(v) not in (float, int) or not math.isfinite(v) for v in vals):
                 gaps.append("B3:INVALID_CYCLES")
-            elif any(vals[0] - v > .02 + 1e-12 for v in vals):
-                gaps.append("B3:CUMULATIVE_DROP")
-            if type(training.get("gain")) not in (float, int) or training["gain"] <= 0:
+            else:
+                if any(vals[0] - v > .02 + 1e-12 for v in vals):
+                    gaps.append("B3:CUMULATIVE_DROP")
+                if any(vals[i - 1] - vals[i] > .02 + 1e-12
+                       for i in range(1, len(vals))):
+                    gaps.append("B3:ADJACENT_DROP")
+            if type(training.get("gain")) not in (float, int) or not math.isfinite(training["gain"]) or training["gain"] <= 0:
                 gaps.append("B8.4:NONPOSITIVE_GAIN")
         output["claims"][claim] = {
             "contract": "BLOCKED" if gaps else "ELIGIBLE_FOR_REVIEW",
@@ -109,6 +130,6 @@ if __name__ == "__main__":
             result = evaluate(json.load(f))
         print(json.dumps(result, indent=2, sort_keys=True))
         sys.exit(2 if any(x["contract"] == "BLOCKED" for x in result["claims"].values()) else 0)
-    except (OSError, ValueError, IndexError, KeyError, TypeError) as exc:
+    except (OSError, ValueError, IndexError, KeyError, TypeError, AttributeError) as exc:
         print(json.dumps({"contract": "BLOCKED", "error": str(exc), "authority_effect": "NONE"}))
         sys.exit(2)
