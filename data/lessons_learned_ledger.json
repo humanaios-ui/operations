@@ -119,33 +119,41 @@
     },
     {
       "id": "SMAG-FEEDBACK-DRIVER-VERCEL-RESOURCE-MINER-cb090b6a",
-      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
+      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (74 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
-      "rule": "The check `Vercel \u2013 resource-miner` failed on 10 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "rule": "The check `Vercel \u2013 resource-miner` failed on 10 pinned-prediction PR(s) (overall gap_rate 0.284). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
       "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
       "smag_generated": true
     },
     {
       "id": "SMAG-FEEDBACK-DRIVER-REPOSITORY-ADMISSION-BACKPRESSURE-GATE-36318ba5",
-      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
+      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (74 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
-      "rule": "The check `Repository admission/backpressure gate` failed on 5 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "rule": "The check `Repository admission/backpressure gate` failed on 14 pinned-prediction PR(s) (overall gap_rate 0.284). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
       "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
       "smag_generated": true
     },
     {
       "id": "SMAG-FEEDBACK-DRIVER-VERIFY-Z2-RATIFICATION-REQUIREMENTS-243c35a4",
-      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
+      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (74 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
-      "rule": "The check `Verify Z2 Ratification Requirements` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "rule": "The check `Verify Z2 Ratification Requirements` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.284). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
       "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
       "smag_generated": true
     },
     {
       "id": "SMAG-FEEDBACK-DRIVER-VERCEL-ENTITLEMENT-NAVIGATOR-ccbe9059",
-      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
+      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (74 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
-      "rule": "The check `Vercel \u2013 entitlement-navigator` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "rule": "The check `Vercel \u2013 entitlement-navigator` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.284). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
+      "smag_generated": true
+    },
+    {
+      "id": "SMAG-FEEDBACK-DRIVER-CHECK-PRINCIPLES-P19-8631c7a0",
+      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (74 calibration rows)",
+      "constraint": "recurring_failing_check_on_pinned_prs",
+      "rule": "The check `Check principles (P19)` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.284). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
       "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
       "smag_generated": true
     }
