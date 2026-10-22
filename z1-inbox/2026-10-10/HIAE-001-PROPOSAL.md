@@ -26,7 +26,7 @@ Run: `python3 tools/hiae_assurance.py --smoke-test` and `python3 -m unittest tes
 
 - **Signatures are HMAC-SHA256 with shared keys.** This stands in for an asymmetric scheme (Ed25519 or a W3C VC proof). The verifier must hold issuer keys, so receipts are not publicly verifiable. Replacing this is a Z2 decision.
 - **Demo keys are fixtures.** `DEMO_KEYS` are derived from public labels, not secrets, and must not be used to sign a real receipt.
-- **Hash chaining is not used for authorship.** Authorship rests on observer, reviewer and issuer signatures. Each observer signature covers the request, subject, protocol and observation time, so evidence cannot be replayed into another receipt.
+- **Hash chaining is not used for authorship.** Authorship rests on observer, reviewer and issuer signatures. Each observer signature covers the request, subject, protocol and observation time, so evidence cannot be replayed into a receipt for a different request, subject or protocol. This does not stop the same evidence item from appearing in another receipt for the same request. That needs a receipt-level replay control, which is not specified yet.
 - **Fee/escrow and reviewer-key-per-change are not implemented.** They are design items for later review.
 - **Principle 10 and credentialing** are in the humanaios child issue, not here.
 - **Overclaim filter is lexical.** It will miss paraphrases and will flag some correct uses.

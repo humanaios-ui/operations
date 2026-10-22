@@ -372,6 +372,10 @@ def verify_receipt(
     # Issuer signature covers everything except the issuer signature itself.
     sig = receipt.get("signature") or {}
     issuer_body = {k: v for k, v in receipt.items() if k != "signature"}
+    # The key is chosen by the envelope's issuer_id, which no signature covers, so it
+    # must agree with the signed issuer_id before it is used.
+    if sig.get("issuer_id") != receipt["issuer_id"]:
+        problems.append("signature issuer_id does not match the signed receipt issuer_id")
     if sig.get("issuer_id") not in issuer_keys:
         problems.append("unknown issuer")
     elif not _signature_ok(issuer_keys[sig["issuer_id"]], issuer_body, sig.get("value")):
@@ -596,19 +600,20 @@ def negative_cases() -> Dict[str, bool]:
     )
     results["wrong_reviewer_named"] = bool(verify(wrong_named, assignment))
 
-    # conflicted assignment: forced onto the declared-conflict reviewer
+    # conflicted assignment: forced onto the declared-conflict reviewer. The request
+    # must match the one checked, so the failure comes from the eligibility path.
+    conflict_request = _demo_request("req-neg", "subject-N")
     forced = Assignment(
-        request_id=request.request_id,
-        subject_id=request.subject_id,
+        request_id=conflict_request.request_id,
+        subject_id=conflict_request.subject_id,
         reviewer_id="rev-3",
         rotation_seed=DEMO_SEED,
         eligible_ids=(),
         pool_ids=(),
         selection_digest="",
     )
-    results["conflicted_assignment"] = bool(
-        check_assignment(forced, _demo_request("req-neg", "subject-N"), reviewers, [], trusted_seed=DEMO_SEED)
-    )
+    conflict_problems = check_assignment(forced, conflict_request, reviewers, [], trusted_seed=DEMO_SEED)
+    results["conflicted_assignment"] = any("not eligible" in p for p in conflict_problems)
 
     # substituted rotation seed: assignment records a different seed than the trusted one
     substituted = Assignment(**{**assignment.to_dict(), "rotation_seed": "seed-attacker"})

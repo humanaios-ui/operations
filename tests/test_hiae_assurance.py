@@ -116,6 +116,16 @@ class NeutralAssignmentTests(unittest.TestCase):
         problems = check_assignment(forced, req, demo_reviewers(), [], trusted_seed="seed")
         self.assertTrue(any("not the assigned reviewer" in p for p in problems))
 
+    def test_forced_conflicted_reviewer_fails_on_eligibility_not_request_mismatch(self):
+        req = request()
+        forced = type(select_reviewer(req, demo_reviewers(), [], "seed"))(
+            request_id=req.request_id, subject_id=req.subject_id, reviewer_id="rev-3",
+            rotation_seed="seed", eligible_ids=(), pool_ids=(), selection_digest="",
+        )
+        problems = check_assignment(forced, req, demo_reviewers(), [], trusted_seed="seed")
+        self.assertTrue(any("not eligible" in p for p in problems))
+        self.assertFalse(any("does not match request" in p for p in problems))
+
     def test_check_detects_substituted_seed_even_when_self_consistent(self):
         # An attacker picks a seed whose recomputation yields their chosen reviewer,
         # and records that seed. The trusted seed must still win.
@@ -148,6 +158,40 @@ class ReceiptTests(unittest.TestCase):
         tampered = dict(self.receipt)
         tampered["findings"] = ["Changed after signing"]
         self.assertTrue(any("signature" in p for p in _verify(tampered, self.assignment)))
+
+    def test_tampering_any_signed_scalar_fails_issuer_and_reviewer_signature(self):
+        for key in ("issued_at", "model_id", "model_version", "commit_sha", "acat_version", "protocol_version"):
+            with self.subTest(field=key):
+                tampered = dict(self.receipt)
+                tampered[key] = "tampered"
+                problems = _verify(tampered, self.assignment)
+                self.assertTrue(any("issuer signature" in p for p in problems))
+                self.assertTrue(any("reviewer signature" in p for p in problems))
+
+    def test_tampered_observation_time_fails_observer_signature(self):
+        forged = json.loads(json.dumps(self.receipt))
+        forged["evidence"][0]["context"]["observed_at"] = "2030-01-01T00:00:00Z"
+        self.assertTrue(any("observer signature invalid" in p for p in _verify(forged, self.assignment)))
+
+    def test_envelope_issuer_id_must_match_signed_issuer_id(self):
+        # Two issuers, each with its own key. Sign a body that names issuer A, then point the
+        # unsigned envelope at issuer B. Only the envelope check can catch this.
+        other_issuer = "issuer:other"
+        other_key = b"other-issuer-fixture-key"
+        body = {k: v for k, v in self.receipt.items()
+                if k not in ("signature", "reviewer_signature", "receipt_version")}
+        receipt = issue_receipt(body, DEMO_ISSUER, DEMO_KEYS[DEMO_ISSUER], DEMO_KEYS[f"reviewer:{self.assignment.reviewer_id}"])
+        receipt["signature"] = {
+            "issuer_id": other_issuer,
+            "alg": "HMAC-SHA256",
+            "value": sign_payload(other_key, {k: v for k, v in receipt.items() if k != "signature"}),
+        }
+        problems = verify_receipt(
+            receipt, self.assignment,
+            {DEMO_ISSUER: DEMO_KEYS[DEMO_ISSUER], other_issuer: other_key},
+            _observer_keys(), _reviewer_keys(),
+        )
+        self.assertTrue(any("does not match the signed receipt issuer_id" in p for p in problems))
 
     def test_wrong_issuer_key_fails(self):
         problems = verify_receipt(

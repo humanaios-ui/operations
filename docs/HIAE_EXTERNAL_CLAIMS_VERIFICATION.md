@@ -54,4 +54,4 @@ Each URL below came from a web search run on 2026-10-10. These are **search-resu
 
 1. Re-run this check from a network that can reach the five blocked hosts, and record the fetch date and URL for each primary source.
 2. Counsel to review registry applicability before any statement about California law.
-3. Keep this file as the source for any external wording until Z2 approves the non-claims language.
+3. Keep this file as an internal source for non-claims only. Do not use it for external wording until Z2 approves the non-claims language.
