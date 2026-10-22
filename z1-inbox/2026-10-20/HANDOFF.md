@@ -26,8 +26,8 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 **Evidence:** audits/META_SMAG_REVIEW_SCHEDULE.md § When to Review Early (Override) table; current status (2 observations < 3-PR floor) triggers scheduled extension.  
 **Tree Entry:** audits/META_SMAG_REVIEW_LOG.md § Decision Recommendation.
 
-**Claim:** Weeks 1–2 produced merged PRs; weeks 3–5 produced open PRs (not missing workflow runs).  
-**Evidence:** Week 1 (2026-09-21) #432 merged, Week 2 (2026-09-28) #573 merged; Week 3 (2026-10-05) #724 open, Week 4 (2026-10-12) #817 open, Week 5 (2026-10-19) #931 open with pinned creation dates.  
+**Claim:** The five named consolidation PRs show repository activity in their stated weeks; actual scheduled workflow execution is UNVERIFIED pending execution-history inspection.  
+**Evidence:** #432 (week 2026-09-21, merged), #573 (week 2026-09-28, merged 2026-10-01), #724 (week 2026-10-05, OPEN), #817 (week 2026-10-12, OPEN), and #931 (week 2026-10-19, OPEN). PR existence does not prove their scheduled workflow ran.  
 **Tree Entry:** audits/META_SMAG_REVIEW_LOG.md § Weekly Consolidation Cycle Inventory.
 
 ---
@@ -46,7 +46,7 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 | Blocker | Authority | Action | Window |
 |:--------|:----------|:--------|:---------|
 | **Z2 Interpretation Review** | Z2 (human) | Review historical SMAG-META-CALIBRATION-SELF-ACCURACY interpretation in clean successor PR #975; any separate Z2 ratification must follow its own controls | Pending independent review |
-| **Consolidation PR Merge** | Z3 (executor per repo) | Rebase & merge PRs #724, #817, #931 against updated main | Before 2026-11-03 (monitoring deadline) |
+| **Consolidation outcome observation** | Z3 (read-only observer per repo) | Monitor PRs #724, #817 and #931 through resolution; decide each merge under its own independent review/admission rules. Do not force favorable outcomes. | Review on 2026-11-03 |
 | **Week 2 Workflow Diagnosis** | Z2 (Night) / Z3 (executor) | Verify whether smag-consolidate.yml executed week 2 (2026-09-28); if failed, diagnose root cause | Optional for checkpoint completion; useful for operational health |
 
 ---
