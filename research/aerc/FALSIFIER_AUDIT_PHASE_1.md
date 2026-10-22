@@ -85,8 +85,11 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 3
 
 **Observable:** ✅ YES
 - Measure: Count HOLD dispositions where evaluator later confirms output was correct
-- Calculation: False-hold rate = (# false HOLDs) / (# total cases where system issued HOLD)
-- Threshold: ≥15% is disconfirming; >20% is hard stop
+- Calculation: False-hold rate = (# false HOLDs) / (# total cases where system issued HOLD); if system issued no HOLDs, rate = 0%
+- Threshold definitions:
+  - 0–15%: Success (acceptable false-hold rate)
+  - 15–20%: Disconfirming outcome (efficacy criterion fails; must revise)
+  - >20%: Hard stop (halt pilot immediately)
 - Data available: Yes (week 5, after all dispositions reviewed)
 
 **Falsifying:** ✅ YES
@@ -128,8 +131,10 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 4
 - **Rule 1.1: Measurement Reliability Failure** (Hard stop)
   - Trigger: Kappa < 0.60
   - Action: Stop scoring; revise rubric; retry on practice set
-- **Higher disconfirming threshold:** Kappa < 0.65 (Section 1.3 item 4, explicit in disconfirming outcomes)
-  - This is stricter than hard stop, enforcing high measurement bar for success
+- **Pilot-stage disconfirming threshold:** Kappa < 0.65 (Section 1.3 item 4, explicit in disconfirming outcomes)
+  - Kappa 0.60–0.65: Disconfirming outcome (measurement reliability concern; must revise rubric and retry on practice set before proceeding)
+  - Kappa ≥0.65: Success (meets pilot-stage inter-rater bar)
+  - This two-tier approach distinguishes hard stop (<0.60) from pilot-stage inadequacy (0.60–0.65) vs. success (≥0.65)
 
 **Preregistered threshold:** ✅ YES
 - Inter-rater agreement target: kappa ≥ 0.65 (Section 8, secondary endpoints)
@@ -146,8 +151,8 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 5
 
 **Observable:** ✅ YES
 - Measure: Compute efficacy separately for each domain (Factual Reasoning, Software Engineering, Decision-Support)
-- Threshold: Primary efficacy ≥ 50% required in at least TWO domains (Empirical + Design, excluding Consequential)
-- If improvement is >60% in only one domain and <40% in others, outcome is disconfirming
+- Domain-failure criterion: Primary efficacy ≥ 50% must be achieved in at least TWO of three primary domains (Empirical + Design, both required; Consequential not counted toward generalizability)
+- Disconfirming pattern: If primary efficacy < 50% in more than ONE domain, outcome is disconfirming (improvement limited to single domain, not generalizable)
 - Data available: Yes (week 5, per-domain results)
 
 **Falsifying:** ✅ YES
@@ -272,10 +277,10 @@ The STOPPING_RULES.md explicitly states (Signature Block):
 > "These stopping rules are preregistered and cannot be modified post-hoc without Z2 justification."
 
 This enforces the falsifier doctrine:
-1. **No goal-post moving:** Thresholds cannot be relaxed mid-pilot
+1. **No goal-post moving:** Thresholds cannot be relaxed mid-pilot without Z2 ratification (e.g., Z2 may ratify a revised threshold with documented justification)
 2. **No selective reporting:** Outcomes meeting disconfirming criteria must be reported
-3. **Mandatory halts:** Hard stops (Rules 1.1–1.4) enforce immediate pilot cessation if triggered
-4. **Clear authority:** Z2 ratification is required to override any stopping rule
+3. **Mandatory halts:** Hard stops (Rules 1.1–1.4) enforce immediate pilot cessation if triggered unless Z2 explicitly overrides
+4. **Clear authority:** Z2 ratification is required to override any stopping rule; override decisions are documented as formal amendments to STOPPING_RULES.md
 
 ---
 
