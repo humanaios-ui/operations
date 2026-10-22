@@ -100,7 +100,7 @@ def test_subsecond_creation_and_close_boundaries_survive_utc_normalization() -> 
         closes_at="2026-10-20T10:00:00.900Z",
         evidence_cutoff={
             "kind": "TIMESTAMP", "sequence": 0,
-            "ref": "2026-10-20T10:00:00.100Z",
+            "ref": "2026-10-20T10:00:00.000Z",
         },
         resolution_rule="YES iff the witness observes the event.",
         resolution_sources=["fixture:subsecond"],
