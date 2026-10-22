@@ -1,0 +1,30 @@
+{
+  "fixture_origin": "SYNTHETIC_TEST_ONLY",
+  "records": [
+    {
+      "resource_id": "URA-synthetic-training-01",
+      "title": "Illustrative AI training certification course",
+      "source_name": "TRIAL_SYNTHETIC",
+      "source_url": "https://example.org/synthetic-trial",
+      "canonical_url": "https://example.org/synthetic-trial",
+      "resource_types": [
+        "TRAINING_CERTIFICATION"
+      ],
+      "provider_version": "0.1",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "eligibility_status": "UNASSESSED",
+      "authority_effect": "NONE",
+      "authorization": "NOT_GRANTED",
+      "execution": "NOT_AVAILABLE",
+      "evidence": [
+        {
+          "url": "https://example.org/synthetic-trial",
+          "kind": "PUBLIC_METADATA",
+          "observed_at": "2026-10-09T20:00:00Z",
+          "claim": "digest:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "graph_id": "humanaios-kg-v0.1",
+  "description": "Repo-side snapshot of the HumanAIOS knowledge graph (Supabase project ksinisdzgtnqzsymhfya, tables kg_nodes and kg_edges). Maps 10 reference books onto 12 repo areas. Areas are read from HumanAIOS notes; repo_evidence paths were checked against this checkout on the as_of date.",
+  "source": {
+    "system": "Supabase",
+    "project_id": "ksinisdzgtnqzsymhfya",
+    "project_name": "HumanAIOS",
+    "tables": ["public.kg_nodes", "public.kg_edges"],
+    "read_via": "service-role SQL read, read-only",
+    "read_at": "2026-10-16T22:28:36Z"
+  },
+  "as_of": "2026-10-16",
+  "authority_effect": "NONE",
+  "edge_states": ["unratified", "retracted"],
+  "retraction": {
+    "channel": "edge.status = retracted",
+    "rule": "A withdrawn edge stays in the file for audit. Nothing is deleted. A retracted edge is never counted as support."
+  },
+  "verification": {
+    "checker": "tools/kg_map_check_v0_1.py",
+    "last_run": "2026-10-16",
+    "result": "pass",
+    "scope": "repo_evidence paths and edge integrity only; table existence was checked by hand against Supabase, not by the checker"
+  },
+  "status_vocabulary": {
+    "repo_evidence": {
+      "verified_path": "at least one repo path named in repo_evidence exists in this checkout",
+      "partial": "area named in repo docs or code by a different term, or only one indirect reference",
+      "no_repo_trace": "no file in this checkout mentions the area or its tables"
+    },
+    "edge_status": {
+      "unratified": "from HumanAIOS notes; no Z2 ratification recorded",
+      "retracted": "withdrawn; kept for audit, never deleted"
+    }
+  },
+  "nodes": [
+    {"id": "A01", "kind": "repo_area", "label": "ACAT core scoring", "detail": "Behavioral scoring dimensions and generalizability", "table_ref": ["acat_assessments_v1", "acat_stats_v1"], "repo_evidence": ["acat/scoring/acat_dimension_scorer.py", "acat/scoring/calculators.py"], "repo_status": "verified_path", "as_of": "2026-10-16"},
+    {"id": "A02", "kind": "repo_area", "label": "ACAT-NUM robustness", "detail": "Numerological pattern-claim robustness (v0.1, pre-ratification)", "table_ref": [], "repo_evidence": [], "repo_status": "no_repo_trace", "notes": "No ACAT-NUM code or docs in this checkout. Only a Hawkins numerology caveat in REGISTERED.md and site/findings/F-42.html, which is a different subject. Repo may live elsewhere; not checked.", "as_of": "2026-10-16"},
+    {"id": "A03", "kind": "repo_area", "label": "Governance Z1/Z2 gates", "detail": "Agents propose, Z2 ratifies", "table_ref": ["ratified_decisions", "pending_decisions", "zone3_queue", "verification_log"], "repo_evidence": ["z2_ratification_gate.yml", "REGISTERED.md", "humanaios_core.py"], "repo_status": "verified_path", "as_of": "2026-10-16"},
+    {"id": "A04", "kind": "repo_area", "label": "Findings registry", "detail": "F-/IC-/H- candidates and ledger", "table_ref": ["findings", "ic_ledger"], "repo_evidence": ["REGISTERED.md", "REGISTERED_FAILURE_MODES.md", "sql/001_haioscc_foundation.sql"], "repo_status": "verified_path", "as_of": "2026-10-16"},
+    {"id": "A05", "kind": "repo_area", "label": "Decision log and comparison engine", "detail": "Phase 2 calibration: stated confidence vs outcomes", "table_ref": ["learning_trajectories", "task_outcomes"], "repo_evidence": ["comparison_engine.py"], "repo_status": "verified_path", "notes": "Notes list the comparison engine as having no table yet, but this node carries table_ref. Confirm which is current.", "as_of": "2026-10-16"},
+    {"id": "A06", "kind": "repo_area", "label": "CBDV / ACAT-Reverse research", "detail": "Coordinated behavioral encoding detection", "table_ref": ["acat_gating_test_results_v1", "acat_scorer_gating_audit_v1"], "repo_evidence": ["audits/CORPUS_LIVE_VERIFICATION_S-092126.md"], "repo_status": "partial", "notes": "No CBDV or ACAT-Reverse code in this checkout. The cited tables appear in the scorer-gating audit, which is related but not the same work.", "as_of": "2026-10-16"},
+    {"id": "A07", "kind": "repo_area", "label": "Empirica mesh and multi-agent coordination", "detail": "Agent-to-agent coordination and handoffs", "table_ref": ["mesh_state", "empirica_audits", "ser_coordination", "blocker_routing", "empirica_acat_crosslinks"], "repo_evidence": ["mesh/README.md", "mesh/MESH_LOCAL_CHARTER_V0_1.md", "mesh/CROSS_REFERENCE_REGISTER.md"], "repo_status": "verified_path", "notes": "Mesh docs exist. The listed tables are not named in any repo file.", "as_of": "2026-10-16"},
+    {"id": "A08", "kind": "repo_area", "label": "Agent identity and provenance", "detail": "Canonical agent names and session records", "table_ref": ["agent_name_canonical_map", "acat_sessions"], "repo_evidence": ["tools/acat_mcp_full_wrapper_v1.2.py"], "repo_status": "partial", "notes": "acat_sessions appears in the MCP wrapper. agent_name_canonical_map is not named in any repo file.", "as_of": "2026-10-16"},
+    {"id": "A09", "kind": "repo_area", "label": "Dimension parity and fairness checks", "detail": "Per-dimension accuracy, precision, coverage", "table_ref": ["acat_dimension_accuracy", "acat_dimension_precision", "acat_dimension_coverage"], "repo_evidence": ["acat/scoring/acat_dimension_scorer.py"], "repo_status": "partial", "notes": "The scorer exists. The per-dimension table names are not in the repo.", "as_of": "2026-10-16"},
+    {"id": "A10", "kind": "repo_area", "label": "ASC Gateway", "detail": "LLM output stability and compliance gateway", "table_ref": ["asc_gateway_deployment", "asc_gateway_audit_log", "asc_gateway_threshold_breach"], "repo_evidence": ["PRACTICE_SPEC_BUNDLE.md"], "repo_status": "partial", "notes": "Only one indirect mention. No gateway code in this checkout.", "as_of": "2026-10-16"},
+    {"id": "A11", "kind": "repo_area", "label": "Income jobs linked to ACAT sessions", "detail": "Client job, ledger, and session link", "table_ref": ["jobs_v1", "job_acat_link_v1", "job_ledger_v1"], "repo_evidence": ["deliverables/rah-integration-concept.md", "docs/ACAT_ANALYSIS_LADDER_SEQUENCING_BRIEF_S061726.md"], "repo_status": "verified_path", "as_of": "2026-10-16"},
+    {"id": "A12", "kind": "repo_area", "label": "Research Hub and forecast pipeline", "detail": "Intake of findings and per-question forecasts", "table_ref": ["acat_research_hub_v1", "acat_forecast_runs"], "repo_evidence": ["Z3_PROTOCOL.md", "architecture/architecture_acat_automation_plan.md", "deliverables/metaculus-management-plan.md"], "repo_status": "verified_path", "as_of": "2026-10-16"},
+    {"id": "R01", "kind": "resource", "label": "Foundations of Machine Learning (Mohri et al.)", "detail": "Why learning algorithms work; generalization bounds", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R02", "kind": "resource", "label": "Understanding Deep Learning (Prince)", "detail": "How neural networks behave", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R03", "kind": "resource", "label": "Deep Learning (Goodfellow, Bengio, Courville)", "detail": "Core deep learning theory", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R04", "kind": "resource", "label": "Reinforcement Learning (Sutton & Barto)", "detail": "Agent learning from feedback", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R05", "kind": "resource", "label": "Algorithms for Decision Making (Kochenderfer et al.)", "detail": "Decisions under uncertainty", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R06", "kind": "resource", "label": "Distributional Reinforcement Learning (Bellemare et al.)", "detail": "Outcome distributions, not averages", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R07", "kind": "resource", "label": "Multi-Agent Reinforcement Learning (Albrecht et al.)", "detail": "Many agents learning together", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R08", "kind": "resource", "label": "Fairness and Machine Learning (Barocas et al.)", "detail": "When not to trust the model; bias", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R09", "kind": "resource", "label": "Probabilistic Machine Learning Vol 1 (Murphy)", "detail": "Probability from the ground up", "table_ref": [], "as_of": "2026-10-16"},
+    {"id": "R10", "kind": "resource", "label": "Probabilistic Machine Learning Vol 2 (Murphy)", "detail": "Causality, generative models, advanced topics", "table_ref": [], "as_of": "2026-10-16"}
+  ],
+  "edges": [
+    {"id": 1, "source": "R01", "target": "A01", "relation": "informs", "rationale": "Generalization theory backs the generalizability dimension", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 2, "source": "R01", "target": "A02", "relation": "informs", "rationale": "Sample-size limits test pattern-claim robustness", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 3, "source": "R02", "target": "A10", "relation": "informs", "rationale": "Neural net behavior grounds LLM output monitoring", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 4, "source": "R03", "target": "A08", "relation": "informs", "rationale": "Model representations ground agent identity claims", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 5, "source": "R04", "target": "A05", "relation": "informs", "rationale": "Feedback loops ground trajectory and outcome learning", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 6, "source": "R05", "target": "A03", "relation": "informs", "rationale": "Decision under uncertainty grounds Z2 ratification", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 7, "source": "R05", "target": "A04", "relation": "informs", "rationale": "Structured decisions ground registry entry rules", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 8, "source": "R06", "target": "A05", "relation": "informs", "rationale": "Outcome distributions ground calibration curves", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 9, "source": "R07", "target": "A07", "relation": "informs", "rationale": "Multi-agent learning grounds mesh coordination", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 10, "source": "R07", "target": "A06", "relation": "informs", "rationale": "Coordinated agents are the threat model for CBDV", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 11, "source": "R08", "target": "A09", "relation": "informs", "rationale": "Group parity tests ground dimension fairness checks", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 12, "source": "R08", "target": "A03", "relation": "informs", "rationale": "When not to trust the model grounds Z2 boundary gate", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 13, "source": "R09", "target": "A02", "relation": "informs", "rationale": "Probability rules test ACAT-NUM claims", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 14, "source": "R09", "target": "A12", "relation": "informs", "rationale": "Calibrated probabilities ground forecast records", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 15, "source": "R10", "target": "A06", "relation": "informs", "rationale": "Causal and generative models ground encoding detection", "status": "unratified", "as_of": "2026-10-16"},
+    {"id": 16, "source": "R10", "target": "A05", "relation": "informs", "rationale": "Causal reasoning grounds outcome comparison", "status": "unratified", "as_of": "2026-10-16"}
+  ]
+}
