@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 110
-  records: 62
+  candidates: 111
+  records: 63
 ratifiers:
 - Night
 candidates:
+- q_id: Q-WITNESS-DATA-PLANE-01
+  title: Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only
+  path: z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 2
+  note: Proposal for the Witness data plane. Self-scan only, user-only visibility, key derived in browser, server never logs or persists scan identifiers. Falsifier stated. Not ratified. Tier 2 because it proposes a scan-route gate change.
 - q_id: Q-REPO-GRAPH-LOOKUP-01
   title: Read-only, citation-bearing lookup over the PR 630 repository graph for the section A session-open step
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md
@@ -842,6 +849,9 @@ candidates:
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
 records:
+- path: z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md
+  title: "Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py)"
+  note: "Z2 decision record for 2026-10-15. Indexed late: the file was present under z1-inbox/ but absent from this index, so validate.py failed on Q-MULTI-AGENT-QUEUE-PLAN-01. Signatures are unchanged."
 - path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
