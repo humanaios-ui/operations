@@ -15,7 +15,7 @@ from pathlib import Path
 import re
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 GRAPH = 'EVIDENCE_GRAPH.json'
 SCENARIO = 'research/agent_containment/phase0/scenario.json'
 RECEIPT = 'research/agent_containment/phase0/trial_receipt.json'
