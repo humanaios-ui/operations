@@ -68,9 +68,7 @@
   ],
   "evaluation_admission": {
     "authorized_actors": [
-      "humanaios-ui",
-      "night",
-      "claude-code"
+      "humanaios-ui"
     ],
     "required_issue_state": "ADMISSION_REQUESTED",
     "authority_effect": "EVALUATION_ONLY",
@@ -132,7 +130,7 @@
       "merge_authority": false
     },
     "pr_route": {
-      "enabled": false,
+      "enabled": true,
       "subject_kind": "PULL_REQUEST",
       "command_syntax": "/coordinator admit <full 40-character current PR head SHA>",
       "revoke_syntax": "/coordinator revoke <full 40-character current PR head SHA>",
@@ -141,7 +139,7 @@
       "head_sha_required": true,
       "authority_effect": "ADMISSION_ROUTING_ONLY",
       "merge_authority": false,
-      "note": "Disabled pending trusted handler implementation. Existing issue-route dispatcher continues to operate. Handler must consume PR-state, head-SHA binding, and identity verification requirements before this route can be enabled."
+      "note": "A command is only a request. Append and replay verified state before issuing a committed receipt. No comment grants code approval or merge authority."
     }
   }
 }
