@@ -3,7 +3,7 @@ generated: '2026-10-14'
 decision_window_days: 2
 counts:
   candidates: 112
-  records: 62
+  records: 63
 ratifiers:
 - Night
 candidates:
@@ -856,6 +856,9 @@ candidates:
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
 records:
+- path: z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md
+  title: "Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py)"
+  note: "Z2 decision record for 2026-10-15. Indexed late: the file was present under z1-inbox/ but absent from this index, so validate.py failed on Q-MULTI-AGENT-QUEUE-PLAN-01. Signatures are unchanged."
 - path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
