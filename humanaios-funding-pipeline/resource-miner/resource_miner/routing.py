@@ -5,10 +5,16 @@ from datetime import date
 
 from .models import ResourceCandidate
 
-# A title that reports a result ("Congrats to the ... Winners") rather than
-# inviting participation. Only applied when the candidate has no open date or
-# deadline, so a live call that mentions winners is not affected.
-_OUTCOME_TITLE = re.compile(r"\b(congrats|congratulations|winners?)\b", re.IGNORECASE)
+# A title that reports a result ("Congrats to the ... Winners", "Winners
+# announced ...") rather than inviting participation. A bare "Winners" is not
+# enough: "Join the ... Prizes for FIVE Winners!" is an invitation. Only applied
+# when the candidate has no open date or deadline.
+_OUTCOME_TITLE = re.compile(
+    r"\b(congrats|congratulations)\b"
+    r"|\b(announc\w*|meet|celebrat\w*)\s+(the\s+)?winners\b"
+    r"|\bwinners?\s+(are\s+|have\s+been\s+)?(announced|named|selected|chosen)\b",
+    re.IGNORECASE,
+)
 
 
 def _is_outcome_announcement(resource: ResourceCandidate) -> bool:

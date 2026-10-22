@@ -450,6 +450,21 @@ class ResourceMinerTests(unittest.TestCase):
         route_candidate(candidate, today=date(2026, 10, 22))
         self.assertEqual(candidate.route, "VERIFY_NOW")
 
+    def test_invitation_with_winners_in_title_stays_verify_now_without_dates(self):
+        # Review of #988: a participation invitation whose deadline lives only
+        # in the article body (detail fetch failed) must not be demoted.
+        candidate = normalize_generic(
+            title="Join the Kaggle Benchmarking Challenge: $2,500 in Prizes for FIVE Winners!",
+            url="https://example.com/kaggle-benchmark",
+            source_name="DEV Community", discovery_method="test",
+            description="Benchmark models. Open to all participants.",
+            tags=["benchmark", "challenge"],
+        )
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        route_candidate(candidate, today=date(2026, 10, 22))
+        self.assertEqual(candidate.route, "VERIFY_NOW")
+
     def test_entitlement_handoff_preserves_unassessed_boundary(self):
         candidate = normalize_generic(
             title="Native business support program",
