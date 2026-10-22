@@ -7,7 +7,7 @@
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf2fc;background:#0b1423;color-scheme:dark}
 *{box-sizing:border-box}body{margin:0;background:#0b1423}main{max-width:900px;margin:auto;padding:30px 20px 90px}
-a{color:#96dcf8}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #98dff8;outline-offset:3px}
+a{color:#96dcf8}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #98dff8;outline-offset:3px}
 .brand{color:#81c5e9;font-size:.78rem;letter-spacing:.14em;font-weight:750}
 h1{font-size:clamp(2rem,5vw,2.8rem);margin:12px 0}h2{font-size:1.25rem}
 p{line-height:1.55}.muted{color:#b1c2d5}.subtle{font-size:.87rem;color:#b1c2d5}
@@ -22,7 +22,15 @@ nav{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px}
 button{border:1px solid #77accd;background:#356b92;border-radius:8px;padding:10px 15px;color:white;font:inherit;font-weight:650;cursor:pointer}
 button.secondary{background:transparent}button:disabled{opacity:.5;cursor:not-allowed}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
-input,select{background:#081829;border:1px solid #60728c;color:#fff;border-radius:7px;padding:10px;font:inherit;max-width:100%}
+input,select,textarea{background:#081829;border:1px solid #60728c;color:#fff;border-radius:7px;padding:10px;font:inherit;max-width:100%}
+textarea{width:100%;resize:vertical;min-height:90px}
+fieldset{border:1px solid #486078;border-radius:9px;padding:13px 16px}legend{font-weight:650;padding:0 7px}
+label.check{display:flex;align-items:flex-start;gap:11px;margin:12px 0;font-weight:500}
+label.check input{height:19px;width:19px;flex-shrink:0;margin:2px 0 0}
+.evidence-item{border-top:1px solid #486078;padding:12px 0}
+.evidence-item p{margin:4px 0}
+.evidence-item a{overflow-wrap:anywhere}
+.evidence-item button{font-size:.84rem;padding:6px 10px}
 input[type=file]{width:100%}label{display:block;font-weight:650;margin:16px 0 8px}
 ol li{margin-bottom:10px;line-height:1.45}
 #status{min-height:1.3em}#cards[hidden]{display:none}
@@ -37,15 +45,15 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 <section class="panel">
 <h2>Opportunity record</h2>
 <p class="notice" id="standing">Loading a synthetic example. This is not connected to your Gmail, Calendar or Discord accounts.</p>
-<p class="subtle">Default: read-only synthetic demonstration modeled on the Apart sprint. You may import your own sanitized record. The server does not save it. This interface works only when the service is bound to your computer's loopback address.</p>
+<p class="subtle">Default: read-only synthetic demonstration modeled on the Apart sprint. You may import your own sanitized record or a private evidence bundle. Evidence links remain browser-side. This interface works only when the service is bound to your computer's loopback address.</p>
 <div class="actions">
 <button id="demo" type="button" class="secondary">View synthetic example</button>
 <button id="starter" type="button" class="secondary">Use editable starter</button>
 </div>
-<label for="import">Import your local journey JSON</label>
+<label for="import">Import local journey or private evidence bundle JSON</label>
 <input id="import" type="file" accept=".json,application/json">
 <div class="actions">
-<button type="button" id="export" disabled>Export current JSON</button>
+<button type="button" id="export" disabled>Export private JSON bundle</button>
 <button type="button" id="save" disabled>Save privately in this browser</button>
 <button type="button" id="clear" class="secondary">Clear browser save</button>
 </div>
@@ -68,18 +76,40 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 <section class="panel">
 <h2>Record an explicit human report</h2>
 <p class="subtle">Available after importing or opening an editable starter. Adding a report does not prove provider confirmation and does not contact any external service.</p>
-<label for="humanAction">What did you personally do?</label>
-<select id="humanAction">
-<option value="HUMAN_SELECTED">I selected this opportunity</option>
-<option value="SURVEY_SUBMITTED_HUMAN">I submitted its survey</option>
-<option value="DISCORD_JOINED_HUMAN">I joined its Discord</option>
+<fieldset id="humanActions" disabled>
+<legend>What did you personally do? (select one or more)</legend>
+<label class="check"><input type="checkbox" name="humanAction" value="HUMAN_SELECTED"> I selected this opportunity</label>
+<label class="check"><input type="checkbox" name="humanAction" value="SURVEY_SUBMITTED_HUMAN"> I submitted its survey</label>
+<label class="check"><input type="checkbox" name="humanAction" value="DISCORD_JOINED_HUMAN"> I joined its Discord</label>
+</fieldset>
+<div class="actions"><button id="record" type="button" disabled>Record selected reports</button></div>
+<p class="subtle">Already recorded actions are marked and cannot be submitted twice.</p>
+</section>
+<section class="panel" id="evidencePanel">
+<h2>Attach supporting evidence</h2>
+<p class="notice">Links or excerpts that you add are <strong>user-supplied references, not verified provider receipts.</strong> They remain in browser memory until you explicitly save or export. Gmail links can identify your private mailbox; do not share an evidence export publicly.</p>
+<label for="evidenceLink">Evidence link (HTTPS)</label>
+<input id="evidenceLink" type="url" maxlength="1400" placeholder="https://mail.google.com/mail/u/0/… or https://discord.com/channels/…" autocomplete="off" spellcheck="false" style="width:100%">
+<label for="evidenceClaim">Related event or context</label>
+<select id="evidenceClaim">
+<option value="CONTEXT_ONLY">Context / research source only</option>
+<option value="SIGNUP_WELCOME_EMAIL_OBSERVED">Signup confirmation (linked by user)</option>
+<option value="SURVEY_SUBMITTED_HUMAN">Survey submission (human-reported)</option>
+<option value="DISCORD_JOINED_HUMAN">Discord participation (human-reported)</option>
+<option value="CALENDAR_EVENT_CREATED">Calendar event (linked by user)</option>
 </select>
-<div class="actions"><button id="record" type="button" disabled>Record my report</button></div>
+<label for="evidenceExcerpt">Optional short excerpt or note (max 750 characters)</label>
+<textarea id="evidenceExcerpt" maxlength="750" rows="3" placeholder="What does this source support? Respect others’ privacy and intellectual property."></textarea>
+<div class="actions">
+<button type="button" id="addEvidence" disabled>Attach evidence locally</button>
+</div>
+<div id="evidenceList" aria-live="polite"></div>
+<p class="subtle">No automatic Gmail or Discord access. Attaching a link never changes the opportunity's verified standing. Use <strong>Export current JSON</strong> for a private journey + evidence bundle. Old journey-only JSON files remain importable.</p>
 </section>
 <section class="panel">
 <h2>Evidence and limitations</h2>
 <p>Observed Gmail welcome messages and calendar receipts are separate from human reports. This offline projector checks declared source types but <strong>does not cryptographically verify providers, read your accounts, submit applications, or grant permission to act.</strong></p>
-<p>Imported JSON is transmitted only to this local HTTP service for projection and is not written to disk by the server. Browser storage is optional, local to this browser profile and not encrypted. Keep account identifiers, private links, emails, names, authentication tokens, and raw messages out of the imported record; use opaque local evidence references.</p>
+<p>Only the sanitized journey is sent to the local projection API; raw linked evidence is not transmitted to the server. Browser storage is optional, local to this browser profile and <strong>not encrypted</strong>. Private mail links and quoted messages may be sensitive; avoid passwords, tokens and unnecessary personal details. Export files contain these references in plaintext and should stay private.</p>
 <p><a href="https://apartresearch.com/sprints/ai-collusion-research-sprint-2026-10-23-to-2026-10-25" target="_blank" rel="noopener noreferrer">Apart Research sprint information ↗</a></p>
 </section>
 <footer>My Opportunities local prototype · Z0/Z1 · no cloud account connection · no external execution authority</footer>
@@ -150,7 +180,7 @@ function render(data){
    "LOCAL USER-PROVIDED PREVIEW — source/participant claims are not independently verified.");
  byId("export").disabled=!current;
  byId("save").disabled=!current;
- byId("record").disabled=!current;
+ updateHumanChecks();renderEvidence();
 }
 async function requestProjection(payload){
  const body=JSON.stringify(payload);
@@ -164,7 +194,7 @@ async function requestProjection(payload){
 async function showDemo(){
  const response=await fetch("/api/my-opportunities",{cache:"no-store"});
  if(!response.ok)throw new Error("Private journey API unavailable.");
- current=null;
+ current=null;evidence=[];updateHumanChecks();renderEvidence();
  render(await response.json());
  showStatus("Viewing synthetic example only. No personal account data loaded.");
 }
@@ -178,60 +208,176 @@ byId("starter").addEventListener("click",async()=>{
  try{
   const r=await fetch("/api/my-opportunities/starter",{cache:"no-store"});
   if(!r.ok)throw new Error("Starter record unavailable.");
-  const next=await r.json();await requestProjection(next);current=next;
-  byId("export").disabled=false;byId("save").disabled=false;byId("record").disabled=false;
+  const next=await r.json();await requestProjection(next);setEditable(next,[]);
   showStatus("Editable synthetic starter loaded. Replace example evidence references before treating it as personal history.");
  }catch(e){showError(e.message);}
 });
 byId("import").addEventListener("change",async e=>{
  const file=e.target.files?.[0];if(!file)return;
- if(file.size>12288){showError("File exceeds 12 KB.");return;}
+ if(file.size>55000){showError("File exceeds 55 KB.");return;}
  try{
-  const input=JSON.parse(await file.text());await requestProjection(input);current=input;
-  byId("export").disabled=false;byId("save").disabled=false;byId("record").disabled=false;
-  showStatus("Local JSON imported and projected. No server-side save.");
+  const input=JSON.parse(await file.text());
+  const privateBundle=input?.schema===evidenceSchema;
+  const journey=privateBundle?input.journey:input;
+  const refs=privateBundle?validatedEvidence(input.evidence,journey?.opportunity?.id):[];
+  if(privateBundle&&Object.keys(input).sort().join("|")!=="evidence|journey|schema")
+   throw new Error("Unexpected private bundle fields.");
+  await requestProjection(journey);setEditable(journey,refs);
+  showStatus("Private bundle imported locally. Only sanitized journey was projected to the server.");
  }catch(error){showError("Import rejected: "+error.message);}
  finally{e.target.value="";}
 });
+const evidenceSchema="humanaios.my_opportunities.private_bundle.v0.1";
+const evidenceAllowed=new Set(["CONTEXT_ONLY","SIGNUP_WELCOME_EMAIL_OBSERVED","SURVEY_SUBMITTED_HUMAN","DISCORD_JOINED_HUMAN","CALENDAR_EVENT_CREATED"]);
+let evidence=[];
+function safeLink(raw){
+ if(typeof raw!=="string"||raw.length>1400)throw new Error("Evidence URL too long.");
+ const u=new URL(raw.trim());
+ if(u.protocol!=="https:"||!u.hostname.includes(".")||u.username||u.password||u.port&&u.port!=="443")
+   throw new Error("Only HTTPS links to public hostnames are accepted.");
+ if(u.hostname==="localhost"||/^\d+(\.\d+)+$/.test(u.hostname)||u.hostname.endsWith(".localhost")||
+     /\.(local|internal|test|invalid|lan|nip\.io|sslip\.io)$/.test(u.hostname))
+   throw new Error("Local or private hosts are not accepted.");
+ return u.href;
+}
+function validEvidence(item){
+ if(!item||typeof item!=="object"||Array.isArray(item)||
+   Object.keys(item).sort().join("|")!=="claim|excerpt|id|link|opportunity_id|saved_at")
+   throw new Error("Invalid evidence record.");
+ if(typeof item.id!=="string"||!/^[A-Za-z0-9_-]{1,100}$/.test(item.id)||
+    typeof item.opportunity_id!=="string"||!/^[A-Za-z0-9_-]{1,100}$/.test(item.opportunity_id)||
+    !evidenceAllowed.has(item.claim)||
+    typeof item.excerpt!=="string"||item.excerpt.length>750||
+    typeof item.saved_at!=="string"||!Number.isFinite(Date.parse(item.saved_at))||
+    !item.saved_at.endsWith("Z"))
+   throw new Error("Evidence values invalid.");
+ safeLink(item.link);
+ return item;
+}
+function validatedEvidence(items,opportunityId){
+ if(!Array.isArray(items)||items.length>30)throw new Error("Evidence limited to 30 records.");
+ const seen=new Set();
+ return items.map(item=>{
+  validEvidence(item);
+  if(item.opportunity_id!==opportunityId||seen.has(item.id))
+   throw new Error("Duplicate evidence or unrelated opportunity.");
+  seen.add(item.id);
+  return item;
+ });
+}
+function bundle(){
+ if(!current)throw new Error("Load or import an editable journey first.");
+ return {schema:evidenceSchema,journey:current,
+  evidence:validatedEvidence(evidence,current.opportunity.id)};
+}
+function updateHumanChecks(){
+ const editing=!!current;
+ byId("humanActions").disabled=!editing;
+ for(const checkbox of document.querySelectorAll('input[name="humanAction"]')){
+  const already=!!current?.events?.some(item=>item.kind===checkbox.value);
+  checkbox.checked=already;
+  checkbox.disabled=!editing||already;
+ }
+ byId("record").disabled=!editing;
+ byId("addEvidence").disabled=!editing;
+}
+function renderEvidence(){
+ const panel=byId("evidenceList");panel.replaceChildren();
+ if(!current){setText(panel,"Open an editable record to attach evidence.");return;}
+ const title=document.createElement("p");title.className="subtle";
+ setText(title,evidence.length+" local evidence reference(s) attached. These are not provider verified.");
+ panel.append(title);
+ for(const record of evidence){
+  const item=document.createElement("article");item.className="evidence-item";
+  const heading=document.createElement("p");
+  setText(heading,record.claim.replaceAll("_"," ")+" — user-supplied reference");
+  const p=document.createElement("p"),a=document.createElement("a");
+  a.href=record.link;a.target="_blank";a.rel="noopener noreferrer";
+  setText(a,"Open evidence link ↗");p.append(a);
+  const excerpt=document.createElement("p");excerpt.className="subtle";
+  setText(excerpt,record.excerpt||"No excerpt recorded.");
+  const remove=document.createElement("button");remove.className="secondary";remove.type="button";
+  setText(remove,"Remove reference");remove.addEventListener("click",()=>{
+   evidence=evidence.filter(x=>x.id!==record.id);renderEvidence();
+   showStatus("Evidence reference removed from current preview; export or save to retain the change.");
+  });
+  item.append(heading,p,excerpt,remove);panel.append(item);
+ }
+}
+function setEditable(payload,items=[]){
+ current=payload;
+ evidence=validatedEvidence(items,payload.opportunity.id);
+ updateHumanChecks();renderEvidence();
+ byId("export").disabled=false;byId("save").disabled=false;
+}
 byId("record").addEventListener("click",async()=>{
  if(!current)return;
- const kind=byId("humanAction").value;
- if(!allowedHuman.has(kind))return;
- if(current.events.some(e=>e.kind===kind)){
-  showStatus("This human action is already in the current record; no duplicate added.");return;
- }
+ const selected=[...document.querySelectorAll('input[name="humanAction"]:checked:not(:disabled)')]
+   .map(x=>x.value).filter(x=>allowedHuman.has(x));
+ if(!selected.length){showStatus("Select at least one new action.");return;}
  const next=JSON.parse(JSON.stringify(current));
- next.events.push({
-  event_id:"HUMAN-"+Date.now(),
-  kind,source_kind:"HUMAN_REPORT",
-  evidence_ref:"LOCAL-HUMAN-REPORT",
-  observed_at:new Date().toISOString()
- });
- try{await requestProjection(next);current=next;showStatus("Human report added locally; export or explicitly save to retain it.");}
- catch(error){showError(error.message);}
+ for(const [index,kind] of selected.entries()){
+  if(next.events.some(e=>e.kind===kind))continue;
+  next.events.push({
+   event_id:"HUMAN-"+Date.now()+"-"+index,
+   kind,source_kind:"HUMAN_REPORT",evidence_ref:"LOCAL-HUMAN-REPORT",
+   observed_at:new Date().toISOString()
+  });
+ }
+ try{await requestProjection(next);setEditable(next,evidence);
+  showStatus("Recorded "+selected.length+" human action(s) locally. These are not provider-confirmed. Export or save to retain.");
+ }catch(error){showError(error.message);}
+});
+byId("addEvidence").addEventListener("click",()=>{
+ if(!current){showError("Open or import an editable opportunity first.");return;}
+ try{
+  if(evidence.length>=30)throw new Error("30-record evidence limit reached.");
+  const link=safeLink(byId("evidenceLink").value);
+  const claim=byId("evidenceClaim").value;
+  if(!evidenceAllowed.has(claim))throw new Error("Unknown claim relationship.");
+  const excerpt=byId("evidenceExcerpt").value.trim();
+  if(excerpt.length>750)throw new Error("Excerpt exceeds 750 characters.");
+  if(evidence.some(e=>e.link===link&&e.claim===claim)){
+    showStatus("This link is already attached to that claim.");return;
+  }
+  const record={
+   id:"EV-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),
+   opportunity_id:current.opportunity.id,claim,link,excerpt,
+   saved_at:new Date().toISOString()
+  };
+  validEvidence(record);evidence.push(record);renderEvidence();
+  byId("evidenceLink").value="";byId("evidenceExcerpt").value="";
+  showStatus("Evidence link attached locally; not verified or sent to the server. Export or save to retain.");
+ }catch(e){showError("Evidence rejected: "+e.message);}
 });
 byId("export").addEventListener("click",()=>{
- if(!current)return;download("intent-os-opportunity-journey.json",current);
- showStatus("Downloaded local journey JSON. Handle it as private personal data.");
+ if(!current)return;
+ try{download("intent-os-private-evidence-bundle.json",bundle());
+  showStatus("Downloaded private journey + evidence bundle. It contains plaintext links and any excerpts.");
+ }catch(e){showError(e.message);}
 });
 byId("save").addEventListener("click",()=>{
  if(!current)return;
  if(!confirm("Save this sanitized record in browser storage? Browser storage is not encrypted."))return;
- try{localStorage.setItem(localKey,JSON.stringify(current));showStatus("Saved in this browser. No server write.");}
+ try{localStorage.setItem(localKey,JSON.stringify(bundle()));showStatus("Saved locally in this browser, including evidence links. Storage is not encrypted.");}
  catch(error){showError("Browser storage unavailable. Export JSON instead.");}
 });
 byId("clear").addEventListener("click",()=>{
  if(!confirm("Delete My Opportunities record from browser storage? Exports are unaffected."))return;
- try{localStorage.removeItem(localKey);showStatus("Saved browser record cleared. Current preview is unchanged.");}
+ try{localStorage.removeItem(localKey);showStatus("Saved browser journey and evidence cleared. Current preview is unchanged.");}
  catch(error){showError("Unable to clear browser storage.");}
 });
 (async()=>{
  try{
   const local=localStorage.getItem(localKey);
   if(local){
-   try{const restored=JSON.parse(local);await requestProjection(restored);current=restored;
-    byId("export").disabled=false;byId("save").disabled=false;byId("record").disabled=false;
-    showStatus("Restored locally saved journey. Not independently verified.");return;
+   try{
+    const restored=JSON.parse(local);
+    const hasEvidence=restored?.schema===evidenceSchema;
+    const journey=hasEvidence?restored.journey:restored;
+    const refs=hasEvidence?validatedEvidence(restored.evidence,journey?.opportunity?.id):[];
+    await requestProjection(journey);setEditable(journey,refs);
+    showStatus("Restored locally saved journey and evidence. Neither is independently verified.");return;
    }catch(e){showError("Saved record invalid; displaying demonstration.");}
   }
   await showDemo();
