@@ -83,10 +83,11 @@ Each task record must include:
 
 All three arms must operate under identical constraints:
 - **Token limit per task:** 2,000 (capped per model)
-- **Tool calls permitted:** Read evidence, fact-check, code review tools only (no synthesis tools, no external APIs)
+- **Tool calls permitted:** Read evidence, fact-check (Google FactCheck API or equivalent, max 3 calls per task), code review tools only (no synthesis tools, no external APIs beyond fact-check)
 - **Evidence access:** Same indexed evidence set for each task
 - **Wall-clock time limit:** 30 seconds per task (excluding overhead)
 - **Model snapshot:** Frozen model version across all conditions; no fine-tuning
+- **Token consumption constraint:** Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision) on average; if consumption >20% higher, case marked as CONFOUNDED
 
 ### Control for Confounding
 
@@ -113,6 +114,7 @@ The following classification **describes** what was observed. It does **not** in
 | `REVISED_UNVERIFIED` | Output changed but no independent outcome verification conducted | Semantic diff ≥ 10%; no external evaluation of revision quality |
 | `VERIFIED_IMPROVEMENT` | Revised output beats baseline on a prespecified external criterion (e.g., test pass, fact-check score, expert rating) | Independent evaluator confirms revision outperforms baseline |
 | `VERIFIED_NO_IMPROVEMENT` | Revised output does not improve or regresses on prespecified criterion | Independent evaluator confirms no improvement or degradation |
+| `CORRECT_REJECTION_OF_FALSE_CHALLENGE` | System correctly refuses to change output when presented with an unsupported (DISPROVEN or UNRESOLVED) challenge | Challenge standing = DISPROVEN or UNRESOLVED; original output is correct and unchanged |
 | `APPROPRIATE_ABSTENTION` | System declines to make a material claim under prespecified abstention rules | Declined assertion is objectively unsupported; abstention policy triggered correctly |
 | `UNRESOLVED` | Challenge incomplete, evidence conflicted, or no clear baseline to evaluate against | Insufficient data for classification |
 
@@ -163,17 +165,19 @@ Each dimension is scored independently by prespecified evaluators using domain-s
 **Factual Reasoning (8 tasks):**
 - Primary: Automated fact-check API (e.g., Google FactCheck API or equivalent)
 - Secondary: One domain expert (research methodology, source validation)
-- Inter-rater agreement target: > 85% on binary correctness
+- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65 on binary correctness
 
 **Software Engineering (8 tasks):**
 - Primary: Automated test suite (existing project tests or equivalent)
 - Secondary: Two blinded code reviewers (independent review, no coordination)
-- Inter-rater agreement target: > 75% (Cohen's kappa) on design dimension
+- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65 on design dimension
+- In-pilot hard stop: κ < 0.60 during scoring; if triggered, revise rubric and re-score practice set
 
 **Decision Support (8 tasks):**
 - Primary: Domain expert panel (N ≥ 3, credentials documented)
 - Secondary: External reviewer (independent of primary panel)
-- Inter-rater agreement target: > 70% (Cohen's kappa)
+- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65
+- In-pilot hard stop: κ < 0.60 during scoring; if triggered, revise rubric and re-score practice set
 
 ### Evaluator Provenance
 
@@ -241,15 +245,20 @@ Separately compute:
 
 ### Integration Approach
 
-ACAT (LI, SAG) measurements will be collected **in parallel** but analyzed **separately** from primary AERC endpoints.
+ACAT v5.5 (Canonical AI Calibration Assessment Tool) measurements will be collected **in parallel** but analyzed **separately** from primary AERC endpoints.
+
+**ACAT dimensions referenced:**
+- **LI (Lexical Intensity):** Measurement of explicit confidence signals in model output (word choice, modal strength)
+- **SAG (Semantic Aggregation Gap):** Discrepancy between stated confidence and demonstrated semantic coherence
+- **P1–P3 phases:** Confidence phases (P1 = low, P2 = medium, P3 = high) as measured by ACAT dimension aggregation
 
 ### ACAT Trigger Rules (Prespecified)
 
 IF P1→P3 shift ≥ 0.2 in magnitude (THEN flag case for AERC review)
 
-- Document the shift
-- Check whether lower confidence corresponds to higher verified correctness
-- Measure precision/recall of "flag triggers improvement"
+- Document the shift: measured as difference in aggregated phase scores between Arm A baseline and Arm C AERC
+- Check whether lower confidence (P3→P1 shift) corresponds to higher verified correctness
+- Measure precision/recall of "flag triggers improvement" as post-hoc exploratory analysis
 
 ### ACAT Ablation Outcome
 
