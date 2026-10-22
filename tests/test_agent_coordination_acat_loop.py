@@ -92,7 +92,7 @@ class ACATReflexTest(unittest.TestCase):
         self.assertEqual(s["acat_li_self_report_revision_only"], 1.0)
         self.assertEqual(s["brier_forecast_vs_rater_claim"], .09)
         self.assertEqual(s["evidence_validity"], "AWAITING_INDEPENDENT_REF_VERIFICATION")
-        self.assertNotIn("VERIFIED", (s["evidence_validity"], "VERIFIED"))
+        self.assertNotEqual(s["evidence_validity"], "VERIFIED")
 
     def test_zero_denominator_not_faked(self):
         zeros = dict.fromkeys(a.DIMS, 0)
