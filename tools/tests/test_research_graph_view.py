@@ -406,6 +406,44 @@ class ReviewFindingFixtures(unittest.TestCase):
         view = _build(snapshot)
         self.assertEqual(_pr_node(view, 10)["lane"], "INCOMPLETE")
 
+    def test_closing_keyword_whitespace_is_bounded_at_sixteen(self):
+        repo = "humanaios-ui/operations"
+        self.assertEqual(rgv._closing_targets("Closes" + " " * 16 + "#800", repo), [800])
+        self.assertEqual(rgv._closing_targets("Closes" + " " * 17 + "#800", repo), [])
+
+    def test_reference_inside_word_or_path_is_ignored(self):
+        repo = "humanaios-ui/operations"
+        self.assertEqual(rgv._references("see pkg#12 and a/b/#13", repo, []), [])
+        self.assertEqual(rgv._references("see #12", repo, []), [12])
+
+    def test_issue_cap_overflow_marks_closing_target_incomplete(self):
+        class FakeGH(rgv._ReadOnlyGitHub):
+            def get(self, path):
+                if path.startswith("pulls?state=open"):
+                    return [{"number": 10, "body": "Closes #801; refs #800", "state": "open",
+                             "draft": False, "merged_at": None, "head": {"sha": HEAD}}]
+                if path.startswith("pulls?state=closed"):
+                    return []
+                if path.startswith("pulls/10/files"):
+                    return [{"filename": "docs/readme.md"}]
+                if path.startswith("pulls/10/reviews"):
+                    return []
+                if path.startswith("actions/runs"):
+                    return {"workflow_runs": []}
+                if path == "issues/800":
+                    return {"state": "open", "body": "ordinary issue"}
+                if path == "branches/main":
+                    return {"commit": {"sha": "c" * 40}}
+                raise urllib.error.HTTPError(path, 404, "not found", None, None)
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(rgv, "_ReadOnlyGitHub", FakeGH), \
+                mock.patch.object(rgv, "ISSUE_CAP", 1):
+            snapshot = rgv.fetch_snapshot("humanaios-ui/operations", "t", Path(tmp))
+        self.assertTrue(snapshot["pulls"][0]["incomplete"])
+        self.assertTrue(snapshot["truncated"])
+        self.assertEqual(_pr_node(_build(snapshot), 10)["lane"], "INCOMPLETE")
+
     def test_missing_referenced_issue_is_unresolved_not_an_error(self):
         class FakeGH(rgv._ReadOnlyGitHub):
             def get(self, path):
