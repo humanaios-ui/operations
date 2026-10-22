@@ -19,7 +19,8 @@ description: |
   - Visibility: user only. The operator sees data only when the user grants support access
     for a stated purpose and duration.
   - Key: derived in the user's browser from a passphrase or passkey, with a printed recovery
-    code. The server stores ciphertext only. Lost passphrase and lost recovery code mean lost data.
+    code. The server stores ciphertext only. Data is lost only when all authorized key material is
+    lost: passphrase, recovery code, any synced passkey, or the recovery method Z2 selects.
   - Scan: the browser sends the identifiers needed for one scan to the server over TLS. The
     server holds them in memory for that scan only. The server never writes them to disk, logs,
     traces, metrics, or any shared store. Results are returned to the browser and encrypted there
