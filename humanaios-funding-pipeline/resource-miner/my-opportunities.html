@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INTENT-OS · My Opportunities</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf2fc;background:#0b1423;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:#0b1423}main{max-width:900px;margin:auto;padding:30px 20px 90px}
+a{color:#96dcf8}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #98dff8;outline-offset:3px}
+.brand{color:#81c5e9;font-size:.78rem;letter-spacing:.14em;font-weight:750}
+h1{font-size:clamp(2rem,5vw,2.8rem);margin:12px 0}h2{font-size:1.25rem}
+p{line-height:1.55}.muted{color:#b1c2d5}.subtle{font-size:.87rem;color:#b1c2d5}
+nav{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.panel{border:1px solid #38516d;background:#13243a;border-radius:14px;padding:24px;margin:18px 0}
+.notice{border-left:4px solid #eac276;padding:11px 14px;background:#342c24;border-radius:5px}
+.layout{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.fact{border:1px solid #486078;border-radius:9px;padding:14px;min-height:100px}
+.fact h3{font-size:.93rem;margin:0 0 8px}.fact p{margin:0;font-size:.85rem;overflow-wrap:anywhere}
+.done{color:#99eac3}.pending{color:#e6c991}.unknown{color:#b7c9dc}
+.code{font-family:ui-monospace,SFMono-Regular,monospace;word-break:break-all;font-size:.82rem;color:#b0cde2}
+button{border:1px solid #77accd;background:#356b92;border-radius:8px;padding:10px 15px;color:white;font:inherit;font-weight:650;cursor:pointer}
+button.secondary{background:transparent}button:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+input,select{background:#081829;border:1px solid #60728c;color:#fff;border-radius:7px;padding:10px;font:inherit;max-width:100%}
+input[type=file]{width:100%}label{display:block;font-weight:650;margin:16px 0 8px}
+ol li{margin-bottom:10px;line-height:1.45}
+#status{min-height:1.3em}#cards[hidden]{display:none}
+footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
+</style>
+</head>
+<body>
+<main>
+<nav><a href="/intent-os">← Find resources</a><a href="/on-track">On-track review</a></nav>
+<header><div class="brand">HUMANAIOS / INTENT-OS</div><h1>My Opportunities</h1>
+<p class="muted">See what happened after a resource was discovered, distinguish human reports from provider evidence, and choose a next action.</p></header>
+<section class="panel">
+<h2>Opportunity record</h2>
+<p class="notice" id="standing">Loading a synthetic example. This is not connected to your Gmail, Calendar or Discord accounts.</p>
+<p class="subtle">Default: read-only synthetic demonstration modeled on the Apart sprint. You may import your own sanitized record. The server does not save it. This interface works only when the service is bound to your computer's loopback address.</p>
+<div class="actions">
+<button id="demo" type="button" class="secondary">View synthetic example</button>
+<button id="starter" type="button" class="secondary">Use editable starter</button>
+</div>
+<label for="import">Import your local journey JSON</label>
+<input id="import" type="file" accept=".json,application/json">
+<div class="actions">
+<button type="button" id="export" disabled>Export current JSON</button>
+<button type="button" id="save" disabled>Save privately in this browser</button>
+<button type="button" id="clear" class="secondary">Clear browser save</button>
+</div>
+<p id="status" role="status" aria-live="polite" class="subtle"></p>
+</section>
+<section id="cards" hidden aria-live="polite">
+<article class="panel">
+<div class="brand" id="source"></div>
+<h2 id="opportunity"></h2>
+<p class="subtle" id="parent"></p>
+<p id="standingResult"></p>
+<div id="facts" class="layout"></div>
+</article>
+<article class="panel">
+<h2>Recommended next actions</h2>
+<ol id="actionsList"></ol>
+<p class="subtle" id="warnings"></p>
+</article>
+</section>
+<section class="panel">
+<h2>Record an explicit human report</h2>
+<p class="subtle">Available after importing or opening an editable starter. Adding a report does not prove provider confirmation and does not contact any external service.</p>
+<label for="humanAction">What did you personally do?</label>
+<select id="humanAction">
+<option value="HUMAN_SELECTED">I selected this opportunity</option>
+<option value="SURVEY_SUBMITTED_HUMAN">I submitted its survey</option>
+<option value="DISCORD_JOINED_HUMAN">I joined its Discord</option>
+</select>
+<div class="actions"><button id="record" type="button" disabled>Record my report</button></div>
+</section>
+<section class="panel">
+<h2>Evidence and limitations</h2>
+<p>Observed Gmail welcome messages and calendar receipts are separate from human reports. This offline projector checks declared source types but <strong>does not cryptographically verify providers, read your accounts, submit applications, or grant permission to act.</strong></p>
+<p>Imported JSON is transmitted only to this local HTTP service for projection and is not written to disk by the server. Browser storage is optional, local to this browser profile and not encrypted. Keep account identifiers, private links, emails, names, authentication tokens, and raw messages out of the imported record; use opaque local evidence references.</p>
+<p><a href="https://apartresearch.com/sprints/ai-collusion-research-sprint-2026-10-23-to-2026-10-25" target="_blank" rel="noopener noreferrer">Apart Research sprint information ↗</a></p>
+</section>
+<footer>My Opportunities local prototype · Z0/Z1 · no cloud account connection · no external execution authority</footer>
+</main>
+<script>
+"use strict";
+const byId=id=>document.getElementById(id);
+const localKey="humanaios.my_opportunities.v0.1";
+const status=byId("status");
+const allowedHuman=new Set(["HUMAN_SELECTED","SURVEY_SUBMITTED_HUMAN","DISCORD_JOINED_HUMAN"]);
+const nice={
+ DISCOVERED:["Discovered","Resource Miner observation"],
+ HUMAN_SELECTED:["Selected","Human report"],
+ SIGNUP_WELCOME_EMAIL_OBSERVED:["Signup welcome email","Connector observation, not provider proof"],
+ SURVEY_SUBMITTED_HUMAN:["Survey submitted","Human reported"],
+ CALENDAR_EVENT_CREATED:["Calendar event created","Connector receipt claimed"],
+ DISCORD_JOINED_HUMAN:["Discord joined","Human reported"]
+};
+const actions={
+ REVIEW_AND_SELECT_OPPORTUNITY:"Review this opportunity and explicitly decide whether to pursue it.",
+ REVIEW_SIGNUP_OR_APPLICATION:"Review the application or signup procedure. Submission requires your own approval.",
+ COMPLETE_REQUIRED_SURVEY:"Complete the required participant survey if still outstanding.",
+ VERIFY_PARTICIPANT_STANDING_WITH_PROVIDER:"Check with Apart whether your survey has been accepted and your participant standing is confirmed.",
+ REVIEW_CALENDAR_SCHEDULE:"Review the official session schedule and your calendar.",
+ REVIEW_EVENT_UPDATES_AND_RESEARCH_DELIVERABLE:"Follow official event updates and prepare the AI-agent collusion experiment."
+};
+let current=null;
+const setText=(el,value)=>{el.textContent=String(value??"");};
+function showError(message){setText(status,message);status.style.color="#f6bcae";}
+function showStatus(message){setText(status,message);status.style.color="";}
+function fact(title,value,detail,ok){
+ const el=document.createElement("div");el.className="fact";
+ const h=document.createElement("h3");setText(h,title);
+ const p=document.createElement("p");p.className=ok?"done":"unknown";setText(p,value);
+ const small=document.createElement("p");small.className="subtle";setText(small,detail);
+ el.append(h,p,small);return el;
+}
+function render(data){
+ if(!data||!Array.isArray(data.journeys)||data.journeys.length!==1)throw new Error("Unexpected projection.");
+ const j=data.journeys[0];
+ if(j.authority_effect!=="NONE"||j.participant_standing!=="NOT_CONFIRMED_BY_PROVIDER")
+  throw new Error("Authority or provider-standing contract changed.");
+ byId("cards").hidden=false;
+ setText(byId("source"),data.mode||"UNVERIFIED");
+ setText(byId("opportunity"),j.opportunity_id);
+ setText(byId("parent"),"Related parent resource: "+j.parent_resource_id);
+ setText(byId("standingResult"),j.human_action_cycle==="INCOMPLETE"?
+    "Human action cycle: incomplete.":"Human actions recorded; independent participant qualification still unconfirmed.");
+ const holder=byId("facts");holder.replaceChildren();
+ for(const [kind,[label,detail]] of Object.entries(nice)){
+  const observed=!!j.observations?.[kind];
+  holder.append(fact(label,observed?"Reported / observed":"Not in record",detail,observed));
+ }
+ holder.append(fact("Participant qualification",j.participant_standing,"Not verified by Apart",false));
+ holder.append(fact("Research submission",j.research_submission,"No submission evidence",false));
+ const list=byId("actionsList");list.replaceChildren();
+ const next=Array.isArray(j.next_action_codes)?j.next_action_codes:[];
+ for(const code of next){
+  const li=document.createElement("li");setText(li,actions[code]||"Review: "+code);list.append(li);
+ }
+ if(!next.length){const li=document.createElement("li");setText(li,"No suggested action. Verify the latest provider status.");list.append(li);}
+ setText(byId("warnings"),(j.warnings||[]).length?
+   "Consistency warnings: "+j.warnings.join(", "):
+   "Evidence is an unsigned local projection, not an independent attestation.");
+ const synthetic=data.mode==="SYNTHETIC_DEMONSTRATION_NOT_PERSONAL_EVIDENCE";
+ setText(byId("standing"),synthetic?
+   "SYNTHETIC DEMONSTRATION — not a linked personal record.":
+   "LOCAL USER-PROVIDED PREVIEW — source/participant claims are not independently verified.");
+ byId("export").disabled=!current;
+ byId("save").disabled=!current;
+ byId("record").disabled=!current;
+}
+async function requestProjection(payload){
+ const body=JSON.stringify(payload);
+ if(new TextEncoder().encode(body).length>12288)throw new Error("Journey JSON exceeds 12 KB.");
+ const res=await fetch("/api/my-opportunities/project",{
+  method:"POST",headers:{"Content-Type":"application/json"},body,cache:"no-store"
+ });
+ if(!res.ok)throw new Error("Projection rejected (HTTP "+res.status+").");
+ const data=await res.json();render(data);
+}
+async function showDemo(){
+ const response=await fetch("/api/my-opportunities",{cache:"no-store"});
+ if(!response.ok)throw new Error("Private journey API unavailable.");
+ current=null;
+ render(await response.json());
+ showStatus("Viewing synthetic example only. No personal account data loaded.");
+}
+function download(name,payload){
+ const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
+ const a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+byId("demo").addEventListener("click",()=>showDemo().catch(e=>showError(e.message)));
+byId("starter").addEventListener("click",async()=>{
+ try{
+  const r=await fetch("/api/my-opportunities/starter",{cache:"no-store"});
+  if(!r.ok)throw new Error("Starter record unavailable.");
+  const next=await r.json();await requestProjection(next);current=next;
+  byId("export").disabled=false;byId("save").disabled=false;byId("record").disabled=false;
+  showStatus("Editable synthetic starter loaded. Replace example evidence references before treating it as personal history.");
+ }catch(e){showError(e.message);}
+});
+byId("import").addEventListener("change",async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ if(file.size>12288){showError("File exceeds 12 KB.");return;}
+ try{
+  const input=JSON.parse(await file.text());await requestProjection(input);current=input;
+  byId("export").disabled=false;byId("save").disabled=false;byId("record").disabled=false;
+  showStatus("Local JSON imported and projected. No server-side save.");
+ }catch(error){showError("Import rejected: "+error.message);}
+ finally{e.target.value="";}
+});
+byId("record").addEventListener("click",async()=>{
+ if(!current)return;
+ const kind=byId("humanAction").value;
+ if(!allowedHuman.has(kind))return;
+ if(current.events.some(e=>e.kind===kind)){
+  showStatus("This human action is already in the current record; no duplicate added.");return;
+ }
+ const next=JSON.parse(JSON.stringify(current));
+ next.events.push({
+  event_id:"HUMAN-"+Date.now(),
+  kind,source_kind:"HUMAN_REPORT",
+  evidence_ref:"LOCAL-HUMAN-REPORT",
+  observed_at:new Date().toISOString()
+ });
+ try{await requestProjection(next);current=next;showStatus("Human report added locally; export or explicitly save to retain it.");}
+ catch(error){showError(error.message);}
+});
+byId("export").addEventListener("click",()=>{
+ if(!current)return;download("intent-os-opportunity-journey.json",current);
+ showStatus("Downloaded local journey JSON. Handle it as private personal data.");
+});
+byId("save").addEventListener("click",()=>{
+ if(!current)return;
+ if(!confirm("Save this sanitized record in browser storage? Browser storage is not encrypted."))return;
+ try{localStorage.setItem(localKey,JSON.stringify(current));showStatus("Saved in this browser. No server write.");}
+ catch(error){showError("Browser storage unavailable. Export JSON instead.");}
+});
+byId("clear").addEventListener("click",()=>{
+ if(!confirm("Delete My Opportunities record from browser storage? Exports are unaffected."))return;
+ try{localStorage.removeItem(localKey);showStatus("Saved browser record cleared. Current preview is unchanged.");}
+ catch(error){showError("Unable to clear browser storage.");}
+});
+(async()=>{
+ try{
+  const local=localStorage.getItem(localKey);
+  if(local){
+   try{const restored=JSON.parse(local);await requestProjection(restored);current=restored;
+    byId("export").disabled=false;byId("save").disabled=false;byId("record").disabled=false;
+    showStatus("Restored locally saved journey. Not independently verified.");return;
+   }catch(e){showError("Saved record invalid; displaying demonstration.");}
+  }
+  await showDemo();
+ }catch(e){showError(e.message);}
+})();
+</script>
+</body>
+</html>
