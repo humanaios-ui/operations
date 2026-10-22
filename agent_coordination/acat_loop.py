@@ -14,7 +14,10 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 
-import reflex
+if __package__:
+    from . import reflex
+else:
+    import reflex
 
 MARKER = "<!-- humanaios-acat-reflex:v0.1 -->"
 SCHEMA = "humanaios.acat_reflex.experimental.v0.1"
