@@ -81,7 +81,7 @@
       "rule": "Only 10 of the SMAG ledger's 126 rows carry a pinned `smag_p:` prediction (below the 10-row floor for pattern claims); 116 are VOID per IC-SMAG-01 mitigation. A 'dominant failing check' claim computed over so few pinned rows would be noise. Do not promote a gap-driver finding to a hard gate until calibration_rows clears the floor.",
       "root_cause": "PR template prompt for `smag_p:` was added S-091326, but existing PRs pre-template were retroactively marked VOID. New PRs with pinned predictions accumulate slowly.",
       "scope_limit": "Resolves once PR authors consistently pin `smag_p:` (see .github/PULL_REQUEST_TEMPLATE.md) at a rate that clears the floor within 30 days of current date.",
-      "action_for_z2": "Monitor calibration_rows growth weekly. Once \u226510 pinned rows on recent PRs (post-2026-09-21), re-run smag_feedback_v1_0.py to extract gap-drivers for possible REGISTERED findings.",
+      "action_for_z2": "Monitor calibration_rows growth weekly. Once ≥10 pinned rows on recent PRs (post-2026-09-21), re-run smag_feedback_v1_0.py to extract gap-drivers for possible REGISTERED findings.",
       "smag_generated": true,
       "data_source": "audits/smag_pilot_ledger.jsonl (126 total rows, 10 calibrated, 116 VOID)"
     },
@@ -90,7 +90,7 @@
       "discovered_in": "smag_gap_analysis_v1_0.py backfill 2026-09-21",
       "constraint": "recursive_learning_data_collection_established",
       "severity": "INFO",
-      "rule": "Baseline measurement window (126 historical rows, 10 calibrated): clean_rate=0.9, gap_rate=0.1, measurable_rate=1.0. Substrate: human:humanaios-ui. Failing checks: `validate` (1x), `validate-registry` (1x). No systemic driver threshold met (need \u22653 recurrences). Signal: system is operating well within acceptable calibration bounds.",
+      "rule": "Baseline measurement window (126 historical rows, 10 calibrated): clean_rate=0.9, gap_rate=0.1, measurable_rate=1.0. Substrate: human:humanaios-ui. Failing checks: `validate` (1x), `validate-registry` (1x). No systemic driver threshold met (need ≥3 recurrences). Signal: system is operating well within acceptable calibration bounds.",
       "context": "This is the baseline before metadata-feedback and upstream impact mechanisms are wired. Gap_rate of 0.1 (90% clean) is healthy. One-off friction cases do not yet warrant gate hardening.",
       "action_for_z2": "Accept baseline. Continue collecting calibration data (smag_p: predictions on new PRs). Rerun analysis monthly to detect drift.",
       "smag_generated": true,
@@ -121,8 +121,8 @@
       "id": "SMAG-FEEDBACK-DRIVER-VERCEL-RESOURCE-MINER-cb090b6a",
       "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
-      "rule": "The check `Vercel \u2013 resource-miner` failed on 10 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
-      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
+      "rule": "The check `Vercel – resource-miner` failed on 10 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking — see CLAUDE.md's governance-files table.",
       "smag_generated": true
     },
     {
@@ -130,7 +130,7 @@
       "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
       "rule": "The check `Repository admission/backpressure gate` failed on 5 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
-      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
+      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking — see CLAUDE.md's governance-files table.",
       "smag_generated": true
     },
     {
@@ -138,16 +138,45 @@
       "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
       "rule": "The check `Verify Z2 Ratification Requirements` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
-      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
+      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking — see CLAUDE.md's governance-files table.",
       "smag_generated": true
     },
     {
       "id": "SMAG-FEEDBACK-DRIVER-VERCEL-ENTITLEMENT-NAVIGATOR-ccbe9059",
       "discovered_in": "smag_feedback_v1_0, automated FEED BACK run (65 calibration rows)",
       "constraint": "recurring_failing_check_on_pinned_prs",
-      "rule": "The check `Vercel \u2013 entitlement-navigator` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
-      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking \u2014 see CLAUDE.md's governance-files table.",
+      "rule": "The check `Vercel – entitlement-navigator` failed on 3 pinned-prediction PR(s) (overall gap_rate 0.231). Read this as one systemic issue (a broken or advisory gate merged over), not independent quality misses, per audits/smag_gap_report.md's own reading rule. Fix or de-advisory the check before treating its PRs as independent calibration evidence.",
+      "scope_limit": "A recurring driver is a proposal for Z2 review (REGISTERED finding / Priority Queue row), not authorization to make the check blocking — see CLAUDE.md's governance-files table.",
       "smag_generated": true
+    },
+    {
+      "id": "SMAG-META-CALIBRATION-SELF-ACCURACY",
+      "discovered_in": "meta_smag_review 2026-10-20T10:01:27Z (4-week checkpoint)",
+      "constraint": "smag_self_accuracy_measurement_insufficient_window",
+      "severity": "ADVISORY",
+      "confidence": "insufficient_data",
+      "rule": "Five consolidation PRs with smag_p_meta predictions identified; only 2 resolved outcomes observed over 4-week window (2026-09-21 → 2026-10-20). Observation floor = 3 PRs. Observed merge-state proxy: 2/2 resolved merged (100%; not a rework-free success or calibration measure), but sample size below statistical threshold. Consolidation PRs were observed in weeks 1–2 (#432 Sep 21, #573 cycle Sep 28, merged Oct 1) and weeks 3–5 (#724 Oct 5, #817 Oct 12, #931 Oct 19 still OPEN); whether the scheduled workflow executed remains unverified. Cannot recommend weighting changes or gate hardening on 2-PR sample.",
+      "data_source": "audits/META_SMAG_REVIEW_LOG.md (4-week checkpoint)",
+      "observed_outcome_rate": 1,
+      "observed_outcome_note": "Two of two RESOLVED PRs were merged by the historical snapshot; merge-state proxy only; three open PRs remain censored.",
+      "mean_forecast_probability": 0.85,
+      "total_prs_measured": 2,
+      "calibration_gap": null,
+      "focus_areas": [],
+      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Monitor PRs #724, #817, #931 for merge completion. Before rerun, verify the merged #946 observed/predicted separation at the exact scheduled execution head. Once at least 3 outcomes are independently resolved and tool fix verified, re-run:\npython3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44\nto measure true accuracy trend and calibration drift on full sample.",
+      "smag_generated": true,
+      "meta_signal": true,
+      "timestamp": "2026-10-20T10:01:27Z",
+      "accuracy_measured": 1,
+      "total_prs_observed": 5,
+      "resolved_prs": 2,
+      "pending_prs": 3,
+      "outcome_definition": "GITHUB_MERGE_STATE_PROXY_NOT_REWORK_FREE_QUALITY",
+      "measurement_repair": "Merged PR #946 preserves observed accuracy separate from mean forecast probability; reverify before scheduled use.",
+      "calibration_gap_definition": "mean forecast probability minus observed resolved merge-state proxy; 0.85 - 1.0 = -0.15. Descriptive, not independently verified predictive calibration.",
+      "calibration_gap_status": "UNVERIFIED_PROSPECTIVE_CALIBRATION",
+      "merge_state_proxy_gap": -0.15,
+      "merge_state_proxy_gap_definition": "mean declared probability (0.85) minus resolved observed MERGE-state fraction (1.0); no independent pre-outcome attestation or no-rework outcome evidence."
     }
   ]
 }
