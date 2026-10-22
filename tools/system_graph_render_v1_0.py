@@ -109,10 +109,15 @@ def render(graph: dict, *, source_path: str, source_sha256: str, commit: str) ->
         out.append("| id | name | type | zone | implementation | tests | phase | description |")
         out.append("|---|---|---|---|---|---|---|---|")
         for n in ns:
+            nid = str(n.get('id', '')).replace("|", "\\|")
+            name = str(n.get('name', '')).replace("|", "\\|")
+            ntype = str(n.get('type', '')).replace("|", "\\|")
+            zone = str(n.get('zone', '')).replace("|", "\\|")
+            impl = str(n.get('implementation', '')).replace("|", "\\|")
+            tests = str(n.get('tests', '')).replace("|", "\\|")
+            phase = str(n.get('phase', '')).replace("|", "\\|")
             desc = str(n.get("description", "")).replace("|", "\\|")
-            out.append(f"| `{n.get('id')}` | {n.get('name', '')} | {n.get('type', '')} | "
-                       f"{n.get('zone', '')} | `{n.get('implementation', '')}` | "
-                       f"{n.get('tests', '')} | {n.get('phase', '')} | {desc} |")
+            out.append(f"| `{nid}` | {name} | {ntype} | {zone} | `{impl}` | {tests} | {phase} | {desc} |")
         out.append("")
 
     out.append("## Edges")
@@ -125,8 +130,10 @@ def render(graph: dict, *, source_path: str, source_sha256: str, commit: str) ->
         out.append("| from | to | label |")
         out.append("|---|---|---|")
         for e in sorted(es, key=lambda e: (str(e.get('source')), str(e.get('target')), str(e.get('label')))):
+            source = str(e.get('source', '')).replace("|", "\\|")
+            target = str(e.get('target', '')).replace("|", "\\|")
             label = str(e.get("label", "")).replace("|", "\\|")
-            out.append(f"| `{e.get('source')}` | `{e.get('target')}` | {label} |")
+            out.append(f"| `{source}` | `{target}` | {label} |")
         out.append("")
 
     out.append("## Provenance")
@@ -154,9 +161,15 @@ def _strip_commit_line(text: str) -> str:
     unchanged source does not read as drift; the source sha256 is what matters."""
     keep = []
     for line in text.splitlines():
-        if "rendered at commit" in line or line.startswith("- repository commit at render time"):
-            continue
-        keep.append(line)
+        if "rendered at commit `" in line:
+            # Mask the commit hash but keep the line structure
+            line = line.replace("`" + _git_head(ROOT) + "`", "`<commit>`")
+            keep.append(line)
+        elif line.startswith("- repository commit at render time:"):
+            # Mask only the commit value, not the entire line
+            keep.append("- repository commit at render time: `<commit>`")
+        else:
+            keep.append(line)
     return "\n".join(keep)
 
 
