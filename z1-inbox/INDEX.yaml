@@ -3,7 +3,7 @@ generated: '2026-10-14'
 decision_window_days: 2
 counts:
   candidates: 110
-  records: 61
+  records: 62
 ratifiers:
 - Night
 candidates:
@@ -22,16 +22,31 @@ candidates:
   title: Multi-agent plan to work the intentionally backed-up PR queue as a governed experiment
   path: z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md
   submitted: '2026-10-14'
-  status: awaiting_z2
+  status: ratified
   tier: 1
-  note: 'Ten-agent roster (orchestrator, cartographer, supersession analyst, single-writer manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched into Decision Sheet 1 (twelve rows, ~86 RAT-min prior; four answered in-session on 2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md. Touches no constants, gates, workflows, or REGISTERED.md.'
+  note: 'Ten-agent roster (orchestrator, cartographer, supersession analyst, single-writer
+    manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration
+    recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in
+    five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched
+    into Decision Sheet 1 (twelve rows, ~86 RAT-min prior; four answered in-session on
+    2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier
+    F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md.
+    Touches no constants, gates, workflows, or REGISTERED.md.'
+  ratified_by: Night
+  ratified_at: "2026-10-15"
+  z2_ruling: "z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md"
+  z2_hash: "a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573"
 - q_id: Q-QUEUE-SWEEP-PIN-SPEC-01
   title: Queue sweep and pin spec for 56 open PRs, with four Z2 decisions (S1-S4)
   path: z1-inbox/2026-10-15/QUEUE_SWEEP_PIN_SPEC_2026-10-15.md
   submitted: '2026-10-15'
-  status: awaiting_z2
+  status: ratified
   tier: 0
   note: Opening move of P0 for Q-MULTI-AGENT-QUEUE-PLAN-01. Lane-based gate-conclusion priors per open PR (queue_pins_2026-10-15.json), lane source per row. Asks Z2 for four decisions (S1 window and resolver, S2 priors, S3 read the UNREAD receipts, S4 one ci-predict consolidate PR at a time). Falsifier stated under "## Falsifier". No signature, admission, label, or merge action.
+  ratified_by: Night
+  ratified_at: "2026-10-21"
+  z2_ruling: "z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md"
+  z2_hash: "3823b1ed565652db123cfa2f519c72fe5ae13c194085ff539b7596c782793dc4"
 - q_id: Q-GRAPH-CAPTURE-LINT-01
   title: graph_capture_lint — score every graph file against the nine properties of a self-sealing graph; block on the three that make a graph unauditable
   path: z1-inbox/2026-10-01/Q-GRAPH-CAPTURE-LINT-01.md
@@ -642,9 +657,13 @@ candidates:
   title: Local mesh coordination layer in operations/mesh/ for humanaios, website, grok-crossref
   path: z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md
   submitted: '2026-09-22'
-  status: awaiting_z2
+  status: ratified
   note: Adds mesh/ as a local, unratified coordination surface. Requests D3 (is mesh/ inside operations an admissible locus?) and D4 (promote schema to schemas/ and conformance scripts to tools/?). Does not resolve D1; widens it from two candidate resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-10-21"
+  z2_ruling: "z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md"
+  z2_hash: "2c62341e03c880942e71b2b1b3f6ea85fc99feac0f032b665adb9048f4eae926"
 - q_id: Q-ACCOUNT-HUB-01
   title: HumanAIOS Account Hub & Project Manager Cockpit
   path: z1-inbox/2026-09-22/ACCOUNT-HUB-PROPOSAL.md
@@ -755,9 +774,13 @@ candidates:
   title: p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification
   path: z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md
   submitted: '2026-09-29'
-  status: awaiting_z2
+  status: ratified
   note: 'Found via a systematic pytest-enabled backlog pass (same pass as PR #589''s CommitmentRecognizer contraction fix). p34x_temporal_extractor/evidence.py''s LedgerProvider._load_molt_windows()/resolve() are explicitly-marked "Phase 0" stubs that always return None, so no future date can ever ground against a ratified molt window; tests/test_p34x_metamorphic.py::TestCorpusBaseline::test_corpus_clean_examples reproduces this. Documentation-only filing, no code change proposed.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-10-21"
+  z2_ruling: "z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md"
+  z2_hash: "8537eca961308aa4e93c0cdacb0cd412f90c0afd7e40ba8dcdcdb7ef96195b6c"
 - q_id: Q-TIER-ASSIGNMENT-BATCH-01
   title: Tier assignment for 90 awaiting_z2 governance candidates
   path: z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md
@@ -819,6 +842,10 @@ candidates:
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
 records:
+- path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
+  title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
   submitted: '2026-10-15'

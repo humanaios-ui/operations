@@ -276,6 +276,21 @@ def _replay_context(events: list[dict[str, Any]]) -> dict[str, Any]:
                 ),
                 "command_ref": event.get("command_ref"),
             }
+            if (
+                kind == "PULL_REQUEST" and
+                str(event.get("command_ref") or "").startswith("RCC-GITHUB-COMMENT-")
+            ):
+                import re
+                bound = [
+                    str(v)[len("pr-head:"):]
+                    for v in (event.get("evidence") or [])
+                    if str(v).startswith("pr-head:")
+                ]
+                _require(
+                    len(bound) == 1 and re.fullmatch(r"[0-9a-f]{40}", bound[0]) is not None,
+                    f"line {index}: PR-comment admission must bind one exact head SHA",
+                )
+                active[key]["admitted_head_sha"] = bound[0]
         elif decision == "ACK_ALREADY_ADMITTED":
             _require(key in active, f"line {index}: ACK_ALREADY_ADMITTED requires active {key}")
         elif decision == "ACK_ALREADY_REVOKED":
@@ -577,6 +592,149 @@ def apply_issue_command(
     }
 
 
+
+def apply_pr_comment_command(
+    *,
+    policy_path: Path,
+    ledger_path: Path,
+    state_path: Path,
+    repository: str,
+    pr_number: int,
+    pr_payload: dict[str, Any],
+    comment_payload: dict[str, Any],
+    event_payload: dict[str, Any],
+    actor: str,
+    comment_id: str,
+    recorded_at: str,
+    source_policy_sha: str,
+) -> dict[str, Any]:
+    """Apply authenticated PR-comment routing without granting merge/review approval.
+
+    pr_payload and comment_payload must be fetched by the trusted workflow
+    directly from GitHub API, not supplied by the PR branch or comment text.
+    Require the *full* PR head SHA in the comment to prevent an earlier
+    unqualified comment being replayed against a later push.
+    """
+    import re
+
+    policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    cfg = policy.get("state") or {}
+    route = cfg.get("pr_route") or {}
+    _require(route.get("enabled") is True, "PR command route is disabled")
+    _require(route.get("merge_authority") is False, "PR route cannot grant merge authority")
+    _require(route.get("authority_effect") == AUTHORITY_EFFECT, "incorrect PR-route authority")
+    _require(isinstance(pr_payload, dict) and isinstance(comment_payload, dict),
+             "live GitHub PR/comment payloads required")
+    _require(isinstance(event_payload, dict) and event_payload.get("action") == "created",
+             "original issue_comment.created webhook required")
+    observed_event_comment = event_payload.get("comment") or {}
+    observed_event_issue = event_payload.get("issue") or {}
+    _require(observed_event_issue.get("number") == int(pr_number)
+             and bool(observed_event_issue.get("pull_request")),
+             "event must originate on the target PR")
+    _require(str(observed_event_comment.get("id")) == str(comment_id),
+             "event comment ID does not match")
+    _require(observed_event_comment.get("body") == comment_payload.get("body"),
+             "EDITED_COMMENT: current GitHub comment body differs from triggering event")
+    _require((observed_event_comment.get("user") or {}).get("login") == actor,
+             "event actor does not match webhook")
+    _require(str(comment_payload.get("id")) == str(comment_id), "comment ID does not match API")
+    _require((comment_payload.get("user") or {}).get("login") == actor,
+             "comment actor does not match authenticated GitHub API")
+    _require(str(comment_payload.get("created_at") or "") == recorded_at,
+             "comment creation timestamp does not match GitHub API")
+    _require(
+        comment_payload.get("issue_url") ==
+        f"https://api.github.com/repos/{repository}/issues/{int(pr_number)}",
+        "comment does not belong to the target PR",
+    )
+    _require(pr_payload.get("number") == int(pr_number), "PR number mismatch")
+    authorized = {str(v) for v in cfg.get("authorized_mutators") or []}
+    if actor not in authorized:
+        return {
+            "should_mutate": False, "reason": "REJECTED_UNAUTHORIZED_ACTOR",
+            "authority_effect": AUTHORITY_EFFECT, "merge_authority": False,
+        }
+
+    command = str(comment_payload.get("body") or "")
+    matcher = re.fullmatch(r"/coordinator (admit|revoke) ([0-9a-f]{40})", command)
+    if not matcher:
+        return {
+            "should_mutate": False,
+            "reason": "FULL_HEAD_SHA_REQUIRED: use /coordinator admit <40-hex-PR-head-SHA> "
+                      "or /coordinator revoke <40-hex-PR-head-SHA>",
+            "authority_effect": AUTHORITY_EFFECT, "merge_authority": False,
+        }
+
+    requested_sha = matcher.group(2)
+    decision = matcher.group(1).upper()
+    live_sha = str((pr_payload.get("head") or {}).get("sha") or "")
+    _require(
+        pr_payload.get("state") == "open"
+        and pr_payload.get("merged") is not True
+        and pr_payload.get("draft") is False,
+        "PR must be open, unmerged and ready for review",
+    )
+    _require(bool(re.fullmatch("[0-9a-f]{40}", live_sha)), "invalid live PR head")
+    _require(requested_sha == live_sha, "STALE_HEAD: command SHA differs from current PR head")
+
+    rcc = command_ref("GITHUB-COMMENT", comment_id)
+    verified = verify_projection(ledger_path, state_path)
+    if rcc in set(verified.get("consumed_command_refs") or []):
+        return {
+            "should_mutate": False, "reason": "DUPLICATE_COMMAND",
+            "command_ref": rcc, "head_sha": requested_sha,
+            "authority_effect": AUTHORITY_EFFECT, "merge_authority": False,
+        }
+
+    key = f"PULL_REQUEST#{int(pr_number)}"
+    event_id = (verified.get("active_event_ids") or {}).get(key)
+    if decision == "ADMIT":
+        if event_id:
+            # The state projection omits the original event evidence; verify
+            # the exact admitted head in the ledger instead of guessing.
+            rows = parse_ledger(ledger_path.read_text(encoding="utf-8"))
+            prior = next((row for row in reversed(rows) if row.get("event_id") == event_id), None)
+            _require(
+                prior is not None and f"pr-head:{requested_sha}" in (prior.get("evidence") or []),
+                "ACTIVE_ADMISSION_HEAD_UNBOUND: revoke prior admission before readmitting",
+            )
+            decision = "ACK_ALREADY_ADMITTED"
+        else:
+            capacity = int((policy.get("capacity") or {}).get("active_operator_queue") or 0)
+            _require(capacity > 0, "missing operator capacity policy")
+            active_count = len(verified.get("admitted_pull_request_numbers") or [])
+            _require(active_count < capacity, "CAPACITY_EXCEEDED: operator queue is full")
+    elif not event_id:
+        decision = "ACK_ALREADY_REVOKED"
+
+    locator = f"github:{repository}:pull:{int(pr_number)}:comment:{comment_id}"
+    result = append_event(
+        ledger_path=ledger_path, state_path=state_path,
+        decision=decision, subject_kind="PULL_REQUEST",
+        subject_number=int(pr_number), objective_issue_number=None,
+        admission_scope=f"subject:PULL_REQUEST#{int(pr_number)}",
+        command_ref_value=rcc, source_locator=locator,
+        actor=actor,
+        evidence=[
+            f"pr-head:{requested_sha}",
+            f"authenticated PR command {command!r} by @{actor}",
+            locator,
+        ],
+        recorded_at=recorded_at,
+        source_policy_sha=source_policy_sha,
+    )
+    return {
+        "should_mutate": bool(result.get("should_mutate")),
+        "reason": "COMMAND_ACKNOWLEDGED_NO_STATE_CHANGE" if decision.startswith("ACK_")
+                  else "EVENT_APPENDED",
+        "decision": decision, "command_ref": rcc, "head_sha": requested_sha,
+        "event": result.get("event"),
+        "authority_effect": AUTHORITY_EFFECT, "merge_authority": False,
+    }
+
+
+
 def reconcile_pr_lifecycle(
     *,
     ledger_path: Path,
@@ -722,6 +880,20 @@ def _parser() -> argparse.ArgumentParser:
     issue.add_argument("--source-policy-sha", required=True)
     issue.add_argument("--repository", required=True)
 
+    pr_comment = sub.add_parser("pr-comment-command")
+    pr_comment.add_argument("--policy", type=Path, required=True)
+    pr_comment.add_argument("--ledger", type=Path, required=True)
+    pr_comment.add_argument("--state", type=Path, required=True)
+    pr_comment.add_argument("--pr-payload", type=Path, required=True)
+    pr_comment.add_argument("--comment-payload", type=Path, required=True)
+    pr_comment.add_argument("--event-payload", type=Path, required=True)
+    pr_comment.add_argument("--pr-number", type=int, required=True)
+    pr_comment.add_argument("--actor", required=True)
+    pr_comment.add_argument("--comment-id", required=True)
+    pr_comment.add_argument("--recorded-at", required=True)
+    pr_comment.add_argument("--source-policy-sha", required=True)
+    pr_comment.add_argument("--repository", required=True)
+
     life = sub.add_parser("reconcile-pr")
     life.add_argument("--ledger", type=Path, required=True)
     life.add_argument("--state", type=Path, required=True)
@@ -761,6 +933,21 @@ def main(argv: list[str] | None = None) -> int:
                 recorded_at=args.recorded_at,
                 source_policy_sha=args.source_policy_sha,
                 repository=args.repository,
+            )
+        elif args.command == "pr-comment-command":
+            result = apply_pr_comment_command(
+                policy_path=args.policy,
+                ledger_path=args.ledger,
+                state_path=args.state,
+                pr_payload=json.loads(args.pr_payload.read_text(encoding="utf-8")),
+                comment_payload=json.loads(args.comment_payload.read_text(encoding="utf-8")),
+                event_payload=json.loads(args.event_payload.read_text(encoding="utf-8")),
+                repository=args.repository,
+                pr_number=args.pr_number,
+                actor=args.actor,
+                comment_id=args.comment_id,
+                recorded_at=args.recorded_at,
+                source_policy_sha=args.source_policy_sha,
             )
         elif args.command == "reconcile-pr":
             result = reconcile_pr_lifecycle(
