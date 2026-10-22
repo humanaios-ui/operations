@@ -14,7 +14,7 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 ## Receipt Walk-Back
 
-**Claim:** 2 consolidation PRs resolved with 100% accuracy; 3 pending PRs may complete before 2026-11-03.  
+**Claim (proxy):** 2 of 2 resolved consolidation PRs were merged at the historical snapshot; 3 OPEN cases are censored. This is *not* independently verified prediction accuracy, no-rework success, or admission.  
 **Evidence:** PRs #432 (merged 2026-09-21), #573 (merged 2026-10-01), #724/#817/#931 (open, behind main).  
 **Tree Entry:** audits/META_SMAG_REVIEW_LOG.md § Review Checkpoint 1 → Data Collected table.
 
@@ -45,7 +45,7 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 | Blocker | Authority | Action | Window |
 |:--------|:----------|:--------|:---------|
-| **Z2 Admission Ratification** | Z2 (Night) | Ratify SMAG-META-CALIBRATION-SELF-ACCURACY candidate block; emit Z2 hash on PR #936 | Within 48h (routine decision window) |
+| **Z2 Interpretation Review** | Z2 (human) | Review historical SMAG-META-CALIBRATION-SELF-ACCURACY interpretation in clean successor PR #975; any separate Z2 ratification must follow its own controls | Pending independent review |
 | **Consolidation PR Merge** | Z3 (executor per repo) | Rebase & merge PRs #724, #817, #931 against updated main | Before 2026-11-03 (monitoring deadline) |
 | **Week 2 Workflow Diagnosis** | Z2 (Night) / Z3 (executor) | Verify whether smag-consolidate.yml executed week 2 (2026-09-28); if failed, diagnose root cause | Optional for checkpoint completion; useful for operational health |
 
@@ -55,9 +55,9 @@ No F/IC/H candidates extracted from checkpoint analysis. All findings are observ
 
 **Work Recorded (not ratified):** Meta-SMAG 4-week checkpoint reviewed per META_SMAG_REVIEW_SCHEDULE.md § Scheduled Review Checkpoint. Record created and validated in audits/META_SMAG_REVIEW_LOG.md and lessons-learned ledger. Code and documentation changes need fresh CodeRabbit review, exact-head test evidence and a new Coordinator decision.
 
-**Status:** PR #936 has a stale base and unresolved admission; clean checkpoint candidate created separately, subject to independent review. Checkpoint record is a candidate observation, not independently verified prospective calibration.
+**Status:** PR #936 has a stale base and unresolved admission; clean checkpoint successor PR #975 is under independent review, not admitted. Checkpoint record is a candidate observation, not independently verified prospective calibration.
 
-**Z2 Decision Needed (not granted):** Independently review and decide whether to ratify checkpoint findings (SMAG-META-CALIBRATION-SELF-ACCURACY) and emit authorization hash on PR #936 to clear admission gate.
+**Z2 Decision Needed (not granted):** Review the checkpoint evidence in successor PR #975. If ratification is desired, follow its independent process. The Coordinator admission gate separately requires an authenticated exact-head admission event and receipt for PR #975; ratification text or hashes do not clear admission.
 
 **Next Measurement:** 2026-11-03, rerun `python3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44` with all observed candidates, preserving any unresolved PR as censored.
 
