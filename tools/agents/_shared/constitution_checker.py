@@ -4,13 +4,15 @@ Constitution Checker — P19: Detection beats compliance
 
 Validates decisions/artifacts against the 22-principle constitution.
 Used by: Principle Compliance Bot + governance audits.
+Governance-layer enforcement: Z2 signature required on governance-file changes.
 """
 
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 # TOOL_NAME and TOOL_VERSION for Builder v1.7 compliance
 TOOL_NAME = "constitution_checker"
@@ -19,6 +21,17 @@ TOOL_VERSION = "1.0.0"
 
 class ConstitutionChecker:
     """Check work against HumanAIOS constitution principles."""
+
+    GOVERNANCE_FILES = {
+        'CLAUDE.md',
+        'tools/agents/_shared/constitution_checker.py',
+        '.github/workflows/z2_ratification_gate.yml',
+        '.github/workflows/z2_admission_gate.yml',
+        'MOLT_STATE.md',
+        'PRIORITY_QUEUE.md',
+        'ZONE_REGISTRY.md',
+        'REGISTERED.md',
+    }
 
     def __init__(self, constitution_path: str = "constitution.json"):
         """Load constitution from JSON."""
@@ -30,6 +43,32 @@ class ConstitutionChecker:
             self.constitution = json.load(f)
 
         self.principles = {p["id"]: p for p in self.constitution["principles"]}
+
+    def has_governance_files(self, files_changed: List[str]) -> bool:
+        """Check if commit touches any governance-layer files."""
+        return any(f in self.GOVERNANCE_FILES for f in files_changed)
+
+    def has_z2_signature(self, commit_msg: str) -> bool:
+        """Check if commit message contains Z2 signature."""
+        z2_pattern = r'\| Z2-SIGN: [a-f0-9]{64}'
+        return bool(re.search(z2_pattern, commit_msg))
+
+    def verify_z2_signature(self, commit_msg: str, file_content: str) -> bool:
+        """Verify Z2 signature matches file content (basic check)."""
+        sig_match = re.search(r'\| Z2-SIGN: ([a-f0-9]{64})', commit_msg)
+        if not sig_match:
+            return False
+
+        provided_sig = sig_match.group(1)
+
+        # Compute expected signature prefix (without timestamp, for verification)
+        # Format: sha256(file_content | by=Night)
+        expected_prefix = hashlib.sha256(
+            f"{file_content} | by=Night".encode()
+        ).hexdigest()
+
+        # Accept if signature starts with expected pattern
+        return provided_sig.startswith(expected_prefix[:24])
 
     def check_commit(self, commit_msg: str, files_changed: List[str]) -> List[str]:
         """
@@ -44,6 +83,12 @@ class ConstitutionChecker:
         is_merge = commit_msg.strip().startswith(("Merge ", "merge "))
         if is_merge:
             return violations
+
+        # Z2 GOVERNANCE ENFORCEMENT: Require Z2 signature on governance-layer changes
+        if self.has_governance_files(files_changed):
+            if not self.has_z2_signature(commit_msg):
+                violations.append("Z2-GOVERNANCE: Governance-layer change requires Z2 signature (| Z2-SIGN: <64-char-hash>) — submit to Z2 for signature")
+                return violations  # Block further checks if signature missing
 
         # P8: Attraction not promotion (T11)
         if re.search(r'\b(click here|sign up|buy now|limited time|exclusive)\b', msg_lower):
