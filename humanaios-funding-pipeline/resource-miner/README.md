@@ -190,6 +190,41 @@ Without `--dry-run`, output defaults to `data/resources.jsonl`, which is git-ign
 - `data/resources.jsonl` — ephemeral local/live scan output, git-ignored (see above).
 - `data/resources.snapshot.jsonl` — durable scan output, checked in, refreshed daily by `.github/workflows/resource-miner-scan.yml`. This is what `app.py`'s `GET /api/resources` falls back to when no live scan has run yet in the current process, so results survive a Railway restart/redeploy without reversing the git-ignore decision above.
 
+## My Opportunities: local-only journey interface (first-user E0)
+
+The new **My Opportunities** interface is backed by the real `resource_miner.opportunity_journey.project_journey` reducer, not a static status diagram. It deliberately **does not** import Gmail, Calendar, or Discord accounts or prove participation on its own. The default Apart sprint record is explicitly a **synthetic demonstration**, and real-life status must be imported in a user-controlled JSON record.
+
+**Run on your Mac (the server MUST bind to loopback):**
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+python3 app.py --host 127.0.0.1 --port 8766
+```
+
+Browse `http://127.0.0.1:8766/intent-os` and select **My Opportunities**, or open `http://127.0.0.1:8766/my-opportunities` directly. The entry link is shown only when the local-only projection route is reachable.
+
+The page shows an Apart Research starter journey with separate proof categories for discovery, selection, signup welcome email, human-reported survey submission, calendar event and Discord join. It explicitly keeps `PARTICIPANT_QUALIFIED`, research submission and funding/awards **unverified**. Suggestions are review tasks, not automatically executed actions.
+
+To work with **your own record** without sharing it:
+
+1. Select **Use editable starter** to load synthetic fields, then **Export current JSON** as a template, or import an existing bounded JSON record using the file input.
+2. **Replace all `SYNTHETIC-*` evidence references with your own short opaque local identifiers** before regarding it as your real report. Those identifiers are *claims* in this offline file, not automatically verified evidence. Do not insert email addresses, names, private URLs or message contents.
+3. Add a report using the **Record my report** selector; only human-selected, survey-submitted and Discord-joined report kinds may be added. A human cannot assert provider participant qualification via this UI.
+4. **Export current JSON** to save a local backup, or choose **Save privately in this browser**. Browser persistence is explicit, not automatic, is **unencrypted**, and survives reload on the same origin/port only. Deleting the browser's saved record does not delete exported files.
+5. The `POST /api/my-opportunities/project` route only computes a bounded projection; it performs **no server-side file write**. If you do not save or export, the unsaved imported/edited record is lost on reload.
+
+**Security boundary:** `GET /my-opportunities`, `GET /api/my-opportunities`, `GET /api/my-opportunities/starter`, and `POST /api/my-opportunities/project` return 404 if the app is not bound to loopback, or the client IP/Host/Origin are not local and allowed. In particular, **Azure Container Apps with `--host 0.0.0.0` cannot serve the private journey interface**. This is a local privacy prototype, **not user authentication**. Do not expose your local machine with a tunnel or reverse proxy; production requires explicit login, a user-specific storage boundary, and independent authorization review. The public Resource Miner `/intent-os` route and its search API are unchanged.
+
+To test:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
+python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+```
+
+**Existing Mac worktree protection:** The user's original `operations` worktree has unrelated uncommitted work. Never `git reset --hard`, `git clean`, `git checkout`, or pull onto that worktree to try this feature. From an already clean `operations-intent-os` worktree, `git fetch origin feat/intent-os-opportunity-journey-e0-20261022`, then `git worktree add --detach ../operations-my-opportunities FETCH_HEAD`. Launch the new checkout on port `8767` first so the running port `8766` service stays available. When ready to switch, stop the 8766 server with Ctrl+C and run the newer code on 8766. Do not delete the previous worktree until independently verified.
+
 ## Run as an HTTP service
 
 `app.py` (repo root of this directory, sibling to the `resource_miner/` package) exposes the same discovery pipeline over stdlib HTTP, no third-party dependencies added:
