@@ -1,0 +1,40 @@
+name: intent-form-browser
+
+# Runs the intent form tests, including the Playwright browser checks in
+# tests/test_intent_form_browser.py, on PRs that touch the form or its tests.
+# GitHub sets CI=true, so a missing bundled Chromium fails the run instead of skipping.
+
+on:
+  pull_request:
+    paths:
+      - 'ui/intent-form.html'
+      - 'intent.md'
+      - 'tests/test_intent_form.py'
+      - 'tests/test_intent_form_browser.py'
+      - '.github/workflows/intent-form-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  intent-form:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install deps and Chromium
+        run: |
+          python3 -m pip install --quiet pytest playwright
+          python3 -m playwright install --with-deps chromium
+
+      - name: Form and browser tests
+        run: python3 -m pytest tests/test_intent_form.py tests/test_intent_form_browser.py -q -rs
