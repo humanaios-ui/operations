@@ -68,7 +68,9 @@
   ],
   "evaluation_admission": {
     "authorized_actors": [
-      "humanaios-ui"
+      "humanaios-ui",
+      "night",
+      "claude-code"
     ],
     "required_issue_state": "ADMISSION_REQUESTED",
     "authority_effect": "EVALUATION_ONLY",
@@ -139,7 +141,7 @@
       "head_sha_required": true,
       "authority_effect": "ADMISSION_ROUTING_ONLY",
       "merge_authority": false,
-      "note": "A command is only a request. Append and replay verified state before issuing a committed receipt. No comment grants code approval or merge authority."
+      "note": "Enabled in a Z2-review PR for the trusted PR-command handler (pr_comment_mutate job; repository_coordinator_state_v1_1.pr_comment_command). Handler checks PR state, full head-SHA binding, actor authorization, and webhook/API comment custody. Grants routing standing only."
     }
   }
 }
