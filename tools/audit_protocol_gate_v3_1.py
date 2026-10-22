@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
-"""Read-only v3.1 audit contract checker. Results are not evidence or approval."""
+"""HumanAIOS — fail-closed audit contract checker v3.1.
+Builder v1.7 compliant
+
+Synthetic contract completeness check only. No claim verification or admission.
+Usage: python tools/audit_protocol_gate_v3_1.py --smoke-test
+"""
+import argparse
 import json
 import math
 import re
 import sys
+
+TOOL_NAME = "audit_protocol_gate_v3_1"
+TOOL_VERSION = "3.1.0"
+TOOL_CATEGORY = "validation_tool"
+TOOL_ZONE = 1
 
 CONTROLS = {
     "C1": [f"A{i}" for i in range(1, 6)],
@@ -76,7 +87,23 @@ def evaluate(data):
         }
     return output
 
+def run_smoke_test():
+    assert sample_size(0) == 0 and sample_size(30) == 30
+    assert upper95_zero_failures(5) > .4
+    sample = {"scope": {"target": "synthetic", "commit": "a" * 40,
+              "environment": "isolated", "auditor": "observer",
+              "operator": "actor", "authorization_receipt": "synthetic"},
+              "claims": {"C1": {"applicability": "CLAIMED", "controls": {}},
+                         "C2": {"applicability": "NOT_CLAIMED"}}}
+    result = evaluate(sample)
+    assert result["claims"]["C1"]["contract"] == "BLOCKED"
+    assert not result["merge_authority"]
+    print("smoke-test OK: fail-closed synthetic gates")
+    return 0
+
 if __name__ == "__main__":
+    if "--smoke-test" in sys.argv:
+        sys.exit(run_smoke_test())
     try:
         with open(sys.argv[1], encoding="utf8") as f:
             result = evaluate(json.load(f))
