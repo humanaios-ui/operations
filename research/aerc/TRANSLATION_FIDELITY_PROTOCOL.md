@@ -35,7 +35,7 @@ IPP_overall = mean(IPP_per_domain) across all three domains
 - 85% preservation means 15% of intent predicates are lost or misinterpreted on average
 - This allows minor elaborations or reformulations while catching major semantic divergence
 - Below 0.85, human requests are systematically misunderstood; above 0.85, users can tolerate minor translation ambiguities
-- Standard in UX research for "acceptable error rate" in automated interpretation (ISO 9241 standards)
+- **Rationale:** 0.85 is a project choice informed by UX research thresholds (ISO 9241-11 defines usability contexts where 85% task success is a minimum bar); validated via Phase 0 baseline testing
 
 ---
 
@@ -50,10 +50,12 @@ These metrics provide context but do **not** override the primary IPP endpoint.
 **Measurement formula:**
 
 ```
-HCR = (# user corrections requested) / (# translations presented)
+HCR = (# user corrections requested) / (# test cases evaluated)
 ```
 
-**Acceptable range:** HCR ≤ 10% per domain
+Where "# test cases evaluated" = 10 per domain (total 30). Each test case generates exactly one translation for evaluation.
+
+**Acceptable range:** HCR ≤ 10% per domain (i.e., at most 1 correction out of 10 cases)
 
 **Why complementary, not primary?** Human correction frequency reflects user friction but not measurement validity. A translation with 80% IPP might still result in 0% user corrections if the 20% loss is non-critical detail.
 
@@ -67,7 +69,11 @@ HCR = (# user corrections requested) / (# translations presented)
 RTL = (time_output_delivered) − (time_request_submitted)
 ```
 
-**Acceptable threshold:** RTL ≤ 500ms per case
+**Acceptable thresholds:**
+- **Mean RTL per domain:** ≤ 500ms
+- **95th percentile RTL per domain:** ≤ 1000ms
+
+(Tail latency matters; users notice outliers more than averages)
 
 **Why complementary, not primary?** Latency affects user experience but not semantic preservation. A slow translation that perfectly preserves intent (IPP=1.0) is better than a fast translation that loses intent (IPP=0.6).
 
@@ -146,12 +152,18 @@ Requests should span:
    - Predicate must be observable, measurable, and core to satisfying the request
    - Ignore tone, politeness, elaboration
    - Document predicate list with brief definition
-3. **Rater examines Translation Agent output** (JSON/structured format from agent)
-4. **Rater scores each predicate independently:**
+3. **Predicate alignment (for inter-rater agreement):**
+   - After both raters independently score all cases, compile the full predicate lists
+   - For each case, identify predicates identified by either rater
+   - Build canonical predicate list for that case (union of both raters' lists)
+   - Rescore both raters' verdicts against the canonical list (raters did not identify X = scored as ✗ LOST on canonical list)
+   - This ensures κ is calculated over identical predicate sets for both raters
+4. **Rater examines Translation Agent output** (JSON/structured format from agent)
+5. **Rater scores each predicate independently:**
    - ✓ PRESERVED: Predicate correctly represented in translation output
    - ✗ LOST: Predicate missing, contradicted, or incorrectly translated
-5. **Rater calculates IPP for this case:** (preserved count) / (total predicate count)
-6. **Rater documents notes:** Any ambiguities, edge cases, or scoring decisions
+6. **Rater calculates IPP for this case:** (preserved count) / (total predicate count)
+7. **Rater documents notes:** Any ambiguities, edge cases, or scoring decisions
 
 ### Scoring Template
 
@@ -170,8 +182,12 @@ See TRANSLATION_FIDELITY_RUBRIC.md "Scoring Template" section for detailed forma
 
 where:
   P_o = observed agreement (fraction of predicates where both raters mark same verdict)
-  P_e = expected agreement by chance (0.5 for binary scoring)
+  P_e = expected agreement by chance, computed from actual rater marginals:
+        P_e = P(Rater1=✓) × P(Rater2=✓) + P(Rater1=✗) × P(Rater2=✗)
 ```
+
+**Calculation note:** P_e must be derived from actual rater marginals in the data, not assumed as 0.5. If Rater 1 marks 70% predicates as PRESERVED and Rater 2 marks 65% as PRESERVED, then:
+- P_e = (0.70 × 0.65) + (0.30 × 0.35) = 0.5635
 
 **Interpretation:**
 - κ ≥ 0.70: Substantial agreement; rubric is clear and raters understand it well
@@ -204,8 +220,13 @@ where:
 
 1. **Calculate IPP_per_case** for each of the 10 test cases
 2. **Calculate IPP_per_domain** = mean(IPP_per_case) across 10 cases
-3. **Calculate 95% confidence interval** around IPP_per_domain (bootstrap or exact binomial)
-4. **Report Cohen's κ** for inter-rater agreement
+3. **Calculate 95% confidence interval** around IPP_per_domain:
+   - Method: Case-level bootstrap with 10,000 resamples
+   - Resample cases (with replacement) from the 10 test cases in the domain
+   - For each resample, compute IPP_per_domain
+   - Report [2.5th, 97.5th] percentile as 95% CI
+   - This captures sampling variability at the case level, matching the estimand
+4. **Report Cohen's κ** for inter-rater agreement (computed using actual rater marginals)
 
 **Success criterion:**
 - IPP_per_domain ≥ 0.85 for all three domains, AND
