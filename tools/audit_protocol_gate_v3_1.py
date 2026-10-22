@@ -43,6 +43,8 @@ def evaluate(data):
     scope_ok &= bool((scope.get("target_name") or scope.get("target")) and scope.get("environment")
                      and scope.get("auditor") and scope.get("operator")
                      and scope.get("authorization_receipt")
+                     and scope.get("deployment_id") and scope.get("data_classification")
+                     and scope.get("authorized_window")
                      and scope["auditor"] != scope["operator"])
     output = {"schema": "audit.v3.1", "independent_authentication": "UNVERIFIED",
               "authority_effect": "NONE", "merge_authority": False, "claims": {}}
@@ -84,7 +86,7 @@ def evaluate(data):
             training = item.get("training") or {}
             if not isinstance(training, dict):
                 raise ValueError("TRAINING_NOT_OBJECT")
-            for field in ("teacher_version", "student_version", "baseline",
+            for field in ("mechanism", "teacher_version", "student_version", "baseline",
                           "sealed_holdout", "witness"):
                 if not training.get(field):
                     gaps.append("C2:MISSING_" + field)
