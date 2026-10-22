@@ -92,13 +92,13 @@ Test: Compare against a naive distillation / self-training baseline at matched d
 Success: Improvement holds at matched budget, or an explicit quantified tradeoff is stated and accepted by the auditor.
 Artifact: budget-matched comparison, data and compute accounting.
 
-B5. Experience-to-principle conversion (if used; otherwise declare and skip with auditor approval)
+B5. Experience-to-principle conversion (mandatory for a full C2 claim; if the capability is genuinely unused, C2 cannot PASS this full-scope protocol)
 Claim: The system converts its own trajectories into reusable, deduplicated guidance that measurably improves decisions.
 Test: Ablate the principle store; measure holdout change. Sample ≥10 principles for staleness and correctness.
 Success: Ablation shows statistically significant degradation; sampled principles are current and non-contradictory.
 Artifact: principle store snapshot, retrieval logs, pruning policy, sample review.
 
-B6. Selective external consultation (if edge/offline path claims independence)
+B6. Selective external consultation (mandatory for full C2; where the mechanism uses no external teacher, document and independently verify zero calls with a baseline/ablation rather than N/A)
 Claim: Consultation is selective and internalized, not a permanent crutch.
 Test: Measure cloud / teacher calls per trajectory on holdout; ablate the external teacher post-internalization.
 Success: Calls/trajectory ≤ 0.2 (or a preapproved **stricter** bound); post-ablation holdout drop ≤3 percentage points, with missing calls counted. Do not treat availability of an external tool as internalization.
@@ -157,7 +157,7 @@ Delta summary vs. v2
 
 
 ## v3.1 scope, evidence and authority contract (DRAFT; not admitted)
-- **scope_manifest**: `target_name`, `repo_commit_40hex`, `environment`, `deployment_id`, `operator`, `auditor`, `claim_C1` and `claim_C2` as CLAIMED/NOT_CLAIMED, `authorization_receipt`, `data_classification`, and authorized experiment window. Auditor independence and the signer must be checked outside the evaluated system.
+- **scope_manifest**: `target_name`, `repo_commit_40hex`, `environment`, `deployment_id`, `operator`, `auditor`, `claim_C1` and `claim_C2` as CLAIMED/NOT_CLAIMED, `authorization_receipt`, `data_classification`, and authorized experiment window. Auditor independence and the signer must be checked outside the evaluated system. **Checker JSON mapping:** use `scope_manifest.target_name` and `scope_manifest.repo_commit_40hex` (or legacy `scope.target` and `scope.commit`); put applicability and controls under `claims.C1` / `claims.C2`. The checker examines only a subset of these metadata fields and cannot validate authenticity or grant admission.
 - **evidence_receipt**: exact source locator and bytes hash, event-time and observed-at time, independently verified signer/actor, redacted data origin, access level, test-run identifier, external side-effect sink and replay consistency. A self-generated digest does **not** prove independent witness or authorization.
 - **experiment_manifest**: immutable before test: eligible frame, random seed, selection and exclusions, risk tiers, null/alternative claims, control-specific measurement, baseline, allowed limits, stop criteria, sandbox and rollback mechanism. All misses, reversals and pending cases remain visible.
 - **claim_state**: OBSERVED / SUPPORTED / INFERRED / HYPOTHESIZED / UNVERIFIED / CONTRADICTED; NOT_CLAIMED and blocked/unperformed are applicability/test states, not observed runtime failures.
