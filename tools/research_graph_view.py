@@ -235,7 +235,7 @@ def _required_run_conditions(pr, index, required_names):
 
 
 def _admission_issue(issue: dict | None) -> bool:
-    # The issues API also returns pull requests. A PR body is never an admission request.
+    # The issues API also returns pull requests. A PR body does not count as an admission request.
     if not issue or issue.get("is_pull_request"):
         return False
     return bool(ADMISSION_RE.search(issue.get("body") or ""))

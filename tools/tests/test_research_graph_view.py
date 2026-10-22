@@ -370,7 +370,7 @@ class ReviewFindingFixtures(unittest.TestCase):
         self.assertIsNone(gh.get_or_error("pulls/9/reviews", "reviews #9"))
         self.assertEqual(gh.errors, ["reviews #9: HTTP 404"])
 
-    def test_pull_request_body_is_never_an_admission_request(self):
+    def test_pull_request_body_does_not_count_as_an_admission_request(self):
         # The issues API returns PRs too; a PR that says ADMISSION_REQUESTED is not a request.
         issues = {"801": {"state": "open", "body": "state: ADMISSION_REQUESTED",
                           "is_pull_request": True}}
