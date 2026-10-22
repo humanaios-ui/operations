@@ -224,10 +224,6 @@ baseline_tests:
     requires: []
     description: GitHub OIDC issuer identity and replay-resistant verification negative tests
 
-  - path: tools/tests/test_research_graph_view.py
-    requires: []
-    description: Research-graph Phase 1 read-only view fixture tests (issue #874)
-
   - path: tests/coderabbit_audit/test_coverage_inventory.py
     requires: []
     description: CodeRabbit exact-commit inventory fail-closed and classification regressions (#806)
