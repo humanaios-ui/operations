@@ -20,8 +20,9 @@ Limitations (stated, not hidden):
   - Signatures are HMAC-SHA256 with shared keys. This is a stand-in for an
     asymmetric scheme (e.g. Ed25519 or a W3C VC proof). A verifier here must
     hold each signer's key, so this is not public verifiability.
-  - Hash chaining is not used as proof of authorship; authorship rests on the
-    observer, reviewer and issuer signatures only.
+  - Hash chaining is not used as proof of authorship. Observer, reviewer and
+    issuer signatures are shared-key HMACs: they show a key holder signed an
+    unaltered body. They do not prove unique authorship or non-repudiation.
   - Nothing here establishes that a receipt's measurements are true.
 
 Usage:
@@ -663,7 +664,10 @@ def write_report(results: Mapping[str, Any], out_dir: str) -> str:
     if not directory.is_dir():
         raise SpecLoadFailed(f"report directory does not exist: {out_dir}")
     path = directory / f"{TOOL_NAME}_report.json"
-    path.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    try:
+        path.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    except OSError as exc:
+        raise SpecLoadFailed(f"cannot write report {path}: {exc}") from exc
     return str(path)
 
 

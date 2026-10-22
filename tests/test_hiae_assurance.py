@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 
@@ -292,6 +293,15 @@ class ReportTests(unittest.TestCase):
             path = write_report({"passed": True}, tmp)
             with open(path, encoding="utf-8") as fh:
                 self.assertEqual(json.load(fh), {"passed": True})
+
+    def test_unwritable_report_path_raises_spec_load_failed(self):
+        # A directory where the report file should go makes write_text raise OSError.
+        from tools.hiae_assurance import SpecLoadFailed, TOOL_NAME, write_report
+
+        with tempfile.TemporaryDirectory() as tmp:
+            os.mkdir(os.path.join(tmp, f"{TOOL_NAME}_report.json"))
+            with self.assertRaises(SpecLoadFailed):
+                write_report({"passed": True}, tmp)
 
     def test_missing_report_directory_raises_spec_load_failed(self):
         with self.assertRaises(SpecLoadFailed):
