@@ -282,6 +282,8 @@ def check_assignment(
         problems.append(f"reviewer {assignment.reviewer_id!r} is not eligible (conflict or qualification)")
     if assignment.eligible_ids != expected.eligible_ids or assignment.pool_ids != expected.pool_ids:
         problems.append("recorded eligibility set does not match recomputation")
+    if assignment.selection_digest != expected.selection_digest:
+        problems.append("recorded selection digest does not match recomputation")
     return problems
 
 

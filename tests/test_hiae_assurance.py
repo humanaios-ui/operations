@@ -136,6 +136,13 @@ class NeutralAssignmentTests(unittest.TestCase):
         problems = check_assignment(forged, req, demo_reviewers(), [], trusted_seed="seed")
         self.assertTrue(any("trusted rotation record" in p for p in problems))
 
+    def test_check_detects_forged_selection_digest(self):
+        req = request()
+        real = select_reviewer(req, demo_reviewers(), [], "seed")
+        forged = type(real)(**{**real.to_dict(), "selection_digest": "0" * 64})
+        problems = check_assignment(forged, req, demo_reviewers(), [], trusted_seed="seed")
+        self.assertTrue(any("selection digest" in p for p in problems))
+
     def test_check_passes_for_honest_assignment(self):
         req = request()
         real = select_reviewer(req, demo_reviewers(), [], "seed")
