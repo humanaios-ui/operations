@@ -87,7 +87,7 @@ All three arms must operate under identical constraints:
 - **Evidence access:** Same indexed evidence set for each task
 - **Wall-clock time limit:** 30 seconds per task (excluding overhead)
 - **Model snapshot:** Frozen model version across all conditions; no fine-tuning
-- **Token consumption constraint:** Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision). Tracked per-task and in aggregate; per-task overruns >10% are flagged individually (CONFOUNDED); aggregate overrun 11–20% marked CONFOUNDED; aggregate overrun >20% marked CONFOUNDED + reported separately. Lower usage on some tasks cannot mask overruns on others (per-task floor: ≤ +10% per task OR documented reason for overrun)
+- **Token consumption constraint:** Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision). Tracked per-task and in aggregate; per-task overruns >10% are flagged individually (CONFOUNDED); aggregate overrun 11–20% marked CONFOUNDED; aggregate overrun >20% marked CONFOUNDED + reported separately. Lower usage on some tasks cannot mask overruns on others. Per-task overruns exceeding 10% are always marked CONFOUNDED and excluded from primary analysis per lines 98-101 below; a documented reason for the overrun is recorded and examined in the sensitivity analysis but does not exempt the case from CONFOUNDED status or primary-analysis exclusion (per-task floor: ≤ +10% per task, or if exceeded, documented reason required for sensitivity analysis)
 
 ### Control for Confounding
 
@@ -114,7 +114,7 @@ The following classification **describes** what was observed. It does **not** in
 | `REVISED_UNVERIFIED` | Output changed but no independent outcome verification conducted | Semantic diff ≥ 10%; no external evaluation of revision quality |
 | `VERIFIED_IMPROVEMENT` | Revised output beats baseline on a prespecified external criterion (e.g., test pass, fact-check score, expert rating) | Independent evaluator confirms revision outperforms baseline |
 | `VERIFIED_NO_IMPROVEMENT` | Revised output does not improve or regresses on prespecified criterion | Independent evaluator confirms no improvement or degradation |
-| `CORRECT_REJECTION_OF_FALSE_CHALLENGE` | System correctly refuses to change output when presented with a false (DISPROVEN) challenge; applies only when challenge standing has been definitively established as DISPROVEN (not UNRESOLVED or ABSTAINED) | Challenge standing = DISPROVEN (not UNRESOLVED); original output is demonstrably correct and unchanged; evidence fully evaluated |
+| `CORRECT_REJECTION_OF_FALSE_CHALLENGE` | System correctly refuses to change output when presented with a false (DISPROVEN) challenge; applies only when challenge standing has been definitively established as DISPROVEN (not UNRESOLVED) | Challenge standing = DISPROVEN (not UNRESOLVED or SUPPORTED); original output is demonstrably correct and unchanged; evidence fully evaluated |
 | `APPROPRIATE_ABSTENTION` | System declines to make a material claim under prespecified abstention rules | Declined assertion is objectively unsupported; abstention policy triggered correctly |
 | `UNRESOLVED` | Challenge incomplete, evidence conflicted, or no clear baseline to evaluate against | Insufficient data for classification |
 
