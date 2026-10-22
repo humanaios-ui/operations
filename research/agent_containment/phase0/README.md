@@ -17,8 +17,8 @@ prints a derived projection in the repository's existing
 
 ```sh
 python3 research/agent_containment/phase0/phase0_sim.py
-python3 tools/containment_evidence_adapter.py --check
-python3 tools/containment_evidence_adapter.py > /tmp/containment_projection.json
+python3 research/agent_containment/phase0/containment_evidence_adapter.py --check
+python3 research/agent_containment/phase0/containment_evidence_adapter.py > /tmp/containment_projection.json
 python3 -m unittest discover -s tests -p 'test_containment_evidence_adapter.py' -v
 ```
 
