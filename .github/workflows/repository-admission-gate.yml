@@ -1006,11 +1006,31 @@ jobs:
               "",
               "_A comment is never code approval; only a verified state event grants routing standing._"
             ].join("\n");
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: Number(process.env.PR_NUMBER),
-              body
-            });
+            // The state mutation (if any) already committed and pushed in a
+            // prior step. A PR-comment API failure here (rate limit, 403,
+            // transient outage) must not bury that outcome — write it to the
+            // durable job summary regardless of comment delivery.
+            let commentError = null;
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: Number(process.env.PR_NUMBER),
+                body
+              });
+            } catch (err) {
+              commentError = err;
+              core.warning(
+                "receipt comment failed to post (" + err.message + "); " +
+                "recording the receipt in the job summary instead"
+              );
+            }
+            await core.summary.addRaw(body).write();
             if (mutated && !published) core.setFailed("state event was not committed");
+            if (commentError) {
+              core.setFailed(
+                "receipt comment failed to post (" + commentError.message + "); " +
+                "see job summary for the actual state outcome"
+              );
+            }
 
