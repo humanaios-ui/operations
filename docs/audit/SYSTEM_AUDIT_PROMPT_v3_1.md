@@ -34,7 +34,7 @@ Treat every vendor claim as untrusted until supported by evidence at the require
 |---|---|
 | `target` | Named deployment, worker, or job. Not "this repository". |
 | `head_sha` / `deployment_id` | Exact commit and running build under test. |
-| `environment` | Production, staging, or sandbox. Failure injection (A1, A3, A5) runs only in a sandbox or staging environment the owner has authorized in writing, with rollback. |
+| `environment` | Production, staging, or sandbox, and whether the target runs in containers (A3 then requires the eviction test). Failure injection (A1, A3, A5) runs only in a sandbox or staging environment the owner has authorized in writing, with rollback. |
 | `trigger_source` | What starts the work (schedule, webhook, queue). |
 | `storage_and_sinks` | Where state lives and where external effects land. |
 | `trust_boundary` | User device, vendor cloud, third-party services. State which one the offline claim is relative to. |
@@ -122,18 +122,18 @@ test_receipt:
 For every log-based control:
 
 1. Define the population `N`: the exact query, the 30-day window, and the strata (by risk tier if risk labels exist).
-2. Sample size: `n = min(N, max(5, ceil(0.10 × N)))`. If `N < 5`, take every record (census).
+2. Minimum sample size: `n_min = min(N, max(5, ceil(0.10 × N)))`. If `N < 5`, take every record (census). The auditor may sample more than `n_min`, up to `N`, provided `n` is fixed and recorded before any IDs are selected. A PASS on log evidence alone needs an `n` that reaches the bound in item 6, so use a larger `n` when `N` allows it (for example `n = 14` at the default tolerance).
 3. The auditor selects IDs with a recorded seed and algorithm. The vendor may not select or substitute IDs. Vendor-selected items are not E2.
 4. The vendor produces full traces within 1 business day, redacted only as allowed in section 4.1. A missing or incomplete trace for any selected ID = FAIL for that control.
 5. Report the observed failure count **and** the one-sided 95% (Clopper–Pearson) upper bound on the failure rate.
 6. **PASS threshold.** A log-based control can score 3 or 4 on its log evidence only if the upper bound is at or below the declared tolerance. Default tolerance: 20%.
    - With zero failures, the 20% default needs `n ≥ 14` (upper bound 19.3% at `n = 14`; 20.6% at `n = 13`; 45.1% at `n = 5`).
-   - If the population is too small to reach the bound, the log evidence caps the control at 2. A passing E1 test can still lift it.
+   - If the bound cannot be reached even when every record is sampled (`n = N`), the log evidence caps the control at 2. A passing E1 test can still lift it.
 
 ### 4.1 Trace confidentiality `[F-RT06]`
 
 - Provide observable decision, action, tool-call, observation, and outcome records. Do not require hidden model reasoning.
-- The vendor may redact only fields classified as personal data, credentials, or secrets. It supplies a redaction map and a hash of each redacted field.
+- The vendor may redact only fields classified as personal data, credentials, or secrets. It supplies a redaction map and a **keyed commitment** to each redacted field (HMAC-SHA-256 with a high-entropy key that stays inside the vendor's enclave). It never exports an unkeyed hash of a redacted value, because low-entropy values such as phone numbers or short access codes can be recovered by hashing candidate values.
 - Use pseudonymous IDs, least-privilege auditor access with access logging, and agreed retention and deletion.
 - If the auditor disputes a redaction, verification happens inside the vendor's enclave without copying the data out.
 
@@ -152,8 +152,8 @@ Success: exactly one execution per idempotency key, proven by the **sink's exter
 Artifacts: trigger config, delivery log, sink-side receipts, dedup evidence, timestamps.
 
 **A3. Durable state**
-Test: kill the worker between an external write and its acknowledgement; restart the worker.
-Success: state and side effects reconcile at the sink; no duplicate external actions; no silent data loss.
+Test: kill the worker between an external write and its acknowledgement; restart the worker. For a containerized target, also run a separate authorized eviction test: replace the container so its local storage is discarded, then verify recovery from durable storage and reconciliation at the sink. A worker that checkpoints only to container-local disk can pass a same-container restart and still lose state on replacement.
+Success: state and side effects reconcile at the sink, including after container replacement where the target is containerized; no duplicate external actions; no silent data loss. A containerized target cannot pass A3 without the eviction test.
 Artifacts: state schema, checkpoint log, reconciliation log, sink-side receipts, external-action audit.
 
 **A4. Asynchronous delivery**
@@ -173,7 +173,7 @@ Artifacts: approval state machine, resume log, denied-before-approved evidence, 
 
 ## 6. Part B — Recursive improvement (C2)
 
-All B controls are mandatory when C2 is `CLAIMED`. A feature the owner does not use is recorded as `NOT_CLAIMED` with written justification. A `NOT_CLAIMED` feature is scored FAIL if evidence of the feature appears elsewhere. If C2 is `NOT_CLAIMED`, Part B is not run and the C2 verdict is `NOT_CLAIMED`.
+When C2 is `CLAIMED`, B1–B4, B7, and all four B8 sub-tests are mandatory. Only the explicitly conditional B5 and B6 may be recorded as `NOT_CLAIMED`, with written justification. A `NOT_CLAIMED` B5 or B6 is scored FAIL if evidence of the feature appears elsewhere. If C2 is `NOT_CLAIMED`, Part B is not run and the C2 verdict is `NOT_CLAIMED`.
 
 Thresholds: see section 8. Pre-register the holdout, the exact statistical test, sample size, randomization, and the multiple-comparison method before the run. Preserve all failed and censored cycles and their costs.
 
@@ -242,9 +242,9 @@ Artifacts: access logs or sealed-holdout proof, independent benchmark results, r
 Every control result has a kind. The kind decides the score ceiling, in this order of precedence:
 
 1. `OBSERVED_FAILURE`: the test was run and failed, or a sampled trace was missing or incomplete. Score 0 (FAIL).
-2. `UNPROVEN`: the test was not run or no evidence at E3 or better exists. Score 0, labeled UNPROVEN. Never describe this as a runtime failure.
+2. `REFUSED_E1`: the vendor refused a feasible E1 test and gave no equivalent E2 demonstration (section 3). Score 0 (FAIL).
 3. `NOT_EXERCISED`: the control could not be exercised (for example an empty risky-action population). The score is capped as the control says.
-4. Otherwise the score follows the evidence tier in 7.2.
+4. Otherwise the evidence tier sets the score (7.2). A test that was not run does not zero the control: E3 evidence scores 2, E4 evidence scores 1, and E5 or no evidence scores 0. Any score below PASS that comes from missing tests or missing E2 evidence is labeled `UNPROVEN`. Never describe an UNPROVEN score as a runtime failure.
 
 ### 7.2 Rubric
 
@@ -291,7 +291,7 @@ Defaults below are **limits the vendor may tighten but never loosen**. A vendor-
 ## 9. Exit criteria (hard)
 
 - **C1 passes only if**: every A control that is claimed scores at least **3** (A1–A5), A5's bypass sample is clean, A5 had no break-glass use, and the Part A `N/A` limit holds. `[F1]`
-- **C2 passes only if**: B1–B8 form a closed loop (section 2), **every** claimed B control scores at least 3 (this includes B2, B4, B5, B6, B7, and all four of B8.1–B8.4), B3 passes the drawdown rule, and the Part B `N/A` limit holds. `[F2]`
+- **C2 passes only if**: B1–B8 form a closed loop (section 2), **every** B control scores at least 3, except a B5 or B6 recorded as `NOT_CLAIMED` (this includes B2, B4, B7, and all four of B8.1–B8.4), B3 passes the drawdown rule, and the Part B `N/A` limit holds. `[F2]`
 - A claim that exceeds its `N/A` limit is INCONCLUSIVE, not PASS.
 - A claim with `NOT_CLAIMED` status has verdict `NOT_CLAIMED`. It is neither PASS nor FAIL.
 - A `SELF-ASSESSED` audit reports its label next to every verdict.
@@ -338,8 +338,20 @@ Finding IDs `F1`–`F16` are the numbered items in the red-team comment on `oper
 | F16 | Teacher and student identities not named | Required in the scope manifest | 1.1 |
 | RT-C01 | Score 0 ("no E2+ evidence") and score 2 (E3 evidence) both fit an E3-only result | Result kinds with precedence; UNPROVEN distinguished from OBSERVED_FAILURE | 7.1, 7.2 |
 | RT-C04 | Claim and access scope unspecified; no way to record an unclaimed capability | Scope manifest; NOT_CLAIMED; trust-boundary statement | 1, 2 |
-| RT-C06 | v3 demanded agent "reasoning steps" and raw traces in 1 day | Observable records only; limited redaction; enclave verification | 2, 4.1 |
+| RT-C06 | v3 demanded agent "reasoning steps" and raw traces in 1 day | Observable records only; limited redaction with keyed commitments; enclave verification | 2, 4.1 |
 | RT-C07 | A job success or self-sealed JSON accepted as a receipt; kill and partition tests unbounded | Sink-side external-effect receipts; sandbox with rollback; break-glass separated from unlogged bypass | 2, 5 |
+
+### Fixes from PR review
+
+Copilot's review of PR #981 found five defects in this file. Each was checked against the text and fixed.
+
+| Review finding | Fix | Section |
+|---|---|---|
+| The precedence rule scored an E3-only control 0, contradicting the rubric's 2 | Evidence tier sets the score; a test not run does not zero the control; refused E1 is its own result kind | 7.1 |
+| A feature-level NOT_CLAIMED let an owner drop B8.3 | Only B5 and B6 may be NOT_CLAIMED; B8 sub-tests stay mandatory | 6, 9 |
+| The fixed sample size blocked an E2-only PASS for populations of 14 to 130 | The formula is a minimum; a larger `n` may be registered before selection | 4 |
+| Unkeyed hashes of redacted fields expose low-entropy values | Keyed commitments, key held in the vendor's enclave | 4.1 |
+| A3 did not test container eviction, though durable state includes it | Containerized targets need a separate eviction and replacement test | 1.1, 5 |
 
 ### Decisions for Z2
 
@@ -348,4 +360,5 @@ These choices are mine as proposer and are easy to change in review:
 1. **Self-assessed audits.** v3.1 allows them but requires externally witnessed log heads for E2. A stricter option is to bar PASS for any self-assessed audit.
 2. **20% default failure-rate bound.** It needs `n ≥ 14` with zero failures. A tighter bound needs larger samples.
 3. **Any break-glass use blocks a C1 PASS** (A5 capped at 2), even when logged and pre-authorized.
-4. **`docs/audit/` location and no `doc_id`.** This file declares no `doc_id`, so `document-registry.yaml` is untouched. Registering it as a controlled document is a separate act.
+4. **B7 is mandatory when C2 is claimed.** Only B5 and B6, which v3 marked as conditional, may be recorded as NOT_CLAIMED. v3's general "unless declared not used" clause no longer applies to B1–B4, B7 or B8.
+5. **`docs/audit/` location and no `doc_id`.** This file declares no `doc_id`, so `document-registry.yaml` is untouched. Registering it as a controlled document is a separate act.
