@@ -845,7 +845,7 @@ jobs:
     permissions:
       contents: write
       issues: write
-      pull-requests: read
+      pull-requests: write   # the receipt step comments on the PR; same requirement as the gate job above
     concurrency:
       group: repository-coordinator-state-mutation
       queue: max
