@@ -166,6 +166,7 @@ class ReceiptTests(unittest.TestCase):
             ("evidence item", lambda r: r["evidence"].__setitem__(0, "not-a-dict")),
             ("observer_id", lambda r: r["evidence"][0].__setitem__("observer_id", ["list"])),
             ("context", lambda r: r["evidence"][0].__setitem__("context", "x")),
+            ("non-serializable signed field", lambda r: r.__setitem__("findings", b"bytes")),
         ]
         for name, mutate in cases:
             with self.subTest(field=name):

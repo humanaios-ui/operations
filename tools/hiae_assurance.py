@@ -116,7 +116,13 @@ def sign_payload(key: bytes, payload: Any) -> str:
 def _signature_ok(key: Optional[bytes], payload: Any, value: Any) -> bool:
     if key is None:
         return False
-    return hmac.compare_digest(sign_payload(key, payload), str(value or ""))
+    try:
+        expected = sign_payload(key, payload)
+    except TypeError:
+        # A payload that is not JSON-serializable (for example bytes) cannot have
+        # been signed as written, so the signature does not verify.
+        return False
+    return hmac.compare_digest(expected, str(value or ""))
 
 
 def _strings(value: Any) -> Iterable[str]:
