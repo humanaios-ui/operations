@@ -87,7 +87,7 @@ All three arms must operate under identical constraints:
 - **Evidence access:** Same indexed evidence set for each task
 - **Wall-clock time limit:** 30 seconds per task (excluding overhead)
 - **Model snapshot:** Frozen model version across all conditions; no fine-tuning
-- **Token consumption constraint:** Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision). Tracked per-task and in aggregate; per-task overruns >10% are flagged individually (CONFOUNDED); aggregate overrun 11–20% marked CONFOUNDED; aggregate overrun >20% marked CONFOUNDED + reported separately. Lower usage on some tasks cannot mask overruns on others. Per-task overruns exceeding 10% are always marked CONFOUNDED and excluded from primary analysis per lines 98-101 below; a documented reason for the overrun is recorded and examined in the sensitivity analysis but does not exempt the case from CONFOUNDED status or primary-analysis exclusion (per-task floor: ≤ +10% per task, or if exceeded, documented reason required for sensitivity analysis)
+- **Token consumption constraint:** Per-task rule (primary): Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision) on each task independently. Any task exceeding +10% per-task overrun is marked CONFOUNDED and excluded from primary analysis per lines 98-101 below. Documented reason for a per-task overrun is recorded and examined in sensitivity analysis but does not exempt the case from CONFOUNDED exclusion. Aggregate summary (secondary): Report mean token consumption across all tasks. Aggregate overrun 11–20% marked CONFOUNDED; >20% marked CONFOUNDED + reported separately. Lower usage on some tasks cannot offset overruns on other tasks (each task evaluated independently).
 
 ### Control for Confounding
 
