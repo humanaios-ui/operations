@@ -64,7 +64,8 @@ def validate(graph, scenario, receipt):
         ids.add(node['id'])
     for edge in graph['edges']:
         require(isinstance(edge, dict) and edge.get('from') in ids and edge.get('to') in ids
-                and isinstance(edge.get('relation'), str) and isinstance(edge.get('state'), str),
+                and isinstance(edge.get('relation'), str) and bool(edge['relation'])
+                and isinstance(edge.get('state'), str),
                 'invalid graph edge endpoint or type')
     required_anchors = set(a for anchors in LINKS.values() for a in anchors)
     require(required_anchors <= ids, f'baseline evidence anchors missing: {sorted(required_anchors - ids)}')
@@ -80,12 +81,14 @@ def validate(graph, scenario, receipt):
     for planned, declared in zip(scenario['trial'], receipt['trial_results']):
         require(isinstance(planned, dict) and isinstance(declared, dict), 'invalid trial row')
         tid = planned.get('id')
-        require(isinstance(tid, str) and IDENTIFIER.fullmatch(tid) and tid not in trial_ids
+        require(isinstance(tid, str) and IDENTIFIER.fullmatch(tid) and len(tid) <= 105
+                and tid not in trial_ids
                 and tid == declared.get('id'), 'duplicate/out-of-order/mismatched trial ID')
         trial_ids.add(tid)
         require(type(declared.get('status')) is int and declared['status'] in (200, 201, 202, 423)
                 and isinstance(declared.get('reason'), str) and len(declared['reason']) <= 100,
                 f'invalid declared outcome: {tid}')
+    require(set(LINKS) <= trial_ids, f'crosswalk trials missing: {sorted(set(LINKS) - trial_ids)}')
     require(all(type(receipt.get(k)) is int and receipt[k] == 0 for k in
                 ('production_writes', 'production_receipts', 'real_network_calls')),
             'receipt does not declare zero production effects')
@@ -108,6 +111,8 @@ def project(root: Path, observed_at: str):
     except ValueError as exc:
         raise ProjectionError('observed_at must be ISO 8601 with offset') from exc
     require(stamp.tzinfo is not None and stamp.utcoffset() is not None, 'observed_at needs timezone')
+    # Normalize the date to schema-compatible RFC3339 regardless of input format.
+    observed_at = stamp.isoformat(timespec='seconds')
     graph, graph_sha = load_json(root, GRAPH)
     scenario, scenario_sha = load_json(root, SCENARIO)
     receipt, receipt_sha = load_json(root, RECEIPT)
@@ -164,7 +169,7 @@ def project(root: Path, observed_at: str):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--root', type=Path, default=ROOT, help='read-only repository root')
-    ap.add_argument('--observed-at', help='ISO-8601 read time (UTC by default; no historical backdating)')
+    ap.add_argument('--observed-at', help='ISO-8601 time with offset (UTC now by default); caller supplied and unverified')
     ap.add_argument('--check', action='store_true', help='validate only; do not print projection')
     args = ap.parse_args()
     stamp = args.observed_at or datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z')
