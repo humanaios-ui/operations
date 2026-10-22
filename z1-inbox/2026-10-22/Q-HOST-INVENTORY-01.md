@@ -62,12 +62,14 @@ proposed_change:
   - "Create HOST_INVENTORY.yaml with two sections. `hosts:` holds one row per public hostname: id, hostname, provider, owner, runtime, last_verified (date), verification (VERIFIED | UNVERIFIED-LIVE), source (repo path or dashboard reference). `audits:` holds audit records with a different shape: id, subject, scope, result (e.g. NOT_APPLICABLE_REPO | UNVERIFIED_LIVE), checked_at, evidence. Validators check the one-row-per-hostname invariant on `hosts:` only."
   - "Seed audit record HOST-PHP2SHELL-2026-10 under `audits:` (not `hosts:`): records the repo result (0 PHP files; no PHP runtime in any named config) and marks live status UNVERIFIED_LIVE until the owner confirms from provider dashboards."
   - "Add a CI step: fail if `git ls-files -z | grep -zEiq '[.]php$'` finds a tracked path, unless an exception names the file, an owner, and an independent approval or ratification record bound to that exact exception row and file. Use this one case-insensitive, end-anchored matcher everywhere. CI rejects a missing or unauthorized approval. CODEOWNERS and the Z2 commit-author check are not relied on for this (the commit-author check is advisory only). A test with an unapproved tracked probe.PHP must fail the guard."
-  - "Owner runs a read-only header check (Server, X-Powered-By) on each row and records the result. Z1 does not run live scans without Z2 authorization."
+  - "Owner runs a read-only header check (Server, X-Powered-By) on each row and records the result. Set `verification` to `VERIFIED` only when owner-recorded provider or runtime evidence positively identifies the runtime. Missing, generic, or blocked responses remain `UNVERIFIED-LIVE`. Z1 does not run live scans without Z2 authorization."
 
 falsifier: |
   This candidate is FALSE if:
   - After the owner's first pass, any public hostname that resolves to a HumanAIOS-controlled
     service is missing from HOST_INVENTORY.yaml (inventory incomplete)
+  - OR a row is marked VERIFIED without owner-recorded provider or runtime evidence that
+    positively identifies the runtime (verification wrong)
   - OR a header check on a row marked VERIFIED shows X-Powered-By: PHP or a PHP-like Server
     banner (verification wrong). A repo-file exception never qualifies a host as VERIFIED.
   - OR an unapproved .php file (any case) passes the CI guard (guard ineffective). An approved
