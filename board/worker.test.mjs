@@ -13,8 +13,23 @@ const pair = await gen(), other = await gen(), rotated = await gen();
 const pub = async (k) => { const j = await crypto.subtle.exportKey("jwk", k.publicKey); return { kty: j.kty, n: j.n, e: j.e, alg: "RS256", use: "sig" }; };
 const KID = "kid-1", KID2 = "kid-2";
 let KEYS = [{ kid: KID, ...(await pub(pair)) }]; // what the stubbed certs endpoint serves right now
-let certsDown = false, certsCalls = 0;
-const fetchStub = async (url) => {
+let certsDown = false, certsCalls = 0, minerCalls = 0, minerRedirect = false;
+const fetchStub = async (url, options = {}) => {
+  if (url === "https://miner.example.test/api/intent") {
+    minerCalls++;
+    if (options.redirect !== "manual") throw new Error("Worker proxy did not enforce manual redirects");
+    if (minerRedirect) return new Response('{"candidates":[]}', { status: 302, headers: { "Content-Type": "application/json", Location: "https://offsite.example.test" } });
+    const body = JSON.parse(options.body || "{}");
+    return new Response(JSON.stringify({
+      candidates: [{ resource_id: "OPP-TEST-001", title: "Agent work", source_name: "Test", source_url: "https://example.test/work" }],
+      shown_count: 1,
+      objective: body.objective,
+      source_mode: body.source_mode,
+      eligibility: "NOT_ASSESSED",
+      authority: "NONE",
+      execution: "DISABLED",
+    }), { headers: { "Content-Type": "application/json" } });
+  }
   certsCalls++;
   if (url !== `https://${TEAM}/cdn-cgi/access/certs`) return new Response("nope", { status: 404 });
   if (certsDown) return new Response("unavailable", { status: 503 });
@@ -76,7 +91,7 @@ const r3 = await verifyAccessJwt(await sign({ ...good, exp: now + 30 * 3600 }), 
 check("certs endpoint down, snapshot older than the hard bound → fails closed", !r3.ok && /could not read the team's keys/.test(r3.why));
 certsDown = false; resetCertCache(); KEYS = [KEYS[0]];
 
-// the fetch handler: healthz open, everything else gated, only the two pages served, every answer policy-headed
+// the fetch handler: healthz open, everything else gated, explicit pages/APIs only, every answer policy-headed
 let assetCalls = 0;
 const ASSETS = { fetch: async () => { assetCalls++; return new Response("<html>board</html>", { headers: { "Content-Type": "text/html", "ETag": "x" } }); } };
 const envWithAssets = { ...env, ASSETS };
@@ -129,6 +144,76 @@ check("an unlisted path with a login → 404, no asset fetch", r.status === 404 
 const csp = policyHeaders(env)["Content-Security-Policy"];
 check("CSP: no default source, inline script/style for the single-file pages, the relay and the live read as the only connect targets, unframeable", /default-src 'none'/.test(csp) && /connect-src 'self' https:\/\/intent-os-relay-production\.up\.railway\.app https:\/\/raw\.githubusercontent\.com;/.test(csp) && /frame-ancestors 'none'/.test(csp));
 check("CSP_CONNECT_SRC overrides the connect targets when the relay moves", /connect-src 'self' https:\/\/relay\.example\.test;/.test(policyHeaders({ ...env, CSP_CONNECT_SRC: "https://relay.example.test" })["Content-Security-Policy"]));
+
+// collaboration: verified pseudonymous session, signed digest receipts, and Resource Miner proxy
+const collabEnv = {
+  ...envWithAssets,
+  COLLAB_HMAC_KEY: "worker-test-secret-that-is-at-least-thirty-two-bytes",
+  RESOURCE_MINER_ORIGIN: "https://miner.example.test",
+};
+const authHeaders = { "Cf-Access-Jwt-Assertion": tok };
+const jsonReq = (path, body, method = "POST") => new Request(`https://board.example.test${path}`, {
+  method,
+  headers: { ...authHeaders, "Content-Type": "application/json" },
+  body: method === "GET" || method === "HEAD" ? undefined : JSON.stringify(body),
+});
+r = await worker.fetch(req("/api/session", authHeaders), collabEnv);
+const session = await r.json();
+check("verified login yields a pseudonymous collaboration session without email",
+  r.status === 200 && /^USR-[A-F0-9]{24}$/.test(session.actor_id)
+  && session.authentication === "CLOUDFLARE_ACCESS_JWT_VERIFIED"
+  && !JSON.stringify(session).includes("night@example.test"));
+r = await worker.fetch(req("/api/session", authHeaders), envWithAssets);
+check("missing collaboration key fails the session API closed", r.status === 503);
+
+const relationship = "REL-WORKERTEST01";
+const attestation = {
+  version: "humanaios.collaboration.attestation.v0.1",
+  event_type: "FINDER_ROLE_ACCEPTED",
+  relationship_id: relationship,
+  artifact_sha256: "a".repeat(64),
+  actor_role: "FINDER",
+  counterparty_actor_id: null,
+  opportunity_id: null,
+};
+r = await worker.fetch(jsonReq("/api/collaboration/attest", attestation), collabEnv);
+const envelope = await r.json();
+check("authenticated actor receives a signed, non-executing attestation receipt",
+  r.status === 201 && envelope.receipt.actor_id === session.actor_id
+  && envelope.receipt.authority_effect === "NONE" && envelope.receipt.execution === "DISABLED");
+r = await worker.fetch(jsonReq("/api/collaboration/verify", envelope), collabEnv);
+check("Worker verifies its unchanged receipt", r.status === 200 && (await r.json()).valid === true);
+const tamperedEnvelope = structuredClone(envelope);
+tamperedEnvelope.receipt.artifact_sha256 = "b".repeat(64);
+r = await worker.fetch(jsonReq("/api/collaboration/verify", tamperedEnvelope), collabEnv);
+check("Worker rejects a changed receipt", r.status === 400 && (await r.json()).valid === false);
+
+r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work", source_mode: "live" }), collabEnv);
+const mined = await r.json();
+check("verified cockpit proxies a bounded objective to Resource Miner",
+  r.status === 200 && minerCalls === 1 && mined.shown_count === 1
+  && r.headers.get("X-Resource-Miner-Mode") === "AUTHENTICATED_PROXY");
+minerRedirect = true;
+r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work" }), collabEnv);
+check("Miner proxy refuses redirects even if redirect body claims JSON",
+  r.status === 502 && /redirect/i.test((await r.json()).error));
+minerRedirect = false;
+r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work", persist: true }), collabEnv);
+check("intent proxy refuses execution-shaped fields before the upstream call", r.status === 400 && minerCalls === 2);
+r = await worker.fetch(jsonReq("/api/intent", { objective: "Find agent work", source_mode: "live" }), {
+  ...collabEnv, RESOURCE_MINER_ORIGIN: "http://miner.example.test",
+});
+check("non-HTTPS or missing Resource Miner origin fails explicitly", r.status === 503 && minerCalls === 2);
+
+r = await worker.fetch(req("/collaborate", authHeaders), collabEnv);
+check("/collaborate redirects a verified user to the practice cockpit",
+  r.status === 302 && r.headers.get("Location") === "https://board.example.test/intent-os-collaboration.html");
+r = await worker.fetch(req("/intent-os-collaboration.html", authHeaders), collabEnv);
+check("collaboration page is served only after login", r.status === 200 && assetCalls === 7);
+r = await worker.fetch(req("/intent-os-collaboration.js", authHeaders), collabEnv);
+check("collaboration script is served through the same gate", r.status === 200 && assetCalls === 8);
+r = await worker.fetch(req("/intent-os-collaboration.html"), collabEnv);
+check("collaboration page without a login remains closed", r.status === 401 && assetCalls === 8);
 
 console.log(`${n} checks · SELF-TEST ${ok ? "PASS" : "FAIL"}`);
 process.exit(ok ? 0 : 2);

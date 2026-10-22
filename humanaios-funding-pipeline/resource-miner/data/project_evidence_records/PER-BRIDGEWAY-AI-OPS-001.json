@@ -1,0 +1,110 @@
+{
+  "project_id": "PER-BRIDGEWAY-AI-OPS-001",
+  "title": "Community Health Practice Operations & AI Integration",
+  "organization": "Bridgeway Health Clinics — Fort Walton Beach, FL",
+  "source_role": "Practice Manager",
+  "time_window": "2025 (exact dates vary across retrieved resume versions; verify before external use)",
+  "mandate": "Manage community-health practice operations while administering EHR/workflow systems and integrating AI-assisted tools into clinical-administrative workflows.",
+  "objective": "Maintain reliable scheduling, staffing, compliance, patient experience, reporting, and controlled use of digital/AI tools in a healthcare setting.",
+  "scope": [
+    "practice operations",
+    "Athena EHR administration",
+    "Phreesia scheduling/data flows",
+    "operational dashboards",
+    "M365 Copilot workflow integration",
+    "insurance/program coordination",
+    "patient experience"
+  ],
+  "stakeholders": [
+    "clinical providers",
+    "administrative staff",
+    "patients",
+    "insurance/program stakeholders"
+  ],
+  "constraints": [
+    "healthcare privacy/compliance",
+    "clinical workflow continuity",
+    "multi-payer requirements"
+  ],
+  "resources_controlled": [
+    "Athena EHR workflows",
+    "Phreesia scheduling flows",
+    "operational reporting dashboards",
+    "practice staffing/scheduling workflows"
+  ],
+  "risks_dependencies": [
+    "data quality",
+    "privacy/compliance",
+    "documentation accuracy",
+    "workflow adoption"
+  ],
+  "execution": [
+    "Retrieved resume documents management of daily clinic operations, scheduling, staffing, compliance, and patient experience.",
+    "Administered Athena EHR, patient portal, Phreesia scheduling, and operational reporting dashboards.",
+    "Integrated M365 Copilot into clinical operations workflows and monitored AI-assisted documentation/data quality.",
+    "Coordinated Medicare, Medicaid, Tri-Care, Humana, and sliding-fee program workflows."
+  ],
+  "deliverables": [
+    "practice operations",
+    "EHR/scheduling administration",
+    "operational dashboards",
+    "AI-assisted workflow integration",
+    "payer/program coordination"
+  ],
+  "validation": [
+    "Multiple private resume versions independently preserve materially similar Bridgeway practice-management and EHR/AI-integration claims."
+  ],
+  "outcomes": [
+    "Evidence supports operational ownership and AI/EHR integration; quantitative outcomes were not retrieved."
+  ],
+  "metrics": [],
+  "capability_tags": [
+    "PRACTICE_MANAGEMENT",
+    "HEALTHCARE_OPERATIONS",
+    "ATHENA_EHR",
+    "PHREESIA",
+    "AI_INTEGRATION",
+    "M365_COPILOT",
+    "COMPLIANCE",
+    "DASHBOARDS"
+  ],
+  "evidence": [
+    {
+      "claim": "Served as Practice Manager at Bridgeway Health Clinics and managed daily clinic operations, scheduling, staffing, compliance, and patient experience.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Carly_Robert_Anderson_Resume_Updated.docx — Bridgeway section"
+    },
+    {
+      "claim": "Administered Athena EHR, Phreesia scheduling workflows, patient portal, and operational reporting dashboards.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Carly_Robert_Anderson_Resume_Updated.docx — Bridgeway section"
+    },
+    {
+      "claim": "Integrated M365 Copilot into clinical operations workflows and coordinated Medicare/Medicaid/Tri-Care/Humana program data.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Carly_Robert_Anderson_Resume_Updated.docx — Bridgeway section"
+    }
+  ],
+  "unknowns": [
+    {
+      "field": "exact_dates",
+      "reason": "Retrieved resume versions differ in how Bridgeway dates/status are represented.",
+      "interrogation_prompt": "Resolve from payroll/employment records if dates are needed externally.",
+      "market_signal_ids": [
+        "JRS-IMPLEMENTATION-SCALE-001"
+      ]
+    },
+    {
+      "field": "quantified_outcomes",
+      "reason": "No verified before/after measures for throughput, scheduling, documentation quality, compliance, or patient experience were retrieved.",
+      "interrogation_prompt": "Use clinic dashboards or performance records if measurable impact is required.",
+      "market_signal_ids": [
+        "JRS-METRICS-001"
+      ]
+    }
+  ],
+  "authority_effect": "NONE"
+}

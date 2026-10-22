@@ -8,6 +8,7 @@ from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements, map_to_needs, map_to_requirements
 from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_generic, stable_resource_id
 from resource_miner.planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan, validate_resource_plan
+from resource_miner.reconcile import apply_receipt, reconcile_rows, validate_receipt
 from resource_miner.routing import route_candidate
 from resource_miner.sources import funding_pipeline
 from resource_miner.sources.rss import FeedRejected, MAX_FEED_BYTES, _parse_feed
@@ -75,6 +76,27 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertIn("project_funding", by_title["BlueDot Rapid Grants"].resource_affordances)
         self.assertIn("self_labor_support", by_title["GovAI Fellowship"].resource_affordances)
         self.assertIn("earned_income", by_title["Mercor Red-Teamer"].resource_affordances)
+
+    def test_canonical_category_blocks_text_mechanism_pollution(self):
+        candidate = normalize_generic(
+            title="Chemist AI training role",
+            url="https://example.com/chemist",
+            source_name="Example",
+            discovery_method="test",
+            description="Paid AI training work with grant-adjacent research exposure.",
+            source_category="paid_work",
+        )
+        self.assertEqual(candidate.resource_types, ["paid_work"])
+        self.assertEqual(candidate.resource_affordances, ["earned_income"])
+
+    def test_funding_pipeline_can_add_explicit_bundled_affordances(self):
+        resources = list(funding_pipeline.discover(ROOT.parent / "data" / "sources.json"))
+        by_title = {resource.title: resource for resource in resources}
+        eir = by_title["GovAI Entrepreneur-in-Residence"]
+        self.assertEqual(eir.resource_types, ["paid_work"])
+        self.assertIn("earned_income", eir.resource_affordances)
+        self.assertIn("project_funding", eir.resource_affordances)
+        self.assertIn("research_access", eir.resource_affordances)
 
     def test_confirmed_requirement_can_route_verify_now(self):
         candidate = normalize_generic(
@@ -204,6 +226,178 @@ class ResourceMinerTests(unittest.TestCase):
         broken["authority_effect"] = "AUTHORIZE"
         with self.assertRaises(ValueError):
             validate_resource_plan(broken)
+
+    def test_primary_currentness_closes_candidate_durably(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+            "last_verified_at": None,
+        }
+        receipt = {
+            "receipt_id": "R-1",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_status": "CLOSED",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["status"], "CLOSED")
+        self.assertEqual(out["route"], "ARCHIVE")
+        self.assertEqual(out["next_operation"], "NONE")
+        self.assertIn("R-1", out["state_receipt_ids"])
+
+    def test_owned_candidate_hands_off_to_management(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+        }
+        receipt = {
+            "receipt_id": "R-2",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "OWNERSHIP",
+            "source_kind": "REPOSITORY_EVIDENCE",
+            "source_url": "https://example.com/receipt",
+            "to_resource_state": "ALREADY_ACQUIRED",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["resource_state"], "ALREADY_ACQUIRED")
+        self.assertEqual(out["route"], "WATCH")
+        self.assertEqual(out["next_operation"], "MANAGE")
+
+    def test_public_source_cannot_assert_user_ownership(self):
+        receipt = {
+            "receipt_id": "R-3",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "OWNERSHIP",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_resource_state": "ALREADY_ACQUIRED",
+            "authority_effect": "NONE",
+        }
+        with self.assertRaises(ValueError):
+            validate_receipt(receipt)
+
+    def test_reconciliation_is_idempotent(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+        }
+        receipt = {
+            "receipt_id": "R-4",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_status": "NOT_CURRENTLY_OPEN",
+            "authority_effect": "NONE",
+        }
+        first, _ = reconcile_rows([row], [receipt])
+        second, _ = reconcile_rows(first, [receipt])
+        self.assertEqual(first, second)
+
+    def test_reconciliation_resorts_after_route_change(self):
+        rows = [
+            {
+                "resource_id": "RES-CLOSED",
+                "title": "Previously high priority",
+                "route": "VERIFY_NOW",
+                "status": "ACTIVE",
+                "next_operation": "VERIFY",
+                "need_matches": [{"score": 1.0}],
+                "requirement_matches": [],
+            },
+            {
+                "resource_id": "RES-OPEN",
+                "title": "Still actionable",
+                "route": "VERIFY_NOW",
+                "status": "ACTIVE",
+                "next_operation": "VERIFY",
+                "need_matches": [{"score": 0.6}],
+                "requirement_matches": [],
+            },
+        ]
+        receipt = {
+            "receipt_id": "R-ORDER",
+            "resource_id": "RES-CLOSED",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_status": "NOT_CURRENTLY_OPEN",
+            "authority_effect": "NONE",
+        }
+        reconciled, _ = reconcile_rows(rows, [receipt])
+        self.assertEqual(reconciled[0]["resource_id"], "RES-OPEN")
+        self.assertEqual(reconciled[1]["route"], "WATCH")
+
+    def test_user_pass_archives_without_claiming_ineligibility(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+            "user_disposition": "UNSET",
+            "eligibility_assessed": False,
+            "eligibility_status": "UNASSESSED",
+        }
+        receipt = {
+            "receipt_id": "R-PASS",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T16:45:30-05:00",
+            "observation_type": "USER_DISPOSITION",
+            "source_kind": "HUMAN_ATTESTED",
+            "claim": "User passes on this resource based on preference.",
+            "to_disposition": "PASS",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["user_disposition"], "PASS")
+        self.assertEqual(out["route"], "ARCHIVE")
+        self.assertEqual(out["next_operation"], "NONE")
+        self.assertEqual(out["status"], "ACTIVE")
+        self.assertFalse(out["eligibility_assessed"])
+        self.assertEqual(out["eligibility_status"], "UNASSESSED")
+
+    def test_primary_currentness_cannot_reopen_user_pass(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "ARCHIVE",
+            "next_operation": "NONE",
+            "user_disposition": "PASS",
+        }
+        receipt = {
+            "receipt_id": "R-CURRENT",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T16:45:30-05:00",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/current",
+            "to_status": "ACTIVE",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["status"], "ACTIVE")
+        self.assertEqual(out["route"], "ARCHIVE")
+        self.assertEqual(out["next_operation"], "NONE")
 
     def test_winner_announcement_date_is_not_deadline(self):
         candidate = normalize_generic(

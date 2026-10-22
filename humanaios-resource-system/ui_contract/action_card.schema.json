@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:humanaios:resource-system:action_card:1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "resource_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "tab": {
+      "enum": [
+        "NOW",
+        "AVAILABLE",
+        "AI WORKING",
+        "RESOURCES",
+        "HISTORY"
+      ]
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "action_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "artifact_urls": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "activity_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "checkin_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "resource_id",
+    "tab",
+    "source_url",
+    "action_url",
+    "artifact_urls",
+    "activity_id",
+    "checkin_id"
+  ],
+  "additionalProperties": false
+}
