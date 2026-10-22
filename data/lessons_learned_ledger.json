@@ -155,15 +155,15 @@
       "constraint": "smag_self_accuracy_measurement_insufficient_window",
       "severity": "ADVISORY",
       "confidence": "insufficient_data",
-      "rule": "Only 2 consolidation PRs with smag_p_meta predictions observed over 4-week window (2026-09-21 → 2026-10-20). Observation floor = 3 PRs. Observed merge-state proxy: 2/2 resolved merged (100%; not a rework-free success or calibration measure), but sample size below statistical threshold. Consolidation workflow produced PRs in weeks 1–2 (merged: #432 Sep 21, #573 Oct 1) and weeks 3–5 (pending merge: #724 Oct 5, #817 Oct 12, #931 Oct 19). Cannot recommend weighting changes or gate hardening on 2-PR sample.",
+      "rule": "Five consolidation PRs with smag_p_meta predictions identified; only 2 resolved outcomes observed over 4-week window (2026-09-21 → 2026-10-20). Observation floor = 3 PRs. Observed merge-state proxy: 2/2 resolved merged (100%; not a rework-free success or calibration measure), but sample size below statistical threshold. Consolidation PRs were observed in weeks 1–2 (#432 Sep 21, #573 cycle Sep 28, merged Oct 1) and weeks 3–5 (#724 Oct 5, #817 Oct 12, #931 Oct 19 still OPEN); whether the scheduled workflow executed remains unverified. Cannot recommend weighting changes or gate hardening on 2-PR sample.",
       "data_source": "audits/META_SMAG_REVIEW_LOG.md (4-week checkpoint)",
       "observed_outcome_rate": 1,
       "observed_outcome_note": "Two of two RESOLVED PRs were merged by the historical snapshot; merge-state proxy only; three open PRs remain censored.",
       "mean_forecast_probability": 0.85,
       "total_prs_measured": 2,
-      "calibration_gap": -0.15,
+      "calibration_gap": null,
       "focus_areas": [],
-      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Monitor PRs #724, #817, #931 for merge completion. Before rerun, verify the merged #946 observed/predicted separation at the exact scheduled execution head. Once 4-5 observations accumulated and tool fix verified, re-run:\npython3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44\nto measure true accuracy trend and calibration drift on full sample.",
+      "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Monitor PRs #724, #817, #931 for merge completion. Before rerun, verify the merged #946 observed/predicted separation at the exact scheduled execution head. Once at least 3 outcomes are independently resolved and tool fix verified, re-run:\npython3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44\nto measure true accuracy trend and calibration drift on full sample.",
       "smag_generated": true,
       "meta_signal": true,
       "timestamp": "2026-10-20T10:01:27Z",
@@ -173,7 +173,10 @@
       "pending_prs": 3,
       "outcome_definition": "GITHUB_MERGE_STATE_PROXY_NOT_REWORK_FREE_QUALITY",
       "measurement_repair": "Merged PR #946 preserves observed accuracy separate from mean forecast probability; reverify before scheduled use.",
-      "calibration_gap_definition": "mean forecast probability minus observed resolved merge-state proxy; 0.85 - 1.0 = -0.15. Descriptive, not independently verified predictive calibration."
+      "calibration_gap_definition": "mean forecast probability minus observed resolved merge-state proxy; 0.85 - 1.0 = -0.15. Descriptive, not independently verified predictive calibration.",
+      "calibration_gap_status": "UNVERIFIED_PROSPECTIVE_CALIBRATION",
+      "merge_state_proxy_gap": -0.15,
+      "merge_state_proxy_gap_definition": "mean declared probability (0.85) minus resolved observed MERGE-state fraction (1.0); no independent pre-outcome attestation or no-rework outcome evidence."
     }
   ]
 }
