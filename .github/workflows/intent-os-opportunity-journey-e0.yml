@@ -1,0 +1,46 @@
+name: INTENT-OS Opportunity Journey E0
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/opportunity_journey.py'
+      - 'humanaios-funding-pipeline/resource-miner/fixtures/opportunity_journey_apart_synthetic.json'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_journey_e0.py'
+      - '.github/workflows/intent-os-opportunity-journey-e0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-projection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: humanaios-funding-pipeline/resource-miner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test proof-scoped journey projection
+        run: python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+      - name: Verify synthetic case and absence of delegated authority
+        run: |
+          python3 -m resource_miner.opportunity_journey \
+            --input fixtures/opportunity_journey_apart_synthetic.json > "$RUNNER_TEMP/journey.json"
+          python3 - "$RUNNER_TEMP/journey.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as f:
+              x = json.load(f)
+          assert x["event_count"] == 6
+          assert x["survey_standing"] == "SUBMITTED_HUMAN_REPORTED"
+          assert x["signup_standing"] == "WELCOME_EMAIL_OBSERVED"
+          assert x["participant_standing"] == "NOT_CONFIRMED_BY_PROVIDER"
+          assert x["research_submission"] == "UNVERIFIED"
+          assert x["authority_effect"] == "NONE"
+          assert not x["can_read_discord"]
+          assert not x["can_write_calendar"]
+          PY
