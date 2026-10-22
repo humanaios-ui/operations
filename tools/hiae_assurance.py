@@ -375,14 +375,18 @@ def verify_receipt(
 
     # Issuer signature covers everything except the issuer signature itself.
     sig = receipt.get("signature") or {}
+    if not isinstance(sig, Mapping):
+        problems.append("issuer signature is not an object")
+        sig = {}
     issuer_body = {k: v for k, v in receipt.items() if k != "signature"}
     # The key is chosen by the envelope's issuer_id, which no signature covers, so it
     # must agree with the signed issuer_id before it is used.
-    if sig.get("issuer_id") != receipt["issuer_id"]:
+    issuer_id = sig.get("issuer_id")
+    if issuer_id != receipt["issuer_id"]:
         problems.append("signature issuer_id does not match the signed receipt issuer_id")
-    if sig.get("issuer_id") not in issuer_keys:
+    if not isinstance(issuer_id, str) or issuer_id not in issuer_keys:
         problems.append("unknown issuer")
-    elif not _signature_ok(issuer_keys[sig["issuer_id"]], issuer_body, sig.get("value")):
+    elif not _signature_ok(issuer_keys[issuer_id], issuer_body, sig.get("value")):
         problems.append("issuer signature does not verify (receipt altered or wrong key)")
 
     if receipt["request_id"] != assignment.request_id:
@@ -396,6 +400,9 @@ def verify_receipt(
 
     # The assigned reviewer must have signed this exact body.
     rsig = receipt.get("reviewer_signature") or {}
+    if not isinstance(rsig, Mapping):
+        problems.append("reviewer signature is not an object")
+        rsig = {}
     reviewer_body = {k: v for k, v in receipt.items() if k not in ("signature", "reviewer_signature")}
     if rsig.get("reviewer_id") != assignment.reviewer_id:
         problems.append("reviewer signature is not from the assigned reviewer")
@@ -407,15 +414,26 @@ def verify_receipt(
         problems.append(f"overclaiming wording: {hits}")
 
     expected_context = {k: receipt[k] for k in EVIDENCE_CONTEXT_FIELDS}
-    for item in receipt["evidence"]:
+    evidence = receipt["evidence"]
+    if not isinstance(evidence, (list, tuple)):
+        problems.append("evidence is not a list")
+        evidence = []
+    for item in evidence:
+        if not isinstance(item, Mapping):
+            problems.append("evidence item is not an object")
+            continue
         label = item.get("evidence_id")
         item_body = {k: v for k, v in item.items() if k != "observer_signature"}
-        obs_key = observer_keys.get(item.get("observer_id", ""))
+        observer_id = item.get("observer_id", "")
+        obs_key = observer_keys.get(observer_id) if isinstance(observer_id, str) else None
         if obs_key is None:
             problems.append(f"evidence {label!r}: unknown observer")
         elif not _signature_ok(obs_key, item_body, item.get("observer_signature")):
             problems.append(f"evidence {label!r}: observer signature invalid")
         context = item.get("context") or {}
+        if not isinstance(context, Mapping):
+            problems.append(f"evidence {label!r}: context is not an object")
+            continue
         if any(context.get(k) != v for k, v in expected_context.items()):
             problems.append(f"evidence {label!r} is bound to a different request, subject or protocol")
 

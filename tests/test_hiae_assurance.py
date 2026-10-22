@@ -157,6 +157,23 @@ class ReceiptTests(unittest.TestCase):
         _, _, problems = run_synthetic_transaction()
         self.assertEqual(problems, [])
 
+    def test_malformed_nested_fields_return_problems_instead_of_raising(self):
+        cases = [
+            ("signature", lambda r: r.__setitem__("signature", "x")),
+            ("issuer_id", lambda r: r["signature"].__setitem__("issuer_id", ["list"])),
+            ("reviewer_signature", lambda r: r.__setitem__("reviewer_signature", "x")),
+            ("evidence", lambda r: r.__setitem__("evidence", None)),
+            ("evidence item", lambda r: r["evidence"].__setitem__(0, "not-a-dict")),
+            ("observer_id", lambda r: r["evidence"][0].__setitem__("observer_id", ["list"])),
+            ("context", lambda r: r["evidence"][0].__setitem__("context", "x")),
+        ]
+        for name, mutate in cases:
+            with self.subTest(field=name):
+                forged = json.loads(json.dumps(self.receipt))
+                mutate(forged)
+                problems = _verify(forged, self.assignment)
+                self.assertTrue(problems, "malformed receipt must not verify")
+
     def test_receipt_pins_versions(self):
         for key in ("protocol_version", "acat_version", "model_version", "commit_sha"):
             self.assertIn(key, self.receipt)
