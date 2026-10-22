@@ -14,9 +14,10 @@ candidate_id: "Q-HOST-INVENTORY-01"
 title: "Finding: no ratified host/runtime inventory, so 'not applicable' claims about live infrastructure cannot be checked"
 
 description: |
-  The repository proves absence of PHP in its own code and configs (0 .php files in tree or
-  history; Python, Node, and static runtimes only in Dockerfiles, railway/nixpacks, bicep,
-  wrangler.jsonc, vercel.json, and pages.yml). It cannot prove absence on live hosts:
+  No tracked .php paths were found in the tree or history (0 files). Repository-managed runtime
+  configs (Dockerfiles, railway/nixpacks, wrangler.jsonc, vercel.json, pages.yml) select Python,
+  Node, or static runtimes. The Bicep deployments pass an unconstrained container image, so they
+  do not establish the deployed runtime. Deployed runtime status is unverified. The repository cannot prove absence on live hosts:
   - Public hostnames named in the repo are spread across Railway (api.humanaios.ai), Azure
     Container Apps (resource-miner, Metaculus job), Cloudflare (intent-os-board Worker,
     haioscc.pages.dev), Vercel (ui/), and Supabase.
@@ -75,6 +76,8 @@ falsifier: |
   - OR an unapproved .php file (any case) passes the CI guard (guard ineffective). An approved
     exception with an exact row and independent approval must still pass; test both.
   - OR any row's last_verified is older than 90 days while marked VERIFIED (inventory stale)
+  - OR a row marked VERIFIED has a last_verified that is missing, not a parseable date, or later
+    than the current date (validation skipped)
 
 evidence:
   - "git ls-files -z | grep -zEiq '[.]php$' → 0; git log --all --name-only | grep -Eiq '[.]php$' → 0"
