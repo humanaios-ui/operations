@@ -72,6 +72,57 @@ class AdapterTests(unittest.TestCase):
         self.assertFalse(any('authoriz' in e['relation'].lower() or 'ratif' in e['relation'].lower()
                              for e in graph['edges']))
 
+    def test_empty_relation_fails_closed(self):
+        graph = self.doc(SOURCE_NAMES[0])
+        graph['edges'][0]['relation'] = ''
+        self.replace(SOURCE_NAMES[0], graph)
+        with self.assertRaisesRegex(adapter.ProjectionError, 'invalid graph edge'):
+            adapter.project(self.root, FIXED)
+
+    def test_required_crosswalk_cannot_be_silently_lost(self):
+        scenario = self.doc(SOURCE_NAMES[1])
+        receipt = self.doc(SOURCE_NAMES[2])
+        for row in scenario['trial']:
+            if row['id'] == 'T06':
+                row['id'] = 'MISSING_CROSSWALK'
+        for row in receipt['trial_results']:
+            if row['id'] == 'T06':
+                row['id'] = 'MISSING_CROSSWALK'
+        self.replace(SOURCE_NAMES[1], scenario)
+        self.replace(SOURCE_NAMES[2], receipt)
+        with self.assertRaisesRegex(adapter.ProjectionError, 'crosswalk trials missing'):
+            adapter.project(self.root, FIXED)
+
+    def test_trial_id_length_rejected(self):
+        scenario = self.doc(SOURCE_NAMES[1])
+        receipt = self.doc(SOURCE_NAMES[2])
+        long_id = 'A' * 106
+        scenario['trial'][0]['id'] = long_id
+        receipt['trial_results'][0]['id'] = long_id
+        self.replace(SOURCE_NAMES[1], scenario)
+        self.replace(SOURCE_NAMES[2], receipt)
+        with self.assertRaisesRegex(adapter.ProjectionError, 'mismatched trial ID'):
+            adapter.project(self.root, FIXED)
+
+    def test_trial_id_maximum_accepted_and_schema_valid(self):
+        from jsonschema import Draft202012Validator, FormatChecker
+        scenario = self.doc(SOURCE_NAMES[1])
+        receipt = self.doc(SOURCE_NAMES[2])
+        max_id = 'A' * 105
+        scenario['trial'][0]['id'] = max_id
+        receipt['trial_results'][0]['id'] = max_id
+        self.replace(SOURCE_NAMES[1], scenario)
+        self.replace(SOURCE_NAMES[2], receipt)
+        output = adapter.project(self.root, FIXED)
+        self.assertTrue(all(len(n['id']) <= 128 for n in output['nodes']))
+        self.assertTrue(all(len(e['id']) <= 128 for e in output['edges']))
+        schema = json.loads((ROOT / 'docs/graph_integration/observation_projection_v0.schema.json').read_text())
+        Draft202012Validator(schema, format_checker=FormatChecker()).validate(output)
+
+    def test_space_separated_date_normalized_to_iso(self):
+        output = adapter.project(self.root, '2026-10-22 12:31:00-05:00')
+        self.assertEqual(output['source']['observed_at'], FIXED)
+
     def test_source_graph_not_changed(self):
         adapter.project(self.root, FIXED)
         self.assertEqual((self.root / 'EVIDENCE_GRAPH.json').read_bytes(), self.prior)
@@ -130,11 +181,9 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(adapter.ProjectionError, 'timezone'):
             adapter.project(self.root, '2026-10-22T12:31:00')
 
-    def test_schema_contract_if_jsonschema_available(self):
-        try:
-            from jsonschema import Draft202012Validator, FormatChecker
-        except ImportError:
-            self.skipTest('jsonschema missing; stdlib checks still run')
+    def test_schema_contract(self):
+        # A missing contract dependency must fail, not silently skip validation.
+        from jsonschema import Draft202012Validator, FormatChecker
         schema = json.loads((ROOT / 'docs/graph_integration/observation_projection_v0.schema.json').read_text())
         Draft202012Validator(schema, format_checker=FormatChecker()).validate(adapter.project(self.root, FIXED))
 
