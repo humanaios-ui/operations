@@ -267,7 +267,7 @@ A genuine E3-only result scores 2 and is labeled UNPROVEN at runtime. It is not 
 | Medium | A control scores 2. |
 | Low | A control scores 3 or 4 with a noted gap. |
 
-**Claim risk level**: HIGH if any Critical or High severity exists for that claim, or any cross-cutting risk scores 0 or 1. MEDIUM if any Medium severity exists or any cross-cutting risk scores 2. Otherwise LOW. **Overall system risk** is the higher of the two claim risk levels.
+**Claim risk level**: HIGH if any Critical or High severity exists for that claim, or any cross-cutting risk scores 0 or 1. MEDIUM if any Medium severity exists, any cross-cutting risk scores 2, or any risk is held at MEDIUM by an `N/A` control (section 10). Otherwise LOW. **Overall system risk** is the higher of the two claim risk levels.
 
 ### 7.4 N/A and NOT_CLAIMED `[F8]`
 
@@ -297,6 +297,7 @@ Defaults below are **limits the vendor may tighten but never loosen**. A vendor-
 - **C2 passes only if**: B1–B8 form a closed loop (section 2), **every** B control scores at least 3, except a B5 or B6 recorded as `NOT_CLAIMED` (this includes B2, B4, B7, and all four of B8.1–B8.4), B3 passes the drawdown rule, and the Part B `N/A` limit holds. `[F2]`
 - A claim that exceeds its `N/A` limit is INCONCLUSIVE, not PASS.
 - A claim with `NOT_CLAIMED` status has verdict `NOT_CLAIMED`. It is neither PASS nor FAIL.
+- A cross-cutting risk that is `NOT_SCORED` or `PARTIAL_EVIDENCE` does not block PASS by itself. Section 10 sets its effect on the claim risk level.
 - A `SELF-ASSESSED` audit reports its label next to every verdict.
 - Overall system risk is the higher of the two claim risk levels (section 7.3).
 - No model, Oracle, SMAG, Resource Miner, graph, or Copilot may self-authorize a verdict, admission, or merge. A PASS from this audit grants no authority.
@@ -304,6 +305,11 @@ Defaults below are **limits the vendor may tighten but never loosen**. A vendor-
 ## 10. Cross-cutting risks (each scored 0–4)
 
 Each risk maps to a claim and to the controls that supply its evidence. Its score is the lowest score among its mapped controls. The auditor may score a risk lower on direct evidence, never higher. Controls recorded as `NOT_CLAIMED` or `N/A` are excluded from the minimum. A risk with some controls excluded is scored on the rest and reported with status `PARTIAL_EVIDENCE` and the excluded controls listed. A risk whose mapped controls are all excluded has status `NOT_SCORED` and no numeric score. A score of 0 or 1 raises the claim risk level (section 7.3).
+
+Effect of an unscored risk on the verdict:
+- A risk that is `NOT_SCORED` because every mapped control is `NOT_CLAIMED` (for example "Stale or contradictory principles" when B5 is not claimed) is reported and has no effect on the verdict or the risk level. The owner does not claim the feature.
+- A risk that is `NOT_SCORED` or `PARTIAL_EVIDENCE` because a mapped control was `N/A` holds the claim risk level at MEDIUM or higher, and the auditor lists it under residual uncertainty (section 11, item 7).
+- Neither status blocks a PASS by itself. The `N/A` limits (section 7.4) and the exit rules (section 9) do.
 
 | Risk | Claim | Evidence (mapped controls) |
 |---|---|---|
@@ -369,7 +375,7 @@ Copilot's review of PR #981 found five defects in the first version. Each was ch
 | Unkeyed hashes of redacted fields expose low-entropy values | Keyed commitments, key held in the vendor's enclave | 4.1 |
 | A3 did not test container eviction, though durable state includes it | Containerized targets need a separate eviction and replacement test | 1.1, 5 |
 
-CodeRabbit's reviews of PR #981 found eight more. Each was checked against the text and fixed.
+CodeRabbit's reviews of PR #981 found nine more. Each was checked against the text and fixed.
 
 | Review finding | Fix | Section |
 |---|---|---|
@@ -381,6 +387,7 @@ CodeRabbit's reviews of PR #981 found eight more. Each was checked against the t
 | Cross-cutting risks had no scoring, evidence, claim mapping or reporting rule | Mapping table, lowest-mapped-control rule, risk table in the output; A2 now tests an invalid signature so webhook spoofing has evidence | 5 (A2), 10, 11 |
 | The A1 wait relied on a vendor-declared p95 that nobody verified | The auditor recomputes the p95 from the run history and uses the lower value; an unverifiable p95 caps A1 at 2 | 1.1, 5 (A1), 8 |
 | Section 10 did not say how to score a risk with some mapped controls NOT_CLAIMED or N/A | Excluded controls leave the minimum; the risk is reported as PARTIAL_EVIDENCE, or NOT_SCORED when all are excluded | 10, 11 |
+| An unscored risk had no stated effect on the verdict, so a C2 PASS could leave a mapped risk unaddressed | A risk unscored only because the feature is NOT_CLAIMED has no effect; one unscored because of an N/A control holds the claim risk at MEDIUM and is listed as residual uncertainty; neither blocks PASS alone | 7.3, 9, 10 |
 
 ### Decisions for Z2
 
