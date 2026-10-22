@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**112 candidates** — ⏳ awaiting Z2 96 · ✅ ratified 16 · **63 records**
+**113 candidates** — ⏳ awaiting Z2 97 · ✅ ratified 16 · **63 records**
 
-## Awaiting Z2 (96)
+## Awaiting Z2 (97)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -108,6 +108,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-11 | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Governance registry structural repair — 162 entries, 127 defects | `z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md` |
 | 2026-10-24 | **Q-EXTERNAL-ADVISORY-INTAKE-01** | Finding — no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded) | `z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md` |
 | 2026-10-24 | **Q-HOST-INVENTORY-01** | Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked | `z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md` |
+| 2026-10-24 | **Q-WITNESS-DATA-PLANE-01** | Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only | `z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md` |
 
 ## Decided (16)
 

@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 112
+  candidates: 113
   records: 63
 ratifiers:
 - Night
@@ -21,6 +21,13 @@ candidates:
   status: awaiting_z2
   tier: 0
   note: Draft from read-only PHP exposure audit. Proposes HOST_INVENTORY.yaml and a CI guard against tracked .php files. Live hosts unverified (egress blocked). Falsifier stated. Not ratified.
+- q_id: Q-WITNESS-DATA-PLANE-01
+  title: Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only
+  path: z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 2
+  note: Proposal for the Witness data plane. Self-scan only, user-only visibility, key derived in browser, server never logs or persists scan identifiers. Falsifier stated. Not ratified. Tier 2 because it proposes a scan-route gate change.
 - q_id: Q-REPO-GRAPH-LOOKUP-01
   title: Read-only, citation-bearing lookup over the PR 630 repository graph for the section A session-open step
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md
