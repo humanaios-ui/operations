@@ -12,6 +12,7 @@ import tempfile
 import unittest
 import urllib.error
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOLS = ROOT / "tools"
@@ -160,6 +161,11 @@ class PathFilterTests(unittest.TestCase):
         self.assertFalse(rgv.glob_matches("tools/**", "toolsx.py"))
         self.assertFalse(rgv.glob_matches("tools/*", "tools/a/b.py"))
         self.assertTrue(rgv.glob_matches("tools/*", "tools/b.py"))
+
+    def test_mid_pattern_double_star_matches_zero_or_more_directories(self):
+        self.assertTrue(rgv.glob_matches("docs/**/x.md", "docs/x.md"))
+        self.assertTrue(rgv.glob_matches("docs/**/x.md", "docs/a/b/x.md"))
+        self.assertFalse(rgv.glob_matches("docs/**/x.md", "docs/ax.md"))
 
     def test_parse_workflow_reads_pull_request_paths_only(self):
         name, paths = rgv.parse_workflow(WF_TOOL_MANIFEST)
@@ -363,6 +369,42 @@ class ReviewFindingFixtures(unittest.TestCase):
         gh = FakeGH("t", "o/r")
         self.assertIsNone(gh.get_or_error("pulls/9/reviews", "reviews #9"))
         self.assertEqual(gh.errors, ["reviews #9: HTTP 404"])
+
+    def test_pull_request_body_is_never_an_admission_request(self):
+        # The issues API returns PRs too; a PR that says ADMISSION_REQUESTED is not a request.
+        issues = {"801": {"state": "open", "body": "state: ADMISSION_REQUESTED",
+                          "is_pull_request": True}}
+        view = _build(_snapshot([_pr(body="Closes #801")], issues=issues))
+        self.assertIn("NO_ADMISSION_LINK", _pr_node(view, 10)["missing_conditions"])
+        node = next(n for n in view["nodes"] if n["id"] == "ISSUE#801")
+        self.assertFalse(node["admission_requested"])
+
+    def test_unreadable_closing_issue_marks_pr_incomplete(self):
+        class FakeGH(rgv._ReadOnlyGitHub):
+            def get(self, path):
+                if path.startswith("pulls?state=open"):
+                    return [{"number": 10, "body": "Closes #800", "state": "open",
+                             "draft": False, "merged_at": None, "head": {"sha": HEAD}}]
+                if path.startswith("pulls?state=closed"):
+                    return []
+                if path.startswith("pulls/10/files"):
+                    return [{"filename": "docs/readme.md"}]
+                if path.startswith("pulls/10/reviews"):
+                    return []
+                if path.startswith("actions/runs"):
+                    return {"workflow_runs": []}
+                if path == "issues/800":
+                    raise urllib.error.HTTPError(path, 500, "boom", None, None)
+                if path == "branches/main":
+                    return {"commit": {"sha": "c" * 40}}
+                raise urllib.error.HTTPError(path, 404, "not found", None, None)
+
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(rgv, "_ReadOnlyGitHub", FakeGH):
+            snapshot = rgv.fetch_snapshot("humanaios-ui/operations", "t", Path(tmp))
+        self.assertTrue(snapshot["pulls"][0]["incomplete"])
+        self.assertIn("issue #800: HTTP 500", snapshot["errors"])
+        view = _build(snapshot)
+        self.assertEqual(_pr_node(view, 10)["lane"], "INCOMPLETE")
 
     def test_missing_referenced_issue_is_unresolved_not_an_error(self):
         class FakeGH(rgv._ReadOnlyGitHub):

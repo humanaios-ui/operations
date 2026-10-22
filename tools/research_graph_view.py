@@ -54,13 +54,16 @@ REQUIRED_RUN_NAMES = (
     "tool-manifest",
 )
 
-_REPO_QUALIFIER = r"(?:(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?"
+# Quantifiers are bounded: owner and repository name limits from GitHub, and a
+# short cap on whitespace between keyword, colon and reference.
+_REPO_QUALIFIER = r"(?:(?P<repo>[A-Za-z0-9_.-]{1,39}/[A-Za-z0-9_.-]{1,100}))?"
 CLOSING_RE = re.compile(
     r"\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)"
-    r"\s*:?\s*" + _REPO_QUALIFIER + r"#(?P<num>\d{1,6})\b",
+    r"\s{0,8}:?\s{0,8}" + _REPO_QUALIFIER + r"#(?P<num>\d{1,6})\b",
     re.IGNORECASE,
 )
-REF_RE = re.compile(_REPO_QUALIFIER + r"#(?P<num>\d{1,6})\b")
+# The lookbehind keeps a reference from starting inside a word or path segment.
+REF_RE = re.compile(r"(?<![A-Za-z0-9_/.-])" + _REPO_QUALIFIER + r"#(?P<num>\d{1,6})\b")
 # Accepts the plain form ("state: ADMISSION_REQUESTED") and the Markdown form
 # ("**state:** `ADMISSION_REQUESTED`") used in issue bodies.
 ADMISSION_RE = re.compile(r"\bstate\W{0,8}?`?ADMISSION_REQUESTED`?", re.IGNORECASE)
@@ -149,10 +152,13 @@ def glob_matches(pattern: str, path: str) -> bool:
     i = 0
     while i < len(pattern):
         if pattern.startswith("**", i):
-            regex += ".*"
             i += 2
             if i < len(pattern) and pattern[i] == "/":
+                # "a/**/b" matches "a/b" as well as "a/x/y/b".
+                regex += "(?:.*/)?"
                 i += 1
+            else:
+                regex += ".*"
             continue
         ch = pattern[i]
         regex += "[^/]*" if ch == "*" else re.escape(ch)
@@ -229,7 +235,10 @@ def _required_run_conditions(pr, index, required_names):
 
 
 def _admission_issue(issue: dict | None) -> bool:
-    return bool(issue) and bool(ADMISSION_RE.search(issue.get("body") or ""))
+    # The issues API also returns pull requests. A PR body is never an admission request.
+    if not issue or issue.get("is_pull_request"):
+        return False
+    return bool(ADMISSION_RE.search(issue.get("body") or ""))
 
 
 def _evaluate_pr(pr, snapshot, actors, index, required_names):
@@ -471,15 +480,24 @@ def fetch_snapshot(repo: str, token: str, workflows_dir: Path) -> dict:
         issue_numbers |= set(_references(body, repo, []))
 
     issues: dict[str, dict] = {}
+    unfetched: set[int] = set(sorted(issue_numbers)[ISSUE_CAP:])
     for number in sorted(issue_numbers)[:ISSUE_CAP]:
+        errors_before = len(gh.errors)
         # A referenced issue that does not exist is UNRESOLVED, not a fetch failure.
         raw = gh.get_or_error(f"issues/{number}", f"issue #{number}", not_found_ok=True)
         if raw is None:
+            if len(gh.errors) > errors_before:
+                unfetched.add(number)
             continue
         issues[str(number)] = {"state": raw.get("state"),
-                               "body": raw.get("body") or ""}
+                               "body": raw.get("body") or "",
+                               "is_pull_request": "pull_request" in raw}
     if len(issue_numbers) > ISSUE_CAP:
         truncated = True
+    # A PR whose closing reference could not be read cannot be judged complete.
+    for pull in pulls:
+        if set(_closing_targets(pull["body"], repo)) & unfetched:
+            pull["incomplete"] = True
 
     default_head = None
     default = gh.get_or_error("branches/main", "default branch")
