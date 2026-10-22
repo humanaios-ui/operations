@@ -76,6 +76,7 @@ class ACATReflexTest(unittest.TestCase):
     def test_requires_order_no_edited_comments(self):
         hs = history()
         hs[1]["created_at"] = "2026-10-22T09:00:00Z"
+        hs[1]["updated_at"] = "2026-10-22T09:00:00Z"
         with self.assertRaisesRegex(ValueError, "out-of-order"):
             a.read_history("issue:986", "case1", hs)
         hs = history()
