@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 215
+  tools: 216
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 167
+  builder_markers_present: 168
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2734,6 +2734,19 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml.
+- tool_id: HAIOS-TOOL-229
+  name: research_graph_view
+  path: tools/research_graph_view.py
+  version: 0.1.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: research_graph_view.py
+  session: research-graph-phase1
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
