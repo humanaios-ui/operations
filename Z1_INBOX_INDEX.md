@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**113 candidates** — ⏳ awaiting Z2 97 · ✅ ratified 16 · **63 records**
+**113 candidates** — ⏳ awaiting Z2 97 · ✅ ratified 16 · **64 records**
 
 ## Awaiting Z2 (97)
 
@@ -126,10 +126,10 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-MAIL-EVIDENCE-LEDGER-01** | Night | 2026-09-24 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md`<br>`d52a583d659c4230b1456042193748e2c4ec1d32c3aaf395e000aabfe6f40f78` |
 | ✅ ratified | **Q-HCM-CORE-MACHINE-01** | Night | 2026-10-14 | `z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md`<br>`9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd` |
 | ✅ ratified | **Q-MULTI-AGENT-QUEUE-PLAN-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md`<br>`a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573` |
-| ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md`<br>`d80d38e5fa2041f3c6a3e79ad7706dee3bcf6f3879987e63ee1c4b4ba832ff6c` |
 | ✅ ratified | **Q-LEDGER-GROUNDING-STUB-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`8537eca961308aa4e93c0cdacb0cd412f90c0afd7e40ba8dcdcdb7ef96195b6c` |
 | ✅ ratified | **Q-MESH-LOCAL-COORDINATION-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`2c62341e03c880942e71b2b1b3f6ea85fc99feac0f032b665adb9048f4eae926` |
 | ✅ ratified | **Q-QUEUE-SWEEP-PIN-SPEC-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`3823b1ed565652db123cfa2f519c72fe5ae13c194085ff539b7596c782793dc4` |
+| ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md`<br>`3d9fd60e45ad381233420f6086dcfee37da3b44d657c6ba6986ea9286d63e800` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -483,7 +483,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (63)
+## Records (64)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -551,6 +551,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md` | Night ratification record for Q-REPO-GRAPH-LOOKUP-01 |
 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md` | Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md` | Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py) |
+| `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md` | Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
