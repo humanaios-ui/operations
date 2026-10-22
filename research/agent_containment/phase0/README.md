@@ -17,9 +17,10 @@ prints a derived projection in the repository's existing
 
 ```sh
 python3 research/agent_containment/phase0/phase0_sim.py
+python3 research/agent_containment/phase0/independent_local_witness.py --check
 python3 research/agent_containment/phase0/containment_evidence_adapter.py --check
 python3 research/agent_containment/phase0/containment_evidence_adapter.py > /tmp/containment_projection.json
-python3 -m unittest discover -s tests -p 'test_containment_evidence_adapter.py' -v
+python3 -m unittest discover -s tests -p 'test_containment*.py' -v
 ```
 
 The adapter labels synthetic results **unresolved** and crosswalk links
@@ -34,6 +35,16 @@ synthetic scenario and result receive per-file SHA-256 references.
 - T07/T08: attempted production receipt/store → C1 (participation is not authority).
 - T09: unauthorized halt attempt → CT1.
 - T11/T12: authorized halt and post-halt rejection → CT2 (sequence boundary).
+
+The independently implemented local subprocess witness compares model results with
+the recorded synthetic receipt, checks source-file integrity, and recomputes the
+event hash/HMAC chain without invoking the model's `verify()`. Its Python audit
+hook rejects Python-level file writes and socket/process use. The witness is
+NOT an operating-system sandbox or a remote independent third party: native
+code, external infrastructure, production bindings, and actual egress are
+outside the experiment. Do not interpret "zero" counters as verified production
+effects. The `jsonschema` dependency is mandatory for the adapter's contract
+test; a missing dependency must make the test fail.
 
 These crosswalks test ideas, not real production controls. No graph edge grants
 authority. This is a read-only advisory artifact, not an authorized input to
