@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 231
+  tools: 218
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 169
+  builder_markers_present: 170
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2773,9 +2773,10 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Z2 Governance Signature Generator — Cryptographic signatures for governance-layer changes (CLAUDE.md, constitution_checker.py, CI workflows)
-  ratification_required: true
-  notes: Zone 2 tool for Z2 (Night) to sign governance changes before merge. Part of mechanical enforcement for authority boundary violations.
+  purpose: Z2 Governance Signature Generator — Cryptographic signatures for governance-layer changes (CLAUDE.md,
+    constitution_checker.py, CI workflows)
+  notes: Zone 2 tool for Z2 (Night) to sign governance changes before merge. Part of mechanical enforcement
+    for authority boundary violations.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
