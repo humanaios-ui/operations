@@ -332,10 +332,10 @@ Use this template for each test case:
 - **Implication:** Phase 1 federated integration can proceed; semantic round-trip loss is acceptable
 - **Action:** ✅ **PASS**—Proceed to Phase 2 architecture work
 
-### Scenario B: Domain-Specific Concern (IPP < 0.85 on one or more domains)
-- **Result:** Translation Agent struggles with one or more domain's semantic complexity
+### Scenario B: Domain-Specific Concern (IPP < 0.85 on exactly one domain)
+- **Result:** Translation Agent struggles with one domain's semantic complexity; other domains pass
 - **Implication:** Domain-specific refinement needed before proceeding
-- **Action:** ⚠️ **CONDITIONAL**—File sub-issue for affected domain(s); must resolve before Phase 1 proceeds with that domain
+- **Action:** ⚠️ **CONDITIONAL**—File sub-issue for affected domain; must resolve before Phase 1 proceeds with that domain
 
 ### Scenario C: Insufficient Fidelity (IPP < 0.85 on multiple domains)
 - **Result:** Translation Agent systematically misunderstands human requests

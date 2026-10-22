@@ -161,8 +161,8 @@ def _strip_commit_line(text: str) -> str:
     unchanged source does not read as drift; the source sha256 is what matters."""
     keep = []
     for line in text.splitlines():
-        if "rendered at commit `" in line:
-            # Mask ANY commit hash (not just current HEAD) to avoid drift on re-render
+        if "rendered at commit `" in line and line.startswith(">"):
+            # Mask commit in blockquote header only (provenance field, not table cells)
             prefix, marker, suffix = line.partition("rendered at commit `")
             if marker:
                 _value, closing, tail = suffix.partition("`")
@@ -170,7 +170,7 @@ def _strip_commit_line(text: str) -> str:
                     line = prefix + marker + "<commit>`" + tail
             keep.append(line)
         elif line.startswith("- repository commit at render time:"):
-            # Mask only the commit value, not the entire line
+            # Mask only the commit value in provenance section
             keep.append("- repository commit at render time: `<commit>`")
         else:
             keep.append(line)
