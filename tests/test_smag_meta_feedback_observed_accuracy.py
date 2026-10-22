@@ -47,15 +47,17 @@ class MetaAccuracyTests(unittest.TestCase):
             with patch.object(smag, "measure_consolidation_pr_outcomes", return_value=observation):
                 out = smag.run("humanaios-ui/operations", "SMAG: consolidate", ledger, 44)
             self.assertEqual(out["lesson_confidence"], "insufficient_data")
-            lesson = json.loads(ledger.read_text())["lessons"][0]
+            first_ledger = json.loads(ledger.read_text())
+            lesson = first_ledger["lessons"][0]
             self.assertEqual(lesson["accuracy_measured"], 1.0)
             self.assertEqual(lesson["observed_outcome_rate"], 1.0)
             self.assertAlmostEqual(lesson["mean_forecast_probability"], 0.85)
             self.assertEqual(lesson["pending_prs"], 3)
-            # Idempotent rerun retains the measured-accuracy meaning.
+            # Idempotent rerun preserves the complete ledger.
             with patch.object(smag, "measure_consolidation_pr_outcomes", return_value=observation):
                 smag.run("humanaios-ui/operations", "SMAG: consolidate", ledger, 44)
-            self.assertEqual(json.loads(ledger.read_text())["lessons"][0]["accuracy_measured"], 1.0)
+            second_ledger = json.loads(ledger.read_text())
+            self.assertEqual(second_ledger, first_ledger)
 
     def test_only_open_items_do_not_claim_observed_accuracy(self):
         with patch("subprocess.run", return_value=SimpleNamespace(
@@ -71,6 +73,49 @@ class MetaAccuracyTests(unittest.TestCase):
                 result = smag.run("humanaios-ui/operations", "SMAG: consolidate", ledger, 44)
             self.assertEqual(result["status"], "INSUFFICIENT_RESOLVED_DATA")
             self.assertFalse(ledger.exists())
+
+    def test_closed_unmerged_counts_as_resolved_non_success(self):
+        rows = [
+            {"number": 432, "state": "MERGED", "body": "smag_p_meta: 0.85"},
+            {"number": 573, "state": "MERGED", "body": "smag_p_meta: 0.85"},
+            {"number": 810, "state": "CLOSED", "body": "smag_p_meta: 0.10"},
+            {"number": 817, "state": "OPEN", "body": "smag_p_meta: 0.01"},
+        ]
+        with patch("subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(rows), stderr="")):
+            result = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
+        self.assertEqual(result["resolved_prs"], 3)
+        self.assertEqual(result["pending_prs"], 1)
+        self.assertEqual(result["closed_unmerged_prs"], 1)
+        self.assertAlmostEqual(result["actual_success_rate"], 2 / 3)
+        self.assertAlmostEqual(result["mean_resolved_forecast_probability"], 0.60)
+        self.assertAlmostEqual(result["predicted_accuracy"], 0.4525)
+        self.assertAlmostEqual(result["calibration_gap"], 0.60 - (2 / 3))
+        self.assertEqual(result["outcome_definition"], "GITHUB_MERGE_STATE_PROXY_NOT_REWORK_FREE_QUALITY")
+        with tempfile.TemporaryDirectory() as d:
+            ledger = Path(d) / "lessons.json"
+            with patch.object(smag, "measure_consolidation_pr_outcomes", return_value=result):
+                out = smag.run("humanaios-ui/operations", "SMAG: consolidate", ledger, 44)
+            self.assertEqual(out["lesson_confidence"], "drift_detected")
+            lesson = json.loads(ledger.read_text())["lessons"][0]
+            self.assertAlmostEqual(lesson["accuracy_measured"], 2 / 3)
+            self.assertAlmostEqual(lesson["mean_forecast_probability"], 0.4525)
+            self.assertAlmostEqual(lesson["mean_resolved_forecast_probability"], 0.60)
+            self.assertIn("MERGE_STATE_PROXY", lesson["outcome_definition"])
+
+    def test_pending_forecast_does_not_change_resolved_calibration_gap(self):
+        base = [
+            {"number": 432, "state": "MERGED", "body": "smag_p_meta: 0.85"},
+            {"number": 573, "state": "MERGED", "body": "smag_p_meta: 0.85"},
+            {"number": 810, "state": "CLOSED", "body": "smag_p_meta: 0.10"},
+        ]
+        with patch("subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(base), stderr="")):
+            before = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
+        pending = base + [{"number": 811, "state": "OPEN", "body": "smag_p_meta: 0.01"}]
+        with patch("subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(pending), stderr="")):
+            after = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
+        self.assertEqual(after["calibration_gap"], before["calibration_gap"])
+        self.assertEqual(after["mean_resolved_forecast_probability"], before["mean_resolved_forecast_probability"])
+        self.assertNotEqual(after["predicted_accuracy"], before["predicted_accuracy"])
 
 if __name__ == "__main__":
     unittest.main()
