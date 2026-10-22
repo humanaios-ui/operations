@@ -100,7 +100,8 @@ ACTION_ORDER = {
     "REEXAMINE": 1,
     "COMPARE_CONSOLIDATE": 2,
     "REBASE_RETEST": 3,
-    "ADVANCE": 4,
+    "ROUTE_TO_Z2": 4,
+    "ADVANCE": 5,
 }
 
 LANE_ORDER = {
@@ -628,6 +629,11 @@ def classify(
     else:
         action = "ADVANCE"
         next_action = "Proceed to ordinary review/testing; no coordinator-level technical blocker was detected."
+    if lane == "CONTROL_PLANE" and action == "ADVANCE":
+        # ADVANCE reads as "admitted, go". A control-plane PR has no admission record;
+        # it only routes to ordinary Z2 review.
+        action = "ROUTE_TO_Z2"
+        next_action = "Route to ordinary Z2 review. Control-plane changes are not admitted by the coordinator."
 
     objective = (
         "EVALUATION"
@@ -932,7 +938,8 @@ def render_markdown(index: dict[str, Any]) -> str:
 
     sections = [
         (["CAPACITY_CONTENTION"], "Capacity contention"),
-        (["CONTROL_PLANE", "ACTIVE"], "Active operator queue"),
+        (["ACTIVE"], "Active operator queue"),
+        (["CONTROL_PLANE"], "Control plane — ordinary Z2 review, not operator queue"),
         (["ADMITTED_TO_EVALUATION"], "Evaluation admission — evidence workspace, not operator queue"),
         (["ADMISSION_REVIEW"], "Admission review"),
         (["WORKBENCH"], "Workbench — visible, not operator queue"),
