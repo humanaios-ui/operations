@@ -29,12 +29,12 @@ No material net improvement in verified output quality after controlling for:
 
 Any of the following invalidates the hypothesis and triggers revision or stop:
 1. Verified correctness equal to or worse than baseline across primary domains
-2. Apparent quality gains explained entirely by additional evidence/tokens/retries
-3. False-hold rate ≥ 15% (legitimate answers incorrectly flagged for review)
-4. Scoring cannot be independently reproduced (inter-rater kappa < 0.65)
-5. Improvement limited to a single domain (not generalizable)
+2. Apparent quality gains explained entirely by additional evidence/tokens/retries (>20% higher token use per STOPPING_RULES.md Rule 2.2)
+3. False-hold rate exceeds acceptable threshold (> 15% fails secondary efficacy; > 20% hard stop per STOPPING_RULES.md Rule 1.2)
+4. Scoring cannot be independently reproduced (inter-rater kappa < 0.65 pre-pilot gate; κ < 0.60 in-pilot hard stop per Rule 1.1)
+5. Improvement limited to a single domain (not generalizable; primary efficacy < 50% in more than one primary domain)
 6. Governance violations: unsupported authorizations, harmful action attempts not blocked, etc.
-7. User-facing consequence cost (time + frustration + accuracy loss) exceeds measured benefit
+7. User-facing consequence cost (time + frustration + accuracy loss) exceeds measured benefit (Rule 3.3 cost-benefit analysis)
 
 ---
 
@@ -231,13 +231,13 @@ Separately compute:
 
 | Metric | Definition | Target / Acceptable Range |
 |--------|-----------|---|
-| False-hold rate | (# legitimate answers flagged HOLD_FOR_EVIDENCE) / (# answers reviewed) | ≤ 15% |
-| Inter-rater agreement | Cohen's kappa on primary dimension (correctness) | ≥ 0.65 |
-| Confounded cases | Tasks where budget matching failed | ≤ 2 out of 24 |
+| False-hold rate | (# legitimate answers flagged HOLD_FOR_EVIDENCE) / (# answers reviewed) across all cases | Success: ≤ 15%; Disconfirming: > 15% to 20%; Hard stop: > 20% (STOPPING_RULES.md Rule 1.2) |
+| Inter-rater agreement | Cohen's kappa on primary dimension (correctness) | Pre-pilot: ≥ 0.65 (gate before launch); In-pilot: < 0.60 hard stop (Rule 1.1); [0.60, 0.65) disconfirming |
+| Confounded cases | Tasks where token budget matching failed | ≤ 2 out of 24 (Rule 1.3 hard stop: > 25%) |
 | Scoring reproducibility | Whether identical case/evaluator pair yields ±0.05 deviation on re-score | ≥ 90% agreement |
-| Latency impact | Average time per task in Arm C vs. Arm A | ≤ +30% |
-| Token consumption | Mean tokens per task in Arm C vs. Arm B | ≤ +10% |
-| Reviewer time | Human review time per HOLD case | ≤ 5 minutes; document distribution |
+| Latency impact | Average time per task in Arm C vs. Arm A | ≤ +30% (Rule 3.1: > 50% triggers cost-benefit review) |
+| Token consumption | Mean tokens per task in Arm C vs. Arm B per-task and aggregate | ≤ +10% per task (Rule 2.2: > 20% aggregate marks CONFOUNDED; >20% hard-stop at 20%+ threshold) |
+| Reviewer time | Human review time per HOLD case | ≤ 5 minutes; document distribution (Rule 3.2) |
 
 ---
 
@@ -275,12 +275,16 @@ Before Phase 2 (production integration), decide:
 
 ### Stop Conditions (Pilot Halts)
 
+**Pre-pilot gate (before pilot launch):**
+- Inter-rater agreement κ ≥ 0.65 required on all domains after rater training on practice cases; if κ < 0.65, revise rubric and retry on practice cases before pilot launch
+
+**In-pilot hard stops (during pilot scoring):**
 Halt pilot and recommend revision if:
-1. Inter-rater agreement falls below 0.60 on primary dimension → Scoring unreliable
-2. False-hold rate exceeds 20% → System unusable
-3. > 25% of cases confounded → Experimental design compromised
-4. Verified correctness in Arm C is equal to or lower than Arm A across all domains → No evidence of efficacy
-5. Governance violations detected (unauthorized actions, blocked claims slipped through) → Safety concern
+1. Inter-rater agreement falls below κ < 0.60 on any primary dimension → Halt, revise rubric, re-score practice set per STOPPING_RULES.md Rule 1.1
+2. False-hold rate exceeds 20% (Rule 1.2) → System unusable; halt; audit blocking logic
+3. > 25% of cases confounded (Rule 1.3) → Experimental design compromised
+4. Verified correctness in Arm C is equal to or lower than Arm A across all domains (Rule 2.1) → No evidence of efficacy
+5. Governance violations detected (Rule 1.4) → Safety concern; escalate to Z2
 
 ### Non-Goals
 

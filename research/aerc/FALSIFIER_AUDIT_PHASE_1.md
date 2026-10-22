@@ -57,7 +57,7 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 2
 **Observable:** ✅ YES
 - Measure: Perform sensitivity analysis comparing A vs. B vs. C while controlling for token use
 - Decompose improvement into: (a) AERC mechanism, (b) additional tokens, (c) additional revision opportunity
-- Threshold: If improvement explained >90% by additional tokens/attempts (vs. policy difference), confound confirmed
+- Threshold: If improvement explained >20% by additional tokens/attempts (vs. policy difference), confound confirmed per STOPPING_RULES.md Rule 2.2
 - Data available: Yes (secondary analysis, week 5)
 
 **Falsifying:** ✅ YES
@@ -84,12 +84,12 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 2
 PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 3
 
 **Observable:** ✅ YES
-- Measure: Count HOLD dispositions where evaluator later confirms output was correct
-- Calculation: False-hold rate = (# false HOLDs) / (# total cases where system issued HOLD); if system issued no HOLDs, rate = 0%
-- Threshold definitions:
-  - 0–15%: Success (acceptable false-hold rate)
-  - 15–20%: Disconfirming outcome (efficacy criterion fails; must revise)
-  - >20%: Hard stop (halt pilot immediately)
+- Measure: Count cases where HOLD disposition was issued but evaluator later confirmed output was correct
+- Calculation: False-hold rate = (# false HOLDs) / (# total answers reviewed) across all cases; per STOPPING_RULES.md Rule 1.2, denominator is all cases, not just cases with HOLD issued
+- Threshold definitions (aligned with STOPPING_RULES.md):
+  - 0% to 15%: Success (acceptable false-hold rate; secondary endpoint)
+  - >15% to 20%: Disconfirming outcome (secondary endpoint fails; system utility degraded; recommend revise)
+  - >20%: Hard stop (Rule 1.2: halt pilot immediately; audit blocking logic)
 - Data available: Yes (week 5, after all dispositions reviewed)
 
 **Falsifying:** ✅ YES
@@ -128,18 +128,20 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 4
 - Result: Methodology unsound; recommend REVISE (clarify rubric) or REJECT
 
 **Mapped to Stopping Rule:** ✅ YES
-- **Rule 1.1: Measurement Reliability Failure** (Hard stop)
-  - Trigger: Kappa < 0.60
+- **Rule 1.1: Measurement Reliability Failure** (Hard stop in-pilot)
+  - Trigger: Kappa < 0.60 during pilot scoring
   - Action: Stop scoring; revise rubric; retry on practice set
-- **Pilot-stage disconfirming threshold:** Kappa < 0.65 (Section 1.3 item 4, explicit in disconfirming outcomes)
-  - Kappa 0.60–0.65: Disconfirming outcome (measurement reliability concern; must revise rubric and retry on practice set before proceeding)
-  - Kappa ≥0.65: Success (meets pilot-stage inter-rater bar)
-  - This two-tier approach distinguishes hard stop (<0.60) from pilot-stage inadequacy (0.60–0.65) vs. success (≥0.65)
+- **Pre-pilot disconfirming threshold:** Kappa < 0.65 (Section 1.3 item 4, explicit in disconfirming outcomes)
+  - **Pre-pilot gate** (before pilot launch): Kappa ≥ 0.65 required after rater training on practice cases
+  - **In-pilot hard stop** (during pilot): Kappa < 0.60 triggers immediate halt, rubric revision, and practice-case retest
+  - **Interval classification** [0.60, 0.65): Pre-pilot gate failed; measurement reliability concern; must revise rubric and retry on practice set before proceeding with pilot
+  - **Success threshold**: Kappa ≥ 0.65 meets pre-pilot calibration gate and continues into pilot
+  - This three-tier approach: pre-pilot gate (≥0.65) → pilot launch → in-pilot stop (<0.60) → interval [0.60, 0.65) disconfirms and halts progression
 
 **Preregistered threshold:** ✅ YES
-- Inter-rater agreement target: kappa ≥ 0.65 (Section 8, secondary endpoints)
-- Hard stop: kappa < 0.60 (Rule 1.1)
-- No post-hoc adjustment possible (both thresholds fixed at pilot start)
+- Pre-pilot gate: kappa ≥ 0.65 (Section 8, secondary endpoints; Section 4, Rater Training)
+- In-pilot hard stop: kappa < 0.60 (Rule 1.1, STOPPING_RULES.md)
+- No post-hoc adjustment possible (all thresholds fixed at protocol registration)
 
 ---
 
@@ -150,9 +152,9 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 4
 PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 5
 
 **Observable:** ✅ YES
-- Measure: Compute efficacy separately for each domain (Factual Reasoning, Software Engineering, Decision-Support)
-- Domain-failure criterion: Primary efficacy ≥ 50% must be achieved in at least TWO of three primary domains (Factual Reasoning + Software Engineering, both required; Decision-Support not counted toward generalizability)
-- Disconfirming pattern: If primary efficacy < 50% in more than ONE domain, outcome is disconfirming (improvement limited to single domain, not generalizable)
+- Measure: Compute efficacy separately for each domain (Factual Reasoning, Software Engineering, Decision-Support) per PREREGISTRATION_PROTOCOL_PHASE_1.md Section 7
+- Unified domain-failure criterion (applied consistently in PREREGISTRATION_PROTOCOL_PHASE_1.md, STOPPING_RULES.md Rule 2.3, and this audit): Primary efficacy ≥ 50% must be achieved in at least TWO of three primary domains (Factual Reasoning + Software Engineering both required; Decision-Support evaluated separately, not counted toward generalizability gate)
+- Disconfirming pattern: If primary efficacy < 50% in more than ONE of the two primary domains (Factual Reasoning OR Software Engineering fails), outcome is disconfirming (improvement limited to single domain, not generalizable; triggers Rule 2.3)
 - Data available: Yes (week 5, per-domain results)
 
 **Falsifying:** ✅ YES
@@ -254,9 +256,9 @@ Each of the seven outcomes directly contradicts or disconfirms H1:
 
 ---
 
-### ✅ All Thresholds Are Preregistered
+### ✅ All Thresholds Are Preregistered (With Z2 Override Path)
 
-No disconfirming outcome relies on a post-hoc threshold. All are defined in PREREGISTRATION_PROTOCOL_PHASE_1.md or STOPPING_RULES.md **before pilot begins**:
+No disconfirming outcome relies on a post-hoc threshold without documentation. All are defined in PREREGISTRATION_PROTOCOL_PHASE_1.md or STOPPING_RULES.md **before pilot begins**. Per STOPPING_RULES.md Signature Block, threshold changes are prohibited unless Z2 provides documented justification (Section 9, Approval & Ratification); any Z2-authorized override creates a new amendment to STOPPING_RULES.md and marks the preregistered result separately as "modified post-hoc by Z2 override with justification <reason>":
 
 | Outcome | Threshold | Source | Falsifier |
 |:---|:---|:---|:---|

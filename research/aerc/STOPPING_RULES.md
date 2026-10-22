@@ -11,12 +11,21 @@
 If **any** of these conditions are met during Phase 1, the pilot **halts immediately**. A decision to continue requires explicit Z2 override and documentation of why the rule is suspended.
 
 ### Rule 1.1: Measurement Reliability Failure
-**Trigger:** Inter-rater agreement (Cohen's kappa) on primary dimension falls **below 0.60**  
-**Action:** Stop scoring; revise rubric; retry on practice set
+**Thresholds (two-phase):**
+- **Pre-pilot gate:** κ ≥ 0.65 required on all domains after rater training on practice cases (PREREGISTRATION_PROTOCOL_PHASE_1.md Section 4); κ < 0.65 → revise rubric, retry on practice cases before pilot launch
+- **In-pilot hard stop:** κ < 0.60 during pilot scoring (triggers immediate halt)  
+- **Interval [0.60, 0.65):** Disconfirms pre-pilot adequacy; pilot cannot launch
+**Trigger:** Inter-rater agreement (Cohen's kappa) on primary dimension falls **below 0.60** during pilot scoring  
+**Action:** Stop scoring immediately; revise rubric; re-score practice set before proceeding
 
 ### Rule 1.2: False-Hold Rate Exceeds Tolerance
-**Trigger:** False-hold rate exceeds **20%** across all cases  
-**Action:** Stop; audit blocking logic; revise disposition heuristics
+**Metric:** (# legitimate answers marked HOLD_FOR_EVIDENCE but output was correct) / (# answers reviewed across all cases)  
+**Thresholds:**
+- **0% to 15%:** Success (secondary efficacy criterion passes)
+- **> 15% to 20%:** Disconfirming outcome (secondary efficacy fails; system utility degraded; recommend REVISE); pilot completes but result is negative
+- **> 20%:** Hard stop (in-pilot halt); audit blocking logic; revise disposition heuristics immediately  
+**Action (hard stop):** Stop pilot immediately; escalate to Z2; audit blocking logic; recommend REVISE  
+**Action (disconfirming, 15-20% band):** Pilot completes; secondary efficacy failed; recommend REVISE before Phase 2
 
 ### Rule 1.3: Experimental Confounding Exceeds Tolerance
 **Trigger:** More than **25% of cases (>6 cases)** marked confounded  
@@ -41,8 +50,9 @@ If **any** of these occur, pilot completes but efficacy claim **fails**. Results
 **Result:** Confound documented; recommend REVISE (isolate mechanism) or REJECT
 
 ### Rule 2.3: Improvement Limited to Single Domain
-**Trigger:** Significant improvement in only one domain; not in other two  
-**Result:** Domain-stratified findings published; recommend REVISE (domain-specific) or REJECT
+**Unified criterion (PREREGISTRATION_PROTOCOL_PHASE_1.md Section 1.3, item 5):** Primary efficacy (verified correctness improvement) must be ≥ 50% in at least TWO of three primary domains (Factual Reasoning and Software Engineering; Decision-Support evaluated separately)  
+**Trigger:** Primary efficacy < 50% in more than ONE of the primary domains (i.e., improvement achieved in only one domain, or zero domains) → generalizability fails  
+**Result:** Domain-stratified findings published; recommend REVISE (domain-specific approach) or REJECT
 
 ---
 
