@@ -13,7 +13,7 @@ def sample():
     def receipt():
         return {"score": 3, "tier": "E1", "state": "OBSERVED_PASS", "receipt": "synthetic:untrusted"}
     return {"scope": {"target": "synthetic-only", "commit": "a" * 40,
-                      "environment": "sandbox", "auditor": "different-witness",
+                      "environment": "sandbox", "deployment_id": "sandbox-worker-v1", "data_classification": "SYNTHETIC", "authorized_window": "synthetic-only", "auditor": "different-witness",
                       "operator": "sandbox-owner", "authorization_receipt": "synthetic:not-authorized"},
             "claims": {
                 "C1": {"applicability": "CLAIMED",
@@ -21,7 +21,7 @@ def sample():
                        "risk_sample": {"eligible": 30, "selected": 30, "unauthorized_bypasses": 0}},
                 "C2": {"applicability": "CLAIMED",
                        "controls": {k: receipt() for k in gate.CONTROLS["C2"]},
-                       "training": {"teacher_version": "synthetic:T1", "student_version": "synthetic:S1",
+                       "training": {"mechanism": "synthetic-weight-update", "teacher_version": "synthetic:T1", "student_version": "synthetic:S1",
                                     "baseline": "synthetic:base", "sealed_holdout": "synthetic:holdout",
                                     "witness": "synthetic:untrusted",
                                     "holdout_cycles": [0.80, 0.79, 0.79], "gain": 0.02}},
@@ -84,6 +84,14 @@ class AuditGateTests(unittest.TestCase):
         d = sample()
         d["scope"]["auditor"] = d["scope"]["operator"]
         self.assertEqual(gate.evaluate(d)["claims"]["C1"]["contract"], "BLOCKED")
+    def test_missing_scope_or_training_mechanism_blocks(self):
+        d = sample()
+        del d["scope"]["authorized_window"]
+        self.assertEqual(gate.evaluate(d)["claims"]["C1"]["contract"], "BLOCKED")
+        d = sample()
+        del d["claims"]["C2"]["training"]["mechanism"]
+        self.assertEqual(gate.evaluate(d)["claims"]["C2"]["contract"], "BLOCKED")
+
     def test_unpinned_sha_blocks(self):
         d = sample()
         d["scope"]["commit"] = "main"
