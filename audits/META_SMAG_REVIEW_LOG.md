@@ -90,7 +90,7 @@ Status: ❌ Not applicable (2 PRs measured)
 
 **Scheduled:** 2026-11-03 (extended window, ~6 weeks total data)  
 **Expected data:** Up to five identified PRs; pending outcomes cannot be assumed resolved  
-**Expected confidence:** "stable" requires a gap ≤5% **and** independently verified resolved observations meeting the floor; otherwise insufficient_data
+**Expected software proxy label:** Under the repaired #946 tool, fewer than 3 resolved cases gives `insufficient_data`; with ≥3 resolved, |forecast minus observed merge-state proxy| ≤5% gives `stable`, >5% and ≤20% gives `drift_detected`, and >20% gives `low`. These are **proxy labels only**: even a `stable` label does NOT independently verify prospective calibration, admission, absence of rework, or F1 precommitment. Await independently witnessed outcomes before claiming scientific calibration.
 
 
 
