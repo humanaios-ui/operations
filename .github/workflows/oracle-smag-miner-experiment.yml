@@ -17,17 +17,21 @@ jobs:
   offline:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11']
     defaults:
       run:
         working-directory: humanaios-funding-pipeline/resource-miner
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: Run separate-input regression
         run: python3 -m unittest discover -s tests -p 'test_oracle_smag_experiment.py' -v
       - name: Prove first-user offline preflight does not claim human qualification
