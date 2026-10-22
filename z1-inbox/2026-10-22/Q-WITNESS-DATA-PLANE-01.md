@@ -82,7 +82,7 @@ falsifier: |
   - OR a scan route change adds a logger call, debug print, or exception handler that serializes
     the request body, and the lint or test gate does not block it
   - OR the operator can decrypt a test user's stored data without that user's key or an issued grant
-  - OR a lost-key drill recovers the test user's data without the recovery code
+  - OR a lost-key drill, run after loss of all authorized key material (passphrase, recovery code, and any synced passkey, or the recovery method Z2 selects), recovers the test user's data
   - OR a shared aggregate row can be traced to a single pseudonym by a sub-threshold group test
 
 evidence:
@@ -99,8 +99,8 @@ z2_decision:
 related_candidates: []
 external_constraint: null
 links:
-  - name: "Companion proposal (PHP exposure audit)"
-    url: "z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md"
+  - name: "Companion proposal (PHP exposure audit): Q-HOST-INVENTORY-01, on PR 972 (not on this branch)"
+    url: "https://github.com/humanaios-ui/operations/pull/972"
 ```
 
 ---
@@ -111,6 +111,7 @@ links:
 2. **Multi-device recovery.** Passkey sync, or recovery code only. Each has a different loss profile.
 3. **Who runs a scan.** The server-side scanner needs its own review. A scan route that holds plaintext is the highest-risk path in this design, and it needs a separate Tier 2 gate change.
 4. **Enforcement of "never logged."** Lint rule, runtime log filter, or both. Pick one before implementation.
+5. **Source authorization.** D1 requires self-attestation and per-source consent, but neither proves that the requester controls the identifiers being scanned. Before the scan route is implemented, Z2 must require independently verified, source-specific authorization or proof of control. Self-attestation and consent stay as required inputs, but they do not establish control on their own.
 
 ## What this candidate does not do
 
