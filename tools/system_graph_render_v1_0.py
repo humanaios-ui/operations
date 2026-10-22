@@ -162,8 +162,12 @@ def _strip_commit_line(text: str) -> str:
     keep = []
     for line in text.splitlines():
         if "rendered at commit `" in line:
-            # Mask the commit hash but keep the line structure
-            line = line.replace("`" + _git_head(ROOT) + "`", "`<commit>`")
+            # Mask ANY commit hash (not just current HEAD) to avoid drift on re-render
+            prefix, marker, suffix = line.partition("rendered at commit `")
+            if marker:
+                _value, closing, tail = suffix.partition("`")
+                if closing:
+                    line = prefix + marker + "<commit>`" + tail
             keep.append(line)
         elif line.startswith("- repository commit at render time:"):
             # Mask only the commit value, not the entire line

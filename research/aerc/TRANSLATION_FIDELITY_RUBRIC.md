@@ -62,7 +62,7 @@ Intent predicates are **observable and measurable facts about what the human wan
 | COST = FREE | `cost: free` | ✓ |
 | MEDIUM = ONLINE | `access_method: web_based` | ✓ |
 | TIME_FLEXIBILITY = FLEXIBLE | `time_commitment: flexible_self_paced` | ✓ |
-| COMPLETION_REQUIREMENT = OPTIONAL | `estimated_duration_weeks: 8-12` (no deadline constraint added) | ✓ |
+| COMPLETION_REQUIREMENT = OPTIONAL | `time_commitment: flexible_self_paced` | ✓ |
 
 **IPP Score:** 6/6 = 1.0 (100% fidelity)
 

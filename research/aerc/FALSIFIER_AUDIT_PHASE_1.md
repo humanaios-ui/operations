@@ -151,7 +151,7 @@ PREREGISTRATION_PROTOCOL_PHASE_1.md, Section 1.3, item 5
 
 **Observable:** ✅ YES
 - Measure: Compute efficacy separately for each domain (Factual Reasoning, Software Engineering, Decision-Support)
-- Domain-failure criterion: Primary efficacy ≥ 50% must be achieved in at least TWO of three primary domains (Empirical + Design, both required; Consequential not counted toward generalizability)
+- Domain-failure criterion: Primary efficacy ≥ 50% must be achieved in at least TWO of three primary domains (Factual Reasoning + Software Engineering, both required; Decision-Support not counted toward generalizability)
 - Disconfirming pattern: If primary efficacy < 50% in more than ONE domain, outcome is disconfirming (improvement limited to single domain, not generalizable)
 - Data available: Yes (week 5, per-domain results)
 

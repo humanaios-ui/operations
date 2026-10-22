@@ -163,7 +163,12 @@ Requests should span:
    - ✓ PRESERVED: Predicate correctly represented in translation output
    - ✗ LOST: Predicate missing, contradicted, or incorrectly translated
 6. **Rater calculates IPP for this case:** (preserved count) / (total predicate count)
-7. **Rater documents notes:** Any ambiguities, edge cases, or scoring decisions
+7. **IPP aggregation (multiple raters):** When multiple raters score the same case:
+   - Each rater produces an IPP_i score (per-rater IPP)
+   - Primary aggregation: Mean IPP across all raters for the case (IPP_case = mean(IPP_1, IPP_2, …))
+   - For domain-level analysis: IPP_per_domain = mean of all case-level IPP scores within that domain
+   - For conflicting verdicts (one rater marks predicate PRESERVED, another marks LOST on canonical list): Predicate marked as LOST in canonical scoring; rater disagreement captured in Cohen's κ
+8. **Rater documents notes:** Any ambiguities, edge cases, or scoring decisions
 
 ### Scoring Template
 
@@ -187,7 +192,9 @@ where:
 ```
 
 **Calculation note:** P_e must be derived from actual rater marginals in the data, not assumed as 0.5. If Rater 1 marks 70% predicates as PRESERVED and Rater 2 marks 65% as PRESERVED, then:
-- P_e = (0.70 × 0.65) + (0.30 × 0.35) = 0.5635
+- P_e = (0.70 × 0.65) + (0.30 × 0.35) = 0.56
+
+**Edge case (P_e = 1):** When both raters mark every predicate identically (both mark all as PRESERVED or both mark all as LOST), P_e = 1 and the denominator (1 − P_e) becomes zero, making κ undefined. Preregistered outcome: κ is reported as undefined (NA) for this case; observed agreement P_o = 1.0 is documented; case excluded from κ aggregation but noted as perfect consensus.
 
 **Interpretation:**
 - κ ≥ 0.70: Substantial agreement; rubric is clear and raters understand it well
@@ -221,11 +228,12 @@ where:
 1. **Calculate IPP_per_case** for each of the 10 test cases
 2. **Calculate IPP_per_domain** = mean(IPP_per_case) across 10 cases
 3. **Calculate 95% confidence interval** around IPP_per_domain:
-   - Method: Case-level bootstrap with 10,000 resamples
-   - Resample cases (with replacement) from the 10 test cases in the domain
-   - For each resample, compute IPP_per_domain
-   - Report [2.5th, 97.5th] percentile as 95% CI
-   - This captures sampling variability at the case level, matching the estimand
+   - Method: Case-level bootstrap (NOT exact binomial interval) with 10,000 resamples
+   - Estimand: IPP_per_domain = macro-average = mean of per-case IPP ratios (each case has IPP = # predicates preserved / # predicates identified for that case)
+   - Bootstrap procedure: Resample cases (with replacement) from the 10 test cases in the domain; handles variable predicate counts across cases naturally
+   - For each resample, compute IPP_per_domain using the resampled cases
+   - Report [2.5th, 97.5th] percentile of bootstrap distribution as 95% CI
+   - This captures case-level sampling variability, matching the macro-average estimand
 4. **Report Cohen's κ** for inter-rater agreement (computed using actual rater marginals)
 
 **Success criterion:**

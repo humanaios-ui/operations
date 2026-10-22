@@ -87,7 +87,7 @@ All three arms must operate under identical constraints:
 - **Evidence access:** Same indexed evidence set for each task
 - **Wall-clock time limit:** 30 seconds per task (excluding overhead)
 - **Model snapshot:** Frozen model version across all conditions; no fine-tuning
-- **Token consumption constraint:** Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision) on average; if consumption >20% higher, case marked as CONFOUNDED
+- **Token consumption constraint:** Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision) on average (aggregate across all tasks in the arm); 11–20% overruns marked as CONFOUNDED; >20% marked as CONFOUNDED + reported separately
 
 ### Control for Confounding
 
@@ -114,7 +114,7 @@ The following classification **describes** what was observed. It does **not** in
 | `REVISED_UNVERIFIED` | Output changed but no independent outcome verification conducted | Semantic diff ≥ 10%; no external evaluation of revision quality |
 | `VERIFIED_IMPROVEMENT` | Revised output beats baseline on a prespecified external criterion (e.g., test pass, fact-check score, expert rating) | Independent evaluator confirms revision outperforms baseline |
 | `VERIFIED_NO_IMPROVEMENT` | Revised output does not improve or regresses on prespecified criterion | Independent evaluator confirms no improvement or degradation |
-| `CORRECT_REJECTION_OF_FALSE_CHALLENGE` | System correctly refuses to change output when presented with an unsupported (DISPROVEN or UNRESOLVED) challenge | Challenge standing = DISPROVEN or UNRESOLVED; original output is correct and unchanged |
+| `CORRECT_REJECTION_OF_FALSE_CHALLENGE` | System correctly refuses to change output when presented with a false (DISPROVEN) challenge | Challenge standing = DISPROVEN; original output is correct and unchanged |
 | `APPROPRIATE_ABSTENTION` | System declines to make a material claim under prespecified abstention rules | Declined assertion is objectively unsupported; abstention policy triggered correctly |
 | `UNRESOLVED` | Challenge incomplete, evidence conflicted, or no clear baseline to evaluate against | Insufficient data for classification |
 
@@ -165,18 +165,18 @@ Each dimension is scored independently by prespecified evaluators using domain-s
 **Factual Reasoning (8 tasks):**
 - Primary: Automated fact-check API (e.g., Google FactCheck API or equivalent)
 - Secondary: One domain expert (research methodology, source validation)
-- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65 on binary correctness
+- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65 on binary correctness (computed over the domain expert rater only; automated fact-check API result is deterministic, not included in κ calculation)
 
 **Software Engineering (8 tasks):**
 - Primary: Automated test suite (existing project tests or equivalent)
 - Secondary: Two blinded code reviewers (independent review, no coordination)
-- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65 on design dimension
+- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65 on design dimension (computed over the two human secondary raters only; automated test result is binary and deterministic, not included in κ calculation)
 - In-pilot hard stop: κ < 0.60 during scoring; if triggered, revise rubric and re-score practice set
 
 **Decision Support (8 tasks):**
 - Primary: Domain expert panel (N ≥ 3, credentials documented)
 - Secondary: External reviewer (independent of primary panel)
-- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65
+- Inter-rater agreement target (pre-pilot calibration): κ ≥ 0.65 (computed over all N+1 raters using Fleiss' kappa variant for >2 raters)
 - In-pilot hard stop: κ < 0.60 during scoring; if triggered, revise rubric and re-score practice set
 
 ### Evaluator Provenance
