@@ -161,7 +161,7 @@
       "observed_outcome_note": "Two of two RESOLVED PRs were merged by the historical snapshot; merge-state proxy only; three open PRs remain censored.",
       "mean_forecast_probability": 0.85,
       "total_prs_measured": 2,
-      "calibration_gap": 0.15,
+      "calibration_gap": -0.15,
       "focus_areas": [],
       "action_for_z2": "Extend review window 2 more weeks (until ~2026-11-03). Monitor PRs #724, #817, #931 for merge completion. Before rerun, verify the merged #946 observed/predicted separation at the exact scheduled execution head. Once 4-5 observations accumulated and tool fix verified, re-run:\npython3 tools/smag_meta_feedback_v1_0.py --repo humanaios-ui/operations --consolidation-pr-prefix 'SMAG: consolidate' --lessons data/lessons_learned_ledger.json --lookback-days 44\nto measure true accuracy trend and calibration drift on full sample.",
       "smag_generated": true,
@@ -172,7 +172,8 @@
       "resolved_prs": 2,
       "pending_prs": 3,
       "outcome_definition": "GITHUB_MERGE_STATE_PROXY_NOT_REWORK_FREE_QUALITY",
-      "measurement_repair": "Merged PR #946 preserves observed accuracy separate from mean forecast probability; reverify before scheduled use."
+      "measurement_repair": "Merged PR #946 preserves observed accuracy separate from mean forecast probability; reverify before scheduled use.",
+      "calibration_gap_definition": "mean forecast probability minus observed resolved merge-state proxy; 0.85 - 1.0 = -0.15. Descriptive, not independently verified predictive calibration."
     }
   ]
 }
