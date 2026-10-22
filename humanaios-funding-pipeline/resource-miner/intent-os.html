@@ -22,6 +22,10 @@ button:hover{background:#4683af}button:disabled{opacity:.6;cursor:wait}
 .meta{font-size:.79rem;color:#abc8de;margin-top:9px}.tag{font-size:.74rem;display:inline-block;border:1px solid #5f91a7;border-radius:99px;padding:3px 8px;margin:4px 4px 2px 0}
 a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 .notice{border-left:3px solid #e5b66e;padding:9px 14px;color:#e8d5ac;background:#302a24;margin-top:10px;border-radius:5px}
+.review{border:1px solid #45637f;border-radius:9px;padding:12px;margin:13px 0 4px}
+.review label{margin:8px 0 4px;font-size:.85rem}.review select,.review input{width:100%;padding:8px;background:#081829;color:#fff;border:1px solid #60728c;border-radius:6px}
+.review button{margin-top:9px;padding:8px 12px;font-size:.88rem}
+#feedbackPanel{margin-top:18px}#feedbackPanel .muted{font-size:.86rem}
 #results[hidden]{display:none}footer{font-size:.84rem;line-height:1.6;color:#a3b3c6;margin-top:26px}
 </style>
 </head>
@@ -55,6 +59,12 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <div id="items"></div>
 <p class="muted" id="receipt"></p>
 </section>
+<section class="panel" id="feedbackPanel" aria-label="Human candidate feedback">
+<h2>Tell INTENT-OS what it learned</h2>
+<p class="muted">Mark each search result as incomplete, interesting, already in use, or not relevant. Your choices stay in this browser only and can be exported as JSON for human review. Do not enter private links or credentials.</p>
+<div class="row"><button type="button" id="exportFeedback">Export feedback JSON</button><button type="button" id="clearFeedback">Clear saved feedback</button></div>
+<p id="feedbackSaved" class="muted" role="status" aria-live="polite"></p>
+</section>
 <footer><strong>What this does:</strong> public discovery, basic relevance matching, and links to source material. <strong>What it does not do:</strong> verify eligibility, guarantee availability, access accounts, apply, purchase, contact anyone, or grant authorization. Your objective is sent only to this service for this request; the application does not save it. Avoid entering sensitive personal details. Live public discovery depends on source availability and is not an eligibility assessment.</footer>
 </main>
 <script>
@@ -64,6 +74,43 @@ const form=document.getElementById("form"),field=document.getElementById("object
   feedback=document.getElementById("feedback"),box=document.getElementById("results"),
   items=document.getElementById("items"),summary=document.getElementById("summary"),
   warning=document.getElementById("warning"),receipt=document.getElementById("receipt");
+const feedbackSaved=document.getElementById("feedbackSaved");
+const FEEDBACK_KEY="humanaios.intent_os_feedback.v0.1";
+const allowedFeedback=new Set(["SETUP_INCOMPLETE","INTERESTED","ALREADY_IN_USE","NOT_RELEVANT","VERIFY_LATER"]);
+let savedFeedback={};
+try{
+ const stored=JSON.parse(localStorage.getItem(FEEDBACK_KEY)||"{}");
+ if(stored&&typeof stored==="object"&&!Array.isArray(stored)) savedFeedback=stored;
+}catch(_){savedFeedback={};}
+function feedbackKey(row){return String(row.resource_id||"")+"|"+String(row.source_url||"");}
+function safeRelated(value){
+ if(!value.trim())return null;
+ const u=new URL(value.trim());
+ if(u.protocol!=="https:"||u.username||u.password||u.port&&u.port!=="443"||!u.hostname.includes("."))
+   throw new Error("Related opportunity must be a public HTTPS URL.");
+ if(u.hostname==="localhost"||/\.(local|internal|localhost|test|invalid)$/.test(u.hostname))
+   throw new Error("Private/local URLs are not accepted.");
+ return u.href;
+}
+function storeFeedback(){
+ try{localStorage.setItem(FEEDBACK_KEY,JSON.stringify(savedFeedback));return true;}
+ catch(_){text(feedbackSaved,"Browser storage unavailable. Feedback was not saved.");return false;}
+}
+function feedbackEntries(){return Object.values(savedFeedback).filter(x=>x&&typeof x==="object"&&allowedFeedback.has(x.status)).slice(0,50);}
+document.getElementById("exportFeedback").addEventListener("click",()=>{
+ const entries=feedbackEntries();
+ if(!entries.length){text(feedbackSaved,"No feedback saved yet.");return;}
+ const payload={schema:FEEDBACK_KEY,entries};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+ const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="intent-os-feedback.json";
+ document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+ text(feedbackSaved,"Exported "+entries.length+" first-party report(s); not independently verified.");
+});
+document.getElementById("clearFeedback").addEventListener("click",()=>{
+ if(!confirm("Clear all browser-local INTENT-OS feedback? Export first if you want to keep it."))return;
+ savedFeedback={};try{localStorage.removeItem(FEEDBACK_KEY);}catch(_){}
+ text(feedbackSaved,"Browser-local feedback cleared. Refresh search cards to reset their selections.");
+});
 document.querySelectorAll("[data-example]").forEach(b=>b.addEventListener("click",()=>{
   field.value=b.dataset.example;field.focus();
 }));
@@ -88,6 +135,43 @@ function addCard(row){
    const tag=document.createElement("span");tag.className="tag";text(tag,word);matches.append(tag);
  }
  card.append(matches);
+ const review=document.createElement("div");review.className="review";
+ const label=document.createElement("label");text(label,"How did this match land?");
+ const state=document.createElement("select");
+ const choices=[
+  ["","Choose feedback"],
+  ["SETUP_INCOMPLETE","Relevant — setup incomplete"],
+  ["INTERESTED","Relevant — want to pursue"],
+  ["ALREADY_IN_USE","Already in use"],
+  ["NOT_RELEVANT","Not relevant"],
+  ["VERIFY_LATER","Need to verify"]
+ ];
+ for(const [value,name] of choices){const opt=document.createElement("option");opt.value=value;text(opt,name);state.append(opt);}
+ const key=feedbackKey(row),prior=savedFeedback[key];
+ if(prior&&allowedFeedback.has(prior.status))state.value=prior.status;
+ const relatedLabel=document.createElement("label");text(relatedLabel,"Related public opportunity URL (optional)");
+ const related=document.createElement("input");related.type="url";related.placeholder="https://...";
+ related.maxLength=1000;related.value=prior?.related_url||"";
+ const save=document.createElement("button");save.type="button";text(save,"Save feedback");
+ save.addEventListener("click",()=>{
+  if(!allowedFeedback.has(state.value)){text(feedbackSaved,"Select a feedback status first.");return;}
+  if(!row.source_url||!row.resource_id){text(feedbackSaved,"Candidate lacks stable source ID; cannot save.");return;}
+  let relatedUrl;
+  try{relatedUrl=safeRelated(related.value);}catch(error){text(feedbackSaved,error.message);return;}
+  const entry={
+   resource_id:String(row.resource_id).slice(0,100),
+   source_url:String(row.source_url).slice(0,1000),
+   title:String(row.title||"Resource candidate").slice(0,180),
+   status:state.value,related_url:relatedUrl
+  };
+  // Bound feedback to at most 50 unique candidate/source pairs.
+  if(!savedFeedback[key]&&Object.keys(savedFeedback).length>=50){
+   text(feedbackSaved,"50-item local limit reached; export and clear first.");return;
+  }
+  savedFeedback[key]=entry;
+  if(storeFeedback())text(feedbackSaved,"Saved locally: "+entry.title+" → "+state.selectedOptions[0].textContent+". No submission or action performed.");
+ });
+ review.append(label,state,relatedLabel,related,save);card.append(review);
  try {
    const link=new URL(row.source_url);
    if(link.protocol==="https:" && !link.username && !link.password){
