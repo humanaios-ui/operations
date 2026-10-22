@@ -88,6 +88,41 @@ class AuditGateTests(unittest.TestCase):
         d = sample()
         d["scope"]["commit"] = "main"
         self.assertEqual(gate.evaluate(d)["claims"]["C1"]["contract"], "BLOCKED")
+    def test_scoring_ceiling_is_enforced(self):
+        d = sample()
+        d["claims"]["C1"]["controls"]["A2"]["score"] = 99
+        self.assertEqual(gate.evaluate(d)["claims"]["C1"]["contract"], "BLOCKED")
+
+    def test_infinite_and_nan_gain_block(self):
+        for gain in (float("nan"), float("inf"), float("-inf")):
+            d = sample()
+            d["claims"]["C2"]["training"]["gain"] = gain
+            self.assertEqual(gate.evaluate(d)["claims"]["C2"]["contract"], "BLOCKED")
+
+    def test_adjacent_regression_blocks(self):
+        d = sample()
+        d["claims"]["C2"]["training"]["holdout_cycles"] = [.80, .90, .81]
+        self.assertIn("B3:ADJACENT_DROP", gate.evaluate(d)["claims"]["C2"]["gaps"])
+
+    def test_malformed_json_shapes_raise_clean_error(self):
+        for malformed in (None, [], {"scope": None}, {"claims": None},
+                          {"claims": {"C1": None}},
+                          {"claims": {"C1": {"controls": []}}}):
+            with self.subTest(malformed=malformed):
+                try:
+                    result = gate.evaluate(malformed)
+                except (TypeError, ValueError, AttributeError):
+                    continue
+                self.assertEqual(result["claims"]["C1"]["contract"], "BLOCKED")
+
+    def test_documented_scope_manifest_fields(self):
+        d = sample()
+        scope = d.pop("scope")
+        scope["target_name"] = scope.pop("target")
+        scope["repo_commit_40hex"] = scope.pop("commit")
+        d["scope_manifest"] = scope
+        self.assertEqual(gate.evaluate(d)["claims"]["C1"]["contract"], "ELIGIBLE_FOR_REVIEW")
+
     def test_explicitly_unclaimed_is_not_failure(self):
         d = sample()
         d["claims"]["C2"] = {"applicability": "NOT_CLAIMED"}
