@@ -46,6 +46,7 @@ import sys
 
 TOOL_NAME = "hiae_assurance"
 TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "validation_tool"
 RECEIPT_VERSION = "1.0.0"
 
 # A customer may not name a reviewer by any of these request fields.
