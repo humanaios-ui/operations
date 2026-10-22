@@ -120,15 +120,22 @@ score = graph.compute_transparency_score()
 
 The graph doesn't find hidden malice. It finds:
 
-**Normal governance operating at the edge of its authority boundaries, with zero mechanical enforcement.**
+**Z2 authority on governance-layer changes is not mechanically enforced.**
 
-The system works because the humans are careful. But humans can be:
+The system has ratification checks (`z2_ratification_gate.yml`) and inbox validators, but they do NOT require Z2 cryptographic signature specifically on governance code changes (CLAUDE.md, constitution_checker.py, CI/CD workflows, MOLT_STATE.md, PRIORITY_QUEUE.md).
+
+The constitution_checker.py case demonstrates the gap:
+- ✓ Z2 checks the change retroactively
+- ✗ But Z1 could change governance code and CI would process it immediately
+- ✗ No pre-approval requirement at merge time
+
+The system works because the humans are careful about this boundary. But humans can be:
 - Busy
-- Tired
+- Tired  
 - Offline
 - Not checking the right thing
 
-And when that happens, **there is no mechanical backstop.**
+And when that happens, **Z1 can modify Z2's authority domain without pre-approval.**
 
 ---
 
