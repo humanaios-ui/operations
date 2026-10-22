@@ -1,6 +1,8 @@
 # Q-HOST-INVENTORY-01 — Z1 Candidate (UNRATIFIED)
 
-**Status:** `awaiting_ratification` — draft only. Not indexed, not entered in REGISTERED.md, not in PRIORITY_QUEUE.md.
+**Status:** `awaiting_ratification` — draft only. Not entered in REGISTERED.md or PRIORITY_QUEUE.md.
+**Observed:** 2026-10-22, repo HEAD `7bc7662` (main) at audit time.
+**Current index status (as of this revision):** listed in `z1-inbox/INDEX.yaml` candidates as `awaiting_z2`; rendered in `Z1_INBOX_INDEX.md`.
 **Author:** Z1 (Claude)
 **Proposed:** 2026-10-22T10:44:14Z
 **Companion:** `z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md`
@@ -57,9 +59,9 @@ impact_prediction:
     - "Header checks need egress to the named hosts; the sandbox currently denies them"
 
 proposed_change:
-  - "Create HOST_INVENTORY.yaml with one row per public hostname: id, hostname, provider, owner, runtime, last_verified (date), verification (VERIFIED | UNVERIFIED-LIVE), source (repo path or dashboard reference)."
-  - "Seed row HOST-PHP2SHELL-2026-10: records the repo result (0 PHP files; no PHP runtime in any named config) and marks every live row UNVERIFIED-LIVE until the owner confirms from provider dashboards."
-  - "Add a CI step: fail if `git ls-files '*.php'` is non-empty, unless an exception row in HOST_INVENTORY.yaml names the file and an owner."
+  - "Create HOST_INVENTORY.yaml with two sections. `hosts:` holds one row per public hostname: id, hostname, provider, owner, runtime, last_verified (date), verification (VERIFIED | UNVERIFIED-LIVE), source (repo path or dashboard reference). `audits:` holds audit records with a different shape: id, subject, scope, result (e.g. NOT_APPLICABLE_REPO | UNVERIFIED_LIVE), checked_at, evidence. Validators check the one-row-per-hostname invariant on `hosts:` only."
+  - "Seed audit record HOST-PHP2SHELL-2026-10 under `audits:` (not `hosts:`): records the repo result (0 PHP files; no PHP runtime in any named config) and marks live status UNVERIFIED_LIVE until the owner confirms from provider dashboards."
+  - "Add a CI step: fail if `git ls-files '*.php'` is non-empty, unless an exception names the file, an owner, and an independent approval or ratification record bound to that exact exception row and file. CI rejects a missing or unauthorized approval. CODEOWNERS and the Z2 commit-author check are not relied on for this (the commit-author check is advisory only)."
   - "Owner runs a read-only header check (Server, X-Powered-By) on each row and records the result. Z1 does not run live scans without Z2 authorization."
 
 falsifier: |
@@ -72,7 +74,7 @@ falsifier: |
   - OR any row's last_verified is older than 90 days while marked VERIFIED (inventory stale)
 
 evidence:
-  - "git ls-files | grep -i '\.php' → 0; git log --all --name-only | grep -i '\.php$' → 0"
+  - "git ls-files | grep -i '*.php' → 0; git log --all --name-only | grep -i 'php$' → 0"
   - "Dockerfile.acat-api (python:3.14-slim), Dockerfile.resource-miner and tools/Metaculus/Dockerfile (python:3.11-slim), .clusterfuzzlite/Dockerfile (OSS-Fuzz Python), railway.toml, nixpacks.toml, infra/*.bicep (3 files), wrangler.jsonc, ui/vercel.json, .github/workflows/pages.yml"
   - "curl -I attempts on api.humanaios.ai, haioscc.pages.dev, intent-os-board.workers.dev → CONNECT tunnel failed, response 403 (agent proxy connect_rejected)"
   - "SESSION_RITUALS.md line 51 (haioscc.pages.dev named as a cross-check endpoint)"

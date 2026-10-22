@@ -1,6 +1,8 @@
 # Q-EXTERNAL-ADVISORY-INTAKE-01 — Z1 Candidate (UNRATIFIED)
 
-**Status:** `awaiting_ratification` — draft only. Not indexed, not entered in REGISTERED.md, not in PRIORITY_QUEUE.md.
+**Status:** `awaiting_ratification` — draft only. Not entered in REGISTERED.md or PRIORITY_QUEUE.md.
+**Observed:** 2026-10-22, repo HEAD `7bc7662` (main) at audit time.
+**Current index status (as of this revision):** listed in `z1-inbox/INDEX.yaml` candidates as `awaiting_z2`; rendered in `Z1_INBOX_INDEX.md`.
 **Author:** Z1 (Claude)
 **Proposed:** 2026-10-22T10:44:14Z
 **Source audit:** `z1-inbox/2026-10-22/` companion `Q-HOST-INVENTORY-01.md`; session report `php-exposure-audit-2026-10-22.md` (scratchpad, not in repo)
@@ -69,15 +71,17 @@ falsifier: |
     of them has no Z1 record in z1-inbox/ within 24h of publication
   - OR a drill (a synthetic advisory injected into a test copy of the trigger text) does not
     produce a Z2 callout within the 24h urgent window
+  - OR a published, NON-exploited advisory that matches a host-inventory stack does not
+    produce the same Z2 routing result within the 24h urgent window (trigger too narrow)
   - OR the new trigger fires on more than 5 advisories in a month that carry no exploitation
     report and no inventory match (alert fatigue, so the trigger is too broad)
 
 evidence:
-  - "git log --all -- '*.php' → 0 files; git grep for php2shell / CVE-2026-1096* across REGISTERED.md, PRIORITY_QUEUE.md, z1-inbox/, CLAUDE.md, SESSION_RITUALS.md → no matches"
+  - "Baseline: main at 7bc7662, observed 2026-10-22. `git log --all --name-only` filtered to names ending in .php → 0 files (all history). `git log --all -i --grep=php` → no commit messages. `git grep -i -E 'php2shell|CVE-2026-1096' 7bc7662 -- REGISTERED.md PRIORITY_QUEUE.md z1-inbox CLAUDE.md SESSION_RITUALS.md` → no matches. The history search covers commit messages and file names only, not commit diffs; a diff-content search (`git log --all -S 'PHP2Shell'`) was not run."
   - "SECURITY.md lines 1–20 (reporting scope: this repo only)"
   - "CLAUDE.md 'Callout Mandatory Triggers' table (no external-advisory row)"
   - "CLAUDE.md 'Admiral' decision window: 24h or less for urgent items"
-  - "Datadog PHP2Shell analysis (securitylabs.datadoghq.com) — facts as fetched 2026-10-22"
+  - "Datadog PHP2Shell analysis (securitylabs.datadoghq.com), fetched 2026-10-22. Only secondary source read. Not yet retrieved: PHP's official notice, PHP release archive, and per-CVE advisory records. These are required before ratification."
 
 z2_decision:
   status: "awaiting_ratification"
