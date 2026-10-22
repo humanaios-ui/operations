@@ -1,0 +1,28 @@
+name: Azure budget template tests
+on:
+  pull_request:
+    paths:
+      - 'infra/azure-research-budget.bicep'
+      - 'tests/test_azure_budget_config.py'
+      - '.github/workflows/azure-budget-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/azure-research-budget.bicep'
+      - 'tests/test_azure_budget_config.py'
+      - '.github/workflows/azure-budget-tests.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - run: python3 -m unittest discover -s tests -p test_azure_budget_config.py -v
+      - name: Compile budget template
+        uses: azure/cli@v3
+        with:
+          inlineScript: az bicep build --file infra/azure-research-budget.bicep --stdout > /dev/null

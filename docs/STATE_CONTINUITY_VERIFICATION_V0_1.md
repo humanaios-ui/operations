@@ -28,6 +28,18 @@ A projection `P(s)` and retained information `W(s)` permit exact reconstruction 
 
 The first two dispositions do **not** assert a live proof; report `authenticated` remains `false`. A future independently anchored attestation extension would require separate host, policy, privacy and admission approval. Do not infer authorization from any disposition.
 
+## Temporal orthogonality regression (Z1 candidate; issue #830)
+
+**OBSERVATIONAL_TIME_IS_NOT_AUTHORITY** is a bounded software invariant, not a physical claim about spacetime. The existing Coordinator and SCVC tests check:
+
+1. Clock-only observation or metadata differences do not alter Coordinator routing/admission, and valid as-of timestamps do not turn SCVC source binding into authenticated recovery or permission.
+2. Actual admitted-state changes or source/contract changes are evaluated separately from time. PR head pins change the Coordinator decision receipt; SCVC pin drift or revocation fails closed.
+3. A timestamp does not prove a unique semantic state: SCVC's finite test reports a collision when distinct logical states have identical observed times. Conversely, identical logical states recorded at different dates are *semantically* recoverable but not exactly reconstructable when timestamp information is discarded.
+
+Exceptions are explicit: SCVC retention and validity boundaries, technical safety timeouts/leases, genuine external regulatory constraints under Temporal Dissolution, and the ordering of independently sourced review events remain meaningful. A later review is a different evidence event, not a mere clock tick.
+
+Both pre-existing test files are enumerated by the quality-baseline workflow; Coordinator regressions also run in its existing advisory workflow. Protected exact-head CI and independent review are required before treating this candidate as accepted. These synthetic tests supply no source authenticity, admission, ratification, merge or execution authority.
+
 ## Security properties
 
 1. No network, file writes, arbitrary source reads, issuer trust roots, credentials, or code execution occurs inside the SCVC module.

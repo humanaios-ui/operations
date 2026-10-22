@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/intent_os_collaboration_capsule_v0_1.schema.json",
+  "title": "INTENT-OS Finder Relationship Capsule v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "relationship_id",
+    "created_at",
+    "updated_at",
+    "state",
+    "finder",
+    "principal",
+    "offer",
+    "authority",
+    "opportunities",
+    "receipts"
+  ],
+  "properties": {
+    "schema_version": { "const": "humanaios.finder_relationship.v0.1" },
+    "relationship_id": { "type": "string", "pattern": "^REL-[A-Z0-9][A-Z0-9_-]{7,63}$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "state": {
+      "enum": [
+        "DRAFT",
+        "DISCOVERY_ONLY_PENDING_PRINCIPAL",
+        "PENDING_FINDER_RECONFIRMATION",
+        "TERMS_CHANGED_RECONFIRM_BOTH",
+        "READY_FOR_INTRODUCTION_REVIEW"
+      ]
+    },
+    "finder": { "$ref": "#/$defs/participant" },
+    "principal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "display_label", "role_status", "public_service_url"],
+      "properties": {
+        "actor_id": { "$ref": "#/$defs/actorId" },
+        "display_label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "role_status": { "enum": ["NOT_CONFIRMED", "ATTESTED"] },
+        "public_service_url": { "type": "string", "format": "uri", "pattern": "^https://" }
+      }
+    },
+    "offer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "minimum_percent",
+        "maximum_percent",
+        "exact_percent",
+        "trigger",
+        "evidence_status",
+        "evidence_note",
+        "counterparty_confirmation"
+      ],
+      "properties": {
+        "kind": { "const": "REFERRAL_COMMISSION" },
+        "minimum_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "maximum_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "exact_percent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "trigger": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "evidence_status": { "const": "HUMAN_ATTESTED_PRIVATE" },
+        "evidence_note": { "type": "string", "maxLength": 500 },
+        "counterparty_confirmation": {
+          "enum": ["NOT_RECEIVED", "ATTESTED_DIGEST_ONLY"]
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discover",
+        "screen",
+        "prepare_introduction",
+        "send_introduction",
+        "negotiate_for_principal",
+        "accept_contract",
+        "collect_commission"
+      ],
+      "properties": {
+        "discover": { "const": "ALLOWED_BY_FINDER" },
+        "screen": { "const": "ALLOWED_BY_FINDER" },
+        "prepare_introduction": { "const": "ALLOWED_BY_FINDER" },
+        "send_introduction": { "const": "REQUIRES_MATCHED_TERMS_AND_FINDER_AUTHORIZATION" },
+        "negotiate_for_principal": { "const": "NOT_GRANTED" },
+        "accept_contract": { "const": "NOT_GRANTED" },
+        "collect_commission": { "const": "NOT_ESTABLISHED" }
+      }
+    },
+    "opportunities": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/opportunity" }
+    },
+    "receipts": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "#/$defs/receiptEnvelope" }
+    }
+  },
+  "$defs": {
+    "actorId": {
+      "type": ["string", "null"],
+      "pattern": "^USR-[A-F0-9]{24}$"
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "display_label", "role_status"],
+      "properties": {
+        "actor_id": { "$ref": "#/$defs/actorId" },
+        "display_label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "role_status": {
+          "enum": ["NOT_ACCEPTED", "NOT_CONFIRMED", "ATTESTED"]
+        }
+      }
+    },
+    "opportunity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "opportunity_id",
+        "title",
+        "description",
+        "source_name",
+        "source_url",
+        "observed_at",
+        "eligibility"
+      ],
+      "properties": {
+        "opportunity_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$" },
+        "title": { "type": "string", "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 500 },
+        "source_name": { "type": "string", "maxLength": 120 },
+        "source_url": { "type": ["string", "null"], "format": "uri", "pattern": "^https://" },
+        "observed_at": { "type": ["string", "null"], "maxLength": 60 },
+        "eligibility": { "const": "NOT_ASSESSED" }
+      }
+    },
+    "receiptEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt", "receipt_sha256", "signature"],
+      "properties": {
+        "receipt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_version",
+            "receipt_id",
+            "event_type",
+            "relationship_id",
+            "artifact_sha256",
+            "actor_id",
+            "actor_role",
+            "counterparty_actor_id",
+            "opportunity_id",
+            "authentication",
+            "observed_at",
+            "authority_effect",
+            "execution",
+            "statement"
+          ],
+          "properties": {
+            "schema_version": { "const": "humanaios.collaboration.receipt.v0.1" },
+            "receipt_id": { "type": "string", "pattern": "^RCP-[A-F0-9-]{36}$" },
+            "event_type": {
+              "enum": [
+                "ONBOARDING_BOUNDARY_ACCEPTED",
+                "FINDER_ROLE_ACCEPTED",
+                "PRINCIPAL_MANDATE_CONFIRMED",
+                "INTRODUCTION_AUTHORIZED",
+                "INTRODUCTION_SENT_RECORDED",
+                "CONTRACT_REPORTED",
+                "COMMISSION_REPORTED"
+              ]
+            },
+            "relationship_id": { "type": "string", "pattern": "^REL-[A-Z0-9][A-Z0-9_-]{7,63}$" },
+            "artifact_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "actor_id": { "type": "string", "pattern": "^USR-[A-F0-9]{24}$" },
+            "actor_role": { "enum": ["USER", "FINDER", "PRINCIPAL"] },
+            "counterparty_actor_id": { "$ref": "#/$defs/actorId" },
+            "opportunity_id": {
+              "type": ["string", "null"],
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "authentication": { "const": "CLOUDFLARE_ACCESS_JWT_VERIFIED" },
+            "observed_at": { "type": "string", "format": "date-time" },
+            "authority_effect": { "const": "NONE" },
+            "execution": { "const": "DISABLED" },
+            "statement": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        },
+        "receipt_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "signature": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "key_scope", "value"],
+          "properties": {
+            "algorithm": { "const": "HMAC-SHA256" },
+            "key_scope": { "const": "INTENT_OS_COLLABORATION_WORKER" },
+            "value": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        }
+      }
+    }
+  }
+}
