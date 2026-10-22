@@ -39,6 +39,7 @@ Treat every vendor claim as untrusted until supported by evidence at the require
 | `storage_and_sinks` | Where state lives and where external effects land. |
 | `trust_boundary` | User device, vendor cloud, third-party services. State which one the offline claim is relative to. |
 | `agent_identity` | Agent name and version. |
+| `task_runtime` | The vendor's p95 runtime for each task type used in A1, declared before the test. |
 | `teacher_student` | For C2: exact teacher and student model identities and versions, and what is updated (weights, policy, code, routing). Rule-based lesson or PR suggestions are not weight training. |
 | `data_classification` | Personal data, credentials, user exports. Live personal exports are never used as crash-test fixtures. |
 | `claims` | `C1`: CLAIMED or NOT_CLAIMED. `C2`: CLAIMED or NOT_CLAIMED. Each with the owner's written statement. |
@@ -142,13 +143,13 @@ For every log-based control:
 Failure-injection tests run only in the authorized environment from the scope manifest. `[F-RT07]`
 
 **A1. Execution decoupling**
-Test: start a task, kill the user browser and sleep the device mid-task, wait at least the expected remaining runtime, reopen.
+Test: start a task, kill the user browser and sleep the device mid-task, wait, reopen. The wait is the vendor's declared p95 runtime for that task type (recorded in the scope manifest before the test) plus a 50% margin, and never more than 24 hours. If the task has neither completed nor resumed when the wait ends, record `OBSERVED_FAILURE` and score A1 as 0.
 Success: task completed or resumed with side effects intact; no restart from zero.
 Artifacts: mid-task trace, kill and resume timestamps, side-effect verification at the sink.
 
 **A2. Event-trigger independence**
-Test: fire the same webhook twice with the same idempotency key; fire a scheduled trigger with no active session; fire the same key again after a timeout and retry; send a conflicting payload under a reused key.
-Success: exactly one execution per idempotency key, proven by the **sink's external-effect receipt**; scheduled run proceeds with no session; conflicting reuse is rejected.
+Test: fire the same webhook twice with the same idempotency key; fire a scheduled trigger with no active session; fire the same key again after a timeout and retry; send a conflicting payload under a reused key; send one payload with an invalid or missing signature.
+Success: exactly one execution per idempotency key, proven by the **sink's external-effect receipt**; scheduled run proceeds with no session; conflicting reuse is rejected; the unsigned payload is rejected with no effect.
 Artifacts: trigger config, delivery log, sink-side receipts, dedup evidence, timestamps.
 
 **A3. Durable state**
@@ -167,7 +168,7 @@ Bypass sample: the auditor samples risky actions from the last 30 days under sec
 
 - Any unlogged bypass = FAIL for A5.
 - A break-glass use that is logged, pre-authorized in writing by a named human with an expiry, and reviewed afterward is reported and caps A5 at 2. C1 needs A5 ≥ 3, so any break-glass use blocks a C1 PASS.
-- If the 30-day population of risky actions is empty, the bypass sample is `NOT_EXERCISED`. A5 is then scored from the live test alone and cannot exceed 3.
+- If the 30-day population of risky actions is empty, the bypass sample is `NOT_EXERCISED`. A5 is then scored from the live test alone and cannot exceed 3. For the C1 exit rule (section 9), an empty population satisfies the "bypass sample is clean" condition, provided the verdict states that the sample was empty and that A5 rests on the live test alone.
 
 Artifacts: approval state machine, resume log, denied-before-approved evidence, bypass audit log for the sample window.
 
@@ -186,7 +187,7 @@ Artifacts: holdout specification, ablation results, confidence intervals, test a
 **B2. Correction targets student errors**
 Claim: supervision targets the student's own failure modes, not the teacher's path.
 Test: show where the student failed against where correction was applied.
-Success: at least 70% of corrections map to a prior student error (section 2), and the retrained student fixes those errors on the holdout.
+Success: at least 70% of corrections map to a prior student error (section 2), and the retrained student fixes those errors on the holdout. The denominator is every correction applied in the evaluated cycles (the sampled set under section 4 when logs are sampled). Zero corrections is non-passing: B2 scores at most 1 and is labeled UNPROVEN.
 Artifacts: error taxonomy, correction logs, pre and post holdout deltas.
 
 **B3. No collapse across cycles** `[F3]`
@@ -196,6 +197,7 @@ Success, all required:
 - no cycle falls more than the tolerance below the **best earlier cycle** (running drawdown, default 2% absolute)
 - the final cycle is not below cycle 0 by more than the tolerance
 - the confidence interval for each cycle is reported
+- the pre-registered PI-loss metric stays within its declared tolerance; exceeding it, or declaring no tolerance, prevents B3 from scoring 3 or 4
 
 A per-cycle tolerance alone is not enough: ten cycles of −1.9% compound to about −17% and still pass a per-cycle rule.
 Artifacts: multi-cycle eval curves, PI-tracking records (the metric and how it was measured), tolerance declaration.
@@ -290,7 +292,7 @@ Defaults below are **limits the vendor may tighten but never loosen**. A vendor-
 
 ## 9. Exit criteria (hard)
 
-- **C1 passes only if**: every A control that is claimed scores at least **3** (A1–A5), A5's bypass sample is clean, A5 had no break-glass use, and the Part A `N/A` limit holds. `[F1]`
+- **C1 passes only if**: C1 is `CLAIMED`, all of A1–A5 are present and each scores at least **3**, A5's bypass sample is clean (an empty sample counts, as A5 states), A5 had no break-glass use, and the Part A `N/A` limit holds. `[F1]`
 - **C2 passes only if**: B1–B8 form a closed loop (section 2), **every** B control scores at least 3, except a B5 or B6 recorded as `NOT_CLAIMED` (this includes B2, B4, B7, and all four of B8.1–B8.4), B3 passes the drawdown rule, and the Part B `N/A` limit holds. `[F2]`
 - A claim that exceeds its `N/A` limit is INCONCLUSIVE, not PASS.
 - A claim with `NOT_CLAIMED` status has verdict `NOT_CLAIMED`. It is neither PASS nor FAIL.
@@ -300,12 +302,25 @@ Defaults below are **limits the vendor may tighten but never loosen**. A vendor-
 
 ## 10. Cross-cutting risks (each scored 0–4)
 
-Data leakage between teacher and holdout; privileged-information loss across cycles; runaway teacher or cloud cost; reward hacking; stale or contradictory principles; webhook spoofing; approval bypass; state corruption on replay; auditability of routing and distillation decisions; long-horizon task failure under partition.
+Each risk maps to a claim and to the controls that supply its evidence. Its score is the lowest score among its mapped controls. The auditor may score a risk lower on direct evidence, never higher. A risk whose mapped controls are all `NOT_CLAIMED` or `N/A` is reported as such and not scored. A score of 0 or 1 raises the claim risk level (section 7.3).
+
+| Risk | Claim | Evidence (mapped controls) |
+|---|---|---|
+| Data leakage between teacher and holdout | C2 | B8.1 |
+| Privileged-information loss across cycles | C2 | B3 |
+| Runaway teacher or cloud cost | C2 | B6, B8.4 |
+| Reward hacking | C2 | B8.2, B1 |
+| Stale or contradictory principles | C2 | B5 |
+| Webhook spoofing | C1 | A2 |
+| Approval bypass | C1 | A5 |
+| State corruption on replay | C1 | A3, A4 |
+| Auditability of routing and distillation decisions | C2 | B7, B2 |
+| Long-horizon task failure under partition | C1 | A1, A3 |
 
 ## 11. Output format
 
 1. **Executive verdict**: C1 and C2 each PASS / PARTIAL / FAIL / INCONCLUSIVE / NOT_CLAIMED, with overall residual risk, confidence, and the independence label.
-2. **Control table**: ID | Finding | Claim state | Evidence receipt (artifact | date | hash or query) | Tier | Result kind | Score (0–4) | Severity | Remediation.
+2. **Control table**: ID | Finding | Claim state | Evidence receipt (artifact | date | hash or query) | Tier | Result kind | Score (0–4) | Severity | Remediation. Follow it with a risk table for section 10: Risk | Claim | Score (0–4) | Evidence receipt.
 3. **Test log**: for each A1–A5 and each B8 sub-test: auditor action, test receipt, observed result, pass or fail, and any access limitation.
 4. **Top 5 critical gaps** with the exact artifact or test required to close each.
 5. **Red flags observed** (non-exhaustive): paper name-dropping without ablation; an idle-worker restart passed off as durability; contamination-free holdout unproven or vendor-controlled only; approval theater via bypass logs; cost unreported or incomplete; a job success reported as an external-effect receipt; "plausible mitigation" language without evidence.
@@ -343,7 +358,7 @@ Finding IDs `F1`–`F16` are the numbered items in the red-team comment on `oper
 
 ### Fixes from PR review
 
-Copilot's review of PR #981 found five defects in this file. Each was checked against the text and fixed.
+Copilot's review of PR #981 found five defects in the first version. Each was checked against the text and fixed.
 
 | Review finding | Fix | Section |
 |---|---|---|
@@ -352,6 +367,17 @@ Copilot's review of PR #981 found five defects in this file. Each was checked ag
 | The fixed sample size blocked an E2-only PASS for populations of 14 to 130 | The formula is a minimum; a larger `n` may be registered before selection | 4 |
 | Unkeyed hashes of redacted fields expose low-entropy values | Keyed commitments, key held in the vendor's enclave | 4.1 |
 | A3 did not test container eviction, though durable state includes it | Containerized targets need a separate eviction and replacement test | 1.1, 5 |
+
+CodeRabbit's review of PR #981 found six more. Each was checked against the text and fixed.
+
+| Review finding | Fix | Section |
+|---|---|---|
+| "Every A control that is claimed" had no per-control claim state, so a target could omit A1–A5 | A claimed C1 requires A1–A5 present, each ≥3 | 9 |
+| An empty risky-action population left "bypass sample is clean" undefined | An empty sample counts, if the verdict says so and A5 rests on the live test | 5 (A5), 9 |
+| A1 had no baseline, maximum wait, or timeout result | Wait is the declared p95 runtime plus 50%, at most 24 hours; no resume by then scores 0 | 1.1, 5 (A1) |
+| B2 had no denominator and no zero-corrections rule | Denominator is every correction in the evaluated cycles; zero corrections scores at most 1 | 6 (B2) |
+| B3 left PI-loss unbounded | PI-loss must stay within a declared tolerance; none declared blocks a pass | 6 (B3) |
+| Cross-cutting risks had no scoring, evidence, claim mapping or reporting rule | Mapping table, lowest-mapped-control rule, risk table in the output; A2 now tests an invalid signature so webhook spoofing has evidence | 5 (A2), 10, 11 |
 
 ### Decisions for Z2
 
@@ -362,3 +388,5 @@ These choices are mine as proposer and are easy to change in review:
 3. **Any break-glass use blocks a C1 PASS** (A5 capped at 2), even when logged and pre-authorized.
 4. **B7 is mandatory when C2 is claimed.** Only B5 and B6, which v3 marked as conditional, may be recorded as NOT_CLAIMED. v3's general "unless declared not used" clause no longer applies to B1–B4, B7 or B8.
 5. **`docs/audit/` location and no `doc_id`.** This file declares no `doc_id`, so `document-registry.yaml` is untouched. Registering it as a controlled document is a separate act.
+6. **A1 wait defaults.** The wait is the declared p95 runtime plus a 50% margin, capped at 24 hours. A task that has not resumed by then scores 0. The cap and margin are my defaults.
+7. **An empty risky-action population does not block C1.** A5 then rests on the live test alone, capped at 3, and the verdict must say so.
