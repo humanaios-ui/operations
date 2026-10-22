@@ -109,7 +109,14 @@ All three arms must operate under identical constraints:
 - **Evidence access:** Same indexed evidence set for each task
 - **Wall-clock time limit:** 30 seconds per task (excluding overhead)
 - **Model snapshot:** Frozen model version across all conditions; no fine-tuning
-- **Token consumption constraint:** Per-task rule (primary): Arm C (AERC) must consume ≤ +10% more tokens than Arm B (generic revision) on each task independently. Any task exceeding +10% per-task overrun is marked CONFOUNDED and excluded from primary analysis per lines 98-101 below. Documented reason for a per-task overrun is recorded and examined in sensitivity analysis but does not exempt the case from CONFOUNDED exclusion. Aggregate summary (secondary): Report mean token consumption across all tasks. Aggregate overrun 11–20% marked CONFOUNDED; >20% marked CONFOUNDED + reported separately. Lower usage on some tasks cannot offset overruns on other tasks (each task evaluated independently).
+- **Token consumption constraint:** Measured via two rules:
+  1. **Per-task rule (primary):** Arm C (AERC) must consume ≤ +10% more tokens than Arm B on each task independently. Any task exceeding +10% is marked CONFOUNDED and excluded from primary analysis. Documented reason is recorded and examined in sensitivity analysis but does not exempt the case from CONFOUNDED exclusion.
+  2. **Aggregate rule (secondary, cost-benefit evaluation):** Compute aggregate token consumption as (sum of Arm C tokens − sum of Arm B tokens) / (sum of Arm B tokens) × 100. Report in Cost-Benefit Calculation (STOPPING_RULES Rule 3.3) as `latency_overhead_fraction`. All cases remain in primary denominator regardless of aggregate overage. Rules by aggregate band:
+     - **≤+10%:** Meets secondary efficacy criterion.
+     - **>10% and ≤20%:** Exceeds ideal but acceptable. Report in cost-benefit analysis.
+     - **>20% and ≤50%:** Significant overhead. Report in cost-benefit analysis; evaluate Rule 3.1 trigger approach.
+     - **>50%:** Triggers STOPPING_RULES Rule 3.1 (Excessive Latency Overhead); halt or proceed with cost caveat.
+  3. **Denominator rule:** Aggregate token overruns do NOT exclude cases or arms from primary analysis denominator. Only per-task overruns (>20% individual task increase) mark cases as CONFOUNDED.
 
 ### Control for Confounding
 

@@ -69,6 +69,10 @@ Where "# test cases evaluated" = 10 per domain (total 30). Each test case genera
 RTL = (time_output_delivered) − (time_request_submitted)
 ```
 
+**Scope:** RTL includes end-to-end latency from original request through final Translation Agent output. Time measured on Translation Agent's first output; if human correction is requested (per HCR), that correction latency is NOT included in RTL (only first-pass translation latency is measured).
+
+**Denominator rule:** RTL is computed for all 10 test cases per domain; no cases excluded from RTL analysis even if marked CONFOUNDED for semantic fidelity reasons.
+
 **Acceptable thresholds:**
 - **Mean RTL per domain:** ≤ 500ms
 - **95th percentile RTL per domain:** ≤ 1000ms
@@ -155,9 +159,10 @@ Requests should span:
 3. **Predicate alignment (for inter-rater agreement):**
    - After both raters independently score all cases, compile the full predicate lists
    - For each case, identify predicates identified by either rater
-   - Build canonical predicate list for that case (union of both raters' lists)
-   - Rescore both raters' verdicts against the canonical list (raters did not identify X = scored as ✗ LOST on canonical list)
-   - This ensures κ is calculated over identical predicate sets for both raters
+   - Build canonical predicate list for that case as UNION of both raters' identified predicates (all predicates mentioned by Rater 1 OR Rater 2)
+   - Rescore both raters' verdicts against the canonical list: Any predicate not identified by Rater X but present in canonical list is rescored as ✗ LOST for that rater
+   - This ensures κ is calculated over identical predicate sets for both raters, capturing both missed identifications and scoring disagreements
+   - Edge case (zero predicates): If a test case has zero identified predicates (both raters find no intent predicates in the request), mark case as N/A for predicate-level scoring; IPP is undefined (reported as NA); case excluded from IPP analysis but included in sample documentation
 4. **Rater examines Translation Agent output** (JSON/structured format from agent)
 5. **Rater scores each predicate independently:**
    - ✓ PRESERVED: Predicate correctly represented in translation output
@@ -195,6 +200,8 @@ where:
 - P_e = (0.70 × 0.65) + (0.30 × 0.35) = 0.56
 
 **Edge case (P_e = 1):** When both raters mark every predicate identically (both mark all as PRESERVED or both mark all as LOST), P_e = 1 and the denominator (1 − P_e) becomes zero, making κ undefined. Preregistered outcome: κ is reported as undefined (NA) for this case; observed agreement P_o = 1.0 is documented; case excluded from κ aggregation but noted as perfect consensus.
+
+**Confidence interval for κ:** κ for each domain is computed as a single value aggregated across all predicates and cases (pooled κ). No CI is computed around κ itself (sample of predicates within 10 cases is fixed; external validity comes from the case sample, not a resampling-based CI on κ). Instead, κ is reported as a point estimate with interpretation guidance (κ ≥ 0.70 = substantial; κ 0.50–0.70 = moderate; κ < 0.50 = poor). If additional uncertainty quantification is desired, document sample size and request decision gate consideration of κ via bootstrap of cases (10 cases per domain is a small sample; bootstrap of cases may not provide stable κ estimates).
 
 **Interpretation:**
 - κ ≥ 0.70: Substantial agreement; rubric is clear and raters understand it well
@@ -246,8 +253,10 @@ where:
 
 1. **Human Correction Rate (HCR)** per domain
    - Count cases where human corrected translation
-   - HCR = (# corrections) / (# cases)
-   - Target: HCR ≤ 0.10
+   - HCR = (# cases where human correction requested) / (# test cases evaluated in domain)
+   - Where "# test cases evaluated" = 10 per domain (all cases in the sample; no cases excluded from HCR denominator)
+   - Target: HCR ≤ 0.10 (i.e., at most 1 correction per 10 cases)
+   - Edge case (zero corrections): HCR = 0.0 is acceptable and indicates smooth translation experience
 
 2. **Round-Trip Latency (RTL)** per case
    - Mean and 95th percentile RTL per domain

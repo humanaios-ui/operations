@@ -209,14 +209,18 @@ For each identified predicate, evaluate the Translation Agent's output:
 **Question:** "Is this predicate correctly represented in the translation output?"
 
 **Scoring Rule:**
-- ✓ **PRESERVED:** The predicate is explicitly captured in the translation output in equivalent form
-  - Example: Human says "free" → Translation says `cost: free` → PRESERVED
-  - Example: Human specifies "Python" → Translation says `language: python` → PRESERVED
+- ✓ **PRESERVED:** The predicate is explicitly captured in the translation output in equivalent or semantically equivalent form
+  - **Criterion:** The translation output, when executed or applied, would correctly satisfy the human's stated intent for this predicate
+  - Example: Human says "free" → Translation says `cost: free` → PRESERVED (exact match)
+  - Example: Human specifies "Python" → Translation says `language: python` → PRESERVED (exact match)
+  - Example: Human says "by next Monday" → Translation says `deadline: 2026-10-28` (next Monday) → PRESERVED (semantically equivalent)
+  - Example: Human says "max 20 hours/week" → Translation says `max_hours_per_week: 20` → PRESERVED (equivalent constraint)
 - ✗ **LOST:** The predicate is missing, contradicted, or incorrectly translated
-  - Example: Human says "free" → Translation says `cost: paid` → LOST
-  - Example: Human specifies "Python" → Translation says `language: javascript` → LOST
-  - Example: Human says "remote" → Translation omits location entirely → LOST
-  - Example: Human says "max 20 hours/week" → Translation says `hours_unlimited` → LOST
+  - Example: Human says "free" → Translation says `cost: paid` → LOST (contradicted)
+  - Example: Human specifies "Python" → Translation says `language: javascript` → LOST (wrong value)
+  - Example: Human says "remote" → Translation omits location entirely → LOST (missing)
+  - Example: Human says "max 20 hours/week" → Translation says `hours_unlimited` → LOST (contradicted)
+  - Example: Human says "by 5pm" → Translation omits time constraint → LOST (missing)
 
 ### Handling Edge Cases
 
@@ -295,13 +299,15 @@ where:
 
 ---
 
-## Scoring Template
+## Scoring Template & Score Retention
 
 Use this template for each test case:
 
 ```markdown
 ## Test Case: [req_NNN]
 **Domain:** [Human Resource / Software Engineering / Decision Support]
+**Rater:** [Rater 1 | Rater 2]
+**Scoring Date:** [ISO 8601 date, e.g., 2026-10-15]
 **Original Request:** [Verbatim human request]
 **Translation Output:** [JSON/structured output from Translation Agent]
 
@@ -322,6 +328,24 @@ Use this template for each test case:
 ### Notes
 [Any observations about quality, ambiguities, or edge cases]
 ```
+
+### Score Retention Specification
+
+**Storage Requirements:**
+- Each rater's score sheet (including all predicate verdicts) must be timestamped and retained in full
+- Scores must be stored separately per rater (not averaged or combined until canonical list reconciliation per TRANSLATION_FIDELITY_PROTOCOL.md Section 5)
+- Original predicates identified by each rater must be preserved (even if different from canonical list)
+- No scores may be discarded or retroactively modified without documenting the change reason and timestamp
+
+**Data Format:**
+- Scores stored in structured format (Markdown table, JSON, or CSV with header row)
+- Each cell must contain: predicate ID | predicate definition | verdict (✓ or ✗) | justification
+- Metadata must include: rater name, domain, test case ID, scoring date, Translation Agent output version
+
+**Completeness Standard:**
+- All 10 test cases per domain must be scored by each rater before IPP or κ is computed
+- No cases marked as "skip" or "not evaluated" unless explicitly documented as CONFOUNDED by protocol (e.g., if test case has zero identified predicates per Section 5 of TRANSLATION_FIDELITY_PROTOCOL.md)
+- All identified predicates per rater must have verdict (✓ or ✗); no blank verdicts allowed
 
 ---
 
