@@ -59,8 +59,25 @@ Efficacy met but **deployment not recommended** without cost mitigation.
 **Result:** Document review burden; recommend PROCEED with operational constraint or REVISE
 
 ### Rule 3.3: Improvement vs. Cost Unfavorable
-**Trigger:** Measured benefit (e.g., +8% correctness) offset by cost  
-**Result:** Compute cost-benefit ratio; recommend PROCEED with cost acknowledgment or REJECT
+**Trigger:** Measured benefit offset by cost (cost-benefit ratio < 1.0)
+
+**Cost-Benefit Calculation:**
+```
+Cost-Benefit Ratio = (Benefit Score) / (Cost Score)
+
+Benefit Score = (Primary Efficacy improvement %) × (1 + domain_count_bonus)
+                where domain_count_bonus = 0 if 1 domain, +0.2 if 2+ domains
+
+Cost Score = (1 + latency_overhead_fraction) × (1 + review_time_per_case / 300)
+             where 300 = budget threshold in seconds
+
+Example: +8% efficacy over 2 domains, +30% latency, 5 min review time
+         = (8 × 1.2) / (1.30 × 1.017) = 9.6 / 1.32 ≈ 7.3 (favorable)
+
+Threshold: Ratio ≥ 1.0 for favorable recommendation
+```
+
+**Result:** Compute cost-benefit ratio; if <1.0, recommend PROCEED with cost acknowledgment or REJECT
 
 ---
 
@@ -86,12 +103,12 @@ Efficacy met but **deployment not recommended** without cost mitigation.
 
 ## 5. Secondary Metric Acceptance Criteria
 
-| Metric | Target | Acceptable Range |
+| Metric | Target | Definition |
 |--------|--------|---|
-| Token consumption (C vs B) | ≤ +10% | +5% to +15% |
-| Blinding integrity | 100% | ≥ 98% |
-| Data preservation | 100% | ≥ 99% |
-| Evaluator credentials | 100% | ≥ 95% |
+| Token consumption (C vs B) | ≤ +10% | AERC must not exceed generic revision's token budget by more than 10% on average; individual cases >20% mark as CONFOUNDED. Prespecified in PREREGISTRATION_PROTOCOL_PHASE_1.md Section 3. |
+| Blinding integrity | ≥ 98% | Evaluators must not know arm identity on ≥98% of cases. Document any breaches. |
+| Data preservation | ≥ 99% | All case records, evaluator scores, and challenge events must be timestamped and retained. ≥99% of records must be recoverable. |
+| Evaluator credentials | ≥ 95% | All evaluators must have documented credentials and conflict-of-interest declarations before scoring begins. ≥95% of all scores must be attributed to credentialed evaluators. |
 
 ---
 
