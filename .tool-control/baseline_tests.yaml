@@ -230,3 +230,11 @@ baseline_tests:
   - path: tests/test_ai_risk_map_crosswalk.py
     requires: []
     description: AIRM v1.3 scoped source index, evidence links, and no-authority regression
+
+  - path: tests/test_oracle_forecast_replay_v0_1.py
+    requires: []
+    description: Oracle prospective replay, independent resolution, calibration, and authority-boundary regressions
+
+  - path: tests/test_smag_meta_feedback_observed_accuracy.py
+    requires: []
+    description: Meta-SMAG observed outcome versus predicted confidence isolation regressions

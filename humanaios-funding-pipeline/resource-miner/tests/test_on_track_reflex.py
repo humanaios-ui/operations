@@ -1,8 +1,12 @@
 """Synthetic regression tests for advisory on-track reflex. No network or authority."""
 from __future__ import annotations
 
+import io
+import json
 import unittest
-from unittest.mock import patch
+from contextlib import redirect_stderr
+from unittest.mock import MagicMock, call, patch
+from urllib.error import HTTPError
 
 from resource_miner import on_track_reflex as ot
 
@@ -185,6 +189,89 @@ class OnTrackReflexTests(unittest.TestCase):
         a = ot.build_report([item()], truncated=False)
         b = ot.build_report([item()], truncated=True)
         self.assertNotEqual(a["snapshot_sha256"], b["snapshot_sha256"])
+
+
+def _ok_response(payload):
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.read.return_value = json.dumps(payload).encode()
+    response.headers.get.return_value = ""
+    return response
+
+
+def _throttled(code, headers=None):
+    return HTTPError("https://api.github.com/x", code, "throttled", headers or {}, None)
+
+
+class ThrottleRetryTests(unittest.TestCase):
+    def test_transient_403_then_success_retries_with_backoff(self):
+        with patch.object(ot, "urlopen", side_effect=[_throttled(403), _ok_response([])]) as opened, \
+             patch.object(ot, "_sleep") as sleep:
+            payload, _ = ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "")
+        self.assertEqual(payload, [])
+        self.assertEqual(opened.call_count, 2)
+        sleep.assert_called_once_with(2)
+
+    def test_429_honours_retry_after_capped_at_limit(self):
+        with patch.object(ot, "urlopen", side_effect=[
+            _throttled(429, {"Retry-After": "7"}),
+            _throttled(429, {"Retry-After": "9999"}),
+            _ok_response({"number": 822}),
+        ]), patch.object(ot, "_sleep") as sleep:
+            payload, _ = ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues/822", "")
+        self.assertEqual(payload, {"number": 822})
+        self.assertEqual(sleep.call_args_list, [call(7), call(ot.MAX_RETRY_AFTER_SECONDS)])
+
+    def test_nonnumeric_retry_after_uses_backoff(self):
+        with patch.object(ot, "urlopen", side_effect=[
+            _throttled(429, {"Retry-After": "invalid"}),
+            _ok_response([]),
+        ]) as opened, patch.object(ot, "_sleep") as sleep:
+            payload, _ = ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "")
+        self.assertEqual(payload, [])
+        self.assertEqual(opened.call_count, 2)
+        sleep.assert_called_once_with(2)
+
+    def test_persistent_403_still_fails_closed_after_bounded_attempts(self):
+        with patch.object(ot, "urlopen", side_effect=_throttled(403)) as opened, \
+             patch.object(ot, "_sleep") as sleep:
+            with self.assertRaises(HTTPError):
+                ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "")
+        self.assertEqual(opened.call_count, ot.MAX_ATTEMPTS)
+        self.assertEqual(sleep.call_args_list, [call(2), call(4), call(8)])
+
+    def test_other_http_errors_are_not_retried(self):
+        with patch.object(ot, "urlopen", side_effect=_throttled(404)) as opened, \
+             patch.object(ot, "_sleep") as sleep:
+            with self.assertRaises(HTTPError):
+                ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues/9", "")
+        self.assertEqual(opened.call_count, 1)
+        sleep.assert_not_called()
+
+
+class ThrottleLoggingTests(unittest.TestCase):
+    def test_throttle_is_logged_with_rate_limit_facts_but_never_the_token(self):
+        refused = HTTPError(
+            "https://api.github.com/x", 403, "Forbidden",
+            {"x-ratelimit-remaining": "0", "x-ratelimit-resource": "core"},
+            io.BytesIO(b'{"message":"API rate limit exceeded"}'),
+        )
+        stderr = io.StringIO()
+        with patch.object(ot, "urlopen", side_effect=[refused, _ok_response([])]), \
+             patch.object(ot, "_sleep"), redirect_stderr(stderr):
+            ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "SECRET-TOKEN")
+        logged = stderr.getvalue()
+        self.assertIn("HTTP 403", logged)
+        self.assertIn('"x-ratelimit-remaining": "0"', logged)
+        self.assertIn("API rate limit exceeded", logged)
+        self.assertNotIn("SECRET-TOKEN", logged)
+
+    def test_synthetic_throttle_without_body_still_logs_status(self):
+        stderr = io.StringIO()
+        with patch.object(ot, "urlopen", side_effect=[_throttled(429), _ok_response([])]), \
+             patch.object(ot, "_sleep"), redirect_stderr(stderr):
+            ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "")
+        self.assertIn("HTTP 429", stderr.getvalue())
 
 
 if __name__ == "__main__":

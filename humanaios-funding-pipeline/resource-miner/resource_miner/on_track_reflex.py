@@ -13,6 +13,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -30,6 +31,22 @@ MARKER = re.compile(r"(?m)^[ \t]*on_track_target:[ \t]*([A-Z0-9_]+)[ \t]*$")
 BLOCK_LABELS = frozenset(("blocked", "needs-human", "needs_human", "on-hold"))
 API = "https://api.github.com"
 MAX_ITEMS = 501
+# Transient GitHub throttling (secondary rate limits) shows up as 403 or 429.
+# Retries are bounded; a persistent refusal still fails closed.
+RETRYABLE_STATUS = frozenset((403, 429))
+MAX_ATTEMPTS = 4
+BACKOFF_SECONDS = (2, 4, 8)
+MAX_RETRY_AFTER_SECONDS = 60
+THROTTLE_HEADERS = (
+    "retry-after",
+    "x-ratelimit-limit",
+    "x-ratelimit-remaining",
+    "x-ratelimit-reset",
+    "x-ratelimit-resource",
+    "x-ratelimit-used",
+    "x-github-request-id",
+)
+_sleep = time.sleep
 
 
 def _digest(value: object) -> str:
@@ -45,8 +62,44 @@ def _json_get(repo: str, path: str, token: str) -> tuple[object, str]:
         "User-Agent": "humanaios-on-track-reflex/0.1",
         **({"Authorization": "Bearer " + token} if token else {}),
     })
-    with urlopen(req, timeout=15) as response:
-        return json.load(response), response.headers.get("Link", "")
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            with urlopen(req, timeout=15) as response:
+                return json.load(response), response.headers.get("Link", "")
+        except HTTPError as error:
+            if error.code not in RETRYABLE_STATUS:
+                raise
+            _log_throttle(path, attempt, error)
+            if attempt == MAX_ATTEMPTS:
+                raise
+            _sleep(_retry_delay(error, attempt))
+    raise AssertionError("unreachable")
+
+
+def _log_throttle(path: str, attempt: int, error: HTTPError) -> None:
+    """Diagnostic only: record why GitHub refused a read.
+
+    Logs rate-limit facts and a short body snippet. Never logs the token or
+    request headers.
+    """
+    headers = {name: error.headers.get(name) for name in THROTTLE_HEADERS} if error.headers else {}
+    try:
+        body = error.read(200).decode("utf-8", "replace")
+    except Exception:  # no body stream (e.g. synthetic error); still log the status
+        body = ""
+    present = {name: value for name, value in headers.items() if value}
+    print(
+        f"on-track reflex throttle: HTTP {error.code} path={path} attempt={attempt} "
+        f"headers={json.dumps(present, sort_keys=True)} body={json.dumps(body)}",
+        file=sys.stderr,
+    )
+
+
+def _retry_delay(error: HTTPError, attempt: int) -> float:
+    retry_after = error.headers.get("Retry-After", "") if error.headers else ""
+    if retry_after.isdigit():
+        return min(int(retry_after), MAX_RETRY_AFTER_SECONDS)
+    return BACKOFF_SECONDS[min(attempt - 1, len(BACKOFF_SECONDS) - 1)]
 
 
 def github_snapshot(repo: str, token: str, max_pages: int) -> tuple[list[dict], bool]:
