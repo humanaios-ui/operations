@@ -10,7 +10,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXED = '2026-10-22T12:31:00-05:00'  # fixture time, not a claimed observation
-SCRIPT = ROOT / 'tools/containment_evidence_adapter.py'
+SCRIPT = ROOT / 'research/agent_containment/phase0/containment_evidence_adapter.py'
 SOURCE_NAMES = ('EVIDENCE_GRAPH.json',
                 'research/agent_containment/phase0/scenario.json',
                 'research/agent_containment/phase0/trial_receipt.json')
