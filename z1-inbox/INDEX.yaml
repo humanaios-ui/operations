@@ -22,9 +22,20 @@ candidates:
   title: Multi-agent plan to work the intentionally backed-up PR queue as a governed experiment
   path: z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md
   submitted: '2026-10-14'
-  status: awaiting_z2
+  status: ratified
   tier: 1
-  note: 'Ten-agent roster (orchestrator, cartographer, supersession analyst, single-writer manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched into Decision Sheet 1 (twelve rows, ~86 RAT-min prior; four answered in-session on 2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md. Touches no constants, gates, workflows, or REGISTERED.md.'
+  note: 'Ten-agent roster (orchestrator, cartographer, supersession analyst, single-writer
+    manifest steward, CI mechanic, review responder, decision-sheet compiler, calibration
+    recorder, provider-diverse Jester, domain-agent scaffolder) working 36 open PRs in
+    five lanes under the ratified admitted-capacity cap of 4. Every Z2 act is batched
+    into Decision Sheet 1 (twelve rows, ~86 RAT-min prior; four answered in-session on
+    2026-10-14, unsigned). Phase exits are resource-state predicates, no dates. Falsifier
+    F1-F6. Evidence record: QUEUE_MAP_2026-10-14.md.
+    Touches no constants, gates, workflows, or REGISTERED.md.'
+  ratified_by: Night
+  ratified_at: "2026-10-15"
+  z2_ruling: "z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md"
+  z2_hash: "a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573"
 - q_id: Q-QUEUE-SWEEP-PIN-SPEC-01
   title: Queue sweep and pin spec for 56 open PRs, with four Z2 decisions (S1-S4)
   path: z1-inbox/2026-10-15/QUEUE_SWEEP_PIN_SPEC_2026-10-15.md
