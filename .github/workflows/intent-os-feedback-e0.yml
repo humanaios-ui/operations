@@ -1,0 +1,59 @@
+name: INTENT-OS First User Feedback E0
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/intent-os.html'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/intent_feedback.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_intent_feedback.py'
+      - 'humanaios-funding-pipeline/resource-miner/fixtures/intent_os_first_user_feedback_e0.json'
+      - 'humanaios-funding-pipeline/resource-miner/docs/INTENT_OS_FEEDBACK_E0.md'
+      - '.github/workflows/intent-os-feedback-e0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-feedback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: humanaios-funding-pipeline/resource-miner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run first-user feedback and existing HTTP boundary contracts
+        run: |
+          python3 -m unittest discover -s tests -p 'test_intent_feedback.py' -v
+          python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+      - name: Smoke run the exact three-feedback fixture
+        run: |
+          python3 -m resource_miner.intent_feedback --input fixtures/intent_os_first_user_feedback_e0.json > "$RUNNER_TEMP/intent-feedback.json"
+          python3 - "$RUNNER_TEMP/intent-feedback.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as fp:
+              report = json.load(fp)
+          assert report["count"] == 3
+          assert report["statuses"]["SETUP_INCOMPLETE"] == 1
+          assert report["statuses"]["INTERESTED"] == 1
+          assert report["statuses"]["ALREADY_IN_USE"] == 1
+          assert report["authority_effect"] == "NONE"
+          assert not report["can_auto_publish_seo"]
+          assert not report["can_auto_apply_or_enroll"]
+          PY
+      - name: Syntax-check inline UI JavaScript without fetching external code
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path("intent-os.html").read_text(encoding="utf-8")
+          assert html.count("<script>") == 1 and html.count("</script>") == 1
+          Path("/tmp/intent-os-feedback-inline.js").write_text(
+              html.split("<script>", 1)[1].split("</script>", 1)[0], encoding="utf-8"
+          )
+          PY
+          node --check /tmp/intent-os-feedback-inline.js
