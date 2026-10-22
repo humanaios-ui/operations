@@ -37,6 +37,20 @@ class AdapterTests(unittest.TestCase):
     def replace(self, name, payload):
         (self.root / name).write_text(json.dumps(payload))
 
+    def test_synthetic_model_replay_matches_declared_receipt(self):
+        model = ROOT / 'research/agent_containment/phase0/phase0_sim.py'
+        mod_spec = importlib.util.spec_from_file_location('phase0_sim', model)
+        mod = importlib.util.module_from_spec(mod_spec)
+        mod_spec.loader.exec_module(mod)
+        sim, results = mod.trial()
+        declared = self.doc(SOURCE_NAMES[2])
+        self.assertEqual(declared['trial_results'], results)
+        self.assertTrue(mod.SimBoard.verify(sim.replay()))
+        self.assertEqual(declared['events'], len(sim.events))
+        self.assertEqual(declared['head_hash'], sim.events[-1]['hash'])
+        self.assertEqual(declared['quarantined_events'], sum(e['event_type'] == 'containment_event' for e in sim.events))
+        # This is same-model replay, not independent verification of a live runtime.
+
     def test_projection_non_authoritative_and_linked(self):
         graph = adapter.project(self.root, FIXED)
         self.assertEqual(graph['source']['system'], 'evidence_graph')
