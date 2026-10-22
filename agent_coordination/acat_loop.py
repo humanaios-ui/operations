@@ -46,7 +46,7 @@ def scores_arg(text: str) -> dict:
 
 
 def valid_scores(value: dict) -> bool:
-    return type(value) is dict and list(value) == list(DIMS) and all(
+    return type(value) is dict and set(value) == set(DIMS) and all(
         type(value[k]) is int and 0 <= value[k] <= 100 for k in DIMS)
 
 
