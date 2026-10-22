@@ -56,6 +56,40 @@ class MyOpportunitiesHttpTests(unittest.TestCase):
         self.assertIn(b'href="/my-opportunities"', home)
         self.assertIn(b"myOpportunitiesLink", home)
 
+    def test_report_controls_are_checkboxes_and_evidence_is_private(self):
+        status, mime, raw = self.get("/my-opportunities")
+        self.assertEqual(status, 200)
+        self.assertIn("text/html", mime)
+        page = raw.decode("utf-8")
+        self.assertIn('type="checkbox" name="humanAction"', page)
+        self.assertEqual(page.count('type="checkbox" name="humanAction"'), 3)
+        self.assertNotIn('<select id="humanAction">', page)
+        self.assertIn('id="evidenceLink"', page)
+        self.assertIn('id="evidenceExcerpt"', page)
+        self.assertIn('id="evidenceClaim"', page)
+        self.assertIn("validatedEvidence", page)
+        self.assertIn('const evidenceSchema="humanaios.my_opportunities.private_bundle.v0.1"', page)
+        self.assertIn("download(\"intent-os-private-evidence-bundle.json\",bundle())", page)
+        self.assertIn("localStorage.setItem(localKey,JSON.stringify(bundle()))", page)
+        self.assertIn('method:"POST",headers:{"Content-Type":"application/json"},body', page)
+        self.assertIn('Only the sanitized journey is sent to the local projection API', page)
+        self.assertIn("user-supplied reference", page)
+        self.assertNotIn("SYNTHETIC-EMAIL", page)
+
+    def test_server_rejects_private_evidence_bundle_in_projection(self):
+        payload = self.starter()
+        payload["evidence"] = [{
+            "claim": "SIGNUP_WELCOME_EMAIL_OBSERVED",
+            "link": "https://mail.google.com/mail/u/0/#inbox/example",
+        }]
+        with self.assertRaises(HTTPError) as caught:
+            self.post(payload)
+        self.assertEqual(caught.exception.code, 400)
+        # This service has no HTTP evidence collector.
+        with self.assertRaises(HTTPError) as caught:
+            self.get("/api/my-opportunities/evidence")
+        self.assertEqual(caught.exception.code, 404)
+
     def test_demo_is_truthfully_marked_synthetic(self):
         status, mime, raw = self.get("/api/my-opportunities")
         self.assertEqual(status, 200)
