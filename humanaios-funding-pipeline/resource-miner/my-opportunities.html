@@ -55,7 +55,7 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 <div class="actions">
 <button type="button" id="export" disabled>Export private JSON bundle</button>
 <button type="button" id="save" disabled>Save privately in this browser</button>
-<button type="button" id="clear" class="secondary">Clear browser save</button>
+<button type="button" id="clear" class="secondary">Clear private data in this browser</button>
 </div>
 <p id="status" role="status" aria-live="polite" class="subtle"></p>
 </section>
@@ -83,7 +83,7 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 <label class="check"><input type="checkbox" name="humanAction" value="DISCORD_JOINED_HUMAN"> I joined its Discord</label>
 </fieldset>
 <div class="actions"><button id="record" type="button" disabled>Record selected reports</button></div>
-<p class="subtle">Already recorded actions are marked and cannot be submitted twice.</p>
+<p class="subtle">Already recorded actions appear checked and are not duplicated. Use a revised, explicitly imported journey JSON to correct an existing report.</p>
 </section>
 <section class="panel" id="evidencePanel">
 <h2>Attach supporting evidence</h2>
@@ -363,9 +363,13 @@ byId("save").addEventListener("click",()=>{
  catch(error){showError("Browser storage unavailable. Export JSON instead.");}
 });
 byId("clear").addEventListener("click",()=>{
- if(!confirm("Delete My Opportunities record from browser storage? Exports are unaffected."))return;
- try{localStorage.removeItem(localKey);showStatus("Saved browser journey and evidence cleared. Current preview is unchanged.");}
- catch(error){showError("Unable to clear browser storage.");}
+ if(!confirm("Clear private journey and evidence from this browser and current tab? Export first if you need a backup."))return;
+ try{localStorage.removeItem(localKey);current=null;evidence=[];byId("import").value="";
+  byId("evidenceLink").value="";byId("evidenceExcerpt").value="";
+  byId("export").disabled=true;byId("save").disabled=true;
+  showDemo().then(()=>showStatus("Private data cleared from current tab and browser save. Existing downloads are unaffected."))
+    .catch(e=>showError(e.message));
+ }catch(error){showError("Unable to clear browser storage.");}
 });
 (async()=>{
  try{
