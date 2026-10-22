@@ -62,7 +62,7 @@ Intent predicates are **observable and measurable facts about what the human wan
 | COST = FREE | `cost: free` | ✓ |
 | MEDIUM = ONLINE | `access_method: web_based` | ✓ |
 | TIME_FLEXIBILITY = FLEXIBLE | `time_commitment: flexible_self_paced` | ✓ |
-| COMPLETION_REQUIREMENT = OPTIONAL | (implied; no deadline field) | ✓ |
+| COMPLETION_REQUIREMENT = OPTIONAL | `estimated_duration_weeks: 8-12` (no deadline constraint added) | ✓ |
 
 **IPP Score:** 6/6 = 1.0 (100% fidelity)
 
@@ -119,14 +119,16 @@ Intent predicates are **observable and measurable facts about what the human wan
 {
   "requirement_id": "req_002_incorrect",
   "review_type": "code_review",
-  "language": "nodejs",  // ✗ WRONG: JavaScript, not Python
+  "language": "nodejs",
   "focus_areas": [
-    "code_style",  // ✗ WRONG: User asked for error handling, not style
-    "performance"  // ✗ WRONG: User asked for I/O errors, not performance
+    "code_style",
+    "performance"
   ],
   "excluded_areas": []
 }
 ```
+
+**Issues:** Language is `nodejs` (should be `python`); focus_areas contain `code_style` and `performance` (should be `file_io_error_handling` and `resource_cleanup`).
 
 **Predicate Preservation Scoring:**
 | Predicate | Translation Output | PRESERVED? |
@@ -325,20 +327,25 @@ Use this template for each test case:
 
 ## Expected Outcomes
 
-### Scenario A: High Fidelity (IPP ≥ 0.85 across all domains)
-- **Result:** Translation Agent preserves intent reliably
+### Scenario A: Success (IPP ≥ 0.85 across all three domains)
+- **Result:** Translation Agent preserves intent reliably across all domains
 - **Implication:** Phase 1 federated integration can proceed; semantic round-trip loss is acceptable
-- **Action:** Proceed to Phase 2 architecture work
+- **Action:** ✅ **PASS**—Proceed to Phase 2 architecture work
 
-### Scenario B: Moderate Fidelity (0.70 ≤ IPP < 0.85 on one domain)
-- **Result:** Translation Agent struggles with one domain's complexity
-- **Implication:** Domain-specific refinement needed
-- **Action:** File sub-issue for that domain; defer Phase 1 until resolved
+### Scenario B: Domain-Specific Concern (IPP < 0.85 on one or more domains)
+- **Result:** Translation Agent struggles with one or more domain's semantic complexity
+- **Implication:** Domain-specific refinement needed before proceeding
+- **Action:** ⚠️ **CONDITIONAL**—File sub-issue for affected domain(s); must resolve before Phase 1 proceeds with that domain
 
-### Scenario C: Low Fidelity (IPP < 0.70 on any domain)
-- **Result:** Translation Agent fundamentally misunderstands human requests
-- **Implication:** Federated integration not viable without Translation Agent redesign
-- **Action:** REJECT Phase 1 architecture; recommend Translation Agent redesign
+### Scenario C: Insufficient Fidelity (IPP < 0.85 on multiple domains)
+- **Result:** Translation Agent systematically misunderstands human requests
+- **Implication:** Federated integration not viable without substantial Translation Agent redesign
+- **Action:** ❌ **REJECT Phase 1 architecture**; recommend Translation Agent code-level redesign and re-test
+
+### Scenario D: Measurement Validity Concern (Cohen's κ < 0.70)
+- **Result:** Raters cannot agree on predicate preservation; rubric is ambiguous
+- **Implication:** IPP results are unreliable; cannot draw conclusions about Translation Agent quality
+- **Action:** Raters must revise rubric and re-score; do not proceed until κ ≥ 0.70
 
 ---
 
