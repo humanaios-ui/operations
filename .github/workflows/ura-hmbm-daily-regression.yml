@@ -1,6 +1,12 @@
 name: URA HMBM State-Triggered Regression (read-only)
 
 on:
+  # temporal_class: TECHNICAL_SAFETY
+  # Bounded synthetic regression cadence; no human deadline or authorization effect.
+  # UTC schedule: 13:17 is 08:17 CDT / 07:17 CST.
+  # Scheduled Actions execute on the default branch only.
+  schedule:
+    - cron: '17 13 * * *'
   workflow_dispatch:
   pull_request:
     paths:
@@ -28,11 +34,11 @@ jobs:
       PIP_NO_INDEX: '1'
     steps:
       - name: Checkout pinned event commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Configure Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
           cache: ''
@@ -44,7 +50,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_hmbm_compat.py' -v 2>&1 | tee hmbm-test.log
       - name: Publish passive test evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ura-hmbm-test-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: |

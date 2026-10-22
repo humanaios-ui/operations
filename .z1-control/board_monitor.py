@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Mesh build-board monitor — surfaces board status changes at end of turn.
 
+Builder v1.7 compliant · monitoring_tool
+
 Canonical, versioned copy (the `~/.empirica/scripts/board_monitor.py` copy is unversioned
 and should be removed or symlinked to this one to avoid the 3-copy drift that bit B6b).
 
@@ -17,6 +19,11 @@ import json
 import re
 import sys
 from pathlib import Path
+
+TOOL_NAME = "board_monitor"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "monitoring_tool"
+TOOL_ZONE = 1
 
 BOARD_PATH = Path.home() / ".empirica" / "MESH_BUILD_BOARD.md"
 STATE_FILE = Path.home() / ".empirica" / ".board_state.json"
