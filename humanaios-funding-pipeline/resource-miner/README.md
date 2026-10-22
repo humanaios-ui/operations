@@ -190,6 +190,18 @@ Without `--dry-run`, output defaults to `data/resources.jsonl`, which is git-ign
 - `data/resources.jsonl` — ephemeral local/live scan output, git-ignored (see above).
 - `data/resources.snapshot.jsonl` — durable scan output, checked in, refreshed daily by `.github/workflows/resource-miner-scan.yml`. This is what `app.py`'s `GET /api/resources` falls back to when no live scan has run yet in the current process, so results survive a Railway restart/redeploy without reversing the git-ignore decision above.
 
+### E0.1: checkbox reports + browser-private evidence attachment
+
+The **Record an explicit human report** section now contains three independent **checkboxes** (selected, survey submitted, Discord joined) rather than a dropdown. The checkboxes are available with an editable/imported journey, and already recorded events display as checked and cannot be submitted twice. Recording is a user assertion, never participant qualification or third-party consent. To correct an existing recorded claim, edit the exported sanitized journey JSON deliberately and re-import; the prototype does not silently delete earlier receipts.
+
+**Attach supporting evidence:** open an editable record; paste a link into the evidence URL field, select its related claim or **Context only**, optionally paste a short excerpt (max 750 characters), and click **Attach evidence locally**. Example forms: a Gmail message URL and a Discord message URL. Neither one is fetched by the application. An Apart Discord community **rules** message is *context-only*, not proof of membership or permission for a bot to read server messages. Follow the server's posted rules, including respectful collaboration, IP attribution, and no self-promotion.
+
+**Evidence trust boundary:** the UI stores link/excerpt records separately from the \`project_journey\` JSON passed to \`POST /api/my-opportunities/project\`. A pasted Gmail URL has not undergone a Gmail connector read or sender/signature verification. A Discord link or excerpt has not been independently authenticated or granted redistribution rights. Simply attaching a URL cannot add an event or promote \`HUMAN_REPORT\` to \`PROVIDER_EMAIL_OBSERVED\` or \`PARTICIPANT_QUALIFIED\`. No server evidence upload endpoint is introduced.
+
+**Persistence and migration:** \`Export private JSON bundle\` now downloads a single **sensitive plaintext** \`intent-os-private-evidence-bundle.json\` containing both the sanitized journey and browser-local evidence records; import supports this new bundle and the old journey-only JSON format. Browser save is **explicit**, not automatic, and includes private evidence links/excerpts. Storage is **unencrypted** and scoped by browser origin/port. Export the bundle before switching ports or wiping browser data, and import it at the new origin. Avoid passwords, access tokens, highly sensitive snippets, or material you don't have permission to retain. Never commit bundle contents to public GitHub or share them over Discord.
+
+**Read-only boundary:** the public \`/intent-os\` page still performs public discovery. New evidence additions do not cause mail sends, Discord reads/posts, form submission, cloud saves, or code changes.
+
 ## My Opportunities: local-only journey interface (first-user E0)
 
 The new **My Opportunities** interface is backed by the real `resource_miner.opportunity_journey.project_journey` reducer, not a static status diagram. It deliberately **does not** import Gmail, Calendar, or Discord accounts or prove participation on its own. The default Apart sprint record is explicitly a **synthetic demonstration**, and real-life status must be imported in a user-controlled JSON record.
