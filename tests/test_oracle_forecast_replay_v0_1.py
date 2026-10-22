@@ -90,6 +90,44 @@ def test_manifest_matches_schema_and_seal() -> None:
     verify_manifest_seal(manifest)
 
 
+def test_subsecond_creation_and_close_boundaries_survive_utc_normalization() -> None:
+    manifest = build_manifest(
+        forecast_id="FC-FRACTIONAL",
+        question_key="subsecond_v1",
+        question="Will the subsecond event occur?",
+        subject_ref="fixture:subsecond",
+        created_at="2026-10-20T10:00:00.100Z",
+        closes_at="2026-10-20T10:00:00.900Z",
+        evidence_cutoff={
+            "kind": "TIMESTAMP", "sequence": 0,
+            "ref": "2026-10-20T10:00:00.100Z",
+        },
+        resolution_rule="YES iff the witness observes the event.",
+        resolution_sources=["fixture:subsecond"],
+        owner="oracle-test",
+    )
+    assert manifest["created_at"].endswith("00.100000Z")
+    assert manifest["closes_at"].endswith("00.900000Z")
+    valid = start_episode(
+        manifest, predictor_id="subsecond-model", probability=0.5,
+        recorded_at="2026-10-20T10:00:00.800Z",
+        evidence_refs=["fixture:pre-outcome"],
+    )
+    validate_episode(valid)
+    with pytest.raises(ForecastContractError, match="cannot precede"):
+        start_episode(
+            manifest, predictor_id="subsecond-model", probability=0.5,
+            recorded_at="2026-10-20T10:00:00.050Z",
+            evidence_refs=["fixture:pre-outcome"],
+        )
+    with pytest.raises(ForecastContractError, match="after the close"):
+        start_episode(
+            manifest, predictor_id="subsecond-model", probability=0.5,
+            recorded_at="2026-10-20T10:00:00.950Z",
+            evidence_refs=["fixture:pre-outcome"],
+        )
+
+
 def test_manifest_tampering_breaks_seal() -> None:
     episode = _episode()
     episode["manifest"]["question"] = "A different question after the outcome"
