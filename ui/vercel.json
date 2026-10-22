@@ -1,0 +1,4 @@
+{
+  "buildCommand": "cp ../oracle_state.json ./oracle_state.json",
+  "outputDirectory": "."
+}

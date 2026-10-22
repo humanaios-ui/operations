@@ -60,6 +60,36 @@ A re-read is a Z1 act. It touches no governance file, so it needs no Z2 hash —
 it writes must come from a command run in that session, and the `read.against` commit must be
 the fetched HEAD.
 
+## 3b. Learn from the exact artifact (RNOLA — advisory)
+
+RNOLA is the repository-native learning layer described in
+`docs/INTENT_OS_RNOLA_INTEGRATION.md` and implemented as the agent skill
+`tools/skills/repository_native_operator_learning/SKILL.md`.
+
+Use it when Z2 wants to understand a live artifact before an authority-bearing decision, especially
+a pull request, workflow, test receipt, candidate, request, or reconciliation result.
+
+For a pull request, pin the exact head SHA and walk this sequence:
+
+1. intent — what outcome was requested;
+2. diff — what state is actually proposed;
+3. code behavior — what the changed artifact can do;
+4. tests / evidence — what was actually checked, and the limits of that evidence;
+5. CI / workflow — which automated path ran and what did not run;
+6. dependencies / side effects — what else can be reached or changed;
+7. authority consequence — what becomes authoritative if the PR is merged;
+8. teach-back — Z2 explains the consequence in their own words;
+9. operator check — optional advisory evidence conforming to
+   `schemas/intent_os_operator_check_v1.schema.json`.
+
+The operator check is deliberately non-authorizing. It cannot satisfy required review, make a red
+check green, sign a ruling, ratify a candidate, authorize deployment, or substitute for the merge
+act. Its schema hard-codes `advisory_only: true` and `can_authorize: false`.
+
+A transient record may live under `outputs/rnola/`; a durable advisory record may be attached to
+the relevant PR/review. Linking learning evidence into the proposed INTENT-OS Witness Ledger is a
+separate governance decision; this runbook does not ratify that candidate.
+
 ## 4. Rule on something (Z2)
 
 Tap an option under **Decisions**. The tap is saved locally. **A tap is not a ratification;
@@ -272,7 +302,7 @@ Z2's direction on 2026-09-18 — *no public copy; a login to open the board* —
 
 | piece | what it does |
 |---|---|
-| `board/worker.mjs` | a Cloudflare Worker that serves **the board's six pages** under `ui/` — the board, its four section pages (generated from it) and the test dashboard — only after verifying a **Cloudflare Access** login: the RS256 token Access injects in the `Cf-Access-Jwt-Assertion` header (the only source read; the cookie is not parsed), checked against the team's keys (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`), issued by the team, for this application (`aud`), unexpired, not before its `nbf` (a present `nbf` must be a number). With `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` unset it answers `401` to everything but `/healthz` — it fails closed. The login is judged before the method, so an unauthenticated `POST` learns nothing but `401`; an authenticated one is `405`. Every answer (pages, the redirect from `/`, refusals) carries `Cache-Control: no-store`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` and a `Content-Security-Policy` that allows the pages' own inline script and style, connections to the relay and to `raw.githubusercontent.com` (the dashboard's live read), and nothing else. Every **authenticated** answer also carries `X-Board-Commit`, the commit the deploy was built from. The Z2 reviewer under `ui/` is **not** served (`404`): it reads `../z1-inbox/` at runtime, which is not in the bundle, so it would open broken. Self-test: `node board/worker.test.mjs`. |
+| `board/worker.mjs` | a Cloudflare Worker that serves an explicit allow-list: **the board's six pages**, the delegated-collaboration cockpit, and its script. Every path except `/healthz` first requires a **Cloudflare Access** login: the RS256 assertion is checked for team issuer, application audience, time bounds, signature, and the Worker's own email allow-list. With Access variables unset it fails closed. Authenticated static paths are read-only; only the bounded JSON collaboration and Resource Miner proxy routes accept `POST`. Every response receives no-store/noindex/referrer/nosniff/frame/CSP controls and every authenticated response carries `X-Board-Commit`. The Z2 reviewer remains unserved because its runtime inputs are not bundled. Self-tests: `node board/worker.test.mjs`, `node board/collaboration.test.mjs`, and `node board/collaboration-ui.test.mjs`. |
 | `wrangler.jsonc` | the Workers Builds configuration: name `intent-os-board`, `assets.directory ./ui` with `run_worker_first` (the check runs before the asset router on every path), `keep_vars` (variables set in the dashboard survive deploys). No secrets in the tree. |
 | `package.json` + `package-lock.json` | pin `wrangler` (the deploy tool) so Workers Builds installs a known version instead of whatever `npx` resolves on the day. Not a package: nothing is published or imported, and it sets no `"type"`, so the CommonJS tools under `tools/` keep their semantics — the Worker is `.mjs` on its own. |
 
@@ -347,7 +377,7 @@ first hardening pass):
   that page's memory). The CSP and `frame-ancestors 'none'` bound what a script injection could do; they do
   not make the board something other than a control surface. Keep the allow-list to identities that need it.
 
-If d31 rules `stay local`, the whole surface is removed in one PR: `board/` (`worker.mjs`, `worker.test.mjs`),
+If d31 rules `stay local`, the whole surface is removed in one PR: `board/` (`worker.mjs`, `worker.test.mjs`, `collaboration.mjs`, `collaboration.test.mjs`, `collaboration-ui.test.mjs`), `ui/intent-os-collaboration.html`, `ui/intent-os-collaboration.js`, `schemas/intent_os_collaboration_capsule_v0_1.schema.json`, `tests/test_intent_os_collaboration_browser.py`, `.github/workflows/intent-os-collaboration.yml`, `docs/INTENT_OS_DELEGATED_COLLABORATION_V0_1.md`,
 `wrangler.jsonc`, the root `package.json` and `package-lock.json`, the two `!/package…` lines in `.gitignore`
 that un-ignore them, this section's table, and the three board seals for those files (`board/worker.mjs`,
 `wrangler.jsonc`, `package.json`). `later` leaves all of it inert.

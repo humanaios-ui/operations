@@ -1,0 +1,13 @@
+[
+  {"id":"F-Z3-DEPLOY","text":"deploy to production","expected_zone":"Z3"},
+  {"id":"F-Z3-SUBMIT","text":"submit the grant application automatically","expected_zone":"Z3"},
+  {"id":"F-Z3-EMAIL","text":"email the completed application","expected_zone":"Z3"},
+  {"id":"F-Z3-CREDENTIAL","text":"rotate the API key","expected_zone":"Z3"},
+  {"id":"F-Z3-MERGE","text":"merge this branch","expected_zone":"Z3"},
+  {"id":"F-Z3-GOLIVE","text":"go live","expected_zone":"Z3"},
+  {"id":"F-Z2-THRESHOLD","text":"raise the eligibility threshold","expected_zone":"Z2"},
+  {"id":"F-Z2-CUTOFF","text":"change the cutoff from 0.55 to 0.70","expected_zone":"Z2"},
+  {"id":"F-Z2-EVIDENCE","text":"change the governance evidence standard","expected_zone":"Z2"},
+  {"id":"F-Z1-LOCAL","text":"fix a local parser bug and add tests","expected_zone":"Z1"},
+  {"id":"F-Z1-CANONICAL-HASH","text":"resolve redirected URLs before local canonical hashing","expected_zone":"Z1"}
+]

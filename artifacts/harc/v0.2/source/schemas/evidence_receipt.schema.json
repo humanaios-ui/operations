@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HARC v0.2 Evidence Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receipt_id", "observation", "source", "evidence_state", "observed_at"],
+  "properties": {
+    "receipt_id": {"type": "string", "minLength": 1},
+    "observation": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "evidence_state": {"enum": ["OBSERVED", "HUMAN_CONFIRMED", "AI_REVIEWED", "CORROBORATED", "AUTHORITY_VERIFIED", "CONTRADICTED"]},
+    "observed_at": {"type": "string", "minLength": 1},
+    "contradictions": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  }
+}

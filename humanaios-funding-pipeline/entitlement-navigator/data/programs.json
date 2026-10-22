@@ -1,0 +1,186 @@
+[
+  {
+    "id": "BTFA-IIM-UNCLAIMED",
+    "title": "Individual Indian Money (IIM) / Whereabouts Unknown Account Investigation",
+    "applicant_entity": "individual_or_estate",
+    "program_type": "trust_asset",
+    "match_mode": "investigate",
+    "sort_priority": 1,
+    "summary": "BTFA maintains IIM accounts for individual beneficiaries with trust money or assets and operates a public Whereabouts Unknown search for unclaimed accounts.",
+    "conditions": {"predicate": {"field": "tribal_citizen", "op": "eq", "value": true, "label": "Federally recognized tribal citizenship/member status", "evidence": ["Tribal citizenship/enrollment documentation"]}},
+    "required_evidence": ["Legal name and prior names", "Tribal affiliation", "Identity documentation if BTFA identifies a possible account"],
+    "next_actions": ["Search the official BTFA Whereabouts Unknown tool by last name and tribe.", "If a possible match appears, contact BTFA to verify identity and account ownership.", "Do not treat a same-name result as ownership until BTFA verifies it."],
+    "sources": [
+      {"label": "BTFA IIM accounts", "url": "https://www.doi.gov/ost/iim-accounts"},
+      {"label": "BTFA Search Unclaimed Accounts", "url": "https://www.doi.gov/ost/search-unclaimed-accounts"}
+    ],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "BIA-TRUST-PROBATE",
+    "title": "BIA Trust-Asset Probate / Inherited Trust Funds or Land",
+    "applicant_entity": "estate_or_heir",
+    "program_type": "trust_asset_probate",
+    "match_mode": "investigate",
+    "sort_priority": 2,
+    "summary": "When a deceased American Indian or Alaska Native owned trust/restricted land or trust funds, BIA compiles a probate package, OHA adjudicates heirship, land records are updated, and BTFA distributes trust funds.",
+    "conditions": {"predicate": {"field": "deceased_ancestor_possible_trust_assets", "op": "eq", "value": true, "label": "Deceased Native ancestor may have owned trust/restricted assets", "evidence": ["Death certificate or qualifying death evidence", "Potential-heir family information", "Tribal enrollment documents", "Will/codicils if any"]}},
+    "required_evidence": ["Decedent's legal name", "Death certificate or other accepted proof of death", "Potential heirs and current addresses", "Tribal enrollment documents", "Will/codicils if any", "Marriage/divorce/adoption records when relevant"],
+    "next_actions": ["Report the death or possible unprobated trust estate to BIA probate staff.", "Ask BIA to verify whether the decedent owned trust/restricted assets at death.", "If assets are confirmed, assemble the probate package and track the OHA decision."],
+    "sources": [
+      {"label": "BIA Begin the Trust Asset Probate Process", "url": "https://www.bia.gov/service/begin-trust-asset-probate"},
+      {"label": "BIA Division of Trust Asset Ownership and Title", "url": "https://www.bia.gov/bia/ots/dtaot"}
+    ],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "NARA-DAWES-ALLOTMENT",
+    "title": "Cherokee Dawes Allotment → Title/Probate Reconstruction",
+    "applicant_entity": "ancestral_chain",
+    "program_type": "ancestral_asset_investigation",
+    "match_mode": "investigate",
+    "sort_priority": 3,
+    "summary": "NARA's Dawes land-allotment jackets can contain enrollment numbers, family relationships, physical locations, legal land descriptions, maps, correspondence, and contested-selection notices. These records can establish the starting parcel for a title/probate investigation but do not prove present ownership.",
+    "conditions": {"all": [
+      {"predicate": {"field": "tribe", "op": "eq", "value": "Cherokee Nation", "label": "Cherokee Nation relationship", "evidence": ["Cherokee Nation citizenship record"]}},
+      {"predicate": {"field": "dawes_ancestor_known", "op": "eq", "value": true, "label": "Known ancestor on a Cherokee Dawes final roll", "evidence": ["Ancestor name", "Dawes enrollment number or census card if known"]}}
+    ]},
+    "required_evidence": ["Ancestor's legal name and variants", "Dawes enrollment number if available", "Census card/enrollment packet", "Allotment jacket and legal land description", "Subsequent probate/title records"],
+    "next_actions": ["Locate the ancestor's Dawes enrollment record and allotment jacket.", "Extract the exact township/range/section or other legal description.", "Trace subsequent probate and title records; do not infer current ownership from the Dawes record alone."],
+    "sources": [{"label": "National Archives: Dawes Records", "url": "https://www.archives.gov/research/native-americans/dawes"}],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "CN-SBAC",
+    "title": "Cherokee Nation Small Business Assistance Center",
+    "applicant_entity": "business",
+    "program_type": "business_capital_and_coaching",
+    "match_mode": "benefit",
+    "program_review_required": true,
+    "sort_priority": 10,
+    "summary": "Cherokee Nation SBAC supports Indian-owned businesses with access to capital for startup/expansion and business coaching. Published public pages do not contain every underwriting or program-specific rule, so program review remains required.",
+    "conditions": {"all": [
+      {"predicate": {"field": "tribal_citizen", "op": "eq", "value": true, "label": "Federally recognized tribal citizen/member", "evidence": ["Tribal citizenship/enrollment documentation"]}},
+      {"predicate": {"field": "business_owner", "op": "eq", "value": true, "label": "Owns a business", "evidence": ["Business formation/ownership records"]}},
+      {"predicate": {"field": "business_seeks_capital", "op": "eq", "value": true, "label": "Seeking startup or expansion capital", "evidence": ["Use-of-funds statement", "Business plan or operating plan"]}}
+    ]},
+    "required_evidence": ["Business formation documents", "Ownership documentation", "Business plan/use of funds", "Financial information required by the selected SBAC program"],
+    "next_actions": ["Contact Cherokee Nation SBAC and identify the current capital product that fits the use of funds.", "Request the current application and underwriting checklist before transmitting sensitive documents."],
+    "sources": [{"label": "Cherokee Nation SBAC", "url": "https://www.cherokee.org/all-services/commerce-services/small-business-assistance-center/"}],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "CN-TERO",
+    "title": "Cherokee Nation TERO Indian-Owned Business Certification",
+    "applicant_entity": "business",
+    "program_type": "procurement_certification",
+    "match_mode": "benefit",
+    "sort_priority": 11,
+    "summary": "TERO certification can place a qualifying Indian-owned business on the Native-owned vendor list used in Cherokee Nation contracting and can provide preferential treatment in the bid process.",
+    "conditions": {"all": [
+      {"predicate": {"field": "tribal_citizen", "op": "eq", "value": true, "label": "Indian owner is a member of a federally recognized tribe", "evidence": ["Tribal membership/citizenship evidence"]}},
+      {"predicate": {"field": "business_owner", "op": "eq", "value": true, "label": "Business exists", "evidence": ["Business formation records"]}},
+      {"predicate": {"field": "business_indian_ownership_percent", "op": "gte", "value": 51, "label": "At least 51% Indian ownership", "evidence": ["Operating agreement, stock ledger, partnership or ownership documents"]}},
+      {"predicate": {"field": "business_active_control", "op": "eq", "value": true, "label": "Indian ownership includes active operation and control", "evidence": ["Management/control documentation"]}}
+    ]},
+    "required_evidence": ["TERO application", "Proof of tribal membership", "Business formation and ownership documents", "Evidence of active operation/control", "Documents requested for TERO site visit/review"],
+    "next_actions": ["Download the current TERO certification application.", "Assemble ownership and control evidence.", "Submit to TERO; certification is decided by the TERO committee after review/site visit."],
+    "sources": [
+      {"label": "Cherokee Nation TERO", "url": "https://www.cherokee.org/all-services/career-services/tero/"},
+      {"label": "TERO Certification Application", "url": "https://www.cherokee.org/media/csudq301/tero-application.pdf"}
+    ],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "CN-AT-LARGE-UNDERGRAD",
+    "title": "Cherokee Nation At-Large Undergraduate Scholarship",
+    "applicant_entity": "individual",
+    "program_type": "scholarship",
+    "match_mode": "benefit",
+    "sort_priority": 20,
+    "summary": "Published for registered Cherokee citizens living outside the reservation who are working toward their first associate's or bachelor's degree and who apply for federal Pell aid through FAFSA.",
+    "conditions": {"all": [
+      {"predicate": {"field": "tribe", "op": "eq", "value": "Cherokee Nation", "label": "Registered Cherokee Nation citizen", "evidence": ["Cherokee Nation citizenship documentation"]}},
+      {"predicate": {"field": "outside_cn_reservation", "op": "eq", "value": true, "label": "Lives outside Cherokee Nation Reservation", "evidence": ["Current residence evidence"]}},
+      {"predicate": {"field": "undergraduate", "op": "eq", "value": true, "label": "Pursuing undergraduate study", "evidence": ["School enrollment/admission record"]}},
+      {"predicate": {"field": "first_associate_or_bachelors", "op": "eq", "value": true, "label": "First associate's or bachelor's degree", "evidence": ["Education history/transcript as requested"]}},
+      {"predicate": {"field": "fafsa_applied", "op": "eq", "value": true, "label": "FAFSA/Pell application completed", "evidence": ["FAFSA/Pell application evidence"]}}
+    ]},
+    "required_evidence": ["Cherokee Nation citizenship documentation", "Residence evidence", "College enrollment information", "FAFSA/Pell application evidence", "Any current scholarship application attachments"],
+    "next_actions": ["Open the current Cherokee Nation Higher Education application window and verify deadline/award terms.", "Submit the at-large scholarship application with required documentation."],
+    "sources": [{"label": "Cherokee Nation Higher Education", "url": "https://www.cherokee.org/all-services/education-services/college-resources/higher-education/"}],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "CN-GENERAL-ASSISTANCE",
+    "title": "Cherokee Nation / BIA General Assistance",
+    "applicant_entity": "household",
+    "program_type": "financial_assistance",
+    "match_mode": "benefit",
+    "sort_priority": 21,
+    "summary": "BIA-funded General Assistance administered by Cherokee Nation for eligible Indian families addressing essential living needs; it is secondary to certain other benefit programs and requires documentation.",
+    "conditions": {"all": [
+      {"predicate": {"field": "tribal_citizen", "op": "eq", "value": true, "label": "Member of a federally recognized tribe", "evidence": ["Tribal membership/citizenship evidence"]}},
+      {"predicate": {"field": "resides_cn_jurisdiction_6m", "op": "eq", "value": true, "label": "Lives within Cherokee Nation jurisdiction for past six months", "evidence": ["Six months of residence evidence"]}},
+      {"predicate": {"field": "insufficient_resources", "op": "eq", "value": true, "label": "Insufficient resources for essential living needs", "evidence": ["Income/resource documentation", "Household expense documentation"]}}
+    ]},
+    "required_evidence": ["Tribal membership/citizenship", "Residence documentation", "Income and resource documentation", "Other documents required for the household's circumstances"],
+    "next_actions": ["Contact Cherokee Nation Human Services Family Assistance.", "Verify whether TANF/SSI or other primary resources must be pursued first for the household.", "Submit documentation for formal eligibility determination."],
+    "sources": [{"label": "Cherokee Nation General Assistance", "url": "https://www.cherokee.org/all-services/human-services/family-assistance/general-assistance-program/"}],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "HUD-SECTION-184",
+    "title": "HUD Section 184 Indian Home Loan Guarantee",
+    "applicant_entity": "individual_or_household",
+    "program_type": "housing_finance",
+    "match_mode": "benefit",
+    "program_review_required": true,
+    "sort_priority": 30,
+    "summary": "Section 184 supports eligible Native borrowers financing a primary home through participating lenders. Tribal enrollment is only one part of eligibility; property area and lender underwriting must also be established.",
+    "conditions": {"all": [
+      {"predicate": {"field": "tribal_citizen", "op": "eq", "value": true, "label": "Currently enrolled member of a federally recognized tribe", "evidence": ["Tribal enrollment/citizenship documentation"]}},
+      {"predicate": {"field": "housing_finance_need", "op": "eq", "value": true, "label": "Seeking qualifying primary-home financing", "evidence": ["Property/use information"]}}
+    ]},
+    "required_evidence": ["Tribal enrollment verification", "Property state and county", "Primary-residence purpose", "Income/debt and lender underwriting documents", "Property/site-control documents as applicable"],
+    "next_actions": ["Check whether the property county is currently eligible for Section 184.", "Confirm the tribe participates for the proposed area when required.", "Apply through a HUD-approved Section 184 lender for underwriting."],
+    "sources": [
+      {"label": "HUD Section 184", "url": "https://www.hud.gov/section184"},
+      {"label": "HUD Section 184 Borrower Resources", "url": "https://www.hud.gov/section184borrowers"}
+    ],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "CN-CAREER-READINESS",
+    "title": "Cherokee Nation Career Readiness Act Vocational Training",
+    "applicant_entity": "individual",
+    "program_type": "vocational_training_assistance",
+    "match_mode": "benefit",
+    "program_review_required": true,
+    "sort_priority": 31,
+    "summary": "Cherokee Nation Career Services provides financial assistance for approved short-term vocational training leading to an industry-recognized credential, certification, or professional license; final approval depends on the training and workforce criteria.",
+    "conditions": {"all": [
+      {"predicate": {"field": "tribe", "op": "eq", "value": "Cherokee Nation", "label": "Cherokee Nation citizen", "evidence": ["Cherokee Nation citizenship documentation"]}},
+      {"predicate": {"field": "needs_vocational_training", "op": "eq", "value": true, "label": "Seeking short-term vocational/credential training", "evidence": ["Training-program information"]}}
+    ]},
+    "required_evidence": ["Citizenship documentation", "Training provider/program information", "Credential/license objective", "Employment-demand information if requested"],
+    "next_actions": ["Confirm the proposed training is eligible and ordinarily completable within the program's allowed timeframe.", "Apply through Cherokee Nation Career Services with the current program documentation."],
+    "sources": [{"label": "Cherokee Nation Career Readiness Act", "url": "https://www.cherokee.org/all-services/career-services/career-readiness-act-vocational-training-programs/"}],
+    "last_verified": "2026-09-22"
+  },
+  {
+    "id": "CHEROKEE-ICC-1975",
+    "title": "1975 Cherokee Indian Claims Commission Judgment-Fund Distribution",
+    "applicant_entity": "historical_claimant",
+    "program_type": "historical_settlement",
+    "match_mode": "benefit",
+    "availability": "historical",
+    "sort_priority": 90,
+    "summary": "Historical distribution only. The plan became effective November 5, 1975 and applications for the per-capita share had to be filed within one year. It is not a currently open descendant reparations program.",
+    "conditions": {"predicate": {"field": "tribe", "op": "eq", "value": "Cherokee Nation", "label": "Cherokee relationship for historical context", "evidence": []}},
+    "required_evidence": [],
+    "next_actions": ["Do not file a new claim under this closed 1975 application window.", "If researching a deceased beneficiary's already-established property or trust proceeds, investigate the estate/IIM/probate path separately."],
+    "sources": [{"label": "BIA Cherokee Judgment Fund Plan Published", "url": "https://www.bia.gov/as-ia/opa/online-press-release/cherokee-judgment-fund-plan-published"}],
+    "last_verified": "2026-09-22"
+  }
+]

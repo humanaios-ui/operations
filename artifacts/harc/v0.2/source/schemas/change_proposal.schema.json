@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HARC v0.2 Engineering Change Proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["proposal_id", "component", "observation", "evidence", "proposed_change", "zone", "agent_action", "falsifier", "tests_added"],
+  "properties": {
+    "proposal_id": {"type": "string", "minLength": 1},
+    "component": {"type": "string", "minLength": 1},
+    "observation": {"type": "string", "minLength": 1},
+    "evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "proposed_change": {"type": "string", "minLength": 1},
+    "zone": {"enum": ["Z1", "Z2", "Z3"]},
+    "agent_action": {"enum": ["EXECUTE_LOCAL", "PROPOSE_ONLY", "BLOCKED"]},
+    "falsifier": {"type": "string", "minLength": 1},
+    "tests_added": {"type": "integer", "minimum": 0}
+  }
+}

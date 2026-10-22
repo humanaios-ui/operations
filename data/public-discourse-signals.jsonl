@@ -1,0 +1,12 @@
+# Public Discourse Signals - Append-Only Log
+# Format: Each line is a JSON object representing a signal observation
+# Schema: {timestamp, topic_id, platform, discussion_volume, trending_trajectory, key_concerns[], source_urls[], signal_strength}
+# This file captures global discussion topics relevant to HumanAIOS capabilities
+
+{"timestamp": "2026-09-27T00:00:00Z", "topic_id": "ai-jailbreaks", "platform": "twitter", "discussion_volume": 342, "trending_trajectory": "up_strong", "key_concerns": ["prompt injection", "authorization bypass", "adversarial prompts"], "signal_strength": 0.85, "source_count": 47}
+{"timestamp": "2026-09-27T00:00:00Z", "topic_id": "ai-jailbreaks", "platform": "reddit", "discussion_volume": 89, "trending_trajectory": "up", "key_concerns": ["model failure modes", "safety testing", "mitigation strategies"], "signal_strength": 0.72, "source_count": 23}
+{"timestamp": "2026-09-27T00:00:00Z", "topic_id": "ai-jailbreaks", "platform": "hackernews", "discussion_volume": 34, "trending_trajectory": "up", "key_concerns": ["security implications", "responsible disclosure", "AI safety"], "signal_strength": 0.68, "source_count": 12}
+{"timestamp": "2026-09-27T00:00:00Z", "topic_id": "llm-hallucinations", "platform": "twitter", "discussion_volume": 456, "trending_trajectory": "up", "key_concerns": ["truthfulness", "confidence calibration", "model reliability"], "signal_strength": 0.92, "source_count": 67}
+{"timestamp": "2026-09-27T00:00:00Z", "topic_id": "llm-hallucinations", "platform": "reddit", "discussion_volume": 127, "trending_trajectory": "up", "key_concerns": ["detection methods", "user expectations", "enterprise adoption"], "signal_strength": 0.79, "source_count": 41}
+{"timestamp": "2026-09-27T00:00:00Z", "topic_id": "database-privacy", "platform": "twitter", "discussion_volume": 234, "trending_trajectory": "up", "key_concerns": ["data warehouses", "privacy regulations", "compliance burden"], "signal_strength": 0.81, "source_count": 38}
+{"timestamp": "2026-09-27T00:00:00Z", "topic_id": "database-privacy", "platform": "hackernews", "discussion_volume": 67, "trending_trajectory": "up", "key_concerns": ["security breaches", "data governance", "least privilege"], "signal_strength": 0.74, "source_count": 19}

@@ -147,9 +147,9 @@ class CommitmentRecognizer(TemporalRecognizer):
     def __init__(self):
         # First-person future patterns
         self.patterns = [
-            r"\bI\s+(?:will|'ll|can|could)\s+[^.!?]+(?:next|later|after|tomorrow|when|while)",
-            r"\bI\s+(?:will|'ll|can|could)\s+(?:keep|remain|stay|get|finalize|push|merge|complete)\s+\w+",
-            r"(?:next\s+)?(?:session|week|day|meeting)\s+I\s+(?:will|'ll)\s+[^.!?]+",
+            r"\bI(?:\s+(?:will|can|could)|'ll)\s+[^.!?]+(?:next|later|after|tomorrow|when|while)",
+            r"\bI(?:\s+(?:will|can|could)|'ll)\s+(?:keep|remain|stay|get|finalize|push|merge|complete)\s+\w+",
+            r"(?:next\s+)?(?:session|week|day|meeting)\s+I(?:\s+will|'ll)\s+[^.!?]+",
             r"\bI\s+(?:plan to|intend to|aim to)\s+[^.!?]+(?:by|until)",
         ]
         # Background work patterns

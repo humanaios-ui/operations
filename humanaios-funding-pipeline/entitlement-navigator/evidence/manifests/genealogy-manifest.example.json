@@ -1,0 +1,28 @@
+{
+  "sha256": "<local-only-artifact-hash>",
+  "bytes_count": 0,
+  "people_count": 0,
+  "family_count": 0,
+  "source_count": 0,
+  "object_count": 0,
+  "focus_resolution": "explicit_or_local_assumption",
+  "direct_ancestor_count": 0,
+  "research_flags": {
+    "dawes": false,
+    "allotment": false,
+    "final_roll": false,
+    "enrollment_roll": false,
+    "trust_land": false,
+    "restricted_land": false,
+    "native_american": false,
+    "cherokee_nation": false,
+    "indian_territory": false,
+    "probate": false,
+    "iim": false
+  },
+  "clue_counts": {},
+  "clue_generations": {},
+  "raw_file_committed": false,
+  "private_storage_path": "private/evidence/genealogy/<redacted>",
+  "evidence_policy": "A user-file clue may route research but does not establish enrollment, allotment, title, heirship, or entitlement until corroborated by the relevant authority."
+}

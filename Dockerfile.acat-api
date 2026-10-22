@@ -1,0 +1,39 @@
+# ACAT API (acat/api/app.py, mounted via uvicorn) — the service already live on Railway
+# at api.humanaios.ai (root railway.toml: `uvicorn acat.api.app:app --host 0.0.0.0 --port $PORT`).
+#
+# Build context is the repo root (requirements.txt lives there, not under acat/), but
+# every COPY below is explicit — nothing else in this large, mixed-content repo root
+# (internal planning docs, a resume, archives, z1-inbox/, etc.) reaches the image
+# regardless of how the paired .dockerignore resolves; that file only limits what's
+# uploaded to the build daemon, not what lands in the image.
+#
+#   docker build -f Dockerfile.acat-api -t acat-api .
+#
+# Traced import chain confirms this is the full, exact dependency surface: app.py's five
+# mounted routers (assess, human_score, intake, guidance, findings) never import outside
+# acat/api/ or requirements.txt's own packages. acat/cli/, acat/normalization/, acat/db/,
+# acat/mcp/, and acat/tests/ are separate tools/tests, not part of the API — intentionally
+# not copied.
+FROM python:3.14-slim
+
+WORKDIR /app
+
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY acat/__init__.py ./acat/__init__.py
+COPY acat/api ./acat/api
+
+# Azure Container Apps ingress targets a fixed port — keep in sync with
+# infra/acat-api-containerapp.bicep's targetPort.
+EXPOSE 8080
+
+# Real secrets this service reads (see infra/acat-api-containerapp.bicep for the
+# full list and where each is used) are supplied at deploy time via env vars, never
+# baked into the image. Anthropic API keys are the one exception worth naming: they
+# are NOT a server-side secret here — elicitation_service.py reads `api_key` from
+# each request's own payload (bring-your-own-key), so none is configured below.
+RUN useradd --no-create-home --shell /usr/sbin/nologin appuser
+USER appuser
+
+CMD ["uvicorn", "acat.api.app:app", "--host", "0.0.0.0", "--port", "8080"]

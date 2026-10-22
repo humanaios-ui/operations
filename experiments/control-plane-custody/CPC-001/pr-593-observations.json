@@ -1,0 +1,333 @@
+[
+  {
+    "event_id": "CPC-001-001",
+    "observed_at": null,
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "git_ref",
+      "id": "refs/heads/codex/repository-knowledge-graph-inference",
+      "url": "https://github.com/humanaios-ui/operations/pull/593",
+      "immutable_ref": null
+    },
+    "action": "FORCE_UPDATE_REF",
+    "outcome": {
+      "state": "REFUSED",
+      "summary": "GitHub repository rules refused force-push to the protected PR branch.",
+      "consequence_ref": "issue:620"
+    },
+    "carrier_account": "humanaios-ui",
+    "actor_origin": {
+      "origin_class": "KNOWN_AI",
+      "agent": "ChatGPT",
+      "evidence": ["issue:620 triggering specimen"]
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "GitHub repository rule: force-push prohibited",
+      "evidence_refs": ["issue:620"]
+    },
+    "custody": {
+      "execution": "GitHub ref API",
+      "decision": "repository ruleset",
+      "information": ["ChatGPT"]
+    },
+    "evidence_refs": ["issue:620"],
+    "uncertainty": [
+      "No repository-native audit timestamp for the rejected API mutation is retained in this specimen."
+    ]
+  },
+  {
+    "event_id": "CPC-001-002",
+    "observed_at": "2026-10-01T03:41:02Z",
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "commit",
+      "id": "7b4461866e7eed00fd7960a254d6719d3ff08315",
+      "url": "https://github.com/humanaios-ui/operations/commit/7b4461866e7eed00fd7960a254d6719d3ff08315",
+      "immutable_ref": "7b4461866e7eed00fd7960a254d6719d3ff08315"
+    },
+    "action": "RESTACK_PR_BRANCH_WITH_TWO_PARENT_MERGE",
+    "outcome": {
+      "state": "SUCCEEDED",
+      "summary": "PR #593 branch was restacked without rewriting history.",
+      "consequence_ref": "pr:593"
+    },
+    "carrier_account": "humanaios-ui",
+    "actor_origin": {
+      "origin_class": "KNOWN_AI",
+      "agent": "ChatGPT",
+      "evidence": ["commit watermark: humanaios-origin=ai-agent; agent=ChatGPT"]
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "non-force fast-forward branch update after merge commit creation",
+      "evidence_refs": ["commit:7b4461866e7eed00fd7960a254d6719d3ff08315"]
+    },
+    "custody": {
+      "execution": "GitHub Git Data API",
+      "decision": "ChatGPT",
+      "information": ["humanaios-ui repository state"]
+    },
+    "evidence_refs": [
+      "commit:7b4461866e7eed00fd7960a254d6719d3ff08315",
+      "pr:593"
+    ],
+    "uncertainty": []
+  },
+  {
+    "event_id": "CPC-001-003",
+    "observed_at": "2026-10-01T03:42:11Z",
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "pull_request_comment",
+      "id": "5924271969",
+      "url": "https://github.com/humanaios-ui/operations/pull/593#issuecomment-5924271969",
+      "immutable_ref": "8efd40edb60fca10636778cc82a95cb96bdca875"
+    },
+    "action": "PIN_CALIBRATION_PREDICTION",
+    "outcome": {
+      "state": "SUCCEEDED",
+      "summary": "ci_predict_pin_v2 bound PR #593 prediction to exact head and recorded KNOWN_AI:ChatGPT.",
+      "consequence_ref": "issue:619"
+    },
+    "carrier_account": "github-actions[bot]",
+    "actor_origin": {
+      "origin_class": "KNOWN_BOT",
+      "agent": "github-actions",
+      "evidence": ["GitHub bot comment", "ci_predict_pin_v2 receipt"]
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "ci-predict-pin v2 PR-binding validation",
+      "evidence_refs": ["comment:5924271969"]
+    },
+    "custody": {
+      "execution": "github-actions[bot]",
+      "decision": "ci-predict-pin workflow policy",
+      "information": ["ChatGPT prediction declaration", "GitHub PR state"]
+    },
+    "evidence_refs": ["comment:5924271969", "commit:8efd40edb60fca10636778cc82a95cb96bdca875"],
+    "uncertainty": []
+  },
+  {
+    "event_id": "CPC-001-004",
+    "observed_at": "2026-10-01T03:42:16Z",
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "workflow_run",
+      "id": "36811708349",
+      "url": "https://github.com/humanaios-ui/operations/actions/runs/36811708349",
+      "immutable_ref": "8efd40edb60fca10636778cc82a95cb96bdca875"
+    },
+    "action": "EVALUATE_TOOL_MANIFEST",
+    "outcome": {
+      "state": "FAILED",
+      "summary": "Tool Manifest structural data passed, but rendered view was out of sync and blocked the head.",
+      "consequence_ref": "pr:593"
+    },
+    "carrier_account": "github-actions[bot]",
+    "actor_origin": {
+      "origin_class": "KNOWN_BOT",
+      "agent": "github-actions",
+      "evidence": ["workflow run 36811708349"]
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "tool-manifest blocking CI gate",
+      "evidence_refs": ["run:36811708349"]
+    },
+    "custody": {
+      "execution": "github-actions[bot]",
+      "decision": "tool-manifest workflow policy",
+      "information": ["repository manifest files"]
+    },
+    "evidence_refs": ["run:36811708349", "head:8efd40edb60fca10636778cc82a95cb96bdca875"],
+    "uncertainty": []
+  },
+  {
+    "event_id": "CPC-001-005",
+    "observed_at": "2026-10-01T03:42:11Z",
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "workflow_run",
+      "id": "36811708465",
+      "url": "https://github.com/humanaios-ui/operations/actions/runs/36811708465",
+      "immutable_ref": "8efd40edb60fca10636778cc82a95cb96bdca875"
+    },
+    "action": "EVALUATE_PRINCIPLE_COMPLIANCE",
+    "outcome": {
+      "state": "FAILED",
+      "summary": "Principle checker blocked the 11-file diff under P-COMMIT-DISCIPLINE.",
+      "consequence_ref": "pr:593"
+    },
+    "carrier_account": "github-actions[bot]",
+    "actor_origin": {
+      "origin_class": "KNOWN_BOT",
+      "agent": "github-actions",
+      "evidence": ["workflow run 36811708465"]
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "MECHANICAL",
+      "mechanism": "P-COMMIT-DISCIPLINE blocking gate",
+      "evidence_refs": ["run:36811708465"]
+    },
+    "custody": {
+      "execution": "github-actions[bot]",
+      "decision": "principle-compliance workflow policy",
+      "information": ["PR #593 changed-file set"]
+    },
+    "evidence_refs": ["run:36811708465", "head:8efd40edb60fca10636778cc82a95cb96bdca875"],
+    "uncertainty": []
+  },
+  {
+    "event_id": "CPC-001-006",
+    "observed_at": "2026-10-01T03:44:59Z",
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "commit",
+      "id": "8e4b340e91598ebf009f242ee658846a305f76ce",
+      "url": "https://github.com/humanaios-ui/operations/commit/8e4b340e91598ebf009f242ee658846a305f76ce",
+      "immutable_ref": "8e4b340e91598ebf009f242ee658846a305f76ce"
+    },
+    "action": "CORRECT_RENDERED_MANIFEST",
+    "outcome": {
+      "state": "SUCCEEDED",
+      "summary": "Rendered diagnostic count was corrected after the Tool Manifest failure.",
+      "consequence_ref": "pr:593"
+    },
+    "carrier_account": "humanaios-ui",
+    "actor_origin": {
+      "origin_class": "SHARED_ACCOUNT_ORIGIN_UNKNOWN",
+      "agent": null,
+      "evidence": []
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "PROCEDURAL",
+      "mechanism": "corrective commit after CI evidence",
+      "evidence_refs": ["run:36811708349"]
+    },
+    "custody": {
+      "execution": "GitHub contents API",
+      "decision": "UNKNOWN",
+      "information": ["Tool Manifest CI evidence"]
+    },
+    "evidence_refs": ["commit:8e4b340e91598ebf009f242ee658846a305f76ce", "run:36811708349"],
+    "uncertainty": [
+      "Commit metadata alone does not identify the originating AI/human actor."
+    ]
+  },
+  {
+    "event_id": "CPC-001-007",
+    "observed_at": "2026-10-01T03:45:19Z",
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "pull_request_comment",
+      "id": "5924302923",
+      "url": "https://github.com/humanaios-ui/operations/pull/593#issuecomment-5924302923",
+      "immutable_ref": "8e4b340e91598ebf009f242ee658846a305f76ce"
+    },
+    "action": "REPIN_UNCHANGED_CALIBRATION_DECLARATION",
+    "outcome": {
+      "state": "SUCCEEDED",
+      "summary": "Unchanged P1 declaration was pinned again on a later head, triggering #619.",
+      "consequence_ref": "issue:619"
+    },
+    "carrier_account": "github-actions[bot]",
+    "actor_origin": {
+      "origin_class": "KNOWN_BOT",
+      "agent": "github-actions",
+      "evidence": ["GitHub bot comment", "ci_predict_pin_v2 receipt"]
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "ABSENT",
+      "mechanism": "no one-shot prediction identity check",
+      "evidence_refs": ["issue:619", "comment:5924302923"]
+    },
+    "custody": {
+      "execution": "github-actions[bot]",
+      "decision": "ci-predict-pin workflow policy",
+      "information": ["inherited unchanged P1 declaration", "GitHub PR state"]
+    },
+    "evidence_refs": ["comment:5924302923", "issue:619"],
+    "uncertainty": [
+      "The receipt re-derived actor origin from the later commit, producing shared-account unknown despite the original P1 being KNOWN_AI:ChatGPT."
+    ]
+  },
+  {
+    "event_id": "CPC-001-008",
+    "observed_at": "2026-10-01T03:45:38Z",
+    "repository": "humanaios-ui/operations",
+    "object": {
+      "type": "commit",
+      "id": "f086f48a4ae396e775c8d6d7e10a2c65fe12ed8c",
+      "url": "https://github.com/humanaios-ui/operations/commit/f086f48a4ae396e775c8d6d7e10a2c65fe12ed8c",
+      "immutable_ref": "f086f48a4ae396e775c8d6d7e10a2c65fe12ed8c"
+    },
+    "action": "REMOVE_CAPTURED_P1_FROM_IMPLEMENTATION_DIFF",
+    "outcome": {
+      "state": "SUCCEEDED",
+      "summary": "Captured P1 declaration was removed after receipt creation, returning implementation diff to ten files.",
+      "consequence_ref": "pr:593"
+    },
+    "carrier_account": "humanaios-ui",
+    "actor_origin": {
+      "origin_class": "SHARED_ACCOUNT_ORIGIN_UNKNOWN",
+      "agent": null,
+      "evidence": []
+    },
+    "authority_evidence": {
+      "state": "NONE",
+      "scope": null,
+      "refs": []
+    },
+    "boundary": {
+      "state": "PROCEDURAL",
+      "mechanism": "corrective commit after principle-compliance evidence",
+      "evidence_refs": ["run:36811708465"]
+    },
+    "custody": {
+      "execution": "GitHub contents API",
+      "decision": "UNKNOWN",
+      "information": ["principle-compliance CI evidence"]
+    },
+    "evidence_refs": ["commit:f086f48a4ae396e775c8d6d7e10a2c65fe12ed8c", "run:36811708465"],
+    "uncertainty": [
+      "Commit metadata alone does not identify the originating AI/human actor."
+    ]
+  }
+]

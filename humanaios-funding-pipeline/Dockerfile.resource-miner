@@ -1,0 +1,34 @@
+# Build from humanaios-funding-pipeline/ (not resource-miner/ alone) — app.py resolves
+# the canonical funding dataset at ../data/sources.json relative to itself, same as the
+# existing nixpacks.toml Railway deployment (`cd resource-miner && python3 app.py ...`).
+#
+#   docker build -f Dockerfile.resource-miner -t resource-miner .
+#
+# resource_miner's own pyproject.toml declares dependencies = [] (stdlib only), so
+# there is no pip install step.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY resource-miner/resource_miner/ ./resource-miner/resource_miner/
+COPY resource-miner/app.py ./resource-miner/app.py
+COPY resource-miner/pyproject.toml ./resource-miner/pyproject.toml
+COPY resource-miner/data/needs.seed.json ./resource-miner/data/needs.seed.json
+COPY resource-miner/data/resources.seed.jsonl ./resource-miner/data/resources.seed.jsonl
+COPY resource-miner/data/resources.snapshot.jsonl ./resource-miner/data/resources.snapshot.jsonl
+COPY data/sources.json ./data/sources.json
+
+WORKDIR /app/resource-miner
+
+# Azure Container Apps ingress targets a fixed port (no injected $PORT like Railway/Heroku) —
+# keep this in sync with infra/resource-miner-containerapp.bicep's targetPort.
+EXPOSE 8080
+
+# Unprivileged user. GET /api/scan?persist=1 writes resource-miner/data/resources.jsonl
+# at request time (see README's "Three data/resources*.jsonl files" section) — only that
+# directory needs to stay writable; the code itself does not.
+RUN useradd --no-create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app/resource-miner/data
+USER appuser
+
+CMD ["python3", "app.py", "--host", "0.0.0.0", "--port", "8080"]

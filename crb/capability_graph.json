@@ -1,0 +1,313 @@
+{
+  "graph_id": "CRB-AGENTIC-CAPABILITY-GRAPH-0.1",
+  "status": "PROTOTYPE",
+  "source_context": "Agentic AI Roadmap 2026 image supplied by operator; mapped to existing HumanAIOS graph and CRB proposal",
+  "principle": "capability is not authority; every capability edge must terminate in evidence, control, or an explicit unresolved boundary before consequential action",
+  "node_types": [
+    "capability_stage",
+    "humanaios_primitive",
+    "crb_role",
+    "artifact",
+    "gate"
+  ],
+  "stages": [
+    {
+      "id": "CAP-01",
+      "label": "Programming & Prompting",
+      "maps_to": [
+        "review contract",
+        "structured output",
+        "prompt hash",
+        "context hash"
+      ],
+      "existing_refs": [
+        "CLAUDE.md"
+      ],
+      "crb_refs": [
+        "Reviewer Contract"
+      ]
+    },
+    {
+      "id": "CAP-02",
+      "label": "Basics of AI Agents",
+      "maps_to": [
+        "goal decomposition",
+        "decision policy",
+        "agent runtime"
+      ],
+      "existing_refs": [
+        "system_graph.json:AG"
+      ],
+      "crb_refs": [
+        "Voting Auditor contract"
+      ]
+    },
+    {
+      "id": "CAP-03",
+      "label": "LLMs & APIs",
+      "maps_to": [
+        "replaceable reviewer substrates",
+        "provider/model provenance"
+      ],
+      "existing_refs": [
+        "TOOLS_MANIFEST.md"
+      ],
+      "crb_refs": [
+        "RID.S",
+        "reviewer provenance"
+      ]
+    },
+    {
+      "id": "CAP-04",
+      "label": "Tool Use & Integration",
+      "maps_to": [
+        "capability manifests",
+        "tool execution receipts",
+        "scoped permissions"
+      ],
+      "existing_refs": [
+        "tools-manifest.yaml"
+      ],
+      "crb_refs": [
+        "RID.T",
+        "deterministic checks"
+      ]
+    },
+    {
+      "id": "CAP-05",
+      "label": "Agent Frameworks",
+      "maps_to": [
+        "adapter boundary rather than framework lock-in"
+      ],
+      "existing_refs": [
+        "system_graph.json:AG"
+      ],
+      "crb_refs": [
+        "reviewer substitution contract"
+      ]
+    },
+    {
+      "id": "CAP-06",
+      "label": "Orchestration & Automation",
+      "maps_to": [
+        "state machine",
+        "workflow dependency graph",
+        "event triggers"
+      ],
+      "existing_refs": [
+        "docs/WORKFLOW_DEPENDENCY_GRAPH.md"
+      ],
+      "crb_refs": [
+        "review state machine",
+        "Gate Controller"
+      ]
+    },
+    {
+      "id": "CAP-07",
+      "label": "Memory Management",
+      "maps_to": [
+        "append-only events",
+        "calibration ledger",
+        "frozen context"
+      ],
+      "existing_refs": [
+        "system_graph.json:EV",
+        "system_graph.json:NF"
+      ],
+      "crb_refs": [
+        "events.jsonl",
+        "first-pass freeze"
+      ]
+    },
+    {
+      "id": "CAP-08",
+      "label": "Knowledge & RAG",
+      "maps_to": [
+        "intent graph",
+        "evidence graph",
+        "retrieval provenance"
+      ],
+      "existing_refs": [
+        "INTENT_GRAPH.yaml",
+        "EVIDENCE_GRAPH.json"
+      ],
+      "crb_refs": [
+        "Evidence Clerk",
+        "RID.D"
+      ]
+    },
+    {
+      "id": "CAP-09",
+      "label": "Deployment",
+      "maps_to": [
+        "clean replay runtime",
+        "portable environment lock",
+        "isolated execution"
+      ],
+      "existing_refs": [
+        "system_graph.json:CIG"
+      ],
+      "crb_refs": [
+        "HumanAIOS Removal Test"
+      ]
+    },
+    {
+      "id": "CAP-10",
+      "label": "Monitoring & Evaluation",
+      "maps_to": [
+        "ACAT",
+        "SMAG",
+        "telemetry",
+        "calibration observer"
+      ],
+      "existing_refs": [
+        "docs/RECURSIVE_REVIEW_LOOP.md",
+        "system_graph.json:NF"
+      ],
+      "crb_refs": [
+        "Calibration Observer",
+        "RID",
+        "cross-run comparison"
+      ]
+    },
+    {
+      "id": "CAP-11",
+      "label": "Security & Governance",
+      "maps_to": [
+        "authorization",
+        "tamper evidence",
+        "identity attestation",
+        "human authority"
+      ],
+      "existing_refs": [
+        "system_graph.json:Z2",
+        "system_graph.json:MK",
+        "system_graph.json:CIG"
+      ],
+      "crb_refs": [
+        "Gate Controller",
+        "signed verdicts",
+        "externality classes"
+      ]
+    }
+  ],
+  "crb_nodes": [
+    {
+      "id": "CRB-IN",
+      "type": "crb_role",
+      "label": "Evidence Intake"
+    },
+    {
+      "id": "CRB-EC",
+      "type": "crb_role",
+      "label": "Evidence Clerk"
+    },
+    {
+      "id": "CRB-EA",
+      "type": "crb_role",
+      "label": "Evaluation Auditor"
+    },
+    {
+      "id": "CRB-MA",
+      "type": "crb_role",
+      "label": "Measurement Auditor"
+    },
+    {
+      "id": "CRB-AA",
+      "type": "crb_role",
+      "label": "Adversarial Auditor"
+    },
+    {
+      "id": "CRB-CO",
+      "type": "crb_role",
+      "label": "Calibration Observer"
+    },
+    {
+      "id": "CRB-GC",
+      "type": "gate",
+      "label": "Mechanical Gate Controller"
+    },
+    {
+      "id": "CRB-PRP",
+      "type": "artifact",
+      "label": "Portable Review Package"
+    },
+    {
+      "id": "CRB-EXT",
+      "type": "crb_role",
+      "label": "External Replay Runtime"
+    }
+  ],
+  "edges": [
+    {
+      "from": "CRB-IN",
+      "to": "CRB-EC",
+      "rel": "freezes"
+    },
+    {
+      "from": "CRB-EC",
+      "to": "CRB-EA",
+      "rel": "supplies_raw_evidence"
+    },
+    {
+      "from": "CRB-EC",
+      "to": "CRB-MA",
+      "rel": "supplies_raw_evidence"
+    },
+    {
+      "from": "CRB-EC",
+      "to": "CRB-AA",
+      "rel": "supplies_raw_evidence"
+    },
+    {
+      "from": "CRB-EA",
+      "to": "CRB-CO",
+      "rel": "emits_frozen_first_pass"
+    },
+    {
+      "from": "CRB-MA",
+      "to": "CRB-CO",
+      "rel": "emits_frozen_first_pass"
+    },
+    {
+      "from": "CRB-AA",
+      "to": "CRB-CO",
+      "rel": "emits_frozen_first_pass"
+    },
+    {
+      "from": "CRB-CO",
+      "to": "CRB-GC",
+      "rel": "emits_integrity_and_independence_flags"
+    },
+    {
+      "from": "CRB-EA",
+      "to": "CRB-GC",
+      "rel": "votes"
+    },
+    {
+      "from": "CRB-MA",
+      "to": "CRB-GC",
+      "rel": "votes"
+    },
+    {
+      "from": "CRB-AA",
+      "to": "CRB-GC",
+      "rel": "votes"
+    },
+    {
+      "from": "CRB-GC",
+      "to": "CRB-PRP",
+      "rel": "seals"
+    },
+    {
+      "from": "CRB-PRP",
+      "to": "CRB-EXT",
+      "rel": "replayed_by"
+    },
+    {
+      "from": "CRB-EXT",
+      "to": "CRB-PRP",
+      "rel": "emits_comparison_run"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/guiding-light-gradient-v0.2.schema.json",
+  "title": "Guiding Light General Gradient Snapshot",
+  "type": "object",
+  "required": ["schema_version", "subject", "domain", "declared_goal_source", "targets"],
+  "properties": {
+    "schema_version": {"const": "0.2.0"},
+    "subject": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {
+          "enum": ["person", "organization", "project", "system", "program", "community", "vendor", "custom"]
+        },
+        "profile_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "domain": {
+      "enum": [
+        "career",
+        "learning",
+        "funding",
+        "research",
+        "procurement",
+        "entitlement",
+        "certification",
+        "project",
+        "organization",
+        "resource",
+        "custom"
+      ]
+    },
+    "declared_goal_source": {"type": "string", "minLength": 1},
+    "selected_target": {"type": ["string", "null"]},
+    "source_refs": {"type": "array", "items": {"type": "string"}},
+    "omissions": {"type": "array", "items": {"type": "string"}},
+    "uncertainty": {"type": "array", "items": {"type": "string"}},
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "domain", "requirements"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "domain": {"type": "string", "minLength": 1},
+          "target_type": {"type": "string"},
+          "target_value": {"type": "number", "minimum": 0, "maximum": 1},
+          "value_axes": {
+            "type": "object",
+            "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "label", "mapping_state"],
+              "properties": {
+                "id": {"type": "string"},
+                "label": {"type": "string"},
+                "weight": {"type": "number", "minimum": 0},
+                "mandatory": {"type": "boolean"},
+                "mapping_state": {
+                  "enum": [
+                    "DOCUMENTED",
+                    "USER_ATTESTED",
+                    "TRANSFERABLE",
+                    "PARTIAL",
+                    "PLANNED",
+                    "UNKNOWN",
+                    "NOT_HELD",
+                    "BLOCKED"
+                  ]
+                },
+                "gap_type": {
+                  "enum": [
+                    "unknown",
+                    "knowledge",
+                    "evidence",
+                    "credential",
+                    "experience",
+                    "authority",
+                    "partnership",
+                    "resource",
+                    "capability",
+                    "blocker"
+                  ]
+                },
+                "evidence_refs": {"type": "array", "items": {"type": "string"}},
+                "artifact_target": {"type": ["string", "null"]}
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

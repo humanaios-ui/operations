@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entitlement Navigator</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;background:#111;color:#eee}body{max-width:1040px;margin:0 auto;padding:24px}h1{margin-bottom:4px}.muted{color:#aaa}.panel{border:1px solid #444;border-radius:12px;padding:18px;margin:18px 0;background:#181818}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}label{display:block;font-weight:650;margin:8px 0 5px}textarea,input,select,button{width:100%;box-sizing:border-box;border:1px solid #555;border-radius:8px;padding:10px;background:#101010;color:#eee}textarea{min-height:90px}button{cursor:pointer;background:#2b2b2b;font-weight:700;margin-top:10px}button:hover{background:#363636}.tag{display:inline-block;border:1px solid #555;border-radius:999px;padding:3px 8px;margin:2px;font-size:.85rem}.status{font-weight:800}.RULE_MATCH{color:#9ee6a5}.INVESTIGATE{color:#ffd47d}.CONDITIONAL_MATCH{color:#f2bd70}.GENERAL_OPPORTUNITY{color:#9ac7ff}.INELIGIBLE,.CLOSED_HISTORICAL{color:#aaa}.result{border-top:1px solid #333;padding:12px 0}.hidden{display:none}.small{font-size:.88rem}.error{color:#ff9b9b;white-space:pre-wrap}pre{white-space:pre-wrap;word-break:break-word;background:#0b0b0b;padding:12px;border-radius:8px;max-height:420px;overflow:auto}input[type=file]{padding:8px}.actions button{width:auto;margin-right:8px}.checkboxes label{font-weight:400;display:flex;gap:8px;align-items:center}.checkboxes input{width:auto}.bar{display:flex;gap:10px;flex-wrap:wrap}.bar button{width:auto}</style>
+</head>
+<body>
+<h1>Entitlement Navigator</h1>
+<p class="muted">General intake → adaptive interrogation → evidence → research → actionable case file. Local-first; no profile persistence.</p>
+
+<section class="panel" id="intake">
+<h2>1. General intake</h2>
+<label for="statement">What are you trying to find, recover, fund, protect, or apply for?</label>
+<textarea id="statement" placeholder="Describe the situation in your own words. Do not enter SSNs, bank numbers, passwords, or full tribal ID numbers."></textarea>
+<div class="grid">
+<div><label>Applicant roles</label><div class="checkboxes" id="roles"></div></div>
+<div><label>Outcomes to investigate</label><div class="checkboxes" id="goals"></div></div>
+</div>
+<button id="start">Start adaptive intake</button>
+</section>
+
+<section class="panel hidden" id="interview">
+<h2>2. Adaptive interrogation</h2>
+<p class="muted small" id="domains"></p>
+<div id="question"></div>
+<div class="bar"><button id="answer">Save answer & continue</button><button id="evaluate">Generate case file now</button></div>
+</section>
+
+<section class="panel">
+<h2>Optional evidence: genealogy</h2>
+<p class="muted small">Import an existing GEDCOM only when ancestry, estate, trust land, allotment, probate, or inherited assets are relevant. A clue routes research; it does not establish legal ownership or enrollment.</p>
+<div class="grid"><div><label for="gedfile">GEDCOM file</label><input id="gedfile" type="file" accept=".ged,.gedcom,text/plain"></div><div><label for="focus">Focus person (optional)</label><input id="focus" placeholder="Full name or GEDCOM ID"></div></div>
+<button id="importGed">Import locally into this session</button>
+<p id="gedStatus" class="muted small"></p>
+</section>
+
+<section class="panel hidden" id="casePanel">
+<h2>3. Actionable case</h2>
+<div id="summary"></div>
+<h3>Prioritized actions</h3><div id="actions"></div>
+<h3>Pathways</h3><div id="pathways"></div>
+<h3>Research queue</h3><div id="research"></div>
+<div class="bar"><button id="downloadCase">Download case JSON</button><button id="downloadSkill">Generate research skill</button></div>
+</section>
+
+<section class="panel">
+<h2>Funding discovery</h2>
+<p class="muted small">Searches the existing HumanAIOS funding pipeline when installed there. Results remain GENERAL_OPPORTUNITY until authoritative eligibility is checked.</p>
+<div class="grid"><div><label for="fundingKeyword">Keyword</label><input id="fundingKeyword" placeholder="e.g. native, housing, research, small business"></div><div><label>&nbsp;</label><button id="searchFunding">Search canonical funding dataset</button></div></div>
+<div id="fundingResults"></div>
+</section>
+
+<p id="error" class="error"></p>
+<script>
+(function(){
+'use strict';
+var profile={}, genealogyPatch=null, genealogySummary=null, currentQuestion=null, currentCase=null;
+var roles=['Individual','Household','Business','Nonprofit','Estate / heir','Property owner / buyer','Student','Veteran / military family','Farmer / rancher'];
+var goals=['Existing asset / unclaimed money','Current benefits / assistance','Business capital','Contracts / procurement','Education / training','Housing / property','Estate / inheritance','Tribal trust land / IIM','Agriculture','Veteran benefits','Grants / general funding'];
+function el(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function checks(target,values,prefix){el(target).innerHTML=values.map(function(v,i){var id=prefix+i;return '<label><input type="checkbox" id="'+id+'" value="'+esc(v)+'"> '+esc(v)+'</label>'}).join('')}
+checks('roles',roles,'role');checks('goals',goals,'goal');
+function selected(target){return Array.prototype.slice.call(el(target).querySelectorAll('input:checked')).map(function(x){return x.value})}
+async function api(path,body){var r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});var data=await r.json();if(!r.ok)throw new Error(data.error||('HTTP '+r.status));return data}
+function fail(e){el('error').textContent=e && e.message?e.message:String(e)}
+function clearError(){el('error').textContent=''}
+function renderQuestion(q){currentQuestion=q;var box=el('question');if(!q){box.innerHTML='<p>Interrogation complete for the currently active domains.</p>';return}var h='<label for="qinput">'+esc(q.label)+'</label>';if(q.help)h+='<p class="muted small">'+esc(q.help)+'</p>';if(q.type==='boolean'){h+='<select id="qinput"><option value="">Unknown / not answered</option><option value="true">Yes</option><option value="false">No</option></select>'}else if(q.type==='multiselect'){h+='<div id="qinput" class="checkboxes">'+(q.options||[]).map(function(v,i){return '<label><input type="checkbox" value="'+esc(v)+'"> '+esc(v)+'</label>'}).join('')+'</div>'}else if(q.type==='number'){h+='<input id="qinput" type="number">'}else if(q.type==='textarea'){h+='<textarea id="qinput"></textarea>'}else{h+='<input id="qinput" type="text">'}box.innerHTML=h}
+async function next(){var state=await api('/api/interrogate/next',{profile:profile});el('interview').classList.remove('hidden');el('domains').textContent='Active modules: '+(state.active_domains||[]).join(', ');renderQuestion(state.next_question)}
+el('start').onclick=async function(){try{clearError();profile={intake_statement:el('statement').value.trim(),applicant_roles:selected('roles'),funding_goals:selected('goals')};await next()}catch(e){fail(e)}};
+el('answer').onclick=async function(){try{clearError();if(!currentQuestion)return;var input=el('qinput'),v;if(currentQuestion.type==='boolean'){if(input.value==='')v=null;else v=input.value==='true'}else if(currentQuestion.type==='number'){v=input.value===''?null:Number(input.value)}else if(currentQuestion.type==='multiselect'){v=Array.prototype.slice.call(input.querySelectorAll('input:checked')).map(function(x){return x.value})}else{v=input.value.trim()}profile[currentQuestion.id]=v;await next()}catch(e){fail(e)}};
+async function evaluate(){currentCase=await api('/api/case/evaluate',{profile:profile,genealogy_patch:genealogyPatch,genealogy_summary:genealogySummary});renderCase(currentCase)}
+el('evaluate').onclick=function(){evaluate().catch(fail)};
+function renderCase(c){el('casePanel').classList.remove('hidden');el('summary').innerHTML='<p><strong>'+esc(c.case_id)+'</strong></p><p>'+Object.keys(c.resolution.status_counts||{}).map(function(k){return '<span class="tag '+esc(k)+'">'+esc(k)+': '+esc(c.resolution.status_counts[k])+'</span>'}).join(' ')+'</p>';el('actions').innerHTML=(c.action_plan||[]).map(function(a){return '<div class="result"><strong>'+esc(a.type)+': '+esc(a.title)+'</strong><br>'+esc(a.action)+'</div>'}).join('')||'<p class="muted">No action generated yet.</p>';el('pathways').innerHTML=(c.pathways||[]).map(function(p){return '<div class="result"><span class="status '+esc(p.status)+'">'+esc(p.status)+'</span> · <strong>'+esc(p.title)+'</strong><p>'+esc(p.summary)+'</p><p class="small">Missing/required evidence: '+esc((p.required_evidence||[]).join('; ')||'None listed')+'</p></div>'}).join('')||'<p class="muted">No specialized pathways activated.</p>';el('research').innerHTML=(c.research_queue||[]).map(function(t){return '<div class="result"><strong>'+esc(t.task_id)+' · '+esc(t.title)+'</strong><p>'+esc(t.purpose)+'</p><p class="small">Authority: '+esc(t.authority)+'</p></div>'}).join('')||'<p class="muted">No external research task generated.</p>';window.scrollTo({top:el('casePanel').offsetTop-12,behavior:'smooth'})}
+el('importGed').onclick=async function(){try{clearError();var f=el('gedfile').files[0];if(!f)throw new Error('Choose a GEDCOM file first.');var text=await f.text();var out=await api('/api/genealogy/import',{gedcom_text:text,focus_query:el('focus').value.trim()});genealogyPatch=out.profile_patch;genealogySummary=out.summary;el('gedStatus').textContent='Imported for this session: '+out.summary.people_count+' people, '+out.summary.direct_ancestor_count+' direct ancestors, '+out.summary.clues.length+' routed clues. No legal fact has been inferred from a clue.';await evaluate()}catch(e){fail(e)}};
+function download(name,text,type){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type||'text/plain'}));a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},500)}
+el('downloadCase').onclick=function(){if(currentCase)download(currentCase.case_id+'.json',JSON.stringify(currentCase,null,2),'application/json')};
+el('downloadSkill').onclick=async function(){try{if(!currentCase)throw new Error('Generate a case file first.');var r=await api('/api/skill/generate',{casefile:currentCase});download(r.filename,r.skill,'text/markdown')}catch(e){fail(e)}};
+el('searchFunding').onclick=async function(){try{clearError();var r=await api('/api/funding/local/search',{keyword:el('fundingKeyword').value.trim(),limit:30});el('fundingResults').innerHTML=(r.results||[]).map(function(x){return '<div class="result"><span class="status GENERAL_OPPORTUNITY">GENERAL_OPPORTUNITY</span> · <strong>'+esc(x.name)+'</strong><p>'+esc(x.sponsor||'')+' · '+esc(x.category||'')+' · '+esc(x.award_size||'')+'</p><p class="small">'+esc(x.note)+'</p></div>'}).join('')||'<p class="muted">No matching local funding records.</p>'}catch(e){fail(e)}};
+})();
+</script>
+</body>
+</html>

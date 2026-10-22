@@ -42,7 +42,12 @@ scope:
   - "<Example: humanaios, humanaios-internal, REGISTERED.md>"
 
 resource_cost:
-  estimated_effort_units: <integer>  # 1-10 scale; 1 = trivial, 10 = massive
+  cost:
+    RAT-min: <number>   # 0 if no Z2 ratification time required
+    Z1-ktok: <number>
+    Z3-hr: <number>
+    CI-min: <number>
+  # Add only units that apply; keys must be RESOURCE_UNITS.yaml symbols
   dependencies: ["<dependency_id>", "ZONE_REGISTRY.md", "CLAUDE.md"]
   blocking_on: ["<other_candidate_id>", "Q-IC001"]  # If blocked by another candidate, list it
 
@@ -85,7 +90,17 @@ z2_decision:
 
 # Optional fields:
 related_candidates: ["Q-IC001", "Q-IC029"]
-regulatory_deadline: null  # If externally constrained (e.g., GDPR), RFC3339 timestamp (e.g., "2026-09-30T23:59:59Z")
+external_constraint: null  # Optional; must satisfy schemas/external_constraint.schema.json when present
+# external_constraint:
+#   type: REGULATORY_DEADLINE
+#   temporal_class: REGULATORY_EXTERNAL
+#   authority: <issuing authority>
+#   citation: <statute/regulation/order/mandate>
+#   due_at: <RFC3339>
+#   evidence_ref: <immutable artifact/source>
+#   impact_if_missed: <consequence>
+#   z2_ratified: true
+#   ratification_ref: <durable decision/hash/comment reference>
 links:
   - name: "Related PR"
     url: ""
@@ -121,7 +136,11 @@ scope:
   - "BOOT_PROCESS_MAP.md"
 
 resource_cost:
-  estimated_effort_units: 4
+  cost:
+    RAT-min: 0
+    Z1-ktok: 4
+    Z3-hr: 0
+    CI-min: 0
   dependencies: 
     - "REGISTERED.md (structure)"
     - "BOOT_PROCESS_MAP.md (boot order)"
@@ -162,7 +181,7 @@ z2_decision:
   z2_notes: ""
 
 related_candidates: ["Q-BOOT-PROCESS-MAP-01"]
-regulatory_deadline: null
+external_constraint: null
 links:
   - name: "Draft PR"
     url: "https://github.com/humanaios-ui/operations/pull/XXX"
@@ -196,7 +215,9 @@ scope:
   - "CI gates (falsifier_lint)"
 
 resource_cost:
-  estimated_effort_units: 2
+  cost:
+    RAT-min: 2
+    Z1-ktok: 1
   dependencies: ["GOVERNANCE_FILES.md"]
   blocking_on: []
 
@@ -233,7 +254,7 @@ z2_decision:
   ratification_hash: null
   z2_notes: ""
 
-regulatory_deadline: null
+external_constraint: null
 ```
 
 ---
@@ -261,7 +282,10 @@ scope:
   - "All 31 zones (Z3 agents)"
 
 resource_cost:
-  estimated_effort_units: 5
+  cost:
+    RAT-min: 15
+    Z1-ktok: 3
+    Z3-hr: 2
   dependencies: 
     - "behavior_spec.json (current value)"
     - "NF_LEDGER.jsonl (measurement baseline)"
@@ -304,7 +328,7 @@ z2_decision:
   z2_notes: ""
 
 related_candidates: ["Q-IC031-BUDGET-TRACKING-01"]
-regulatory_deadline: null
+external_constraint: null
 ```
 
 ---
@@ -313,7 +337,7 @@ regulatory_deadline: null
 
 1. **Draft candidate** in `z1-inbox/<DATE>/<CANDIDATE_ID>.md` (use template above)
 2. **Include falsifier** (required; z2_ratification_gate.yml blocks if missing)
-3. **Estimate resource_cost** (1-10 effort units; be honest)
+3. **Estimate resource_cost** as a unit vector keyed by `RESOURCE_UNITS.yaml`
 4. **Predict impact** (positive outcomes + risk factors)
 5. **Submit to Z2** (ping in chat or via REGISTERED.md link)
 6. **Z2 ratifies, edits, or rejects:**
@@ -339,7 +363,7 @@ regulatory_deadline: null
 | `evidence` | References supporting the proposal | ✅ |
 | `z2_decision` | Status, hash, notes | Auto-filled by Z2 |
 | `related_candidates` | Links to other candidates | ⭕ (optional) |
-| `regulatory_deadline` | External time constraint (rare) | ⭕ (optional) |
+| `external_constraint` | Regulatory exception object (must satisfy schema when present) | ⭕ (optional) |
 | `links` | PR, Figma, docs | ⭕ (optional) |
 
 ---
