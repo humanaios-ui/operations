@@ -72,7 +72,7 @@ def project_feedback(payload: dict) -> dict:
             raise ValueError("Invalid candidate identifier")
         if not isinstance(title, str) or not 1 <= len(title) <= 180:
             raise ValueError("Invalid candidate title")
-        if status not in STATUSES:
+        if not isinstance(status, str) or status not in STATUSES:
             raise ValueError("Unknown or authorizing feedback status")
         src = public_link(item["source_url"])
         related = item["related_url"]
