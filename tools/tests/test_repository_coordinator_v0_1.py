@@ -459,6 +459,23 @@ def test_pure_control_plane_change_remains_exempt():
     assert item(idx, 1)["lane"] == "CONTROL_PLANE"
 
 
+def test_control_plane_pr_routes_to_z2_not_advance():
+    p = pr(1, body="- [x] **Z2**", files=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"])
+    idx = run([p], policy_data=policy(control_paths=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"]))
+    got = item(idx, 1)
+    assert got["lane"] == "CONTROL_PLANE"
+    assert got["guidance"]["action"] == "ROUTE_TO_Z2"
+    assert "not admitted" in got["guidance"]["next_action"]
+
+
+def test_control_plane_section_is_separate_from_active_queue():
+    p = pr(1, body="- [x] **Z2**", files=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"])
+    idx = run([p], policy_data=policy(control_paths=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"]))
+    text = render_markdown(idx)
+    assert "### Control plane" in text
+    assert "### Active operator queue" not in text
+
+
 def test_control_plane_support_artifact_is_exempt_only_with_core_change():
     p = pr(
         1,

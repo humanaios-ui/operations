@@ -2,11 +2,25 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 111
-  records: 63
+  candidates: 113
+  records: 64
 ratifiers:
 - Night
 candidates:
+- q_id: Q-EXTERNAL-ADVISORY-INTAKE-01
+  title: Finding — no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded)
+  path: z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 0
+  note: Draft from read-only PHP exposure audit. Proposes an EXTERNAL-ADVISORY callout (Z2, urgent 24h) and per-advisory applicability records. Falsifier stated. Not ratified.
+- q_id: Q-HOST-INVENTORY-01
+  title: Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked
+  path: z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 0
+  note: Draft from read-only PHP exposure audit. Proposes HOST_INVENTORY.yaml and a CI guard against tracked .php files. Live hosts unverified (egress blocked). Falsifier stated. Not ratified.
 - q_id: Q-WITNESS-DATA-PLANE-01
   title: Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only
   path: z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md
@@ -22,9 +36,9 @@ candidates:
   tier: 0
   note: 'PR #843. Adds tools/graph_lookup_v0_1.py (HAIOS-TOOL-224): stdlib, read-only, refuses graphs whose integrity digest fails, reports FRESH/STALE/DIRTY against HEAD. Ratified by Night 2026-10-15 (tool only; §A wiring and graph commit remain open).'
   ratified_by: Night
-  ratified_at: '2026-10-15'
-  z2_ruling: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
-  z2_hash: d80d38e5fa2041f3c6a3e79ad7706dee3bcf6f3879987e63ee1c4b4ba832ff6c
+  ratified_at: '2026-10-22'
+  z2_ruling: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+  z2_hash: 3d9fd60e45ad381233420f6086dcfee37da3b44d657c6ba6986ea9286d63e800
 - q_id: Q-MULTI-AGENT-QUEUE-PLAN-01
   title: Multi-agent plan to work the intentionally backed-up PR queue as a governed experiment
   path: z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md
@@ -849,13 +863,14 @@ candidates:
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
 records:
-- path: z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md
-  title: "Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py)"
-  note: "Z2 decision record for 2026-10-15. Indexed late: the file was present under z1-inbox/ but absent from this index, so validate.py failed on Q-MULTI-AGENT-QUEUE-PLAN-01. Signatures are unchanged."
 - path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
     \ signature appends a section carrying its own sha256."
+- title: Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record)
+  path: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+  submitted: '2026-10-22'
+  note: 'Re-signs the current candidate bytes after the 2026-10-15 signature stopped verifying. The earlier record is kept as superseded. Scope unchanged.'
 - title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
   submitted: '2026-10-15'
@@ -866,6 +881,9 @@ records:
 - path: z1-inbox/2026-10-14/HANDOFF.md
   title: Session Handoff — Multi-agent queue plan (Q-MULTI-AGENT-QUEUE-PLAN-01)
   note: §B handoff for the session that filed Q-MULTI-AGENT-QUEUE-PLAN-01. Claim-vs-tree table, what was deliberately not done, findings scan, next blockers (Decision Sheet 1; D1 decides who merges; index collision with PR
+- path: z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md
+  title: "Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   title: Z2 rulings — 2026-10-14 (signed via .z1-control/ratify.py)
   note: Written by ratify.py --apply. One file per decision date; each signature appends a section carrying its own sha256.
