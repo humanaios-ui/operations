@@ -13,7 +13,7 @@ CONTROLS = {
 def sample_size(n):
     if type(n) is not int or n < 0:
         raise ValueError("Invalid population")
-    return min(n, max(5, math.ceil(n * .1)))
+    return min(n, max(30, math.ceil(n * .1)))
 
 def upper95_zero_failures(n):
     return 1 - .05 ** (1 / n) if type(n) is int and n > 0 else None
