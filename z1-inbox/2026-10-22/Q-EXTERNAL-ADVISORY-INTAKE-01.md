@@ -1,14 +1,14 @@
-# F-CAND-EXTERNAL-ADVISORY-INTAKE-01 — Z1 Candidate (UNRATIFIED)
+# Q-EXTERNAL-ADVISORY-INTAKE-01 — Z1 Candidate (UNRATIFIED)
 
 **Status:** `awaiting_ratification` — draft only. Not indexed, not entered in REGISTERED.md, not in PRIORITY_QUEUE.md.
 **Author:** Z1 (Claude)
 **Proposed:** 2026-10-22T10:44:14Z
-**Source audit:** `z1-inbox/2026-10-22/` companion `F-CAND-HOST-INVENTORY-01.md`; session report `php-exposure-audit-2026-10-22.md` (scratchpad, not in repo)
+**Source audit:** `z1-inbox/2026-10-22/` companion `Q-HOST-INVENTORY-01.md`; session report `php-exposure-audit-2026-10-22.md` (scratchpad, not in repo)
 
 ---
 
 ```yaml
-candidate_id: "F-CAND-EXTERNAL-ADVISORY-INTAKE-01"
+candidate_id: "Q-EXTERNAL-ADVISORY-INTAKE-01"
 title: "Finding: no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded)"
 
 description: |
@@ -39,7 +39,7 @@ resource_cost:
     Z1-ktok: 3
     Z3-hr: 0
     CI-min: 0
-  dependencies: ["CLAUDE.md", "SECURITY.md", "F-CAND-HOST-INVENTORY-01"]
+  dependencies: ["CLAUDE.md", "SECURITY.md", "Q-HOST-INVENTORY-01"]
   blocking_on: []
 
 impact_prediction:
@@ -85,7 +85,7 @@ z2_decision:
   ratification_hash: null
   z2_notes: ""
 
-related_candidates: ["F-CAND-HOST-INVENTORY-01"]
+related_candidates: ["Q-HOST-INVENTORY-01"]
 external_constraint:
   type: "EXTERNAL_ADVISORY"
   note: "Advisory timing is set by the upstream vendor, not by the ratification window. Included for routing only; not a regulatory deadline."
@@ -93,7 +93,7 @@ links:
   - name: "PHP2Shell analysis (Datadog)"
     url: "https://securitylabs.datadoghq.com/articles/php2shell-critical-vulnerabilities-in-php/"
   - name: "Companion candidate"
-    url: "z1-inbox/2026-10-22/F-CAND-HOST-INVENTORY-01.md"
+    url: "z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md"
 ```
 
 ---

@@ -2,11 +2,25 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 110
+  candidates: 112
   records: 62
 ratifiers:
 - Night
 candidates:
+- q_id: Q-EXTERNAL-ADVISORY-INTAKE-01
+  title: Finding — no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded)
+  path: z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 0
+  note: Draft from read-only PHP exposure audit. Proposes an EXTERNAL-ADVISORY callout (Z2, urgent 24h) and per-advisory applicability records. Falsifier stated. Not ratified.
+- q_id: Q-HOST-INVENTORY-01
+  title: Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked
+  path: z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 0
+  note: Draft from read-only PHP exposure audit. Proposes HOST_INVENTORY.yaml and a CI guard against tracked .php files. Live hosts unverified (egress blocked). Falsifier stated. Not ratified.
 - q_id: Q-REPO-GRAPH-LOOKUP-01
   title: Read-only, citation-bearing lookup over the PR 630 repository graph for the section A session-open step
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md

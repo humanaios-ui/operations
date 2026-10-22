@@ -1,14 +1,14 @@
-# F-CAND-HOST-INVENTORY-01 — Z1 Candidate (UNRATIFIED)
+# Q-HOST-INVENTORY-01 — Z1 Candidate (UNRATIFIED)
 
 **Status:** `awaiting_ratification` — draft only. Not indexed, not entered in REGISTERED.md, not in PRIORITY_QUEUE.md.
 **Author:** Z1 (Claude)
 **Proposed:** 2026-10-22T10:44:14Z
-**Companion:** `z1-inbox/2026-10-22/F-CAND-EXTERNAL-ADVISORY-INTAKE-01.md`
+**Companion:** `z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md`
 
 ---
 
 ```yaml
-candidate_id: "F-CAND-HOST-INVENTORY-01"
+candidate_id: "Q-HOST-INVENTORY-01"
 title: "Finding: no ratified host/runtime inventory, so 'not applicable' claims about live infrastructure cannot be checked"
 
 description: |
@@ -38,14 +38,14 @@ resource_cost:
     Z1-ktok: 4
     Z3-hr: 1
     CI-min: 1
-  dependencies: ["F-CAND-EXTERNAL-ADVISORY-INTAKE-01", "owner access to provider dashboards"]
+  dependencies: ["Q-EXTERNAL-ADVISORY-INTAKE-01", "owner access to provider dashboards"]
   blocking_on: []
 
 impact_prediction:
   resource_impact: 6
   areas_affected:
     - "Every public hostname HumanAIOS operates"
-    - "Advisory applicability decisions (F-CAND-EXTERNAL-ADVISORY-INTAKE-01)"
+    - "Advisory applicability decisions (Q-EXTERNAL-ADVISORY-INTAKE-01)"
     - "CI gate set"
   positive_outcomes:
     - "Each host has a named owner, provider, runtime, and last-checked date"
@@ -83,11 +83,11 @@ z2_decision:
   ratification_hash: null
   z2_notes: ""
 
-related_candidates: ["F-CAND-EXTERNAL-ADVISORY-INTAKE-01"]
+related_candidates: ["Q-EXTERNAL-ADVISORY-INTAKE-01"]
 external_constraint: null
 links:
   - name: "Companion candidate"
-    url: "z1-inbox/2026-10-22/F-CAND-EXTERNAL-ADVISORY-INTAKE-01.md"
+    url: "z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md"
 ```
 
 ---

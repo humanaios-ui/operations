@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**110 candidates** — ⏳ awaiting Z2 95 · ✅ ratified 15 · **62 records**
+**112 candidates** — ⏳ awaiting Z2 96 · ✅ ratified 16 · **62 records**
 
-## Awaiting Z2 (95)
+## Awaiting Z2 (96)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -106,9 +106,10 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-03 | **Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01** | Z3 executor assignments and execution plan for 90 tier-assigned candidates | `z1-inbox/2026-10-01/Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01.md` |
 | 2026-10-10 | **Q-SYSTEM-GRAPH-TEMPORAL-01** | Temporal sequencing for system_graph.json schema | `z1-inbox/2026-10-08/SYSTEM_GRAPH_TEMPORAL_SCHEMA_PROPOSAL.md` |
 | 2026-10-11 | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Governance registry structural repair — 162 entries, 127 defects | `z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md` |
-| 2026-10-16 | **Q-MULTI-AGENT-QUEUE-PLAN-01** | Multi-agent plan to work the intentionally backed-up PR queue as a governed experiment | `z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md` |
+| 2026-10-24 | **Q-EXTERNAL-ADVISORY-INTAKE-01** | Finding — no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded) | `z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md` |
+| 2026-10-24 | **Q-HOST-INVENTORY-01** | Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked | `z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md` |
 
-## Decided (15)
+## Decided (16)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -124,7 +125,6 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-MAIL-EVIDENCE-LEDGER-01** | Night | 2026-09-24 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md`<br>`d52a583d659c4230b1456042193748e2c4ec1d32c3aaf395e000aabfe6f40f78` |
 | ✅ ratified | **Q-HCM-CORE-MACHINE-01** | Night | 2026-10-14 | `z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md`<br>`9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd` |
 | ✅ ratified | **Q-MULTI-AGENT-QUEUE-PLAN-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md`<br>`a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573` |
-| ✅ ratified | **Q-QUEUE-SWEEP-PIN-SPEC-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md`<br>`91a12f00732dad61a2ff0497e5edc84519af91ada0d7aed602dc124b3d60ad23` |
 | ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md`<br>`d80d38e5fa2041f3c6a3e79ad7706dee3bcf6f3879987e63ee1c4b4ba832ff6c` |
 | ✅ ratified | **Q-LEDGER-GROUNDING-STUB-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`8537eca961308aa4e93c0cdacb0cd412f90c0afd7e40ba8dcdcdb7ef96195b6c` |
 | ✅ ratified | **Q-MESH-LOCAL-COORDINATION-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`2c62341e03c880942e71b2b1b3f6ea85fc99feac0f032b665adb9048f4eae926` |
