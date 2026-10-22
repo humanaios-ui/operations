@@ -8,6 +8,14 @@
 #            [gh_cli] = GitHub CLI must be available and authenticated
 
 baseline_tests:
+  - path: tests/test_opportunity_surface.py
+    requires: []
+    description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
+
+  - path: test_humanaios_core_tier1.py
+    requires: []
+    description: Non-authoritative HumanAIOS governance conformance and HCM translation regressions
+
   - path: tools/tests/test_ai_context_generator_v0_1.py
     requires: [gh_cli]
     description: AI Context Generator smoke tests (skips if GitHub CLI unavailable)
@@ -47,6 +55,18 @@ baseline_tests:
   - path: tools/tests/test_repository_coordinator_v0_1.py
     requires: []
     description: Repository coordinator tests
+
+  - path: tools/tests/test_graph_lookup_v0_1.py
+    requires: []
+    description: Read-only graph lookup for the section A session-open step (Q-REPO-GRAPH-LOOKUP-01)
+
+  - path: tools/tests/test_kg_map_check_v0_1.py
+    requires: []
+    description: Repo snapshot checker for the HumanAIOS knowledge graph map
+
+  - path: tools/tests/test_humanaios_core_machine_v0_1.py
+    requires: []
+    description: HumanAIOS Core Machine deterministic bytecode and authority-boundary regressions
 
   - path: tools/tests/test_registry_site_generator.py
     requires: []
@@ -191,3 +211,30 @@ baseline_tests:
   - path: humanaios-resource-system/tests/test_resource_system.py
     requires: []
     description: Resource system prototype regressions (artifact traceability, authorization, PII, ledger bypass fixtures)
+
+  - path: tests/test_scvc_v02_milestone_pilot.py
+    requires: []
+    description: SCVC v0.2 bounded milestone pilot fail-closed regression tests
+
+  - path: tests/test_scvc_v02_trusted_witness.py
+    requires: []
+    description: SCVC v0.2 GitHub REST exact-head witness and trust-root negative tests
+
+  - path: tests/test_scvc_v02_oidc_identity.py
+    requires: []
+    description: GitHub OIDC issuer identity and replay-resistant verification negative tests
+
+  - path: tests/coderabbit_audit/test_coverage_inventory.py
+    requires: []
+    description: CodeRabbit exact-commit inventory fail-closed and classification regressions (#806)
+  - path: tests/test_ai_risk_map_crosswalk.py
+    requires: []
+    description: AIRM v1.3 scoped source index, evidence links, and no-authority regression
+
+  - path: tests/test_oracle_forecast_replay_v0_1.py
+    requires: []
+    description: Oracle prospective replay, independent resolution, calibration, and authority-boundary regressions
+
+  - path: tests/test_smag_meta_feedback_observed_accuracy.py
+    requires: []
+    description: Meta-SMAG observed outcome versus predicted confidence isolation regressions
