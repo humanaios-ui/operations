@@ -39,7 +39,7 @@ Treat every vendor claim as untrusted until supported by evidence at the require
 | `storage_and_sinks` | Where state lives and where external effects land. |
 | `trust_boundary` | User device, vendor cloud, third-party services. State which one the offline claim is relative to. |
 | `agent_identity` | Agent name and version. |
-| `task_runtime` | The vendor's p95 runtime for each task type used in A1, declared before the test. |
+| `task_runtime` | The vendor's p95 runtime for each task type used in A1, declared before the test, with the run history it was computed from. The auditor recomputes the p95 from that history (immutable logs, sampled under section 4). A value the auditor cannot verify is not used for the A1 wait. |
 | `teacher_student` | For C2: exact teacher and student model identities and versions, and what is updated (weights, policy, code, routing). Rule-based lesson or PR suggestions are not weight training. |
 | `data_classification` | Personal data, credentials, user exports. Live personal exports are never used as crash-test fixtures. |
 | `claims` | `C1`: CLAIMED or NOT_CLAIMED. `C2`: CLAIMED or NOT_CLAIMED. Each with the owner's written statement. |
@@ -143,7 +143,7 @@ For every log-based control:
 Failure-injection tests run only in the authorized environment from the scope manifest. `[F-RT07]`
 
 **A1. Execution decoupling**
-Test: start a task, kill the user browser and sleep the device mid-task, wait, reopen. The wait is the vendor's declared p95 runtime for that task type (recorded in the scope manifest before the test) plus a 50% margin, and never more than 24 hours. If the task has neither completed nor resumed when the wait ends, record `OBSERVED_FAILURE` and score A1 as 0.
+Test: start a task, kill the user browser and sleep the device mid-task, wait, reopen. The wait is the p95 runtime for that task type plus a 50% margin, and never more than 24 hours. The p95 is the lower of the value declared in the scope manifest before the test and the value the auditor recomputes from the run history (`task_runtime`). If no p95 can be verified, A1 cannot score above 2. If the task has neither completed nor resumed when the wait ends, record `OBSERVED_FAILURE` and score A1 as 0.
 Success: task completed or resumed with side effects intact; no restart from zero.
 Artifacts: mid-task trace, kill and resume timestamps, side-effect verification at the sink.
 
@@ -288,6 +288,7 @@ Defaults below are **limits the vendor may tighten but never loosen**. A vendor-
 | B3 minimum cycles | 3 |
 | B6 external calls per trajectory | ≤ 0.2 |
 | B6 performance drop after ablating the external teacher | ≤ 3% absolute |
+| A1 wait | auditor-verified p95 runtime plus 50%, at most 24 hours |
 | Sample window | last 30 days |
 
 ## 9. Exit criteria (hard)
@@ -302,7 +303,7 @@ Defaults below are **limits the vendor may tighten but never loosen**. A vendor-
 
 ## 10. Cross-cutting risks (each scored 0–4)
 
-Each risk maps to a claim and to the controls that supply its evidence. Its score is the lowest score among its mapped controls. The auditor may score a risk lower on direct evidence, never higher. A risk whose mapped controls are all `NOT_CLAIMED` or `N/A` is reported as such and not scored. A score of 0 or 1 raises the claim risk level (section 7.3).
+Each risk maps to a claim and to the controls that supply its evidence. Its score is the lowest score among its mapped controls. The auditor may score a risk lower on direct evidence, never higher. Controls recorded as `NOT_CLAIMED` or `N/A` are excluded from the minimum. A risk with some controls excluded is scored on the rest and reported with status `PARTIAL_EVIDENCE` and the excluded controls listed. A risk whose mapped controls are all excluded has status `NOT_SCORED` and no numeric score. A score of 0 or 1 raises the claim risk level (section 7.3).
 
 | Risk | Claim | Evidence (mapped controls) |
 |---|---|---|
@@ -320,7 +321,7 @@ Each risk maps to a claim and to the controls that supply its evidence. Its scor
 ## 11. Output format
 
 1. **Executive verdict**: C1 and C2 each PASS / PARTIAL / FAIL / INCONCLUSIVE / NOT_CLAIMED, with overall residual risk, confidence, and the independence label.
-2. **Control table**: ID | Finding | Claim state | Evidence receipt (artifact | date | hash or query) | Tier | Result kind | Score (0–4) | Severity | Remediation. Follow it with a risk table for section 10: Risk | Claim | Score (0–4) | Evidence receipt.
+2. **Control table**: ID | Finding | Claim state | Evidence receipt (artifact | date | hash or query) | Tier | Result kind | Score (0–4) | Severity | Remediation. Follow it with a risk table for section 10: Risk | Claim | Score (0–4) or NOT_SCORED | Status (SCORED, PARTIAL_EVIDENCE, NOT_SCORED) | Excluded controls | Evidence receipt.
 3. **Test log**: for each A1–A5 and each B8 sub-test: auditor action, test receipt, observed result, pass or fail, and any access limitation.
 4. **Top 5 critical gaps** with the exact artifact or test required to close each.
 5. **Red flags observed** (non-exhaustive): paper name-dropping without ablation; an idle-worker restart passed off as durability; contamination-free holdout unproven or vendor-controlled only; approval theater via bypass logs; cost unreported or incomplete; a job success reported as an external-effect receipt; "plausible mitigation" language without evidence.
@@ -368,7 +369,7 @@ Copilot's review of PR #981 found five defects in the first version. Each was ch
 | Unkeyed hashes of redacted fields expose low-entropy values | Keyed commitments, key held in the vendor's enclave | 4.1 |
 | A3 did not test container eviction, though durable state includes it | Containerized targets need a separate eviction and replacement test | 1.1, 5 |
 
-CodeRabbit's review of PR #981 found six more. Each was checked against the text and fixed.
+CodeRabbit's reviews of PR #981 found eight more. Each was checked against the text and fixed.
 
 | Review finding | Fix | Section |
 |---|---|---|
@@ -378,6 +379,8 @@ CodeRabbit's review of PR #981 found six more. Each was checked against the text
 | B2 had no denominator and no zero-corrections rule | Denominator is every correction in the evaluated cycles; zero corrections scores at most 1 | 6 (B2) |
 | B3 left PI-loss unbounded | PI-loss must stay within a declared tolerance; none declared blocks a pass | 6 (B3) |
 | Cross-cutting risks had no scoring, evidence, claim mapping or reporting rule | Mapping table, lowest-mapped-control rule, risk table in the output; A2 now tests an invalid signature so webhook spoofing has evidence | 5 (A2), 10, 11 |
+| The A1 wait relied on a vendor-declared p95 that nobody verified | The auditor recomputes the p95 from the run history and uses the lower value; an unverifiable p95 caps A1 at 2 | 1.1, 5 (A1), 8 |
+| Section 10 did not say how to score a risk with some mapped controls NOT_CLAIMED or N/A | Excluded controls leave the minimum; the risk is reported as PARTIAL_EVIDENCE, or NOT_SCORED when all are excluded | 10, 11 |
 
 ### Decisions for Z2
 
@@ -388,5 +391,5 @@ These choices are mine as proposer and are easy to change in review:
 3. **Any break-glass use blocks a C1 PASS** (A5 capped at 2), even when logged and pre-authorized.
 4. **B7 is mandatory when C2 is claimed.** Only B5 and B6, which v3 marked as conditional, may be recorded as NOT_CLAIMED. v3's general "unless declared not used" clause no longer applies to B1–B4, B7 or B8.
 5. **`docs/audit/` location and no `doc_id`.** This file declares no `doc_id`, so `document-registry.yaml` is untouched. Registering it as a controlled document is a separate act.
-6. **A1 wait defaults.** The wait is the declared p95 runtime plus a 50% margin, capped at 24 hours. A task that has not resumed by then scores 0. The cap and margin are my defaults.
+6. **A1 wait defaults.** The wait is the auditor-verified p95 runtime (the lower of declared and recomputed) plus a 50% margin, capped at 24 hours. A task that has not resumed by then scores 0. The cap and margin are my defaults.
 7. **An empty risky-action population does not block C1.** A5 then rests on the live test alone, capped at 3, and the verdict must say so.
