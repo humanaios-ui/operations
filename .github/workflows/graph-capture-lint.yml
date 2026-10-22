@@ -14,7 +14,9 @@ on:
       - 'crb/capability_graph.json'
       - 'crb/morphogenesis.json'
       - 'crb/graph_capture_baseline.json'
+      - 'docs/SYSTEM_GRAPH.md'
       - 'tools/graph_capture_lint_v1_0.py'
+      - 'tools/system_graph_render_v1_0.py'
       - 'tools/tests/test_graph_capture_lint.py'
       - 'tools/tests/fixtures/graph_capture_*.json'
       - '.github/workflows/graph-capture-lint.yml'
@@ -27,7 +29,9 @@ on:
       - 'crb/capability_graph.json'
       - 'crb/morphogenesis.json'
       - 'crb/graph_capture_baseline.json'
+      - 'docs/SYSTEM_GRAPH.md'
       - 'tools/graph_capture_lint_v1_0.py'
+      - 'tools/system_graph_render_v1_0.py'
   workflow_dispatch:
 
 permissions:
@@ -51,6 +55,9 @@ jobs:
 
       - name: Unit tests
         run: python3 -m pytest tools/tests/test_graph_capture_lint.py -q
+
+      - name: Rendered system graph view in sync with source (blocking)
+        run: python3 tools/system_graph_render_v1_0.py --check docs/SYSTEM_GRAPH.md
 
       - name: Canonical graph set against the baseline (blocking)
         run: python3 tools/graph_capture_lint_v1_0.py --all --baseline crb/graph_capture_baseline.json
