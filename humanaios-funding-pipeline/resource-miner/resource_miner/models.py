@@ -4,6 +4,11 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
+HELD_SOURCE_STATUSES = frozenset({
+    "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE", "RECHECK_REQUIRED",
+})
+
+
 @dataclass
 class EvidenceRef:
     url: str
@@ -134,6 +139,8 @@ class ResourceCandidate:
     opportunity_source_kind: str = ""
     demand_snapshots: list[DemandSnapshot] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict)
+    # Public source-health metadata; never infer employer closure from this.
+    source_verification_status: str | None = None
 
     def to_dict(self, include_raw: bool = False) -> dict[str, Any]:
         data = asdict(self)

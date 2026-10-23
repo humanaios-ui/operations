@@ -4,6 +4,9 @@ from __future__ import annotations
 import io
 import json
 import unittest
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 
 import app
 from resource_miner.ats_readiness import (
@@ -95,6 +98,63 @@ class ATSReadinessTests(unittest.TestCase):
         self.assertEqual(found["shown_count"], 0)
         self.assertEqual(found["eligibility"], "NOT_ASSESSED")
         self.assertEqual(found["authority"], "NONE")
+
+
+class ATSSearchTransportTests(unittest.TestCase):
+    def test_failed_status_survives_real_search_without_raw_data(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "catalog.json"
+            for status in ("LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE", "RECHECK_REQUIRED", None):
+                with self.subTest(status=status):
+                    path.write_text(json.dumps([{
+                        "name": "Convergent Research Program Launch Manager",
+                        "url": PUBLIC_CASE["source_url"],
+                        "category": "paid_work", "status": "active",
+                        "source_verification_status": status,
+                        "private_notes": "PRIVATE TRANSPORT CANARY",
+                    }]), encoding="utf-8")
+                    with patch.object(app, "DEFAULT_FUNDING", path), patch.object(app.devto, "discover", return_value=[]):
+                        rows, source_status, warning = app._intent_scan()
+                    self.assertEqual(len(rows), 1)
+                    self.assertEqual(rows[0]["source_verification_status"], status)
+                    self.assertNotIn("raw", rows[0])
+                    self.assertNotIn("PRIVATE TRANSPORT CANARY", json.dumps(rows))
+                    result = evaluate_objective(
+                        "Find research program manager", rows, source_mode="live",
+                        source_status=source_status, source_warning=warning,
+                    )
+                    self.assertEqual(result["shown_count"], 0 if status else 1)
+
+    def test_adapter_does_not_promote_arbitrary_status_payload(self):
+        from resource_miner.sources.funding_pipeline import discover
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "catalog.json"
+            for value in ("PRIVATE CANARY", {"private": "PRIVATE CANARY"}):
+                with self.subTest(value=value):
+                    path.write_text(json.dumps([{
+                        "name": "Research program manager", "url": "https://example.org/job",
+                        "source_verification_status": value,
+                    }]), encoding="utf-8")
+                    row = next(discover(path)).to_dict()
+                    self.assertIsNone(row["source_verification_status"])
+                    self.assertNotIn("PRIVATE CANARY", json.dumps(row))
+
+    def test_actual_catalog_role_stays_out_of_live_intent(self):
+        with patch.object(app.devto, "discover", return_value=[]):
+            rows, _, _ = app._intent_scan()
+            role = [r for r in rows if r["canonical_url"] == PUBLIC_CASE["source_url"]]
+            self.assertEqual(len(role), 1)
+            self.assertEqual(role[0]["source_verification_status"], "ROLE_NOT_LISTED")
+            handler = object.__new__(app.Handler)
+            handler.path = "/api/intent"
+            body = json.dumps({"objective": "Convergent Research Program Launch Manager", "source_mode": "live"}).encode()
+            handler.headers = {"Content-Type": "application/json", "Content-Length": str(len(body))}
+            handler._read_intent_body = lambda length: body
+            responses = []
+            handler._send_json = lambda data, status=200: responses.append((status, data))
+            handler.do_POST()
+            self.assertEqual(responses[0][0], 200)
+            self.assertNotIn(PUBLIC_CASE["source_url"], json.dumps(responses[0][1]))
 
 
 if __name__ == "__main__":

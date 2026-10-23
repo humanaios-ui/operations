@@ -12,6 +12,7 @@ import json
 import re
 from urllib.parse import urlsplit
 
+from .models import HELD_SOURCE_STATUSES
 from .source_risk import promotional_claim_flags
 from .query_quality import (
     blocked_resource_types, fuse_rankings, has_exact_anchors, query_terms,
@@ -64,9 +65,7 @@ def _is_expired(row: dict) -> bool:
         return True
     # Explicit observed source failures require recheck; they do not prove closure.
     # This only applies when an upstream row carries the verified status field.
-    if row.get("source_verification_status") in {
-        "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE", "RECHECK_REQUIRED",
-    }:
+    if row.get("source_verification_status") in HELD_SOURCE_STATUSES:
         return True
     deadline = row.get("deadline")
     if isinstance(deadline, str):

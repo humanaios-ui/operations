@@ -1053,6 +1053,14 @@
     "ai_safety_relevant": true,
     "trl_fit": "any",
     "status": "active",
+    "source_verification_status": "ROLE_NOT_LISTED",
+    "source_verification_observation": {
+      "kind": "USER_REPORTED",
+      "observed_on": "2026-10-22",
+      "source_url": "https://jobs.lever.co/convergentresearch",
+      "evidence_url": "https://github.com/humanaios-ui/operations/issues/992",
+      "claim": "Role reported absent from employer index; employer closure not independently established."
+    },
     "last_checked": "2026-10-02",
     "url_ok": true,
     "notes": "Full-time remote Program Launch Manager. Lead scientific-organization launches, founder programs, launch plans, ownership/dependency/risk tracking, handoffs, playbooks, vendor/partner coordination, and AI-enabled operational systems. East Coast hours preferred.",
