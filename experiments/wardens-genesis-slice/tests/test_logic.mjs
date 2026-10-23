@@ -13,7 +13,9 @@ const queryButtons=['origin','route','future'].map(q=>{const e=make(`query:${q}`
 const claimButtons=['recorded','overclaim'].map(claim=>{const e=make(`claim:${claim}`);e.dataset.claim=claim;return e});
 const forwardButtons=[4,5].map(n=>{const e=make(`forward:${n}`);e.dataset.forward=n;return e});
 const gotoButtons=[1,2,3,4,5].map(n=>{const e=make(`goto:${n}`);e.dataset.goto=String(n);return e});
-let selectedForm='Seeker';let urls=0;
+let selectedForm=process.env.WARDENS_FORM || 'Builder';let urls=0;
+const selectedPath=process.env.WARDENS_PATH || 'Forge';
+const witnessOff=process.env.WARDENS_W1_OFF === '1';
 const document={getElementById:make,querySelectorAll(q){
 if(q==='[data-path]')return pathButtons;
 if(q==='[data-query]')return queryButtons;
@@ -32,19 +34,23 @@ function run(){vm.runInNewContext(src,context);return window.__WARDENS_TEST__}
 const witness=run();
 const fire=(id,type,extra={})=>{const el=make(id);const cb=el.listeners[type];assert.ok(cb,'No handler '+id+' '+type);cb({preventDefault(){},target:el,...extra});};
 const state=()=>witness.snapshot();
-make('playerName').value='Aster';selectedForm='Builder';fire('genesisForm','submit');
-assert.equal(state().player,'Aster');assert.equal(state().form,'Builder');assert.equal(state().zone,2);
-fire('path:Forge','click');assert.equal(state().zone,3);assert.equal(state().path,'Forge');
+make('playerName').value='Aster';fire('genesisForm','submit');
+assert.equal(state().player,'Aster');assert.equal(state().form,selectedForm);assert.equal(state().zone,2);
+fire('path:'+selectedPath,'click');assert.equal(state().zone,3);assert.equal(state().path,selectedPath);
 assert.match(witness.query('origin'),/disabled/);
-make('witnessToggle').checked=true;fire('witnessToggle','change');
-assert.match(witness.query('origin'),/E-001/);assert.match(witness.query('route'),/E-003/);assert.match(witness.query('future'),/Unknown/);
-fire('contest','click');assert.equal(state().attestation,'CONTEST');
+if(!witnessOff){
+  make('witnessToggle').checked=true;fire('witnessToggle','change');
+  assert.match(witness.query('origin'),/E-001/);assert.match(witness.query('route'),/E-003/);assert.match(witness.query('future'),/Unknown/);
+  fire('contest','click');assert.equal(state().attestation,'CONTEST');
+}else{assert.match(witness.query('route'),/disabled/);assert.equal(state().attestation,null);}
 fire('forward:4','click');assert.equal(state().zone,4);
 fire('claim:recorded','click');assert.equal(state().calibration,'recorded');
 fire('forward:5','click');assert.equal(state().zone,5);
 make('proposal').value='A public memory beacon with consent limits';fire('councilForm','submit');
 assert.equal(state().finished,true);
-assert.deepEqual(Array.from(state().events,x=>x.kind),['GENESIS_EVENT','FORM_SELECTED','PATH_CHOSEN','W2_ATTESTATION','CLAIM_INSPECTED','ADVISORY_PROPOSAL_DRAFT']);
+assert.deepEqual(Array.from(state().events,x=>x.kind),witnessOff?
+ ['GENESIS_EVENT','FORM_SELECTED','PATH_CHOSEN','CLAIM_INSPECTED','ADVISORY_PROPOSAL_DRAFT']:
+ ['GENESIS_EVENT','FORM_SELECTED','PATH_CHOSEN','W2_ATTESTATION','CLAIM_INSPECTED','ADVISORY_PROPOSAL_DRAFT']);
 assert.ok(store.get('wardens.genesis.slice.v1'));
 assert.equal(urls,0,'No outbound network or blobs without explicit export');
-console.log('PASS: 5 rooms, persisted form and route, W1 opt-in, cited memory, unknown future, W2 challenge, calibration, local Council, durable replay payload, no network calls.');
+console.log(`PASS: ${selectedForm}/${selectedPath}, W1 ${witnessOff?'OFF':'ON'}, all five zones, event log, Council, local state, no remote calls.`);
