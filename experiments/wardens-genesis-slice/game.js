@@ -13,7 +13,7 @@
       state = {...initial(), ...saved, maximum:Math.min(5, Math.max(1,saved.maximum)), zone:Math.min(saved.zone,Math.max(1,saved.maximum))};
     }
   } catch (_) { state = initial(); }
-  function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) { /* Browsers may disable local storage. Session play remains available. */ } }
   function event(kind, details) {
     const id = `E-${String(state.events.length + 1).padStart(3,'0')}`;
     state.events.push({id, kind, details:clean(details), at:new Date().toISOString()});
@@ -128,9 +128,11 @@
   });
   $('reset').addEventListener('click',()=>{
     if(!window.confirm('Clear this local browser demo history? This cannot delete a real HumanAIOS account.'))return;
-    localStorage.removeItem(KEY);state=initial();$('genesisForm').reset();$('witnessResponse').textContent='Witness recall is disabled until you opt in.';$('calibrationResponse').textContent='Select a claim to inspect its source.';$('calibrationNext').disabled=true;renderZone();
+    try { localStorage.removeItem(KEY); } catch (_) {} state=initial();$('genesisForm').reset();$('witnessResponse').textContent='Witness recall is disabled until you opt in.';$('calibrationResponse').textContent='Select a claim to inspect its source.';$('calibrationNext').disabled=true;renderZone();
   });
   qs('[data-goto]').forEach(btn=>btn.addEventListener('click',()=>goto(Number(btn.dataset.goto))));
   renderZone();
-  Object.defineProperty(window,'__WARDENS_TEST__',{value:Object.freeze({snapshot:()=>structuredClone(state),query:answer}),configurable:false});
+  if (typeof location === 'undefined' || ['localhost','127.0.0.1'].includes(location.hostname)) {
+    Object.defineProperty(window,'__WARDENS_TEST__',{value:Object.freeze({snapshot:()=>structuredClone(state),query:answer}),configurable:false});
+  }
 })();
