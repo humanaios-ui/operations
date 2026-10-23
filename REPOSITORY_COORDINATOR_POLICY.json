@@ -68,9 +68,7 @@
   ],
   "evaluation_admission": {
     "authorized_actors": [
-      "humanaios-ui",
-      "night",
-      "claude-code"
+      "humanaios-ui"
     ],
     "required_issue_state": "ADMISSION_REQUESTED",
     "authority_effect": "EVALUATION_ONLY",
