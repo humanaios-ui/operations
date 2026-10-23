@@ -190,6 +190,26 @@ Without `--dry-run`, output defaults to `data/resources.jsonl`, which is git-ign
 - `data/resources.jsonl` — ephemeral local/live scan output, git-ignored (see above).
 - `data/resources.snapshot.jsonl` — durable scan output, checked in, refreshed daily by `.github/workflows/resource-miner-scan.yml`. This is what `app.py`'s `GET /api/resources` falls back to when no live scan has run yet in the current process, so results survive a Railway restart/redeploy without reversing the git-ignore decision above.
 
+### Witness feedback on the On-Track view (first-user E0.3)
+
+The three local INTENT-OS views now form a **read-only evidence/choice loop**:
+
+```text
+/intent-os       -- Resource Miner discovery + source observations
+/my-opportunities -- human selections, survey reports, references and journeys
+/on-track        -- Witness P1 declaration -> P2 evidence challenge -> P3 human correction
+```
+
+The user-shared methodology reference for the On-Track view is
+https://chatgpt.com/share/6adac2b6-8634-83ea-a544-80e060a0dd41 .
+This implementation maps the established HumanAIOS **P1 declare → P2 calibrate/challenge → P3 correct** pattern, reviews Truthfulness, Service, Harm Awareness, Autonomy Respect, Value Alignment and Humility as *questions*, and points to **Observe → Measure → Identify Failure → Propose Improvement → Test → Compare → Repeat**. It does not issue ACAT numerical scores or claim that reading a shared conversation alone establishes the method.
+
+**Procedure:** (1) At `/intent-os`, search for an opportunity, open **Report / verify this source**, select `Page returned 404` or `Possibly closed (not confirmed)`, and **Save source observation locally**. (2) At `/on-track`, choose the candidate, record a P1 initial belief (e.g. `CLOSED`), optionally record a falsifier, and click **Review evidence with Witness**. The current local Witness is **deterministic JavaScript** reading the browser's own local review packet, not a connected LLM or an independently authenticated human/AI witness. Its P2 output preserves a 404-versus-closure distinction and explicitly marks conflicting observations for review. (3) In P3 select `RECHECK`, `KEEP_ACTIVE`, or `DISMISS_LOCAL`, and click **Record my local decision**. Only the human can select and confirm a local dismissal. (4) Return to `/intent-os` and repeat search. A dismissed candidate is excluded from the **rendered local list** unless **Show candidates I dismissed locally** is selected. Underlying source rows, upstream candidate counts, provider accounts and other users remain unchanged. Re-running Witness with P3 `KEEP_ACTIVE` reverses the dismissal; exported unsigned feedback preserves the local review.
+
+**Convergent Research test case (October 22, 2026):** The human observed a Lever posting URL return 404 and later reported that the role was absent from the employer board, requesting elimination. Separate fresh public indexing still showed Program Launch Manager on the employer Lever board and an application page. These **contradictory temporal/source observations** must be investigated rather than converted into automatic global archive or applicant ineligibility. `DISMISS_LOCAL` is a human preference; **`OPPORTUNITY_CLOSED_VERIFIED` is NOT emitted**. This prevents one user's session or an ephemeral HTTP error from changing all users' discoveries.
+
+Privacy and control: Reports and local dispositions are stored in **unencrypted origin-scoped browser localStorage**, and the read-only Witness does not call remote AI, Gmail, Discord, GitHub, employment sites or cloud services. Clear local history through the search page and reset P3 to `KEEP_ACTIVE` if you no longer want dismissal. Neither the Witness nor a P3 choice grants authorization for server-side deletion. Future verified de-listing requires independent canonical-source evidence, confidence/expiry policy, an authorized reviewer and a separately admitted backend change.
+
 ### Source verification feedback from search results (first-user E0.2)
 
 **Use:** Browse \`/intent-os\` on the local service. Search for a resource. Each result card now has **Report / verify this source**. Open it and choose a human observation:
