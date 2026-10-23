@@ -12,6 +12,7 @@ from time import monotonic
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from resource_miner.ats_readiness import public_specimen_readiness
 from resource_miner.miner import enrich
 from resource_miner.intent_os import evaluate_objective
 from resource_miner.opportunity_journey import project_journey
