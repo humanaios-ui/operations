@@ -22,6 +22,14 @@ button:hover{background:#4683af}button:disabled{opacity:.6;cursor:wait}
 .meta{font-size:.79rem;color:#abc8de;margin-top:9px}.tag{font-size:.74rem;display:inline-block;border:1px solid #5f91a7;border-radius:99px;padding:3px 8px;margin:4px 4px 2px 0}
 a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 .notice{border-left:3px solid #e5b66e;padding:9px 14px;color:#e8d5ac;background:#302a24;margin-top:10px;border-radius:5px}
+.source-review{border:1px solid #516f90;border-radius:10px;padding:14px;margin-top:15px}
+.source-review label{margin:10px 0 5px;font-size:.88rem}
+.source-review textarea{min-height:76px}
+.source-review input{font:inherit;background:#081829;color:#fff;border:1px solid #60728c;border-radius:7px;padding:10px;max-width:100%;width:100%}
+.source-review button{padding:9px 12px;font-size:.88rem}
+.source-review[hidden]{display:none}
+.verification-actions{display:flex;gap:10px;flex-wrap:wrap}
+.status-line{font-size:.82rem;color:#f0d09a}
 #results[hidden]{display:none}footer{font-size:.84rem;line-height:1.6;color:#a3b3c6;margin-top:26px}
 </style>
 </head>
@@ -56,7 +64,19 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <div id="items"></div>
 <p class="muted" id="receipt"></p>
 </section>
-<footer><strong>What this does:</strong> public discovery, basic relevance matching, and links to source material. <strong>What it does not do:</strong> verify eligibility, guarantee availability, access accounts, apply, purchase, contact anyone, or grant authorization. Your objective is sent only to this service for this request; the application does not save it. Avoid entering sensitive personal details. Live public discovery depends on source availability and is not an eligibility assessment.</footer>
+<section class="panel" id="verificationQueue" aria-label="Resource verification queue">
+<h2>My source verification reports</h2>
+<p class="muted">If a result link fails or an opportunity is already in use, report it on the candidate card. Reports are saved only in this browser—not submitted to a shared database or GitHub. Export a review packet for an independently authorized reviewer.</p>
+<div class="verification-actions">
+<button type="button" id="exportReviews">Export verification review packet</button>
+<label for="importReviews" style="margin:auto 0">Import review packet</label>
+<input type="file" id="importReviews" accept="application/json,.json" aria-label="Import review packet" style="max-width:260px">
+<button type="button" id="clearReviews">Clear reports</button>
+</div>
+<p class="muted" id="verificationCount" aria-live="polite"></p>
+<p class="muted" id="verificationMessage" role="status" aria-live="polite"></p>
+</section>
+<footer><strong>What this does:</strong> public discovery, basic relevance matching, and links to source material. <strong>What it does not do:</strong> verify eligibility, guarantee availability, access accounts, apply, purchase, contact anyone, or grant authorization. Your objective is sent only to this service for this request; the application does not save it. Avoid entering sensitive personal details. Live public discovery depends on source availability and is not an eligibility assessment. Source-review reports are browser-local and do not change published source status or rankings.</footer>
 </main>
 <script>
 "use strict";
@@ -65,6 +85,110 @@ const form=document.getElementById("form"),field=document.getElementById("object
   feedback=document.getElementById("feedback"),box=document.getElementById("results"),
   items=document.getElementById("items"),summary=document.getElementById("summary"),
   warning=document.getElementById("warning"),receipt=document.getElementById("receipt");
+const reviewSchema="humanaios.resource_source_review.v0.1",reviewStoreKey=reviewSchema;
+const reviewStates=[
+ ["LINK_FAILED_404","Page returned 404"],
+ ["PAGE_UNAVAILABLE_OTHER","Could not load source"],
+ ["SOURCE_WORKING","Source link works"],
+ ["REPLACEMENT_FOUND","Found another official link"],
+ ["POSSIBLY_CLOSED","Possibly closed (not confirmed)"],
+ ["ALREADY_IN_USE","Already in use"],
+ ["OTHER","Other observation"]
+], validStates=new Set(reviewStates.map(x=>x[0]));
+let sourceReviews=[];
+const message=document.getElementById("verificationMessage");
+function reviewMessage(value){text(message,value);}
+function publicUrl(raw){
+ if(typeof raw!=="string"||raw.length>1600)throw new Error("Source URL invalid or too long.");
+ const u=new URL(raw);
+ if(u.protocol!=="https:"||u.username||u.password||!u.hostname.includes(".")||
+    u.port&&u.port!=="443"||u.hostname==="localhost"||
+    /^([0-9.]+|0x[0-9a-f]+)$/.test(u.hostname)||
+    /\.(localhost|local|internal|lan|invalid|test|nip\.io|sslip\.io)$/.test(u.hostname))
+   throw new Error("Only public HTTPS source links are permitted.");
+ return u.href;
+}
+function validateReview(r){
+ if(!r||typeof r!=="object"||Array.isArray(r)||
+   Object.keys(r).sort().join("|")!=="evidence|id|observed_at|resource_title|source_url|status")
+  throw new Error("Unexpected review fields.");
+ if(!validStates.has(r.status)||typeof r.id!=="string"||!/^[A-Za-z0-9_-]{1,100}$/.test(r.id)||
+   typeof r.resource_title!=="string"||r.resource_title.length>180||
+   !r.resource_title.trim()||typeof r.observed_at!=="string"||
+   !r.observed_at.endsWith("Z")||!Number.isFinite(Date.parse(r.observed_at)))
+  throw new Error("Invalid source report.");
+ publicUrl(r.source_url);
+ const e=r.evidence;
+ if(!e||typeof e!=="object"||Array.isArray(e)||
+   Object.keys(e).sort().join("|")!=="note|replacement_url|screenshot")
+   throw new Error("Unexpected evidence fields.");
+ if(typeof e.note!=="string"||e.note.length>500||
+   typeof e.replacement_url!=="string"||e.replacement_url.length>1600)
+   throw new Error("Invalid evidence text.");
+ if(e.replacement_url)publicUrl(e.replacement_url);
+ const attachment=e.screenshot;
+ if(attachment!==null){
+  if(!attachment||typeof attachment!=="object"||Array.isArray(attachment)||
+     Object.keys(attachment).sort().join("|")!=="mime|sha256|size_bytes"||
+     !["image/png","image/jpeg","image/webp"].includes(attachment.mime)||
+     !Number.isInteger(attachment.size_bytes)||attachment.size_bytes<1||
+     attachment.size_bytes>1048576||
+     typeof attachment.sha256!=="string"||!/^[a-f0-9]{64}$/.test(attachment.sha256))
+    throw new Error("Invalid screenshot fingerprint.");
+ }
+ return r;
+}
+function validateReviewPacket(packet){
+ if(!packet||typeof packet!=="object"||Array.isArray(packet)||
+    Object.keys(packet).sort().join("|")!=="records|schema"||
+    packet.schema!==reviewSchema||!Array.isArray(packet.records)||packet.records.length>100)
+   throw new Error("Unexpected review packet or more than 100 reports.");
+ const ids=new Set();
+ return packet.records.map(r=>{
+  validateReview(r);if(ids.has(r.id))throw new Error("Duplicate report ID.");
+  ids.add(r.id);return r;
+ });
+}
+function updateReviewCount(){
+ text(document.getElementById("verificationCount"),
+  sourceReviews.length+" human-submitted local source report(s). Not independently verified.");
+}
+try{
+ const raw=localStorage.getItem(reviewStoreKey);
+ if(raw)sourceReviews=validateReviewPacket(JSON.parse(raw));
+}catch(_){reviewMessage("Browser's saved review data is invalid; export or clear it before saving new reports.");}
+updateReviewCount();
+document.getElementById("exportReviews").addEventListener("click",()=>{
+ if(!sourceReviews.length){reviewMessage("No reports to export. Open a candidate's review form first.");return;}
+ const packet={schema:reviewSchema,records:sourceReviews};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(packet,null,2)],{type:"application/json"}));
+ const a=document.createElement("a");a.href=url;a.download="intent-os-source-verification.json";
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ reviewMessage("Exported local review packet. Send it only to an authorized reviewer; it has no independent verification.");
+});
+document.getElementById("importReviews").addEventListener("change",async event=>{
+ const file=event.target.files?.[0];if(!file)return;
+ try{
+  if(file.size>110000)throw new Error("Review packet exceeds 110 KB.");
+  const imported=validateReviewPacket(JSON.parse(await file.text()));
+  const merged=[...sourceReviews];
+  for(const r of imported){
+   const index=merged.findIndex(x=>x.id===r.id);
+   if(index===-1)merged.push(r);
+   else if(JSON.stringify(merged[index])!==JSON.stringify(r))throw new Error("Conflicting report ID.");
+  }
+  if(merged.length>100)throw new Error("At most 100 total reports.");
+  localStorage.setItem(reviewStoreKey,JSON.stringify({schema:reviewSchema,records:merged}));
+  sourceReviews=merged;updateReviewCount();reviewMessage("Imported reports into this browser. Re-run a search to show card history.");
+ }catch(error){reviewMessage("Import failed: "+error.message);}
+ finally{event.target.value="";}
+});
+document.getElementById("clearReviews").addEventListener("click",()=>{
+ if(!confirm("Clear browser-local source reports? Export first if needed."))return;
+ try{localStorage.removeItem(reviewStoreKey);sourceReviews=[];updateReviewCount();
+  reviewMessage("Local reports cleared. Re-run the search to refresh candidate badges.");
+ }catch(_){reviewMessage("Browser storage clear failed.");}
+});
 // Show the personal preview link only when this instance is bound to loopback.
 fetch("/api/my-opportunities",{cache:"no-store"})
  .then(r=>{if(r.ok)document.getElementById("myOpportunitiesLink").hidden=false;})
@@ -93,6 +217,79 @@ function addCard(row){
    const tag=document.createElement("span");tag.className="tag";text(tag,word);matches.append(tag);
  }
  card.append(matches);
+ const reviewBox=document.createElement("div");reviewBox.className="source-review";
+ const reviewToggle=document.createElement("button");reviewToggle.type="button";
+ text(reviewToggle,"Report / verify this source");
+ const reviews=sourceReviews.filter(x=>x.source_url===row.source_url);
+ if(reviews.length){
+  const last=reviews[reviews.length-1];
+  const line=document.createElement("p");line.className="status-line";
+  text(line,"Latest user report: "+(reviewStates.find(x=>x[0]===last.status)?.[1]||last.status)+
+    " ("+last.observed_at.slice(0,10)+"). Not independently verified.");
+  reviewBox.append(line);
+ }
+ const controls=document.createElement("div");controls.hidden=true;
+ const statusLabel=document.createElement("label");text(statusLabel,"What did you observe?");
+ const state=document.createElement("select");
+ for(const [value,title] of reviewStates){
+  const option=document.createElement("option");option.value=value;text(option,title);state.append(option);
+ }
+ const noteLabel=document.createElement("label");text(noteLabel,"What happened? (optional; 500 chars)");
+ const note=document.createElement("textarea");note.maxLength=500;note.rows=2;
+ note.placeholder="Example: Lever returned a 404 when I clicked the application link.";
+ const replacementLabel=document.createElement("label");text(replacementLabel,"Replacement or evidence URL (optional)");
+ const replacement=document.createElement("input");replacement.type="url";replacement.maxLength=1600;
+ replacement.placeholder="https://jobs.lever.co/...";
+ const screenshotLabel=document.createElement("label");
+ text(screenshotLabel,"Screenshot (optional; fingerprint only, maximum 1 MB)");
+ const screenshot=document.createElement("input");screenshot.type="file";
+ screenshot.accept="image/png,image/jpeg,image/webp";
+ const disclaimer=document.createElement("p");disclaimer.className="muted";
+ text(disclaimer,"A screenshot file is hashed locally; its pixels are NOT uploaded, saved, or included in the report. Keep the original file if a reviewer needs it.");
+ const save=document.createElement("button");save.type="button";text(save,"Save source observation locally");
+ const localStatus=document.createElement("p");localStatus.className="muted";localStatus.setAttribute("role","status");
+ reviewToggle.addEventListener("click",()=>{
+  controls.hidden=!controls.hidden;
+  if(!controls.hidden)state.focus();
+ });
+ save.addEventListener("click",async()=>{
+  save.disabled=true;
+  try{
+   if(sourceReviews.length>=100)throw new Error("100-report limit reached; export and clear before adding more.");
+   const source=publicUrl(row.source_url);
+   const more=replacement.value.trim()?publicUrl(replacement.value.trim()):"";
+   let screenshotProof=null;
+   const file=screenshot.files?.[0];
+   if(file){
+    if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size<1||file.size>1048576)
+      throw new Error("Screenshot must be PNG/JPEG/WebP and no larger than 1 MB.");
+    const bytes=await file.arrayBuffer();
+    const digest=await crypto.subtle.digest("SHA-256",bytes);
+    screenshotProof={mime:file.type,size_bytes:file.size,sha256:[...new Uint8Array(digest)]
+      .map(n=>n.toString(16).padStart(2,"0")).join("")};
+   }
+   const record={
+    id:"R-"+Date.now()+"-"+Math.random().toString(36).slice(2,11),
+    resource_title:String(row.title||"Untitled candidate").slice(0,180),
+    source_url:source,status:state.value,
+    evidence:{note:note.value.trim(),replacement_url:more,screenshot:screenshotProof},
+    observed_at:new Date().toISOString()
+   };
+   validateReview(record);
+   const updated=[...sourceReviews,record];
+   localStorage.setItem(reviewStoreKey,JSON.stringify({schema:reviewSchema,records:updated}));
+   sourceReviews=updated;updateReviewCount();
+   text(localStatus,"Saved human observation locally, not verified or sent to an external system. Use Export review packet to share it.");
+   reviewMessage("Saved a local observation for "+record.resource_title+".");
+   const line=document.createElement("p");line.className="status-line";
+   text(line,"User report recorded: "+(reviewStates.find(x=>x[0]===record.status)?.[1]||record.status)+". Independent review needed.");
+   reviewBox.prepend(line);controls.hidden=true;
+  }catch(error){text(localStatus,"Not saved: "+error.message);}
+  finally{save.disabled=false;}
+ });
+ controls.append(statusLabel,state,noteLabel,note,replacementLabel,replacement,
+                 screenshotLabel,screenshot,disclaimer,save,localStatus);
+ reviewBox.append(reviewToggle,controls);card.append(reviewBox);
  try {
    const link=new URL(row.source_url);
    if(link.protocol==="https:" && !link.username && !link.password){
