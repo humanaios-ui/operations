@@ -12,6 +12,7 @@ from time import monotonic
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from resource_miner.job_application import prepare
 from resource_miner.miner import enrich
 from resource_miner.intent_os import evaluate_objective
 from resource_miner.opportunity_journey import project_journey
@@ -165,6 +166,13 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path == "/my-applications":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                page = (ROOT / "my-applications.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
             if parsed.path == "/my-opportunities":
                 if not self._local_opportunities_allowed():
                     return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
@@ -244,6 +252,25 @@ class Handler(BaseHTTPRequestHandler):
             )
 
     def do_POST(self) -> None:
+        if urlparse(self.path).path == "/api/my-applications/prepare":
+            if not self._local_opportunities_allowed():
+                return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("Expected JSON")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 100000:
+                    raise ValueError("Invalid length")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                sources = json.loads(DEFAULT_FUNDING.read_text(encoding="utf-8"))
+                return self._send_json(prepare(body, sources))
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request deadline exceeded."}, HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, TypeError, UnicodeDecodeError):
+                return self._send_json({"error": "Invalid application. Check job fields and evidence links."}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Preparation unavailable."}, HTTPStatus.INTERNAL_SERVER_ERROR)
         if urlparse(self.path).path == "/api/my-opportunities/project":
             if not self._local_opportunities_allowed():
                 return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
