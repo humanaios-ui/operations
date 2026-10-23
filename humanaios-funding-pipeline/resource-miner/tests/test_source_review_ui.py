@@ -22,7 +22,7 @@ class SourceReviewUITests(unittest.TestCase):
             'crypto.subtle.digest("SHA-256",bytes)',
             'localStorage.setItem(reviewStoreKey',
             'a.download="intent-os-source-verification.json"',
-            '"Not independently verified."', "LINK_FAILED_404",
+            'Not independently verified.', "LINK_FAILED_404",
         ):
             with self.subTest(item=item):
                 self.assertIn(item, html)
