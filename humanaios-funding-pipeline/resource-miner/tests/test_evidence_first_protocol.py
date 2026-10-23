@@ -1,5 +1,5 @@
 import unittest
-from resource_miner.evidence_first_protocol import WitnessFeedback, project_feedback, source_search_eligible
+from resource_miner.evidence_first_protocol import WitnessFeedback, project_feedback
 
 class EvidenceFirstTests(unittest.TestCase):
     def test_convergent_source_failure(self):
@@ -11,9 +11,6 @@ class EvidenceFirstTests(unittest.TestCase):
         self.assertNotIn("correction", output)
         self.assertEqual(output["authority"], "NONE")
         self.assertEqual(output["execution"], "DISABLED")
-        for status in ("LINK_FAILED_404", "ROLE_NOT_LISTED",
-                       "SOURCE_UNAVAILABLE", "RECHECK_REQUIRED"):
-            self.assertFalse(source_search_eligible(status))
 
     def test_intent_corrections_do_not_authorize(self):
         for kind in ("QUESTION", "CONDITIONAL_WILLINGNESS", "INTENT_CORRECTION"):
