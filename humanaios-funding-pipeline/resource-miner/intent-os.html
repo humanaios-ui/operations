@@ -85,6 +85,7 @@ const form=document.getElementById("form"),field=document.getElementById("object
   feedback=document.getElementById("feedback"),box=document.getElementById("results"),
   items=document.getElementById("items"),summary=document.getElementById("summary"),
   warning=document.getElementById("warning"),receipt=document.getElementById("receipt");
+const text=(element,value)=>{element.textContent=String(value??"");};
 const reviewSchema="humanaios.resource_source_review.v0.1",reviewStoreKey=reviewSchema;
 const reviewStates=[
  ["LINK_FAILED_404","Page returned 404"],
@@ -196,7 +197,6 @@ fetch("/api/my-opportunities",{cache:"no-store"})
 document.querySelectorAll("[data-example]").forEach(b=>b.addEventListener("click",()=>{
   field.value=b.dataset.example;field.focus();
 }));
-const text=(element,value)=>{element.textContent=String(value??"");};
 function addCard(row){
  const card=document.createElement("article");card.className="item";
  const heading=document.createElement("h3");text(heading,row.title||"Resource candidate");card.append(heading);
