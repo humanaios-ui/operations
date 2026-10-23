@@ -1,0 +1,43 @@
+name: manifest-sync-gate
+
+on:
+  pull_request:
+    paths:
+      - 'tools-manifest.yaml'
+      - 'TOOLS_MANIFEST.md'
+      - '.tool-control/render.py'
+      - '.github/workflows/manifest-sync-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --quiet pyyaml
+
+      - name: Check tool manifest sync
+        run: |
+          python3 .tool-control/render.py --check
+          echo "✓ Tool manifest is in sync (TOOLS_MANIFEST.md matches tools-manifest.yaml)"
+
+      - name: Report sync status
+        if: failure()
+        run: |
+          echo "❌ Tool manifest out of sync"
+          echo ""
+          echo "TOOLS_MANIFEST.md does not match tools-manifest.yaml."
+          echo "Fix by running:"
+          echo "  python3 .tool-control/render.py"
+          echo ""
+          exit 1

@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/system_stance_v1.schema.json",
+  "title": "HumanAIOS Overall System Stance v1",
+  "description": "An advisory, evidence-linked assessment of possible opportunities, their propositions, uncertainty, and outstanding checks before consequential action.",
+  "$comment": "This record is not authorization. overall_stance is an advisory assessment only; authority remains with the applicable human/governance process.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "advisory_only",
+    "can_authorize",
+    "authority_effect",
+    "subject",
+    "overall_stance",
+    "stance_rationale",
+    "certainty",
+    "opportunity_scan",
+    "pre_action_requirements",
+    "not_established",
+    "created_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios/system_stance_v1"
+    },
+    "advisory_only": {
+      "const": true
+    },
+    "can_authorize": {
+      "const": false
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "ref", "scope"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$",
+          "$comment": "Pin the assessment to the exact repository commit; branch names are not refs."
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "overall_stance": {
+      "enum": [
+        "ACT",
+        "ABSTAIN",
+        "ESCALATE",
+        "ACQUIRE_EVIDENCE",
+        "REDUCE_SCOPE",
+        "MAKE_REVERSIBLE",
+        "SANDBOX",
+        "ROLL_BACK"
+      ],
+      "$comment": "An advisory disposition, not permission to act."
+    },
+    "stance_rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "certainty": {
+      "$ref": "#/$defs/certainty"
+    },
+    "opportunity_scan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "scope", "limitations", "opportunities"],
+      "properties": {
+        "status": {
+          "enum": ["COMPLETE", "PARTIAL", "NOT_STARTED"]
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "opportunities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/opportunity"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "NOT_STARTED"
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "opportunities": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "pre_action_requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/preActionRequirement"
+      }
+    },
+    "not_established": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "overall_stance": {
+            "const": "ACT"
+          }
+        },
+        "required": ["overall_stance"]
+      },
+      "then": {
+        "properties": {
+          "pre_action_requirements": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "VERIFIED"
+                }
+              },
+              "required": ["status"]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "certainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "basis", "limitations"],
+      "properties": {
+        "level": {
+          "enum": ["HIGH", "MODERATE", "LOW", "UNKNOWN"]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation", "kind", "locator", "observation"],
+      "properties": {
+        "relation": {
+          "enum": ["SUPPORTS", "CONTRADICTS"]
+        },
+        "kind": {
+          "enum": ["source", "data", "test", "workflow", "decision", "other"]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "(#.+|:[0-9]+)$",
+          "$comment": "Cite a specific, inspectable source location, such as path:line or URL#section."
+        },
+        "observation": {
+          "type": "string",
+          "minLength": 10,
+          "$comment": "State what the cited evidence actually shows, not an inference alone."
+        }
+      }
+    },
+    "proposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim", "evidence", "certainty"],
+      "properties": {
+        "claim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "$comment": "An empty array explicitly means no supporting or contradicting evidence was identified."
+        },
+        "certainty": {
+          "$ref": "#/$defs/certainty"
+        }
+      }
+    },
+    "opportunity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "propositions"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "propositions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/proposition"
+          }
+        }
+      }
+    },
+    "preActionRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check", "status", "verification", "evidence"],
+      "properties": {
+        "check": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": ["OPEN", "VERIFIED", "BLOCKED"]
+        },
+        "verification": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["VERIFIED", "BLOCKED"]
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

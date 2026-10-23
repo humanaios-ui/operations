@@ -1,0 +1,31 @@
+{
+  "pr": 983,
+  "actor_origin_claim": "Claude Code session; Z1 re-sign of Q-REPO-GRAPH-LOOKUP-01 and index fix, index and candidate-file edits only",
+  "checks": {
+    "quality": {
+      "conclusion": "success",
+      "p": 0.85
+    },
+    "guard": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "Secret scanning (gitleaks)": {
+      "conclusion": "success",
+      "p": 0.97
+    },
+    "Python dependency vulnerability scan": {
+      "conclusion": "success",
+      "p": 0.92
+    },
+    "Verify Z2 Ratification Requirements": {
+      "conclusion": "success",
+      "p": 0.6
+    },
+    "Repository admission/backpressure gate": {
+      "conclusion": "success",
+      "p": 0.3
+    }
+  },
+  "note": "Declared in commit 2e4f7dd5's follow-up commit (first commit on this PR to add this file). Predictions were not revised after CI results. Changes: z1-inbox index and candidate-file hash clear, one new dated re-ratification record. No constants, gates, or workflow files touched. Admission and Z2 ratification checks are not fully in Z1 control."
+}

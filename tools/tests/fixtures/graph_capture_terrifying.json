@@ -1,0 +1,88 @@
+{
+  "graph_id": "ORACLE",
+  "status": "LIVE",
+  "writer": "self",
+  "ratifier": "self",
+  "executor": "self",
+  "nodes": [
+    {
+      "id": "C1",
+      "type": "claim",
+      "label": "X causes Y",
+      "weight": 1.0
+    },
+    {
+      "id": "C2",
+      "type": "claim",
+      "label": "Y is observed",
+      "weight": 1.0
+    },
+    {
+      "id": "C3",
+      "type": "claim",
+      "label": "therefore X",
+      "weight": 1.0
+    },
+    {
+      "id": "M1",
+      "type": "monitor",
+      "label": "self-check"
+    },
+    {
+      "id": "P1",
+      "type": "person",
+      "label": "J. Doe",
+      "merged_from": [
+        "P7",
+        "P9"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "C1",
+      "to": "C2",
+      "rel": "supported_by"
+    },
+    {
+      "from": "C2",
+      "to": "C3",
+      "rel": "supported_by"
+    },
+    {
+      "from": "C3",
+      "to": "C1",
+      "rel": "supported_by"
+    },
+    {
+      "from": "C1",
+      "to": "C2",
+      "rel": "causes"
+    },
+    {
+      "from": "M1",
+      "to": "C1",
+      "rel": "measures"
+    },
+    {
+      "from": "C1",
+      "to": "M1",
+      "rel": "feeds"
+    },
+    {
+      "from": "M1",
+      "to": "M1",
+      "rel": "confirms"
+    },
+    {
+      "from": "P1",
+      "to": "C3",
+      "rel": "asserts"
+    },
+    {
+      "from": "C3",
+      "to": "GHOST",
+      "rel": "entails"
+    }
+  ]
+}

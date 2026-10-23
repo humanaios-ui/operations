@@ -13,6 +13,7 @@ Core invariants:
   RELEVANT_IS_NOT_WARRANTED
   MERGEABLE_IS_NOT_CURRENT
   AGE_IS_NOT_STALENESS
+  OBSERVATIONAL_TIME_IS_NOT_AUTHORITY
   GUIDANCE_REQUIRES_EVIDENCE
   ISSUE_IS_NOT_ADMITTED_WORK
   ASSIGNMENT_IS_NOT_PR_ADMISSION
@@ -56,7 +57,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 TOOL_NAME = "repository_coordinator"
-TOOL_VERSION = "0.2.1"
+TOOL_VERSION = "0.3.0"
 TOOL_CATEGORY = "diagnostic_tool"
 TOOL_SESSION = "REPOSITORY-COORDINATOR-02"
 TOOL_ZONE = 1
@@ -103,7 +104,8 @@ ACTION_ORDER = {
     "REEXAMINE": 1,
     "COMPARE_CONSOLIDATE": 2,
     "REBASE_RETEST": 3,
-    "ADVANCE": 4,
+    "ROUTE_TO_Z2": 4,
+    "ADVANCE": 5,
 }
 
 LANE_ORDER = {
@@ -226,15 +228,21 @@ def _maintenance_cohort(pr: dict[str, Any]) -> str:
 
 
 def _control_plane(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
-    """A PR is control-plane only when *every* changed file is a control path.
+    """Recognize bounded control-plane changes without making support files self-admitting.
 
-    Touching one control-plane file alongside feature work must not exempt the
-    feature work from admission; that would make a whitespace edit to
-    CODEOWNERS a universal admission bypass.
+    A PR is exempt when every changed file is a core control path, or when it
+    changes at least one core control path and every other changed file is an
+    explicitly declared support artifact. A support-only PR is not exempt.
     """
-    paths = set((policy.get("control_plane") or {}).get("paths") or [])
+    cfg = policy.get("control_plane") or {}
+    core_paths = set(cfg.get("paths") or [])
+    support_paths = set(cfg.get("support_paths") or [])
     files = set(pr.get("files") or [])
-    return bool(files) and bool(pr.get("files_complete", True)) and files <= paths
+    if not files or not bool(pr.get("files_complete", True)):
+        return False
+    if files <= core_paths:
+        return True
+    return bool(files & core_paths) and files <= (core_paths | support_paths)
 
 
 def _zero_diff(pr: dict[str, Any]) -> bool:
@@ -243,19 +251,25 @@ def _zero_diff(pr: dict[str, Any]) -> bool:
 
 def _admission_evidence(
     pr: dict[str, Any],
-    policy: dict[str, Any],
+    state: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[bool, list[str], list[int]]:
-    cfg = policy.get("admission") or {}
-    admitted_prs = {int(x) for x in cfg.get("pull_request_numbers") or []}
-    admitted_issues = {int(x) for x in cfg.get("issue_numbers") or []}
+    admitted_prs = {int(x) for x in state.get("admitted_pull_request_numbers") or []}
+    admitted_issues = {int(x) for x in state.get("admitted_issue_numbers") or []}
     evidence: list[str] = []
     objectives: list[int] = []
 
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
-        evidence.append(f"policy explicitly admits PR #{number}")
-        objectives.append(-number)
+        metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
+        admitted_sha = str(metadata.get("admitted_head_sha") or "")
+        live_sha = str(pr.get("head_sha") or "")
+        if not admitted_sha or admitted_sha == live_sha:
+            # Legacy unbound admissions retain their existing standing.
+            # Newly issued PR-comment admissions are exact-head scoped.
+            evidence.append(f"coordinator state explicitly admits PR #{number}")
+            objective = metadata.get("objective_issue_number")
+            objectives.append(int(objective) if objective else -number)
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
         ref = int(raw)
@@ -265,132 +279,43 @@ def _admission_evidence(
         if not item or item.get("is_pull_request"):
             continue
         if ref not in objectives:
-            evidence.append(f"policy admits linked issue #{ref}")
+            evidence.append(f"coordinator state admits linked issue #{ref}")
             objectives.append(ref)
 
     return bool(evidence), evidence, objectives
 
 
+def _admission_scope_drift(
+    pr: dict[str, Any],
+    state: dict[str, Any],
+) -> str | None:
+    """Return evidence when a v1.1 direct PR admission no longer matches its objective.
 
-HUMAN_RECEIPT_RE = re.compile(
-    r"^/admit-evaluation-signed\\s*\\n"
-    r"pr=(\\d+)\\s*\\n"
-    r"issue=(\\d+)\\s*\\n"
-    r"head=([0-9a-fA-F]{40})\\s*\\n"
-    r"(-----BEGIN SSH SIGNATURE-----\\n.*?\\n-----END SSH SIGNATURE-----)\\s*$",
-    re.S,
-)
-
-
-def human_admission_payload(repository: str, pr: int, issue: int, head: str) -> str:
+    Head-bound admissions report scope drift on any PR head SHA change;
+    legacy admissions without admitted_head_sha remain grandfathered.
+    """
+    number = int(pr.get("number") or 0)
+    metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
+    objective = metadata.get("objective_issue_number")
+    scope = str(metadata.get("admission_scope") or "")
+    admitted_sha = str(metadata.get("admitted_head_sha") or "")
+    if admitted_sha and admitted_sha != str(pr.get("head_sha") or ""):
+        return (
+            f"PR #{number} admission is bound to head {admitted_sha}, "
+            f"not current head {pr.get('head_sha') or 'UNSET'}; "
+            "an authorized re-admission is required for the new commit."
+        )
+    if not objective:
+        return None
+    refs = {int(raw) for raw in ADMISSION_LINK_RE.findall(pr.get("body") or "")}
+    if int(objective) in refs:
+        return None
     return (
-        "HUMANAIOS_EVALUATION_ADMISSION_V1\\n"
-        f"repository={repository}\\n"
-        f"pr={pr}\\n"
-        f"issue={issue}\\n"
-        f"head={head.lower()}\\n"
-        "authority=EVALUATION_ONLY\\n"
+        f"PR #{number} was admitted for objective issue #{int(objective)} "
+        f"with scope {scope or 'UNSPECIFIED'}, but the current PR body no longer "
+        "declares that objective through a closing-keyword link."
     )
 
-
-def _parse_human_receipt(body: str) -> dict[str, Any] | None:
-    m = HUMAN_RECEIPT_RE.match((body or "").strip())
-    if not m:
-        return None
-    return {
-        "pr": int(m.group(1)),
-        "issue": int(m.group(2)),
-        "head": m.group(3).lower(),
-        "signature": m.group(4) + "\\n",
-    }
-
-
-def _verify_ssh_receipt(
-    *, payload: str, signature: str, principal: str, public_key: str, namespace: str,
-) -> bool:
-    if not principal or not public_key:
-        return False
-    try:
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            allowed = root / "allowed_signers"
-            sig = root / "receipt.sig"
-            allowed.write_text(f"{principal} {public_key.strip()}\\n", encoding="utf-8")
-            sig.write_text(signature, encoding="utf-8")
-            proc = subprocess.run(
-                [
-                    "ssh-keygen", "-Y", "verify",
-                    "-f", str(allowed),
-                    "-I", principal,
-                    "-n", namespace,
-                    "-s", str(sig),
-                ],
-                input=payload,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-            )
-            return proc.returncode == 0
-    except (FileNotFoundError, OSError):
-        return False
-
-
-def verify_human_admission_receipts(
-    snapshot: dict[str, Any], policy: dict[str, Any],
-) -> dict[str, Any]:
-    """Attach only cryptographically verified human-origin receipts.
-
-    The carrier may be human or AI and may use the same GitHub account. Carrier
-    identity therefore has no authority effect. The signature is the authority
-    boundary and is bound to repository, PR, issue, exact head SHA and scope.
-    """
-    cfg = policy.get("human_attestation") or {}
-    namespace = str(cfg.get("namespace") or "humanaios-evaluation-admission-v1")
-    signers = cfg.get("authorized_signers") or []
-    repository = str(snapshot.get("repository") or "")
-
-    for pr in snapshot.get("pull_requests") or []:
-        number = int(pr.get("number") or 0)
-        head = str(pr.get("head_sha") or "").lower()
-        verified: list[dict[str, Any]] = []
-        for source_name in ("reviews", "comments"):
-            for item in pr.get(source_name) or []:
-                receipt = _parse_human_receipt(str(item.get("body") or ""))
-                if not receipt:
-                    continue
-                if receipt["pr"] != number or receipt["head"] != head:
-                    continue
-                payload = human_admission_payload(
-                    repository, number, receipt["issue"], head
-                )
-                carrier = str(
-                    (item.get("user") or {}).get("login")
-                    if isinstance(item.get("user"), dict)
-                    else item.get("user") or ""
-                )
-                for signer in signers:
-                    principal = str(signer.get("principal") or "")
-                    public_key = str(signer.get("public_key") or "")
-                    if _verify_ssh_receipt(
-                        payload=payload,
-                        signature=receipt["signature"],
-                        principal=principal,
-                        public_key=public_key,
-                        namespace=namespace,
-                    ):
-                        verified.append({
-                            "principal": principal,
-                            "issue": receipt["issue"],
-                            "pr": number,
-                            "head": head,
-                            "authority": "EVALUATION_ONLY",
-                            "carrier": carrier,
-                            "source": source_name,
-                        })
-                        break
-        pr["verified_admission_receipts"] = verified
-    return snapshot
 
 def _evaluation_admission_evidence(
     pr: dict[str, Any],
@@ -456,10 +381,11 @@ def _base_lane(
     pr: dict[str, Any],
     *,
     policy: dict[str, Any],
+    state: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[str, dict[str, Any]]:
-    admitted, evidence, objectives = _admission_evidence(pr, policy, referenced_items)
-    eval_admitted, eval_evidence, eval_objectives, eval_principals = (
+    admitted, evidence, objectives = _admission_evidence(pr, state, referenced_items)
+    eval_admitted, eval_evidence, eval_objectives, eval_approvers = (
         _evaluation_admission_evidence(pr, policy, referenced_items)
     )
     maintenance = _maintenance(pr, policy)
@@ -590,6 +516,7 @@ def classify(
     referenced_items: dict[str, dict[str, Any]],
     active_gates: list[str],
     policy: dict[str, Any],
+    state: dict[str, Any],
     capacity_contention: bool,
     duplicate_objectives: dict[int, list[int]] | None = None,
 ) -> dict[str, Any]:
@@ -601,9 +528,16 @@ def classify(
     base_lane, admission = _base_lane(
         pr,
         policy=policy,
+        state=state,
         referenced_items=referenced_items,
     )
     lane = "CAPACITY_CONTENTION" if capacity_contention and base_lane == "ACTIVE" else base_lane
+
+    scope_drift = _admission_scope_drift(pr, state)
+    if scope_drift:
+        findings.append(Finding(
+            "ADMISSION_SCOPE_DRIFT", "HIGH", scope_drift
+        ))
 
     if lane == "ADMISSION_REVIEW":
         findings.append(Finding(
@@ -709,6 +643,11 @@ def classify(
     else:
         action = "ADVANCE"
         next_action = "Proceed to ordinary review/testing; no coordinator-level technical blocker was detected."
+    if lane == "CONTROL_PLANE" and action == "ADVANCE":
+        # ADVANCE reads as "admitted, go". A control-plane PR has no admission record;
+        # it only routes to ordinary Z2 review.
+        action = "ROUTE_TO_Z2"
+        next_action = "Route to ordinary Z2 review. Control-plane changes are not admitted by the coordinator."
 
     objective = (
         "EVALUATION"
@@ -734,7 +673,12 @@ def classify(
 
     admission_gate = "PASS"
     admission_reason = "lane does not require additional admission evidence"
-    if lane == "ADMISSION_REVIEW":
+    if scope_drift:
+        admission_gate = "FAIL"
+        admission_reason = (
+            "admitted PR objective/scope no longer matches the current PR declaration"
+        )
+    elif lane == "ADMISSION_REVIEW":
         admission_gate = "FAIL"
         admission_reason = "ready non-maintenance work has no explicit admission record"
     elif lane == "CAPACITY_CONTENTION":
@@ -757,6 +701,7 @@ def classify(
     return {
         "number": number,
         "title": pr.get("title") or "",
+        "head_sha": pr.get("head_sha") or "",
         "url": pr.get("html_url") or pr.get("url"),
         "author": pr.get("author"),
         "draft": bool(pr.get("draft")),
@@ -801,12 +746,18 @@ def analyze(
     snapshot: dict[str, Any],
     priority_queue_text: str,
     policy: dict[str, Any] | None = None,
+    state: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     policy = policy or {
         "capacity": {"active_operator_queue": 4},
-        "admission": {"issue_numbers": [], "pull_request_numbers": []},
         "maintenance": {"authors": ["dependabot[bot]"], "labels": ["dependencies"]},
         "control_plane": {"paths": []},
+    }
+    state = state or {
+        "admitted_issue_numbers": [],
+        "admitted_pull_request_numbers": [],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
     }
     prs = list(snapshot.get("pull_requests") or [])
     competitions = _competition(prs)
@@ -819,6 +770,7 @@ def analyze(
         int(pr["number"]): _base_lane(
             pr,
             policy=policy,
+            state=state,
             referenced_items=referenced_items,
         )
         for pr in prs
@@ -854,6 +806,7 @@ def analyze(
             referenced_items=referenced_items,
             active_gates=gates,
             policy=policy,
+            state=state,
             capacity_contention=capacity_contention,
             duplicate_objectives=duplicate_objectives,
         )
@@ -885,6 +838,14 @@ def analyze(
         "authority_effect": "ADMISSION_ROUTING_ONLY",
         "repository": snapshot.get("repository"),
         "main_sha": snapshot.get("main_sha"),
+        "state_receipt": {
+            "policy_ref": snapshot.get("policy_ref") or "main",
+            "policy_sha": snapshot.get("policy_sha") or snapshot.get("main_sha"),
+            "state_branch": snapshot.get("state_branch"),
+            "state_sha": snapshot.get("state_sha"),
+            "ledger_sha256": snapshot.get("ledger_sha256"),
+            "projection_sha256": snapshot.get("projection_sha256"),
+        },
         "active_canonical_gates": gates,
         "capacity": {
             "active_operator_queue_limit": active_limit,
@@ -897,6 +858,7 @@ def analyze(
             "RELEVANT_IS_NOT_WARRANTED",
             "MERGEABLE_IS_NOT_CURRENT",
             "AGE_IS_NOT_STALENESS",
+            "OBSERVATIONAL_TIME_IS_NOT_AUTHORITY",
             "GUIDANCE_REQUIRES_EVIDENCE",
             "ISSUE_IS_NOT_ADMITTED_WORK",
             "ASSIGNMENT_IS_NOT_PR_ADMISSION",
@@ -904,6 +866,10 @@ def analyze(
             "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
             "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
             "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
+            "POLICY_IS_NOT_STATE",
+            "STATE_EVENT_IS_NOT_MERGE_AUTHORITY",
+            "STATE_HEAD_MUST_BE_RECEIPTED",
+            "PROJECTION_MUST_EQUAL_LEDGER_REPLAY",
             "ADMISSION_IS_NOT_MERGE_AUTHORITY",
         ],
         "counts": {
@@ -986,7 +952,8 @@ def render_markdown(index: dict[str, Any]) -> str:
 
     sections = [
         (["CAPACITY_CONTENTION"], "Capacity contention"),
-        (["CONTROL_PLANE", "ACTIVE"], "Active operator queue"),
+        (["ACTIVE"], "Active operator queue"),
+        (["CONTROL_PLANE"], "Control plane — ordinary Z2 review, not operator queue"),
         (["ADMITTED_TO_EVALUATION"], "Evaluation admission — evidence workspace, not operator queue"),
         (["ADMISSION_REVIEW"], "Admission review"),
         (["WORKBENCH"], "Workbench — visible, not operator queue"),
@@ -1032,19 +999,29 @@ def gate_decision(index: dict[str, Any], number: int) -> dict[str, Any]:
             gate = "PASS" if admission.get("gate") == "PASS" else "FAIL"
             return {
                 "number": int(number),
+                "target_pr": int(number),
+                "target_head_sha": item.get("head_sha") or "",
                 "gate": gate,
                 "lane": item.get("lane"),
                 "reason": admission.get("gate_reason") or "no admission reason recorded",
                 "evidence": admission.get("evidence") or [],
                 "capacity": index.get("capacity") or {},
+                "state_receipt": index.get("state_receipt") or {},
+                "authority_effect": "ADMISSION_ROUTING_ONLY",
+                "merge_authority": False,
             }
     return {
         "number": int(number),
+        "target_pr": int(number),
+        "target_head_sha": None,
         "gate": "FAIL",
         "lane": None,
         "reason": "target PR is absent from the repository snapshot; refusing to pass on missing evidence",
         "evidence": [],
         "capacity": index.get("capacity") or {},
+        "state_receipt": index.get("state_receipt") or {},
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
     }
 
 
@@ -1091,12 +1068,17 @@ def run_smoke_test() -> bool:
     }
     policy = {
         "capacity": {"active_operator_queue": 4},
-        "admission": {"issue_numbers": [10], "pull_request_numbers": [1]},
         "maintenance": {"authors": ["dependabot[bot]"], "labels": ["dependencies"]},
         "control_plane": {"paths": ["REPOSITORY_COORDINATOR_POLICY.json"]},
     }
+    state = {
+        "admitted_issue_numbers": [10],
+        "admitted_pull_request_numbers": [1],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
+    }
     pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource-state scheduling gate\n**State:** `GATING`\n"
-    index = analyze(snapshot, pq, policy)
+    index = analyze(snapshot, pq, policy, state)
     one = next(x for x in index["items"] if x["number"] == 1)
     two = next(x for x in index["items"] if x["number"] == 2)
     assert one["guidance"]["action"] == "REEXAMINE"
@@ -1118,6 +1100,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--snapshot", type=Path)
     parser.add_argument("--priority-queue", type=Path, default=ROOT / "PRIORITY_QUEUE.md")
     parser.add_argument("--policy", type=Path, default=ROOT / "REPOSITORY_COORDINATOR_POLICY.json")
+    parser.add_argument("--state", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--smoke-test", action="store_true")
@@ -1137,12 +1120,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.gate is not None and not args.policy.exists():
         print(f"gate=FAIL reason=policy file missing: {args.policy}")
         return 1
+    if args.gate is not None and (args.state is None or not args.state.exists()):
+        print(f"gate=FAIL reason=coordinator state file missing: {args.state}")
+        return 1
 
     snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
     pq = args.priority_queue.read_text(encoding="utf-8", errors="replace") if args.priority_queue.exists() else ""
     policy = json.loads(args.policy.read_text(encoding="utf-8")) if args.policy.exists() else {}
-    snapshot = verify_human_admission_receipts(snapshot, policy)
-    index = analyze(snapshot, pq, policy)
+    state = (
+        json.loads(args.state.read_text(encoding="utf-8"))
+        if args.state is not None and args.state.exists()
+        else {}
+    )
+    index = analyze(snapshot, pq, policy, state)
 
     if args.gate is not None:
         decision = gate_decision(index, args.gate)
