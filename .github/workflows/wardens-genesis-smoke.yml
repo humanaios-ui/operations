@@ -1,0 +1,58 @@
+name: Wardens Genesis Slice Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/wardens-genesis-slice/**'
+      - '.github/workflows/wardens-genesis-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-slice-logic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: experiments/wardens-genesis-slice
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse game JavaScript
+        run: node --check game.js
+      - name: Exercise four forms and all route variants
+        run: |
+          WARDENS_FORM=Seeker WARDENS_PATH=Ember node tests/test_logic.mjs
+          WARDENS_FORM=Warden WARDENS_PATH=Archive node tests/test_logic.mjs
+          WARDENS_FORM=Builder WARDENS_PATH=Forge node tests/test_logic.mjs
+          WARDENS_FORM=Memory-Bearer WARDENS_PATH=Archive node tests/test_logic.mjs
+          WARDENS_W1_OFF=1 node tests/test_logic.mjs
+      - name: Verify committed art assets and static HTML references
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Check(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.ids = []; self.images = []
+              def handle_starttag(self, tag, attrs):
+                  a=dict(attrs)
+                  if 'id' in a: self.ids.append(a['id'])
+                  if tag=='img': self.images.append(a['src'])
+          root=Path('.')
+          parser=Check();parser.feed((root/'index.html').read_text())
+          assert len(parser.ids)==len(set(parser.ids))
+          for name in ('labyrinth','face','seal','lineage','erasure'):
+              art=root/'assets'/f'{name}.webp'
+              assert art.is_file() and art.read_bytes()[:4]==b'RIFF',art
+          for image in parser.images:
+              assert (root/image).is_file(),image
+          assert (root/'game.js').is_file() and (root/'styles.css').is_file()
+          print('PASS: static HTML references and 5 artwork assets')
+          PY
