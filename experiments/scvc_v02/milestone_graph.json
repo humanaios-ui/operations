@@ -1,0 +1,74 @@
+{
+  "schema": "humanaios.milestone_pilot.v0.1",
+  "objective_issue": 793,
+  "predecessor_pr": 788,
+  "mode": "PASSIVE_SYNTHETIC",
+  "authority_effect": "NONE",
+  "milestones": [
+    {
+      "id": "SCVC-M0",
+      "title": "Pin source and governance contracts",
+      "dependencies": [],
+      "acceptance": [
+        "SCVC_V01_EXACT_HEAD",
+        "HLKS_VLR_SCHEMA_PIN",
+        "SESSION_GRAPH_SCHEMA_PIN",
+        "COORDINATOR_POLICY_PIN"
+      ],
+      "human_approval_required": false
+    },
+    {
+      "id": "SCVC-M1",
+      "title": "Define authenticated reconstruction witness",
+      "dependencies": [
+        "SCVC-M0"
+      ],
+      "acceptance": [
+        "INDEPENDENT_ISSUER_CONTRACT",
+        "PROTECTED_RUN_IDENTITY_CONTRACT",
+        "VALIDITY_CONSENT_CONTRACT"
+      ],
+      "human_approval_required": true
+    },
+    {
+      "id": "SCVC-M2",
+      "title": "Adversarial witness falsifiers",
+      "dependencies": [
+        "SCVC-M1"
+      ],
+      "acceptance": [
+        "FORGED_RECEIPT_REJECTED",
+        "REPLAYED_RUN_REJECTED",
+        "CHANGED_HEAD_REJECTED",
+        "CROSS_DOMAIN_DENIED"
+      ],
+      "human_approval_required": true
+    },
+    {
+      "id": "SCVC-M3",
+      "title": "Cross-session reconstruction replay",
+      "dependencies": [
+        "SCVC-M2"
+      ],
+      "acceptance": [
+        "CORRECTION_LINEAGE_REPLAY",
+        "CONFLICT_ABSTENTION",
+        "REVOCATION_INVALIDATES_CACHE"
+      ],
+      "human_approval_required": true
+    },
+    {
+      "id": "SCVC-M4",
+      "title": "Independent assurance and governed readiness",
+      "dependencies": [
+        "SCVC-M3"
+      ],
+      "acceptance": [
+        "PROTECTED_CI_EVIDENCE",
+        "INDEPENDENT_REVIEW",
+        "AUTHORIZATION_RESOLVED"
+      ],
+      "human_approval_required": true
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/proposition-candidate.v1.schema.json",
+  "title": "HumanAIOS Proposition Candidate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "proposition_id",
+    "proposition_token",
+    "opportunity_id",
+    "opportunity_token",
+    "proposition_type",
+    "epistemic_role",
+    "subject",
+    "predicate",
+    "object_value",
+    "statement",
+    "semantic_key",
+    "extracted_at",
+    "extraction_method",
+    "extraction_confidence",
+    "evidence",
+    "source_url",
+    "mine_id",
+    "mine_name",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.proposition-candidate.v1"
+    },
+    "proposition_id": {
+      "type": "string",
+      "pattern": "^PRP-[A-F0-9]{16}$"
+    },
+    "proposition_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:proposition:PRP-[A-F0-9]{16}$"
+    },
+    "opportunity_id": {
+      "type": "string",
+      "pattern": "^OPP-[A-F0-9]{16}$"
+    },
+    "opportunity_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:resource-opportunity:OPP-[A-F0-9]{16}$"
+    },
+    "proposition_type": {
+      "enum": [
+        "OPPORTUNITY_EXISTS",
+        "CURRENTLY_AVAILABLE",
+        "RESOURCE_TYPE",
+        "AFFORDANCE",
+        "DEADLINE",
+        "CASH_MENTION",
+        "APPLICANT_TYPE",
+        "STATUS"
+      ]
+    },
+    "epistemic_role": {
+      "enum": [
+        "OBSERVATION",
+        "SOURCE_ASSERTION",
+        "CLASSIFICATION",
+        "TEXT_EXTRACTION"
+      ]
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1
+    },
+    "predicate": {
+      "type": "string",
+      "minLength": 1
+    },
+    "object_value": {},
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "semantic_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "extracted_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "extraction_method": {
+      "enum": [
+        "TOKENIZED_OPPORTUNITY",
+        "DIRECT_OBSERVATION",
+        "NORMALIZER_CLASSIFICATION",
+        "NORMALIZER_EXTRACTION"
+      ]
+    },
+    "extraction_confidence": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "mine_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}

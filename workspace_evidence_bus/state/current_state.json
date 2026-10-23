@@ -1,0 +1,34 @@
+{
+  "artifact_type": "WORKSPACE_EVIDENCE_BUS_CURRENT_STATE",
+  "authority_effect": "NONE",
+  "derived_from": [
+    {
+      "event_id": "EVT-gha-37068072958",
+      "kind": "receipt",
+      "path": "workspace_evidence_bus/receipts/roundtrip_gate_receipt.json",
+      "sha256": "32c3394a583def8fa0c2f0996c0515d5cac352597d3885fe196026d739a4e772",
+      "workflow_run_id": 37068072958
+    }
+  ],
+  "historical_snapshots": [
+    {
+      "current_status": "SUPERSEDED_AS_CURRENT_STATE",
+      "note": "Historical observation is preserved; only its use as current state is superseded.",
+      "opaque_id": "11EgHtelUYGFGA5uYHZPzn6wIf1q717tg",
+      "recorded_at": "2026-10-02T20:52:00Z",
+      "recorded_state": "CODE_ONLY_NOT_DEPLOYED",
+      "store": "GOOGLE_DRIVE"
+    }
+  ],
+  "invariants": [
+    "DRIVE_ARTIFACT != AUTHORITY",
+    "HISTORICAL_SNAPSHOT != CURRENT_STATE",
+    "CURRENT_STATE = deterministic_projection(immutable_receipts)",
+    "DRIVE_WRITE != REPOSITORY_ADMISSION",
+    "REPOSITORY_ADMISSION != AUTHORIZATION",
+    "AUTHORIZATION != MERGE"
+  ],
+  "next_gate": "BIND_PRIVATE_REFERENCES",
+  "schema_version": "1.0",
+  "state": "ROUNDTRIP_VERIFIED"
+}

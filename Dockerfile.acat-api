@@ -14,7 +14,7 @@
 # acat/api/ or requirements.txt's own packages. acat/cli/, acat/normalization/, acat/db/,
 # acat/mcp/, and acat/tests/ are separate tools/tests, not part of the API — intentionally
 # not copied.
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 

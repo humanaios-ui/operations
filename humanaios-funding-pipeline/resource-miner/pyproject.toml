@@ -7,3 +7,4 @@ dependencies = []
 
 [project.scripts]
 haios-resource-miner = "resource_miner.cli:main"
+haios-privacy-footprint = "resource_miner.privacy_footprint_cli:main"

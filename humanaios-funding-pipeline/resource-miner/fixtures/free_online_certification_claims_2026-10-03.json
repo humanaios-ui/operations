@@ -1,0 +1,259 @@
+[
+  {
+    "specimen_id": "CERT-GOOGLE-ADS-FOUNDATIONAL",
+    "mine_name": "Google Skillshop",
+    "mine_url": "https://skillshop.withgoogle.com/",
+    "title": "Google Ads foundational certifications",
+    "opportunity_identity": "google-skillshop:google-ads:foundational-certifications",
+    "opportunity_kind": "online_certification_path",
+    "canonical_url": "https://support.google.com/skillshop/answer/14746215?hl=en",
+    "description": "Foundational Google Ads certification paths, including Search, Display, and Video.",
+    "extracted_claim": "Google Skillshop currently offers foundational Google Ads certifications at no charge.",
+    "initial_evidence": {
+      "url": "https://skillshop.withgoogle.com/googleads/",
+      "kind": "discovery",
+      "observed_at": "2026-10-03T14:30:00Z",
+      "claim": "Google Skillshop presents Google Ads certification paths including Search and Display."
+    },
+    "events": [
+      {
+        "event_type": "EVIDENCE_RECORDED",
+        "facet": "CURRENTNESS",
+        "relation": "SUPPORTS",
+        "actor_type": "RESOLVER",
+        "actor_id": "official-source-verifier",
+        "method": "official_web_observation",
+        "confidence": 0.98,
+        "evidence": {
+          "url": "https://support.google.com/skillshop/answer/14746215?hl=en",
+          "kind": "official_terms",
+          "observed_at": "2026-10-03T14:31:00Z",
+          "claim": "Google states foundational certifications continue to be available free of charge."
+        }
+      },
+      {
+        "event_type": "EVIDENCE_RECORDED",
+        "facet": "TERMS",
+        "relation": "SUPPORTS",
+        "actor_type": "RESOLVER",
+        "actor_id": "official-source-verifier",
+        "method": "official_web_observation",
+        "confidence": 0.98,
+        "evidence": {
+          "url": "https://support.google.com/skillshop/answer/14746215?hl=en",
+          "kind": "official_terms",
+          "observed_at": "2026-10-03T14:32:00Z",
+          "claim": "Free status applies to foundational certifications; professional certifications are distinct."
+        }
+      }
+    ],
+    "expected": {
+      "overall_state": "SUPPORTED",
+      "CURRENTNESS": "SUPPORTED",
+      "TERMS": "SUPPORTED"
+    }
+  },
+  {
+    "specimen_id": "CERT-HUBSPOT-SEO",
+    "mine_name": "HubSpot Academy",
+    "mine_url": "https://academy.hubspot.com/",
+    "title": "HubSpot SEO Certification",
+    "opportunity_identity": "hubspot-academy:seo-certification",
+    "opportunity_kind": "online_certification_path",
+    "canonical_url": "https://academy.hubspot.com/courses/seo-training%EF%BB%BF",
+    "description": "SEO certification path represented in the original free-certification concept.",
+    "extracted_claim": "HubSpot Academy currently offers its SEO Certification as a free certification path.",
+    "initial_evidence": {
+      "url": "https://academy.hubspot.com/courses/seo-training%EF%BB%BF",
+      "kind": "discovery",
+      "observed_at": "2026-10-03T14:33:00Z",
+      "claim": "HubSpot maintains an SEO certification course page."
+    },
+    "events": [
+      {
+        "event_type": "FALSIFIER_EVALUATED",
+        "falsifier_facet": "CURRENTNESS",
+        "observed": true,
+        "actor_type": "RESOLVER",
+        "actor_id": "official-source-verifier",
+        "method": "official_web_observation",
+        "confidence": 0.99,
+        "evidence": {
+          "url": "https://academy.hubspot.com/courses/seo-training%EF%BB%BF",
+          "kind": "authoritative_retirement",
+          "observed_at": "2026-10-03T14:34:00Z",
+          "claim": "HubSpot states the SEO Certification has been retired and replaced by new AEO certifications."
+        }
+      }
+    ],
+    "expected": {
+      "overall_state": "RETIRED",
+      "CURRENTNESS": "FALSIFIED",
+      "EXISTENCE": "SUPPORTED"
+    }
+  },
+  {
+    "specimen_id": "CERT-FCC-RWD",
+    "mine_name": "freeCodeCamp",
+    "mine_url": "https://www.freecodecamp.org/",
+    "title": "freeCodeCamp Responsive Web Design Certification",
+    "opportunity_identity": "freecodecamp:responsive-web-design-certification",
+    "opportunity_kind": "online_certification_path",
+    "canonical_url": "https://www.freecodecamp.org/learn/",
+    "description": "Verified Responsive Web Design certification path with projects and an exam.",
+    "extracted_claim": "freeCodeCamp offers a free verified Responsive Web Design certification.",
+    "initial_evidence": {
+      "url": "https://forum.freecodecamp.org/t/responsive-web-design-certification/769100",
+      "kind": "discovery",
+      "observed_at": "2026-10-03T14:35:00Z",
+      "claim": "A freeCodeCamp contributor announcement states the Responsive Web Design certification is live."
+    },
+    "events": [
+      {
+        "event_type": "EVIDENCE_RECORDED",
+        "facet": "CURRENTNESS",
+        "relation": "SUPPORTS",
+        "actor_type": "RESOLVER",
+        "actor_id": "owned-community-source-verifier",
+        "method": "owned_domain_observation",
+        "confidence": 0.9,
+        "uncertainty": "freeCodeCamp certification catalog is actively evolving.",
+        "evidence": {
+          "url": "https://forum.freecodecamp.org/t/inquiry-about-the-freecodecamp-responsive-web-design-certifcation/791438/3",
+          "kind": "current_support_observation",
+          "observed_at": "2026-10-03T14:36:00Z",
+          "claim": "June 2026 support guidance describes claiming the Responsive Web Design certification after passing."
+        }
+      },
+      {
+        "event_type": "EVIDENCE_RECORDED",
+        "facet": "TERMS",
+        "relation": "SUPPORTS",
+        "actor_type": "RESOLVER",
+        "actor_id": "owned-community-source-verifier",
+        "method": "owned_domain_observation",
+        "confidence": 0.9,
+        "evidence": {
+          "url": "https://forum.freecodecamp.org/t/major-curriculum-update-introducing-new-freecodecamp-certifications/762070",
+          "kind": "program_announcement",
+          "observed_at": "2026-10-03T14:37:00Z",
+          "claim": "freeCodeCamp states its new certifications are free verified certifications."
+        }
+      }
+    ],
+    "expected": {
+      "overall_state": "SUPPORTED",
+      "CURRENTNESS": "SUPPORTED",
+      "TERMS": "SUPPORTED"
+    }
+  },
+  {
+    "specimen_id": "CERT-SALESFORCE-OFFICIAL",
+    "mine_name": "Salesforce Trailhead",
+    "mine_url": "https://trailhead.salesforce.com/",
+    "title": "Salesforce official professional certification",
+    "opportunity_identity": "salesforce:official-professional-certification",
+    "opportunity_kind": "online_certification_path",
+    "canonical_url": "https://trailhead.salesforce.com/content/learn/modules/salesforce-credentials-quick-look/get-familiar-with-salesforce-credentials-on-trailhead",
+    "description": "Official Salesforce certification path represented under the umbrella concept of free online certifications.",
+    "extracted_claim": "Official Salesforce certification exams are available for free through Trailhead.",
+    "initial_evidence": {
+      "url": "https://trailhead.salesforce.com/",
+      "kind": "discovery",
+      "observed_at": "2026-10-03T14:38:00Z",
+      "claim": "Trailhead provides free learning, hands-on practice, and badges while preparing learners for official certifications."
+    },
+    "events": [
+      {
+        "event_type": "EVIDENCE_RECORDED",
+        "facet": "CURRENTNESS",
+        "relation": "SUPPORTS",
+        "actor_type": "RESOLVER",
+        "actor_id": "official-source-verifier",
+        "method": "official_web_observation",
+        "confidence": 0.99,
+        "evidence": {
+          "url": "https://trailhead.salesforce.com/content/learn/modules/salesforce-credentials-quick-look/get-familiar-with-salesforce-credentials-on-trailhead",
+          "kind": "official_certification_overview",
+          "observed_at": "2026-10-03T14:39:00Z",
+          "claim": "Salesforce currently offers professional certifications, generally earned through proctored exams."
+        }
+      },
+      {
+        "event_type": "FALSIFIER_EVALUATED",
+        "falsifier_facet": "TERMS",
+        "observed": true,
+        "actor_type": "RESOLVER",
+        "actor_id": "official-source-verifier",
+        "method": "official_web_observation",
+        "confidence": 0.99,
+        "evidence": {
+          "url": "https://trailhead.salesforce.com/content/learn/modules/salesforce-credentials-quick-look/get-familiar-with-salesforce-credentials-on-trailhead",
+          "kind": "official_exam_terms",
+          "observed_at": "2026-10-03T14:40:00Z",
+          "claim": "Salesforce states there is a fee associated with each certification exam."
+        }
+      }
+    ],
+    "expected": {
+      "overall_state": "CONTESTED",
+      "CURRENTNESS": "SUPPORTED",
+      "TERMS": "FALSIFIED"
+    }
+  },
+  {
+    "specimen_id": "CERT-ALISON-CERTIFICATE",
+    "mine_name": "Alison",
+    "mine_url": "https://alison.com/",
+    "title": "Alison course certificate",
+    "opportunity_identity": "alison:general-course-certificate",
+    "opportunity_kind": "online_certificate_path",
+    "canonical_url": "https://helpcenter.alison.com/en/articles/8206668-why-do-i-have-to-pay-for-the-certificate-if-it-was-a-free-course",
+    "description": "Alison course completion and certificate path represented under the umbrella concept of free online certifications.",
+    "extracted_claim": "Completing Alison's free courses generally includes a free digital or printed certificate.",
+    "initial_evidence": {
+      "url": "https://helpcenter.alison.com/en/articles/8206417-is-alison-really-free",
+      "kind": "discovery",
+      "observed_at": "2026-10-03T14:41:00Z",
+      "claim": "Alison states its courses are free to study and complete."
+    },
+    "events": [
+      {
+        "event_type": "EVIDENCE_RECORDED",
+        "facet": "CURRENTNESS",
+        "relation": "SUPPORTS",
+        "actor_type": "RESOLVER",
+        "actor_id": "official-source-verifier",
+        "method": "official_web_observation",
+        "confidence": 0.99,
+        "evidence": {
+          "url": "https://helpcenter.alison.com/en/articles/8206417-is-alison-really-free",
+          "kind": "official_course_terms",
+          "observed_at": "2026-10-03T14:42:00Z",
+          "claim": "Alison currently offers courses free to study and complete."
+        }
+      },
+      {
+        "event_type": "FALSIFIER_EVALUATED",
+        "falsifier_facet": "TERMS",
+        "observed": true,
+        "actor_type": "RESOLVER",
+        "actor_id": "official-source-verifier",
+        "method": "official_web_observation",
+        "confidence": 0.99,
+        "uncertainty": "Alison lists some exceptions where a free digital certificate is offered.",
+        "evidence": {
+          "url": "https://helpcenter.alison.com/en/articles/8206668-why-do-i-have-to-pay-for-the-certificate-if-it-was-a-free-course",
+          "kind": "official_certificate_terms",
+          "observed_at": "2026-10-03T14:43:00Z",
+          "claim": "Alison states digital or printed Certificates are generally optional paid products; a free Learner Record remains available."
+        }
+      }
+    ],
+    "expected": {
+      "overall_state": "CONTESTED",
+      "CURRENTNESS": "SUPPORTED",
+      "TERMS": "FALSIFIED"
+    }
+  }
+]

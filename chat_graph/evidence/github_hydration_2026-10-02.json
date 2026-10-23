@@ -1,0 +1,532 @@
+{
+  "version": "0.1.0",
+  "observed_on": "2026-10-02",
+  "authority_effect": "NONE",
+  "evidence_class": "SOURCE_OBSERVED",
+  "repository_snapshot": {
+    "repository": "humanaios-ui/operations",
+    "ref": "main",
+    "commit_sha": "b6dc866858a1c6eac7e5267293db7186ea6e8195",
+    "tree_sha": "24e43889b7f4639457294c72b234f2832cc9f662",
+    "protected": true,
+    "required_status_checks": [
+      "guard"
+    ]
+  },
+  "work_items": {
+    "358": {
+      "kind": "pull_request",
+      "title": "build(deps): update forecasting-tools requirement from <0.3.0,>=0.2.92 to >=0.3.1,<0.4.0 in /tools/Metaculus",
+      "state": "closed",
+      "merged": false,
+      "created_at": "2026-09-17T08:54:02Z",
+      "updated_at": "2026-09-23T23:34:23Z",
+      "closed_at": "2026-09-23T23:34:18Z",
+      "merged_at": null,
+      "head_sha": "9222d232529519c743a47345de8bb890bd19ab86"
+    },
+    "408": {
+      "kind": "pull_request",
+      "title": "Board re-read after #407: d2 and d14 ruled by merge, launch falsifier (b) closed, index re-sealed",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-18T16:46:42Z",
+      "updated_at": "2026-09-18T19:01:42Z",
+      "closed_at": "2026-09-18T19:01:42Z",
+      "merged_at": "2026-09-18T19:01:41Z",
+      "head_sha": "ec4ef7678843cb37e3e9570a58d949efd863b139"
+    },
+    "409": {
+      "kind": "pull_request",
+      "title": "Login-gated board on Cloudflare: Access-verified Worker (fails closed) + Workers Builds config, filed as d31",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-18T21:16:11Z",
+      "updated_at": "2026-09-19T00:30:51Z",
+      "closed_at": "2026-09-19T00:30:50Z",
+      "merged_at": "2026-09-19T00:30:50Z",
+      "head_sha": "0c5f867c31b14486f4ae3e1c17f597d72fc0c01c"
+    },
+    "410": {
+      "kind": "pull_request",
+      "title": "Board: every open decision, the whole pipeline, Decisions ↔ Pipeline links, four section pages, an Intent-OS Witness navigation, and an open-the-board card",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-19T03:28:24Z",
+      "updated_at": "2026-09-19T04:28:05Z",
+      "closed_at": "2026-09-19T04:03:36Z",
+      "merged_at": "2026-09-19T04:03:36Z",
+      "head_sha": "3b1c2fc3653ceb7c59c9a6e58c7b0e2b33a54eba"
+    },
+    "411": {
+      "kind": "pull_request",
+      "title": "Answers to the two red-team reads of #410: page freshness, the d33 hold as a test and a state table, one saved state under file://, decomposed parents, generator hardening, a Tier 2 gate proposal",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-19T04:17:07Z",
+      "updated_at": "2026-09-19T04:52:23Z",
+      "closed_at": "2026-09-19T04:52:23Z",
+      "merged_at": "2026-09-19T04:52:23Z",
+      "head_sha": "b3d10d465e09a3dfbabf8c3eed927ad94f5a1022"
+    },
+    "412": {
+      "kind": "pull_request",
+      "title": "File Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01: Research→Governance→Operations Loop",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-19T05:47:04Z",
+      "updated_at": "2026-09-19T13:43:27Z",
+      "closed_at": "2026-09-19T13:43:27Z",
+      "merged_at": "2026-09-19T13:43:27Z",
+      "head_sha": "0acd027871b2f7d7ac82aea626d2c01ea7cfb53c"
+    },
+    "429": {
+      "kind": "issue",
+      "title": "Q-WITNESS-COMMONS-ASSURANCE-01 — Witness Runtime, Participation Contract, Evidence Graph & Service-First Readiness Audit",
+      "state": "closed",
+      "created_at": "2026-09-20T19:16:50Z",
+      "updated_at": "2026-10-02T14:28:21Z",
+      "closed_at": "2026-09-21T07:21:46Z"
+    },
+    "451": {
+      "kind": "pull_request",
+      "title": "Z1 proposal: Witness Arena v0.1.1 — adversarial hardening",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-22T09:36:41Z",
+      "updated_at": "2026-09-23T14:21:16Z",
+      "closed_at": "2026-09-23T14:21:16Z",
+      "merged_at": "2026-09-23T14:21:16Z",
+      "head_sha": "fd23fa309a316078515722e1bb5cdcfb4c724596"
+    },
+    "455": {
+      "kind": "pull_request",
+      "title": "OI-BRIDGE-01 Phase 0 Control Surface v0.3 + PR Manager STUB",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-22T20:23:35Z",
+      "updated_at": "2026-09-23T19:44:24Z",
+      "closed_at": "2026-09-23T19:44:23Z",
+      "merged_at": "2026-09-23T19:44:23Z",
+      "head_sha": "dabf6d366a64fd253aff0980e9fa0166be491a77"
+    },
+    "471": {
+      "kind": "pull_request",
+      "title": "Phase 1 s1: SMAG calibration gate wire-up in quality-baseline.yml",
+      "state": "closed",
+      "merged": false,
+      "created_at": "2026-09-23T19:09:38Z",
+      "updated_at": "2026-09-23T23:30:01Z",
+      "closed_at": "2026-09-23T23:30:01Z",
+      "merged_at": null,
+      "head_sha": "d41f8727c8a7b0dde6970476f48ce019f27b36b6"
+    },
+    "472": {
+      "kind": "pull_request",
+      "title": "Q-ACCOUNT-HUB-02: Phase 2 Infrastructure — API Integrations",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-23T19:11:11Z",
+      "updated_at": "2026-09-23T19:18:07Z",
+      "closed_at": "2026-09-23T19:18:07Z",
+      "merged_at": "2026-09-23T19:18:07Z",
+      "head_sha": "8b08122b62644fb90c64d3d4a6c73f673e1775a9"
+    },
+    "473": {
+      "kind": "pull_request",
+      "title": "Phase 1 s1 CI gate wire-up: complete implementation with all fixes",
+      "state": "closed",
+      "merged": false,
+      "created_at": "2026-09-23T19:44:25Z",
+      "updated_at": "2026-09-23T23:30:07Z",
+      "closed_at": "2026-09-23T23:30:07Z",
+      "merged_at": null,
+      "head_sha": "e5aaddbcb0824705cfb0b13f0859c4e1e75ed4da"
+    },
+    "474": {
+      "kind": "pull_request",
+      "title": "Phase 1 s1 CI gate wire-up: SMAG Calibration Gate Enforcer",
+      "state": "closed",
+      "merged": false,
+      "created_at": "2026-09-23T19:47:56Z",
+      "updated_at": "2026-09-23T23:30:11Z",
+      "closed_at": "2026-09-23T23:30:11Z",
+      "merged_at": null,
+      "head_sha": "af9dfda8ad797475e42c75e5d75e2a82270694c9"
+    },
+    "500": {
+      "kind": "pull_request",
+      "title": "feat(funding): add Resource Miner discovery layer",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-24T13:37:07Z",
+      "updated_at": "2026-09-24T18:11:01Z",
+      "closed_at": "2026-09-24T18:11:01Z",
+      "merged_at": "2026-09-24T18:11:01Z",
+      "head_sha": "20edaa585a5e17bff47a0cd77fd7a2b8eca6ac21"
+    },
+    "524": {
+      "kind": "pull_request",
+      "title": "Prototype: compile CRB + capability/workflow graph",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-25T10:45:07Z",
+      "updated_at": "2026-09-25T11:12:17Z",
+      "closed_at": "2026-09-25T11:12:17Z",
+      "merged_at": "2026-09-25T11:12:17Z",
+      "head_sha": "796a4f8490f625bc6b1aa46c36d595bf074298b3"
+    },
+    "525": {
+      "kind": "issue",
+      "title": "Research: Governed Morphogenetic Control Graph + Holographic Evidence Projection",
+      "state": "closed",
+      "created_at": "2026-09-25T11:07:06Z",
+      "updated_at": "2026-09-25T15:31:17Z",
+      "closed_at": "2026-09-25T15:31:17Z"
+    },
+    "527": {
+      "kind": "pull_request",
+      "title": "Prototype governed morphogenesis and HEP in the CRB projection layer",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-25T11:21:46Z",
+      "updated_at": "2026-09-25T15:32:02Z",
+      "closed_at": "2026-09-25T15:31:16Z",
+      "merged_at": "2026-09-25T15:31:16Z",
+      "head_sha": "251921314c5f75eef342ed59494591fd6fcc5cc8"
+    },
+    "529": {
+      "kind": "issue",
+      "title": "[SKILL] Repository-Native Operator Learning Audit (RNOLA)",
+      "state": "closed",
+      "created_at": "2026-09-25T12:25:51Z",
+      "updated_at": "2026-09-25T21:25:50Z",
+      "closed_at": "2026-09-25T21:25:50Z"
+    },
+    "530": {
+      "kind": "pull_request",
+      "title": "Prototype adaptive human/AI START_HERE intake v0.6",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-25T14:19:14Z",
+      "updated_at": "2026-09-25T19:10:59Z",
+      "closed_at": "2026-09-25T19:10:23Z",
+      "merged_at": "2026-09-25T19:10:23Z",
+      "head_sha": "5f88d104858f3664651366f9f2b2f7693106ee4b"
+    },
+    "534": {
+      "kind": "pull_request",
+      "title": "feat(intent-os): integrate RNOLA operator learning layer",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-25T18:29:34Z",
+      "updated_at": "2026-09-25T21:25:49Z",
+      "closed_at": "2026-09-25T21:25:49Z",
+      "merged_at": "2026-09-25T21:25:49Z",
+      "head_sha": "f79ecc55e7198210eb363bd915041504785d6d05"
+    },
+    "539": {
+      "kind": "pull_request",
+      "title": "feat(entry): add Daily Digest inbound email command processor",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-25T21:17:31Z",
+      "updated_at": "2026-09-25T23:51:19Z",
+      "closed_at": "2026-09-25T23:51:17Z",
+      "merged_at": "2026-09-25T23:51:17Z",
+      "head_sha": "7a3a03ff19d98bf68a421363544f73ca08ea7481"
+    },
+    "547": {
+      "kind": "pull_request",
+      "title": "Guiding Light: Career Gradient Pathway reflex + Witness linkage",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-27T09:13:43Z",
+      "updated_at": "2026-09-27T09:55:05Z",
+      "closed_at": "2026-09-27T09:55:04Z",
+      "merged_at": "2026-09-27T09:55:03Z",
+      "head_sha": "d299792b7f3c98dfe5f3d99443cc73936af5ae33"
+    },
+    "560": {
+      "kind": "pull_request",
+      "title": "File Z1 candidates: silent gate-bypass finding + witness-ledger Tier 0 extension",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-27T18:43:16Z",
+      "updated_at": "2026-09-28T13:21:13Z",
+      "closed_at": "2026-09-28T13:21:12Z",
+      "merged_at": "2026-09-28T13:21:12Z",
+      "head_sha": "4f1a6bf5cdbecd640b8ddbf1f36d2d5bd3f22c2e"
+    },
+    "593": {
+      "kind": "pull_request",
+      "title": "Add repository knowledge graph with bounded inference",
+      "state": "closed",
+      "merged": false,
+      "created_at": "2026-09-30T10:06:19Z",
+      "updated_at": "2026-10-01T04:32:41Z",
+      "closed_at": "2026-10-01T04:32:41Z",
+      "merged_at": null,
+      "head_sha": "ca215e1ad4056ee4d482a58d8139216876850e45"
+    },
+    "597": {
+      "kind": "pull_request",
+      "title": "[EXPERIMENT IN PROGRESS — DO NOT MERGE] HMBM Cycle-003 DHP project output",
+      "state": "open",
+      "merged": false,
+      "created_at": "2026-09-30T16:27:17Z",
+      "updated_at": "2026-10-01T03:56:27Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head_sha": "36fd2c00c7bc0e67d2aa420ab8e70f8ad96696aa"
+    },
+    "603": {
+      "kind": "pull_request",
+      "title": "review: replace Copilot auto-review with CodeRabbit OSS",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-09-30T20:14:35Z",
+      "updated_at": "2026-10-01T03:12:43Z",
+      "closed_at": "2026-10-01T03:12:16Z",
+      "merged_at": "2026-10-01T03:12:16Z",
+      "head_sha": "38152171491b593a4ea7eaaeed1677c25d7c3f62"
+    },
+    "630": {
+      "kind": "pull_request",
+      "title": "salvage: harden repository knowledge graph on current main",
+      "state": "open",
+      "merged": false,
+      "created_at": "2026-10-01T04:32:30Z",
+      "updated_at": "2026-10-02T11:45:36Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head_sha": "2b53a65fc376e08f7979e0a609d068bebaa078da"
+    },
+    "633": {
+      "kind": "pull_request",
+      "title": "control: automate finite Claude challenge dialogue on PR 630",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-10-01T05:18:42Z",
+      "updated_at": "2026-10-01T08:02:37Z",
+      "closed_at": "2026-10-01T08:00:10Z",
+      "merged_at": "2026-10-01T08:00:10Z",
+      "head_sha": "128fd18045984c0b5a353aef30a5226ca7e6f430"
+    },
+    "641": {
+      "kind": "issue",
+      "title": "[Process] INTENT-OS Session Persistence & Signal Router Integration — Reduce Context Friction",
+      "state": "open",
+      "created_at": "2026-10-01T08:47:03Z",
+      "updated_at": "2026-10-02T09:06:01Z",
+      "closed_at": null
+    },
+    "651": {
+      "kind": "pull_request",
+      "title": "feat(graph): graph_capture_lint scores graphs against nine self-sealing properties",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-10-01T13:03:02Z",
+      "updated_at": "2026-10-01T23:43:11Z",
+      "closed_at": "2026-10-01T23:43:11Z",
+      "merged_at": "2026-10-01T23:43:11Z",
+      "head_sha": "fcb6886e4f170b871c979625525ec737c5daacbb"
+    },
+    "665": {
+      "kind": "issue",
+      "title": "[Session Graph] Bounded Epistemic Actor Model — observation-boundary primitive",
+      "state": "open",
+      "created_at": "2026-10-02T09:05:30Z",
+      "updated_at": "2026-10-02T09:06:28Z",
+      "closed_at": null
+    },
+    "671": {
+      "kind": "pull_request",
+      "title": "docs(program-graph): propose Programs as Layer 5 of the concept-to-code stack",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-10-02T12:12:53Z",
+      "updated_at": "2026-10-02T14:48:26Z",
+      "closed_at": "2026-10-02T14:48:26Z",
+      "merged_at": "2026-10-02T14:48:25Z",
+      "head_sha": "0c78fc30e80e0e9c0df00e57efcdfa0d8ddadbf2"
+    },
+    "672": {
+      "kind": "pull_request",
+      "title": "Add Azure Container Apps deploy workflow for ACAT API (M3 proof-of-concept)",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-10-02T13:46:12Z",
+      "updated_at": "2026-10-02T14:43:35Z",
+      "closed_at": "2026-10-02T14:43:35Z",
+      "merged_at": "2026-10-02T14:43:35Z",
+      "head_sha": "3d38880a358f003a4e33e9bfdc562caa7965e059"
+    },
+    "673": {
+      "kind": "pull_request",
+      "title": "fix(resource-miner): type resources against explicit deficits",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-10-02T14:04:21Z",
+      "updated_at": "2026-10-02T14:44:46Z",
+      "closed_at": "2026-10-02T14:44:46Z",
+      "merged_at": "2026-10-02T14:44:46Z",
+      "head_sha": "729682fc213e91613bc6c0a3bd13d556e9770022"
+    },
+    "675": {
+      "kind": "pull_request",
+      "title": "Update repository coordinator policy with new PR entries",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-10-02T14:24:05Z",
+      "updated_at": "2026-10-02T14:25:27Z",
+      "closed_at": "2026-10-02T14:25:27Z",
+      "merged_at": "2026-10-02T14:25:27Z",
+      "head_sha": "989574ff68549f7dcb2782ba445bdd4822df75b7"
+    },
+    "676": {
+      "kind": "pull_request",
+      "title": "Update PR descriptions in REPOSITORY_COORDINATOR_POLICY.json",
+      "state": "closed",
+      "merged": true,
+      "created_at": "2026-10-02T14:39:55Z",
+      "updated_at": "2026-10-02T14:41:59Z",
+      "closed_at": "2026-10-02T14:41:59Z",
+      "merged_at": "2026-10-02T14:41:59Z",
+      "head_sha": "2fb7e4823f72653563c88938ad3584a24451f68f"
+    },
+    "677": {
+      "kind": "issue",
+      "title": "[Session Graph][Seed] Evidence-hydrated longitudinal chat graph",
+      "state": "open",
+      "created_at": "2026-10-02T15:13:24Z",
+      "updated_at": "2026-10-02T15:13:24Z",
+      "closed_at": null
+    }
+  },
+  "node_bindings": {
+    "ISSUE_358": [
+      358
+    ],
+    "ISSUE_429": [
+      429
+    ],
+    "ISSUE_525": [
+      525
+    ],
+    "ISSUE_529": [
+      529
+    ],
+    "ISSUE_560": [
+      560
+    ],
+    "ISSUE_641": [
+      641
+    ],
+    "ISSUE_665": [
+      665
+    ],
+    "PR_408_412": [
+      408,
+      409,
+      410,
+      411,
+      412
+    ],
+    "PR_451": [
+      451
+    ],
+    "PR_455": [
+      455
+    ],
+    "PR_471_474": [
+      471,
+      473,
+      474
+    ],
+    "PR_472": [
+      472
+    ],
+    "PR_500": [
+      500
+    ],
+    "PR_524": [
+      524
+    ],
+    "PR_527": [
+      527
+    ],
+    "PR_530": [
+      530
+    ],
+    "PR_534": [
+      534
+    ],
+    "PR_539": [
+      539
+    ],
+    "PR_547": [
+      547
+    ],
+    "PR_593": [
+      593
+    ],
+    "PR_597": [
+      597
+    ],
+    "PR_603": [
+      603
+    ],
+    "PR_630": [
+      630
+    ],
+    "PR_633": [
+      633
+    ],
+    "PR_651": [
+      651
+    ],
+    "PR_671": [
+      671
+    ],
+    "PR_672": [
+      672
+    ],
+    "PR_673": [
+      673
+    ],
+    "PR_675": [
+      675
+    ],
+    "PR_676": [
+      676
+    ]
+  },
+  "corrections": [
+    {
+      "entity_ref": "ISSUE_358",
+      "field": "semantic_type",
+      "prior_value": "Issue",
+      "observed_value": "PR",
+      "reason": "GitHub identifies #358 as a pull request.",
+      "work_item": 358
+    },
+    {
+      "entity_ref": "ISSUE_560",
+      "field": "semantic_type",
+      "prior_value": "Issue",
+      "observed_value": "PR",
+      "reason": "GitHub identifies #560 as a pull request.",
+      "work_item": 560
+    },
+    {
+      "entity_ref": "PR_534",
+      "field": "merge_state",
+      "prior_value": "reported unmerged at time of discussion",
+      "observed_value": "merged",
+      "reason": "Observed later GitHub state supersedes the earlier chat snapshot without erasing it.",
+      "work_item": 534
+    }
+  ],
+  "planning_surface": "https://github.com/humanaios-ui/operations/issues/677"
+}
