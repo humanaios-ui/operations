@@ -2,7 +2,7 @@
   "principles": [
     {"id": "P1", "name": "Detection beats compliance", "framework": "Governance: If we can't see it, we can't improve it"},
     {"id": "P2", "name": "Authority is distributed", "framework": "Governance: No single point of approval power"},
-    {"id": "P3", "name": "Decisions are reversible", "framework": "Governance: Undo or pivot without losing work"},
+    {"id": "P3", "name": "Verification discipline", "framework": "Governance: GitHub verification required; no unverified raw data claims"},
     {"id": "P4", "name": "Capability edges are enforced", "framework": "Capability: You can't do what you can't justify"},
     {"id": "P5", "name": "Primary purpose filter", "framework": "Work: Every change has a stated purpose"},
     {"id": "P6", "name": "Falsifiability is required", "framework": "Hypothesis: Can this claim be proven wrong?"},
@@ -18,9 +18,10 @@
     {"id": "P16", "name": "Privacy is protected", "framework": "Ethics: Personal data follows user intent"},
     {"id": "P17", "name": "Consent is specific", "framework": "Ethics: Yes to X ≠ Yes to Y"},
     {"id": "P18", "name": "Harm is minimized", "framework": "Ethics: Reduce externalities and collateral damage"},
-    {"id": "P19", "name": "Commits are scoped", "framework": "Code: K ≤ 13 files per authored commit (ratified by Z2)"},
+    {"id": "P19", "name": "Detection beats compliance", "framework": "Governance: Detection upstream of compliance; must have detector, not just rule"},
     {"id": "P20", "name": "Tests are credible", "framework": "Quality: Tests must be able to fail"},
     {"id": "P21", "name": "Interfaces are stable", "framework": "Versioning: Breaking changes require deprecation"},
-    {"id": "P22", "name": "Operations are auditable", "framework": "Governance: Every action leaves a trace"}
+    {"id": "P22", "name": "Operations are auditable", "framework": "Governance: Every action leaves a trace"},
+    {"id": "P-HUMILITY", "name": "Calibrate confidence", "framework": "Governance: No confidence >0.95 without counter-evidence"}
   ]
 }
