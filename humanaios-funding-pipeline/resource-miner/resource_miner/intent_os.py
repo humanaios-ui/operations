@@ -62,6 +62,12 @@ def _public_https(value: object) -> str | None:
 def _is_expired(row: dict) -> bool:
     if row.get("route") == "ARCHIVE" or row.get("status") == "CLOSED_OR_STALE":
         return True
+    # Explicit observed source failures require recheck; they do not prove closure.
+    # This only applies when an upstream row carries the verified status field.
+    if row.get("source_verification_status") in {
+        "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE", "RECHECK_REQUIRED",
+    }:
+        return True
     deadline = row.get("deadline")
     if isinstance(deadline, str):
         try:
