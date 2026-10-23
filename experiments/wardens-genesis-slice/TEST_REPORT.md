@@ -9,7 +9,7 @@
 | JavaScript parser | PASS | `node --check game.js` |
 | Core state machine | PASS | `node tests/test_logic.mjs` |
 | Genesis, explicit form choice | PASS | synthetic DOM Node harness |
-| Three zones after Genesis; path record | PASS | synthetic DOM Node harness (Forge path) |
+| Three zones after Genesis; path record | PASS | synthetic DOM Node harness (Ember, Archive, Forge) |
 | W1 defaults off, opt-in required | PASS | synthetic DOM Node harness |
 | Read-only historical question cites event IDs | PASS | synthetic DOM Node harness |
 | W1 unknown future refuses guidance | PASS | synthetic DOM Node harness |
@@ -34,4 +34,4 @@ No network SDK/model, secrets, remote logging, hidden interrogation, personality
 
 ### Test-launch release decision
 
-**Local scripted smoke: PASS. Browser E2E: BLOCKED. External staging/production: NOT LAUNCHED.** Keep PR in draft pending CodeRabbit, complete real-browser validation, approved art publishing, and live game source access.
+**Local scripted smoke: PASS in five runs** (Seeker/Ember, Warden/Archive, Builder/Forge, Memory-Bearer/Archive, and W1 disabled). Browser E2E: BLOCKED. External staging/production: NOT LAUNCHED. The independent `.github/workflows/wardens-genesis-smoke.yml` adds a read-only CI harness and asset checks; CI status must be checked separately. Keep PR in draft pending CodeRabbit, complete real-browser validation, approved art publishing, and live game source access.
