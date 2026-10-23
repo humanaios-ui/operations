@@ -13,6 +13,7 @@ Core invariants:
   RELEVANT_IS_NOT_WARRANTED
   MERGEABLE_IS_NOT_CURRENT
   AGE_IS_NOT_STALENESS
+  OBSERVATIONAL_TIME_IS_NOT_AUTHORITY
   GUIDANCE_REQUIRES_EVIDENCE
   ISSUE_IS_NOT_ADMITTED_WORK
   ASSIGNMENT_IS_NOT_PR_ADMISSION
@@ -99,7 +100,8 @@ ACTION_ORDER = {
     "REEXAMINE": 1,
     "COMPARE_CONSOLIDATE": 2,
     "REBASE_RETEST": 3,
-    "ADVANCE": 4,
+    "ROUTE_TO_Z2": 4,
+    "ADVANCE": 5,
 }
 
 LANE_ORDER = {
@@ -255,10 +257,15 @@ def _admission_evidence(
 
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
-        evidence.append(f"coordinator state explicitly admits PR #{number}")
         metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
-        objective = metadata.get("objective_issue_number")
-        objectives.append(int(objective) if objective else -number)
+        admitted_sha = str(metadata.get("admitted_head_sha") or "")
+        live_sha = str(pr.get("head_sha") or "")
+        if not admitted_sha or admitted_sha == live_sha:
+            # Legacy unbound admissions retain their existing standing.
+            # Newly issued PR-comment admissions are exact-head scoped.
+            evidence.append(f"coordinator state explicitly admits PR #{number}")
+            objective = metadata.get("objective_issue_number")
+            objectives.append(int(objective) if objective else -number)
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
         ref = int(raw)
@@ -280,13 +287,20 @@ def _admission_scope_drift(
 ) -> str | None:
     """Return evidence when a v1.1 direct PR admission no longer matches its objective.
 
-    Legacy admissions without active_admissions metadata remain grandfathered;
-    commit-SHA changes alone do not constitute scope drift.
+    Head-bound admissions report scope drift on any PR head SHA change;
+    legacy admissions without admitted_head_sha remain grandfathered.
     """
     number = int(pr.get("number") or 0)
     metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
     objective = metadata.get("objective_issue_number")
     scope = str(metadata.get("admission_scope") or "")
+    admitted_sha = str(metadata.get("admitted_head_sha") or "")
+    if admitted_sha and admitted_sha != str(pr.get("head_sha") or ""):
+        return (
+            f"PR #{number} admission is bound to head {admitted_sha}, "
+            f"not current head {pr.get('head_sha') or 'UNSET'}; "
+            "an authorized re-admission is required for the new commit."
+        )
     if not objective:
         return None
     refs = {int(raw) for raw in ADMISSION_LINK_RE.findall(pr.get("body") or "")}
@@ -615,6 +629,11 @@ def classify(
     else:
         action = "ADVANCE"
         next_action = "Proceed to ordinary review/testing; no coordinator-level technical blocker was detected."
+    if lane == "CONTROL_PLANE" and action == "ADVANCE":
+        # ADVANCE reads as "admitted, go". A control-plane PR has no admission record;
+        # it only routes to ordinary Z2 review.
+        action = "ROUTE_TO_Z2"
+        next_action = "Route to ordinary Z2 review. Control-plane changes are not admitted by the coordinator."
 
     objective = (
         "EVALUATION"
@@ -825,6 +844,7 @@ def analyze(
             "RELEVANT_IS_NOT_WARRANTED",
             "MERGEABLE_IS_NOT_CURRENT",
             "AGE_IS_NOT_STALENESS",
+            "OBSERVATIONAL_TIME_IS_NOT_AUTHORITY",
             "GUIDANCE_REQUIRES_EVIDENCE",
             "ISSUE_IS_NOT_ADMITTED_WORK",
             "ASSIGNMENT_IS_NOT_PR_ADMISSION",
@@ -918,7 +938,8 @@ def render_markdown(index: dict[str, Any]) -> str:
 
     sections = [
         (["CAPACITY_CONTENTION"], "Capacity contention"),
-        (["CONTROL_PLANE", "ACTIVE"], "Active operator queue"),
+        (["ACTIVE"], "Active operator queue"),
+        (["CONTROL_PLANE"], "Control plane — ordinary Z2 review, not operator queue"),
         (["ADMITTED_TO_EVALUATION"], "Evaluation admission — evidence workspace, not operator queue"),
         (["ADMISSION_REVIEW"], "Admission review"),
         (["WORKBENCH"], "Workbench — visible, not operator queue"),
