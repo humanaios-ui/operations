@@ -1,8 +1,3 @@
-# Z2 Decision Ledger — Append-Only Record of All Governance Decisions
-# Format: One JSON object per line (JSONL)
-# Authority: Admiral (Z2 / Night)
-# Last Updated: 2026-10-22
-
 {"event_id":"Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01","timestamp":"2026-09-19T18:55:00Z","actor":"Z2 (Night)","decision":"ACCEPT","scope":"Dual-authority Z2 model formalized","detail":"Both carly.r.anderson@gmail.com & aioshuman@gmail.com authorized for Z2 decisions","affected_file":"CLAUDE.md","hash":"Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01","status":"RATIFIED"}
 {"event_id":"Q-INTENT-OS-WITNESS-LEDGER-01","timestamp":"2026-09-19T19:00:00Z","actor":"Z2 (Night)","decision":"ACCEPT","scope":"Witness ledger architecture approved","detail":"Human-machine decision attribution ledger + Phase 1–3 roadmap ratified","affected_file":"CLAUDE.md","hash":"Q-INTENT-OS-WITNESS-LEDGER-01","status":"RATIFIED"}
 {"event_id":"Q-FRAMEWORK-MAPPING-01","timestamp":"2026-10-02T00:00:00Z","actor":"Z2 (Night)","decision":"ACCEPT","scope":"Layer 1 of concept-to-code stack","detail":"FRAMEWORK_MAPPING.md ratified (5 AI engineering concepts → Z-roles)","affected_file":"FRAMEWORK_MAPPING.md","hash":"3102473cbca79ae108d86fb296f6d73d4c6740b768bb3ecb088d90f0cec099fa","status":"RATIFIED"}

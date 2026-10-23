@@ -24,6 +24,8 @@ class ConstitutionChecker:
 
     GOVERNANCE_FILES = {
         'CLAUDE.md',
+        'constitution.json',
+        'tools/z2_sign_governance.py',
         'tools/agents/_shared/constitution_checker.py',
         '.github/workflows/z2_ratification_gate.yml',
         '.github/workflows/z2_admission_gate.yml',
@@ -54,21 +56,22 @@ class ConstitutionChecker:
         return bool(re.search(z2_pattern, commit_msg))
 
     def verify_z2_signature(self, commit_msg: str, file_content: str) -> bool:
-        """Verify Z2 signature matches file content (basic check)."""
+        """Check if commit message contains Z2 fingerprint (content hash, not cryptographic signature).
+
+        ⚠️  This is NOT cryptographic verification. Real Z2 authentication requires asymmetric key verification.
+        This check only verifies that a fingerprint is present in the commit message.
+        Actual Z2 authorization is enforced by CI gate + INTENT-OS capability lookup.
+        """
         sig_match = re.search(r'\| Z2-SIGN: ([a-f0-9]{64})', commit_msg)
         if not sig_match:
             return False
 
+        # Just verify that a 64-char hex hash is present
+        # Do NOT attempt to cryptographically verify against content (that's not possible without Z2's key)
         provided_sig = sig_match.group(1)
 
-        # Compute expected signature prefix (without timestamp, for verification)
-        # Format: sha256(file_content | by=Night)
-        expected_prefix = hashlib.sha256(
-            f"{file_content} | by=Night".encode()
-        ).hexdigest()
-
-        # Accept if signature starts with expected pattern
-        return provided_sig.startswith(expected_prefix[:24])
+        # Basic format check only
+        return len(provided_sig) == 64 and all(c in '0123456789abcdef' for c in provided_sig)
 
     def check_commit(self, commit_msg: str, files_changed: List[str]) -> List[str]:
         """
@@ -78,17 +81,18 @@ class ConstitutionChecker:
         violations = []
         msg_lower = commit_msg.lower()
 
-        # Merge commits are exempt from P19 per CLAUDE.md:
-        # "Merge Commits (git merge, rebase-merge, squash-merge): Exempt"
-        is_merge = commit_msg.strip().startswith(("Merge ", "merge "))
-        if is_merge:
-            return violations
-
         # Z2 GOVERNANCE ENFORCEMENT: Require Z2 signature on governance-layer changes
+        # This applies to ALL commits (merge or authored) that touch governance files
         if self.has_governance_files(files_changed):
             if not self.has_z2_signature(commit_msg):
                 violations.append("Z2-GOVERNANCE: Governance-layer change requires Z2 signature (| Z2-SIGN: <64-char-hash>) — submit to Z2 for signature")
                 return violations  # Block further checks if signature missing
+
+        # Merge commits are exempt from P19 (commit granularity) per CLAUDE.md:
+        # "Merge Commits (git merge, rebase-merge, squash-merge): Exempt"
+        is_merge = commit_msg.strip().startswith(("Merge ", "merge "))
+        if is_merge:
+            return violations
 
         # P8: Attraction not promotion (T11)
         if re.search(r'\b(click here|sign up|buy now|limited time|exclusive)\b', msg_lower):

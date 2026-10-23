@@ -198,10 +198,11 @@ This will:
 # Example: .github/workflows/transparency-gate.yml
 - name: Terrifying Knowledge Graph Analysis
   run: |
-    python3 terrifying_graph.py --mode analyze --target HEAD
-    python3 terrifying_graph.py --mode expose > exposure_report.md
+    python3 test_against_system.py /home/user/operations
   if: github.event_name == 'pull_request'
 ```
+
+Note: The analysis runs via `test_against_system.py` which loads the graph, analyzes recent commits, and produces findings. This is the programmatic interface — no CLI --mode flag exists.
 
 ### Query Programmatically
 
@@ -298,7 +299,8 @@ Or admit it isn't.
 ---
 
 **Prototype Status:** ✓ WORKING  
-**Test Coverage:** ✓ COMPLETE (tested against actual system)  
+**Analysis Run:** ✓ COMPLETE (tested against actual system)  
+**Unit Tests:** ✓ PASSING (see tests/test_terrifying_graph.py)  
 **Ready for Integration:** ? (requires decision on mechanical enforcement)  
-**Risk Level:** CRITICAL (gaps revealed are real)
+**Risk Level:** HIGH (identified gaps require mitigation, findings need Z2 review)
 

@@ -288,7 +288,8 @@ class TerrifiyingKnowledgeGraph:
         # Combine signals: if word overlap is high (>0.6), they're probably aligned
         # If word overlap is low but concept drift is high, they're probably different
         combined_similarity = (word_overlap * 0.5) + (bigram_overlap * 0.3)
-        combined_similarity = max(0.0, min(1.0, combined_similarity + concept_drift))
+        # Concept drift should REDUCE similarity (they're different), not increase it
+        combined_similarity = max(0.0, min(1.0, combined_similarity - concept_drift))
 
         # Return drift (inverse of similarity): 1.0 = maximum drift, 0.0 = identical
         return 1.0 - combined_similarity

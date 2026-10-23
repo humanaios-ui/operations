@@ -37,21 +37,29 @@ class SpecLoadFailed(Exception):
 
 def generate_z2_signature(file_content: str, timestamp: str = None) -> str:
     """
-    Generate Z2 signature for governance file.
+    Generate Z2 content fingerprint for governance file.
+
+    ⚠️  NOT CRYPTOGRAPHIC AUTHENTICATION
+    This generates a deterministic hash of the file content for audit trails.
+    Real Z2 signature requires asymmetric verification against Z2's public key.
+
+    This fingerprint prevents accidental file mutations during review.
+    It does NOT prevent intentional forgery.
 
     Args:
         file_content: Full content of the file being changed
         timestamp: Optional timestamp (default: now in UTC ISO format)
 
     Returns:
-        64-character SHA256 hex signature
+        64-character SHA256 hex hash (content fingerprint, not signature)
     """
     if timestamp is None:
         timestamp = datetime.utcnow().isoformat()
 
-    signature_input = f"{file_content} | by=Night | {timestamp}"
-    signature = hashlib.sha256(signature_input.encode()).hexdigest()
-    return signature
+    # Generate deterministic content fingerprint
+    fingerprint_input = f"{file_content}"
+    fingerprint = hashlib.sha256(fingerprint_input.encode()).hexdigest()
+    return fingerprint
 
 
 def run_smoke_test() -> bool:

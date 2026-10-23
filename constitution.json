@@ -1,1 +1,26 @@
-{"principles": [{"id": "P1", "name": "Test", "framework": "Test"}]}
+{
+  "principles": [
+    {"id": "P1", "name": "Detection beats compliance", "framework": "Governance: If we can't see it, we can't improve it"},
+    {"id": "P2", "name": "Authority is distributed", "framework": "Governance: No single point of approval power"},
+    {"id": "P3", "name": "Decisions are reversible", "framework": "Governance: Undo or pivot without losing work"},
+    {"id": "P4", "name": "Capability edges are enforced", "framework": "Capability: You can't do what you can't justify"},
+    {"id": "P5", "name": "Primary purpose filter", "framework": "Work: Every change has a stated purpose"},
+    {"id": "P6", "name": "Falsifiability is required", "framework": "Hypothesis: Can this claim be proven wrong?"},
+    {"id": "P7", "name": "Evidence gates conclusions", "framework": "Reasoning: Claim → Evidence → Conclusion"},
+    {"id": "P8", "name": "Attraction not promotion", "framework": "Communication: T11 Attraction framework, no dark patterns"},
+    {"id": "P9", "name": "Humans decide scale", "framework": "Authority: Humans set bounds on autonomous work"},
+    {"id": "P10", "name": "Cycles are transparent", "framework": "Operations: Every decision loop is observable"},
+    {"id": "P11", "name": "Capacity is honest", "framework": "Resourcing: Commit to what you can deliver"},
+    {"id": "P12", "name": "Compensation is earned", "framework": "Economics: No free lunch on externalized costs"},
+    {"id": "P13", "name": "Incentives are aligned", "framework": "Game theory: Reward what you want to see"},
+    {"id": "P14", "name": "Escrow is neutral", "framework": "Trust: Third-party holds shared resources fairly"},
+    {"id": "P15", "name": "Disputes are arbitrated", "framework": "Governance: Clear appeal path for disagreements"},
+    {"id": "P16", "name": "Privacy is protected", "framework": "Ethics: Personal data follows user intent"},
+    {"id": "P17", "name": "Consent is specific", "framework": "Ethics: Yes to X ≠ Yes to Y"},
+    {"id": "P18", "name": "Harm is minimized", "framework": "Ethics: Reduce externalities and collateral damage"},
+    {"id": "P19", "name": "Commits are scoped", "framework": "Code: K ≤ 13 files per authored commit (ratified by Z2)"},
+    {"id": "P20", "name": "Tests are credible", "framework": "Quality: Tests must be able to fail"},
+    {"id": "P21", "name": "Interfaces are stable", "framework": "Versioning: Breaking changes require deprecation"},
+    {"id": "P22", "name": "Operations are auditable", "framework": "Governance: Every action leaves a trace"}
+  ]
+}

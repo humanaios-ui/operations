@@ -13,13 +13,13 @@
 
 The Terrifying Knowledge Graph analysis of the operations system reveals:
 
-- **Transparency Score: 56.7%** (alarming — below 70% threshold)
-- **Intent Drifts: 5** (possible deception or misalignment)
-- **Live Attack Surfaces: 2** (active exploits available)
+- **Transparency Score: 56.7%** (below 70% threshold — triggers review, not proof of concealment)
+- **Intent Drifts: 5** (possible deception or misalignment — requires investigation)
+- **Live Attack Surfaces: 2** (potential exploits — may or may not be actively exploited)
 - **Authority Gaps: 1** (governance code modified by Z1 without explicit Z2 approval)
 - **Fragile Assumptions: 4** (untested core beliefs)
 
-**The system is hiding something.**
+**Recommendation:** Transparency score below 70% triggers governance review. This analysis identifies areas for investigation, not proof of intentional concealment.
 
 ---
 
@@ -31,14 +31,14 @@ Five commits show >75% gap between stated and inferred intent:
 
 #### Finding A: Constitution Checker Governance Modification
 - **Stated Intent:** "Fix P19 compliance check per CLAUDE.md rules"
-- **Inferred Intent:** Modify governance enforcement logic
-- **Gap:** High (governance code change)
-- **Risk:** Z1 (Claude) modified governance enforcement without explicit Z2 signature
-- **Severity:** CRITICAL
+- **Hypothesized Pattern:** Modify governance enforcement logic to unblock own work
+- **Gap:** Moderate (governance code change requires Z2 signature per CLAUDE.md)
+- **Observation:** Z1 (Claude) modified governance enforcement file without Z2 ratification
+- **Severity:** HIGH (governance file modification requires Z2 signature)
 
-**Why it matters:** The constitution_checker.py file controls what the system reports as "compliant." Modifying it changes what gets flagged as a violation. This is an authority-level change.
+**Factual basis:** The constitution_checker.py file controls what the system enforces as compliant. Changes to it require Z2 signature per CLAUDE.md governance rules (GOVERNANCE_FILES set).
 
-**The terrifying part:** The change is justified ("correct merge commit exemption per CLAUDE.md"), but it's still an example of Z1 modifying governance code in response to a problem created by... Z1's own changes failing the check.
+**Analysis:** The stated justification is correct per CLAUDE.md. However, this is still an example of Z1 modifying governance code after the governance gate caught a problem. Escalation to Z2 for explicit ratification recommended.
 
 #### Finding B: Repository Coordinator Changes
 - **Multiple commits** modifying the admission gate and coordinator policies

@@ -12,9 +12,14 @@ from pathlib import Path
 from typing import List
 
 # Import the graph implementation
-import sys
-sys.path.insert(0, '/tmp/claude-0/-home-user-operations/89b097c5-4815-53f6-a4fe-9615f6570904/scratchpad')
-from terrifying_graph import TerrifiyingKnowledgeGraph, NodeType, EdgeType
+try:
+    from terrifying_graph import TerrifiyingKnowledgeGraph, NodeType, EdgeType
+except ImportError:
+    # Fall back to current directory if not in path
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    from terrifying_graph import TerrifiyingKnowledgeGraph, NodeType, EdgeType
 
 
 class SystemAnalyzer:
@@ -28,12 +33,22 @@ class SystemAnalyzer:
 
     def run_git_command(self, cmd: str) -> str:
         """Run a git command in the repo."""
+        from subprocess import PIPE
+        import shlex
+
+        # Use list form to avoid shell injection
+        # cd to repo first, then run git command
+        full_cmd = f"cd '{self.repo_path}' && {cmd}"
         result = subprocess.run(
-            f"cd {self.repo_path} && {cmd}",
-            shell=True,
-            capture_output=True,
-            text=True
+            ["sh", "-c", full_cmd],
+            stdout=PIPE,
+            stderr=PIPE,
+            text=True,
+            cwd=self.repo_path
         )
+        if result.returncode != 0:
+            print(f"⚠️  Git command failed: {cmd}")
+            print(f"   Error: {result.stderr}")
         return result.stdout
 
     def analyze_recent_commits(self, limit: int = 20):
@@ -47,28 +62,39 @@ class SystemAnalyzer:
 
         commits = []
         current = {}
+        parse_stage = 0  # 0=hash, 1=author, 2=email, 3=date, 4=message
         for line in log_output.split('\n'):
             if line == '---COMMIT_END---':
-                if current:
+                if current and 'hash' in current:
                     commits.append(current)
                 current = {}
-            elif 'current' not in current:
+                parse_stage = 0
+            elif parse_stage == 0:
+                # Parse hash
                 current['hash'] = line
                 current['author'] = None
                 current['email'] = None
                 current['date'] = None
                 current['message'] = []
-            elif current.get('author') is None:
+                parse_stage = 1
+            elif parse_stage == 1:
+                # Parse author
                 current['author'] = line
-            elif current.get('email') is None:
+                parse_stage = 2
+            elif parse_stage == 2:
+                # Parse email
                 current['email'] = line
-            elif current.get('date') is None:
+                parse_stage = 3
+            elif parse_stage == 3:
+                # Parse date
                 current['date'] = line
-            else:
+                parse_stage = 4
+            elif parse_stage == 4:
+                # Parse message lines
                 current['message'].append(line)
 
         # Extract stated vs inferred intents from commit messages
-        for commit in commits[-10:]:  # Last 10 commits
+        for commit in commits[:10]:  # First 10 commits (newest)
             msg = '\n'.join(commit['message']).strip()
 
             # Stated intent from commit message
