@@ -10,6 +10,8 @@ on:
       - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review_ui.py'
       - 'humanaios-funding-pipeline/resource-miner/my-opportunities.html'
+      - 'humanaios-funding-pipeline/resource-miner/on-track.html'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_on_track_witness_ui.py'
       - 'humanaios-funding-pipeline/resource-miner/intent-os.html'
       - 'humanaios-funding-pipeline/resource-miner/app.py'
       - 'humanaios-funding-pipeline/resource-miner/README.md'
@@ -43,12 +45,15 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -p 'test_source_review.py' -v
           python3 -m unittest discover -s tests -p 'test_source_review_ui.py' -v
-      - name: Check both inline browser scripts (no external scripts)
+      - name: Verify Witness feedback and reversible local view
+        run: python3 -m unittest discover -s tests -p 'test_on_track_witness_ui.py' -v
+      - name: Check inline browser scripts (no external scripts)
         run: |
           python3 - <<'PY'
           from pathlib import Path
           for source, target in [("my-opportunities.html", "/tmp/opportunities-inline.js"),
-                                 ("intent-os.html", "/tmp/intent-os-inline.js")]:
+                                 ("intent-os.html", "/tmp/intent-os-inline.js"),
+                                 ("on-track.html", "/tmp/on-track-inline.js")]:
               text = Path(source).read_text(encoding="utf-8")
               assert text.count("<script>") == 1 and text.count("</script>") == 1
               Path(target).write_text(text.split("<script>", 1)[1].split("</script>", 1)[0],
@@ -56,6 +61,7 @@ jobs:
           PY
           node --check /tmp/opportunities-inline.js
           node --check /tmp/intent-os-inline.js
+          node --check /tmp/on-track-inline.js
       - name: Verify synthetic case and absence of delegated authority
         run: |
           python3 -m resource_miner.opportunity_journey \
