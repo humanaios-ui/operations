@@ -43,9 +43,3 @@ def project_feedback(record: WitnessFeedback) -> dict:
         "requires_human_review": True,
     }
 
-def source_search_eligible(status: str) -> bool:
-    """A source failure must never be advertised as a verified live lead."""
-    return status not in {
-        "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE",
-        "RECHECK_REQUIRED",
-    }
