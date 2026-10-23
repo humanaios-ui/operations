@@ -1,0 +1,287 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix cal: <https://humanaios.ai/ns/calibration#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cal:CalibrationTrialShape
+  a sh:NodeShape ;
+  sh:targetClass cal:CalibrationTrial ;
+  sh:property [
+    sh:path cal:hasStimulus ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:hasHumanTrace ;
+    sh:minCount 1 ;
+    sh:class cal:HumanTrace
+  ] ;
+  sh:property [
+    sh:path cal:traceFrozenAt ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTime
+  ] ;
+  sh:property [
+    sh:path cal:hasContextObservation ;
+    sh:class cal:ContextObservation
+  ] ;
+  sh:property [
+    sh:path cal:hasResolutionEvent ;
+    sh:class cal:ResolutionEvent
+  ] .
+
+cal:ResolutionEventShape
+  a sh:NodeShape ;
+  sh:targetClass cal:ResolutionEvent ;
+  sh:property [
+    sh:path cal:resolutionState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in ( cal:Resolved cal:Unresolved cal:Delayed cal:NotCaptured )
+  ] ;
+  sh:property [
+    sh:path cal:participantConfidence ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.0 ;
+    sh:maxInclusive 1.0
+  ] ;
+  sh:property [
+    sh:path cal:sequenceIndex ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 0
+  ] .
+
+cal:ComparisonShape
+  a sh:NodeShape ;
+  sh:targetClass cal:Comparison ;
+  sh:property [
+    sh:path cal:comparisonType ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in ( cal:Convergence cal:Divergence cal:Interference cal:Indeterminate )
+  ] .
+
+cal:DesignDeltaShape
+  a sh:NodeShape ;
+  sh:targetClass cal:DesignDelta ;
+  sh:property [
+    sh:path cal:warrantState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in ( cal:Provisional cal:Replicated cal:Warranted cal:Withdrawn )
+  ] ;
+  sh:property [
+    sh:path cal:supportedByFrozenTrace ;
+    sh:minCount 1 ;
+    sh:class cal:HumanTrace
+  ] ;
+  sh:property [
+    sh:path cal:falsifier ;
+    sh:minCount 1
+  ] .
+
+cal:ExternalSourceShape
+  a sh:NodeShape ;
+  sh:targetClass cal:ExternalSource ;
+  sh:property [
+    sh:path cal:sourceURI ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI
+  ] ;
+  sh:property [
+    sh:path cal:evidenceRelationType ;
+    sh:minCount 1 ;
+    sh:in (
+      cal:ImplementsStandard
+      cal:ConstrainedByStandard
+      cal:MethodAnalogue
+      cal:CognitiveAnalogue
+      cal:EmpiricallyMotivatedBy
+      cal:ChallengedBy
+      cal:LocalHypothesis
+      cal:VersionWatch
+    )
+  ] ;
+  sh:property [
+    sh:path cal:supportsNote ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:doesNotSupportNote ;
+    sh:minCount 1
+  ] .
+
+# Runtime invariant intentionally NOT modeled as SHACL:
+# In DISCOVERY mode, machine semantics MUST NOT be revealed before trace freeze.
+# SHACL validates persisted RDF graph structure; the application/controller
+# must enforce this temporal interaction rule mechanically.
+
+cal:LandingCheckShape
+  a sh:NodeShape ;
+  sh:targetClass cal:LandingCheck ;
+  sh:property [
+    sh:path cal:landingState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:LandingUnverified
+      cal:LandingConfirmed
+      cal:LandingClarified
+      cal:LandingMisunderstood
+      cal:LandingDeferred
+    )
+  ] ;
+  sh:property [
+    sh:path cal:triggerReason ;
+    sh:minCount 1
+  ] .
+
+cal:DependencyFlagShape
+  a sh:NodeShape ;
+  sh:targetClass cal:DependencyFlag ;
+  sh:property [
+    sh:path cal:dependencyType ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:dependencyState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:DependencySatisfied
+      cal:DependencyUnsatisfied
+      cal:DependencyUnverified
+      cal:DependencyDegraded
+      cal:DependencyVersionMismatch
+    )
+  ] ;
+  sh:property [
+    sh:path cal:requiredFor ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:blocksStage ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:boolean
+  ] ;
+  sh:property [
+    sh:path cal:plainLanguageNote ;
+    sh:minCount 1
+  ] .
+
+cal:EpistemicAttractorShape
+  a sh:NodeShape ;
+  sh:targetClass cal:EpistemicAttractor ;
+  sh:property [
+    sh:path cal:triggeredBy ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:targetNode ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:queryIntent ;
+    sh:minCount 1 ;
+    sh:in (
+      cal:SeekSupport
+      cal:SeekContradiction
+      cal:SeekAlternative
+      cal:SeekPriorArt
+      cal:SatisfyDependency
+      cal:ResolveOmission
+      cal:ProbeCompressionLoss
+    )
+  ] ;
+  sh:property [
+    sh:path cal:queryText ;
+    sh:minCount 1
+  ] .
+
+cal:ExternalCandidateShape
+  a sh:NodeShape ;
+  sh:targetClass cal:ExternalCandidate ;
+  sh:property [
+    sh:path cal:originatingAttractor ;
+    sh:minCount 1 ;
+    sh:class cal:EpistemicAttractor
+  ] ;
+  sh:property [
+    sh:path cal:sourceURI ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI
+  ] ;
+  sh:property [
+    sh:path cal:candidateClaim ;
+    sh:minCount 1
+  ] .
+
+cal:AbsorptionAssessmentShape
+  a sh:NodeShape ;
+  sh:targetClass cal:AbsorptionAssessment ;
+  sh:property [
+    sh:path cal:assessesCandidate ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cal:ExternalCandidate
+  ] ;
+  sh:property [
+    sh:path cal:disposition ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:DispositionAbsorb
+      cal:DispositionLink
+      cal:DispositionChallenge
+      cal:DispositionWatch
+      cal:DispositionReject
+    )
+  ] ;
+  sh:property [
+    sh:path cal:alignmentNote ;
+    sh:minCount 1
+  ] .
+
+cal:OmissionSignalShape
+  a sh:NodeShape ;
+  sh:targetClass cal:OmissionSignal ;
+  sh:property [
+    sh:path cal:omissionType ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:StructuralOmission
+      cal:EpistemicUnknown
+      cal:CoverageGap
+      cal:CompressionInducedOmission
+    )
+  ] ;
+  sh:property [
+    sh:path cal:expectedBy ;
+    sh:minCount 1
+  ] .
+
+cal:CompressionResidueShape
+  a sh:NodeShape ;
+  sh:targetClass cal:CompressionResidue ;
+  sh:property [
+    sh:path cal:compressedFrom ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:preservationGoal ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:omittedAspect ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:compressionLossRisk ;
+    sh:minCount 1
+  ] .
+
