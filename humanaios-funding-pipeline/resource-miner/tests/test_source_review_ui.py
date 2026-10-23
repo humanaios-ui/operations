@@ -18,7 +18,7 @@ class SourceReviewUITests(unittest.TestCase):
             "function addCard(row)", '"Report / verify this source"',
             '"Save source observation locally"', "validateReviewPacket",
             '"humanaios.resource_source_review.v0.1"',
-            'screenshot.accept="image/png,image/jpeg,image/webp"',
+            'maximum 10 MB',
             'crypto.subtle.digest("SHA-256",bytes)',
             'localStorage.setItem(reviewStoreKey',
             'a.download="intent-os-source-verification.json"',
@@ -34,8 +34,8 @@ class SourceReviewUITests(unittest.TestCase):
         self.assertIn("record", html)
         self.assertNotIn('fetch("/api/verification"', html)
         self.assertNotIn('fetch("https://jobs.lever.co"', html)
-        self.assertIn("The screenshot file is hashed locally", html.replace("A screenshot file", "The screenshot file"))  # static disclosure
-        self.assertIn("its pixels are NOT uploaded", html)
+        self.assertIn("File name and contents are NOT saved or uploaded", html)
+        self.assertIn("No PDF text is extracted", html)
         self.assertIn("do not change published source status or rankings", html)
 
     def test_fresh_checklist_has_no_predeclared_human_success(self):

@@ -159,7 +159,7 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         unique_matches.setdefault(match["resource_id"], match)
     duplicate_count = len(matches) - len(unique_matches)
     matches = fuse_rankings(list(unique_matches.values()))
-    shown = matches[:10]
+    shown = matches  # Bounded by MAX_ROWS; browser reveals ten at a time.
     receipt_input = json.dumps({
         "objective": objective, "mode": source_mode, "status": source_status,
         "candidates": shown, "unexamined_count": unexamined_count,

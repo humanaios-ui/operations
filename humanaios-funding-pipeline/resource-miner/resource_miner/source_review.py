@@ -90,13 +90,13 @@ def project_source_reviews(payload: dict) -> dict:
         shot = evidence["screenshot"]
         if shot is not None:
             if not isinstance(shot, dict) or set(shot) != {"mime", "size_bytes", "sha256"}:
-                raise ValueError("Invalid screenshot fingerprint")
-            if shot["mime"] not in ("image/png", "image/jpeg", "image/webp"):
-                raise ValueError("Invalid screenshot type")
-            if not isinstance(shot["size_bytes"], int) or isinstance(shot["size_bytes"], bool) or not 1 <= shot["size_bytes"] <= 1048576:
-                raise ValueError("Invalid screenshot size")
+                raise ValueError("Invalid evidence file fingerprint")
+            if not isinstance(shot["mime"], str) or not re.fullmatch(r"[a-zA-Z0-9.+-]+/[a-zA-Z0-9.+-]+", shot["mime"]):
+                raise ValueError("Invalid evidence file type")
+            if not isinstance(shot["size_bytes"], int) or isinstance(shot["size_bytes"], bool) or not 1 <= shot["size_bytes"] <= 10485760:
+                raise ValueError("Invalid evidence file size")
             if not isinstance(shot["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", shot["sha256"]):
-                raise ValueError("Invalid screenshot digest")
+                raise ValueError("Invalid evidence file digest")
         stamp = item["observed_at"]
         if not isinstance(stamp, str) or not stamp.endswith("Z"):
             raise ValueError("Invalid observation time")
@@ -114,6 +114,8 @@ def project_source_reviews(payload: dict) -> dict:
             "observed_at_user_claim": stamp,
             "next_action": STATES[state],
             "replacement_url_user_claim": replacement or None,
+            "attachment_digest_present": shot is not None,
+            "attachment_contents_saved": False,
             "screenshot_digest_present": shot is not None,
             "screenshot_bytes_verified": False,
             "source_availability_verified": False,

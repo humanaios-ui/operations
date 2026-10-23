@@ -71,6 +71,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <div class="row"><label for="showDismissed" class="muted"><input id="showDismissed" type="checkbox"> Show candidates I dismissed locally</label></div>
 <p id="localFilter" class="muted" role="status"></p>
 <div id="items"></div>
+<button id="showMore" type="button" hidden>Show more</button>
 <p class="muted" id="receipt"></p>
 </section>
 <section class="panel" id="verificationQueue" aria-label="Resource verification queue">
@@ -81,6 +82,8 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <label for="importReviews" style="margin:auto 0">Import review packet</label>
 <input type="file" id="importReviews" accept="application/json,.json" aria-label="Import review packet" style="max-width:260px">
 <button type="button" id="clearReviews">Clear reports</button>
+<button type="button" id="exportLessons">Export Witness lessons</button>
+<button type="button" id="clearLessons">Clear Witness lessons</button>
 </div>
 <p class="muted" id="verificationCount" aria-live="polite"></p>
 <p class="muted" id="verificationMessage" role="status" aria-live="polite"></p>
@@ -107,7 +110,21 @@ const reviewStates=[
 ], validStates=new Set(reviewStates.map(x=>x[0]));
 let sourceReviews=[];
 const dispositionKey="humanaios.intent_os_local_dispositions.v0.1";
-let latestCandidates=[];
+let latestCandidates=[], visibleLimit=10;
+const teachingKey="humanaios.intent_os_teaching.v0.1";
+function loadLessons(){
+ try{
+  const rows=JSON.parse(localStorage.getItem(teachingKey)||"[]");
+  if(!Array.isArray(rows)||rows.length>100)throw new Error("Invalid lessons");
+  return rows.filter(r=>r&&typeof r.note==="string"&&r.note.length<=500&&
+    typeof r.source_url==="string"&&["PRIORITIZE","DEPRIORITIZE","NOTE"].includes(r.preference));
+ }catch(_){return [];}
+}
+function lessonFor(url){return loadLessons().filter(r=>r.source_url===url).at(-1);}
+function localPriority(row){
+ const p=lessonFor(row.source_url)?.preference;
+ return p==="PRIORITIZE"?1:p==="DEPRIORITIZE"?-1:0;
+}
 function dispositions(){
  try{
   const v=JSON.parse(localStorage.getItem(dispositionKey)||"{}");
@@ -124,13 +141,20 @@ function renderCandidates(){
    visible.push(row);
  }
  items.replaceChildren();
- visible.forEach(row=>items.append(addCard(row)));
+ visible.sort((a,b)=>localPriority(b)-localPriority(a));
+ visible.slice(0,visibleLimit).forEach(row=>items.append(addCard(row)));
+ const more=document.getElementById("showMore");more.hidden=visibleLimit>=visible.length;
+ text(more,"Show more ("+Math.max(0,visible.length-visibleLimit)+" remaining)");
+ text(summary,"Found "+latestCandidates.length+" possible match(es); showing "+Math.min(visibleLimit,visible.length)+
+  ". These are leads to verify, not eligibility decisions.");
+ text(feedback,Math.min(visibleLimit,visible.length)+" resource candidate(s) displayed.");
  text(document.getElementById("localFilter"), hidden.length?
   hidden.length+" candidate(s) hidden in this browser by your Witness decisions. "+
   "Check 'Show candidates I dismissed locally' to inspect them. Shared source catalog unchanged.":
   "No locally dismissed candidates among the displayed results.");
 }
-document.getElementById("showDismissed").addEventListener("change",renderCandidates);
+document.getElementById("showDismissed").addEventListener("change",()=>{visibleLimit=10;renderCandidates();});
+document.getElementById("showMore").addEventListener("click",()=>{visibleLimit+=10;renderCandidates();});
 const message=document.getElementById("verificationMessage");
 function reviewMessage(value){text(message,value);}
 function publicUrl(raw){
@@ -165,11 +189,11 @@ function validateReview(r){
  if(attachment!==null){
   if(!attachment||typeof attachment!=="object"||Array.isArray(attachment)||
      Object.keys(attachment).sort().join("|")!=="mime|sha256|size_bytes"||
-     !["image/png","image/jpeg","image/webp"].includes(attachment.mime)||
+     !/^[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+$/.test(attachment.mime)||
      !Number.isInteger(attachment.size_bytes)||attachment.size_bytes<1||
-     attachment.size_bytes>1048576||
+     attachment.size_bytes>10485760||
      typeof attachment.sha256!=="string"||!/^[a-f0-9]{64}$/.test(attachment.sha256))
-    throw new Error("Invalid screenshot fingerprint.");
+    throw new Error("Invalid evidence file fingerprint.");
  }
  return r;
 }
@@ -224,6 +248,18 @@ document.getElementById("clearReviews").addEventListener("click",()=>{
   reviewMessage("Local reports cleared. Re-run the search to refresh candidate badges.");
  }catch(_){reviewMessage("Browser storage clear failed.");}
 });
+document.getElementById("exportLessons").addEventListener("click",()=>{
+ const packet={schema:teachingKey,records:loadLessons()};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(packet,null,2)],{type:"application/json"}));
+ const a=document.createElement("a");a.href=url;a.download="intent-os-witness-lessons.json";
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ reviewMessage("Exported local lessons. Share only with an authorized reviewer; no model training or shared update occurred.");
+});
+document.getElementById("clearLessons").addEventListener("click",()=>{
+ if(!confirm("Clear local Witness lessons and preferences? Export first if needed."))return;
+ try{localStorage.removeItem(teachingKey);renderCandidates();reviewMessage("Local lessons cleared.");}
+ catch(error){reviewMessage("Could not clear lessons: "+error.message);}
+});
 // Show the personal preview link only when this instance is bound to loopback.
 fetch("/api/my-opportunities",{cache:"no-store"})
  .then(r=>{if(r.ok)document.getElementById("myOpportunitiesLink").hidden=false;})
@@ -246,6 +282,30 @@ function addCard(row){
    " · Observed: "+(row.observed_at||"unknown")+
    " · "+(row.last_verified_at?"Last verified (source claim): "+row.last_verified_at:"Not verified"));
  card.append(meta);
+ const teach=document.createElement("details"),teachTitle=document.createElement("summary");
+ text(teachTitle,"Teach the Witness about this resource");teach.append(teachTitle);
+ const teachLabel=document.createElement("p");
+ text(teachLabel,"Your lesson and preference stay in this browser. Preferences change your local order on future searches. They do not train an AI or change shared rankings. Export lessons for human review.");
+ const lesson=document.createElement("textarea");lesson.maxLength=500;lesson.rows=2;
+ lesson.setAttribute("aria-label","What should the Witness remember about this resource?");
+ lesson.placeholder="What was wrong? What should we remember next time?";
+ const preference=document.createElement("select");preference.setAttribute("aria-label","Local resource preference");
+ for(const [value,label] of [["NOTE","Remember note only"],["PRIORITIZE","Show this earlier"],["DEPRIORITIZE","Show this later"]]){
+  const option=document.createElement("option");option.value=value;text(option,label);preference.append(option);
+ }
+ const prior=lessonFor(row.source_url);if(prior){lesson.value=prior.note;preference.value=prior.preference;}
+ const teachSave=document.createElement("button");teachSave.type="button";text(teachSave,"Save lesson locally");
+ const teachStatus=document.createElement("p");teachStatus.setAttribute("role","status");
+ teachSave.addEventListener("click",()=>{
+  try{
+   const notes=loadLessons();if(notes.length>=100)throw new Error("100 lesson limit; export and clear first.");
+   const note=lesson.value.trim();if(!note)throw new Error("Write a lesson first.");
+   notes.push({source_url:publicUrl(row.source_url),note:note.slice(0,500),preference:preference.value,observed_at:new Date().toISOString()});
+   localStorage.setItem(teachingKey,JSON.stringify(notes));
+   text(teachStatus,"Saved locally. This preference applies when you search or show more. No model training occurred.");
+  }catch(error){text(teachStatus,"Not saved: "+error.message);}
+ });
+ teach.append(teachLabel,lesson,preference,teachSave,teachStatus);card.append(teach);
  const matches=document.createElement("div");
  for(const word of (Array.isArray(row.matched_terms)?row.matched_terms:[])){
    const tag=document.createElement("span");tag.className="tag";text(tag,word);matches.append(tag);
@@ -275,11 +335,11 @@ function addCard(row){
  const replacement=document.createElement("input");replacement.type="url";replacement.maxLength=1600;
  replacement.placeholder="https://jobs.lever.co/...";
  const screenshotLabel=document.createElement("label");
- text(screenshotLabel,"Screenshot (optional; fingerprint only, maximum 1 MB)");
+ text(screenshotLabel,"Evidence file (PDF, image, document, text, or other type; maximum 10 MB)");
  const screenshot=document.createElement("input");screenshot.type="file";
- screenshot.accept="image/png,image/jpeg,image/webp";
+ // All file types are fingerprinted only; file content is never rendered or executed.
  const disclaimer=document.createElement("p");disclaimer.className="muted";
- text(disclaimer,"A screenshot file is hashed locally; its pixels are NOT uploaded, saved, or included in the report. Keep the original file if a reviewer needs it.");
+ text(disclaimer,"Saved in this browser: your note, URLs, selected status, time, file type, byte size, and SHA-256 fingerprint. File name and contents are NOT saved or uploaded. No PDF text is extracted. Keep the original file. Export includes only the saved report fields.");
  const save=document.createElement("button");save.type="button";text(save,"Save source observation locally");
  const localStatus=document.createElement("p");localStatus.className="muted";localStatus.setAttribute("role","status");
  reviewToggle.addEventListener("click",()=>{
@@ -295,11 +355,11 @@ function addCard(row){
    let screenshotProof=null;
    const file=screenshot.files?.[0];
    if(file){
-    if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size<1||file.size>1048576)
-      throw new Error("Screenshot must be PNG/JPEG/WebP and no larger than 1 MB.");
+    if(file.size<1||file.size>10485760)
+      throw new Error("Evidence file must contain 1 byte to 10 MB.");
     const bytes=await file.arrayBuffer();
     const digest=await crypto.subtle.digest("SHA-256",bytes);
-    screenshotProof={mime:file.type,size_bytes:file.size,sha256:[...new Uint8Array(digest)]
+    screenshotProof={mime:/^[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+$/.test(file.type)?file.type:"application/octet-stream",size_bytes:file.size,sha256:[...new Uint8Array(digest)]
       .map(n=>n.toString(16).padStart(2,"0")).join("")};
    }
    const record={
@@ -387,11 +447,11 @@ form.addEventListener("submit",async event=>{
      "No supported matches in these sources.")+" Try another goal or the other source mode.");
    warning.hidden=!result.source_warning;
    text(warning,result.source_warning);
-   latestCandidates=result.candidates||[];
+   latestCandidates=result.candidates||[];visibleLimit=10;
    renderCandidates();
    text(receipt,"Source: "+result.source_status+" · Unsigned selection digest: "+result.receipt_sha256);
    box.hidden=false;
-   text(feedback,result.shown_count+" resource candidate(s) displayed.");
+
  }catch(error){
    feedback.classList.add("error");
    text(feedback,error.name==="AbortError"?"The source did not respond in time. Try the stored snapshot.":
