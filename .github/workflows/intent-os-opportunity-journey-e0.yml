@@ -6,6 +6,9 @@ on:
       - 'humanaios-funding-pipeline/resource-miner/fixtures/opportunity_journey_apart_synthetic.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_journey_e0.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_my_opportunities_http.py'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/source_review.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review_ui.py'
       - 'humanaios-funding-pipeline/resource-miner/my-opportunities.html'
       - 'humanaios-funding-pipeline/resource-miner/intent-os.html'
       - 'humanaios-funding-pipeline/resource-miner/app.py'
@@ -36,6 +39,10 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
           python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+      - name: Qualify candidate-source feedback: 404 is not closure
+        run: |
+          python3 -m unittest discover -s tests -p 'test_source_review.py' -v
+          python3 -m unittest discover -s tests -p 'test_source_review_ui.py' -v
       - name: Check both inline browser scripts (no external scripts)
         run: |
           python3 - <<'PY'
