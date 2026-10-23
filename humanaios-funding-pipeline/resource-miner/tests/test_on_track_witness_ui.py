@@ -18,7 +18,7 @@ class WitnessUIContracts(unittest.TestCase):
                          "Observe → Measure → Identify Failure",
                          'id="callWitness"', 'id="witnessDecision"',
                          "AUTHORITY: NONE", "UNVERIFIED_HUMAN_OBSERVATION",
-                         "NOT independent", "DISMISS_LOCAL",
+                         "independently confirm", "DISMISS_LOCAL",
                          "humanaios.resource_source_review.v0.1"):
             with self.subTest(expected=expected):
                 self.assertIn(expected.lower(),html.lower())
