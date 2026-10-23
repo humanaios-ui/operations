@@ -104,6 +104,22 @@ def load_atlas(atlas_path):
         return json.loads((Path(tmp) / "atlas.json").read_text(encoding="utf-8"))
 
 
+VERIFIED_SNAPSHOT = "HEAD_WORKTREE"
+
+
+def provenance_from_atlas(atlas):
+    """Carry the atlas snapshot fields through. Anything but a clean HEAD snapshot is unverified."""
+    snapshot = atlas.get("snapshot")
+    clean = atlas.get("worktree_clean")
+    verified = clean is True and snapshot == VERIFIED_SNAPSHOT
+    return {
+        "snapshot": snapshot,
+        "worktree_clean": clean,
+        "head_sha": atlas.get("head_sha"),
+        "verified": verified,
+    }
+
+
 def build_canvas(atlas, zone_text, planned_text):
     zone_rows, claimed_total = parse_zone_registry(zone_text)
     planned_rows = parse_planned_repos(planned_text)
@@ -114,6 +130,7 @@ def build_canvas(atlas, zone_text, planned_text):
         "registry_rows_counted": counted,
         "header_matches_rows": claimed_total == counted,
     }
+    provenance = provenance_from_atlas(atlas)
     data = {
         "schema": "operations-canvas/v0.1",
         "authority_effect": "NONE",
@@ -121,6 +138,7 @@ def build_canvas(atlas, zone_text, planned_text):
         "note": "Read-only view. Z2 ratification is not implied by this page.",
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source_head": atlas.get("head_sha"),
+        "provenance": provenance,
         "code_graph": {
             "nodes": [
                 {"id": n["id"], "label": n["label"], "file_count": n["file_count"]}
@@ -187,6 +205,13 @@ section{display:grid;gap:4px;min-width:0}
 .s-ARCHIVED,.s-RETIRED{opacity:.8}
 .s-UNKNOWN,.s-OTHER_ORG{border-style:dashed;border-left-style:solid}
 .links{font-size:14px}
+.warn{border-left:3px solid var(--amber);padding:8px 14px;font-size:14px;margin-top:12px}
+.text-equivalent{margin-top:12px;font-size:14px}
+.text-equivalent summary{cursor:pointer;color:var(--teal)}
+.text-equivalent table{width:100%;border-collapse:collapse;margin-top:10px}
+.text-equivalent th,.text-equivalent td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+.text-equivalent caption{text-align:left;font-family:var(--mono);font-size:12px;color:var(--muted);padding-bottom:4px}
+.table-scroll{overflow-x:auto}
 .links a{color:var(--teal)}
 </style>
 </head>
@@ -203,6 +228,10 @@ section{display:grid;gap:4px;min-width:0}
 <h2 id="g">Components and evidenced links</h2>
 <p class="lede">Box size follows file count. Lines are links found in source. Static analysis only.</p>
 <div class="graph-scroll"><svg id="graph" viewBox="0 0 1000 540" role="img" aria-label="Code graph"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs><g id="edges"></g><g id="nodes"></g></svg></div>
+<details class="text-equivalent"><summary>Text equivalent of the code graph</summary>
+<div class="table-scroll"><table><caption>Components</caption><thead><tr><th>Component</th><th>Files</th><th>Group</th></tr></thead><tbody id="node-rows"></tbody></table></div>
+<div class="table-scroll"><table><caption>Evidenced links</caption><thead><tr><th>From</th><th>To</th><th>Kind</th><th>Count</th></tr></thead><tbody id="edge-rows"></tbody></table></div>
+</details>
 <div class="legend">
 <span><i></i> workflow calls</span><span><i style="border-top-style:dashed"></i> python import</span><span><i style="border-top-style:dotted;border-top-width:3px"></i> doc link</span>
 <span><span class="dot" style="background:var(--amber)"></span> governance</span><span><span class="dot" style="background:var(--teal)"></span> tooling and CI</span><span><span class="dot" style="background:var(--slate)"></span> research and state</span><span><span class="dot" style="background:var(--rose)"></span> platform and UI</span>
@@ -244,8 +273,19 @@ section{display:grid;gap:4px;min-width:0}
     return e;
   }
 
-  document.getElementById("intro").textContent =
-    "Generated from commit " + (D.source_head || "unknown").slice(0, 8) + " at " + D.generated_at + ". " + D.note;
+  var prov = D.provenance || { verified: false, snapshot: null, worktree_clean: null, head_sha: null };
+  var intro = document.getElementById("intro");
+  if (prov.verified) {
+    intro.textContent = "Generated from commit " + (prov.head_sha || "unknown").slice(0, 8) + " at " + D.generated_at + ". " + D.note;
+  } else {
+    intro.textContent = "Generated at " + D.generated_at + ". " + D.note;
+    var warn = document.createElement("p");
+    warn.className = "warn";
+    warn.textContent = "Unverified input. The atlas snapshot is " + (prov.snapshot || "missing") +
+      " and the worktree is " + (prov.worktree_clean === true ? "clean" : prov.worktree_clean === false ? "dirty" : "of unknown state") +
+      ". Do not read this graph as evidence from a specific commit.";
+    intro.parentNode.insertBefore(warn, intro.nextSibling);
+  }
   document.getElementById("foot").textContent =
     "Authority: " + D.authority_effect + ". Ratified: " + (D.ratified ? "yes" : "no") + ".";
 
@@ -312,6 +352,22 @@ section{display:grid;gap:4px;min-width:0}
       facts.appendChild(d);
     });
   document.getElementById("limits").textContent = D.code_graph.limitations.join(" ");
+
+  // Text equivalent for screen readers, built from the same nodes and edges as the SVG.
+  var nodeRows = document.getElementById("node-rows");
+  nodes.forEach(function (n) {
+    var tr = document.createElement("tr");
+    [n.label, String(n.fc), n.g].forEach(function (v) { tr.appendChild(make("td", null, v)); });
+    nodeRows.appendChild(tr);
+  });
+  var edgeRows = document.getElementById("edge-rows");
+  D.code_graph.edges.forEach(function (e) {
+    var tr = document.createElement("tr");
+    var a = byId[e.source], b = byId[e.target];
+    var from = a ? a.label : e.source, to = b ? b.label : e.target;
+    [from, to, e.kind, String(e.count)].forEach(function (v) { tr.appendChild(make("td", null, v)); });
+    edgeRows.appendChild(tr);
+  });
 
   var chk = D.registry_checks;
   var checkEl = document.getElementById("check");

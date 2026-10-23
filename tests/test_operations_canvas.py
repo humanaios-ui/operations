@@ -107,6 +107,37 @@ class BuildCanvasTest(unittest.TestCase):
         self.assertEqual(statuses.count("READ-ONLY"), 1)
 
 
+class ProvenanceTest(unittest.TestCase):
+    def test_clean_head_snapshot_is_verified(self):
+        atlas = dict(ATLAS_FIXTURE, snapshot="HEAD_WORKTREE", worktree_clean=True)
+        prov = oc.provenance_from_atlas(atlas)
+        self.assertTrue(prov["verified"])
+        self.assertEqual(prov["snapshot"], "HEAD_WORKTREE")
+
+    def test_dirty_worktree_is_not_verified_and_keeps_its_marker(self):
+        atlas = dict(ATLAS_FIXTURE, snapshot="UNVERIFIED_WORKTREE", worktree_clean=False)
+        prov = oc.provenance_from_atlas(atlas)
+        self.assertFalse(prov["verified"])
+        self.assertEqual(prov["snapshot"], "UNVERIFIED_WORKTREE")
+        self.assertIs(prov["worktree_clean"], False)
+
+    def test_missing_provenance_is_not_verified(self):
+        prov = oc.provenance_from_atlas({"head_sha": "b" * 40})
+        self.assertFalse(prov["verified"])
+        self.assertIsNone(prov["snapshot"])
+
+    def test_page_warns_when_unverified(self):
+        atlas = dict(ATLAS_FIXTURE, snapshot="UNVERIFIED_WORKTREE", worktree_clean=False)
+        page = oc.render_html(oc.build_canvas(atlas, ZONE_FIXTURE, PLANNED_FIXTURE))
+        self.assertIn("Unverified input", page)
+        self.assertIn("Do not read this graph as evidence", page)
+
+    def test_text_equivalent_block_present(self):
+        page = oc.render_html(oc.build_canvas(ATLAS_FIXTURE, ZONE_FIXTURE, PLANNED_FIXTURE))
+        self.assertIn('id="edge-rows"', page)
+        self.assertIn('id="node-rows"', page)
+
+
 class RenderTest(unittest.TestCase):
     def test_embedded_json_cannot_close_its_script_tag(self):
         data = oc.build_canvas(ATLAS_FIXTURE, ZONE_FIXTURE, PLANNED_FIXTURE)
