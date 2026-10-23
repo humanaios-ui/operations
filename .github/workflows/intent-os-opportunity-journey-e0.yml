@@ -39,7 +39,7 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
           python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
-      - name: Qualify candidate-source feedback: 404 is not closure
+      - name: "Qualify candidate-source feedback - 404 is not closure"
         run: |
           python3 -m unittest discover -s tests -p 'test_source_review.py' -v
           python3 -m unittest discover -s tests -p 'test_source_review_ui.py' -v
