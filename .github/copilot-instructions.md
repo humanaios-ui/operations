@@ -1,5 +1,7 @@
 # Instructions for GitHub Copilot in this repository
 
+> **Agent entry/exit pilot:** See [AGENTS.md](../AGENTS.md) before and after an authorized issue/PR task. Its advisory notes never confer admission, execution or merge authority.
+
 Read automatically into every Copilot chat/coding-agent session here. Does not
 replace [`CONTRIBUTING.md`](../CONTRIBUTING.md), [`GOVERNANCE.md`](../GOVERNANCE.md),
 or [`CLAUDE.md`](../CLAUDE.md) — this is the short list of things that have
