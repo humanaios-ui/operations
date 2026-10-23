@@ -48,7 +48,7 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 <p class="subtle">Default: read-only synthetic demonstration modeled on the Apart sprint. You may import your own sanitized record or a private evidence bundle. Evidence links remain browser-side. This interface works only when the service is bound to your computer's loopback address.</p>
 <div class="actions">
 <button id="demo" type="button" class="secondary">View synthetic example</button>
-<button id="starter" type="button" class="secondary">Use editable starter</button>
+<button id="starter" type="button" class="secondary">Start a blank-action checklist</button>
 </div>
 <label for="import">Import local journey or private evidence bundle JSON</label>
 <input id="import" type="file" accept=".json,application/json">
@@ -75,7 +75,7 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 </section>
 <section class="panel">
 <h2>Record an explicit human report</h2>
-<p class="subtle">Available after importing or opening an editable starter. Adding a report does not prove provider confirmation and does not contact any external service.</p>
+<p class="subtle">Start a blank-action checklist above or import an existing journey to enable the checkboxes. A report records your statement, not provider confirmation, and does not contact any external service.</p>
 <fieldset id="humanActions" disabled>
 <legend>What did you personally do? (select one or more)</legend>
 <label class="check"><input type="checkbox" name="humanAction" value="HUMAN_SELECTED"> I selected this opportunity</label>
@@ -83,7 +83,7 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 <label class="check"><input type="checkbox" name="humanAction" value="DISCORD_JOINED_HUMAN"> I joined its Discord</label>
 </fieldset>
 <div class="actions"><button id="record" type="button" disabled>Record selected reports</button></div>
-<p class="subtle">Already recorded actions appear checked and are not duplicated. Use a revised, explicitly imported journey JSON to correct an existing report.</p>
+<p class="subtle">Already recorded actions appear checked and locked to prevent duplication. Start a blank-action checklist to test interactive boxes, or import your own JSON to continue an existing record.</p>
 </section>
 <section class="panel" id="evidencePanel">
 <h2>Attach supporting evidence</h2>
@@ -208,8 +208,12 @@ byId("starter").addEventListener("click",async()=>{
  try{
   const r=await fetch("/api/my-opportunities/starter",{cache:"no-store"});
   if(!r.ok)throw new Error("Starter record unavailable.");
-  const next=await r.json();await requestProjection(next);setEditable(next,[]);
-  showStatus("Editable synthetic starter loaded. Replace example evidence references before treating it as personal history.");
+  const next=await r.json();
+  // A fresh checklist must not pre-report that the human registered or
+  // completed the survey. Retain only the synthetic discovery observation.
+  next.events=next.events.filter(e=>e.kind==="DISCOVERED");
+  await requestProjection(next);setEditable(next,[]);
+  showStatus("Blank-action checklist loaded. Its discovery ID is synthetic; check and record only actions you actually completed.");
  }catch(e){showError(e.message);}
 });
 byId("import").addEventListener("change",async e=>{
