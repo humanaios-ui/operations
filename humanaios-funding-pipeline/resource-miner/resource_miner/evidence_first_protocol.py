@@ -23,6 +23,10 @@ class WitnessFeedback:
     def __post_init__(self):
         if not self.case_id or not self.source_ref:
             raise ValueError("case_id and source_ref are required")
+        if self.kind not in ("SOURCE_CORRECTION", "INTENT_CORRECTION", "QUESTION", "CONDITIONAL_WILLINGNESS"):
+            raise ValueError("Unsupported Witness feedback kind")
+        if self.source_state not in ("OBSERVED", "SUPPORTED", "INFERRED", "HYPOTHESIZED", "UNVERIFIED", "CONTRADICTED"):
+            raise ValueError("Unsupported Witness source state")
         if self.authority != "NONE" or self.execution != "DISABLED":
             raise ValueError("Witness feedback cannot grant authority or execution")
 
