@@ -30,6 +30,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 .source-review[hidden]{display:none}
 .verification-actions{display:flex;gap:10px;flex-wrap:wrap}
 .status-line{font-size:.82rem;color:#f0d09a}
+#localFilter{font-size:.84rem}
 #results[hidden]{display:none}footer{font-size:.84rem;line-height:1.6;color:#a3b3c6;margin-top:26px}
 </style>
 </head>
@@ -61,6 +62,8 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <h2 id="resTitle">Resources to review</h2>
 <p id="summary"></p>
 <div id="warning" class="notice" hidden></div>
+<div class="row"><label for="showDismissed" class="muted"><input id="showDismissed" type="checkbox"> Show candidates I dismissed locally</label></div>
+<p id="localFilter" class="muted" role="status"></p>
 <div id="items"></div>
 <p class="muted" id="receipt"></p>
 </section>
@@ -97,6 +100,31 @@ const reviewStates=[
  ["OTHER","Other observation"]
 ], validStates=new Set(reviewStates.map(x=>x[0]));
 let sourceReviews=[];
+const dispositionKey="humanaios.intent_os_local_dispositions.v0.1";
+let latestCandidates=[];
+function dispositions(){
+ try{
+  const v=JSON.parse(localStorage.getItem(dispositionKey)||"{}");
+  return v&&typeof v==="object"&&!Array.isArray(v)?v:{};
+ }catch(_){return {};}
+}
+function renderCandidates(){
+ const saved=dispositions();
+ const visible=[], hidden=[];
+ for(const row of latestCandidates){
+  const decision=saved[row.source_url];
+  if(decision?.state==="DISMISS_LOCAL")hidden.push(row);
+  if(decision?.state!=="DISMISS_LOCAL"||document.getElementById("showDismissed").checked)
+   visible.push(row);
+ }
+ items.replaceChildren();
+ visible.forEach(row=>items.append(addCard(row)));
+ text(document.getElementById("localFilter"), hidden.length?
+  hidden.length+" candidate(s) hidden in this browser by your Witness decisions. "+
+  "Check 'Show candidates I dismissed locally' to inspect them. Shared source catalog unchanged.":
+  "No locally dismissed candidates among the displayed results.");
+}
+document.getElementById("showDismissed").addEventListener("change",renderCandidates);
 const message=document.getElementById("verificationMessage");
 function reviewMessage(value){text(message,value);}
 function publicUrl(raw){
@@ -326,7 +354,8 @@ form.addEventListener("submit",async event=>{
      "No supported matches in these sources.")+" Try another goal or the other source mode.");
    warning.hidden=!result.source_warning;
    text(warning,result.source_warning);
-   (result.candidates||[]).forEach(row=>items.append(addCard(row)));
+   latestCandidates=result.candidates||[];
+   renderCandidates();
    text(receipt,"Source: "+result.source_status+" · Unsigned selection digest: "+result.receipt_sha256);
    box.hidden=false;
    text(feedback,result.shown_count+" resource candidate(s) displayed.");
