@@ -190,6 +190,32 @@ Without `--dry-run`, output defaults to `data/resources.jsonl`, which is git-ign
 - `data/resources.jsonl` — ephemeral local/live scan output, git-ignored (see above).
 - `data/resources.snapshot.jsonl` — durable scan output, checked in, refreshed daily by `.github/workflows/resource-miner-scan.yml`. This is what `app.py`'s `GET /api/resources` falls back to when no live scan has run yet in the current process, so results survive a Railway restart/redeploy without reversing the git-ignore decision above.
 
+### Source verification feedback from search results (first-user E0.2)
+
+**Use:** Browse \`/intent-os\` on the local service. Search for a resource. Each result card now has **Report / verify this source**. Open it and choose a human observation:
+
+- \`LINK_FAILED_404\` — the exact URL returned a 404 in your browser; **does NOT prove opportunity closure**.
+- \`PAGE_UNAVAILABLE_OTHER\` — another source-loading problem.
+- \`SOURCE_WORKING\` — link loaded for the human; not independently checked.
+- \`REPLACEMENT_FOUND\` — human supplies candidate replacement URL; official-source recheck required.
+- \`POSSIBLY_CLOSED\` — human suspects closure; provider status unknown.
+- \`ALREADY_IN_USE\` — user believes this resource is already controlled/used; ownership not independently established.
+- \`OTHER\` — other issue or observation.
+
+Add an optional explanation and **replacement/evidence HTTPS URL**. Optionally choose a **PNG, JPEG or WebP screenshot (max 1 MiB)**; it is **hashed in this browser only**, never transmitted, saved or embedded in the JSON packet. Store the original screenshot separately if reviewers need to view it and match its SHA-256 hash.
+
+Click **Save source observation locally**. The record is appended to the browser's private source-review queue. The candidate card shows the most recent observation on the next search. **Export verification review packet** downloads \`intent-os-source-verification.json\` with schema \`humanaios.resource_source_review.v0.1\`. Use **Import review packet** to move reports to another origin/port or combine locally. An offline reviewer can execute:
+
+\`\`\`sh
+python3 -m resource_miner.source_review --input /path/to/intent-os-source-verification.json
+\`\`\`
+
+This produces **review tasks**, never an \`OPPORTUNITY_CLOSED\`, \`VERIFIED_ELIGIBLE\` or \`SOURCE_CATALOG_UPDATED\` claim. The user-supplied fields may be inaccurate or manipulated. **No central submission, server save, GitHub issue, auto source deletion, global ranking change or automatic source recheck is performed.** A separate authenticated user-controlled evidence intake and independently approved review queue is needed for remote submission. Never commit a packet containing personal notes, browsing artifacts or screenshots to public GitHub.
+
+**First example (2026-10-22):** Human observed a 404 from the Convergent Research Program Launch Manager Lever link. Later the public official Convergent Research job board still listed Program Launch Manager, so the correct user-visible task is \`RECHECK_SOURCE_URL_AND_OFFICIAL_BOARD\` rather than silently archiving the job. Browser screenshot is user evidence for URL failure, not proof that the employer withdrew the role. This is a test of correcting stale source links, not filtering relevant opportunities based on link status alone.
+
+**Checkbox clarification:** The initial \`/my-opportunities\` view shows synthetic demonstration events. A previously completed event is deliberately checked and read-only. Choose **Start a blank-action checklist** for a fresh editable set of unchecked human actions; this clears the synthetic prefilled action events and retains a clearly synthetic discovery label. If you have a real record, import its JSON instead of creating duplicate events. Recording a human statement does not prove third-party receipt.
+
 ### E0.1: checkbox reports + browser-private evidence attachment
 
 The **Record an explicit human report** section now contains three independent **checkboxes** (selected, survey submitted, Discord joined) rather than a dropdown. The checkboxes are available with an editable/imported journey, and already recorded events display as checked and cannot be submitted twice. Recording is a user assertion, never participant qualification or third-party consent. To correct an existing recorded claim, edit the exported sanitized journey JSON deliberately and re-import; the prototype does not silently delete earlier receipts.
