@@ -1,8 +1,8 @@
 name: vulnops-read-only-intake
 
 # Public vulnerability feed intake is deliberately last in the sequence.
-# The job fails before its first network request unless a separately issued,
-# cryptographically marked receipt attests that controls 1–4 are operational.
+# The job fails before its first external feed request unless a separately
+# issued, cryptographically marked receipt attests that controls 1–4 operate.
 # This workflow only emits an artifact. It cannot authorize or execute action.
 
 on:
