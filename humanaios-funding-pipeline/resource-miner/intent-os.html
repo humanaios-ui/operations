@@ -121,8 +121,8 @@ function loadLessons(){
  }catch(_){return [];}
 }
 function lessonFor(url){return loadLessons().filter(r=>r.source_url===url).at(-1);}
-function localPriority(row){
- const p=lessonFor(row.source_url)?.preference;
+function localPriority(row, latestByUrl){
+ const p=(latestByUrl?latestByUrl.get(row.source_url):lessonFor(row.source_url))?.preference;
  return p==="PRIORITIZE"?1:p==="DEPRIORITIZE"?-1:0;
 }
 function dispositions(){
@@ -141,7 +141,9 @@ function renderCandidates(){
    visible.push(row);
  }
  items.replaceChildren();
- visible.sort((a,b)=>localPriority(b)-localPriority(a));
+ // Snapshot preferences once per render; never parse storage inside sort comparisons.
+ const latestByUrl=new Map(loadLessons().map(r=>[r.source_url,r]));
+ visible.sort((a,b)=>localPriority(b,latestByUrl)-localPriority(a,latestByUrl));
  visible.slice(0,visibleLimit).forEach(row=>items.append(addCard(row)));
  const more=document.getElementById("showMore");more.hidden=visibleLimit>=visible.length;
  text(more,"Show more ("+Math.max(0,visible.length-visibleLimit)+" remaining)");
