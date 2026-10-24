@@ -11,7 +11,15 @@ from haios_mcp.core import HumanAIOSBridge
 
 
 class RequireLocalBearer:
-    """Outer ASGI gate. Runs before MCP routes, including initialization."""
+    """Outer ASGI gate. Runs before MCP routes, including initialization.
+
+    Only the ASGI scope types in UNGATED_SCOPE_TYPES skip the bearer check.
+    Everything else (http, websocket, or any future scope type the MCP SDK
+    adds) must present the token - an allowlist, not a denylist, so a new
+    transport mode can't silently bypass authorization.
+    """
+
+    UNGATED_SCOPE_TYPES = frozenset({"lifespan"})
 
     def __init__(self, app: Any, token: str):
         if len(token) < 32:
@@ -20,8 +28,14 @@ class RequireLocalBearer:
         self.token = token.encode("utf-8")
 
     async def __call__(self, scope: dict, receive: Any, send: Any) -> None:
-        if scope["type"] != "http":
+        if scope["type"] in self.UNGATED_SCOPE_TYPES:
             await self.app(scope, receive, send)
+            return
+        if scope["type"] != "http":
+            # Not an HTTP request (e.g. a hypothetical future websocket scope
+            # from the MCP SDK) and not on the ungated allowlist: refuse the
+            # connection outright rather than shaping an HTTP-only response
+            # on a non-HTTP scope, which would itself be protocol-invalid.
             return
         headers = {k.lower(): v for k, v in scope.get("headers", [])}
         value = headers.get(b"authorization", b"")

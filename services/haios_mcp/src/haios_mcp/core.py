@@ -170,33 +170,38 @@ class HumanAIOSBridge:
             # The context manifest changes if documents change between turns;
             # old assistant statements must not be treated as fresh source proof.
             messages = history + [{"role": "user", "content": message}]
-            try:
-                response = self._client_factory().messages.create(
-                    model=self.model,
-                    max_tokens=2048,
-                    system=SYSTEM_PROMPT + "\n\nDOCUMENTS VISIBLE ON THIS TURN:\n" + context,
-                    messages=messages,
-                )
-            except Exception as exc:
-                # Do not reflect provider error bodies, environment variables,
-                # request payloads, or secrets into the MCP response.
-                raise RuntimeError("Claude request failed; check local service logs and API configuration") from None
-            answer = "\n".join(
-                getattr(part, "text", "") for part in getattr(response, "content", [])
-                if getattr(part, "type", "") == "text"
-            ).strip()
-            if not answer:
-                raise RuntimeError("Claude produced no text response")
-            messages.append({"role": "assistant", "content": answer})
+
+        # The blocking Anthropic call runs outside the lock: holding it here
+        # would serialize every session on the network, so one slow or stuck
+        # request would stall everyone else's turn too.
+        try:
+            response = self._client_factory().messages.create(
+                model=self.model,
+                max_tokens=2048,
+                system=SYSTEM_PROMPT + "\n\nDOCUMENTS VISIBLE ON THIS TURN:\n" + context,
+                messages=messages,
+            )
+        except Exception as exc:
+            # Do not reflect provider error bodies, environment variables,
+            # request payloads, or secrets into the MCP response.
+            raise RuntimeError("Claude request failed; check local service logs and API configuration") from None
+        answer = "\n".join(
+            getattr(part, "text", "") for part in getattr(response, "content", [])
+            if getattr(part, "type", "") == "text"
+        ).strip()
+        if not answer:
+            raise RuntimeError("Claude produced no text response")
+        messages.append({"role": "assistant", "content": answer})
+        with self._lock:
             self._sessions[sid] = {
                 "accessed": self._clock(), "history": messages[-MAX_HISTORY_MESSAGES:],
             }
-            return {
-                "answer": answer,
-                "session_id": sid,
-                "model": self.model,
-                "source_manifest": manifests,
-                "response_may_be_incomplete": getattr(response, "stop_reason", None) == "max_tokens",
-                "authority": "NONE",
-                "note": "Only the model response is generated; no repository write or external action was performed.",
-            }
+        return {
+            "answer": answer,
+            "session_id": sid,
+            "model": self.model,
+            "source_manifest": manifests,
+            "response_may_be_incomplete": getattr(response, "stop_reason", None) == "max_tokens",
+            "authority": "NONE",
+            "note": "Only the model response is generated; no repository write or external action was performed.",
+        }

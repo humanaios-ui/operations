@@ -43,6 +43,22 @@ class TokenTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             RequireLocalBearer(lambda *_: None, "short")
 
+    def test_lifespan_scope_passes_through_ungated(self):
+        calls = []
+        async def inner(scope, receive, send):
+            calls.append(scope)
+        gate = RequireLocalBearer(inner, "T" * 64)
+        asyncio.run(gate({"type": "lifespan"}, lambda: None, lambda _event: None))
+        self.assertEqual(len(calls), 1)
+
+    def test_non_http_non_lifespan_scope_is_refused_not_passed_through(self):
+        calls = []
+        async def inner(scope, receive, send):
+            calls.append(scope)
+        gate = RequireLocalBearer(inner, "T" * 64)
+        asyncio.run(gate({"type": "websocket"}, lambda: None, lambda _event: None))
+        self.assertFalse(calls)
+
     def test_stdio_server_tools_are_three_read_only_functions(self):
         # Fake SDK only; does not pretend to prove real SDK wire compatibility.
         class FakeMCP:
