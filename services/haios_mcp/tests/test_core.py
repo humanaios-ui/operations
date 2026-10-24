@@ -142,8 +142,12 @@ class BridgeTests(unittest.TestCase):
 
     def test_provider_failure_does_not_echo_secrets_or_save_turn(self):
         self.api.fail = True
-        with self.assertRaises(RuntimeError) as e:
-            self.bridge.talk("Hello")
+        with self.assertLogs("haios_mcp", level="WARNING") as logged:
+            with self.assertRaises(RuntimeError) as e:
+                self.bridge.talk("Hello")
+        self.assertIn("class=Exception", "\n".join(logged.output))
+        self.assertNotIn("DANGEROUS PROVIDER DETAIL", "\n".join(logged.output))
+        self.assertNotIn("api-key-test", "\n".join(logged.output))
         self.assertNotIn("api-key-test", str(e.exception))
         self.assertFalse(self.bridge._sessions)
 
