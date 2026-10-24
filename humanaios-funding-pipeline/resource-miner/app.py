@@ -20,6 +20,7 @@ from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
 from resource_miner.sources import devto, funding_pipeline, github, rss
 from resource_miner.store import write_jsonl
+from resource_miner.snapshot_status import reconcile_snapshot_source_holds
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
@@ -299,9 +300,19 @@ class Handler(BaseHTTPRequestHandler):
                             {"error": "Stored snapshot unavailable"},
                             HTTPStatus.SERVICE_UNAVAILABLE,
                         )
-                    rows = _read_jsonl(SNAPSHOT_OUT)
+                    # Historical candidates can predate later source-review feedback.
+                    # Overlay only reviewed exact-URL source holds in memory; never
+                    # modify the snapshot or infer permanent closure from a report.
+                    rows, held_count = reconcile_snapshot_source_holds(
+                        _read_jsonl(SNAPSHOT_OUT), DEFAULT_FUNDING,
+                    )
                     source_status, warning = ("CURATED_SNAPSHOT_NOT_LIVE",
                         "Snapshot captured previously. Dates, eligibility and availability are unverified.")
+                    if held_count:
+                        warning += (
+                            f" {held_count} catalog-matched source(s) withheld pending"
+                            " independent source re-verification."
+                        )
                 result = evaluate_objective(
                     objective, rows, source_mode=mode,
                     source_status=source_status, source_warning=warning,
