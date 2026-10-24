@@ -12,6 +12,7 @@ Usage:
     python3 architecture/operations_canvas.py --out DIR --atlas atlas.json
 """
 import argparse
+import hashlib
 import html
 import json
 import re
@@ -46,7 +47,8 @@ def parse_zone_registry(text):
         zone_id = cells[0]
         if "+" in zone_id:  # "Z-013+" is a pointer to PLANNED_REPOS.md, not a zone
             continue
-        status_cell = " ".join(cells[1:])
+        # Only the final column is the status. Free-text fields must not affect it.
+        status_cell = cells[-1]
         if "READ-ONLY" in status_cell:
             status = "READ-ONLY"
         elif "LIMITED" in status_cell:
@@ -94,25 +96,38 @@ def parse_planned_repos(text):
 
 
 def load_atlas(atlas_path):
+    """Return (atlas, source). A file the caller names is supplied, not verified."""
     if atlas_path:
-        return json.loads(Path(atlas_path).read_text(encoding="utf-8"))
+        return json.loads(Path(atlas_path).read_text(encoding="utf-8")), SUPPLIED_SOURCE
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run(
             [sys.executable, str(HERE / "codebase_atlas.py"), "--out", tmp],
             cwd=REPO, check=True, stdout=subprocess.DEVNULL,
         )
-        return json.loads((Path(tmp) / "atlas.json").read_text(encoding="utf-8"))
+        atlas = json.loads((Path(tmp) / "atlas.json").read_text(encoding="utf-8"))
+        return atlas, GENERATED_SOURCE
 
 
 VERIFIED_SNAPSHOT = "HEAD_WORKTREE"
+GENERATED_SOURCE = "generated_this_run"
+SUPPLIED_SOURCE = "supplied_file"
 
 
-def provenance_from_atlas(atlas):
-    """Carry the atlas snapshot fields through. Anything but a clean HEAD snapshot is unverified."""
+def sha256_text(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def provenance_from_atlas(atlas, source):
+    """Carry the atlas snapshot fields through.
+
+    Only an atlas this run generated can be verified. A supplied file carries
+    self-reported fields that this code cannot check, so it stays unverified.
+    """
     snapshot = atlas.get("snapshot")
     clean = atlas.get("worktree_clean")
-    verified = clean is True and snapshot == VERIFIED_SNAPSHOT
+    verified = source == GENERATED_SOURCE and clean is True and snapshot == VERIFIED_SNAPSHOT
     return {
+        "source": source,
         "snapshot": snapshot,
         "worktree_clean": clean,
         "head_sha": atlas.get("head_sha"),
@@ -120,7 +135,7 @@ def provenance_from_atlas(atlas):
     }
 
 
-def build_canvas(atlas, zone_text, planned_text):
+def build_canvas(atlas, zone_text, planned_text, atlas_source=SUPPLIED_SOURCE, registry_sources=None):
     zone_rows, claimed_total = parse_zone_registry(zone_text)
     planned_rows = parse_planned_repos(planned_text)
     repos = zone_rows + planned_rows
@@ -130,7 +145,7 @@ def build_canvas(atlas, zone_text, planned_text):
         "registry_rows_counted": counted,
         "header_matches_rows": claimed_total == counted,
     }
-    provenance = provenance_from_atlas(atlas)
+    provenance = provenance_from_atlas(atlas, atlas_source)
     data = {
         "schema": "operations-canvas/v0.1",
         "authority_effect": "NONE",
@@ -139,6 +154,7 @@ def build_canvas(atlas, zone_text, planned_text):
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source_head": atlas.get("head_sha"),
         "provenance": provenance,
+        "repo_map_sources": registry_sources or {},
         "code_graph": {
             "nodes": [
                 {"id": n["id"], "label": n["label"], "file_count": n["file_count"]}
@@ -286,8 +302,11 @@ section{display:grid;gap:4px;min-width:0}
       ". Do not read this graph as evidence from a specific commit.";
     intro.parentNode.insertBefore(warn, intro.nextSibling);
   }
+  var srcs = D.repo_map_sources || {};
   document.getElementById("foot").textContent =
-    "Authority: " + D.authority_effect + ". Ratified: " + (D.ratified ? "yes" : "no") + ".";
+    "Authority: " + D.authority_effect + ". Ratified: " + (D.ratified ? "yes" : "no") + ". " +
+    "Repo map from " + (Object.keys(srcs).map(function (k) { return k + " sha256 " + srcs[k].slice(0, 12); }).join(", ") || "no sources") +
+    ". The atlas provenance above does not cover the repo map.";
 
   // Code graph layout on a 1000 x 540 grid. Unknown ids fall into a spare row.
   var POS = {
@@ -409,8 +428,16 @@ section{display:grid;gap:4px;min-width:0}
 
 
 def render_html(data):
-    # Escape "</" so the embedded JSON cannot close its own script tag.
-    payload = json.dumps(data, ensure_ascii=False, indent=1).replace("</", "<\\/")
+    # Escape characters that can end or confuse the embedded script element.
+    # Each replacement is a valid JSON escape, so the payload still parses.
+    payload = (
+        json.dumps(data, ensure_ascii=False, indent=1)
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace(" ", "\\u2028")
+        .replace(" ", "\\u2029")
+    )
     return PAGE.replace("__DATA__", payload)
 
 
@@ -429,11 +456,18 @@ def main(argv=None):
     parser.add_argument("--zone-registry", type=Path, default=REPO / "ZONE_REGISTRY.md")
     parser.add_argument("--planned-repos", type=Path, default=REPO / "PLANNED_REPOS.md")
     args = parser.parse_args(argv)
-    atlas = load_atlas(args.atlas)
+    atlas, atlas_source = load_atlas(args.atlas)
+    zone_text = args.zone_registry.read_text(encoding="utf-8")
+    planned_text = args.planned_repos.read_text(encoding="utf-8")
     data = build_canvas(
         atlas,
-        args.zone_registry.read_text(encoding="utf-8"),
-        args.planned_repos.read_text(encoding="utf-8"),
+        zone_text,
+        planned_text,
+        atlas_source,
+        {
+            args.zone_registry.name: sha256_text(zone_text),
+            args.planned_repos.name: sha256_text(planned_text),
+        },
     )
     out = write_outputs(data, args.out)
     print(f"Canvas: {len(data['repo_map'])} repo rows, {len(data['code_graph']['nodes'])} components -> {out}")

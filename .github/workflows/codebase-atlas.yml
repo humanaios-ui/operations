@@ -45,7 +45,7 @@ jobs:
       - name: Generate read-only architecture map
         run: python architecture/codebase_atlas.py --out "$RUNNER_TEMP/codebase-atlas"
       - name: Generate read-only operations canvas
-        run: python architecture/operations_canvas.py --out "$RUNNER_TEMP/codebase-atlas/operations-canvas" --atlas "$RUNNER_TEMP/codebase-atlas/atlas.json"
+        run: python architecture/operations_canvas.py --out "$RUNNER_TEMP/codebase-atlas/operations-canvas"
       - name: Verify canvas authority stays NONE
         run: |
           python - "$RUNNER_TEMP/codebase-atlas/operations-canvas/canvas.json" <<'PY'

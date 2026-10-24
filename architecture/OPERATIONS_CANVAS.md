@@ -20,6 +20,12 @@ Outputs:
 - `index.html`: self-contained page. No external scripts. Data is embedded as JSON.
 - `canvas.json`: the same data, with `authority_effect: "NONE"` and `ratified: false`.
 
+## Provenance
+
+- An atlas this run generates can be verified. It is verified only when the worktree is clean and the snapshot is `HEAD_WORKTREE`.
+- An atlas file passed with `--atlas` is always unverified. Its fields are self-reported.
+- The repo map comes from `ZONE_REGISTRY.md` and `PLANNED_REPOS.md`. Their SHA-256 hashes are printed on the page. The atlas provenance does not cover them.
+
 ## Living, not committed
 
 The codebase-atlas workflow rebuilds the canvas on push and on pull request. It uploads the result as a short-lived build artifact. Generated files are not committed.
