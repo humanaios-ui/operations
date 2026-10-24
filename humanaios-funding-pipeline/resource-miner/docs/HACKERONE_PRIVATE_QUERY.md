@@ -29,3 +29,18 @@ python3 -m unittest tests.test_hackerone_bounded_mine -v
 ```
 
 Do not enable private projects in the public seed registry.
+
+## Minimal local account check (no saved program data)
+
+From the `humanaios-funding-pipeline/resource-miner` directory, set `HACKERONE_API_USERNAME` and `HACKERONE_API_TOKEN` in your **local** shell or a local secret manager (never commit, paste, or print them). Then run:
+
+```sh
+umask 077
+python3 private_hackerone_query.py
+```
+
+Enter the handle at the hidden prompt. The script calls the existing read-only `HackerOneClient.find_program`, then outputs only booleans and constant counters: visibility, presence of policy/submission-state fields, and zero target requests / stored records. It does not print program names, policy text, scope, raw API payload, or invitation-only handles. It does not write records.
+
+**Do not use** `resource_miner.cli scan --dry-run` or `resolve-mines --dry-run` for a private invitation: both can expose complete records on stdout. Avoid normal `--out` paths as well; the standard mine pipeline creates opportunity, proposition, claim, and event records. Its existing `app.py` admin routes can serve saved resource records. Those outputs are **not** safe sinks for private program data.
+
+Local API credentials and a local authenticated run have **not** been verified by ChatGPT. Offline tests mock the client only. Next security milestone: private encrypted store, per-user grants, and a privacy-safe INTENT-OS projection.
