@@ -88,6 +88,36 @@ This launcher reads `ANTHROPIC_API_KEY` from the user login Keychain and provide
 
 **Important:** ChatGPT’s custom remote connections do not accept an arbitrary static bearer token as an end-user credential. The local-only HTTP bearer implementation is not a substitute for OAuth on an Internet-facing service.
 
+### Gate 5 checklist: tunnel identity, permissions, workspace scope, costs
+
+The stdio launcher itself is verified (offline tests, and a live run as the exact
+child process a tunnel client would spawn). What is **not** verified by this
+package, because it is entirely on OpenAI's side of the boundary, is the tunnel
+you point at it. Walk this before treating gate 5 as closed — current as of the
+[Secure MCP Tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels);
+re-check against that page, since tunnel mechanics are OpenAI's to change:
+
+- **Identity**
+  - [ ] You hold (or can get) a `tunnel_id` from **Platform tunnel settings**, created under the Platform organization that *should* own this HAIOS bridge — not a stray personal org.
+  - [ ] The `tunnel-client` runtime API key used to run the client is scoped to that same organization and is treated as a secret (never pasted into chat, a command argument, a log, or a screenshot).
+  - [ ] `tunnel-client doctor --profile <name> --explain` reports the client healthy, ready, and polling *before* you test from ChatGPT.
+- **Permissions** (Platform tunnel RBAC and ChatGPT workspace access are two separate grants — both are required, neither implies the other)
+  - [ ] Whoever **creates/edits** the tunnel has `Tunnels Read + Manage` on the Platform organization.
+  - [ ] Whoever **runs `tunnel-client` or selects the tunnel** when adding the ChatGPT app has `Tunnels Read + Use`.
+  - [ ] The target ChatGPT **workspace admin** has separately approved adding/using custom MCP servers in that workspace (a Platform org grant does not grant this).
+- **Workspace scope**
+  - [ ] The tunnel is explicitly associated with the **ChatGPT workspace** you intend to use it from, not only with the Platform organization — an org-only association won't make the tunnel appear when adding the custom MCP server in ChatGPT.
+  - [ ] You know exactly which accounts/seats can see and invoke this connector once it's added in that workspace — a personal workspace keeps this single-operator (matching this package's design); a Team/Enterprise workspace means every member with connector access can trigger `haios_talk`, which this prototype's "single-operator pilot" framing assumes does not happen.
+  - [ ] If an Enterprise/Edu account mapping doesn't auto-verify, you've gone through OpenAI's manual association override with your account team rather than forcing an unscoped association.
+- **Costs**
+  - [ ] You've checked your own OpenAI organization's billing/usage dashboard for the tunnel itself — this guide does not publish a tunnel price, so don't assume "free" without confirming there.
+  - [ ] Separately from tunnel cost: every `haios_talk` call through the tunnel is a **real Anthropic API call** billed to whatever key is in `ai.humanaios.anthropic` in Keychain — workspace-wide connector access multiplies that exposure, not just tunnel traffic.
+  - [ ] You've noted the documented tunnel limits (600 requests/min per tunnel+caller, 120s request deadline, 1,000 queued requests, 10 MiB per request/response) so a runaway client or workspace doesn't silently degrade or queue-stall before anyone notices.
+- **Revocation path** (have this ready *before* you connect it, not after)
+  - [ ] You know how to stop `tunnel-client` (kill the process) and how to delete/disable the tunnel in Platform tunnel settings.
+  - [ ] You know how to unlink the custom MCP server from the ChatGPT workspace independently of stopping the tunnel client.
+  - [ ] You know how to rotate the Keychain-held `ai.humanaios.anthropic` key if the tunnel path is ever suspected of being misused, without needing to touch the already-reviewed `launch_stdio_macos.sh`/`core.py` code.
+
 ## Security limits and evidence
 
 - Allowlisted relative file **names only**; symbolic links and oversized files rejected.
