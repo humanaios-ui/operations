@@ -1,3 +1,4 @@
+import orcid_works as ow
 from utils.orcid_client import OrcidClient
 import bibtexparser
 from bibtexparser.bwriter import BibTexWriter
@@ -9,38 +10,33 @@ from pathlib import Path
 console = Console()
 
 def work_to_bibtex_entry(work):
-    """Convert ORCID work to BibTeX entry"""
+    """Convert ORCID work detail to a BibTeX entry (null-safe)."""
     entry = {}
-    
-    title = work.get("title", {}).get("title", {}).get("value", "Untitled")
-    entry["title"] = title
+
+    entry["title"] = ow.dig(work, "title", "title", "value") or "Untitled"
     entry["ID"] = f"orcid_{work.get('put-code', 'unknown')}"
-    entry["ENTRYTYPE"] = work.get("type", "article").lower().replace("-", "")
-    
-    # Authors
-    contributors = work.get("contributors", {}).get("contributor", [])
-    if contributors:
-        authors = []
-        for c in contributors:
-            name = c.get("credit-name", {}).get("value")
-            if name:
-                authors.append(name)
+    entry["ENTRYTYPE"] = ow.bibtex_type(work.get("type"))
+
+    authors = ow.contributor_names(work)
+    if authors:
         entry["author"] = " and ".join(authors)
-    
-    # Year, DOI, etc.
-    pub_date = work.get("publication-date", {})
-    if pub_date.get("year", {}).get("value"):
-        entry["year"] = pub_date["year"]["value"]
-    
-    if work.get("external-ids", {}).get("external-id"):
-        for ext in work["external-ids"]["external-id"]:
-            if ext.get("type") == "doi":
-                entry["doi"] = ext.get("value")
-    
-    if work.get("journal-title", {}).get("value"):
-        entry["journal"] = work["journal-title"]["value"]
-    
+
+    year = ow.dig(work, "publication-date", "year", "value")
+    if year:
+        entry["year"] = str(year)
+
+    # ORCID v3 keys are external-id-type / external-id-value; only the
+    # work's own ("self") DOI belongs in its citation.
+    dois = ow.self_dois(work.get("external-ids"))
+    if dois:
+        entry["doi"] = dois[0]
+
+    journal = ow.dig(work, "journal-title", "value")
+    if journal:
+        entry["journal"] = journal
+
     return entry
+
 
 def main():
     client = OrcidClient()
@@ -53,15 +49,19 @@ def main():
     db.entries = []
     
     for group in groups:
-        for summary in group.get("work-summary", []):
-            try:
-                # Get full details for better BibTeX
-                full_work = client.get_work_details(summary["put-code"])
-                bib_entry = work_to_bibtex_entry(full_work)
-                if bib_entry:
-                    db.entries.append(bib_entry)
-            except Exception as e:
-                console.print(f"[yellow]Warning:[/yellow] Could not process work {summary.get('put-code')}: {e}")
+        # One entry per ORCID group: its preferred representation.
+        summaries = [s for s in (ow.dig(group, "work-summary") or []) if isinstance(s, dict)]
+        if not summaries:
+            continue
+        summary = ow.preferred(summaries)
+        try:
+            # Get full details for better BibTeX
+            full_work = client.get_work_details(summary["put-code"])
+            bib_entry = work_to_bibtex_entry(full_work)
+            if bib_entry:
+                db.entries.append(bib_entry)
+        except Exception as e:
+            console.print(f"[yellow]Warning:[/yellow] Could not process work {summary.get('put-code')}: {e}")
     
     # Write BibTeX file
     Path(config.DATA_DIR).mkdir(exist_ok=True)

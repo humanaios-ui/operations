@@ -1,36 +1,73 @@
-import requests
 import json
+import time
 from pathlib import Path
+
+import requests
+
 import config
 
+RETRY_STATUS = {429, 500, 502, 503, 504}
+
+
 class OrcidClient:
-    def __init__(self, orcid_id=config.ORCID_ID):
+    """Read-only client for the ORCID public API (pub.orcid.org).
+
+    Every request has a timeout. 429 and 5xx responses, timeouts and
+    connection errors are retried a bounded number of times with
+    exponential backoff (honouring Retry-After); anything else raises.
+    """
+
+    def __init__(self, orcid_id=config.ORCID_ID, timeout=20, max_attempts=4,
+                 backoff=2.0, session=None, sleep=time.sleep):
         self.orcid_id = orcid_id
         self.base_url = f"https://pub.orcid.org/v3.0/{orcid_id}"
-        self.headers = {
-            "Accept": "application/json"
-        }
+        self.headers = {"Accept": "application/json"}
+        self.timeout = timeout
+        self.max_attempts = max_attempts
+        self.backoff = backoff
+        self.session = session or requests.Session()
+        self.sleep = sleep
+
+    def _get(self, path):
+        url = f"{self.base_url}/{path}"
+        for attempt in range(1, self.max_attempts + 1):
+            try:
+                response = self.session.get(url, headers=self.headers, timeout=self.timeout)
+            except (requests.Timeout, requests.ConnectionError):
+                if attempt == self.max_attempts:
+                    raise
+                self.sleep(self.backoff ** attempt)
+                continue
+            if response.status_code in RETRY_STATUS and attempt < self.max_attempts:
+                wait = response.headers.get("Retry-After")
+                try:
+                    delay = min(float(wait), 60.0) if wait else self.backoff ** attempt
+                except ValueError:
+                    delay = self.backoff ** attempt
+                self.sleep(delay)
+                continue
+            response.raise_for_status()
+            return response
+        raise RuntimeError(f"unreachable: {url}")
 
     def get_record_summary(self):
         """Get summary of the entire ORCID record"""
-        response = requests.get(f"{self.base_url}/record.json", headers=self.headers)
-        response.raise_for_status()
-        return response.json()
+        return self._get("record").json()
+
+    def get_works_raw(self):
+        """Raw /works response body, so callers can hash exactly what ORCID sent."""
+        return self._get("works").content
 
     def get_works_summary(self):
         """Get summary list of all works (publications)"""
-        response = requests.get(f"{self.base_url}/works.json", headers=self.headers)
-        response.raise_for_status()
-        return response.json()
+        return json.loads(self.get_works_raw())
 
     def get_work_details(self, put_code):
         """Get full details of a single work by put-code"""
-        response = requests.get(f"{self.base_url}/work/{put_code}", headers=self.headers)
-        response.raise_for_status()
-        return response.json()
+        return self._get(f"work/{put_code}").json()
 
     def save_raw_data(self, data, filename="raw_works.json"):
-        """Save raw JSON for inspection"""
+        """Save raw JSON for inspection (local data/ only; never commit it)"""
         Path(config.DATA_DIR).mkdir(exist_ok=True)
         with open(Path(config.DATA_DIR) / filename, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
