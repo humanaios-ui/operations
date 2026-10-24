@@ -8,15 +8,16 @@ function element(){return {children:[],listeners:{},value:'',checked:false,hidde
  replaceChildren(...x){this.children=x},addEventListener(t,f){this.listeners[t]=f}};}
 function boot(data=new Map()){
  const dom=new Map();
+ const fetchCalls=[];
  const document={body:element(),getElementById(id){if(!dom.has(id))dom.set(id,element());return dom.get(id)},
  createElement:element,querySelectorAll(){return []}};
  const context=vm.createContext({document,URL,Blob,setTimeout,clearTimeout,AbortController,
  crypto:require('node:crypto').webcrypto,confirm:()=>true,
  localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)},
- fetch:async()=>({ok:false})});
+ fetch:async(...args)=>{fetchCalls.push(args);return {ok:false}}});
  const html=fs.readFileSync(path.join(__dirname,'..','intent-os.html'),'utf8');
  vm.runInContext(html.match(/<script>\n([\s\S]*?)<\/script>/)[1],context);
- return {context,dom,data};
+ return {context,dom,data,fetchCalls};
 }
 function descendants(e){return [e,...e.children.flatMap(descendants)];}
 const row={title:'Research grant',source_url:'https://example.org/grant',source_name:'Test',resource_id:'r'};
@@ -54,7 +55,9 @@ test('teaching remembers local preferences and changes local order without sendi
  const area=all.find(e=>e.placeholder==='What was wrong? What should we remember next time?');
  area.value='This better fits my goal';
  const preference=all.find(e=>e.children.some(c=>c.value==='PRIORITIZE'));preference.value='PRIORITIZE';
+ const fetchesBeforeSave=b.fetchCalls.length;
  all.find(e=>e.textContent==='Save lesson locally').listeners.click();
+ assert.equal(b.fetchCalls.length,fetchesBeforeSave,'local save must not submit to network');
  assert.match(b.data.get('humanaios.intent_os_teaching.v0.1'),/This better fits my goal/);
  b.context.row.title='Preferred grant';b.context.rows=[row,b.context.row];vm.runInContext('latestCandidates=rows;renderCandidates()',b.context);
  assert.equal(b.dom.get('items').children[0].children[0].textContent,'Preferred grant');
