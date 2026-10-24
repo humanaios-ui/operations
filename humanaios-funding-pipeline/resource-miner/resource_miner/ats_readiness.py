@@ -87,7 +87,11 @@ def project_application_readiness(case: Mapping[str, Any]) -> dict[str, Any]:
         "source_status": "REPORTED_UNAVAILABLE_AT_ORIGINAL_ENDPOINT",
         "role_closed": "NOT_ESTABLISHED",
         "actionable": False,
-        "reason": "A recorded broken job link and later user report of no listing; cached pages are not current availability.",
+        "reason": (
+            "Recorded source-failure observation(s): "
+            + ", ".join(sorted({row["observation"] for row in seen}))
+            + ". These observations do not establish employer closure or current availability."
+        ),
         "source_observations": seen,
         "source_issue": issue,
         "source_freshness": "HISTORICAL_NOT_LIVE_RECHECKED",
