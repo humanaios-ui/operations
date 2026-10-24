@@ -1,0 +1,50 @@
+name: Witness E3 corrected snapshot integration
+
+on:
+  pull_request:
+    paths:
+      - 'services/haios_mcp/**'
+      - '.github/workflows/witness-e3-corrected-miner.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  e3-read-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout Witness candidate (PR #1012)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            services/haios_mcp
+            CURRENT.md
+            REGISTERED.md
+            GOVERNANCE.md
+
+      - name: Checkout corrected Resource Miner candidate (PR #993, exact reviewed head)
+        uses: actions/checkout@v4
+        with:
+          repository: humanaios-ui/operations
+          ref: c99cc785b3c224fc16b6290a3e5817ab50eb9c35
+          path: e3-miner
+          persist-credentials: false
+          sparse-checkout: |
+            humanaios-funding-pipeline/resource-miner
+            humanaios-funding-pipeline/data
+
+      - name: Set up isolated Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install bounded Witness MCP test dependencies
+        run: python -m pip install -e ./services/haios_mcp
+
+      - name: Run E3 corrected-branch real snapshot through MCP
+        run: |
+          python services/haios_mcp/scripts/smoke_e3_ci.py \
+            --miner-root e3-miner/humanaios-funding-pipeline/resource-miner \
+            --witness-root .
