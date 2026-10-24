@@ -55,6 +55,14 @@ def qualify(snapshot: dict, bundle: dict, readback: dict, challenges: list[dict]
         raise ValueError("bad observation timestamp")
     if snapshot.get("schema") != "humanaios.internal-repository-snapshot.v0.1" or bundle.get("schema") != "humanaios.internal-resource-intelligence.v0.1":
         raise ValueError("wrong broker source/projection schema")
+    # The readback is a response to a previously frozen snapshot. This is only
+    # a claimed-timestamp consistency check, NOT a trusted clock/actor proof.
+    if not valid_time(snapshot.get("as_of")):
+        raise ValueError("snapshot lacks bounded observation timestamp")
+    source_time = datetime.fromisoformat(snapshot["as_of"].replace("Z", "+00:00"))
+    readback_time = datetime.fromisoformat(readback["observed_at"].replace("Z", "+00:00"))
+    if readback_time < source_time:
+        raise ValueError("readback predates frozen source snapshot")
     if bundle.get("authority_effect") != "NONE" or bundle.get("source_authentication") != "NOT_ESTABLISHED":
         raise ValueError("broker projection claims authority or authentication")
     strict_keys(readback["pr"], {"repository", "number", "source_url", "head_sha", "merge_commit_sha", "title", "merged", "state"})
@@ -118,12 +126,19 @@ def qualify(snapshot: dict, bundle: dict, readback: dict, challenges: list[dict]
     }
     events=[]
     predecessor="0"*64
+    previous_observation_time = readback_time
     for seq,c in enumerate(challenges,1):
         strict_keys(c,{"event_id","claim_id","action","reason_code","evidence_url","observed_at"})
         if not (type(c["event_id"]) is str and re.fullmatch(r"CHAL-[A-Za-z0-9-]{1,40}",c["event_id"]) and c["claim_id"] in observed_claims and c["action"] in {"CHALLENGE","CORRECT"} and type(c["reason_code"]) is str and CLAIM_ID.fullmatch(c["reason_code"]) and valid_time(c["observed_at"])):
             raise ValueError("malformed challenge")
         if c["evidence_url"] not in {pr["source_url"], rev["source_url"], blob["at_head_url"]} | {r["run_url"] for r in checks}:
             raise ValueError("challenge lacks source-linked evidence")
+        event_time = datetime.fromisoformat(c["observed_at"].replace("Z", "+00:00"))
+        if event_time < readback_time:
+            raise ValueError("challenge predates separately observed source evidence")
+        if event_time < previous_observation_time:
+            raise ValueError("challenge sequence moves backwards in observation time")
+        previous_observation_time = event_time
         event = {**c, "sequence":seq,"previous_event_sha256":predecessor,"authority_effect":"NONE","upstream_mutated":False}
         event["event_sha256"]=digest(event)
         predecessor=event["event_sha256"]
@@ -144,7 +159,8 @@ def qualify(snapshot: dict, bundle: dict, readback: dict, challenges: list[dict]
        "correction_events":events,"correction_chain_sha256":predecessor,
        "limitations":["Independent observations copied from GitHub connector; no signed provider attestation",
                       "No process/network isolation assertion", "GitHub account not authenticated model identity",
-                      "Historical merge authorization not verified", "No real-agent P1/P2/P3 trial witnessed"],
+                      "Historical merge authorization not verified", "No real-agent P1/P2/P3 trial witnessed",
+                      "Timestamp order checks compare supplied labels only; no trusted clock attestation"],
        "source_integrity_scope":"PR_ID_HEAD_AND_PINNED_BLOB_METADATA_ONLY"}
 
 
