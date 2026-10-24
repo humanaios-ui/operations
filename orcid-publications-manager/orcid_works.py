@@ -114,6 +114,9 @@ def normalize_works(works_json, researcher_orcid, fetched_at, source_bytes=None)
             continue
         pref = preferred(summaries)
         dois = group_self_dois(group)
+        # The preferred version's own DOIs; the group can also hold other
+        # versions (preprint, published) with DOIs of their own.
+        pref_dois = self_dois(dig(pref, "external-ids"))
         put_codes = sorted(int(s["put-code"]) for s in summaries if s.get("put-code") is not None)
         title = (dig(pref, "title", "title", "value") or "").strip() or None
         records.append({
@@ -123,8 +126,9 @@ def normalize_works(works_json, researcher_orcid, fetched_at, source_bytes=None)
             "title": title,
             "work_type": pref.get("type"),
             "date": work_date(pref),
-            "doi": dois[0] if dois else None,
+            "doi": (pref_dois or dois or [None])[0],
             "self_dois": dois,
+            "preferred_dois": pref_dois,
             "doi_candidates": dois if len(dois) > 1 else [],
             "doi_verified": False,
             "journal_title": dig(pref, "journal-title", "value"),

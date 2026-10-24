@@ -83,6 +83,10 @@ def reconcile(records, pubs):
         pub_doi = ow.normalize_doi(pub.get("doi"))
         if pub_doi not in r["self_dois"] and (pub_doi or r["self_dois"]):
             diffs.append(f"doi: orcid={r['self_dois'] or None} research={pub_doi}")
+        pref = r.get("preferred_dois") or []
+        if pub_doi and pref and pub_doi in r["self_dois"] and pub_doi not in pref:
+            diffs.append(f"doi: research={pub_doi} is another version in the ORCID group; "
+                         f"preferred version has {pref}")
         if title_key(r["title"]) != title_key(pub.get("title")):
             diffs.append(f"title: orcid={r['title']!r} research={pub.get('title')!r}")
         if r["doi_candidates"]:
@@ -100,7 +104,8 @@ def reconcile(records, pubs):
 
 def md_cell(value):
     """One Markdown table cell: single line, no column breaks."""
-    return " ".join(str(value).split()).replace("|", "\\|")
+    text = " ".join(str(value).split())
+    return text.replace("\\", "\\\\").replace("|", "\\|")
 
 
 def render_md(report):

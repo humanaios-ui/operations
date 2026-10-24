@@ -207,6 +207,7 @@ class ReviewRegressionTest(unittest.TestCase):
 
     def test_markdown_cells_cannot_break_the_table(self):
         self.assertEqual(reconcile.md_cell("a | b\nc"), "a \\| b c")
+        self.assertEqual(reconcile.md_cell("A \\| B"), "A \\\\\\| B")  # backslash cannot unescape the pipe
         recs = ow.normalize_works({"group": [{"work-summary": [summary(1, "x", "2026")]}]},
                                   ORCID, AT)
         res = reconcile.reconcile(recs, [{"release_tag": "t", "title": "A | B\nC"}])
@@ -218,6 +219,18 @@ class ReviewRegressionTest(unittest.TestCase):
         for line in md.splitlines():
             if line.startswith("| ") and "A " in line:
                 self.assertEqual(line.count(" | "), 3)  # four cells, no injected column
+
+    def test_registry_doi_of_a_non_preferred_version_is_flagged(self):
+        group = {"external-ids": {"external-id": [ext("10.8888/preprint"), ext("10.8888/published")]},
+                 "work-summary": [summary(1, "Paper", "2025", ids=[ext("10.8888/preprint")], idx="1"),
+                                  summary(2, "Paper", "2026", ids=[ext("10.8888/published")], idx="0")]}
+        recs = ow.normalize_works({"group": [group]}, ORCID, AT)
+        self.assertEqual(recs[0]["preferred_dois"], ["10.8888/preprint"])
+        self.assertEqual(recs[0]["doi"], "10.8888/preprint")
+        res = reconcile.reconcile(recs, [
+            {"release_tag": "paper-p-v1.0.0", "title": "Paper", "doi": "10.8888/published"}])
+        m = res["mismatches"][0]
+        self.assertTrue(any("another version in the ORCID group" in d for d in m["differences"]))
 
     def test_empty_profile_still_records_source_hash(self):
         import hashlib
@@ -355,10 +368,29 @@ class BibtexTest(unittest.TestCase):
         entry = export_bibtex.work_to_bibtex_entry(detail, ["10.5555/dup.1"])
         self.assertEqual(entry["doi"], "10.5555/dup.1")
         self.assertNotIn("doi", export_bibtex.work_to_bibtex_entry(detail))
-        # main() passes the summary's own DOIs, never another version's from the group
-        src = (PKG / "export_bibtex.py").read_text(encoding="utf-8")
-        self.assertIn('ow.self_dois(summary.get("external-ids"))', src)
-        self.assertNotIn("group_self_dois", src)
+    def test_main_exports_the_preferred_summarys_doi(self):
+        import bibtexparser
+        import export_bibtex
+        from unittest import mock
+        group = {"external-ids": {"external-id": [ext("10.6666/a-other-version")]},
+                 "work-summary": [summary(7, "T", "2026", ids=[ext("10.6666/z-chosen")])]}
+        detail = {"put-code": 7, "type": "journal-article", "title": {"title": {"value": "T"}},
+                  "external-ids": None}
+
+        class FakeClient:
+            def get_works_summary(self):
+                return {"group": [group]}
+
+            def get_work_details(self, put_code):
+                return detail
+
+        tmp = tempfile.mkdtemp()
+        with mock.patch.object(export_bibtex, "OrcidClient", FakeClient), \
+                mock.patch.object(export_bibtex.config, "DATA_DIR", tmp):
+            export_bibtex.main()
+        with open(Path(tmp) / "publications.bib", encoding="utf-8") as f:
+            entries = bibtexparser.load(f).entries
+        self.assertEqual([e.get("doi") for e in entries], ["10.6666/z-chosen"])
 
 
 if __name__ == "__main__":
