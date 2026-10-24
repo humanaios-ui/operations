@@ -149,7 +149,7 @@ function show(value){
  if(technical.state==="TESTED_LOCAL_HTTP"){
    if(technical.environment!=="LOCAL_LOOPBACK_HTTP"
        ||!Number.isInteger(technical.candidate_count)||technical.candidate_count<1
-       ||technical.candidate_count>10
+       ||technical.candidate_count>500 // API examination bound, independent of browser pagination.
        ||!/^[0-9a-f]{64}$/.test(String(technical.receipt_digest))
        ||technical.provenance!=="UNSIGNED_WORKFLOW_ARTIFACT_NOT_INDEPENDENT_ATTESTATION")
      throw new Error("Invalid local test receipt prerequisites.");
