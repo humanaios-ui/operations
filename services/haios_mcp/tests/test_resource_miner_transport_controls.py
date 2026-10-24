@@ -79,6 +79,12 @@ class NegativeResourceTransportTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "unexpected public snapshot schema"):
             self.invoke(payload=payload)
 
+    def test_refuses_upstream_live_source_mode(self):
+        payload = good_payload()
+        payload["source_mode"] = "live"
+        with self.assertRaisesRegex(RuntimeError, "unexpected public snapshot schema"):
+            self.invoke(payload=payload)
+
     def test_refuses_remote_source_class(self):
         payload = good_payload()
         payload["candidates"][0]["source_name"] = "Private Gmail"
