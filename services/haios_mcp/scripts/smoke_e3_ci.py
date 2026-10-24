@@ -104,6 +104,8 @@ async def verify_witness(url: str, bearer: str, expected: dict) -> dict:
             payload = result.structured_content
             if not isinstance(payload, dict):
                 payload = json.loads(result.content[0].text)
+            if isinstance(payload, dict) and isinstance(payload.get("result"), dict):
+                payload = payload["result"]
 
     if payload.get("authority") != "NONE" or payload.get("execution") != "DISABLED":
         raise RuntimeError("Witness authority or execution boundary expanded")
