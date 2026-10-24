@@ -1091,6 +1091,7 @@ from repository_coordinator_state_v1_1 import (
     command_ref as command_ref_v2,
     decision_receipt as decision_receipt_v2,
     reconcile_pr_lifecycle as reconcile_pr_lifecycle_v2,
+    reconcile_pr_snapshots as reconcile_pr_snapshots_v2,
 )
 
 
@@ -1370,6 +1371,126 @@ def test_v11_terminal_transition_preserves_original_admission_scope(tmp_path):
     assert result["event"]["admission_scope"] == "objective:ISSUE#726"
     assert result["event"]["objective_issue_number"] == 726
     assert 708 not in verify_projection(ledger, state_file)["admitted_pull_request_numbers"]
+
+
+def test_v11_snapshot_reconciliation_releases_terminal_and_moved_head_capacity(tmp_path):
+    seed = state_event(kind="PULL_REQUEST", number=570, objective=None)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    append_event_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=936,
+        objective_issue_number=None,
+        admission_scope="subject:PULL_REQUEST#936",
+        command_ref_value="RCC-GITHUB-COMMENT-admit-936",
+        source_locator="github:pull:936:comment:1",
+        actor="humanaios-ui",
+        evidence=["pr-head:" + "a" * 40],
+        recorded_at="2026-10-24T09:00:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+
+    result = reconcile_pr_snapshots_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        pr_snapshots=[
+            {
+                "number": 570,
+                "state": "closed",
+                "merged": True,
+                "head": {"sha": "c" * 40},
+            },
+            {
+                "number": 936,
+                "state": "open",
+                "merged": False,
+                "head": {"sha": "b" * 40},
+            },
+        ],
+        command_ref_prefix="RCC-GITHUB-RECONCILE-100",
+        source_locator_prefix="github:humanaios-ui/operations:actions-run:100",
+        actor="github-actions[bot]",
+        recorded_at="2026-10-24T09:01:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+
+    assert result["should_mutate"] is True
+    assert [row["decision"] for row in result["reconciled"]] == [
+        "TERMINATE_MERGED",
+        "REVOKE",
+    ]
+    assert result["state"]["admitted_pull_request_numbers"] == []
+    assert result["authority_effect"] == AUTHORITY_EFFECT
+    assert result["merge_authority"] is False
+
+
+def test_v11_snapshot_reconciliation_retains_open_legacy_and_matching_head(tmp_path):
+    seed = state_event(kind="PULL_REQUEST", number=809, objective=None)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    append_event_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=994,
+        objective_issue_number=None,
+        admission_scope="subject:PULL_REQUEST#994",
+        command_ref_value="RCC-GITHUB-COMMENT-admit-994",
+        source_locator="github:pull:994:comment:1",
+        actor="humanaios-ui",
+        evidence=["pr-head:" + "d" * 40],
+        recorded_at="2026-10-24T09:02:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    before = ledger.read_bytes()
+
+    result = reconcile_pr_snapshots_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        pr_snapshots=[
+            {
+                "number": 809,
+                "state": "open",
+                "merged": False,
+                "head": {"sha": "e" * 40},
+            },
+            {
+                "number": 994,
+                "state": "open",
+                "merged": False,
+                "head": {"sha": "d" * 40},
+            },
+        ],
+        command_ref_prefix="RCC-GITHUB-RECONCILE-101",
+        source_locator_prefix="github:humanaios-ui/operations:actions-run:101",
+        actor="github-actions[bot]",
+        recorded_at="2026-10-24T09:03:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+
+    assert result["should_mutate"] is False
+    assert result["retained_pr_numbers"] == [809, 994]
+    assert ledger.read_bytes() == before
+
+
+def test_v11_snapshot_reconciliation_fails_closed_when_snapshot_is_missing(tmp_path):
+    seed = state_event(kind="PULL_REQUEST", number=570, objective=None)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    before = ledger.read_bytes()
+    with pytest.raises(Exception, match="MISSING_PR_SNAPSHOT:570"):
+        reconcile_pr_snapshots_v2(
+            ledger_path=ledger,
+            state_path=state_file,
+            pr_snapshots=[],
+            command_ref_prefix="RCC-GITHUB-RECONCILE-102",
+            source_locator_prefix="github:humanaios-ui/operations:actions-run:102",
+            actor="github-actions[bot]",
+            recorded_at="2026-10-24T09:04:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+    assert ledger.read_bytes() == before
 
 
 def test_v11_decision_receipt_binds_exact_policy_state_and_target():
@@ -1741,6 +1862,10 @@ def test_pr_comment_workflow_requires_mutated_state_receipt_and_never_merges():
         ".github/workflows/repository-admission-gate.yml"
     ).read_text()
     assert "pr_comment_mutate:" in workflow
+    assert "reconcile_active_prs:" in workflow
+    assert "reconcile-pr-snapshots" in workflow
+    assert "needs: reconcile_active_prs" in workflow
+    assert "github.event_name == 'schedule'" in workflow
     assert "github.event.issue.pull_request != null" in workflow
     assert "github.event.issue.pull_request" in workflow
     assert "pr-comment-command" in workflow

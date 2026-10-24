@@ -6,6 +6,8 @@ name: repository-admission-gate
 # commit. Admission is routing only and never merge authority.
 
 on:
+  schedule:
+    - cron: "17 * * * *"
   pull_request_target:
     types:
       - opened
@@ -58,10 +60,154 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gate:
+  reconcile_active_prs:
+    name: Reconcile active PR admission snapshots
     if: >-
+      github.event_name == 'schedule' ||
       (github.event_name == 'pull_request_target' && github.event.action != 'closed') ||
-      github.event_name == 'pull_request_review'
+      github.event_name == 'pull_request_review' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       startsWith(github.event.comment.body, '/coordinator '))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    concurrency:
+      group: repository-coordinator-state-mutation
+      queue: max
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout trusted main control law
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Checkout immutable coordinator state predecessor
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Verify state and fetch every active PR from GitHub
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+          mkdir -p coordinator-state/.active-pr-snapshots
+          python3 - <<'PY' > coordinator-state/.active-pr-numbers
+          import json
+          from pathlib import Path
+          state = json.loads(Path("coordinator-state/COORDINATOR_STATE.json").read_text())
+          for number in state.get("admitted_pull_request_numbers") or []:
+              print(int(number))
+          PY
+          while IFS= read -r number; do
+            [ -n "$number" ] || continue
+            gh api "repos/$REPO/pulls/$number" \
+              > "coordinator-state/.active-pr-snapshots/$number.json"
+          done < coordinator-state/.active-pr-numbers
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("coordinator-state/.active-pr-snapshots")
+          snapshots = [
+              json.loads(path.read_text(encoding="utf-8"))
+              for path in sorted(root.glob("*.json"), key=lambda p: int(p.stem))
+          ]
+          Path("coordinator-state/.active-pr-snapshots.json").write_text(
+              json.dumps(snapshots, sort_keys=True) + "\n", encoding="utf-8"
+          )
+          PY
+
+      - name: Reconcile terminal and moved-head admissions
+        id: reconcile
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
+          RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py \
+            reconcile-pr-snapshots \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json \
+            --pr-snapshots coordinator-state/.active-pr-snapshots.json \
+            --command-ref-prefix "RCC-GITHUB-RECONCILE-${{ github.run_id }}" \
+            --source-locator-prefix \
+              "github:${{ github.repository }}:actions-run:${{ github.run_id }}" \
+            --actor "github-actions[bot]" \
+            --recorded-at "$RECORDED_AT" \
+            --source-policy-sha "$POLICY_SHA" \
+            | tee coordinator-state/.reconcile-result.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          result = json.loads(Path("coordinator-state/.reconcile-result.json").read_text())
+          print("should_mutate=" + ("true" if result.get("should_mutate") else "false"))
+          print("count=" + str(len(result.get("reconciled") or [])))
+          print("reason=" + str(result.get("reason") or "UNKNOWN"))
+          PY
+          echo "prior_state_sha=$PRIOR_STATE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify replay after reconciliation
+        if: steps.reconcile.outputs.should_mutate == 'true'
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Commit reconciled state with predecessor lease
+        if: steps.reconcile.outputs.should_mutate == 'true'
+        env:
+          PRIOR_STATE_SHA: ${{ steps.reconcile.outputs.prior_state_sha }}
+        run: |
+          set -euo pipefail
+          git -C coordinator-state fetch origin repository-coordinator-state
+          REMOTE_STATE_SHA="$(git -C coordinator-state rev-parse FETCH_HEAD)"
+          test "$REMOTE_STATE_SHA" = "$PRIOR_STATE_SHA" || {
+            echo "::error::Coordinator state changed; refusing stale reconciliation" >&2
+            exit 1
+          }
+          cd coordinator-state
+          rm -rf .active-pr-numbers .active-pr-snapshots \
+            .active-pr-snapshots.json .reconcile-result.json
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git diff --cached --quiet && {
+            echo "::error::reconciliation reported mutations but generated no state diff" >&2
+            exit 1
+          }
+          git commit -m "coordinator-state: reconcile active PR snapshots"
+          git push origin HEAD:repository-coordinator-state
+          {
+            echo "## Repository Coordinator reconciliation"
+            echo
+            echo "- Reconciled admissions: ${{ steps.reconcile.outputs.count }}"
+            echo "- State commit: \`$(git rev-parse HEAD)\`"
+            echo "- Authority effect: \`ADMISSION_ROUTING_ONLY\`"
+            echo "- Merge authority: \`false\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  gate:
+    needs: reconcile_active_prs
+    if: >-
+      always() &&
+      needs.reconcile_active_prs.result == 'success' &&
+      ((github.event_name == 'pull_request_target' && github.event.action != 'closed') ||
+       github.event_name == 'pull_request_review')
     name: Repository admission/backpressure gate
     runs-on: ubuntu-latest
     permissions:
@@ -837,6 +983,7 @@ jobs:
   # operator-queue routing standing (never merge authority).
   pr_comment_mutate:
     name: Apply authenticated PR coordinator command
+    needs: reconcile_active_prs
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request != null &&
