@@ -190,7 +190,10 @@ class BridgeTests(unittest.TestCase):
                 captured.append((self.path, json.loads(content)))
                 body = json.dumps({
                     "authority": "NONE", "source_mode": "snapshot", "source_status": "STORED_SNAPSHOT",
-                    "matched_count": 1, "receipt_sha256": "abc",
+                    "status": "PARTIAL_CANDIDATES_FOR_HUMAN_REVIEW", "source_warning": "Two records unexamined",
+                    "execution": "DISABLED", "eligibility": "NOT_ASSESSED",
+                    "matched_count": 1, "shown_count": 1, "unexamined_count": 2,
+                    "receipt_sha256": "a" * 64,
                     "candidates": [{"resource_id": "id1", "title": "Compute Credits", "source_name": "DEV Community",
                                     "source_url": "https://example.com/resource", "route": "WATCH",
                                     "applicant_private_data": "DO_NOT_LEAK", "eligibility_assessed": False}]
@@ -215,6 +218,70 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(result["eligibility"], "NOT_ASSESSED")
         self.assertEqual(result["candidates"][0]["title"], "Compute Credits")
         self.assertNotIn("DO_NOT_LEAK", str(result))
+        self.assertEqual(result["status"], "PARTIAL_CANDIDATES_FOR_HUMAN_REVIEW")
+        self.assertEqual(result["unexamined_count"], 2)
+        self.assertEqual(result["source_warning"], "Two records unexamined")
+        self.assertEqual(result["execution"], "DISABLED")
+        self.assertEqual(result["source_mode"], "snapshot")
+        self.assertEqual(result["receipt_sha256"], "a" * 64)
+
+    def test_partial_status_cannot_be_silently_laundered(self):
+        from unittest.mock import patch
+        # A malformed unqualified status with nonzero unexamined_count
+        # must fail rather than misrepresent the search as complete.
+        import io
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                body = json.dumps({
+                    "authority": "NONE", "execution": "DISABLED", "eligibility": "NOT_ASSESSED",
+                    "source_mode": "snapshot", "status": "NO_SUPPORTED_MATCH",
+                    "source_status": "CURATED_SNAPSHOT_NOT_LIVE", "source_warning": "incomplete",
+                    "matched_count": 0, "shown_count": 0, "unexamined_count": 2,
+                    "receipt_sha256": "b" * 64, "candidates": [],
+                }).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def log_message(self, *_): pass
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with patch.dict(os.environ, {"HAIOS_RESOURCE_MINER_ORIGIN": f"http://127.0.0.1:{server.server_port}"}):
+                with self.assertRaisesRegex(RuntimeError, "partial-search"):
+                    self.bridge.find_resources("compute credits")
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=2)
+
+    def test_unassessed_public_candidate_refuses_claimed_eligibility(self):
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                body = json.dumps({
+                    "authority": "NONE", "execution": "DISABLED", "eligibility": "NOT_ASSESSED",
+                    "source_mode": "snapshot", "status": "CANDIDATES_FOR_HUMAN_REVIEW",
+                    "source_status": "STORED", "matched_count": 1,
+                    "shown_count": 1, "unexamined_count": 0, "receipt_sha256": "c" * 64,
+                    "candidates": [{"resource_id":"id", "title":"grant", "source_name":"DEV Community",
+                        "source_url":"https://example.com/grant", "route":"WATCH", "eligibility_assessed":True}]
+                }).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def log_message(self, *_): pass
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with patch.dict(os.environ, {"HAIOS_RESOURCE_MINER_ORIGIN": f"http://127.0.0.1:{server.server_port}"}):
+                with self.assertRaisesRegex(RuntimeError, "eligibility"):
+                    self.bridge.find_resources("compute credits")
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=2)
 
 
 if __name__ == "__main__":
