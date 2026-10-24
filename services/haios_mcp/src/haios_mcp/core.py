@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import stat
 import json
 import urllib.request
 from urllib.parse import urlsplit
@@ -72,12 +73,24 @@ def load_document(root: Path, filename: str, limit: int = DOCUMENT_OUTPUT_LIMIT)
         raise ValueError("Document is not in the explicit public allowlist")
     if not isinstance(limit, int) or not 1 <= limit <= DOCUMENT_OUTPUT_LIMIT:
         raise ValueError("Invalid read limit")
-    path = root / filename
-    if path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(root):
-        raise ValueError("Public document missing, linked, or outside allowed checkout")
-    if path.stat().st_size > FILE_READ_LIMIT:
-        raise ValueError("Document exceeds local read size limit")
-    payload = path.read_bytes()
+    # Anchor the file open to a directory descriptor and reject symlinks on
+    # the actual opened descriptor. The old check-then-read had a TOCTOU race
+    # that could disclose private files to the Claude prompt.
+    if not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY"):
+        raise RuntimeError("Platform cannot enforce no-follow document reads")
+    try:
+        directory_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            fd = os.open(filename, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory_fd)
+            with os.fdopen(fd, "rb") as handle:
+                metadata = os.fstat(handle.fileno())
+                if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > FILE_READ_LIMIT:
+                    raise ValueError("Document is not an allowed regular file or exceeds size limit")
+                payload = handle.read(FILE_READ_LIMIT + 1)
+        finally:
+            os.close(directory_fd)
+    except OSError:
+        raise ValueError("Public document missing, linked, or inaccessible") from None
     if len(payload) > FILE_READ_LIMIT:
         raise ValueError("Document exceeds local read size limit")
     body = payload.decode("utf-8", errors="replace")
@@ -242,9 +255,6 @@ class HumanAIOSBridge:
                 sid = secrets.token_urlsafe(24)
                 history = []
                 revision = 0
-                if len(self._sessions) >= MAX_SESSIONS:
-                    oldest = min(self._sessions, key=lambda key: self._sessions[key]["accessed"])
-                    del self._sessions[oldest]
             context, manifests = self._context()
             # The context manifest changes if documents change between turns;
             # old assistant statements must not be treated as fresh source proof.
