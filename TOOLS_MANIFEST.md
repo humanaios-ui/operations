@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**217 registered tools** · 2 MCP servers · 4 excluded · 169 carrying Builder v1.7 markers
+**218 registered tools** · 2 MCP servers · 4 excluded · 170 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 217 |
-| — status `draft` | 216 |
+| Registered tools | 218 |
+| — status `draft` | 217 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 169 |
+| Builder v1.7 markers present | 170 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -290,7 +290,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (30)
+## Validation — `validation_tool` (31)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -324,6 +324,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-223 | humanaios_core_machine | `tools/humanaios_core_machine_v0_1.py` | 0.1.0 | 1 | draft | — | Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator. |
 | HAIOS-TOOL-226 | kg_map_check | `tools/kg_map_check_v0_1.py` | 0.1.0 | 1 | draft | — | kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph. |
 | HAIOS-TOOL-230 | calibration_graph_validate | `tools/calibration_graph/validate_graph.py` | 0.1.0 | 1 | draft | — | Validate HumanAIOS calibration evidence-graph reference fixtures. |
+| HAIOS-TOOL-231 | hiae_assurance | `tools/hiae_assurance.py` | 0.1.0 | 1 | draft | — | HIAE-001 assurance transaction core — v0.1 (proposal stage) |
 
 ## MCP servers (2)
 
@@ -368,7 +369,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 30 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 31 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 

@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 113
+  candidates: 114
   records: 64
 ratifiers:
 - Night
@@ -862,6 +862,16 @@ candidates:
   ratified_at: '2026-10-14'
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
+- q_id: Q-HIAE-001-ASSIGNMENT-RECEIPTS-01
+  title: HIAE-001 neutral reviewer assignment, versioned receipts, synthetic transaction
+  path: z1-inbox/2026-10-10/HIAE-001-PROPOSAL.md
+  submitted: '2026-10-10'
+  status: awaiting_z2
+  tier: 0
+  note: 'PR #785 (draft). Adds tools/hiae_assurance.py (stdlib only), tests/test_hiae_assurance.py
+    (32 cases), and docs/HIAE_EXTERNAL_CLAIMS_VERIFICATION.md. No governance file or constant
+    changed. Signatures are HMAC stand-ins; the overclaim filter is lexical. Z2 decides the
+    assignment rule, the signature scheme, and the overclaim vocabulary.'
 records:
 - path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
