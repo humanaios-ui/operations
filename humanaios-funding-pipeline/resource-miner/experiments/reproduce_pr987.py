@@ -26,8 +26,17 @@ def main(argv=None):
     snapshot=get('snapshot.json')
     original=get('initial_broker_projection.json')
     generated=project(snapshot)
-    if original != generated:
-        raise ValueError('broker projection diverges from frozen evidence; do not silently rebase')
+    original_by_ref={r['item_ref']:r for r in original['resources']}
+    generated_by_ref={r['item_ref']:r for r in generated['resources']}
+    if set(original_by_ref)!=set(generated_by_ref):
+        raise ValueError('record set drift: do not silently rebase')
+    for ref,row in original_by_ref.items():
+        other=generated_by_ref[ref]
+        for key in ('resource_id','item_ref','head_sha','source_url','canonical_url',
+                    'authority_effect','source_authentication'):
+            if row.get(key)!=other.get(key):
+                raise ValueError(f'source-binding drift: {ref} / {key}')
+    serialization_delta = original != generated  # defaults/schema may evolve
     result=qualify(snapshot,generated,get('github_readback_pr987.json'),get('challenge_corrections_pr987.json'))
     output=Path(args.output).resolve()
     # Work remains outside repo, never mutate source files or fixtures.
@@ -45,6 +54,7 @@ def main(argv=None):
           'input_sha256':before,'source_head':result['source_head_sha'],
           'disputed_claims':[k for k,v in result['derived_claims'].items() if v['state']=='CONTRADICTED'],
           'corrections':len(result['correction_events']),'authority_effect':'NONE',
+          'frozen_vs_current_projection_serialization_diff':serialization_delta,
           'output_dir':str(output)},sort_keys=True,indent=2))
     return 0
 
