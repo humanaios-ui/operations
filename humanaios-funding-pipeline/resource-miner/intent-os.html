@@ -39,7 +39,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <header><div class="brand">HUMANAIOS / INTENT-OS</div><h1>What resource would help you?</h1>
 <p class="muted">Describe a goal. INTENT-OS will match it to observations from the existing Resource Miner. You decide what to pursue.</p>
 <p><a href="/on-track">What work actually moves us toward a usable INTENT-OS? →</a></p>
-<p id="myOpportunitiesLink" hidden><a href="/my-opportunities">My Opportunities →</a></p></header>
+<p id="myOpportunitiesLink" hidden><a href="/my-opportunities">My Opportunities →</a></p><p id="myApplicationsLink" hidden><a href="/my-applications">My job applications →</a></p></header>
 <section class="panel" aria-label="Resource search">
 <form id="form">
 <label for="objective">What are you trying to accomplish?</label>
@@ -83,6 +83,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 </main>
 <script>
 "use strict";
+fetch("/my-applications",{cache:"no-store"}).then(r=>{if(r.ok)document.getElementById("myApplicationsLink").hidden=false;}).catch(()=>{});
 const form=document.getElementById("form"),field=document.getElementById("objective"),
   mode=document.getElementById("mode"),button=document.getElementById("go"),
   feedback=document.getElementById("feedback"),box=document.getElementById("results"),
