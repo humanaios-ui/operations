@@ -3184,7 +3184,7 @@ superseded_by: null
 
 ## ADMISSION PENDING: Q-PR956-GOVERNANCE-ADMISSION-01
 
----
+```yaml
 id: "ADM-01"
 name: "q-pr956-governance-admission"
 status: PENDING_ZONE2
@@ -3196,8 +3196,8 @@ principles_triggered: ["Governance", "Admission Routing"]
 substrate: "Repository Coordinator v1.1"
 tags: ["admission", "governance", "documentation", "M009"]
 superseded_by: null
-falsifier: "Admission is falsified if Z2 does not register an admission record on the repository-coordinator-state branch for PR #956 within the 48-hour decision window, or if Z2 explicitly rejects the request. Once admitted, merge failures or later reverts do not invalidate the admission itself; they are separate CI/governance events."
----
+falsifier: "Admission is falsified if Z2 does not register an admission record on the repository-coordinator-state branch for PR #956 within the 48-hour decision window, or if Z2 explicitly rejects the request. If Z2 chooses EDIT, Z1 revises the candidate and resubmits as a new admission window—the prior window is superseded, not falsified. Once admitted, merge failures or later reverts do not invalidate the admission itself; they are separate CI/governance events."
+```
 
 **Type:** Admission Request (Governance Documentation)  
 **PR:** humanaios-ui/operations#956 (fix/m009-governance-records)  

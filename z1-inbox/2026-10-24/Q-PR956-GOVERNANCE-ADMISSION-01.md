@@ -5,7 +5,7 @@
 **Date Filed:** 2026-10-24  
 **Session:** Ongoing (PR #956 failured coordinator gate)  
 **Z1 Proposer:** Claude Code (Z1)  
-**Falsifier:** Admission is falsified if Z2 does not register an admission record on the repository-coordinator-state branch within the 48-hour decision window, or if Z2 explicitly rejects the request. Merge failures or later reverts do not invalidate the admission decision itself; admission is a working-set routing decision independent of merge outcome.
+**Falsifier:** Admission is falsified if Z2 does not register an admission record on the repository-coordinator-state branch within the 48-hour decision window, or if Z2 explicitly rejects the request. If Z2 chooses EDIT, Z1 revises the candidate and resubmits as a new admission window—the prior window is superseded, not falsified. Merge failures or later reverts do not invalidate the admission decision itself; admission is a working-set routing decision independent of merge outcome.
 
 ---
 
@@ -77,5 +77,5 @@
 
 **Authority Issue:** These removals represent changes to Z2-recorded decisions and governance state, which fall outside the "admission-routing-only" scope and require separate Z2 disposition. The PR body omits these changes from its summary, contrary to governance transparency requirements.
 
-**Z2 Required Action:** Either (1) approve these record removals as a separate governance decision, or (2) require PR #956 to exclude them and file separate IC candidates for their disposition.
+**Z2 Required Action:** Require PR #956 to either (1) restore the removed entries, or (2) append superseding corrections with forward pointers as per the append-only registry rule. Do not approve record deletions; REGISTERED.md is append-only. File separate IC candidates for ratifying any corrections filed as supersessions.
 
