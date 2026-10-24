@@ -73,7 +73,8 @@ def _json_get(repo: str, path: str, token: str) -> tuple[object, str]:
             # A depleted primary GitHub API allowance cannot recover through
             # short backoff. Stop immediately, preserving the failed-observation
             # gate and avoiding three additional quota-consuming requests.
-            remaining = error.headers.get("X-RateLimit-Remaining") if error.headers else None
+            remaining = next((value for key, value in error.headers.items()
+                              if key.lower() == "x-ratelimit-remaining"), None) if error.headers else None
             if remaining == "0":
                 raise
             if attempt == MAX_ATTEMPTS:
