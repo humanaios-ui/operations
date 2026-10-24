@@ -1,0 +1,125 @@
+name: vulnops-read-only-intake
+
+# Public vulnerability feed intake is deliberately last in the sequence.
+# The job fails before its first network request unless a separately issued,
+# cryptographically marked receipt attests that controls 1–4 are operational.
+# This workflow only emits an artifact. It cannot authorize or execute action.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vulnops-read-only-intake
+  cancel-in-progress: true
+
+jobs:
+  normalize_public_feeds:
+    name: Gate and normalize public vulnerability feeds
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VULNOPS_CONTROL_LEDGER_B64: ${{ secrets.VULNOPS_CONTROL_LEDGER_B64 }}
+      VULNOPS_CONTROL_HEAD: ${{ vars.VULNOPS_CONTROL_HEAD }}
+      VULNOPS_CONTROL_RECEIPT_ID: ${{ vars.VULNOPS_CONTROL_RECEIPT_ID }}
+      VULNOPS_CONTROL_ISSUER: ${{ vars.VULNOPS_CONTROL_ISSUER }}
+    steps:
+      - name: Checkout trusted tool source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Verify external control attestation before feed access
+        run: |
+          set -euo pipefail
+          test -n "$VULNOPS_CONTROL_LEDGER_B64" || {
+            echo "::error::Missing externally issued VulnOps control ledger" >&2
+            exit 1
+          }
+          test -n "$VULNOPS_CONTROL_HEAD" || {
+            echo "::error::Missing independently pinned VulnOps control head" >&2
+            exit 1
+          }
+          test -n "$VULNOPS_CONTROL_RECEIPT_ID" || {
+            echo "::error::Missing VulnOps control receipt id" >&2
+            exit 1
+          }
+          test -n "$VULNOPS_CONTROL_ISSUER" || {
+            echo "::error::Missing VulnOps control issuer" >&2
+            exit 1
+          }
+          printf '%s' "$VULNOPS_CONTROL_LEDGER_B64" \
+            | base64 --decode > "$RUNNER_TEMP/vulnops-control-ledger.jsonl"
+          NOW="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          python3 tools/vulnops_v0_1.py verify-controls \
+            --control-ledger "$RUNNER_TEMP/vulnops-control-ledger.jsonl" \
+            --control-head "$VULNOPS_CONTROL_HEAD" \
+            --control-receipt-id "$VULNOPS_CONTROL_RECEIPT_ID" \
+            --control-issuer "$VULNOPS_CONTROL_ISSUER" \
+            --now "$NOW" \
+            > "$RUNNER_TEMP/vulnops-control-result.json"
+
+      - name: Prove local control invariants
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check pytest jsonschema
+          python3 -m pytest tools/tests/test_vulnops_v0_1.py -q
+          python3 tools/vulnops_v0_1.py --smoke-test
+
+      - name: Fetch bounded official public feeds
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/vulnops-feeds" "$RUNNER_TEMP/vulnops-output"
+          CURL=(
+            curl --fail --show-error --silent --location
+            --proto '=https' --tlsv1.2
+            --connect-timeout 15 --max-time 120
+            --retry 2 --retry-all-errors
+            --max-filesize 52428800
+          )
+          "${CURL[@]}" \
+            --output "$RUNNER_TEMP/vulnops-feeds/cisa-kev.json" \
+            "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+          "${CURL[@]}" \
+            --output "$RUNNER_TEMP/vulnops-feeds/epss.csv.gz" \
+            "https://epss.empiricalsecurity.com/epss_scores-current.csv.gz"
+          gzip --test "$RUNNER_TEMP/vulnops-feeds/epss.csv.gz"
+          gzip --decompress --stdout "$RUNNER_TEMP/vulnops-feeds/epss.csv.gz" \
+            > "$RUNNER_TEMP/vulnops-feeds/epss.csv"
+          "${CURL[@]}" \
+            --output "$RUNNER_TEMP/vulnops-feeds/osv-modified.csv" \
+            "https://storage.googleapis.com/osv-vulnerabilities/modified_id.csv"
+
+      - name: Normalize signals without authorizing action
+        run: |
+          set -euo pipefail
+          NOW="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          python3 tools/vulnops_v0_1.py ingest-feeds \
+            --control-ledger "$RUNNER_TEMP/vulnops-control-ledger.jsonl" \
+            --control-head "$VULNOPS_CONTROL_HEAD" \
+            --control-receipt-id "$VULNOPS_CONTROL_RECEIPT_ID" \
+            --control-issuer "$VULNOPS_CONTROL_ISSUER" \
+            --now "$NOW" \
+            --kev "$RUNNER_TEMP/vulnops-feeds/cisa-kev.json" \
+            --epss "$RUNNER_TEMP/vulnops-feeds/epss.csv" \
+            --osv "$RUNNER_TEMP/vulnops-feeds/osv-modified.csv" \
+            --output "$RUNNER_TEMP/vulnops-output/feed-report.json"
+          python3 -m json.tool \
+            "$RUNNER_TEMP/vulnops-output/feed-report.json" >/dev/null
+
+      - name: Upload evidence-only report
+        uses: actions/upload-artifact@v7
+        with:
+          name: vulnops-feed-report-${{ github.run_id }}
+          path: ${{ runner.temp }}/vulnops-output/feed-report.json
+          if-no-files-found: error
+          retention-days: 7
