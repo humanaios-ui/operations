@@ -246,6 +246,7 @@ async def test_real_miner(package: Path, token: str, root: Path) -> dict:
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     child = None
+    hold_probe = None
     try:
         import httpx2
         for _ in range(65):
@@ -261,6 +262,38 @@ async def test_real_miner(package: Path, token: str, root: Path) -> dict:
             await asyncio.sleep(0.2)
         else:
             raise RuntimeError("Local Resource Miner loopback listener unavailable")
+        # Prove stale-resource feedback crosses the actual HTTP snapshot path.
+        # Checking the Witness's first ten results alone would miss a stale
+        # candidate silently present in the upstream hidden result set.
+        disputed_url = (
+            "https://jobs.lever.co/convergentresearch/"
+            "7b0506c1-caf2-4e92-9a44-d062c7a9b988"
+        )
+        async with httpx2.AsyncClient(timeout=15) as http:
+            negative = await http.post(
+                f"http://127.0.0.1:{port}/api/intent",
+                json={"objective": "Convergent Research Program Launch Manager",
+                      "source_mode": "snapshot"},
+            )
+        if negative.status_code != 200:
+            raise RuntimeError("Corrected Miner rejected the source-hold query")
+        observed = negative.json()
+        if not isinstance(observed, dict) or not isinstance(observed.get("candidates"), list):
+            raise RuntimeError("Source-hold query returned malformed candidates")
+        if any(row.get("source_url") == disputed_url or row.get("resource_id") == "RES-26D48CDE47BB2BB0"
+               for row in observed["candidates"] if isinstance(row, dict)):
+            raise RuntimeError("Held Convergent role leaked through stored snapshot")
+        if ("withheld" not in str(observed.get("source_warning", "")).lower()
+                or observed.get("authority") != "NONE"
+                or observed.get("eligibility") != "NOT_ASSESSED"
+                or observed.get("execution") != "DISABLED"):
+            raise RuntimeError("Corrected Miner did not retain held-source explanation or authority")
+        hold_probe = {
+            "result": "PASS_HELD_RESOURCE_EXCLUDED_FROM_FULL_SNAPSHOT_SEARCH",
+            "source_url": disputed_url,
+            "candidate_count": len(observed["candidates"]),
+            "source_warning": str(observed["source_warning"])[:350],
+        }
         child, url = await start_candidate(package=package, token=token, miner_port=port)
         projection = verify_snapshot_response(await call_resources(url, token))
     finally:
@@ -271,7 +304,8 @@ async def test_real_miner(package: Path, token: str, root: Path) -> dict:
         raise RuntimeError("Miner snapshot changed during E3 read-only execution")
     return {"real_backend": "LOCAL_RESOURCE_MINER_APP_READ_ONLY_SNAPSHOT",
             "miner_root": str(root), "app_sha256": app_sha, "snapshot_sha256": before,
-            "snapshot_unchanged": True, "projection": projection}
+            "snapshot_unchanged": True, "projection": projection,
+            "held_source_regression": hold_probe}
 
 
 async def main() -> None:
