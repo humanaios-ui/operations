@@ -4,9 +4,33 @@ import tempfile
 import types
 import copy
 import unittest
+import json
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from unittest.mock import patch
 
 from haios_mcp.core import HumanAIOSBridge, load_document, PUBLIC_DOCUMENTS
+
+
+class FakeStream:
+    def __init__(self, owner):
+        self.owner = owner
+        self.text_stream = self.texts()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return False
+
+    def texts(self):
+        if self.owner.fail:
+            raise Exception("DANGEROUS PROVIDER DETAIL api-key-test")
+        yield "I see CURRENT.md "
+        yield "only as supplied context."
+
+    def get_final_message(self):
+        return types.SimpleNamespace(stop_reason="end_turn")
 
 
 class FakeMessageAPI:
@@ -14,14 +38,9 @@ class FakeMessageAPI:
         self.fail = fail
         self.calls = []
 
-    def create(self, **kwargs):
+    def stream(self, **kwargs):
         self.calls.append(copy.deepcopy(kwargs))
-        if self.fail:
-            raise Exception("DANGEROUS PROVIDER DETAIL api-key-test")
-        return types.SimpleNamespace(
-            content=[types.SimpleNamespace(type="text", text="I see CURRENT.md only as supplied context.")],
-            stop_reason="end_turn",
-        )
+        return FakeStream(self)
 
 
 class BridgeTests(unittest.TestCase):
@@ -86,6 +105,8 @@ class BridgeTests(unittest.TestCase):
         second = self.bridge.talk("What did I ask?", first["session_id"])
         self.assertEqual(first["session_id"], second["session_id"])
         self.assertEqual(len(self.api.calls), 2)
+        self.assertEqual(len(first["answer_sha256"]), 64)
+        self.assertEqual(first["receipt_kind"], "UNSIGNED_MODEL_RESPONSE_DIGEST_NOT_ATTESTATION")
         self.assertEqual(len(self.api.calls[1]["messages"]), 3)
         self.assertEqual(self.api.calls[1]["messages"][0]["content"], "Hello")
         manifest = first["source_manifest"]
@@ -124,6 +145,69 @@ class BridgeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.bridge.talk(message)
         self.assertFalse(self.api.calls)
+
+    def test_self_model_uses_metaphor_not_consciousness_or_execution_claims(self):
+        model = self.bridge.self_model()
+        self.assertEqual(model["subjective_awareness"], "NOT_ESTABLISHED")
+        self.assertEqual(model["authority"], "NONE")
+        self.assertFalse(model["observations"]["filesystem_write"])
+        self.assertIn("haios_find_resources", model["known_tools"])
+
+    def test_stream_overflow_discards_partial_answer(self):
+        class Huge(FakeStream):
+            def texts(self):
+                yield "A" * 12001
+        self.api.stream = lambda **kwargs: Huge(self.api)
+        with self.assertRaisesRegex(RuntimeError, "streaming request failed"):
+            self.bridge.talk("hi")
+        self.assertFalse(self.bridge._sessions)
+
+    def test_resource_miner_disabled_without_explicit_operator_configuration(self):
+        with patch.dict(os.environ, {}, clear=True):
+            result = self.bridge.find_resources("compute credits for AI research")
+        self.assertEqual(result["status"], "NOT_CONFIGURED")
+
+    def test_resource_miner_disallows_remote_targets_and_invalid_intent(self):
+        for origin in ("https://example.com", "http://evil.com:8766", "http://localhost:8766", "http://127.0.0.1:8766/private", "http://127.0.0.1:8766@evil.com", "http://127.0.0.1:80"):
+            with patch.dict(os.environ, {"HAIOS_RESOURCE_MINER_ORIGIN": origin}):
+                with self.subTest(origin=origin), self.assertRaises(ValueError):
+                    self.bridge.find_resources("compute credits")
+        with self.assertRaises(ValueError):
+            self.bridge.find_resources("private\nsecret")
+
+    def test_resource_miner_local_loopback_public_snapshot(self):
+        captured = []
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                content = self.rfile.read(int(self.headers["Content-Length"]))
+                captured.append((self.path, json.loads(content)))
+                body = json.dumps({
+                    "authority": "NONE", "source_mode": "snapshot", "source_status": "STORED_SNAPSHOT",
+                    "matched_count": 1, "receipt_sha256": "abc",
+                    "candidates": [{"resource_id": "id1", "title": "Compute Credits", "source_name": "DEV Community",
+                                    "source_url": "https://example.com/resource", "route": "WATCH",
+                                    "applicant_private_data": "DO_NOT_LEAK", "eligibility_assessed": False}]
+                }).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def log_message(self, *_):
+                pass
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(thread.join, 2)
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        with patch.dict(os.environ, {"HAIOS_RESOURCE_MINER_ORIGIN": f"http://127.0.0.1:{server.server_port}"}):
+            result = self.bridge.find_resources("compute credits")
+        self.assertEqual(captured, [("/api/intent", {"objective": "compute credits", "source_mode": "snapshot"})])
+        self.assertEqual(result["authority"], "NONE")
+        self.assertEqual(result["eligibility"], "NOT_ASSESSED")
+        self.assertEqual(result["candidates"][0]["title"], "Compute Credits")
+        self.assertNotIn("DO_NOT_LEAK", str(result))
 
 
 if __name__ == "__main__":
