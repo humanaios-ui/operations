@@ -43,7 +43,7 @@ Reproduce with `python3 tools/registered_failure_mode_scan_v0_1.py scan`.
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 46/164 | 71.9% |
+| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 46/164 | 72.0% |
 | Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 70/164 | 57.3% |
 | Front-matter fence form | RFM-07 | 8/164 | 95.1% |
 | Quote hygiene | RFM-08 | 3/164 | 98.2% |
