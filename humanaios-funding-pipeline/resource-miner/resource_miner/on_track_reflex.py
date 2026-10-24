@@ -70,6 +70,12 @@ def _json_get(repo: str, path: str, token: str) -> tuple[object, str]:
             if error.code not in RETRYABLE_STATUS:
                 raise
             _log_throttle(path, attempt, error)
+            # A depleted primary GitHub API allowance cannot recover through
+            # short backoff. Stop immediately, preserving the failed-observation
+            # gate and avoiding three additional quota-consuming requests.
+            remaining = error.headers.get("X-RateLimit-Remaining") if error.headers else None
+            if remaining == "0":
+                raise
             if attempt == MAX_ATTEMPTS:
                 raise
             _sleep(_retry_delay(error, attempt))
