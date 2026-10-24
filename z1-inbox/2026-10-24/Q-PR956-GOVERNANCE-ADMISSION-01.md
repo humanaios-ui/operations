@@ -5,7 +5,7 @@
 **Date Filed:** 2026-10-24  
 **Session:** Ongoing (PR #956 failured coordinator gate)  
 **Z1 Proposer:** Claude Code (Z1)  
-**Falsifier:** Admission is falsified if Z2 does not register an admission record on the repository-coordinator-state branch within the 48-hour decision window, or if Z2 explicitly rejects the request. If Z2 chooses EDIT, Z1 revises the candidate and resubmits as a new admission window—the prior window is superseded, not falsified. Merge failures or later reverts do not invalidate the admission decision itself; admission is a working-set routing decision independent of merge outcome.
+**Falsifier:** Admission is falsified if Z2 does not register an admission record specifically for PR #956 (Q-PR956-GOVERNANCE-ADMISSION-01) on the repository-coordinator-state branch within the 48-hour decision window, or if Z2 explicitly rejects the request. If Z2 chooses EDIT, Z1 revises the candidate and resubmits as a new admission window—the prior window is superseded, not falsified. Merge failures or later reverts do not invalidate the admission decision itself; admission is a working-set routing decision independent of merge outcome.
 
 ---
 
