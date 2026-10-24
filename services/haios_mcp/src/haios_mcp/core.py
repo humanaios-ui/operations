@@ -8,6 +8,7 @@ invoke the CLI subprocess or enable its --mode run command.
 from __future__ import annotations
 
 import hashlib
+import logging
 import ipaddress
 import os
 import re
@@ -34,6 +35,7 @@ MAX_SESSIONS = 8
 SESSION_IDLE_SECONDS = 1800
 MAX_HISTORY_MESSAGES = 12
 MAX_RESPONSE_CHARS = 12_000
+_log = logging.getLogger("haios_mcp")
 MAX_MINER_RESPONSE_BYTES = 128_000
 MAX_MINER_UPSTREAM_CANDIDATES = 500
 MAX_MINER_VISIBLE_CANDIDATES = 10
@@ -360,8 +362,12 @@ class HumanAIOSBridge:
                         raise RuntimeError("Model response exceeded configured size limit")
                     chunks.append(chunk)
                 final = stream.get_final_message()
-        except Exception:
-            # No provider text or sensitive headers in the caller-visible error.
+        except Exception as exc:
+            # Preserve enough diagnostic signal for local operators without
+            # recording prompt/context, exception message, response body or keys.
+            status = getattr(exc, "status_code", None)
+            _log.warning("Claude streaming failure class=%s http_status=%s",
+                         type(exc).__name__, status if type(status) is int else "UNAVAILABLE")
             raise RuntimeError("Claude streaming request failed; inspect local network/API state") from None
         answer = "".join(chunks).strip()
         if not answer:
