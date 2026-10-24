@@ -31,7 +31,7 @@
 
 **Merge Authority:** false (merge authority remains with Z2 ratification of code review)
 
-**Merge Gate:** Candidate is ready for Z2 admission decision. CI coordinator gate will pass once admission record is registered.
+**Merge Gate:** Candidate is ready for Z2 admission decision. The CI coordinator gate can pass after an authorized admission event for PR #956 is committed to `repository-coordinator-state` and consumed by the gate.
 
 ---
 
