@@ -59,7 +59,7 @@ No `gh`, tokens, network requests, `.git` modification, issue comments, approval
 5. Foreign/duplicate/forged challenge events fail.
 6. HTML/script fields are escaped and CSP restricts active content.
 7. Two different valid correction overlays leave exact original source and generated broker records unchanged.
-8. A correctly reproduced `project(snapshot)` must match the frozen snapshot projection before qualification.
+8. A correctly reproduced `project(snapshot)` must preserve the frozen source identity, exact head, resource ID, URLs, and authority fields. Any non-authoritative whole-dictionary serialization/default-field differences are reported as representation drift, NOT silently rewritten. The frozen projection stays unchanged.
 
 ## Falsifiers and remaining blockers
 
