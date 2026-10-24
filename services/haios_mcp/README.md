@@ -99,6 +99,7 @@ This launcher reads `ANTHROPIC_API_KEY` from the user login Keychain and provide
 - Context files may change while the process is running. Each call reads them anew and reports current hashes.
 - Model responses can be mistaken, contain unsafe suggestions, or misunderstand quoted documents. They are **not** ratification or verified service state.
 - Exact MCP transport integration, macOS Keychain launch, and live Anthropic calls require environment-specific tests before admission.
+- DNS-rebinding protection (hostile `Host`/`Origin` rejection on the HTTP transport) is enforced by the `mcp` SDK's own transport layer, not by this package's code; it is only as strong as staying current with that dependency.
 
 ### Offline tests
 
