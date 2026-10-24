@@ -19,7 +19,7 @@ PUBLIC_DOCUMENTS = (
     "START_HERE.md", "CURRENT.md", "REGISTERED.md", "SESSION_RITUALS.md",
     "GOVERNANCE.md", "SEED.md", "WITNESS_SERVICE_CONTRACT.md",
 )
-DEFAULT_CONTEXT = ("START_HERE.md", "CURRENT.md", "GOVERNANCE.md")
+DEFAULT_CONTEXT = ("CURRENT.md", "REGISTERED.md", "GOVERNANCE.md")
 FILE_READ_LIMIT = 2_000_000
 DOCUMENT_OUTPUT_LIMIT = 16_000
 CONTEXT_LIMIT_PER_FILE = 6_000
@@ -44,8 +44,16 @@ The human controls consequential action. Concisely answer the user's request.
 
 def resolve_root(root: str | Path) -> Path:
     path = Path(root).expanduser().resolve(strict=True)
-    if not path.is_dir() or not (path / "START_HERE.md").is_file():
-        raise ValueError("HAIOS_REPO_ROOT must name the HumanAIOS operations checkout with START_HERE.md")
+    if not path.is_dir():
+        raise ValueError("HAIOS_REPO_ROOT must name a directory")
+    # START_HERE.md is not present in every valid operations worktree.
+    # CURRENT + REGISTERED are the canonical pair observed in the operator's checkout.
+    for name in ("CURRENT.md", "REGISTERED.md"):
+        marker = path / name
+        if marker.is_symlink() or not marker.is_file():
+            raise ValueError(
+                f"HAIOS_REPO_ROOT is not a usable operations checkout: missing regular {name}"
+            )
     return path
 
 
@@ -104,7 +112,7 @@ class HumanAIOSBridge:
             except (OSError, ValueError):
                 files.append({"filename": name, "available": False})
         return {
-            "service": "humanaios-mcp", "version": "0.1.0",
+            "service": "humanaios-mcp", "version": "0.1.1",
             "authority": "NONE", "filesystem_write": False,
             "shell_execution": False, "deployment": False,
             "model": self.model,
