@@ -35,6 +35,14 @@ class ObjectiveContractTests(unittest.TestCase):
             source_status="CURATED_SNAPSHOT_NOT_LIVE",
         )
 
+    def test_all_eighteen_matches_reach_browser_for_show_more(self):
+        rows = [candidate(resource_id=f"RES-{i}", canonical_url=f"https://example.org/grant/{i}")
+                for i in range(18)]
+        result = self.evaluate(rows)
+        self.assertEqual(result["matched_count"], 18)
+        self.assertEqual(result["shown_count"], 18)
+        self.assertEqual(len(result["candidates"]), 18)
+
     def test_matches_existing_candidate_and_never_claims_eligibility(self):
         result = self.evaluate([candidate()])
         self.assertEqual(result["status"], "CANDIDATES_FOR_HUMAN_REVIEW")

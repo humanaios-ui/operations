@@ -12,6 +12,7 @@ from time import monotonic
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from resource_miner.ats_readiness import public_specimen_readiness
 from resource_miner.miner import enrich
 from resource_miner.intent_os import evaluate_objective
 from resource_miner.opportunity_journey import project_journey
@@ -194,6 +195,12 @@ class Handler(BaseHTTPRequestHandler):
                 self._headers(200, "text/html; charset=utf-8", len(page))
                 self.wfile.write(page)
                 return
+            if parsed.path == "/api/ats/readiness":
+                # Redacted E0 case only. No resume upload, source fetch, or application.
+                if parsed.query not in ("", "specimen=convergent-2026-10-22"):
+                    return self._send_json({"error": "Unknown public ATS specimen."},
+                                           HTTPStatus.NOT_FOUND)
+                return self._send_json(public_specimen_readiness())
             if parsed.path == "/api/health":
                 return self._send_json({
                     "ok": True,

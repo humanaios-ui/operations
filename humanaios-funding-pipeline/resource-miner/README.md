@@ -222,7 +222,7 @@ Privacy and control: Reports and local dispositions are stored in **unencrypted 
 - \`ALREADY_IN_USE\` — user believes this resource is already controlled/used; ownership not independently established.
 - \`OTHER\` — other issue or observation.
 
-Add an optional explanation and **replacement/evidence HTTPS URL**. Optionally choose a **PNG, JPEG or WebP screenshot (max 1 MiB)**; it is **hashed in this browser only**, never transmitted, saved or embedded in the JSON packet. Store the original screenshot separately if reviewers need to view it and match its SHA-256 hash.
+Add an optional explanation and **replacement/evidence HTTPS URL**. Optionally choose an **evidence file of any type, including PDF (max 10 MiB)**; it is **hashed in this browser only**. The file contents and filename are never transmitted, saved or embedded in the JSON packet. Only MIME type, size and SHA-256 accompany your saved note, URLs, status and time. Keep the original file for a reviewer.
 
 Click **Save source observation locally**. The record is appended to the browser's private source-review queue. The candidate card shows the most recent observation on the next search. **Export verification review packet** downloads \`intent-os-source-verification.json\` with schema \`humanaios.resource_source_review.v0.1\`. Use **Import review packet** to move reports to another origin/port or combine locally. An offline reviewer can execute:
 
@@ -664,3 +664,29 @@ The parsers accept exported CSV evidence so observations can be receipted withou
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+
+### Evidence files, Show more, and teaching the Witness
+
+Source review accepts any file type, including PDFs, images, documents, text and
+archives (1 byte to 10 MiB). Files are hashed locally, never parsed, executed,
+uploaded or retained by the app. Saved in browser storage and review exports:
+notes, URLs, selected status, observation time, MIME type, byte size and SHA-256.
+The filename and file contents are not saved. Keep the original evidence file.
+For compatibility, attachment metadata still uses the existing `evidence.screenshot`
+field; old image-only review packets remain supported. A fingerprint does not
+prove source availability or verify a document's claims.
+
+The search API returns every match within its existing 500-row examination bound.
+The browser starts with ten cards; **Show more** reveals the next ten without
+repeating the search. Counts reflect the currently visible cards. Witness local
+dismissals stay separate and reversible through **Show candidates I dismissed locally**.
+
+Each card has **Teach the Witness about this resource**. Save a note and choose
+**Remember note only**, **Show this earlier**, or **Show this later**. Notes and
+preferences persist only in this browser, capped at 100 lessons. Preferences reorder
+future local displays while keeping every eligible candidate accessible. They do
+not change shared ranking, provider data, source verification, or model weights.
+**Export Witness lessons** creates a separate JSON packet for human review;
+**Clear Witness lessons** reverses these local preferences. No automatic central
+submission, model training, or promotion of a human note into verified evidence occurs.
