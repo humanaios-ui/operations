@@ -21,7 +21,7 @@ Move Z-011 to the Limited-Cap table with this proposal cap:
 > **Publishing infrastructure only.** Layout READMEs, `registry/`, `scripts/`, `tests/`, `.github/`, `docs/`, and design-only `infra/`. No edit or delete of any file under `datasets/` or `corrections/` (append-only). No release without a per-release Z2 record (`research-release` block, see research `docs/publishing-architecture.md`).
 
 What does **not** change:
-- Published papers and datasets stay frozen. The research CI already enforces append-only for `datasets/` and `corrections/` against the PR base, and fails if the base cannot be resolved.
+- Published papers and datasets stay frozen. Research `main` has **no** CI enforcing this today. Draft PR #6 adds a check that blocks any modify or delete under `datasets/` and `corrections/` against the PR base, and fails if the base cannot be resolved. Until #6 merges, the cap rests on review alone. Z2 may make ACCEPT conditional on #6 merging first.
 - Every release still needs its own Z2 ratification. This cap lets Z1 *propose* infrastructure; it grants no publish authority.
 - Z3 executor stays TBD.
 
@@ -62,7 +62,7 @@ Update the totals line:
 
 The cap is wrong, and Z-011 should go back to READ-ONLY, if either of these happens within 90 days of ratification:
 
-1. Any merged research PR modifies or deletes a file under `datasets/` or `corrections/`. Check: `git log --diff-filter=MD -- datasets corrections` on research `main`.
-2. Any GitHub Release exists on research without an operations Z2 record that verifies for its tag. Check: rerun `validate_repository.py --release <tag> --operations <checkout>` for every release.
+1. Any research PR merged inside the window modifies or deletes a file under `datasets/` or `corrections/`. Z2 records research `main`'s SHA at ratification as `BASE`. Check: `git log --first-parent --diff-filter=MD BASE..origin/main -- datasets corrections` on research. Changes before `BASE` do not count.
+2. Any GitHub Release created inside the window has no operations Z2 record that verifies for its tag. Check, for each such tag: in a clean research checkout of that tag, run `validate_repository.py --release <tag> --commit refs/tags/<tag> --operations <checkout>`. Each release is judged at its own tag, not at current `main`.
 
 Either one trips the falsifier. Z1 files the revert candidate.
