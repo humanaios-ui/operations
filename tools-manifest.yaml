@@ -2374,7 +2374,7 @@ tools:
   category: validation_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: true
   builder_markers: true

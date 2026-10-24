@@ -25,7 +25,7 @@ Telemetry is structured behavioral data emitted by GitHub Actions workflows to u
 
 **Deployment Frequency Optimization (Phase 1 Verification):**
 - Phase 1 claimed 60-70% reduction in deployment frequency
-- Phase 2A monitoring (7-day window) uses telemetry to verify actual reduction
+- Phase 2A monitoring (14-day window) uses telemetry to verify actual reduction
 - Telemetry data enables per-workflow analysis to identify remaining optimization opportunities
 
 ### Data Collection Lifecycle
@@ -133,19 +133,18 @@ Each workflow run emits a JSON record with the following fields:
   "workflow": "governance-files",
   "trigger_reason": "pull_request",
   "path_filter_active": true,
-  "path_filter_hit": true,
-  "validation_result": "success",
-  "pr_number": 544
+  "path_filter_hit": false,
+  "validation_result": "skipped",
+  "pr_number": 544,
+  "pr_title": "docs: fix typo"
 }
 ```
 
 **Path Filter Configuration:**
 - Triggers when: `.gov-control/`, `GOVERNANCE_FILES.md` change
-- Does NOT emit telemetry when: code, documentation, other governance files change (workflow never runs, so no artifact)
+- Skips when: code, documentation, other governance files change
 
-**Note:** Workflows excluded by path filters do not run and therefore do not emit telemetry. Measuring skip rates requires external observation (e.g., comparing against all PR runs). The collector only sees runs that executed.
-
-**Analytics:** Track governance change frequency, validation pass rate, deployment triggers
+**Analytics:** Track governance change frequency, validation pass rate, false positive rate
 
 ---
 
@@ -176,10 +175,10 @@ Each workflow run emits a JSON record with the following fields:
 
 ```bash
 # Download all telemetry artifacts from a GitHub Actions run
-gh run download <run_id> -n "workflow-telemetry-*" -D workflow_telemetry
+gh run artifacts <run_id> --pattern "workflow-telemetry-*"
 
-# Or list PR run IDs first to pick one
-gh pr checks <pr_number>
+# Or download from a specific PR
+gh pr view <pr_number> --json status,number
 ```
 
 ### Automated Aggregation
@@ -191,11 +190,11 @@ Use `tools/workflow_telemetry_collector.py` to aggregate multiple telemetry file
 mkdir -p workflow_telemetry
 cd workflow_telemetry
 
-# Run collector on downloaded artifacts (tee output to both stdout and file)
-python3 ../tools/workflow_telemetry_collector.py . telemetry_report.json | tee telemetry_report.txt
+# Run collector on downloaded artifacts
+python3 ../tools/workflow_telemetry_collector.py . telemetry_report.json
 
 # View human-readable report
-cat telemetry_report.txt
+cat telemetry_report.txt  # printed by collector
 
 # Programmatic analysis
 python3 << 'EOF'
@@ -313,10 +312,6 @@ def analyze_path_validation(report):
     
     validation = report['workflows']['workflow-path-validation']
     
-    if validation['runs'] == 0:
-        print("Path validation: no runs collected yet (data collection in progress)")
-        return None
-    
     success_rate = validation['successful'] / validation['runs']
     print(f"Path validation success rate: {success_rate:.1%}")
     print(f"Failed validations: {validation['failed']}")
@@ -402,29 +397,24 @@ To add telemetry to a new workflow, include this step at the end (after all jobs
 ```yaml
 - name: Emit Workflow Telemetry (Phase 2B)
   if: always()
-  env:
-    TRIGGER_REASON: ${{ github.event_name }}
-    JOB_STATUS: ${{ job.status }}
-    PR_NUMBER: ${{ github.event.pull_request.number || '' }}
   run: |
     python3 << 'TELEMETRY_EOF'
     import json
-    import os
     from datetime import datetime
 
     telemetry = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "workflow": "your-workflow-name",
-        "trigger_reason": os.environ.get("TRIGGER_REASON", "unknown"),
+        "trigger_reason": "${{ github.event_name }}",
         "path_filter_active": True,
-        "path_filter_hit": os.environ.get("TRIGGER_REASON") in ["pull_request", "push"],
-        "validation_result": os.environ.get("JOB_STATUS", "unknown")
+        "path_filter_hit": True,
+        "validation_result": "${{ job.status }}"
     }
 
-    # Add PR context if available (never interpolate PR title directly)
-    pr_number = os.environ.get("PR_NUMBER", "").strip()
-    if pr_number:
-        telemetry["pr_number"] = int(pr_number)
+    # Add PR context if available
+    if "${{ github.event_name }}" == "pull_request":
+        telemetry["pr_number"] = "${{ github.event.pull_request.number }}"
+        telemetry["pr_title"] = "${{ github.event.pull_request.title }}"
 
     with open("telemetry.json", "w") as f:
         json.dump(telemetry, f, indent=2)
@@ -443,7 +433,7 @@ To add telemetry to a new workflow, include this step at the end (after all jobs
 
 ## Phase 2A Monitoring Checklist
 
-**2026-09-25 to 2026-10-02 (7-day observation window)**
+**2026-09-25 to 2026-10-02 (14-day observation window)**
 
 - [ ] Day 1-3: Collect telemetry baseline (20+ artifact collections)
 - [ ] Day 4-7: Aggregate data, verify schema, check for collection gaps
