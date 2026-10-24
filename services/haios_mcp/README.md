@@ -80,6 +80,27 @@ launchctl bootout "gui/$(id -u)" "$HOME/Library/LaunchAgents/ai.humanaios.mcp.pl
 
 The HTTP bearer token is meant for **trusted local clients**. Never publish this HTTP port or expose it through a public reverse proxy; this prototype does not implement remote user OAuth, rate limiting, multi-tenant isolation, or a full security audit.
 
+## Controlled v0.2 MCP authentication test (no deployment)
+
+From a separate, unpacked v0.2 candidate bundle, run:
+
+```sh
+"$HOME/Library/Application Support/HumanAIOS/mcp/.venv/bin/python" \
+  /ABSOLUTE/PATH/TO/haios-mcp-service/scripts/smoke_auth_macos.py
+```
+
+This test uses the **already-installed MCP dependencies**, but loads v0.2 source
+from its unpacked candidate directory with `PYTHONPATH` in an isolated child.
+It binds an ephemeral **127.0.0.1** port, proves that missing and incorrect
+bearer credentials return HTTP 401, authenticates from macOS Keychain,
+initializes the MCP client, checks the exact five v0.2 tools, calls
+`haios_status` and `haios_self_model`, prints a timestamp and unsigned
+SHA-256 digest, then terminates only the temporary child process.
+It does **not** reinstall software, change LaunchAgent settings, use the Claude
+API, transmit a prompt, or enable Resource Miner. v0.1.1 can keep running.
+The resulting receipt proves local client observation, not a public tunnel or
+production readiness. Never paste secrets or session IDs into an issue.
+
 ## Connecting to ChatGPT
 
 **ChatGPT cannot connect directly to `localhost`.** Use a supported **Secure MCP Tunnel** with the **stdio mode**, where the tunnel client launches this service as a child process, or use an independently secured OAuth/HTTPS gateway developed separately. The stdio path avoids having to pass the HTTP bearer token through tunnel configuration.
