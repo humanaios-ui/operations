@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**217 registered tools** · 2 MCP servers · 4 excluded · 169 carrying Builder v1.7 markers
+**218 registered tools** · 2 MCP servers · 4 excluded · 169 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,8 +13,8 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 217 |
-| — status `draft` | 216 |
+| Registered tools | 218 |
+| — status `draft` | 217 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 169 |
 | Uncategorized | 0 |
@@ -266,7 +266,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
 
-## Security gates — `security_gate_tool` (11)
+## Security gates — `security_gate_tool` (12)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -281,6 +281,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-129 | system_audit | `tools/system_audit_v1_1.py` | 1.1.0 | 1 | draft | — | System Audit — v1.1 |
 | HAIOS-TOOL-134 | tier_b_activation_gate | `tools/tier_b_activation_gate.py` | 1.0.0 | 1 | draft | — | tier_b_activation_gate.py |
 | HAIOS-TOOL-185 | smag_gate_enforcer | `tools/smag_gate_enforcer_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up) |
+| HAIOS-TOOL-231 | b4_admission | `tools/b4_admission.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | B4 controlled-operation admission: verify a GitHub-authenticated approval envelope. |
 
 ## Templates — `template_tool` (3)
 
@@ -366,7 +367,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 7 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
-| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
+| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 12 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 30 |
 
