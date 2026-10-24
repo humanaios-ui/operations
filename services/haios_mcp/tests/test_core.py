@@ -19,7 +19,7 @@ class FakeMessageAPI:
         if self.fail:
             raise Exception("DANGEROUS PROVIDER DETAIL api-key-test")
         return types.SimpleNamespace(
-            content=[types.SimpleNamespace(type="text", text="I see START_HERE.md only as supplied context.")],
+            content=[types.SimpleNamespace(type="text", text="I see CURRENT.md only as supplied context.")],
             stop_reason="end_turn",
         )
 
@@ -29,12 +29,26 @@ class BridgeTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
-        (self.root / "START_HERE.md").write_text("PUBLIC START", encoding="utf-8")
+        # Valid operations checkout can lack START_HERE.md.
         (self.root / "CURRENT.md").write_text("C" * 6100, encoding="utf-8")
+        (self.root / "REGISTERED.md").write_text("PUBLIC REGISTRY", encoding="utf-8")
         (self.root / "GOVERNANCE.md").write_text("no automatic approvals", encoding="utf-8")
         (self.root / "PRIVATE.md").write_text("secret", encoding="utf-8")
         self.api = FakeMessageAPI()
         self.bridge = HumanAIOSBridge(self.root, client_factory=lambda: types.SimpleNamespace(messages=self.api))
+
+    def test_root_identity_requires_both_canonical_files(self):
+        self.assertIsNotNone(self.bridge.root)
+        (self.root / "REGISTERED.md").unlink()
+        with self.assertRaisesRegex(ValueError, "REGISTERED.md"):
+            HumanAIOSBridge(self.root)
+
+    def test_start_here_is_optional_context_and_explicit_read_fails_closed(self):
+        self.assertFalse((self.root / "START_HERE.md").exists())
+        self.assertFalse(next(x for x in self.bridge.status()["documents"] if x["filename"] == "START_HERE.md")["available"])
+        with self.assertRaises(ValueError):
+            self.bridge.read_document("START_HERE.md")
+        self.assertEqual(len(self.bridge.talk("Hello")["source_manifest"]), 3)
 
     def test_status_no_provider_call_and_allowlisted(self):
         info = self.bridge.status()
@@ -75,8 +89,8 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(len(self.api.calls[1]["messages"]), 3)
         self.assertEqual(self.api.calls[1]["messages"][0]["content"], "Hello")
         manifest = first["source_manifest"]
-        self.assertEqual([v["filename"] for v in manifest], ["START_HERE.md", "CURRENT.md", "GOVERNANCE.md"])
-        self.assertTrue(manifest[1]["truncated"])
+        self.assertEqual([v["filename"] for v in manifest], ["CURRENT.md", "REGISTERED.md", "GOVERNANCE.md"])
+        self.assertTrue(manifest[0]["truncated"])
         self.assertIn('truncated=true', self.api.calls[0]["system"])
         self.assertNotIn("PRIVATE.md", self.api.calls[0]["system"])
 
