@@ -1,0 +1,53 @@
+name: ops-snapshot
+
+# Deterministic operations snapshot: open PRs, check runs, rule-based blockers
+# -> one JSON artifact. Read-only. No model, no writes to the repository.
+# Runs at 11:40 UTC (06:40 US Central during CDT), before the 07:00 digest.
+# AUTHORITY_EFFECT: NONE — a snapshot is observation, never approval.
+
+on:
+  schedule:
+    - cron: "40 11 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+  issues: read
+
+concurrency:
+  group: ops-snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Smoke test
+        run: python3 tools/ops_snapshot_v0_1.py --smoke-test
+
+      - name: Build snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/ops_snapshot_v0_1.py \
+            --repo "${{ github.repository }}" \
+            --out ops_snapshot.json \
+            --summary ops_snapshot.md
+          cat ops_snapshot.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ops-snapshot-${{ github.run_id }}
+          path: |
+            ops_snapshot.json
+            ops_snapshot.md
+          retention-days: 30
