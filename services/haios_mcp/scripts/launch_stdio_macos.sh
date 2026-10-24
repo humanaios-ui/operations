@@ -5,5 +5,6 @@ set -euo pipefail
 REPO_ROOT="${1:?operations checkout required}"
 SERVICE_HOME="${2:?service install directory required}"
 ACCOUNT="$(/usr/bin/id -un)"
-export ANTHROPIC_API_KEY="$(/usr/bin/security find-generic-password -a "$ACCOUNT" -s ai.humanaios.anthropic -w)"
+ANTHROPIC_API_KEY="$(/usr/bin/security find-generic-password -a "$ACCOUNT" -s ai.humanaios.anthropic -w)"
+export ANTHROPIC_API_KEY
 exec "$SERVICE_HOME/.venv/bin/haios-mcp" --transport stdio --repo "$REPO_ROOT"
