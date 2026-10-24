@@ -30,7 +30,7 @@ jobs:
           persist-credentials: false
           # PR checks must use the exact PR head, not GitHub's synthetic merge ref.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
