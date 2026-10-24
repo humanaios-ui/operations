@@ -56,6 +56,10 @@ baseline_tests:
     requires: []
     description: Repository coordinator tests
 
+  - path: tools/tests/test_vulnops_v0_1.py
+    requires: []
+    description: VulnOps workload identity, one-use grant, runtime verification, and feed intake tests
+
   - path: tools/tests/test_graph_lookup_v0_1.py
     requires: []
     description: Read-only graph lookup for the section A session-open step (Q-REPO-GRAPH-LOOKUP-01)

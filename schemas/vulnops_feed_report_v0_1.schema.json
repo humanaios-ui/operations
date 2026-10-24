@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.dev/schemas/vulnops_feed_report_v0_1.schema.json",
+  "title": "HumanAIOS VulnOps read-only feed report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "control_receipt_id",
+    "control_chain_head",
+    "source_digests",
+    "source_metadata",
+    "finding_count",
+    "findings",
+    "authority_effect",
+    "can_authorize",
+    "can_execute"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.vulnops.feed_report.v0.1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "control_receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "control_chain_head": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cisa_kev", "first_epss", "osv_modified"],
+      "properties": {
+        "cisa_kev": {"$ref": "#/$defs/sha256"},
+        "first_epss": {"$ref": "#/$defs/sha256"},
+        "osv_modified": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source_metadata": {
+      "type": "object"
+    },
+    "finding_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "findings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "can_authorize": {
+      "const": false
+    },
+    "can_execute": {
+      "const": false
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vulnerability_id",
+        "signals",
+        "asset_context",
+        "priority",
+        "action_allowed"
+      ],
+      "properties": {
+        "vulnerability_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "signals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cisa_kev", "epss", "osv"],
+          "properties": {
+            "cisa_kev": {
+              "type": ["object", "null"]
+            },
+            "epss": {
+              "type": ["object", "null"]
+            },
+            "osv": {
+              "type": ["object", "null"]
+            }
+          }
+        },
+        "asset_context": {
+          "type": ["object", "null"]
+        },
+        "priority": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "score", "band"],
+          "properties": {
+            "status": {
+              "enum": ["ASSESSED", "UNASSESSED_NO_ASSET_CONTEXT"]
+            },
+            "score": {
+              "type": ["number", "null"],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "band": {
+              "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", null]
+            }
+          }
+        },
+        "action_allowed": {
+          "const": false
+        }
+      }
+    }
+  }
+}
