@@ -7,10 +7,22 @@ if [[ "$(uname -s)" != Darwin ]]; then
 fi
 HOME_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 REPO_ROOT="${1:-}"
-if [[ -z "$REPO_ROOT" || ! -f "$REPO_ROOT/START_HERE.md" ]]; then
-  echo "Usage: bash scripts/install_macos.sh /absolute/path/to/operations-checkout" >&2
+if [[ -z "$REPO_ROOT" || "$REPO_ROOT" != /* ]]; then
+  echo "Pass the actual absolute path to the operations checkout." >&2
+  echo "Example: bash scripts/install_macos.sh "$HOME/Desktop/HAIOS-Main/operations-staging"" >&2
   exit 2
 fi
+if [[ ! -d "$REPO_ROOT" ]]; then
+  echo "Not a directory: $REPO_ROOT" >&2
+  exit 2
+fi
+for required in CURRENT.md REGISTERED.md; do
+  if [[ ! -f "$REPO_ROOT/$required" || -L "$REPO_ROOT/$required" ]]; then
+    echo "Missing required regular file: $REPO_ROOT/$required" >&2
+    echo "Check that this is your HumanAIOS operations checkout, then retry." >&2
+    exit 2
+  fi
+done
 REPO_ROOT="$(cd "$REPO_ROOT" && pwd -P)"
 python3 -m venv "$HOME_DIR/.venv"
 "$HOME_DIR/.venv/bin/python" -m pip install --disable-pip-version-check -e "$HOME_DIR"
