@@ -99,7 +99,20 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Detect trusted-main reconciliation support
+        id: reconcile_support
+        run: |
+          set -euo pipefail
+          if python3 trusted-main/tools/repository_coordinator_state_v1_1.py --help \
+            2>&1 | grep -q 'reconcile-pr-snapshots'; then
+            echo "supported=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "supported=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Trusted main does not contain reconciliation yet; bootstrap run is a no-op"
+          fi
+
       - name: Verify state and fetch every active PR from GitHub
+        if: steps.reconcile_support.outputs.supported == 'true'
         run: |
           set -euo pipefail
           python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
@@ -132,6 +145,7 @@ jobs:
           PY
 
       - name: Reconcile terminal and moved-head admissions
+        if: steps.reconcile_support.outputs.supported == 'true'
         id: reconcile
         run: |
           set -euo pipefail
