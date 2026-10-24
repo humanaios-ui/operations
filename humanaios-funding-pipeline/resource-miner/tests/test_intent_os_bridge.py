@@ -151,6 +151,39 @@ class HttpIntentTests(unittest.TestCase):
             handler.do_POST()
         return observed[0], scan
 
+    def test_show_more_is_preserved_through_snapshot_http_boundary(self):
+        # Contract must expose all eighteen public matches, not just the first
+        # ten, so a browser can reveal remaining candidates without requerying.
+        rows = [
+            candidate(resource_id=f"RES-{i}",
+                      canonical_url=f"https://example.org/grant/{i}")
+            for i in range(18)
+        ]
+        body = json.dumps({"objective": "Find grants for cloud compute",
+                           "source_mode": "snapshot"}).encode("utf-8")
+        handler = object.__new__(app.Handler)
+        handler.path = "/api/intent"
+        handler.headers = {"Content-Type": "application/json",
+                           "Content-Length": str(len(body))}
+        handler._read_intent_body = lambda n: body
+        collected = []
+        handler._send_json = lambda payload, status=200: collected.append((status, payload))
+        with patch.object(app, "SNAPSHOT_OUT") as snapshot, \
+             patch.object(app, "_read_jsonl", return_value=rows), \
+             patch.object(app, "reconcile_snapshot_source_holds",
+                          side_effect=lambda items, path: (items, 0)) as reconciler, \
+             patch.object(app, "_intent_scan",
+                          side_effect=AssertionError("snapshot must not scan")):
+            snapshot.is_file.return_value = True
+            handler.do_POST()
+        self.assertEqual(collected[0][0], 200)
+        result = collected[0][1]
+        self.assertEqual(result["shown_count"], 18)
+        self.assertEqual(result["matched_count"], 18)
+        self.assertEqual(len(result["candidates"]), 18)
+        reconciler.assert_called_once()
+        self.assertEqual(result["authority"], "NONE")
+
     def test_page_is_served_by_existing_http_service(self):
         handler = object.__new__(app.Handler)
         handler.path = "/intent-os"
