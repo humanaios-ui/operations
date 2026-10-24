@@ -113,6 +113,13 @@ class NormalizeTest(unittest.TestCase):
         self.assertEqual([r["work_id"] for r in ow.normalize_works(shuffled, ORCID, AT)],
                          [r["work_id"] for r in records()])
 
+    def test_missing_or_null_relationship_is_not_self(self):
+        ids = {"external-id": [
+            {"external-id-type": "doi", "external-id-value": "10.3333/no-rel"},
+            {"external-id-type": "doi", "external-id-value": "10.3333/null-rel",
+             "external-id-relationship": None}]}
+        self.assertEqual(ow.self_dois(ids), [])
+
     def test_doi_normalization(self):
         self.assertEqual(ow.normalize_doi("doi: 10.1000/ABC"), "10.1000/abc")
         self.assertEqual(ow.normalize_doi("http://dx.doi.org/10.1000/x"), "10.1000/x")
@@ -139,7 +146,7 @@ class ReconcileTest(unittest.TestCase):
     def test_title_match_with_doi_disagreement_is_a_mismatch(self):
         m = next(m for m in self.result["mismatches"] if m["orcid_put_codes"] == [707])
         self.assertEqual(m["matched_by"], "title")
-        self.assertIn("doi: orcid=10.2222/orcid-side research=10.2222/research-side",
+        self.assertIn("doi: orcid=['10.2222/orcid-side'] research=10.2222/research-side",
                       m["differences"])
 
     def test_orcid_only_and_research_only(self):
@@ -151,6 +158,49 @@ class ReconcileTest(unittest.TestCase):
         for bucket in ("matched", "orcid_only"):
             for r in self.result[bucket]:
                 self.assertNotIn(r["research_status"], ("released", "published"))
+
+
+class ReviewRegressionTest(unittest.TestCase):
+    """Findings from the Copilot review on PR #1013."""
+
+    def test_non_ascii_titles_do_not_collide(self):
+        self.assertNotEqual(reconcile.title_key("研究甲"), reconcile.title_key("研究乙"))
+        self.assertEqual(reconcile.title_key("Étude, Été!"), reconcile.title_key("étude été"))
+        recs = ow.normalize_works({"group": [{"work-summary": [summary(1, "研究甲", "2026")]}]},
+                                  ORCID, AT)
+        res = reconcile.reconcile(recs, [{"release_tag": "paper-x-v1.0.0", "title": "研究乙"}])
+        self.assertEqual(len(res["orcid_only"]), 1)
+        self.assertEqual(len(res["research_only"]), 1)
+
+    def test_punctuation_only_title_never_matches(self):
+        recs = ow.normalize_works({"group": [{"work-summary": [summary(1, "???", "2026")]}]},
+                                  ORCID, AT)
+        res = reconcile.reconcile(recs, [{"release_tag": "t", "title": "!!!"}])
+        self.assertEqual(res["matched"], [])
+
+    def test_matches_on_any_self_doi(self):
+        res = reconcile.reconcile(records(), [
+            {"release_tag": "paper-two-doi-v1.0.0", "title": "Other Title", "doi": "10.1111/v2"}])
+        m = next(m for m in res["matched"] if m["orcid_put_codes"] == [606])
+        self.assertEqual(m["matched_by"], "doi")
+        self.assertEqual(res["research_only"], [])
+
+    def test_several_registry_matches_are_flagged_ambiguous(self):
+        res = reconcile.reconcile(records(), [
+            {"release_tag": "a-v1", "title": "x", "doi": "10.1111/v1"},
+            {"release_tag": "b-v1", "title": "y", "doi": "10.1111/v2"}])
+        m = next(m for m in res["matched"] if m["orcid_put_codes"] == [606])
+        self.assertTrue(any(d.startswith("ambiguous") for d in m["differences"]))
+        self.assertEqual(res["research_only"], [])
+
+    def test_empty_profile_still_records_source_hash(self):
+        import hashlib
+        tmp = Path(tempfile.mkdtemp())
+        raw = b'{"group": []}'
+        (tmp / "w.json").write_bytes(raw)
+        reconcile.main(["--works-json", str(tmp / "w.json"), "--out", str(tmp / "o")])
+        report = json.loads((tmp / "o/report.json").read_text())
+        self.assertEqual(report["source_sha256"], hashlib.sha256(raw).hexdigest())
 
 
 class CliTest(unittest.TestCase):
@@ -231,12 +281,42 @@ class ClientRetryTest(unittest.TestCase):
             c.get_works_raw()
         self.assertEqual(len(s.calls), 3)
 
+    def test_long_retry_after_raises_instead_of_retrying_early(self):
+        import requests
+        c, s = self.client([self.Resp(429, headers={"Retry-After": "120"})])
+        with self.assertRaises(requests.HTTPError):
+            c.get_works_raw()
+        self.assertEqual(self.slept, [])
+        self.assertEqual(len(s.calls), 1)
+
+    def test_http_date_retry_after_is_honoured(self):
+        import datetime
+        from utils.orcid_client import retry_after_seconds
+        now = datetime.datetime(2026, 10, 24, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        self.assertEqual(retry_after_seconds("Sat, 24 Oct 2026 12:00:30 GMT", now), 30.0)
+        self.assertEqual(retry_after_seconds("Sat, 24 Oct 2026 11:00:00 GMT", now), 0.0)
+        self.assertEqual(retry_after_seconds("45"), 45.0)
+        self.assertIsNone(retry_after_seconds("soon"))
+
     def test_404_is_not_retried(self):
         import requests
         c, s = self.client([self.Resp(404)])
         with self.assertRaises(requests.HTTPError):
             c.get_works_raw()
         self.assertEqual(len(s.calls), 1)
+
+
+@unittest.skipUnless(importlib.util.find_spec("bibtexparser") and importlib.util.find_spec("rich"),
+                     "bibtexparser/rich not installed")
+class BibtexTest(unittest.TestCase):
+    def test_falls_back_to_group_self_doi(self):
+        import export_bibtex
+        detail = {"put-code": 1, "type": "journal-article",
+                  "title": {"title": {"value": "T"}},
+                  "external-ids": {"external-id": [ext("10.9999/whole-book", rel="part-of")]}}
+        entry = export_bibtex.work_to_bibtex_entry(detail, ["10.5555/dup.1"])
+        self.assertEqual(entry["doi"], "10.5555/dup.1")
+        self.assertNotIn("doi", export_bibtex.work_to_bibtex_entry(detail))
 
 
 if __name__ == "__main__":

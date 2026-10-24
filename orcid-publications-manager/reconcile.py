@@ -16,6 +16,7 @@ exist (for a scheduled drift check that stays quiet when nothing changed).
 """
 import argparse
 import datetime
+import hashlib
 import json
 import re
 import sys
@@ -27,7 +28,8 @@ import orcid_works as ow  # noqa: E402
 
 
 def title_key(title):
-    return re.sub(r"[^a-z0-9]+", " ", (title or "").lower()).strip()
+    """Case- and punctuation-insensitive key that keeps letters in any script."""
+    return re.sub(r"[\W_]+", " ", (title or "").casefold()).strip()
 
 
 def load_research(research_root):
@@ -46,25 +48,36 @@ def reconcile(records, pubs):
     for p in pubs:
         doi = ow.normalize_doi(p.get("doi"))
         if doi:
-            by_doi[doi] = p
-        by_title.setdefault(title_key(p.get("title")), p)
+            by_doi.setdefault(doi, []).append(p)
+        key = title_key(p.get("title"))
+        if key:  # an empty key would match every other untitled work
+            by_title.setdefault(key, []).append(p)
 
     matched, orcid_only, used = [], [], set()
     for r in records:
-        pub = by_doi.get(r["doi"]) if r["doi"] else None
-        how = "doi" if pub else None
-        if pub is None and r["title"]:
-            pub = by_title.get(title_key(r["title"]))
-            how = "title" if pub else None
-        if pub is None:
+        cands, how = [], None
+        for doi in r["self_dois"]:
+            for p in by_doi.get(doi, []):
+                if all(p is not c for c in cands):
+                    cands.append(p)
+        if cands:
+            how = "doi"
+        elif title_key(r["title"]):
+            cands, how = list(by_title.get(title_key(r["title"]), [])), "title"
+        if not cands:
             orcid_only.append(dict(r, research_status="unknown",
                                    differences=["not in research registry"]))
             continue
-        used.add(id(pub))
+        cands.sort(key=lambda p: str(p.get("release_tag")))
+        pub = cands[0]
+        used.update(id(p) for p in cands)
         diffs = []
+        if len(cands) > 1:
+            diffs.append("ambiguous: matches registry entries "
+                         f"{[p.get('release_tag') for p in cands]}")
         pub_doi = ow.normalize_doi(pub.get("doi"))
-        if r["doi"] != pub_doi:
-            diffs.append(f"doi: orcid={r['doi']} research={pub_doi}")
+        if pub_doi not in r["self_dois"] and (pub_doi or r["self_dois"]):
+            diffs.append(f"doi: orcid={r['self_dois'] or None} research={pub_doi}")
         if title_key(r["title"]) != title_key(pub.get("title")):
             diffs.append(f"title: orcid={r['title']!r} research={pub.get('title')!r}")
         if r["doi_candidates"]:
@@ -131,7 +144,7 @@ def main(argv=None):
         "schema": "orcid_reconcile_v1",
         "researcher_orcid": args.orcid,
         "fetched_at": fetched_at,
-        "source_sha256": records[0]["source_sha256"] if records else None,
+        "source_sha256": hashlib.sha256(raw).hexdigest(),
         "research_note": note,
         "summary": {"orcid_works": len(records), **{k: len(v) for k, v in result.items()}},
         **result,

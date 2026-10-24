@@ -49,18 +49,32 @@ def normalize_doi(raw):
 
 
 def self_dois(external_ids):
-    """DOIs that identify the work itself (relationship 'self'), normalized, sorted."""
+    """DOIs that identify the work itself, normalized, sorted.
+
+    Only an explicit 'self' relationship counts. A missing or null
+    relationship is not assumed to be self: attaching someone else's DOI to
+    a work is worse than leaving it blank for a human to fill.
+    """
     found = set()
     for ext in dig(external_ids, "external-id") or []:
         if not isinstance(ext, dict) or ext.get("external-id-type") != "doi":
             continue
-        if (ext.get("external-id-relationship") or "self") != "self":
-            continue  # part-of / version-of DOIs point at something else
+        if ext.get("external-id-relationship") != "self":
+            continue  # part-of / version-of / unstated point at something else
         doi = normalize_doi(dig(ext, "external-id-normalized", "value")
                             or ext.get("external-id-value"))
         if doi:
             found.add(doi)
     return sorted(found)
+
+
+def group_self_dois(group):
+    """Self DOIs from a /works group and every representation in it."""
+    dois = set(self_dois(dig(group, "external-ids")))
+    for s in dig(group, "work-summary") or []:
+        if isinstance(s, dict):
+            dois.update(self_dois(dig(s, "external-ids")))
+    return sorted(dois)
 
 
 def work_date(summary):
@@ -99,9 +113,7 @@ def normalize_works(works_json, researcher_orcid, fetched_at, source_bytes=None)
         if not summaries:
             continue
         pref = preferred(summaries)
-        dois = set(self_dois(dig(group, "external-ids")))
-        for s in summaries:
-            dois.update(self_dois(dig(s, "external-ids")))
+        dois = group_self_dois(group)
         put_codes = sorted(int(s["put-code"]) for s in summaries if s.get("put-code") is not None)
         title = (dig(pref, "title", "title", "value") or "").strip() or None
         records.append({
@@ -111,8 +123,9 @@ def normalize_works(works_json, researcher_orcid, fetched_at, source_bytes=None)
             "title": title,
             "work_type": pref.get("type"),
             "date": work_date(pref),
-            "doi": sorted(dois)[0] if dois else None,
-            "doi_candidates": sorted(dois) if len(dois) > 1 else [],
+            "doi": dois[0] if dois else None,
+            "self_dois": dois,
+            "doi_candidates": dois if len(dois) > 1 else [],
             "doi_verified": False,
             "journal_title": dig(pref, "journal-title", "value"),
             "external_source": dig(pref, "source", "source-name", "value"),

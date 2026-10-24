@@ -9,8 +9,12 @@ from pathlib import Path
 
 console = Console()
 
-def work_to_bibtex_entry(work):
-    """Convert ORCID work detail to a BibTeX entry (null-safe)."""
+def work_to_bibtex_entry(work, group_dois=()):
+    """Convert ORCID work detail to a BibTeX entry (null-safe).
+
+    `group_dois` are the self DOIs of the work's whole ORCID group, used when
+    the chosen representation carries none of its own.
+    """
     entry = {}
 
     entry["title"] = ow.dig(work, "title", "title", "value") or "Untitled"
@@ -27,7 +31,7 @@ def work_to_bibtex_entry(work):
 
     # ORCID v3 keys are external-id-type / external-id-value; only the
     # work's own ("self") DOI belongs in its citation.
-    dois = ow.self_dois(work.get("external-ids"))
+    dois = ow.self_dois(work.get("external-ids")) or list(group_dois)
     if dois:
         entry["doi"] = dois[0]
 
@@ -57,7 +61,7 @@ def main():
         try:
             # Get full details for better BibTeX
             full_work = client.get_work_details(summary["put-code"])
-            bib_entry = work_to_bibtex_entry(full_work)
+            bib_entry = work_to_bibtex_entry(full_work, ow.group_self_dois(group))
             if bib_entry:
                 db.entries.append(bib_entry)
         except Exception as e:
