@@ -8,7 +8,9 @@ invoke the CLI subprocess or enable its --mode run command.
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import os
+import re
 import stat
 import json
 import urllib.request
@@ -198,20 +200,95 @@ class HumanAIOSBridge:
             payload = json.loads(raw)
         except (OSError, ValueError, RuntimeError) as exc:
             raise RuntimeError("Public Resource Miner snapshot query unavailable or invalid") from None
-        if not isinstance(payload, dict) or payload.get("authority") != "NONE" or payload.get("source_mode") != "snapshot" or not isinstance(payload.get("candidates"), list):
-            raise RuntimeError("Resource Miner returned an unexpected result schema")
-        permitted = ("resource_id", "title", "description", "source_name", "source_url", "route", "observed_at", "last_verified_at", "eligibility_assessed")
-        candidates = []
-        for row in payload["candidates"][:10]:
-            if not isinstance(row, dict) or row.get("source_name") not in ("HumanAIOS Funding Pipeline", "DEV Community"):
-                continue
-            candidates.append({key: row[key] for key in permitted if key in row and isinstance(row[key], (str, bool, type(None)))})
-        return {"status": "CANDIDATES_FOR_HUMAN_REVIEW" if candidates else "NO_SUPPORTED_MATCH", "candidates": candidates,
-                "source_mode": "snapshot", "source_status": str(payload.get("source_status", "UNKNOWN"))[:100],
-                "matched_count": payload.get("matched_count") if isinstance(payload.get("matched_count"), int) else None,
-                "receipt_sha256": str(payload.get("receipt_sha256", ""))[:64],
-                "receipt_kind": "UNAUTHENTICATED_SELECTION_DIGEST", "eligibility": "NOT_ASSESSED", "authority": "NONE",
-                "warning": "Stored public discovery only. Verify official source, deadlines and eligibility; never treat matches as entitlements."}
+        # Maintain the upstream's uncertainty and eligibility boundary. A
+        # syntactically successful response is not necessarily trustworthy.
+        statuses = {"CANDIDATES_FOR_HUMAN_REVIEW", "NO_SUPPORTED_MATCH",
+                    "PARTIAL_CANDIDATES_FOR_HUMAN_REVIEW", "PARTIAL_SEARCH_NO_MATCH"}
+        if (not isinstance(payload, dict) or payload.get("authority") != "NONE" or
+            payload.get("source_mode") != "snapshot" or
+            payload.get("execution") != "DISABLED" or
+            payload.get("eligibility") != "NOT_ASSESSED" or
+            payload.get("status") not in statuses or
+            not isinstance(payload.get("candidates"), list) or
+            len(payload["candidates"]) > 10):
+            raise RuntimeError("Resource Miner returned an unexpected public snapshot schema")
+
+        def count(name: str) -> int:
+            v = payload.get(name)
+            if type(v) is not int or v < 0:
+                raise RuntimeError("Resource Miner returned an invalid count")
+            return v
+
+        matched = count("matched_count")
+        shown = count("shown_count")
+        unexamined = count("unexamined_count")
+        if shown != len(payload["candidates"]) or matched < shown:
+            raise RuntimeError("Resource Miner reported inconsistent counts")
+        if (unexamined > 0) != payload["status"].startswith("PARTIAL_"):
+            raise RuntimeError("Resource Miner lost or misstated partial-search status")
+        receipt_sha = payload.get("receipt_sha256")
+        if not isinstance(receipt_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", receipt_sha):
+            raise RuntimeError("Resource Miner returned a malformed unsigned digest")
+        status_note = payload.get("source_status")
+        warning = payload.get("source_warning", "")
+        if not isinstance(status_note, str) or not isinstance(warning, str):
+            raise RuntimeError("Resource Miner omitted source currentness disclosure")
+
+        candidates: list[dict[str, Any]] = []
+        optional = ("description", "observed_at", "last_verified_at", "deadline")
+        for row in payload["candidates"]:
+            if not isinstance(row, dict) or row.get("source_name") not in (
+                    "HumanAIOS Funding Pipeline", "DEV Community"):
+                raise RuntimeError("Resource Miner leaked non-public candidate class")
+            # No private/eligibility evidence is allowed in the public tool.
+            if row.get("eligibility_assessed") is not False or row.get("route") not in ("WATCH", "VERIFY_NOW"):
+                raise RuntimeError("Resource Miner returned an invalid eligibility or routing claim")
+            if not all(isinstance(row.get(k), str) for k in ("resource_id", "title", "source_url")):
+                raise RuntimeError("Resource Miner candidate is missing public provenance")
+            try:
+                source = urlsplit(row["source_url"])
+                host = (source.hostname or "").lower().rstrip(".")
+                port = source.port  # Invalid ports raise ValueError.
+            except ValueError:
+                raise RuntimeError("Resource Miner provided a malformed source URL") from None
+            if host:
+                try:
+                    ipaddress.ip_address(host)
+                except ValueError:
+                    pass
+                else:
+                    raise RuntimeError("Resource Miner provided an IP-literal source URL")
+            if (source.scheme != "https" or not host or "." not in host or
+                source.username or source.password or port not in (None, 443) or
+                host.endswith((".local", ".internal", ".localhost", ".test", ".invalid"))):
+                raise RuntimeError("Resource Miner provided an invalid public source URL")
+            item = {key: row[key] for key in ("resource_id", "title", "source_name", "source_url", "route", "eligibility_assessed")}
+            for key in optional:
+                val = row.get(key)
+                if val is None or isinstance(val, str):
+                    item[key] = val
+                else:
+                    raise RuntimeError("Resource Miner provided malformed candidate metadata")
+            item["source_verification"] = "UPSTREAM_SNAPSHOT_NOT_INDEPENDENTLY_VERIFIED"
+            candidates.append(item)
+
+        # Preserve source and search coverage assertions verbatim, bounded by
+        # length. Never infer current availability from a matched candidate.
+        return {
+            "status": payload["status"],
+            "candidates": candidates,
+            "source_mode": "snapshot",
+            "source_status": status_note[:120],
+            "source_warning": warning[:500],
+            "matched_count": matched,
+            "shown_count": shown,
+            "unshown_match_count": matched - shown,
+            "unexamined_count": unexamined,
+            "receipt_sha256": receipt_sha,
+            "receipt_kind": "UNAUTHENTICATED_SELECTION_DIGEST_NOT_AN_ATTESTATION",
+            "eligibility": "NOT_ASSESSED", "execution": "DISABLED", "authority": "NONE",
+            "verification": "Stored public discovery only. Source links, dates, applicant eligibility and availability must be independently checked.",
+        }
 
     def read_document(self, filename: str, limit: int = DOCUMENT_OUTPUT_LIMIT) -> dict[str, Any]:
         return load_document(self.root, filename, limit)
