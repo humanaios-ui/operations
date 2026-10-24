@@ -35,6 +35,8 @@ SESSION_IDLE_SECONDS = 1800
 MAX_HISTORY_MESSAGES = 12
 MAX_RESPONSE_CHARS = 12_000
 MAX_MINER_RESPONSE_BYTES = 128_000
+MAX_MINER_UPSTREAM_CANDIDATES = 500
+MAX_MINER_VISIBLE_CANDIDATES = 10
 
 SYSTEM_PROMPT = """You are Unit Zero, the proposed Witness conversational voice of HumanAIOS.
 HumanAIOS uses an organism metaphor to describe its integrated human and machine
@@ -210,7 +212,7 @@ class HumanAIOSBridge:
             payload.get("eligibility") != "NOT_ASSESSED" or
             payload.get("status") not in statuses or
             not isinstance(payload.get("candidates"), list) or
-            len(payload["candidates"]) > 10):
+            len(payload["candidates"]) > MAX_MINER_UPSTREAM_CANDIDATES):
             raise RuntimeError("Resource Miner returned an unexpected public snapshot schema")
 
         def count(name: str) -> int:
@@ -270,7 +272,10 @@ class HumanAIOSBridge:
                 else:
                     raise RuntimeError("Resource Miner provided malformed candidate metadata")
             item["source_verification"] = "UPSTREAM_SNAPSHOT_NOT_INDEPENDENTLY_VERIFIED"
-            candidates.append(item)
+            # Validate every upstream row, including those not displayed, so
+            # a hidden private-source row cannot bypass the source boundary.
+            if len(candidates) < MAX_MINER_VISIBLE_CANDIDATES:
+                candidates.append(item)
 
         # Preserve source and search coverage assertions verbatim, bounded by
         # length. Never infer current availability from a matched candidate.
@@ -281,8 +286,10 @@ class HumanAIOSBridge:
             "source_status": status_note[:120],
             "source_warning": warning[:500],
             "matched_count": matched,
-            "shown_count": shown,
-            "unshown_match_count": matched - shown,
+            "shown_count": len(candidates),
+            "upstream_shown_count": shown,
+            "unshown_match_count": matched - len(candidates),
+            "more_available": matched > len(candidates),
             "unexamined_count": unexamined,
             "receipt_sha256": receipt_sha,
             "receipt_kind": "UNAUTHENTICATED_SELECTION_DIGEST_NOT_AN_ATTESTATION",
