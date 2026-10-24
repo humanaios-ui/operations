@@ -1,13 +1,22 @@
+import hashlib
+import hmac
 import json
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 from resource_miner.miner import enrich
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements, map_to_needs, map_to_requirements
 from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_generic, stable_resource_id
-from resource_miner.planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan, validate_resource_plan
+from resource_miner.planning import (
+    load_resource_plan,
+    miner_requirements_from_plan,
+    resolve_resource_plan,
+    resolve_three_source_pilot,
+    validate_resource_plan,
+)
 from resource_miner.reconcile import apply_receipt, reconcile_rows, validate_receipt
 from resource_miner.routing import route_candidate
 from resource_miner.sources import funding_pipeline
@@ -15,6 +24,53 @@ from resource_miner.sources.rss import FeedRejected, MAX_FEED_BYTES, _parse_feed
 from resource_miner.store import dedupe
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def three_source_pilot(**changes):
+    pilot = {
+        "pilot_id": "TSP-INTENT-RM-001",
+        "authority_effect": "NONE",
+        "drive_document": {
+            "source_id": "DRIVE-PRIVATE-EMPIRICA-MAP",
+            "source_locator": "https://drive.google.com/file/d/private-source-id/view",
+            "source_revision": "modified:2026-09-06T20:25:47Z",
+            "observed_at": "2026-10-17T20:08:33Z",
+            "privacy_class": "PRIVATE",
+        },
+        "empirica_finding": {
+            "finding_id": "EMP-RM-20260905",
+            "source_id": "DRIVE-PRIVATE-EMPIRICA-MAP",
+            "claim_kind": "CAPABILITY_NOT_STARTED",
+            "statement": "Resource Miner was IDLE and not started.",
+            "as_of": "2026-09-05T00:00:00Z",
+            "epistemic_state": "OBSERVED",
+        },
+        "repository_capability": {
+            "capability_id": "INTENT-OS-RESOURCE-MINER",
+            "label": "Merged read-only INTENT-OS to Resource Miner discovery path",
+            "source_url": "https://github.com/humanaios-ui/operations/pull/822",
+            "source_revision": "c8e95d119bff12a69745d8128b981c9f554fce9f",
+            "observed_at": "2026-10-17T09:12:50Z",
+            "implementation_state": "MERGED",
+            "deployment_state": "UNVERIFIED",
+        },
+        "next_test": {
+            "objective": "Verify the deployed INTENT-OS to Resource Miner path.",
+            "steps": [
+                "Open the deployed /intent-os route.",
+                "Submit: Find compute credits for AI research.",
+                "Inspect the response and official source link without changing state.",
+            ],
+            "success_conditions": [
+                "The route returns a usable result or an explicit bounded failure.",
+                "Any candidate preserves eligibility NOT_ASSESSED and authority NONE.",
+                "The deployed revision is recorded in the observation receipt.",
+            ],
+            "side_effects": "NONE",
+        },
+    }
+    pilot.update(changes)
+    return pilot
 
 
 class ResourceMinerTests(unittest.TestCase):
@@ -226,6 +282,113 @@ class ResourceMinerTests(unittest.TestCase):
         broken["authority_effect"] = "AUTHORIZE"
         with self.assertRaises(ValueError):
             validate_resource_plan(broken)
+
+    def test_three_source_pilot_marks_old_not_started_claim_superseded_in_part(self):
+        result = resolve_three_source_pilot(three_source_pilot())
+        self.assertEqual(result["resolution"], "SUPERSEDED_IN_PART")
+        self.assertEqual(result["what_we_already_have"][0]["implementation_state"], "MERGED")
+        self.assertEqual(result["what_needs_proof"][0]["epistemic_state"], "UNVERIFIED")
+        self.assertEqual(result["authority_effect"], "NONE")
+        self.assertEqual(result["execution"], "DISABLED")
+
+    def test_three_source_pilot_redacts_private_drive_source_and_statement(self):
+        pilot = three_source_pilot()
+        pilot["empirica_finding"]["statement"] = "Resource Miner était inactif — 未開始."
+        result = resolve_three_source_pilot(pilot)
+        encoded = json.dumps(result, ensure_ascii=False)
+        self.assertNotIn(pilot["drive_document"]["source_id"], encoded)
+        self.assertNotIn(pilot["drive_document"]["source_locator"], encoded)
+        self.assertNotIn(pilot["empirica_finding"]["statement"], encoded)
+        self.assertEqual(result["selected_source"]["source_locator"], "REDACTED_PRIVATE_SOURCE")
+        self.assertTrue(result["selected_source"]["source_ref"].startswith("PRIVATE-SOURCE-SHA256:"))
+        self.assertFalse(result["selected_source"]["source_content_included"])
+        self.assertFalse(result["empirica_finding"]["statement_included"])
+
+    def test_three_source_pilot_private_reference_uses_local_hmac_key(self):
+        pilot = three_source_pilot()
+        drive = pilot["drive_document"]
+        message = f"{drive['source_id']}|{drive['source_revision']}".encode("utf-8")
+        references = []
+        for key in (b"a" * 32, b"b" * 32):
+            with self.subTest(key=key), patch("resource_miner.planning._PRIVATE_SOURCE_KEY", key):
+                result = resolve_three_source_pilot(pilot)
+                expected = "PRIVATE-SOURCE-SHA256:" + hmac.new(key, message, hashlib.sha256).hexdigest()
+                self.assertEqual(result["selected_source"]["source_ref"], expected)
+                self.assertNotIn(key.decode("ascii"), json.dumps(result))
+                references.append(expected)
+        self.assertNotEqual(*references)
+
+    def test_three_source_pilot_preserves_public_source(self):
+        pilot = three_source_pilot()
+        drive = pilot["drive_document"]
+        drive["privacy_class"] = "PUBLIC_SAFE"
+        result = resolve_three_source_pilot(pilot)
+        self.assertEqual(result["selected_source"]["source_ref"], drive["source_id"])
+        self.assertEqual(result["selected_source"]["source_locator"], drive["source_locator"])
+
+    def test_three_source_pilot_receipt_is_deterministic(self):
+        first = resolve_three_source_pilot(three_source_pilot())["receipt_sha256"]
+        second = resolve_three_source_pilot(three_source_pilot())["receipt_sha256"]
+        self.assertEqual(first, second)
+
+    def test_three_source_pilot_cannot_inject_authority_or_external_action(self):
+        pilot = three_source_pilot(authority_effect="Z2")
+        with self.assertRaisesRegex(ValueError, "cannot grant authority"):
+            resolve_three_source_pilot(pilot)
+        pilot = three_source_pilot()
+        pilot["next_test"]["side_effects"] = "DEPLOY"
+        with self.assertRaisesRegex(ValueError, "must be read-only"):
+            resolve_three_source_pilot(pilot)
+
+    def test_three_source_pilot_requires_exact_drive_lineage(self):
+        pilot = three_source_pilot()
+        pilot["empirica_finding"]["source_id"] = "DRIVE-OTHER"
+        with self.assertRaisesRegex(ValueError, "selected Drive source"):
+            resolve_three_source_pilot(pilot)
+
+    def test_three_source_pilot_rejects_invalid_source_provenance(self):
+        cases = [
+            ("repository_capability", "source_url", "https://example.com/repo", "repository source_url"),
+            ("repository_capability", "source_revision", "c8e95d1", "repository source_revision must be a full commit SHA"),
+            ("drive_document", "observed_at", "2026-10-17T20:08:33", r"drive_document\.observed_at requires a timezone-aware timestamp"),
+        ]
+        for section, field, value, error in cases:
+            with self.subTest(field=f"{section}.{field}"):
+                pilot = three_source_pilot()
+                pilot[section][field] = value
+                with self.assertRaisesRegex(ValueError, error):
+                    resolve_three_source_pilot(pilot)
+
+    def test_three_source_pilot_only_merged_capabilities_are_available(self):
+        for implementation in ("MERGED", "PROPOSED", "NOT_STARTED"):
+            with self.subTest(implementation=implementation):
+                pilot = three_source_pilot()
+                capability = pilot["repository_capability"]
+                capability["implementation_state"] = implementation
+                result = resolve_three_source_pilot(pilot)
+                projection = {
+                    "capability_id": capability["capability_id"],
+                    "label": capability["label"],
+                    "epistemic_state": "OBSERVED",
+                    "implementation_state": implementation,
+                    "source_ref": f"{capability['source_url']}@{capability['source_revision']}",
+                }
+                if implementation == "MERGED":
+                    self.assertEqual(result["what_we_already_have"], [projection])
+                    self.assertNotIn(projection, result["what_needs_proof"])
+                else:
+                    self.assertEqual(result["what_we_already_have"], [])
+                    self.assertIn(projection, result["what_needs_proof"])
+
+    def test_observed_live_capability_contradicts_not_started_claim(self):
+        pilot = three_source_pilot()
+        pilot["repository_capability"]["deployment_state"] = "OBSERVED_LIVE"
+        result = resolve_three_source_pilot(pilot)
+        self.assertEqual(result["resolution"], "CONTRADICTED")
+        self.assertEqual(result["what_needs_proof"], [{
+            "claim": "Successful human use",
+            "epistemic_state": "UNVERIFIED",
+        }])
 
     def test_primary_currentness_closes_candidate_durably(self):
         row = {
