@@ -67,7 +67,7 @@ class IndependentReadbackTests(unittest.TestCase):
         # Challenge overlay can expand independently, without editing GitHub or the broker.
         self.c.append({'event_id':'CHAL-PR987-03','claim_id':'AGENT_BEHAVIOR_INDEPENDENTLY_VALIDATED',
                        'action':'CHALLENGE','reason_code':'NO_AGENT_RUNTIME_WITNESS',
-                       'evidence_url':self.r['pr']['source_url'],'observed_at':self.r['observed_at']})
+                       'evidence_url':self.r['pr']['source_url'],'observed_at':'2026-10-23T18:46:30-05:00'})
         second=self.run_qualification()
         self.assertNotEqual(first['correction_chain_sha256'], second['correction_chain_sha256'])
         self.assertEqual(raw_before,(ib.digest(self.s),ib.digest(self.b),ib.digest(self.r)))
@@ -125,6 +125,23 @@ class IndependentReadbackTests(unittest.TestCase):
     def test_replay_challenge_event_rejected(self):
         self.c[1]['event_id']=self.c[0]['event_id']
         with self.assertRaisesRegex(ValueError,'duplicate'):
+            self.run_qualification()
+
+    def test_backdated_independent_readback_rejected(self):
+        # Independent fetch cannot precede the frozen source snapshot in this experiment.
+        self.r['observed_at'] = '2026-10-22T18:46:00-05:00'
+        with self.assertRaisesRegex(ValueError, 'readback predates'):
+            self.run_qualification()
+
+    def test_backdated_challenge_rejected(self):
+        # A challenge cannot be presented as a response before evidence was observed.
+        self.c[0]['observed_at'] = '2026-10-22T18:46:00-05:00'
+        with self.assertRaisesRegex(ValueError, 'challenge predates'):
+            self.run_qualification()
+
+    def test_challenge_sequence_cannot_go_backwards(self):
+        self.c[1]['observed_at'] = '2026-10-23T18:46:01-05:00'
+        with self.assertRaisesRegex(ValueError, 'challenge sequence'):
             self.run_qualification()
 
     def test_forged_prior_hash_not_allowed_in_input(self):
