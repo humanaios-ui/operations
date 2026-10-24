@@ -59,7 +59,7 @@ class TokenTests(unittest.TestCase):
         asyncio.run(gate({"type": "websocket"}, lambda: None, lambda _event: None))
         self.assertFalse(calls)
 
-    def test_stdio_server_tools_are_three_read_only_functions(self):
+    def test_stdio_server_tools_are_five_nonexecuting_functions(self):
         # Fake SDK only; does not pretend to prove real SDK wire compatibility.
         class FakeMCP:
             def __init__(self, name, instructions=""):
@@ -74,7 +74,7 @@ class TokenTests(unittest.TestCase):
         server.MCPServer = FakeMCP
         with patch.dict(sys.modules, {"mcp": sdk, "mcp.server": server}):
             result = create_server(types.SimpleNamespace(status=lambda: {}, read_document=lambda *_: {}, talk=lambda *_: {}))
-        self.assertEqual(result.names, ["haios_status", "haios_read_document", "haios_talk"])
+        self.assertEqual(result.names, ["haios_status", "haios_read_document", "haios_self_model", "haios_find_resources", "haios_talk"])
 
 
 if __name__ == "__main__":
