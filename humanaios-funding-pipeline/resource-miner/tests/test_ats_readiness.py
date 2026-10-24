@@ -35,6 +35,18 @@ class ATSReadinessTests(unittest.TestCase):
         self.assertTrue(any(o["observation"] == "ROLE_NOT_LISTED_AT_LEVER_ENDPOINT"
                             for o in row["source_observations"]))
 
+    def test_single_official_source_failure_cannot_invent_user_report(self):
+        case = dict(PUBLIC_CASE)
+        case["source_observations"] = [{
+            "kind": "OFFICIAL_SITE_OBSERVATION",
+            "observation": "SOURCE_UNAVAILABLE",
+        }]
+        result = project_application_readiness(case)
+        self.assertIn("SOURCE_UNAVAILABLE", result["reason"])
+        self.assertNotIn("later user report", result["reason"])
+        self.assertNotIn("broken job link", result["reason"])
+        self.assertEqual(result["role_closed"], "NOT_ESTABLISHED")
+
     def test_no_private_data_echo_even_if_case_has_injected_fields(self):
         case = dict(PUBLIC_CASE)
         case["resume"] = "SECRET PRIVATE CV"
@@ -155,6 +167,10 @@ class ATSSearchTransportTests(unittest.TestCase):
             handler.do_POST()
             self.assertEqual(responses[0][0], 200)
             self.assertNotIn(PUBLIC_CASE["source_url"], json.dumps(responses[0][1]))
+            self.assertFalse(any(
+                "Convergent Research Program Launch Manager" in row["title"]
+                for row in responses[0][1]["candidates"]
+            ))
 
 
 if __name__ == "__main__":
