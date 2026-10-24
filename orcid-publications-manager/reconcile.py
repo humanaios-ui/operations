@@ -39,7 +39,7 @@ def load_research(research_root):
     reg = Path(research_root) / "registry" / "publications.json"
     if not reg.is_file():
         return [], f"{reg} not found (research registry not on this checkout)"
-    pubs = json.loads(reg.read_text()).get("publications") or []
+    pubs = json.loads(reg.read_text(encoding="utf-8")).get("publications") or []
     return pubs, None
 
 
@@ -54,6 +54,7 @@ def reconcile(records, pubs):
             by_title.setdefault(key, []).append(p)
 
     matched, orcid_only, used = [], [], set()
+    assigned = {}  # id(registry entry) -> first ORCID work_id matched to it
     for r in records:
         cands, how = [], None
         for doi in r["self_dois"]:
@@ -75,6 +76,10 @@ def reconcile(records, pubs):
         if len(cands) > 1:
             diffs.append("ambiguous: matches registry entries "
                          f"{[p.get('release_tag') for p in cands]}")
+        if id(pub) in assigned:
+            diffs.append(f"duplicate: registry entry {pub.get('release_tag')} matched by "
+                         f"multiple ORCID groups (also {assigned[id(pub)]})")
+        assigned.setdefault(id(pub), r["work_id"])
         pub_doi = ow.normalize_doi(pub.get("doi"))
         if pub_doi not in r["self_dois"] and (pub_doi or r["self_dois"]):
             diffs.append(f"doi: orcid={r['self_dois'] or None} research={pub_doi}")
@@ -93,10 +98,16 @@ def reconcile(records, pubs):
             "research_only": research_only, "mismatches": mismatches}
 
 
+def md_cell(value):
+    """One Markdown table cell: single line, no column breaks."""
+    return " ".join(str(value).split()).replace("|", "\\|")
+
+
 def render_md(report):
     s = report["summary"]
     lines = ["# ORCID reconciliation report", "",
-             f"- ORCID: `{report['researcher_orcid']}`, fetched {report['fetched_at']}",
+             f"- ORCID: `{report['researcher_orcid']}`, fetched "
+             f"{report['fetched_at'] or 'unknown (offline file)'}",
              f"- ORCID response sha256: `{report['source_sha256']}`",
              f"- Research registry: {report['research_note'] or 'loaded'}",
              f"- Works on ORCID: {s['orcid_works']} · matched: {s['matched']} · "
@@ -113,8 +124,9 @@ def render_md(report):
             continue
         lines += ["| Title | DOI | Date | Notes |", "|:--|:--|:--|:--|"]
         for r in rows:
-            lines.append(f"| {(r.get('title') or '').replace('|', '/')} | {r.get('doi') or '—'} "
-                         f"| {r.get('date') or '—'} | {'; '.join(r['differences'])} |")
+            cells = (r.get("title") or "", r.get("doi") or "—", r.get("date") or "—",
+                     "; ".join(r["differences"]))
+            lines.append("| " + " | ".join(md_cell(c) for c in cells) + " |")
         lines.append("")
     return "\n".join(lines)
 
@@ -130,12 +142,13 @@ def main(argv=None):
     ap.add_argument("--fail-on-diff", action="store_true")
     args = ap.parse_args(argv)
 
-    fetched_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     if args.fetch:
         from utils.orcid_client import OrcidClient
         raw = OrcidClient(args.orcid).get_works_raw()
+        fetched_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     else:
         raw = Path(args.works_json).read_bytes()
+        fetched_at = None  # the file's fetch time is not known
     records = ow.normalize_works(json.loads(raw), args.orcid, fetched_at, raw)
 
     pubs, note = load_research(args.research)
@@ -151,9 +164,10 @@ def main(argv=None):
     }
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "orcid_works.json").write_text(json.dumps(records, indent=2, sort_keys=True) + "\n")
-    (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-    (out / "report.md").write_text(render_md(report) + "\n")
+    for name, text in (("orcid_works.json", json.dumps(records, indent=2, sort_keys=True)),
+                       ("report.json", json.dumps(report, indent=2, sort_keys=True)),
+                       ("report.md", render_md(report))):
+        (out / name).write_text(text + "\n", encoding="utf-8")
 
     n_diff = sum(len(result[k]) for k in ("orcid_only", "research_only", "mismatches"))
     print(f"{len(records)} ORCID works; {n_diff} difference(s); report in {out}")

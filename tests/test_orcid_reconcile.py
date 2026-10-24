@@ -193,6 +193,32 @@ class ReviewRegressionTest(unittest.TestCase):
         self.assertTrue(any(d.startswith("ambiguous") for d in m["differences"]))
         self.assertEqual(res["research_only"], [])
 
+    def test_registry_entry_claimed_by_two_groups_is_flagged(self):
+        recs = ow.normalize_works({"group": [
+            {"work-summary": [summary(1, "Preprint", "2025", ids=[ext("10.7777/same")])]},
+            {"work-summary": [summary(2, "Published", "2026", ids=[ext("10.7777/same")])]}]},
+            ORCID, AT)
+        res = reconcile.reconcile(recs, [
+            {"release_tag": "paper-x-v1.0.0", "title": "Published", "doi": "10.7777/same"}])
+        self.assertEqual(len(res["matched"]), 2)
+        dup = [m for m in res["mismatches"]
+               if any(d.startswith("duplicate: registry entry paper-x-v1.0.0") for d in m["differences"])]
+        self.assertEqual(len(dup), 1)
+
+    def test_markdown_cells_cannot_break_the_table(self):
+        self.assertEqual(reconcile.md_cell("a | b\nc"), "a \\| b c")
+        recs = ow.normalize_works({"group": [{"work-summary": [summary(1, "x", "2026")]}]},
+                                  ORCID, AT)
+        res = reconcile.reconcile(recs, [{"release_tag": "t", "title": "A | B\nC"}])
+        report = {"researcher_orcid": ORCID, "fetched_at": None, "source_sha256": "0",
+                  "research_note": None, "summary": {"orcid_works": 1, **{k: len(v) for k, v in res.items()}},
+                  **res}
+        md = reconcile.render_md(report)
+        self.assertIn("unknown (offline file)", md)
+        for line in md.splitlines():
+            if line.startswith("| ") and "A " in line:
+                self.assertEqual(line.count(" | "), 3)  # four cells, no injected column
+
     def test_empty_profile_still_records_source_hash(self):
         import hashlib
         tmp = Path(tempfile.mkdtemp())
@@ -204,12 +230,12 @@ class ReviewRegressionTest(unittest.TestCase):
 
 
 class CliTest(unittest.TestCase):
-    def run_cli(self, research, *extra):
+    def run_cli(self, research, *extra, works=FIXTURE):
         tmp = Path(tempfile.mkdtemp())
-        works = tmp / "works.json"
-        works.write_text(json.dumps(FIXTURE))
+        works_file = tmp / "works.json"
+        works_file.write_text(json.dumps(works))
         out = tmp / "out"
-        argv = ["--works-json", str(works), "--out", str(out), *extra]
+        argv = ["--works-json", str(works_file), "--out", str(out), *extra]
         if research is not None:
             root = tmp / "research"
             (root / "registry").mkdir(parents=True)
@@ -234,6 +260,18 @@ class CliTest(unittest.TestCase):
     def test_fail_on_diff_only_when_differences(self):
         rc, _ = self.run_cli(RESEARCH, "--fail-on-diff")
         self.assertEqual(rc, 1)
+
+    def test_fail_on_diff_is_quiet_when_everything_matches(self):
+        works = {"group": [FIXTURE["group"][0]]}
+        research = {"publications": [RESEARCH["publications"][0]]}
+        rc, out = self.run_cli(research, "--fail-on-diff", works=works)
+        self.assertEqual(rc, 0)
+        self.assertEqual(json.loads((out / "report.json").read_text())["summary"]["mismatches"], 0)
+
+    def test_offline_file_has_no_fetch_time(self):
+        _, out = self.run_cli(RESEARCH)
+        self.assertIsNone(json.loads((out / "report.json").read_text())["fetched_at"])
+        self.assertIn("unknown (offline file)", (out / "report.md").read_text(encoding="utf-8"))
 
 
 @unittest.skipUnless(importlib.util.find_spec("requests"), "requests not installed")
@@ -309,7 +347,7 @@ class ClientRetryTest(unittest.TestCase):
 @unittest.skipUnless(importlib.util.find_spec("bibtexparser") and importlib.util.find_spec("rich"),
                      "bibtexparser/rich not installed")
 class BibtexTest(unittest.TestCase):
-    def test_falls_back_to_group_self_doi(self):
+    def test_falls_back_to_the_chosen_summarys_self_doi_only(self):
         import export_bibtex
         detail = {"put-code": 1, "type": "journal-article",
                   "title": {"title": {"value": "T"}},
@@ -317,6 +355,10 @@ class BibtexTest(unittest.TestCase):
         entry = export_bibtex.work_to_bibtex_entry(detail, ["10.5555/dup.1"])
         self.assertEqual(entry["doi"], "10.5555/dup.1")
         self.assertNotIn("doi", export_bibtex.work_to_bibtex_entry(detail))
+        # main() passes the summary's own DOIs, never another version's from the group
+        src = (PKG / "export_bibtex.py").read_text(encoding="utf-8")
+        self.assertIn('ow.self_dois(summary.get("external-ids"))', src)
+        self.assertNotIn("group_self_dois", src)
 
 
 if __name__ == "__main__":
