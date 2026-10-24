@@ -1,8 +1,8 @@
 version: 1
-generated: '2026-10-14'
+generated: '2026-10-24'
 decision_window_days: 2
 counts:
-  candidates: 114
+  candidates: 115
   records: 64
 ratifiers:
 - Night
