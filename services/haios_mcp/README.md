@@ -1,8 +1,16 @@
-# HumanAIOS MCP Service v0.1.1 — local, bounded, read-only
+# HumanAIOS MCP Service v0.2.0 — Witness Z1 candidate, bounded and read-only
 
 This is an **installable MCP adapter** for the existing HumanAIOS **Unit Zero** Claude-based terminal agent (`tools/haios_cli.py`). It uses the same **HumanAIOS operations checkout** as its context source but does **not** execute the legacy CLI, run arbitrary commands, grant governance authority, or provide agent tools for writing to GitHub.
 
 **State:** proposed software; unit tests are offline/synthetic. Deployment and external ChatGPT connection are **not verified**. The bridge is not a full Witness, persistent user-data plane, agent orchestrator, or general-purpose remote AI gateway.
+
+## What v0.2 means by "Witness"
+
+The intended transfer is **Unit Zero's conversational Witness role and bounded self-model**, not migration of Claude model state, consciousness, or old chat history. HumanAIOS-as-organism is a design metaphor; subjective awareness is **NOT_ESTABLISHED**. The local context files are *manually copied snapshots* and not live synchronized GitHub state. The Phase-0 Witness service obligations are authoritative for research interpretation; no production consent/data plane is authorized. See [`WITNESS_INTEGRATION_V0_2.md`](WITNESS_INTEGRATION_V0_2.md).
+
+The Anthropic Messages API now uses **streaming** after the operator verified that a full-context nonstreaming request raised `ReadError` while a streamed request succeeded on the Mac. This code has **not** yet been installed or exercised through a live MCP call. A response SHA-256 is an unsigned content digest, not an attestation.
+
+**Resource Miner adapter:** Optional, disabled by default. Set `HAIOS_RESOURCE_MINER_ORIGIN=http://127.0.0.1:8766` **only after running and verifying a compatible public Resource Miner listener on that port**, then restart the LaunchAgent to load that nonsecret environment setting. Do not add private objectives, applicant identifiers or credentials to this public query. The tool issues snapshot-only public candidate queries; it will never run scans, private HackerOne API discovery or grant eligibility evaluation. Never expose the local listener publicly. No manual credential placement in plists is required.
 
 ## Tools
 
@@ -10,7 +18,9 @@ This is an **installable MCP adapter** for the existing HumanAIOS **Unit Zero** 
 |---|---|---|
 | `haios_status` | Show local public file presence/hashes and configuration | No API/network call |
 | `haios_read_document` | Read one of 7 explicitly allowed public governance files | No arbitrary paths; 16,000-character max; SHA-256 and truncation |
-| `haios_talk` | Ask Claude using 3 named, bounded source files | No tool execution; model output, not canonical evidence |
+| `haios_talk` | Stream Claude using 3 named, bounded source files | No tool execution; model output, not canonical evidence |
+| `haios_self_model` | Report operational self-description, source availability and explicit limits | No sentience/personhood/authority claim |
+| `haios_find_resources` | Opt-in local public Resource Miner snapshot lookup | Explicit objective, no private sources/eligibility/scanning |
 
 `haios_talk` returns an opaque `session_id` for later turns. At most 8 sessions are held **in process memory only**, with 30-minute idle expiry. Process restart clears them. No user identity, account separation, durable memory, database, analytics, or audit-log mechanism is claimed. Treat it as a **single-operator pilot**; do not make it public.
 
