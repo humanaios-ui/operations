@@ -870,7 +870,7 @@ candidates:
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
 - q_id: Q-PR956-GOVERNANCE-ADMISSION-01
-  title: Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff)
+  title: "Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff)"
   path: z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md
   submitted: '2026-10-24'
   status: awaiting_z2
