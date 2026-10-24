@@ -4,6 +4,8 @@ name: vulnops-read-only-intake
 # The job fails before its first external feed request unless a separately
 # issued, cryptographically marked receipt attests that controls 1–4 operate.
 # This workflow only emits an artifact. It cannot authorize or execute action.
+# temporal_class: TECHNICAL_SAFETY
+# Polling bounds public-feed staleness; elapsed time never grants authority.
 
 on:
   workflow_dispatch:

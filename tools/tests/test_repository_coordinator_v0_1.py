@@ -1867,7 +1867,7 @@ def test_pr_comment_workflow_requires_mutated_state_receipt_and_never_merges():
     assert "Detect trusted-main reconciliation support" in workflow
     assert "steps.reconcile_support.outputs.supported == 'true'" in workflow
     assert "needs: reconcile_active_prs" in workflow
-    assert "github.event_name == 'schedule'" in workflow
+    assert "github.event_name == 'pull_request_target'" in workflow
     assert "github.event.issue.pull_request != null" in workflow
     assert "github.event.issue.pull_request" in workflow
     assert "pr-comment-command" in workflow
