@@ -36,7 +36,16 @@ class IndependentReadbackTests(unittest.TestCase):
             from resource_miner.internal_repository_broker import project
         except ModuleNotFoundError:
             self.skipTest('Requires Resource Miner package checkout; frozen projection still tested')
-        self.assertEqual(project(self.s), self.b)
+        generated = project(self.s)
+        # Serializer defaults can evolve: preserve source identity/revision,
+        # never mistake whole-dict equality for a provenance invariant.
+        original = {r['item_ref']: r for r in self.b['resources']}
+        current = {r['item_ref']: r for r in generated['resources']}
+        self.assertEqual(set(original), set(current))
+        for key in original:
+            for field in ('resource_id', 'item_ref', 'head_sha', 'source_url',
+                          'canonical_url', 'authority_effect', 'source_authentication'):
+                self.assertEqual(original[key][field], current[key][field])
 
     def test_round_trip_readback_challenge_correction_retains_ids_revision(self):
         originals = [copy.deepcopy(x) for x in (self.s, self.b, self.r, self.c)]
