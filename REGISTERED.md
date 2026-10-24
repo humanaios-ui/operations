@@ -5845,3 +5845,38 @@ superseded_by: null
 - Original PR Decision: `Z2_REVIEW_PR465_COMPARISON.md`
 - Engine Code: `comparison_engine.py` (commit 0585135)
 
+
+-----
+
+## ADMISSION PENDING: Q-PR956-GOVERNANCE-ADMISSION-01
+
+---
+id: "ADM-01"
+name: "q-pr956-governance-admission"
+status: PENDING_ZONE2
+class: ADMISSION
+date_registered: "2026-10-24"
+date_origin: "2026-10-24"
+session_registered: "S-102426-01-pr956-governance"
+principles_triggered: ["Governance", "Admission Routing"]
+substrate: "Repository Coordinator v1.1"
+tags: ["admission", "governance", "documentation", "M009"]
+falsifier: "If admission is granted and PR #956 merges successfully, the admission record is confirmed by the coordinator ledger; if PR #956 fails to merge or is reverted, the falsifier trips and an IC candidate should be filed."
+---
+
+**Type:** Admission Request (Governance Documentation)  
+**PR:** humanaios-ui/operations#956 (fix/m009-governance-records)  
+**Title:** Docs: M009 governance records — PR #630 audit, remediation, and execution handoff  
+
+**Content Summary:** Governance documentation work split from PR #906. Includes security audit evidence (12 challenges from PR #630), warrant synthesis, remediation proposals, and Z3 execution cycle handoff. 8 files, 1458 additions.
+
+**Classification:** Non-maintenance, non-policy documentation. No control-plane changes. No Z2 policy ratification needed for content, but **working-set admission required** per repository coordinator policy.
+
+**Reason for Admission Request:** Repository coordinator gate failed on PR #956 with reason: "ready non-maintenance work has no explicit admission record" (decision receipt RCD-D4200E30F523D237, 2026-10-24T11:01:18Z).
+
+**Authority Effect:** ADMISSION_ROUTING_ONLY (decides working-set standing; no code approval or merge authority)  
+**Merge Authority:** false  
+
+**Z2 Decision Required:** ACCEPT / EDIT / REJECT within 48 hours  
+**Evidence:** z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md
+
