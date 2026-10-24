@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 114
+  candidates: 115
   records: 64
 ratifiers:
 - Night
 candidates:
+- q_id: Q-ZONE-Z011-RESEARCH-CAP-01
+  title: Proposal — change Z-011 (research) from READ-ONLY to LIMITED cap (publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record)
+  path: z1-inbox/2026-10-24/Q-ZONE-Z011-RESEARCH-CAP-01.md
+  submitted: '2026-10-24'
+  status: awaiting_z2
+  tier: 1
+  note: Regularizes or reverses the in-chat "Night unlocks research" instruction behind draft research PR #6. Exact ZONE_REGISTRY.md edit is in the candidate for Z2 to apply on ACCEPT; no registry row changed here. Falsifier stated under "## Falsifier". No publish authority granted.
 - q_id: Q-PRINCIPLES-CROSSWALK-01
   title: Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4
   path: z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md
