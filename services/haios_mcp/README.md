@@ -1,4 +1,4 @@
-# HumanAIOS MCP Service v0.1 — local, bounded, read-only
+# HumanAIOS MCP Service v0.1.1 — local, bounded, read-only
 
 This is an **installable MCP adapter** for the existing HumanAIOS **Unit Zero** Claude-based terminal agent (`tools/haios_cli.py`). It uses the same **HumanAIOS operations checkout** as its context source but does **not** execute the legacy CLI, run arbitrary commands, grant governance authority, or provide agent tools for writing to GitHub.
 
@@ -14,12 +14,16 @@ This is an **installable MCP adapter** for the existing HumanAIOS **Unit Zero** 
 
 `haios_talk` returns an opaque `session_id` for later turns. At most 8 sessions are held **in process memory only**, with 30-minute idle expiry. Process restart clears them. No user identity, account separation, durable memory, database, analytics, or audit-log mechanism is claimed. Treat it as a **single-operator pilot**; do not make it public.
 
-The documents transmitted to Anthropic when you invoke `haios_talk` are `START_HERE.md`, `CURRENT.md`, and `GOVERNANCE.md` (at most 6,000 characters each). The response reports exactly what was included and whether each document was clipped; it does not silently claim every repository file is loaded. Other documents can be read by explicitly calling `haios_read_document`, but are not transmitted to Anthropic by that read.
+The documents transmitted to Anthropic when you invoke `haios_talk` are `CURRENT.md`, `REGISTERED.md`, and `GOVERNANCE.md` (at most 6,000 characters each). The response reports exactly what was included and whether each document was clipped; it does not silently claim every repository file is loaded. Other documents can be read by explicitly calling `haios_read_document`, but are not transmitted to Anthropic by that read.
+
+## Repair note (v0.1.1)
+
+The previous installer accidentally required `START_HERE.md`, which may be absent from a valid operations checkout. The service and installer now require the canonical `CURRENT.md` and `REGISTERED.md` pair instead. Failed installs that exited at the usage message did not write credentials or create a LaunchAgent.
 
 ## Requirements
 
 - Python 3.10+ and internet access to Anthropic API when calling `haios_talk`.
-- An existing operations checkout with `START_HERE.md`.
+- An existing operations checkout containing `CURRENT.md` and `REGISTERED.md` as regular files. `START_HERE.md` is optional.
 - Anthropic API key held **locally**, never in the repository.
 - Python MCP v2 and Anthropic SDK (installed with this package). `mcp>=2.2,<3` matches the operations repository's declared SDK major; consult `tools/requirements.txt` before a future upgrade.
 
@@ -46,7 +50,7 @@ STDIO mode is designed to be **launched by an MCP client**, not chatted with man
 A loopback-only HTTP service is also provided for user-owned, on-login operation:
 
 ```sh
-cd services/haios_mcp
+# Run from the unpacked package, e.g. ~/Downloads/haios-mcp-service
 bash scripts/install_macos.sh "$HOME/Desktop/HAIOS-Main/operations-staging"
 ```
 
@@ -75,9 +79,9 @@ Official documentation: https://developers.openai.com/api/docs/guides/secure-mcp
 For a stdio tunnel, configure the **Keychain-backed launcher** (if installed through the macOS installer):
 
 ```sh
-/bin/bash /ABSOLUTE/PATH/operations-staging/services/haios_mcp/scripts/launch_stdio_macos.sh \
+/bin/bash /ABSOLUTE/PATH/haios-mcp-service/scripts/launch_stdio_macos.sh \
   /ABSOLUTE/PATH/operations-staging \
-  /ABSOLUTE/PATH/operations-staging/services/haios_mcp
+  /ABSOLUTE/PATH/haios-mcp-service
 ```
 
 This launcher reads `ANTHROPIC_API_KEY` from the user login Keychain and provides it only to the child process. Run it only as that user, with an unlocked Keychain. Other platforms may use an equivalent secret-manager mechanism. No tokens in command strings, printed output, or GitHub. Install/test the official tunnel client, associate it with the correct Platform organization and ChatGPT workspace, and add it through **ChatGPT Plugins → Add custom MCP server → Tunnel**. Access depends on your ChatGPT account/workspace and tunnel permissions; no tunnel is created by this package.
