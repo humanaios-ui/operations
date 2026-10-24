@@ -1,0 +1,27 @@
+name: ORCID reconcile tests
+on:
+  pull_request:
+    paths:
+      - 'orcid-publications-manager/**'
+      - 'tests/test_orcid_reconcile.py'
+      - '.github/workflows/orcid-reconcile-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'orcid-publications-manager/**'
+      - 'tests/test_orcid_reconcile.py'
+      - '.github/workflows/orcid-reconcile-tests.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      # Full requirements, so the BibTeX exporter test runs instead of skipping.
+      - run: python3 -m pip install -r orcid-publications-manager/requirements.txt
+      # Fixtures only: the tests never call pub.orcid.org.
+      - run: python3 -m unittest discover -s tests -p test_orcid_reconcile.py -v
