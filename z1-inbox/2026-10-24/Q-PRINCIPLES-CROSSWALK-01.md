@@ -48,6 +48,14 @@ Not drafted here. Waits on #559 option C (sortition panel). Adding a process now
 Flip condition: "if #559 already covers holes 1, 2, 4, add nothing."
 Result: #559 covers hole 1 (in design form) and part of hole 2. It does **not** cover hole 4. So amendment B is needed. Amendments A and C are needed only if #559 is not accepted as the route for them.
 
+## Falsifier
+
+This proposal is wrong if any of the following holds at Z2 read:
+
+1. A file ID in the table does not resolve to a file in the repo at the pinned base.
+2. A principle the table marks "No gap" has a counterpart that a Z2 read can name.
+3. #559 is accepted as covering hole 4 (append-only vs. deletion). Then amendment B is unneeded.
+
 ## 7. Limits
 
 - Not verified: external review's counts (26 of 29 H entries; hole numbering 1–5 mapping).
