@@ -133,6 +133,13 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(len(ids), 12)
         self.assertEqual(len(self.bridge._sessions), 8)
 
+    def test_failed_new_request_does_not_evict_full_session_pool(self):
+        ids = [self.bridge.talk("hi")["session_id"] for _ in range(8)]
+        self.api.fail = True
+        with self.assertRaises(RuntimeError):
+            self.bridge.talk("provider fails")
+        self.assertEqual(set(ids), set(self.bridge._sessions))
+
     def test_provider_failure_does_not_echo_secrets_or_save_turn(self):
         self.api.fail = True
         with self.assertRaises(RuntimeError) as e:
