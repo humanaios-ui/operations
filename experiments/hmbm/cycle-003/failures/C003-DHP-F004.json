@@ -1,0 +1,67 @@
+{
+  "FAILURE_ID": "C003-DHP-F004",
+  "SYSTEM": "HMBM-CYCLE-003 / Durable Handoff Protocol",
+  "ACTOR": "COURIER",
+  "CAPABILITY": "QUEUED -> VERIFY_ARTIFACT -> GMAIL_COMMUNICATION",
+  "AUTHORITY": "PAPER_ONLY_COURIER_COMMUNICATION_ONLY",
+  "STATE_BEFORE": "QUEUED",
+  "EXPECTED_TRANSITION": "QUEUED -> VERIFY_ARTIFACT -> GMAIL_COMMUNICATION -> COMMUNICATION_RECEIPT -> COMMUNICATED",
+  "OBSERVED_TRANSITION": "QUEUED -> VERIFY_ARTIFACT [PASS] -> ATTACHMENT_FILE_HANDLE_MATERIALIZATION [BLOCKED]",
+  "FAILURE_SURFACE": "CROSS_CONNECTOR_FILE_HANDLE_INTEROPERABILITY",
+  "EVIDENCE": {
+    "candidate_id": "C003-H01-CANDIDATE",
+    "generation_id": "C003-H01-GEN-003",
+    "predecessor_state_id": "C003-H0-ACCEPTED",
+    "commit_pinned_candidate_commit": "3fe388a911630b0f3f754fb363cf313e6c253550",
+    "verified_git_blob_sha": "57bd97fab97d8a39d984234d0b4e31f22a0d9209",
+    "verified_file_bytes_sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "verified_byte_length": 808046,
+    "record_count": 1200,
+    "due_epoch_count": 12,
+    "allocations": 0,
+    "fills": 0,
+    "portfolios_all_cash": "9/9",
+    "paper_only": true,
+    "gmail_h0_acceptance_message_id": "1a0f203665ee3326",
+    "gmail_h0_acceptance_thread_id": "1a0f2029e6954293",
+    "gmail_h0_init_valid": true,
+    "gmail_real_capital": "PROHIBITED",
+    "gmail_existing_gen003_attachment_search_results": 0
+  },
+  "PROVENANCE": {
+    "repository": "humanaios-ui/operations",
+    "pr": 597,
+    "artifact_reference": "experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/artifact-reference.json",
+    "manifest": "experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/manifest.json",
+    "queued_receipt": "experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/queued-receipt.json",
+    "byte_verification_method": "GitHub connector exact base64 object -> byte decode -> SHA-256 verification in Courier runtime; no JSON parse/reserialization",
+    "gmail_predecessor_method": "independent Gmail H0 acceptance attachment read-back"
+  },
+  "KNOWN_OMISSIONS": [
+    "No Gmail message carrying GEN-003 was sent.",
+    "No sent attachment exists to read back.",
+    "No COMMUNICATION_RECEIPT exists."
+  ],
+  "UNKNOWN_COVERAGE": [
+    "Whether another downstream runtime exposes a direct GitHub-file -> Gmail-attachment file-handle bridge."
+  ],
+  "BLAST_RADIUS": "Transport only. GEN-003 producer bytes/evidence unchanged; no email communication; no acceptance; no canonical advancement; no financial execution.",
+  "REVERSIBILITY": "Fully reversible by retrying Courier from the same immutable GEN-003 reference in a runtime that can materialize verified GitHub bytes as a Gmail attachment file handle.",
+  "CORRECTION_WARRANT": "Do not weaken byte-identity or attachment read-back requirements. Provide a connector-native reusable file reference for the commit-pinned GitHub file, or an approved byte-preserving materialization capability whose output is accepted by Gmail attachment_files.",
+  "CORRECTION": "Route the already-verified immutable GEN-003 bytes through a reusable connector file handle; then repeat pre-send hash verification, Gmail send, attachment read-back hash verification, and durable communication receipt persistence.",
+  "STATE_AFTER": "QUEUED",
+  "VERIFICATION_RECEIPT": {
+    "verify_artifact": "PASS",
+    "git_blob_match": true,
+    "byte_length_match": true,
+    "sha256_match": true,
+    "predecessor_h0_gmail_verified": true,
+    "paper_only_boundary_verified": true,
+    "gmail_send": "NOT_EXECUTED_FAIL_CLOSED",
+    "gmail_read_back": "NOT_APPLICABLE",
+    "communication_receipt": "NOT_CREATED",
+    "canonical_state": "C003-H0-ACCEPTED"
+  },
+  "RESIDUAL_UNKNOWN": "Cross-connector transport capability remains environment-dependent.",
+  "paper_only": true
+}
