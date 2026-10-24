@@ -5861,7 +5861,8 @@ session_registered: "S-102426-01-pr956-governance"
 principles_triggered: ["Governance", "Admission Routing"]
 substrate: "Repository Coordinator v1.1"
 tags: ["admission", "governance", "documentation", "M009"]
-falsifier: "If admission is granted and PR #956 merges successfully, the admission record is confirmed by the coordinator ledger; if PR #956 fails to merge or is reverted, the falsifier trips and an IC candidate should be filed."
+superseded_by: null
+falsifier: "Admission is falsified if Z2 does not register an admission record on the repository-coordinator-state branch for PR #956 within the 48-hour decision window, or if Z2 explicitly rejects the request. Once admitted, merge failures or later reverts do not invalidate the admission itself; they are separate CI/governance events."
 ---
 
 **Type:** Admission Request (Governance Documentation)  

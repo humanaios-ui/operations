@@ -5,7 +5,7 @@
 **Date Filed:** 2026-10-24  
 **Session:** Ongoing (PR #956 failured coordinator gate)  
 **Z1 Proposer:** Claude Code (Z1)  
-**Falsifier:** If admission is granted and governance records PR is merged, the admission records themselves become verifiable in the repository coordinator ledger; if the PR merge fails or is reverted, the admission record remains in place (false assumption would be that admission guarantees successful merge).
+**Falsifier:** Admission is falsified if Z2 does not register an admission record on the repository-coordinator-state branch within the 48-hour decision window, or if Z2 explicitly rejects the request. Merge failures or later reverts do not invalidate the admission decision itself; admission is a working-set routing decision independent of merge outcome.
 
 ---
 
@@ -65,4 +65,17 @@
 
 **In Scope:** Documentation, audit evidence, records, methodology  
 **Out of Scope:** Policy changes (merged separately in PR #959), code changes (in separate branches), remediation implementation (deferred to Z3 execution cycle)
+
+---
+
+## ⚠️ SCOPE DISCLOSURE: Removal of Z2-Ratified Records
+
+**CRITICAL FOR Z2 REVIEW:** PR #956 at commit e31e43908cd3 includes removals beyond documentation:
+- Removal of the proposed admission autosweep candidate bundle from REGISTERED.md
+- Removal of the October 15 serial-gate rulings record and associated ratification metadata
+- Reset of two indexed candidates from `ratified` → `awaiting_z2` status with removal of ratification metadata
+
+**Authority Issue:** These removals represent changes to Z2-recorded decisions and governance state, which fall outside the "admission-routing-only" scope and require separate Z2 disposition. The PR body omits these changes from its summary, contrary to governance transparency requirements.
+
+**Z2 Required Action:** Either (1) approve these record removals as a separate governance decision, or (2) require PR #956 to exclude them and file separate IC candidates for their disposition.
 
