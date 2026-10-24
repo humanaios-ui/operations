@@ -68,6 +68,16 @@ def create_server(bridge: HumanAIOSBridge):
         return bridge.read_document(filename, limit)
 
     @mcp.tool()
+    def haios_self_model() -> dict:
+        """Explain observed Witness identity, actual service state, and limits."""
+        return bridge.self_model()
+
+    @mcp.tool()
+    def haios_find_resources(objective: str) -> dict:
+        """Query stored PUBLIC Resource Miner leads for explicit human objective. No scans or eligibility."""
+        return bridge.find_resources(objective)
+
+    @mcp.tool()
     def haios_talk(message: str, session_id: str = "") -> dict:
         """Ask Unit Zero using bounded, source-attributed context. Reuse session_id for follow-ups."""
         return bridge.talk(message, session_id)
