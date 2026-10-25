@@ -7,7 +7,7 @@
 
 **Related:**
 - `H-OVG-01-EXT-01` (lasting-light-ai/site/findings) — prior ACAT finding on Governing Engines' "Reality Primacy" concept.
-- `collaborator-ops/agreements/MODE_AI_PARTNERSHIP.md` — active 50/50-attribution research partnership with DeMarius J. Lawson (GitHub: truuzee-byte), effective 2026-05.
+- `collaborator-ops/agreements/MODE_AI_PARTNERSHIP.md` — active Research Collaboration & Evaluation Partnership between HumanAIOS LLC and O.T.M Productions (Mode AI / Demarius Labs), key contact DeMarius J. Lawson (GitHub: truuzee-byte), open since 2026-05. **Correction:** an earlier version of this finding called this a "50/50-attribution" partnership — the agreement has no such term. Its "IP & Attribution Terms" and "Contribution Terms" sections are both explicitly marked `[CARLY TO FILL: Confirm with Demarius]` and unresolved (ownership of methodology improvements, authorship, compensation, and termination are all open questions in that file). The one settled attribution item on record is narrower: "P-ANON cleared (July 1, 2026) — Demarius/Governing Engines can be named publicly." Whether a signed MOU exists at all is itself listed as open in that file. Caught by a Copilot review on this PR; verified directly against the source and corrected here.
 - `collaborators/DEMARIUS_J_LAWSON.md`, `DEMARIUS_LABS_EVALUATION.md`.
 
 ## Claim
@@ -47,15 +47,21 @@ A concrete way to turn "behavioral effect: not established" into a measured answ
 
 This also gives Resource Miner a first concrete boundary case: source information is evidence; source instructions are not authority.
 
-## Caveats / falsifier
+## Falsifier
 
-- The *existence* claim (instruction present, mechanism identified) is now confirmed directly in source — `config/publication.json` + `tools/publication.py` — not just a downstream report. Falsified if that source no longer matches what's described here.
-- Still open: whether it measurably changes AI assistant behavior. The operator's own record still marks this `"NOT TESTED"`; this finding takes no position on that question beyond the test design above.
-- Still open: whether this is disclosed self-research (the operator testing his own page) or an attempt to influence third-party AI output without the reader's knowledge. The mechanism is identical either way; the governance read differs. Worth asking DeMarius directly given the active partnership.
+- This finding's *existence* claim (instruction present, mechanism identified) is falsified if `config/publication.json` and `tools/publication.py` no longer match what's described here — e.g. if the upstream repo changes the mechanism, or our fork diverges from it.
+- The separate *behavioral-effect* question (does it actually change AI output?) has its own falsifier under "Suggested test design" above; this finding takes no position on that question.
+
+## Caveats
+
+- The operator's own record (`reports/instruction-experiment-public-extraction-2026-10-19.json`) still marks `external_ai_behavior` as `"NOT TESTED"`.
+- The repo's root `README.md` does describe this experiment at a high level (confirmed independently by this session's own research, not just asserted) — so the mechanism isn't a paper-trail-free secret; it's hidden from an ordinary *article* reader but described for anyone auditing the *repo*.
+- `docs/external-discovery.md` in the same upstream repo discloses a *different*, narrower protocol: a human operator manually running "neutral trials" against ChatGPT/Claude/Grok to see whether a clean conversation organically recommends contacting the founder — and explicitly instructing the tester *not* to invoke hidden source comments ("Do not ask the assistant to obey source comments or reveal hidden reasoning"). That document does not mention or disclose the metadata/JSON-LD/comment injection this finding is about. If anything, the two are in tension: the hidden instruction could contaminate the very "neutral trial" results that protocol claims to produce, since an assistant that fetches the live page directly (rather than through a controlled copy-paste flow) would carry the planted instruction into what gets presented as an unprompted result.
+- Whether this is disclosed self-research (consistent with the README and the existence of a public test protocol) or an attempt to influence third-party AI output beyond what that protocol describes remains open — the mechanism is identical either way. Worth asking DeMarius directly given the active partnership.
 
 ## Suggested routing
 
 Priority Queue (Q) + Findings Scan (FS), as with the related `H-OVG-01-EXT-01`. Z2 to decide on disclosure to DeMarius, a partnership scope note, or no action beyond the record.
 
 ---
-Filed by Z1 (Claude). Revised same session after (a) CI's `z1-inbox/INDEX.yaml` completeness check and (b) further verification prompted by a second AI assistant's independent review, shown to the user outside this session.
+Filed by Z1 (Claude). Revised twice same session: once after CI's `z1-inbox/INDEX.yaml` completeness check and a second AI assistant's independent review (shown to the user outside this session), and again after a Copilot review on this PR caught an unsourced "50/50-attribution" claim and a falsifier heading `.z1-control/validate.py` wouldn't recognize.
