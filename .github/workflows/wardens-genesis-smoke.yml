@@ -33,6 +33,8 @@ jobs:
           WARDENS_FORM=Builder WARDENS_PATH=Forge node tests/test_logic.mjs
           WARDENS_FORM=Memory-Bearer WARDENS_PATH=Archive node tests/test_logic.mjs
           WARDENS_W1_OFF=1 node tests/test_logic.mjs
+      - name: Verify Solar–Tellurian fictional overlay boundaries
+        run: node tests/test_myth_static.mjs
       - name: Verify committed art assets and static HTML references
         run: |
           python - <<'PY'
@@ -50,7 +52,7 @@ jobs:
           assert len(parser.ids)==len(set(parser.ids))
           for name in ('labyrinth','face','seal','lineage','erasure'):
               art=root/'assets'/f'{name}.webp'
-              assert art.is_file() and art.read_bytes()[:4]==b'RIFF',art
+              assert art.is_file() and art.read_bytes()[:4]==b'RIFF' and art.read_bytes()[8:12]==b'WEBP',art
           for image in parser.images:
               assert (root/image).is_file(),image
           assert (root/'game.js').is_file() and (root/'styles.css').is_file()
