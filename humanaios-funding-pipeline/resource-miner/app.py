@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 
 from resource_miner.miner import enrich
 from resource_miner.intent_os import evaluate_objective
+from resource_miner.form_assistance import build_packet
 from resource_miner.opportunity_journey import project_journey
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
@@ -267,6 +268,39 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send_json({"error": "Invalid or unauthorized journey data."}, HTTPStatus.BAD_REQUEST)
             except Exception:
                 return self._send_json({"error": "Journey projection unavailable."}, HTTPStatus.SERVICE_UNAVAILABLE)
+        if urlparse(self.path).path == "/api/form-assistance/packet":
+            # Applicant facts never reach public ingress: same loopback-only gate as My Opportunities.
+            if not self._local_opportunities_allowed():
+                return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("Expected application/json.")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 12288:
+                    raise ValueError("Form assistance payload must be 1-12288 bytes.")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                allowed = {"verified", "assistance_policy", "policy_evidence_ref"}
+                if not isinstance(body, dict) or set(body) - allowed:
+                    raise ValueError("Unexpected fields.")
+                verified = body.get("verified") or {}
+                policy = body.get("assistance_policy", "UNKNOWN")
+                evidence = body.get("policy_evidence_ref", "")
+                if not isinstance(verified, dict) or not isinstance(policy, str) or not isinstance(evidence, str):
+                    raise ValueError("Invalid field types.")
+                # Read-only preview: never submits, persists, or grants authority.
+                return self._send_json({
+                    "mode": "LOCAL_USER_PROVIDED_UNVERIFIED",
+                    "packet": build_packet(verified, policy, evidence),
+                    "authority": "NONE",
+                })
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request deadline exceeded."}, HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+                return self._send_json({"error": "Invalid form assistance data."}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Form assistance unavailable."}, HTTPStatus.SERVICE_UNAVAILABLE)
+
         if urlparse(self.path).path == "/api/intent":
             try:
                 content_type = self.headers.get("Content-Type", "").lower()
