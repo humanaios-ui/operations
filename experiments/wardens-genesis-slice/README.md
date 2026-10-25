@@ -2,10 +2,14 @@
 
 A standalone, asset-backed, **local only** front-end prototype. This is not the hosted Wardens of the Craft game; it neither connects to the player identity service nor supersedes Council, Witness, Discord or Azure infrastructure.
 
+## Solar–Tellurian fictional overlay
+
+The five original zones now carry a [Cyclonopedia-inspired narrative layer](./TELLURIAN_OVERLAY.md): distant Solar light, living soil (fictional personification), the Black Corpse of the Sun as a metaphor for buried energy history, Ember/Archive/Forge as different *story* paths, and the unreached Tellurian Omega. **The overlay does not change game decisions, events, the Witness's read-only access, optional consent, local-only storage, or the Council's draft-only nature.** A missing record is not proof of deliberate erasure. No claim is made that fictional cosmology or petroleum agency is real.
+
 ## Run
 
 ```bash
-cd wardens-genesis-slice
+cd experiments/wardens-genesis-slice
 python -m http.server 8765
 # open http://127.0.0.1:8765/
 ```
@@ -19,7 +23,10 @@ No live Azure, Discord, co-op, real Council voting or production account is conn
 ## Tests
 
 ```bash
-node tests/test_logic.mjs\n# Optional real Chromium test when the browser environment allows local URLs:\npython -m pytest -q tests/test_playable.py
+node tests/test_logic.mjs
+node tests/test_myth_static.mjs
+# Optional browser test only when an actual browser test file is present and a local browser is permitted
+# No real-browser E2E PASS has been established here.
 ```
 
 The Node harness verifies the state machine and core boundaries without a browser. Playwright tests need an environment that permits local HTTP; the current secure browser blocked localhost navigation. Never run tests against production.
