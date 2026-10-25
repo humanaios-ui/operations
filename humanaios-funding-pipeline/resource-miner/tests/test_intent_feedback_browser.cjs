@@ -79,7 +79,7 @@ test('legacy locally saved preferences survive Ask Witness UI transition',()=>{
  b.context.rows=[{...row,source_url:row.source_url},{...row,source_url:'https://example.org/second'}];
  vm.runInContext('latestCandidates=rows;renderCandidates()',b.context);
  assert.equal(b.dom.get('items').children[0].children[0].textContent,'Research grant');
- assert.equal(b.dom.get('exportLessons').textContent,'');
+ assert.equal(b.data.has('humanaios.intent_os_teaching.v0.1'),true);
  assert.equal(vm.runInContext('localPriority(rows[1])',b.context),1);
 });
 test('oversized evidence fails without retaining the file or saving a report',async()=>{
