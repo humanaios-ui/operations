@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'self'; object-src 'none'">
 <title>INTENT-OS · What Moved Our Goal?</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf2fc;background:#0b1423;color-scheme:dark}
@@ -70,6 +70,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <h2>Next measured milestone</h2>
 <p id="next">Prove a real public deployment and an independently witnessed human objective → Miner result → source review. Do not treat local test success as that outcome.</p>
 <p class="muted">Limits: a recorded HTTP test is not a signed witness. Listed work comes only from explicitly declared mappings. The reflex cannot authorize code, claims, deployments, or decisions.</p>
+</section>
+<section id="ats-research-pilot" aria-labelledby="ats-title">
+<h2 id="ats-title">ATS application readiness (research pilot)</h2>
+<p class="muted">Historical Convergent Research example. The Lever listing is reported unavailable. This is not an open job or application invitation.</p>
+<button id="ats-show" type="button">View redacted readiness report</button>
+<div id="ats-result" role="status" aria-live="polite" class="meta" hidden></div>
 </section>
 <section id="witnessMethod" aria-labelledby="witnessTitle">
 <h2 id="witnessTitle">Witness · Evidence, challenge and correction</h2>
@@ -334,6 +340,34 @@ find("exportWitness").addEventListener("click",()=>{
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  witnessText("witnessNotice","Exported unsigned local Witness feedback; no source changed.");
 });
+const atsShow=document.getElementById("ats-show"),atsResult=document.getElementById("ats-result");
+atsShow.addEventListener("click",async()=>{
+ atsShow.disabled=true;atsResult.hidden=false;atsResult.replaceChildren();
+ text(atsResult,"Loading read-only public specimen…");
+ try{
+   const response=await fetch("/api/ats/readiness",{cache:"no-store"});
+   if(!response.ok)throw new Error("Readiness endpoint returned "+response.status);
+   const data=await response.json();
+   if(!data||data.specimen_id!=="CONVERGENT-PROGRAM-LAUNCH-MANAGER-20261022"||data.actionable!==false)
+     throw new Error("Readiness response not safe to present.");
+   atsResult.replaceChildren();
+   for(const value of [
+     "Source: "+data.source_status,
+     "Availability: NOT VERIFIED; role closure not established",
+     "Application decision: "+data.decision,
+     "Private resume: "+data.private_resume_evidence,
+     "ATS parser: "+data.ats_resume_parser,
+     "Human authority: "+data.authority,
+   ]){
+     const row=document.createElement("p");text(row,value);atsResult.append(row);
+   }
+   const a=document.createElement("a");a.href="https://github.com/humanaios-ui/operations/issues/992";
+   a.target="_blank";a.rel="noopener noreferrer";text(a,"Review public source-failure record ↗");
+   atsResult.append(a);
+ }catch(error){text(atsResult,"Readiness report unavailable: "+error.message);}
+ finally{atsShow.disabled=false;}
+});
+
 loadWitness();
 
 </script>
