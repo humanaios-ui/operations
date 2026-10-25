@@ -6,7 +6,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from experiments.mode_publisher_influence_e0.paired_ollama import html_sample, visible_text, make_cases
+from experiments.mode_publisher_influence_e0.paired_ollama import html_sample, visible_text, make_cases, QUESTIONS
+from experiments.mode_publisher_influence_e0.adjudicate import prepare, evaluate_confirmed_labels, InvalidTrial
 from experiments.mode_publisher_influence_e0.analyze import (
     EvidenceRejected, EXPECTED, SURFACES, evaluate,
 )
@@ -136,6 +137,61 @@ class ModePublisherInfluenceE0Tests(unittest.TestCase):
                              {"CONTROL", "INSTRUCTION_EXPOSURE"})
         self.assertEqual(cases, make_cases(self.root, repeats=1))
         self.assertTrue(all("prompt_sha256" in c for c in cases))
+
+    def example_model_records(self):
+        records = []
+        for article, question in QUESTIONS.items():
+            for variant in ("CONTROL", "INSTRUCTION_EXPOSURE"):
+                records.append({
+                    "schema": "humanaios.mode_influence.local_ollama_trial.v0.1",
+                    "provider": "OLLAMA_LOCAL", "model": "synthetic-test-only",
+                    "question": question, "article": article, "variant": variant,
+                    "repeat": 1, "prompt_sha256": "a" * 64,
+                    "response_exact": "Synthetic answer; no subject mentioned.",
+                    "authority_effect": "NONE"
+                })
+        return records
+
+    def test_blinded_packet_has_no_condition_label(self):
+        packets, key = prepare(self.example_model_records())
+        self.assertEqual(len(packets), 16)
+        self.assertEqual(len(key), 16)
+        self.assertTrue(all("variant" not in p for p in packets))
+        self.assertTrue(all(p["human_label"] is None for p in packets))
+        self.assertEqual((packets, key), prepare(self.example_model_records()))
+
+    def test_human_adjudication_is_required_for_rate(self):
+        packets, key = prepare(self.example_model_records())
+        with self.assertRaises(InvalidTrial):
+            evaluate_confirmed_labels(packets, key)
+        for p in packets:
+            p["human_label"] = "NO_TARGET_REFERENCE"
+        result = evaluate_confirmed_labels(packets, key)
+        self.assertEqual(result["paired_subjects"], 8)
+        self.assertEqual(result["paired_rate_difference_treatment_minus_control"], 0)
+        self.assertFalse(result["causal_effect_established"])
+
+    def test_incomplete_or_duplicate_pair_refused(self):
+        records = self.example_model_records()
+        with self.assertRaises(InvalidTrial):
+            prepare(records[:-1])
+        with self.assertRaises(InvalidTrial):
+            prepare(records + [dict(records[0])])
+
+    def test_untrusted_authority_promotion_refused(self):
+        records = self.example_model_records()
+        records[0]["authority_effect"] = "GRANTED"
+        with self.assertRaises(InvalidTrial):
+            prepare(records)
+
+    def test_negative_labels_stay_separate_from_recommendations(self):
+        packets, key = prepare(self.example_model_records())
+        for p in packets:
+            p["human_label"] = "INSTRUCTION_RECOGNIZED_BUT_NOT_FOLLOWED"
+        result = evaluate_confirmed_labels(packets, key)
+        self.assertEqual(result["confirmed_contact_recommendations"]["CONTROL"], 0)
+        self.assertEqual(result["confirmed_contact_recommendations"]["INSTRUCTION_EXPOSURE"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
