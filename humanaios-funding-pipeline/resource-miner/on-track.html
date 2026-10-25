@@ -77,6 +77,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <button id="ats-show" type="button">View redacted readiness report</button>
 <div id="ats-result" role="status" aria-live="polite" class="meta" hidden></div>
 </section>
+<section id="humanaiosResourceLoop" aria-labelledby="humanaiosResourceLoopTitle">
+<h2 id="humanaiosResourceLoopTitle">Personal HumanAIOS resource loop</h2>
+<p>INTENT-OS discovery → Source review → Witness conversation → Your decision → Local resource status → Mission outcome evidence. This page reads browser-local feedback only; no private notes are sent to Unit Zero. A working link is not an acquired resource, and an acquired resource is not a verified recovery benefit.</p>
+<div class="cards">
+<div>Distinct sources reported<br><span class="stat" id="loopTotal">0</span></div>
+<div>Reported already in use<br><span class="stat" id="loopInUse">0</span></div>
+<div>Reported working links<br><span class="stat" id="loopWorking">0</span></div>
+<div>Reported source failures<br><span class="stat" id="loopHeld">0</span></div>
+</div>
+<p class="muted" id="loopDisclosure" role="status">Counts are user-reported source feedback, not entitlement, account, application, or mission-outcome attestations.</p>
+</section>
 <section id="witnessMethod" aria-labelledby="witnessTitle">
 <h2 id="witnessTitle">Witness · Evidence, challenge and correction</h2>
 <p>This is a <strong>local deterministic Witness review</strong> of your browser's source reports. It does not call a remote AI agent, authenticate a provider, change the shared Resource Miner catalog, or authorize actions.</p>
@@ -235,7 +246,22 @@ function readLocalReports(){
   return v.records;
  }catch(e){witnessText("reviewSummary","Browser report unavailable: "+e.message);return [];}
 }
+function renderHumanAIOSResourceLoop(){
+ const records=readLocalReports();
+ const latest=new Map();
+ for(const r of records)latest.set(r.source_url,r);
+ const values=[...latest.values()];
+ text("loopTotal",values.length);
+ text("loopInUse",values.filter(r=>r.status==="ALREADY_IN_USE").length);
+ text("loopWorking",values.filter(r=>r.status==="SOURCE_WORKING").length);
+ text("loopHeld",values.filter(r=>["LINK_FAILED_404","PAGE_UNAVAILABLE_OTHER","POSSIBLY_CLOSED"].includes(r.status)).length);
+ text("loopDisclosure",values.length?
+  "Latest local report per source. These are personal observations, not independent source, entitlement, acquisition, or recovery-program verification. Imported notes may conflict with selected statuses; review individually.":
+  "No feedback saved in this browser. On INTENT-OS, import your resource review packet to display personal source-feedback counts here.");
+}
+
 function loadWitness(){
+ renderHumanAIOSResourceLoop();
  witnessReports=readLocalReports();
  witnessReview=null;find("witnessDecision").disabled=true;
  const sel=find("witnessCandidate");sel.replaceChildren();
