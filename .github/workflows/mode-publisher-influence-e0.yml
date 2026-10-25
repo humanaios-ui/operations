@@ -1,0 +1,32 @@
+name: MODE publisher influence source test
+on:
+  pull_request:
+    paths:
+      - 'experiments/mode_publisher_influence_e0/**'
+      - 'tests/test_mode_publisher_influence_e0.py'
+      - '.github/workflows/mode-publisher-influence-e0.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned-source-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline defensive interpretation checks
+        run: python3 -m unittest discover -s tests -p 'test_mode_publisher_influence_e0.py' -v
+      - name: Read pinned public source as data only (never execute it)
+        shell: bash
+        run: |
+          git clone --quiet --no-checkout https://github.com/truuzee-byte/governing-engines-ai-discovery.git /tmp/mode-source
+          git -C /tmp/mode-source checkout --quiet --detach 94a554b70e48f9873554bb3997d4f97f66aceabb
+          python3 experiments/mode_publisher_influence_e0/analyze.py --source-checkout /tmp/mode-source --output mode-publisher-e0-receipt.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mode-publisher-e0-evidence
+          path: mode-publisher-e0-receipt.json
+          retention-days: 14
