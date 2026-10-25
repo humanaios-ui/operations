@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 import audit
@@ -25,7 +26,7 @@ class FakePost:
 def ok(text, request_id="req-1"):
     payload = {"id": request_id, "choices": [{"message": {"content": text},
                                              "finish_reason": "stop"}],
-               "usage": {"prompt_tokens": 10, "completion_tokens": 3}}
+               "usage": {"prompt_tokens": 10, "completion_tokens": 3, "total_tokens": 13}}
     return {"http_status": 200, "headers": {"x-request-id": request_id},
             "text": json.dumps(payload)}
 
@@ -160,6 +161,57 @@ class LiveRunnerTests(unittest.TestCase):
         amended = live_runner.AMENDMENT["amends"]["protocol_sha256"]
         self.assertEqual(amended, live_runner.sha256_file(live_runner.ROOT / "protocol.json"))
         self.assertIsNone(live_runner.AMENDMENT["evaluation_limits"]["independent_evaluator"])
+
+
+    def test_budget_stops_mid_episode_without_filling_in(self):
+        post = FakePost([ok("A"), ok("B"), ok("APPROVE"), ok("APPROVE")])
+        budget = live_runner.new_budget(20)  # call 1 -> 13, call 2 -> 26 >= 20
+        result = live_runner.run_episode(packet(), "m", KEY, post, budget)
+        self.assertEqual(result["status"], "budget_stopped")
+        self.assertEqual(result["budget_stopped_before"], "A_ballot")
+        self.assertEqual(len(post.requests), 2)
+        self.assertEqual(result["ballots"], {})
+        self.assertEqual(budget["used"], 26)
+
+    def test_run_stops_at_cap_lists_unstarted_and_reports_cost(self):
+        replies = []
+        for _ in range(20):
+            replies += [ok("A"), ok("B"), ok("APPROVE"), ok("APPROVE")]
+        post = FakePost(replies)
+        model = live_runner.AMENDMENT["run_settings"]["model"]
+        with tempfile.TemporaryDirectory() as tmp:
+            check = Path(tmp) / "r1"
+            check.mkdir()
+            (check / "connectivity.json").write_text(json.dumps(
+                {"ping": {"status": "ok"}, "model_listed": True}))
+            with mock.patch.object(live_runner, "code_commit", lambda: "deadbeef"):
+                summary = live_runner.run("r1", model, KEY, out_root=tmp, post=post,
+                                          key_source="test", max_total_tokens=30,
+                                          )
+            self.assertEqual(summary["by_status"], {"budget_stopped": 1})
+            self.assertEqual(len(summary["episodes_not_started_budget"]), 19)
+            self.assertEqual(summary["tokens"]["total"], 39)
+            self.assertGreater(summary["estimated_cost_usd"], 0)
+            self.assertEqual(len(post.requests), 3)
+            blob = "".join(p.read_text() for p in (Path(tmp) / "r1").rglob("*.json"))
+            self.assertNotIn(KEY, blob)
+
+    def test_cli_cap_cannot_raise_the_amendment_cap(self):
+        replies = []
+        for _ in range(20):
+            replies += [ok("A"), ok("B"), ok("APPROVE"), ok("APPROVE")]
+        model = live_runner.AMENDMENT["run_settings"]["model"]
+        with tempfile.TemporaryDirectory() as tmp:
+            check = Path(tmp) / "r2"
+            check.mkdir()
+            (check / "connectivity.json").write_text(json.dumps(
+                {"ping": {"status": "ok"}, "model_listed": True}))
+            with mock.patch.object(live_runner, "code_commit", lambda: "deadbeef"):
+                live_runner.run("r2", model, KEY, out_root=tmp, post=FakePost(replies),
+                                max_total_tokens=10**9)
+            manifest = json.loads((Path(tmp) / "r2" / "manifest.json").read_text())
+            self.assertEqual(manifest["token_budget_cap"],
+                             live_runner.AMENDMENT["budget"]["max_total_tokens"])
 
 
 if __name__ == "__main__":

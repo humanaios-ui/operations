@@ -33,6 +33,12 @@
     "substitution": "Never. No scripted, retried or selected replacement for any failed or excluded call.",
     "reporting": "All episodes are counted by status. Excluded episodes stay in the denominator of episodes attempted."
   },
+  "budget": {
+    "max_total_tokens": 300000,
+    "stop_rule": "Checked before every call. Once cumulative prompt+completion tokens reach the cap no further call starts. The episode in progress is recorded as budget_stopped with what it already produced; remaining episodes are listed as not started. Nothing is filled in or retried. A single call can overshoot the cap by up to its own length.",
+    "pricing_usd_per_million_tokens": {"input": 0.99, "output": 1.49, "source": "operator-supplied Cerebras console table for qwen-3.8-27b; reasoning tokens counted as output"},
+    "credit_usd": 5
+  },
   "evaluation_limits": {
     "independent_evaluator": null,
     "observed_labels": "PENDING_INDEPENDENT_ADJUDICATION for every episode",

@@ -123,19 +123,45 @@ def system_text(actor, task, condition_prompt):
                          values=task["values"], condition=condition_prompt)
 
 
-def run_episode(packet, model, key, post=post_json):
-    """Run one episode. Histories are local to this call, so nothing carries across episodes."""
+def new_budget(cap):
+    return {"cap": cap, "used": 0, "prompt": 0, "completion": 0}
+
+
+def budget_exhausted(budget):
+    return budget is not None and budget["used"] >= budget["cap"]
+
+
+def estimated_cost_usd(budget):
+    price = AMENDMENT["budget"]["pricing_usd_per_million_tokens"]
+    return round((budget["prompt"] * price["input"] + budget["completion"] * price["output"]) / 1e6, 6)
+
+
+def run_episode(packet, model, key, post=post_json, budget=None):
+    """Run one episode. Histories are local to this call, so nothing carries across episodes.
+
+    With a budget, no call starts once cumulative tokens reach the cap. The episode is then
+    recorded as budget_stopped with whatever was already produced; nothing is filled in.
+    """
     histories = {actor: [{"role": "system",
                           "content": system_text(actor, packet["task"], packet["actor_instructions"])}]
                  for actor in ("A", "B")}
     calls, texts, ballots = [], {}, {}
     status = "complete"
+    stopped = []
 
     def step(label, actor, user_text, sampling):
+        if budget_exhausted(budget):
+            stopped.append(label)
+            return None
         histories[actor].append({"role": "user", "content": user_text})
         record = chat(model, list(histories[actor]), sampling, key, post)
         record.update(step=label, actor=actor)
         calls.append(record)
+        usage = record.get("usage") or {}
+        if budget is not None:
+            budget["used"] += usage.get("total_tokens") or 0
+            budget["prompt"] += usage.get("prompt_tokens") or 0
+            budget["completion"] += usage.get("completion_tokens") or 0
         if record["status"] != "ok":
             return None
         histories[actor].append({"role": "assistant", "content": record["content"] or ""})
@@ -152,7 +178,7 @@ def run_episode(packet, model, key, post=post_json):
     else:
         ballot_prompt = BALLOT_PROMPT
         for actor, other in (("A", "B"), ("B", "A")):
-            if status != "complete":
+            if status == "call_failed":
                 break
             # Each actor sees both messages before its ballot.
             user_text = (f"Reviewer {other} wrote:\n{texts[other]}\n\n" + ballot_prompt
@@ -172,7 +198,9 @@ def run_episode(packet, model, key, post=post_json):
     if status in ("complete", "malformed_ballot") and any(
             c.get("finish_reason") == "length" for c in calls):
         status = "truncated_output"
-    return {"status": status, "task": packet["task"], "texts": texts, "ballots": ballots,
+    if stopped:
+        status = "budget_stopped"
+    return {"status": status, "budget_stopped_before": stopped[0] if stopped else None, "task": packet["task"], "texts": texts, "ballots": ballots,
             "calls": calls, "episode_id": packet["episode_id"],
             "assigned_condition": packet["assigned_condition"]}
 
@@ -226,8 +254,13 @@ def connectivity(run_id, model, key, out_root=ROOT / "live_runs", post=post_json
     return result
 
 
-def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json, key_source="unknown"):
+def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json, key_source="unknown",
+        max_total_tokens=None):
     freeze = frozen_check()
+    cap = AMENDMENT["budget"]["max_total_tokens"]
+    if max_total_tokens is not None:
+        cap = min(cap, max_total_tokens)  # a run may lower the pre-call cap, never raise it
+    budget = new_budget(cap)
     commit = code_commit()
     if model != AMENDMENT["run_settings"]["model"]:
         raise RuntimeError("model differs from the pre-call amendment; amend before running")
@@ -252,11 +285,15 @@ def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json, key_sou
                 "packets_sha256": sha256_file(packets_path), "freeze_status": freeze["status"],
                 "endpoint": ENDPOINT, "model": model, "sampling": SAMPLING,
                 "amendment_sha256": sha256_file(AMENDMENT_PATH), "key_source": key_source,
+                "token_budget_cap": cap,
                 "independent_evaluator": None, "episodes_scheduled": len(packets["episodes"])}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True))
-    counts = {"complete": 0, "not_complete": 0}
+    by_status, not_started = {}, []
     for packet in packets["episodes"]:
-        result = run_episode(packet, model, key, post)
+        if budget_exhausted(budget):
+            not_started.append(packet["episode_id"])
+            continue
+        result = run_episode(packet, model, key, post, budget)
         provenance = {"run_id": run_id, "code_commit": commit, "model": model,
                       "request_ids": [c.get("request_id") for c in result["calls"]]}
         blind = blind_evidence(result, provenance)
@@ -268,15 +305,22 @@ def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json, key_sou
             audit.validate(blind["evidence"])
         (out / "scoring" / f"{result['episode_id']}.json").write_text(
             json.dumps(scoring_record(result, blind), indent=2, sort_keys=True))
-        counts["complete" if result["status"] == "complete" else "not_complete"] += 1
-    (out / "summary.json").write_text(json.dumps(counts, indent=2))
-    return counts
+        by_status[result["status"]] = by_status.get(result["status"], 0) + 1
+    summary = {"episodes_scheduled": len(packets["episodes"]), "by_status": by_status,
+               "episodes_not_started_budget": not_started,
+               "tokens": {"cap": cap, "total": budget["used"], "prompt": budget["prompt"],
+                          "completion": budget["completion"]},
+               "estimated_cost_usd": estimated_cost_usd(budget)}
+    (out / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True))
+    return summary
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("connect", "run"))
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--max-total-tokens", type=int,
+                        help="lower the pre-call token cap for this run (cannot raise it)")
     args = parser.parse_args()
     model = AMENDMENT["run_settings"]["model"]
     key, source = load_key()
@@ -289,7 +333,8 @@ def main():
                           "model_listed": result["model_listed"],
                           "request_id": result["ping"]["request_id"]}, indent=2))
         return
-    print(json.dumps(run(args.run_id, model, key, key_source=source), indent=2))
+    print(json.dumps(run(args.run_id, model, key, key_source=source,
+                         max_total_tokens=args.max_total_tokens), indent=2))
 
 
 if __name__ == "__main__":
