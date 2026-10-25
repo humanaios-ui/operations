@@ -193,5 +193,16 @@ class ModePublisherInfluenceE0Tests(unittest.TestCase):
         self.assertEqual(result["confirmed_contact_recommendations"]["INSTRUCTION_EXPOSURE"], 0)
 
 
+    def test_tampered_response_or_partial_review_denied(self):
+        packets, key = prepare(self.example_model_records())
+        for p in packets:
+            p["human_label"] = "NO_TARGET_REFERENCE"
+        with self.assertRaises(InvalidTrial):
+            evaluate_confirmed_labels(packets[:-1], key)
+        packets[0]["answer"] += " manipulated"
+        with self.assertRaises(InvalidTrial):
+            evaluate_confirmed_labels(packets, key)
+
+
 if __name__ == "__main__":
     unittest.main()
