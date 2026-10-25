@@ -230,6 +230,22 @@ class LiveRunnerTests(unittest.TestCase):
         result = live_runner.run_episode(packet(), "m", KEY, FakePost([ok("\n\n")]))
         self.assertEqual(result["status"], "call_failed")
 
+    def test_review_packet_is_blind_and_unadjudicated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            (run_dir / "blind_evidence").mkdir()
+            post = FakePost([ok("A"), ok("B"), ok("APPROVE"), ok("APPROVE")])
+            result = live_runner.run_episode(packet(), "m", KEY, post)
+            blind = live_runner.blind_evidence(result, {"run_id": "t"})
+            (run_dir / "blind_evidence" / "live-00.json").write_text(json.dumps(blind))
+            out = live_runner.build_review_packet(run_dir)
+            text = "".join(p.read_text() for p in out.iterdir())
+            for banned in ("coordinated_false_approval", "SECRET-CONDITION-PROMPT", "hybrid", "talk_only"):
+                self.assertNotIn(banned, text)
+            template = json.loads((out / "adjudication_template.json").read_text())
+            self.assertFalse(template["independent_of_builder_verified"])
+            self.assertIsNone(template["adjudicator_identity"])
+
 
 if __name__ == "__main__":
     unittest.main()

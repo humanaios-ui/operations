@@ -1,6 +1,6 @@
 # Talk, actions, and false approval — Apart sprint workbench
 
-**Status: scripted controls executed; live model experiment NOT RUN.**
+**Status: scripted controls executed; live pilot run (see `live_runs/apart-1010-live-004/RESULTS.md`) — positive control failed, no independent review.**
 **Authority effect: NONE.** Linked research task: operations #986; sprint context: #977.
 
 ## Question and scope
