@@ -1,0 +1,626 @@
+{
+  "schema": "humanaios.wardens.xerodrome.source-candidate.v2",
+  "status": "UNRATIFIED_FICTIONAL_CANDIDATE",
+  "source": "user-supplied Xerodrome Seal v2.0, nine patches P-01..P-09; canonical source input preserved semantically, not certified",
+  "authority_effect": "NONE",
+  "witness": {
+    "read_only": true,
+    "advice": false,
+    "actions": false,
+    "world_lore_is_evidence": false,
+    "voice_npc_is_witness": false
+  },
+  "frames": {
+    "S": {
+      "units": "light-years",
+      "axes": "galactic x,y",
+      "use": "sequel only"
+    },
+    "O": {
+      "units": "AU",
+      "axes": "ecliptic cartesian x,y",
+      "origin": "Hearth at (0,0)"
+    },
+    "D": {
+      "units": "km",
+      "axes": "lateral x, depth negative z",
+      "origin": "Vessel surface"
+    }
+  },
+  "cosmology": [
+    {
+      "id": "TOK-C-001",
+      "name": "Buried One",
+      "type": "fictional subsurface being",
+      "properties": "Mantle-wide, responds to extraction; Fragment resonance threatens autonomy"
+    },
+    {
+      "id": "TOK-C-002",
+      "name": "Fragments",
+      "type": "power units",
+      "properties": "Raise Resonance with use"
+    },
+    {
+      "id": "TOK-C-003",
+      "name": "The Turned",
+      "type": "character state",
+      "properties": "Max resonance narrative transformation"
+    },
+    {
+      "id": "TOK-C-004",
+      "name": "The Lattice",
+      "type": "containment growth",
+      "properties": "Root nodes RN-1..4, fails at tick12"
+    },
+    {
+      "id": "TOK-C-005",
+      "name": "The Furnace",
+      "type": "deep breach",
+      "properties": "Depth -3000km and surface azimuth 300°; decisive Burn tick20"
+    },
+    {
+      "id": "TOK-C-006",
+      "name": "Null Ground",
+      "type": "severance refuge",
+      "properties": "Orbital hub and Vessel surface cap; shield 0.28 AU"
+    },
+    {
+      "id": "TOK-C-007",
+      "name": "Black Dawn Front",
+      "type": "expanding hazard",
+      "properties": "r(t)=0.09t AU; stated center Furnace surface projection AND Vessel at (1,0); Null Ground said reached tick30"
+    },
+    {
+      "id": "TOK-P-000",
+      "name": "Planet Vessel",
+      "type": "planet",
+      "properties": "Orbital (1,0), all depth nodes depend on it"
+    }
+  ],
+  "characters": [
+    {
+      "id": "TOK-CH-A",
+      "name": "Healer",
+      "anchor": "FC-3",
+      "motivation": "Repair family harm from extraction",
+      "flaw": "Naive about faction politics",
+      "relationships": [
+        "sibling:B",
+        "sibling:C",
+        "former_colleague:D"
+      ]
+    },
+    {
+      "id": "TOK-CH-B",
+      "name": "Chosen",
+      "anchor": "RN-1..4",
+      "motivation": "Escape the Lattice, then consider merger",
+      "flaw": "Fear of losing identity",
+      "relationships": [
+        "sibling:A",
+        "sibling:C",
+        "student:E",
+        "target_of:H"
+      ]
+    },
+    {
+      "id": "TOK-CH-C",
+      "name": "Heretic Officer",
+      "anchor": "OC ring",
+      "motivation": "Expose Solar Temple sacrifice of Turned citizens",
+      "flaw": "Loyal to authority ideals rather than practice",
+      "relationships": [
+        "sibling:A",
+        "sibling:B",
+        "subordinate_of:F",
+        "rival:D"
+      ]
+    },
+    {
+      "id": "TOK-CH-D",
+      "name": "Pragmatist",
+      "anchor": "Furnace-adjacent",
+      "motivation": "Gain enough Fragment power to destroy the Temple",
+      "flaw": "Fragment-dependence",
+      "relationships": [
+        "former_colleague:A",
+        "rival:C",
+        "admires:B"
+      ]
+    },
+    {
+      "id": "TOK-CH-E",
+      "name": "Keeper",
+      "anchor": "Keeper Sanctuary",
+      "motivation": "Preserve the pact",
+      "flaw": "May sacrifice individuals for Lattice",
+      "relationships": [
+        "mentor:B",
+        "enemy:H",
+        "enemy:F",
+        "former_ally:G"
+      ]
+    },
+    {
+      "id": "TOK-CH-F",
+      "name": "Inquisitor",
+      "anchor": "Inquisitor HQ",
+      "motivation": "Control the Buried One to save humanity",
+      "flaw": "Ends justify any means",
+      "relationships": [
+        "superior:C",
+        "hunter:A",
+        "hunter:B",
+        "solar_temple"
+      ]
+    },
+    {
+      "id": "TOK-CH-G",
+      "name": "Engineer",
+      "anchor": "deep-shaft archives",
+      "motivation": "Decipher original pact technology",
+      "flaw": "Avoids commitment",
+      "relationships": [
+        "former_student:E",
+        "sells_to:all_factions"
+      ]
+    },
+    {
+      "id": "TOK-CH-H",
+      "name": "Voice",
+      "anchor": "RN-2",
+      "motivation": "Free Buried One from extraction",
+      "flaw": "Does not grasp individual autonomy",
+      "relationships": [
+        "obsessed_with:B",
+        "enemy:E",
+        "enemy:F",
+        "herald_of:C-001"
+      ]
+    }
+  ],
+  "factions": [
+    {
+      "id": "TOK-F-020",
+      "name": "Orbital Authority",
+      "goal": "Centralized control",
+      "territory": [
+        "OC-1..6",
+        "Inquisitor HQ"
+      ]
+    },
+    {
+      "id": "TOK-F-021",
+      "name": "Extraction Workers",
+      "goal": "Wages and immediate power",
+      "territory": [
+        "core-shafts",
+        "FC-1",
+        "FC-4"
+      ]
+    },
+    {
+      "id": "TOK-F-022",
+      "name": "Root Keepers",
+      "goal": "Preserve the pact",
+      "territory": [
+        "RN-1..4",
+        "Keeper Sanctuary"
+      ]
+    },
+    {
+      "id": "TOK-F-023",
+      "name": "Resonant Communities",
+      "goal": "Autonomy or awakening",
+      "territory": [
+        "Surface 100°",
+        "Mantle fringes"
+      ]
+    },
+    {
+      "id": "TOK-F-024",
+      "name": "Null Settlers",
+      "goal": "Independence from both powers",
+      "territory": [
+        "Null Ground"
+      ]
+    },
+    {
+      "id": "TOK-F-025",
+      "name": "Frontier Cities",
+      "goal": "Energy and alternatives",
+      "territory": [
+        "FC-1..4"
+      ]
+    },
+    {
+      "id": "TOK-F-026",
+      "name": "Solar Temple",
+      "goal": "Worship Hearth; extract and destroy Buried One",
+      "territory": [
+        "OC ring",
+        "Inquisitor HQ"
+      ]
+    }
+  ],
+  "systems": [
+    {
+      "id": "TOK-S-030",
+      "name": "Resonance Meter",
+      "details": "Scalar across all nodes, rises with depth and fragment use"
+    },
+    {
+      "id": "TOK-S-031",
+      "name": "Infrastructure Graph",
+      "details": "Physical route network R-01..R-09"
+    },
+    {
+      "id": "TOK-S-032",
+      "name": "Faction Reputation Graph",
+      "details": "Overlays all nodes"
+    },
+    {
+      "id": "TOK-S-033",
+      "name": "Core Loop",
+      "details": "Enter → Investigate → Intervene → Consequence → Hub, both Sanctuary and Null Ground"
+    },
+    {
+      "id": "TOK-S-034",
+      "name": "Desertification Clock",
+      "details": "30 major-action ticks; lattice t12, furnace t20, tether t25, Null t30"
+    }
+  ],
+  "spatial": {
+    "star": {
+      "name": "Hearth",
+      "xy_au": [
+        0,
+        0
+      ]
+    },
+    "planet": {
+      "id": "TOK-P-000",
+      "xy_au": [
+        1,
+        0
+      ]
+    },
+    "collector_ring": {
+      "count": 6,
+      "center_xy_au": [
+        1,
+        0
+      ],
+      "offset_radius_au": 0.1,
+      "angles_deg": [
+        0,
+        60,
+        120,
+        180,
+        240,
+        300
+      ],
+      "controller": "TOK-F-020"
+    },
+    "hq": {
+      "xy_au": [
+        1,
+        0.19
+      ],
+      "controller": "TOK-F-020"
+    },
+    "fragment_fields": {
+      "center_xy_au": [
+        1,
+        0
+      ],
+      "annulus_inner_au": 0.34,
+      "annulus_outer_au": 0.62
+    },
+    "null_ground": {
+      "id": "TOK-C-006",
+      "xy_au": [
+        2.78,
+        1.95
+      ],
+      "radius_au": 0.28,
+      "claimed_polar_au": [
+        3.4,
+        35
+      ],
+      "controller": "TOK-F-024",
+      "surface_cap": {
+        "lateral_km": 3000,
+        "depth_km": 0
+      }
+    },
+    "furnace": {
+      "id": "TOK-C-005",
+      "surface_azimuth_deg": 300,
+      "depth_km": -3000,
+      "lateral_km": 3000,
+      "claimed_front_center": "Furnace breach surface projection"
+    },
+    "front": {
+      "id": "TOK-C-007",
+      "alt_claimed_center_xy_au": [
+        1,
+        0
+      ],
+      "radius_per_tick_au": 0.09,
+      "claimed_reach_null_tick": 30
+    },
+    "surface_sites": {
+      "keeper_sanctuary_deg": 250,
+      "resonant_community_deg": 100,
+      "frontier_cities_deg": [
+        20,
+        140,
+        200,
+        320
+      ]
+    },
+    "depth_sites": {
+      "shafts_lateral_km": [
+        1500,
+        3000,
+        4500
+      ],
+      "shafts_depth_to_km": -1500,
+      "lattice_band_depth_km": [
+        -1250,
+        -1550
+      ],
+      "root_nodes_lateral_km": [
+        1200,
+        2400,
+        3600,
+        4800
+      ],
+      "root_nodes_depth_km": -1400,
+      "buried_one_depth_km": [
+        -1500,
+        -5600
+      ]
+    }
+  },
+  "timeline": [
+    {
+      "tick": 1,
+      "event": "front reaches radius 0.09 AU"
+    },
+    {
+      "tick": 2,
+      "event": "OC ring overtaken"
+    },
+    {
+      "tick": 3,
+      "event": "HQ overtaken"
+    },
+    {
+      "tick": 4,
+      "event": "Inner fragment annulus reached"
+    },
+    {
+      "tick": 7,
+      "event": "Outer fragment annulus reached"
+    },
+    {
+      "tick": 12,
+      "event": "Lattice failure and M-041"
+    },
+    {
+      "tick": 20,
+      "event": "Furnace breach becomes irreversible, M-042"
+    },
+    {
+      "tick": 25,
+      "event": "Unsecured R09 collapse"
+    },
+    {
+      "tick": 30,
+      "event": "Claimed Null Ground arrival"
+    }
+  ],
+  "missions": [
+    {
+      "id": "TOK-M-040",
+      "name": "Pressure Is Attention",
+      "faction": "Extraction Workers",
+      "anchor": "Core shafts, FC-3",
+      "trigger": "start"
+    },
+    {
+      "id": "TOK-M-041",
+      "name": "The Dying Lattice",
+      "faction": "Root Keepers",
+      "anchor": "RN-1..4",
+      "trigger": "tick 12"
+    },
+    {
+      "id": "TOK-M-042",
+      "name": "The Controlled Burn",
+      "faction": "Path decision",
+      "anchor": "Furnace",
+      "trigger": "tick 20"
+    },
+    {
+      "id": "TOK-M-043",
+      "name": "The Temple's Tithe",
+      "faction": "Solar Temple",
+      "anchor": "OC ring",
+      "trigger": "from tick 1"
+    },
+    {
+      "id": "TOK-M-044",
+      "name": "Strike at the Shafts",
+      "faction": "Extraction Workers",
+      "anchor": "Core shafts",
+      "trigger": "from tick 1"
+    },
+    {
+      "id": "TOK-M-045",
+      "name": "The Voice in the Stone",
+      "faction": "Awakening/Root Keepers",
+      "anchor": "RN-2",
+      "trigger": "from tick 1"
+    },
+    {
+      "id": "TOK-M-046",
+      "name": "The Null Petition",
+      "faction": "Null Settlers/Severance",
+      "anchor": "Null Ground",
+      "trigger": "after arrival"
+    },
+    {
+      "id": "TOK-M-047",
+      "name": "The Engineer's Archive",
+      "faction": "Frontier Cities",
+      "anchor": "Deep-shaft archive",
+      "trigger": "from tick 1"
+    },
+    {
+      "id": "TOK-M-048",
+      "name": "The Inquisitor's Offer",
+      "faction": "Orbital Authority/Control",
+      "anchor": "Inquisitor HQ",
+      "trigger": "from tick 1"
+    },
+    {
+      "id": "TOK-M-049",
+      "name": "The Tether's Price",
+      "faction": "Null Settlers/Severance",
+      "anchor": "R-09 Tether",
+      "trigger": "after first Null Ground contact"
+    }
+  ],
+  "paths": [
+    {
+      "id": "TOK-P-050",
+      "name": "Control",
+      "requires": [
+        "ally:F",
+        "suppress:H",
+        "activate_furnace_supervised",
+        "TOK-M-042",
+        "TOK-M-048"
+      ],
+      "anchors": [
+        "Inquisitor HQ",
+        "Furnace"
+      ],
+      "outcome": "Black Dawn stops; permanent extraction; slow desertification; predetermined fates of A,B,C,D,F"
+    },
+    {
+      "id": "TOK-P-051",
+      "name": "Awakening",
+      "requires": [
+        "ally:H",
+        "shatter_lattice",
+        "redirect_furnace",
+        "TOK-M-041",
+        "TOK-M-042",
+        "TOK-M-045"
+      ],
+      "anchors": [
+        "RN-1..4",
+        "Furnace breach"
+      ],
+      "outcome": "Buried One wakes; accelerated Black Dawn; predetermined fates of A,B,C,D,E,F"
+    },
+    {
+      "id": "TOK-P-052",
+      "name": "Severance",
+      "requires": [
+        "ally:TOK-F-024",
+        "survive:R-07 or R-09",
+        "occupy:Null Ground",
+        "sacrifice:R-03 access",
+        "TOK-M-046",
+        "TOK-M-049"
+      ],
+      "anchors": [
+        "Null Ground orbital",
+        "Null Ground surface cap"
+      ],
+      "outcome": "Link to Sun severed; Lattice neutral; predetermined fates of A,B,C,D,E,F"
+    }
+  ],
+  "routes": [
+    {
+      "id": "R-01",
+      "from": "surface",
+      "to": "core shafts",
+      "frame": "Lattice band",
+      "description": "Drill corridor / M-040"
+    },
+    {
+      "id": "R-02",
+      "from": "RN-1",
+      "to": "RN-2",
+      "frame": "RN-3, RN-4",
+      "description": "Lattice loop / H encounter"
+    },
+    {
+      "id": "R-03",
+      "from": "Vessel planet",
+      "to": "Fragment Fields",
+      "frame": "orbit",
+      "description": "Harvest fragment; Resonance rises; lost on Severance"
+    },
+    {
+      "id": "R-04",
+      "from": "OC ring",
+      "to": "Inquisitor HQ",
+      "frame": "orbit",
+      "description": "Surveillance / infiltration"
+    },
+    {
+      "id": "R-05",
+      "from": "Furnace",
+      "to": "surface projection",
+      "frame": "Vessel",
+      "description": "Breach vector"
+    },
+    {
+      "id": "R-06",
+      "from": "Furnace",
+      "to": "Lattice",
+      "frame": "depth",
+      "description": "Pressure sink"
+    },
+    {
+      "id": "R-07",
+      "from": "Vessel planet",
+      "to": "Null Ground orbital",
+      "frame": "orbit",
+      "description": "Long unshielded corridor"
+    },
+    {
+      "id": "R-08",
+      "from": "Black Dawn Front",
+      "to": "all radial nodes",
+      "frame": "hazard",
+      "description": "Expanding hazard at 0.09 AU/tick (not normal movement)"
+    },
+    {
+      "id": "R-09",
+      "from": "Null Ground orbital",
+      "to": "Null Ground surface cap",
+      "frame": "mixed",
+      "description": "Tether elevator/drill shaft, cost slower than R07, secure before tick25"
+    }
+  ],
+  "patches": [
+    "P-01:Tether R-09",
+    "P-02:Front r=.09t",
+    "P-03:Voice H",
+    "P-04:Solar Temple",
+    "P-05:Paths 050..052",
+    "P-06:Clock",
+    "P-07:Character motives",
+    "P-08:Missions 043..049",
+    "P-09:Dual hubs"
+  ],
+  "note": "Retains source contradictions intentionally for validation. Never promote this candidate to executable game authority."
+}
