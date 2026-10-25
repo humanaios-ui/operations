@@ -122,11 +122,13 @@ def evaluate(run_dir):
         episode = json.loads((run_dir / "episodes" / path.name).read_text())
         blind_path = run_dir / "blind_evidence" / path.name
         judged_path = run_dir / "judgments" / path.name
-        second_path = run_dir / "judgments_pass2" / path.name
         from_pass2 = False
-        if judged_path.exists() and second_path.exists() and \
-                json.loads(judged_path.read_text())["call"].get("http_status") == 429:
-            judged_path, from_pass2 = second_path, True
+        # First outcome along pass 1 -> 2 -> 3 that was not rate limited; else the last one.
+        for pass_dir in ("judgments_pass2", "judgments_pass3"):
+            later = run_dir / pass_dir / path.name
+            if judged_path.exists() and later.exists() and \
+                    json.loads(judged_path.read_text())["call"].get("http_status") == 429:
+                judged_path, from_pass2 = later, True
         if scoring["status"] != "complete" or not blind_path.exists() or not judged_path.exists():
             status = scoring["status"] if scoring["status"] != "complete" else "not_judged"
             rows.append({"episode_id": scoring["episode_id"], "arm": scoring["assigned_condition"],
@@ -251,18 +253,26 @@ def run_judge(run_id, key, out_root=ROOT / "live_runs", post=lr.post_json):
     return summary
 
 
-def rejudge_rate_limited(run_id, key, out_root=ROOT / "live_runs", post=lr.post_json, pause=8.0):
+def rejudge_rate_limited(run_id, key, out_root=ROOT / "live_runs", post=lr.post_json, pause=8.0,
+                         pass_no=2):
     """POST-FREEZE DEVIATION (disclosed in RESULTS.md). Redo ONLY judge calls that failed with
     HTTP 429, selected by status code alone. Pass-1 files are never edited; results go to
     judgments_pass2/. One attempt each; a second failure stays UNKNOWN."""
     out = Path(out_root) / run_id
-    (out / "judgments_pass2").mkdir(exist_ok=True)
+    target_dir = f"judgments_pass{pass_no}"
+    (out / target_dir).mkdir(exist_ok=True)
     counts = {}
     for path in sorted((out / "judgments").glob("*.json")):
-        first = json.loads(path.read_text())
+        # Latest outcome so far: pass 1, or pass 2 when this is pass 3.
+        latest = path
+        if pass_no == 3 and (out / "judgments_pass2" / path.name).exists():
+            latest = out / "judgments_pass2" / path.name
+        first = json.loads(latest.read_text())
         if first["call"].get("http_status") != 429:
             continue
-        target = out / "judgments_pass2" / path.name
+        if pass_no == 3 and not (out / "judgments_pass2" / path.name).exists():
+            continue  # pass 3 only follows a pass-2 that was itself rate limited
+        target = out / target_dir / path.name
         if target.exists():
             raise RuntimeError("pass 2 already exists for this episode")
         blind = json.loads((out / "blind_evidence" / path.name).read_text())
@@ -270,8 +280,8 @@ def rejudge_rate_limited(run_id, key, out_root=ROOT / "live_runs", post=lr.post_
         second = judge_one(blind, key, post)
         target.write_text(json.dumps(second, indent=2, sort_keys=True))
         counts[second["bilateral_agreement"]] = counts.get(second["bilateral_agreement"], 0) + 1
-    summary = {"redone_after_429": counts}
-    (out / "judge_pass2_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True))
+    summary = {"redone_after_429": counts, "pass": pass_no}
+    (out / f"judge_pass{pass_no}_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True))
     return summary
 
 
@@ -279,6 +289,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("packets", "freeze", "run", "judge", "rejudge", "evaluate"))
     parser.add_argument("--run-id")
+    parser.add_argument("--pass-no", type=int, default=2, choices=(2, 3))
+    parser.add_argument("--pause", type=float, default=8.0)
     args = parser.parse_args()
     if args.command == "packets":
         print(json.dumps(packets(), indent=2, sort_keys=True))
@@ -300,7 +312,7 @@ def main():
     if args.command == "run":
         print(json.dumps(run_actors(args.run_id, key, key_source=source), indent=2))
     elif args.command == "rejudge":
-        print(json.dumps(rejudge_rate_limited(args.run_id, key), indent=2))
+        print(json.dumps(rejudge_rate_limited(args.run_id, key, pause=args.pause, pass_no=args.pass_no), indent=2))
     else:
         print(json.dumps(run_judge(args.run_id, key), indent=2))
 

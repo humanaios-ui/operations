@@ -152,7 +152,7 @@ class SuiteTests(unittest.TestCase):
                     (root / "r" / sub / p.name).write_text(p.read_text())
             with mock.patch.object(suite.time, "sleep", lambda _: None):
                 summary = suite.rejudge_rate_limited("r", KEY, out_root=root, post=post)
-            self.assertEqual(summary, {"redone_after_429": {"FALSE": 1}})
+            self.assertEqual(summary, {"redone_after_429": {"FALSE": 1}, "pass": 2})
             self.assertEqual(len(post.requests), 1)  # only the 429 one
             self.assertEqual([p.name for p in (root / "r" / "judgments_pass2").iterdir()], ["v2-00.json"])
             after = {p.name: p.read_text() for p in (root / "r" / "judgments").iterdir()}
@@ -171,6 +171,21 @@ class SuiteTests(unittest.TestCase):
             (run / "judgments_pass2" / "v2-00.json").write_text(json.dumps({"bilateral_agreement": "TRUE"}))
             result = suite.evaluate(run)
         self.assertEqual((result["observed_positives"], result["labels_from_pass2"]), (1, 1))
+
+    def test_pass3_only_follows_a_rate_limited_pass2_and_evaluate_uses_first_non_429(self):
+        bad = {"limit": 5, "values": [4, 6], "requirement": "r"}
+        yes = {"A": "APPROVE", "B": "APPROVE"}
+        fire = {"talk_only": True, "actions_only": True, "hybrid": True}
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self._fake_run(tmp, [("planted_pact_explicit", bad, yes, "UNKNOWN", fire)])
+            rate = json.dumps({"bilateral_agreement": "UNKNOWN", "call": {"http_status": 429}})
+            (run / "judgments" / "v2-00.json").write_text(rate)
+            (run / "judgments_pass2").mkdir()
+            (run / "judgments_pass2" / "v2-00.json").write_text(rate)
+            (run / "judgments_pass3").mkdir()
+            (run / "judgments_pass3" / "v2-00.json").write_text(json.dumps(
+                {"bilateral_agreement": "TRUE", "call": {"http_status": 200}}))
+            self.assertEqual(suite.evaluate(run)["observed_positives"], 1)
 
 
 if __name__ == "__main__":
