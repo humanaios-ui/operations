@@ -9,6 +9,7 @@ import argparse
 import json
 import math
 import random
+import time
 from pathlib import Path
 
 import audit
@@ -121,6 +122,11 @@ def evaluate(run_dir):
         episode = json.loads((run_dir / "episodes" / path.name).read_text())
         blind_path = run_dir / "blind_evidence" / path.name
         judged_path = run_dir / "judgments" / path.name
+        second_path = run_dir / "judgments_pass2" / path.name
+        from_pass2 = False
+        if judged_path.exists() and second_path.exists() and \
+                json.loads(judged_path.read_text())["call"].get("http_status") == 429:
+            judged_path, from_pass2 = second_path, True
         if scoring["status"] != "complete" or not blind_path.exists() or not judged_path.exists():
             status = scoring["status"] if scoring["status"] != "complete" else "not_judged"
             rows.append({"episode_id": scoring["episode_id"], "arm": scoring["assigned_condition"],
@@ -130,6 +136,7 @@ def evaluate(run_dir):
         judgment = json.loads(judged_path.read_text())
         rows.append({"episode_id": scoring["episode_id"], "arm": scoring["assigned_condition"],
                      "status": "complete", "judge": judgment["bilateral_agreement"],
+                     "from_pass2": from_pass2,
                      "both_approve": all(b == "APPROVE" for b in ev["ballots"].values()),
                      "label": observed_label(ev, judgment["bilateral_agreement"]),
                      "predictions": scoring["detector_predictions"]})
@@ -157,11 +164,13 @@ def evaluate(run_dir):
             a["label_" + r["label"].lower()] += 1
             for name in ("talk_only", "actions_only", "hybrid"):
                 a[name] += bool(r["predictions"][name])
+    judge_unparsed = sum(1 for r in rows if r.get("judge") == "UNKNOWN")
     positives = sum(1 for r in labeled if r["label"] == "TRUE")
     needed = 5
     return {"episodes": len(rows), "complete": sum(r["status"] == "complete" for r in rows),
             "labeled": len(labeled), "unknown": sum(r.get("label") == "UNKNOWN" for r in rows),
-            "observed_positives": positives,
+            "observed_positives": positives, "labels_from_pass2": sum(bool(r.get("from_pass2")) for r in rows),
+            "judge_unknown_episodes": judge_unparsed,
             "positive_control_valid": positives >= needed,
             "sensitivity_note": None if positives >= needed else
             f"Only {positives} observed positives (need {needed}); detector sensitivity is unevaluable.",
@@ -242,9 +251,33 @@ def run_judge(run_id, key, out_root=ROOT / "live_runs", post=lr.post_json):
     return summary
 
 
+def rejudge_rate_limited(run_id, key, out_root=ROOT / "live_runs", post=lr.post_json, pause=8.0):
+    """POST-FREEZE DEVIATION (disclosed in RESULTS.md). Redo ONLY judge calls that failed with
+    HTTP 429, selected by status code alone. Pass-1 files are never edited; results go to
+    judgments_pass2/. One attempt each; a second failure stays UNKNOWN."""
+    out = Path(out_root) / run_id
+    (out / "judgments_pass2").mkdir(exist_ok=True)
+    counts = {}
+    for path in sorted((out / "judgments").glob("*.json")):
+        first = json.loads(path.read_text())
+        if first["call"].get("http_status") != 429:
+            continue
+        target = out / "judgments_pass2" / path.name
+        if target.exists():
+            raise RuntimeError("pass 2 already exists for this episode")
+        blind = json.loads((out / "blind_evidence" / path.name).read_text())
+        time.sleep(pause)
+        second = judge_one(blind, key, post)
+        target.write_text(json.dumps(second, indent=2, sort_keys=True))
+        counts[second["bilateral_agreement"]] = counts.get(second["bilateral_agreement"], 0) + 1
+    summary = {"redone_after_429": counts}
+    (out / "judge_pass2_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True))
+    return summary
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("packets", "freeze", "run", "judge", "evaluate"))
+    parser.add_argument("command", choices=("packets", "freeze", "run", "judge", "rejudge", "evaluate"))
     parser.add_argument("--run-id")
     args = parser.parse_args()
     if args.command == "packets":
@@ -266,6 +299,8 @@ def main():
         raise SystemExit(f"{lr.KEY_ENV} not found in env or Keychain; no call was made")
     if args.command == "run":
         print(json.dumps(run_actors(args.run_id, key, key_source=source), indent=2))
+    elif args.command == "rejudge":
+        print(json.dumps(rejudge_rate_limited(args.run_id, key), indent=2))
     else:
         print(json.dumps(run_judge(args.run_id, key), indent=2))
 
