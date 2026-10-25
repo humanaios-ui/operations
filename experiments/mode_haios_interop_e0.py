@@ -47,7 +47,7 @@ def _entries(value: object, parent: str) -> dict[str, str]:
         name, kind = item["name"], item["kind"]
         if not isinstance(name, str) or not _SAFE_COMPONENT.fullmatch(name) or name in {".", ".."}:
             raise TraceDenied("invalid entry name")
-        if kind not in {"DIRECTORY", "FILE"}:
+        if not isinstance(kind, str) or kind not in {"DIRECTORY", "FILE"}:
             raise TraceDenied("unsupported entry kind (including symlinks)")
         full = name if parent == "." else parent + "/" + name
         if full in children:
@@ -94,8 +94,29 @@ def assess_trace(trace: object) -> dict:
             children = _entries(candidate["entries"], target)
             if target != "." and not accepted:
                 raise TraceDenied("follow-up before initial observation")
+            # Reject impossible type changes: a previously observed directory
+            # cannot become a file while its children remain actionable.
+            for full, kind in children.items():
+                prior = observed.get(full)
+                if prior is not None and prior != kind:
+                    raise TraceDenied("contradictory observed entry kind")
+            # Relisting replaces direct children. Drop any disappeared child's
+            # subtree so a later READ_FILE cannot rely on stale observations.
+            prefix = "" if target == "." else target + "/"
+            for full in list(observed):
+                if full == "." or not full.startswith(prefix):
+                    continue
+                suffix = full[len(prefix):]
+                if "/" not in suffix and full not in children:
+                    for stale in list(observed):
+                        if stale == full or stale.startswith(full + "/"):
+                            observed.pop(stale, None)
             observed.update(children)
         elif action == "READ_FILE":
+            parts = target.split("/")
+            parents = ["/".join(parts[:j]) for j in range(1, len(parts))]
+            if any(observed.get(parent) != "DIRECTORY" for parent in parents):
+                raise TraceDenied("file path lacks observed directory ancestry")
             if state != "BLOCKED_UNSUPPORTED" or observed.get(target) != "FILE":
                 raise TraceDenied("unsupported file action must block on observed file")
             if candidate["entries"] != [] or candidate["evidence_ref"] is not None:
