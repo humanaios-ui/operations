@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**116 candidates** — ⏳ awaiting Z2 100 · ✅ ratified 16 · **64 records**
+**116 candidates** — ⏳ awaiting Z2 98 · ✅ ratified 18 · **65 records**
 
-## Awaiting Z2 (100)
+## Awaiting Z2 (98)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -110,10 +110,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-24 | **Q-HOST-INVENTORY-01** | Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked | `z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md` |
 | 2026-10-24 | **Q-WITNESS-DATA-PLANE-01** | Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only | `z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md` |
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
-| 2026-10-27 | **Q-H-SOUND-CALLOUT-ADAPTER-01** | Scope H4: bounded sound_intent-style vocabulary as a presentation layer over the callout taxonomy | `z1-inbox/2026-10-25/Q-H-SOUND-CALLOUT-ADAPTER-01.md` |
-| 2026-10-27 | **Q-H-WITNESS-UX-LESSONS-01** | Scope H2: W1 (game Witness) UX properties as a design reference for the Witness Ledger's eventual human-facing view | `z1-inbox/2026-10-25/Q-H-WITNESS-UX-LESSONS-01.md` |
 
-## Decided (16)
+## Decided (18)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -133,6 +131,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-MESH-LOCAL-COORDINATION-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`2c62341e03c880942e71b2b1b3f6ea85fc99feac0f032b665adb9048f4eae926` |
 | ✅ ratified | **Q-QUEUE-SWEEP-PIN-SPEC-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`3823b1ed565652db123cfa2f519c72fe5ae13c194085ff539b7596c782793dc4` |
 | ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md`<br>`3d9fd60e45ad381233420f6086dcfee37da3b44d657c6ba6986ea9286d63e800` |
+| ✅ ratified | **Q-H-SOUND-CALLOUT-ADAPTER-01** | Night | 2026-10-25 | `z1-inbox/2026-10-25/Z2_RULINGS_2026-10-25.md`<br>`h2-h4-chat-approved-20261025` |
+| ✅ ratified | **Q-H-WITNESS-UX-LESSONS-01** | Night | 2026-10-25 | `z1-inbox/2026-10-25/Z2_RULINGS_2026-10-25.md`<br>`h2-h4-chat-approved-20261025` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -486,7 +486,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (64)
+## Records (65)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -555,6 +555,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md` | Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md` | Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md` | Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record) |
+| `z1-inbox/2026-10-25/Z2_RULINGS_2026-10-25.md` | Z2 rulings 2026-10-25 (one decision, chat-recorded, not ratify.py-signed) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---

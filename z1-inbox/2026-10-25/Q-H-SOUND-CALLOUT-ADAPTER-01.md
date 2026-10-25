@@ -78,10 +78,10 @@ evidence:
   - "PR #1023 review comment (Copilot, discussion_r4371374116): flagged the original urgency-binary framing as unsupported by the taxonomy"
 
 z2_decision:
-  status: "awaiting_ratification"
-  ratified_at: null
+  status: "ratified"
+  ratified_at: "2026-10-25"
   ratification_hash: null
-  z2_notes: ""
+  z2_notes: "Approved by Night via direct chat instruction, this session ('ratify H2/H4 approved'). Offered a choice of three paths, Night chose to skip .z1-control/ratify.py and record this as a plain note instead -- no cryptographic Z2 signature exists for this decision. See z1-inbox/2026-10-25/Z2_RULINGS_2026-10-25.md for the full ruling."
 
 related_candidates: ["Q-H-WITNESS-UX-LESSONS-01"]
 external_constraint: null

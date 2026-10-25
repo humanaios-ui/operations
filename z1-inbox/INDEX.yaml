@@ -3,7 +3,7 @@ generated: '2026-10-14'
 decision_window_days: 2
 counts:
   candidates: 116
-  records: 64
+  records: 65
 ratifiers:
 - Night
 candidates:
@@ -11,16 +11,24 @@ candidates:
   title: 'Scope H2: W1 (game Witness) UX properties as a design reference for the Witness Ledger''s eventual human-facing view'
   path: z1-inbox/2026-10-25/Q-H-WITNESS-UX-LESSONS-01.md
   submitted: '2026-10-25'
-  status: awaiting_z2
+  status: ratified
+  ratified_by: Night
+  ratified_at: '2026-10-25'
+  z2_ruling: z1-inbox/2026-10-25/Z2_RULINGS_2026-10-25.md
+  z2_hash: h2-h4-chat-approved-20261025
   tier: 0
-  note: PR #1023. Read-only UX comparison between issue #1020's game Witness (W1) spec and the real, ratified Witness Ledger (Q-INTENT-OS-WITNESS-LEDGER-01). No code, schema, or ledger change. Falsifier stated. Not ratified.
+  note: PR #1023. Read-only UX comparison between issue #1020's game Witness (W1) spec and the real, ratified Witness Ledger (Q-INTENT-OS-WITNESS-LEDGER-01). No code, schema, or ledger change. Falsifier stated. Ratified 2026-10-25 by chat instruction; see Z2_RULINGS_2026-10-25.md.
 - q_id: Q-H-SOUND-CALLOUT-ADAPTER-01
   title: 'Scope H4: bounded sound_intent-style vocabulary as a presentation layer over the callout taxonomy'
   path: z1-inbox/2026-10-25/Q-H-SOUND-CALLOUT-ADAPTER-01.md
   submitted: '2026-10-25'
-  status: awaiting_z2
+  status: ratified
+  ratified_by: Night
+  ratified_at: '2026-10-25'
+  z2_ruling: z1-inbox/2026-10-25/Z2_RULINGS_2026-10-25.md
+  z2_hash: h2-h4-chat-approved-20261025
   tier: 0
-  note: PR #1023. Draft glyph/word-cue presentation layer over CLAUDE.md's existing callout taxonomy (GAP/STALE/.../REVERT); changes no trigger, route, or Z2 response in that table. Falsifier stated. Not ratified.
+  note: PR #1023. Draft glyph/word-cue presentation layer over CLAUDE.md's existing callout taxonomy (GAP/STALE/.../REVERT); changes no trigger, route, or Z2 response in that table. Falsifier stated. Ratified 2026-10-25 by chat instruction; see Z2_RULINGS_2026-10-25.md.
 - q_id: Q-PRINCIPLES-CROSSWALK-01
   title: Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4
   path: z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md
@@ -1002,6 +1010,9 @@ records:
 - path: z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md
   title: Z2 rulings 2026-09-08 (three decisions, hashed)
   note: Z2 output, not a Z1 proposal. Cited as z2_ruling by Q-JESTER-CHECK-01, Q-WITCH-CASCADE-01, Q-CYCLE3-FALSIFY-01.
+- path: z1-inbox/2026-10-25/Z2_RULINGS_2026-10-25.md
+  title: Z2 rulings 2026-10-25 (one decision, chat-recorded, not ratify.py-signed)
+  note: Z2 output, not a Z1 proposal. Cited as z2_ruling by Q-H-WITNESS-UX-LESSONS-01, Q-H-SOUND-CALLOUT-ADAPTER-01.
 - path: z1-inbox/2026-09-09/HANDOFF.md
   title: Handoff — 2026-09-09
 - path: z1-inbox/2026-09-09/IC-030-REPIN-01.md
