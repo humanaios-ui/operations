@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xerodrome Seal v2 — Spatial & Temporal Audit Map</title>
+<style>
+:root{color-scheme:dark;--bg:#090d12;--panel:#111b23;--edge:#496272;--gold:#f4be6a;--ice:#96c8df;--red:#ff7984;--green:#9ad3ad}
+*{box-sizing:border-box}body{background:radial-gradient(circle at 60% 0,#1a2b32,#080d14 70%);color:#e8e2d7;font:16px/1.5 system-ui,Arial,sans-serif;margin:0;padding:28px}h1{margin:0 0 8px;color:var(--gold);font:700 clamp(24px,4vw,39px)/1.17 Georgia,serif}.subtitle{color:#afc2c9;max-width:1000px}.notice{background:#2a1d19;border-left:4px solid var(--gold);padding:11px 16px;margin:20px 0;max-width:1200px}.layout{max-width:1230px;margin:auto}.map{background:#10191ee8;border:1px solid #4a5660;border-radius:15px;padding:18px;margin:20px 0;box-shadow:0 25px 60px #0006}svg{max-width:100%;height:auto;display:block;background:#080e15;border-radius:8px}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:22px}.controls label{font-weight:700;color:var(--gold)}input[type=range]{width:min(540px,100%);accent-color:var(--gold)}output{font-size:1.3rem;font-weight:700;color:var(--ice)}.legend{display:flex;gap:15px;flex-wrap:wrap;margin:10px 0 0;color:#bcccd4;font-size:.85rem}.legend span:before{content:'●';margin-right:5px}.gold:before{color:var(--gold)}.red:before{color:var(--red)}.ice:before{color:var(--ice)}.green:before{color:var(--green)}.details{background:#15242c;border:1px solid #40606a;padding:14px;border-radius:10px;min-height:4rem}table{border-collapse:collapse;width:100%;font-size:.88rem}td,th{padding:10px;border-bottom:1px solid #334b5a;text-align:left}th{color:var(--gold)}code{color:var(--ice)}.tag{font-size:11px;font-weight:700;letter-spacing:.08em;fill:#c5d6dc}.h-title{font-size:16px;fill:var(--gold);font-weight:700}.focusable{outline:none;cursor:pointer}.focusable:focus-visible{stroke:white;stroke-width:5}footer{font-size:.84rem;color:#bac4c9;margin:30px 0}@media(max-width:640px){body{padding:14px}.map{padding:10px}.legend{font-size:.75rem}}
+</style>
+</head>
+<body><main class="layout">
+<p style="letter-spacing:.22em;color:#a2bac5">HUMANAIOS • WARDENS OF THE CRAFT • CANDIDATE DESIGN</p>
+<h1>The Xerodrome Seal</h1>
+<p class="subtitle">An interactive spatial and temporal inspection of the user-supplied v2.0 fiction map. Move the timeline to see Black Dawn expand. <strong>This is an audit visual, not the live game or an exact orbital-physics simulator.</strong></p>
+<div class="notice"><b>Geometry needs a decision.</b> With the supplied AU coordinates, the wave touches Null Ground's shield at <b>tick 27</b>, but crosses its center at <b>tick 30</b>. “Reaches Null Ground” is ambiguous. Furnace surface origin versus planet center also remains unresolved.</div>
+<section class="map">
+<div class="controls"><label for="tick">DESERTIFICATION CLOCK</label><input id="tick" type="range" min="0" max="30" value="0" step="1" aria-label="Global action tick"><output id="tick-label" for="tick">Tick 0 / 30</output></div>
+<p id="phase" aria-live="polite">Genesis. The wave has not advanced.</p>
+<svg id="orbit" viewBox="0 0 960 600" role="img" aria-label="Orbital map with Hearth, Vessel, OC ring, fragment fields, Null Ground and expanding Black Dawn front">
+<defs><radialGradient id="sun"><stop offset="0" stop-color="#ffe6a6"/><stop offset="1" stop-color="#aa6c27"/></radialGradient></defs>
+<g stroke="#334754" stroke-width="1" opacity=".45"><path d="M0 420 H960 M140 0 V600 M310 0 V600" stroke-dasharray="4 7"/></g>
+<!-- circles are in equal-scale pixels: 170 pixels / AU -->
+<circle cx="310" cy="420" r="105.4" fill="#8b5cb51c" stroke="#7f7293" stroke-dasharray="5 7"/>
+<circle cx="310" cy="420" r="57.8" fill="none" stroke="#7f7293" stroke-dasharray="5 7"/>
+<circle cx="310" cy="420" r="17" fill="none" stroke="#95a9c0" stroke-width="2"/>
+<line x1="310" y1="420" x2="612.64" y2="88.5" stroke="#f4be6a" stroke-width="2" stroke-dasharray="8 7" opacity=".35"/>
+<g id="front"><circle id="frontCircle" cx="310" cy="420" r="0" fill="#e14d5a20" stroke="#ff7984" stroke-width="3"/></g>
+<circle cx="612.64" cy="88.5" r="47.6" stroke="#9ad3ad" stroke-width="2" fill="#3ac5b811"/>
+<circle cx="140" cy="420" r="23" fill="url(#sun)" />
+<circle cx="310" cy="420" r="12" fill="#a9bad3" stroke="#ecdcbe" stroke-width="2"/>
+<circle cx="310" cy="387.7" r="5" fill="#bb95d8"/>
+<circle cx="612.64" cy="88.5" r="10" fill="#5fae9c" stroke="#d1f3df" stroke-width="2"/>
+<g class="tag"><text x="106" y="463">HEARTH (0,0)</text><text x="327" y="429">VESSEL (1,0)</text><text x="327" y="383">HQ (+0.19 AU)</text><text x="410" y="493">FRAGMENT FIELDS</text><text x="658" y="93">NULL GROUND</text><text x="658" y="112">(2.78, 1.95 AU)</text><text x="658" y="133">shield R 0.28 AU</text></g>
+<g class="tag"><text x="15" y="33">FRAME-O / AU / ECLIPTIC</text><text x="15" y="54">Planet-centered front: visualization approximation only</text><text x="15" y="578">R-09 dotted transfer = NOT validated as elevator or physically safe route</text></g>
+</svg>
+<div class="legend"><span class="gold">Solar / proposed transfer</span><span class="red">Black Dawn front</span><span class="green">Null shield boundary</span><span class="ice">Authority stations / Vessel</span></div>
+<p class="details" id="orbitReadout" role="status" aria-live="polite"></p>
+</section>
+<section class="map">
+<h2>Subsurface depth map — Frame-D</h2>
+<p>Depth coordinates use kilometers, not AU. This schematic is independent of the orbital transform.</p>
+<svg viewBox="0 0 960 355" role="img" aria-label="Schematic depth cross-section with root nodes, Lattice, core shafts, Furnace and Buried One">
+<g stroke="#344953" stroke-width="1" opacity=".6"><path d="M120 42 H780 M120 42 V325" stroke-dasharray="4 6"/><path d="M120 116 H780 M120 183 H780 M120 313 H780" stroke-dasharray="4 6"/></g>
+<rect x="120" y="101" width="630" height="27" fill="#6b9e5c33" stroke="#84ad85" stroke-dasharray="6 5"/>
+<rect x="120" y="111" width="630" height="194" fill="#7e425617" />
+<g fill="#94b98a"><circle cx="246" cy="116" r="9"/><circle cx="372" cy="116" r="9"/><circle cx="498" cy="116" r="9"/><circle cx="624" cy="116" r="9"/></g>
+<path d="M278 42 L278 108 M435 42 L435 108 M592 42 L592 108" stroke="#e5bb75" stroke-width="6" opacity=".5"/>
+<circle cx="435" cy="183" r="13" fill="#e26b55" stroke="#faaf8a" stroke-width="2"/>
+<g class="tag"><text x="23" y="28">SURFACE 0km</text><text x="17" y="112">−1400km</text><text x="19" y="187">−3000km</text><text x="26" y="316">−5600km</text><text x="242" y="91">RN-1</text><text x="369" y="91">RN-2 / H</text><text x="492" y="91">RN-3</text><text x="620" y="91">RN-4</text><text x="451" y="189">FURNACE</text><text x="165" y="282">BURIED ONE / fictional mantle entity</text></g>
+<text x="18" y="345" class="tag">FRAME-D / lateral 0–6000 km / diagrammatic depth. Not a real geologic simulation.</text>
+</svg>
+</section>
+<section class="map"><h2>Critical game-readiness questions</h2>
+<table><thead><tr><th>Gate</th><th>Unresolved input</th></tr></thead><tbody>
+<tr><td><code>X-01</code> End clock</td><td>Shield contact at tick 27 or center crossing at 30: which is the actual loss condition?</td></tr>
+<tr><td><code>X-02</code> Source center</td><td>Planet-centered approximation versus the Furnace surface projection.</td></tr>
+<tr><td><code>X-03</code> R-09</td><td>Local tether plus distant transfer, or a declared fictional nonlocal connection.</td></tr>
+<tr><td><code>X-04</code> Mission reachability</td><td>HQ is consumed at tick 3, yet Control requires M-048 at HQ. Routes and costs are missing.</td></tr>
+<tr><td><code>X-05</code> Narrative rights</td><td>H, the coercive NPC Voice, must never inherit the real Witness's read-only memory tools.</td></tr>
+</tbody></table>
+</section>
+<footer>Candidate research map • no external requests • no player data collection • not a live map or Azure deployment • Fictional game cosmology only</footer>
+</main>
+<script>
+(() => {
+  const slider=document.getElementById('tick');
+  const lbl=document.getElementById('tick-label');
+  const phase=document.getElementById('phase');
+  const circle=document.getElementById('frontCircle');
+  const output=document.getElementById('orbitReadout');
+  const steps=[
+    [30,'The front reaches the Null Ground center. No outcome is automatically authorized.'],
+    [27,'First projected contact with the Null Ground shield. Shield response is undefined.'],
+    [25,'Unsecured R-09 collapses. Travel alternatives have not been validated.'],
+    [20,'Furnace breach becomes irreversible; Control/Awakening/Severance are story candidates.'],
+    [12,'The Lattice fails; M-041 appears with an unresolved action window.'],
+    [7,'Fragment Fields outer radius is overtaken.'],
+    [4,'The inner Fragment Field is reached.'],
+    [3,'Inquisitor HQ is overtaken. M-048 access needs a solution.'],
+    [2,'The OC collector ring is overtaken.'],
+    [1,'Black Dawn expands from the start, but tick-20 origin lore is unresolved.'],
+    [0,'Before the first major action.']
+  ];
+  function update(){
+    const t=Number(slider.value);
+    lbl.textContent='Tick '+t+' / 30';
+    circle.setAttribute('r',String(t*.09*170));
+    phase.textContent=steps.find(([limit])=>t>=limit)[1];
+    const radius=(t*.09).toFixed(2);
+    const isContact=t>=27;
+    const centerReached=t>=30;
+    output.textContent='Planet-centered model: r='+radius+' AU. Null Ground shield '+(isContact?'intersected':'not yet intersected')+
+      '; center '+(centerReached?'reached':'not reached')+'. Computed using the candidate coordinates; game consequences are not yet defined.';
+  }
+  slider.addEventListener('input',update);update();
+})();
+</script>
+</body>
+</html>
