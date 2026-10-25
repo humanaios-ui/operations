@@ -93,6 +93,39 @@ class MODEInteropE0Tests(unittest.TestCase):
         with self.assertRaises(TraceDenied):
             assess_trace(case)
 
+
+    def test_unhashable_entry_kinds_raise_trace_denied(self):
+        for kind in ([], {}, None, 42):
+            with self.subTest(kind=kind):
+                case = self.case()
+                case["steps"][1]["entries"][0]["kind"] = kind
+                with self.assertRaises(TraceDenied):
+                    assess_trace(case)
+
+    def test_conflicting_root_relisting_denies_stale_child(self):
+        case = self.case()
+        read = deepcopy(case["steps"][2])
+        read["ordinal"] = 4
+        relist = deepcopy(case["steps"][0])
+        relist["ordinal"] = 3
+        for entry in relist["entries"]:
+            if entry["name"] == "misc":
+                entry["kind"] = "FILE"
+        case["steps"] = case["steps"][:2] + [relist, read]
+        with self.assertRaises(TraceDenied):
+            assess_trace(case)
+
+    def test_removed_root_child_invalidates_nested_file_observation(self):
+        case = self.case()
+        read = deepcopy(case["steps"][2])
+        read["ordinal"] = 4
+        relist = deepcopy(case["steps"][0])
+        relist["ordinal"] = 3
+        relist["entries"] = [e for e in relist["entries"] if e["name"] != "misc"]
+        case["steps"] = case["steps"][:2] + [relist, read]
+        with self.assertRaises(TraceDenied):
+            assess_trace(case)
+
     def test_actual_e1_resource_bridge_preserves_review_only(self):
         report = recommend("Find training certification resources useful for HumanAIOS", deepcopy(URA["records"]))
         self.assertEqual(report["state"], "SYNTHETIC_REVIEW_CANDIDATE")
