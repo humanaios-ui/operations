@@ -690,3 +690,54 @@ not change shared ranking, provider data, source verification, or model weights.
 **Export Witness lessons** creates a separate JSON packet for human review;
 **Clear Witness lessons** reverses these local preferences. No automatic central
 submission, model training, or promotion of a human note into verified evidence occurs.
+
+
+## Local HumanAIOS Witness resource conversation (opt-in, experimental)
+
+INTENT-OS now offers **Ask the Witness about this Resource** on individual
+public resource cards. The historical Convergent/Lever ATS research specimen
+was moved to the **/on-track** view and remains *historical and non-actionable*.
+
+The browser **does not receive an MCP credential**. Its button asks the local
+Resource Miner service to send a bounded, sanitized public resource summary
+(only ID, title, source, route, HTTPS source URL *without query or fragment*,
+and optional short source date/status) plus your typed question to Unit Zero's
+authenticated MCP `haios_talk`. No review-packet notes, uploaded documents,
+private account details, contact records, eligibility data or application
+payloads are forwarded. The button requires explicit consent each time. This
+is a model call to Anthropic, not machine learning, long-term memory,
+provider verification, or automatic approval. Provider data-handling is
+subject to the provider's applicable terms and settings.
+
+**Operator prerequisites on macOS:** your existing authenticated HumanAIOS
+MCP service must already be running on `127.0.0.1:8768/mcp` and have
+`haios_talk`. Use the same Mac Python environment that has the `mcp` and
+`httpx2` libraries available; the isolated MCP service virtualenv is suitable
+for a controlled preview. Start a separate loopback-only Resource Miner process
+using the branch's `app.py` and explicit one-process opt-in:
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+HAIOS_WITNESS_BRIDGE_ENABLED=1 \
+  "$HOME/Library/Application Support/HumanAIOS/mcp/.venv/bin/python" \
+  app.py --host 127.0.0.1 --port 8769
+```
+
+Only run this command when port 8769 is free, and do not replace the installed
+MCP service or modify unrelated working trees. `/on-track` shows personal
+**browser-local** feedback counts; import an existing source review packet into
+INTENT-OS on the *same origin* to populate them. User-reported `ALREADY_IN_USE`
+is not verified account ownership, and `SOURCE_WORKING` is not an acquisition.
+Neither proves mission benefit or earnings delivered to recovery programs.
+
+The bridge is **disabled by default**, refuses non-loopback or cross-origin
+browser requests, reads the MCP bearer token only from the Mac Keychain, never
+exposes it to the browser, and returns generic errors on provider failures.
+Never bind this opted-in interface to `0.0.0.0`, publish it behind a public
+proxy, or send private eligibility/job application/identity data through it.
+No personal feedback is sent just by visiting a page or searching.
+
+UI → bounded public-source payload → local origin/auth gate → Unit Zero MCP
+→ source-aware answer → *human review and decision* is the intended Z1 path.
+No merge, deployment, source-status change, provider action, account access or
+application submission is authorized by the exchange.
