@@ -190,6 +190,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._headers(200, "text/html; charset=utf-8", len(page))
                 self.wfile.write(page)
                 return
+            if parsed.path == "/form-assistance":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                page = (ROOT / "form-assistance.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
+
             if parsed.path == "/on-track":
                 page = (ROOT / "on-track.html").read_bytes()
                 self._headers(200, "text/html; charset=utf-8", len(page))
