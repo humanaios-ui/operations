@@ -65,13 +65,6 @@
       "command_ref": "RCC-GITHUB-COMMENT-6388103757",
       "event_id": "RCSEVT-76D60BE409BD4A5B",
       "objective_issue_number": null
-    },
-    "PULL_REQUEST#998": {
-      "admission_scope": "subject:PULL_REQUEST#998",
-      "admitted_head_sha": "b56dc1251374045c4d9d78f17fe9cef52b26563e",
-      "command_ref": "RCC-GITHUB-COMMENT-6388104072",
-      "event_id": "RCSEVT-68C0E3418834AA2E",
-      "objective_issue_number": null
     }
   },
   "active_event_ids": {
@@ -84,8 +77,7 @@
     "PULL_REQUEST#809": "RCSEVT-24A1BE751EF5B0FB",
     "PULL_REQUEST#994": "RCSEVT-5137CCB5B3209233",
     "PULL_REQUEST#996": "RCSEVT-592DA7C31C0B793C",
-    "PULL_REQUEST#997": "RCSEVT-76D60BE409BD4A5B",
-    "PULL_REQUEST#998": "RCSEVT-68C0E3418834AA2E"
+    "PULL_REQUEST#997": "RCSEVT-76D60BE409BD4A5B"
   },
   "admitted_issue_numbers": [
     378,
@@ -97,7 +89,6 @@
     994,
     996,
     997,
-    998,
     1006,
     1010,
     1011
@@ -191,14 +182,15 @@
     "RCC-GITHUB-RECONCILE-40123022054-PR-993-HEAD-MOVED-286bac0bccd0d4d9e88c1f75d3e2cec666349c73",
     "RCC-GITHUB-RECONCILE-40140803277-PR-1007-HEAD-MOVED-1d21f9a1e57cfe16da9f010beb43357f8ce58291",
     "RCC-GITHUB-RECONCILE-40142184425-PR-1014-MERGED",
+    "RCC-GITHUB-RECONCILE-40146522344-PR-998-HEAD-MOVED-7918bf41f90c7dd8a1ab20dff431d2f97f4da867",
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "95dff5b7c929107eb5b4b5293294d1243e99762b31858d244e7a16f9c051ee15",
-  "last_event_id": "RCSEVT-95DFF5B7C929107E",
-  "last_sequence": 114,
-  "ledger_event_count": 114,
-  "ledger_sha256": "073583f8d3276dd7c61f8f29eeb2c6063559ffb5da57f1425a82c944f30b7906",
+  "last_event_hash": "8f615a175e5dfb18e6b6b8a0aeae99fbf121912239b88169eaf90e74fe9abe18",
+  "last_event_id": "RCSEVT-8F615A175E5DFB18",
+  "last_sequence": 115,
+  "ledger_event_count": 115,
+  "ledger_sha256": "36e01c746984ce7887c5dd79a08af921c9e417e31bf9ee16133c6aaceb67b24e",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
