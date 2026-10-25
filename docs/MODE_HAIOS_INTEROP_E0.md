@@ -61,3 +61,16 @@ The previous E0 description of "no live interop qualification" remains true **fo
 5. Deliver bounded HumanAIOS ACAT challenge and independent evaluator review; keep outputs advisory only. No self-certification, learning admission, or production changes.
 
 **Result of this audit: EXISTING HISTORICAL TRANSPORT FOUND; CURRENT LIVE TRANSPORT UNVERIFIED; EXPOSED TEST CREDENTIAL MUST BE ROTATED BEFORE REUSE.**
+
+
+## Reviewer repair disposition — 2026-10-25
+
+Three Copilot review findings on PR #1018 have been **addressed in candidate code**, not automatically marked resolved or admitted:
+
+| Review finding | Candidate change | Regression |
+| --- | --- | --- |
+| Unhashable `kind` (list/dict) raises Python TypeError instead of `TraceDenied` | Require string entry kind before set membership | `test_unhashable_entry_kinds_raise_trace_denied` |
+| Relisting a root child as FILE while nested descendants remain actionable | Deny conflicting observed type changes and require observed parent directories on file projection | `test_conflicting_root_relisting_denies_stale_child` |
+| Removed entries can leave stale descendants; dependency-only module changes skip E0 | Invalidate descendants on relist; include E1, ACAT, receipt modules/fixtures/tests in workflow paths | `test_removed_root_child_invalidates_nested_file_observation` and updated CI paths |
+
+Independent CI status at repair head `9c9010c4cced3e7bac0e2c2ee9a0f2ea452769b6`: **58/58 PASS** (15 MODE synthetic + 10 E1 + 17 receipt resolver + 16 ACAT). Other protected status checks were recorded green except workflow-lint was initially in progress; review/admission/merge authority remains separate. This is still a synthetic parser and boundary test, **not** proof of live MODE runtime, independent Reality Primacy issuance, or completed cross-system objective.
