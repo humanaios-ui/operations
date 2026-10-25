@@ -37,6 +37,13 @@ const state=()=>witness.snapshot();
 make('playerName').value='Aster';fire('genesisForm','submit');
 assert.equal(state().player,'Aster');assert.equal(state().form,selectedForm);assert.equal(state().zone,2);
 fire('path:'+selectedPath,'click');assert.equal(state().zone,3);assert.equal(state().path,selectedPath);
+const mythRouteNote=make('routeNote').textContent;
+assert.match(mythRouteNote,/MYTH \/ /,'route caption must be visibly labeled fictional');
+assert.ok(mythRouteNote.includes(selectedPath),'route caption must show the selected path');
+if(selectedPath==='Archive')assert.match(mythRouteNote,/missing trace does not prove deliberate erasure/i);
+assert.equal(state().events.find(e=>e.kind==='PATH_CHOSEN').details,selectedPath+' — chosen, not inferred',
+  'mythic route interpretation must not contaminate the observed event');
+
 assert.match(witness.query('origin'),/disabled/);
 if(!witnessOff){
   make('witnessToggle').checked=true;fire('witnessToggle','change');
