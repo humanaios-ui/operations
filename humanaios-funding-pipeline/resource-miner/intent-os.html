@@ -289,7 +289,8 @@ function addCard(row){
  const askConsent=document.createElement("label");
  const askChecked=document.createElement("input");askChecked.type="checkbox";
  askChecked.setAttribute("aria-label","Consent to send this public resource summary and question to the local Witness");
- askConsent.append(askChecked,document.createTextNode(" I choose to send the displayed public resource summary and question to Unit Zero/Claude."));
+ const consentCopy=document.createElement("span");text(consentCopy," I choose to send the displayed public resource summary and question to Unit Zero/Claude.");
+ askConsent.append(askChecked,consentCopy);
  const askButton=document.createElement("button");askButton.type="button";
  text(askButton,"Ask the Witness");
  const askOutput=document.createElement("p");askOutput.setAttribute("role","status");
