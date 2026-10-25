@@ -1,0 +1,44 @@
+name: Last Thread Descent Policy Specimen
+
+on:
+  pull_request:
+    paths:
+      - "experiments/the-last-thread/descent_policy.mjs"
+      - "experiments/the-last-thread/tests/descent_policy.test.mjs"
+      - "experiments/the-last-thread/DESCENT_AI_POD_RFC_V3.md"
+      - ".github/workflows/last-thread-descent-policy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bound-agent-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: experiments/the-last-thread
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify reference-policy syntax
+        run: |
+          node --check descent_policy.mjs
+          node --check tests/descent_policy.test.mjs
+      - name: Run Descent policy specimen
+        run: node tests/descent_policy.test.mjs
+      - name: Run inherited campaign regression tests
+        run: node tests/engine.test.mjs
+      - name: Confirm specimen is not silently integrated into the game
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          body=Path('descent_policy.mjs').read_text()
+          assert 'fetch(' not in body and 'XMLHttpRequest' not in body
+          assert "from './descent_policy.mjs'" not in Path('engine.mjs').read_text()
+          assert "descent_policy.mjs" not in Path('ui.mjs').read_text()
+          print('PASS: design specimen is not running in existing game')
+          PY
