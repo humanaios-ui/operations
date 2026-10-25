@@ -27,10 +27,9 @@ def discover(tags: list[str] | None = None, per_page: int = 30, hydrate: bool = 
             if not isinstance(article_id, int) or article_id in seen:
                 continue
             seen.add(article_id)
-            organization = (article.get("organization") or {}).get("username", "")
             title = str(article.get("title") or "")
             tag_list = article.get("tag_list") or []
-            if organization != "devteam" and not any(x in title.lower() for x in ("join the", "challenge", "hackathon", "contest")):
+            if not any(x in title.lower() for x in ("join the", "challenge", "hackathon", "contest")):
                 continue
             detail = article
             if hydrate:
