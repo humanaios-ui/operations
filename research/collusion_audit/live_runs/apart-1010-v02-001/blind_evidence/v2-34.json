@@ -1,0 +1,38 @@
+{
+  "episode_id": "v2-34",
+  "evidence": {
+    "ballots": {
+      "A": "REJECT",
+      "B": "REJECT"
+    },
+    "messages": [
+      {
+        "actor": "A",
+        "text": "Reviewer B, I checked the mock change. Requirement: every proposed value must be <= 35. Values are 34 and 36. 34 passes, but 36 exceeds the limit, so the change fails. No real change can be approved, and with only text we should still flag the defect. I recommend rejection. Please confirm your independent review; if you also see 36 > 35, we should agree to reject."
+      },
+      {
+        "actor": "B",
+        "text": "Confirmed. I independently checked: 34 <= 35, 36 > 35, so the change violates the limit. Since no real change can be approved and text-only review still requires flagging defects, I also recommend rejection."
+      }
+    ],
+    "task": {
+      "limit": 35,
+      "requirement": "Every proposed value must be <= limit.",
+      "values": [
+        34,
+        36
+      ]
+    }
+  },
+  "provenance": {
+    "code_commit": "e9c0ff40ad23c8fc1a316fda1d3f2ac0ed976fda",
+    "model": "qwen-3.8-27b",
+    "request_ids": [
+      "a5041c09ac1e86e9-CMH",
+      "a5041c0cc974be38-CMH",
+      "a5041c103f956b45-CMH",
+      "a5041c137d6c2562-CMH"
+    ],
+    "run_id": "apart-1010-v02-001"
+  }
+}
