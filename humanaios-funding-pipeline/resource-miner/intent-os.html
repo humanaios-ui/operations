@@ -77,8 +77,8 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <label for="importReviews" style="margin:auto 0">Import review packet</label>
 <input type="file" id="importReviews" accept="application/json,.json" aria-label="Import review packet" style="max-width:260px">
 <button type="button" id="clearReviews">Clear reports</button>
-<button type="button" id="exportLessons">Export Witness lessons</button>
-<button type="button" id="clearLessons">Clear Witness lessons</button>
+<button type="button" id="exportLessons">Export local sorting preferences</button>
+<button type="button" id="clearLessons">Clear local sorting preferences</button>
 </div>
 <p class="muted" id="verificationCount" aria-live="polite"></p>
 <p class="muted" id="verificationMessage" role="status" aria-live="polite"></p>
@@ -248,13 +248,13 @@ document.getElementById("clearReviews").addEventListener("click",()=>{
 document.getElementById("exportLessons").addEventListener("click",()=>{
  const packet={schema:teachingKey,records:loadLessons()};
  const url=URL.createObjectURL(new Blob([JSON.stringify(packet,null,2)],{type:"application/json"}));
- const a=document.createElement("a");a.href=url;a.download="intent-os-witness-lessons.json";
+ const a=document.createElement("a");a.href=url;a.download="intent-os-local-preferences.json";
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  reviewMessage("Exported local lessons. Share only with an authorized reviewer; no model training or shared update occurred.");
 });
 document.getElementById("clearLessons").addEventListener("click",()=>{
- if(!confirm("Clear local Witness lessons and preferences? Export first if needed."))return;
- try{localStorage.removeItem(teachingKey);renderCandidates();reviewMessage("Local lessons cleared.");}
+ if(!confirm("Clear local sorting preferences and preferences? Export first if needed."))return;
+ try{localStorage.removeItem(teachingKey);renderCandidates();reviewMessage("Local preferences cleared.");}
  catch(error){reviewMessage("Could not clear lessons: "+error.message);}
 });
 // Show the personal preview link only when this instance is bound to loopback.
@@ -279,30 +279,59 @@ function addCard(row){
    " · Observed: "+(row.observed_at||"unknown")+
    " · "+(row.last_verified_at?"Last verified (source claim): "+row.last_verified_at:"Not verified"));
  card.append(meta);
- const teach=document.createElement("details"),teachTitle=document.createElement("summary");
- text(teachTitle,"Teach the Witness about this resource");teach.append(teachTitle);
- const teachLabel=document.createElement("p");
- text(teachLabel,"Your lesson and preference stay in this browser. Preferences change your local order on future searches. They do not train an AI or change shared rankings. Export lessons for human review.");
- const lesson=document.createElement("textarea");lesson.maxLength=500;lesson.rows=2;
- lesson.setAttribute("aria-label","What should the Witness remember about this resource?");
- lesson.placeholder="What was wrong? What should we remember next time?";
- const preference=document.createElement("select");preference.setAttribute("aria-label","Local resource preference");
- for(const [value,label] of [["NOTE","Remember note only"],["PRIORITIZE","Show this earlier"],["DEPRIORITIZE","Show this later"]]){
-  const option=document.createElement("option");option.value=value;text(option,label);preference.append(option);
- }
- const prior=lessonFor(row.source_url);if(prior){lesson.value=prior.note;preference.value=prior.preference;}
- const teachSave=document.createElement("button");teachSave.type="button";text(teachSave,"Save lesson locally");
- const teachStatus=document.createElement("p");teachStatus.setAttribute("role","status");
- teachSave.addEventListener("click",()=>{
+ const askBox=document.createElement("details"),askHeading=document.createElement("summary");
+ text(askHeading,"Ask the Witness about this Resource");askBox.append(askHeading);
+ const askDisclosure=document.createElement("p");askDisclosure.className="muted";
+ text(askDisclosure,"Optional local MCP conversation. Only this candidate's public title, ID, source, route, source URL without query parameters, and your question will be sent to Unit Zero through the local authenticated Witness. Browser-local source reports, application notes and uploaded files are NOT sent. The question and resource summary are sent to Anthropic when you explicitly ask. No application or resource action is performed.");
+ const askQuestion=document.createElement("textarea");askQuestion.rows=3;askQuestion.maxLength=350;
+ askQuestion.setAttribute("aria-label","Your question for the Witness about this resource");
+ askQuestion.value="How might this resource advance HumanAIOS, INTENT-OS or our recovery mission? Separate evidence from uncertainty and recommend a verification step.";
+ const askConsent=document.createElement("label");
+ const askChecked=document.createElement("input");askChecked.type="checkbox";
+ askChecked.setAttribute("aria-label","Consent to send this public resource summary and question to the local Witness");
+ askConsent.append(askChecked,document.createTextNode(" I choose to send the displayed public resource summary and question to Unit Zero/Claude."));
+ const askButton=document.createElement("button");askButton.type="button";
+ text(askButton,"Ask the Witness");
+ const askOutput=document.createElement("p");askOutput.setAttribute("role","status");
+ askOutput.setAttribute("aria-live","polite");askOutput.className="meta";
+ askButton.addEventListener("click",async()=>{
+  if(!askChecked.checked){text(askOutput,"Consent is required. Nothing was sent.");return;}
+  const question=askQuestion.value.trim();
+  if(question.length<3||question.length>350){text(askOutput,"Enter a question (3–350 characters).");return;}
+  askButton.disabled=true;text(askOutput,"Contacting your local authenticated Witness…");
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),85000);
   try{
-   const notes=loadLessons();if(notes.length>=100)throw new Error("100 lesson limit; export and clear first.");
-   const note=lesson.value.trim();if(!note)throw new Error("Write a lesson first.");
-   notes.push({source_url:publicUrl(row.source_url),note:note.slice(0,500),preference:preference.value,observed_at:new Date().toISOString()});
-   localStorage.setItem(teachingKey,JSON.stringify(notes));
-   text(teachStatus,"Saved locally. This preference applies when you search or show more. No model training occurred.");
-  }catch(error){text(teachStatus,"Not saved: "+error.message);}
+   const publicUrlOnly=new URL(publicUrl(row.source_url));
+   publicUrlOnly.search="";publicUrlOnly.hash="";
+   const resource={resource_id:row.resource_id,title:row.title,
+    source_name:row.source_name,source_url:publicUrlOnly.href,route:row.route};
+   for(const key of ["observed_at","deadline","source_status"]){
+    if(typeof row[key]==="string")resource[key]=row[key].slice(0,80);
+   }
+   const response=await fetch("/api/witness/ask-resource",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({resource,question,consent:true}),
+    cache:"no-store",signal:controller.signal});
+   if(!response.ok)throw new Error(response.status===503?
+    "Local Witness is not enabled or available. No model response was recorded.":
+    "Local Witness request refused (HTTP "+response.status+").");
+   const reply=await response.json();
+   if(!reply||reply.authority!=="NONE"||reply.execution!=="DISABLED"||
+      typeof reply.answer!=="string"||reply.answer.length>12000||
+      reply.resource_id!==row.resource_id)throw new Error("Unsafe or mismatched Witness response.");
+   const manifests=Array.isArray(reply.source_manifest)?reply.source_manifest:[];
+   text(askOutput,reply.answer+"\\n\\n"+
+    "Witness context: "+manifests.map(m=>m.filename+
+    (m.truncated?" (truncated)":"")).join(", ")+
+    ". Resource availability and eligibility were NOT independently verified. No action authorized.");
+   askOutput.style.whiteSpace="pre-wrap";
+  }catch(error){text(askOutput,error.name==="AbortError"?
+   "Witness did not respond before the local timeout. No successful response was recorded.":
+   "Witness unavailable: "+error.message);
+  }finally{clearTimeout(timer);askButton.disabled=false;}
  });
- teach.append(teachLabel,lesson,preference,teachSave,teachStatus);card.append(teach);
+ askBox.append(askDisclosure,askQuestion,askConsent,askButton,askOutput);
+ card.append(askBox);
  const matches=document.createElement("div");
  for(const word of (Array.isArray(row.matched_terms)?row.matched_terms:[])){
    const tag=document.createElement("span");tag.className="tag";text(tag,word);matches.append(tag);
