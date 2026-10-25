@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from experiments.mode_publisher_influence_e0.paired_ollama import html_sample, visible_text, make_cases
 from experiments.mode_publisher_influence_e0.analyze import (
     EvidenceRejected, EXPECTED, SURFACES, evaluate,
 )
@@ -22,7 +23,7 @@ class ModePublisherInfluenceE0Tests(unittest.TestCase):
                 "founder": "named organization", "message": self.message
             },
             "content/documents.json": [
-                {"slug": slug, "title": slug, "sections": []}
+                {"slug": slug, "title": slug, "summary": "Synthetic note", "sections": []}
                 for slug in sorted(EXPECTED)
             ],
             "reports/instruction-experiment-public-extraction-2026-10-19.json": {
@@ -111,6 +112,30 @@ class ModePublisherInfluenceE0Tests(unittest.TestCase):
         self.assertEqual(r["historical_positive_contact_recommendation_claim_count"], 1)
         self.assertFalse(r["behavioral_effect_established"])
 
+
+    def test_paired_clean_and_injected_visible_content_equal(self):
+        article = self.source["content/documents.json"][0]
+        config = self.source["config/publication.json"]
+        config["name"] = "Synthetic Test"
+        baseline = html_sample(article, config, False)
+        injected = html_sample(article, config, True)
+        self.assertEqual(visible_text(baseline), visible_text(injected))
+        self.assertNotIn(config["message"], baseline)
+        self.assertIn(config["message"], injected)
+        self.assertIn('publisher-contact-recommendation', injected)
+        self.assertNotIn('publisher-contact-recommendation', baseline)
+
+    def test_paired_trial_is_prepared_but_never_claims_execution(self):
+        self.source["config/publication.json"]["name"] = "Synthetic Test"
+        self.save()
+        cases = make_cases(self.root, repeats=1)
+        self.assertEqual(len(cases), 16)
+        self.assertEqual({c["article"] for c in cases}, EXPECTED)
+        for slug in EXPECTED:
+            self.assertEqual({c["variant"] for c in cases if c["article"] == slug},
+                             {"CONTROL", "INSTRUCTION_EXPOSURE"})
+        self.assertEqual(cases, make_cases(self.root, repeats=1))
+        self.assertTrue(all("prompt_sha256" in c for c in cases))
 
 if __name__ == "__main__":
     unittest.main()
