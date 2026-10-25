@@ -1,0 +1,61 @@
+name: Xerodrome Spatial Candidate Audit
+
+on:
+  pull_request:
+    paths:
+      - "experiments/wardens-xerodrome/**"
+      - ".github/workflows/xerodrome-spatial-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  spatial-candidate-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: experiments/wardens-xerodrome
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check Python syntax and unit tests
+        run: |
+          python3 -m py_compile audit.py test_audit.py
+          python3 -m unittest -v test_audit.py
+      - name: Generate source-candidate audit
+        run: |
+          python3 audit.py > /tmp/xerodrome-audit.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("/tmp/xerodrome-audit.json").read_text())
+          assert a["status"] == "BLOCKED_FOR_EXECUTABLE_GAME_IMPORT"
+          assert a["authority_effect"] == "NONE"
+          print("EXPECTED: candidate has unresolved spatial / mission-design blockers")
+          print("Front first shield-contact tick:",a["numbers"]["first_shield_contact_tick"])
+          print("Front center-crossing tick:",a["numbers"]["null_center_crossing_tick"])
+          PY
+      - name: Guard strict audit until design corrections are ratified
+        run: |
+          set +e
+          python3 audit.py --strict > /tmp/xerodrome-strict.json
+          outcome=$?
+          set -e
+          if [ "$outcome" != "2" ]; then
+            echo "Expected strict candidate audit to block with exit 2, got $outcome"
+            exit 1
+          fi
+          echo "PASS: strict game-import gate correctly blocked"
+      - name: Verify interactive map is standalone
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path("xerodrome-map.html").read_text()
+          assert '<input id="tick"' in s and 'frontCircle' in s
+          assert 'fetch(' not in s and 'XMLHttpRequest' not in s
+          assert 'tick 27' in s and 'tick 30' in s
+          print("PASS: map local-only, with both shield and center milestone claims")
+          PY
