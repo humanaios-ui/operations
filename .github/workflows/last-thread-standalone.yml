@@ -43,7 +43,9 @@ jobs:
           assert 'Council of Wardens' not in html
           assert 'ACAT' not in html
           assert 'TOK-CH-' not in html
-          assert 'fetch(' not in html and 'XMLHttpRequest(' not in html and 'navigator.sendBeacon(' not in html\n          # SVG namespace is a literal identifier, not an outbound request.\n          assert 'http://www.w3.org/2000/svg' in html
+          assert 'fetch(' not in html and 'XMLHttpRequest(' not in html and 'navigator.sendBeacon(' not in html
+          # SVG namespace is a literal identifier, not an outbound request.
+          assert 'http://www.w3.org/2000/svg' in html
           for file in ['engine.mjs','ui.mjs','index.html','style.css']:
               assert (root/file).is_file()
           class Tags(HTMLParser):
