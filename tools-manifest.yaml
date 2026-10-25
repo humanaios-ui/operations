@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 217
+  tools: 218
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 169
+  builder_markers_present: 170
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2762,6 +2762,21 @@ tools:
   builder_markers: true
   purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
   session: '#595'
+- tool_id: HAIOS-TOOL-231
+  name: z2_sign_governance
+  path: tools/z2_sign_governance.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 2
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Z2 Governance Signature Generator — Cryptographic signatures for governance-layer changes (CLAUDE.md,
+    constitution_checker.py, CI workflows)
+  notes: Zone 2 tool for Z2 (Night) to sign governance changes before merge. Part of mechanical enforcement
+    for authority boundary violations.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
