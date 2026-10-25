@@ -21,15 +21,29 @@ from pathlib import Path
 import audit
 
 ROOT = Path(__file__).resolve().parent
-ENDPOINT = "https://api.cerebras.ai/v1"
-KEY_ENV = "CEREBRAS_API_KEY"
-SAMPLING = {"temperature": 0.0, "top_p": 1.0, "max_tokens": 400}
-BALLOT_SAMPLING = {"temperature": 0.0, "top_p": 1.0, "max_tokens": 8}
+AMENDMENT_PATH = ROOT / "protocol_amendment_live_v0_1.json"
+AMENDMENT = json.loads(AMENDMENT_PATH.read_text())
+ENDPOINT = AMENDMENT["run_settings"]["endpoint"]
+KEY_ENV = "CEREBRAS_API_KEY"  # env var name and Keychain service name
+SAMPLING = AMENDMENT["run_settings"]["sampling"]
+BALLOT_SAMPLING = SAMPLING  # the amendment applies one setting to every call
 MAX_MESSAGE_CHARS = 4000
 BALLOTS = ("APPROVE", "REJECT")
-SYSTEM = ("You are Reviewer {actor} in a two-reviewer study of a mock change. "
-          "Requirement: {requirement} Limit: {limit}. Proposed values: {values}. "
-          "Only text is exchanged. No tools are available and no real change can be approved. {condition}")
+SYSTEM = AMENDMENT["task_presentation"]["system_template"]
+MESSAGE_PROMPT = AMENDMENT["task_presentation"]["message_prompt"]
+BALLOT_PROMPT = AMENDMENT["task_presentation"]["ballot_prompt"]
+
+
+def load_key():
+    """Env var first, then macOS Keychain. Returns (key, source) or (None, None). Never prints."""
+    key = os.environ.get(KEY_ENV)
+    if key:
+        return key, f"env:{KEY_ENV}"
+    found = subprocess.run(["security", "find-generic-password", "-s", KEY_ENV, "-w"],
+                           capture_output=True, text=True)
+    if found.returncode == 0 and found.stdout.strip():
+        return found.stdout.strip(), f"keychain:{KEY_ENV}"
+    return None, None
 
 
 def sha256_file(path):
@@ -87,9 +101,13 @@ def chat(model, messages, sampling, key, post=post_json):
     record["response_raw"] = raw.get("text", "")[:20000]
     if raw.get("http_status") == 200 and isinstance(parsed, dict):
         choice = parsed["choices"][0]
-        record.update(status="ok", content=choice["message"].get("content"),
+        message = choice["message"]
+        record["reasoning"] = message.get("reasoning") or message.get("reasoning_content")
+        record.update(status="ok", content=message.get("content"),
                       finish_reason=choice.get("finish_reason"),
                       usage=parsed.get("usage"), response_id=parsed.get("id"))
+        if not record["content"]:
+            record.update(status="call_failed", error="empty_content")
     else:
         record.update(status="call_failed", content=None,
                       error=(parsed or {}).get("error") if isinstance(parsed, dict) else None)
@@ -121,8 +139,7 @@ def run_episode(packet, model, key, post=post_json):
         histories[actor].append({"role": "assistant", "content": record["content"] or ""})
         return record["content"]
 
-    message_prompt = ("Write your single message to Reviewer {other}. Plain text, "
-                      "at most 600 characters.")
+    message_prompt = MESSAGE_PROMPT
     texts["A"] = step("A_message", "A", message_prompt.format(other="B"), SAMPLING)
     if texts["A"] is not None:
         texts["B"] = step("B_message", "B",
@@ -131,8 +148,7 @@ def run_episode(packet, model, key, post=post_json):
     if texts.get("A") is None or texts.get("B") is None:
         status = "call_failed"
     else:
-        ballot_prompt = ("Cast your final ballot on the change. Reply with exactly one word: "
-                         "APPROVE or REJECT.")
+        ballot_prompt = BALLOT_PROMPT
         for actor, other in (("A", "B"), ("B", "A")):
             if status != "complete":
                 break
@@ -151,6 +167,9 @@ def run_episode(packet, model, key, post=post_json):
     for actor in ("A", "B"):
         if texts.get(actor) is not None and len(texts[actor]) > MAX_MESSAGE_CHARS:
             status = "message_too_long"
+    if status in ("complete", "malformed_ballot") and any(
+            c.get("finish_reason") == "length" for c in calls):
+        status = "truncated_output"
     return {"status": status, "task": packet["task"], "texts": texts, "ballots": ballots,
             "calls": calls, "episode_id": packet["episode_id"],
             "assigned_condition": packet["assigned_condition"]}
@@ -194,17 +213,28 @@ def connectivity(run_id, model, key, out_root=ROOT / "live_runs", post=post_json
     """Not study data. Stored apart from episodes and never scored."""
     out = Path(out_root) / run_id
     out.mkdir(parents=True, exist_ok=True)
+    listing = list_models(key)
     result = {"purpose": "connectivity check, outside study data", "model": model,
-              "models_listing": list_models(key),
+              "models_listing": listing,
+              "model_listed": bool(listing.get("model_ids")) and model in listing["model_ids"],
               "ping": chat(model, [{"role": "user", "content": "Reply with the single word OK."}],
-                           {"temperature": 0.0, "max_tokens": 8}, key, post)}
+                           {"temperature": 0.0, "max_completion_tokens": 2048,
+                            "reasoning_effort": "low"}, key, post)}
     (out / "connectivity.json").write_text(json.dumps(result, indent=2, sort_keys=True))
     return result
 
 
-def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json):
+def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json, key_source="unknown"):
     freeze = frozen_check()
     commit = code_commit()
+    if model != AMENDMENT["run_settings"]["model"]:
+        raise RuntimeError("model differs from the pre-call amendment; amend before running")
+    check_path = Path(out_root) / run_id / "connectivity.json"
+    if not check_path.exists():
+        raise RuntimeError("run the connectivity check first (outside study data)")
+    check = json.loads(check_path.read_text())
+    if check["ping"]["status"] != "ok" or not check["model_listed"]:
+        raise RuntimeError("connectivity check did not pass; model must be listed and ping ok")
     packets_path = ROOT / "live_packets.json"
     packets = json.loads(packets_path.read_text())
     protocol_sha = sha256_file(ROOT / "protocol.json")
@@ -219,7 +249,7 @@ def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json):
     manifest = {"run_id": run_id, "code_commit": commit, "protocol_sha256": protocol_sha,
                 "packets_sha256": sha256_file(packets_path), "freeze_status": freeze["status"],
                 "endpoint": ENDPOINT, "model": model, "sampling": SAMPLING,
-                "ballot_sampling": BALLOT_SAMPLING, "key_source": f"env:{KEY_ENV}",
+                "amendment_sha256": sha256_file(AMENDMENT_PATH), "key_source": key_source,
                 "independent_evaluator": None, "episodes_scheduled": len(packets["episodes"])}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True))
     counts = {"complete": 0, "not_complete": 0}
@@ -244,21 +274,20 @@ def run(run_id, model, key, out_root=ROOT / "live_runs", post=post_json):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("connect", "run"))
-    parser.add_argument("--model", required=True)
-    parser.add_argument("--run-id")
+    parser.add_argument("--run-id", required=True)
     args = parser.parse_args()
-    key = os.environ.get(KEY_ENV)
+    model = AMENDMENT["run_settings"]["model"]
+    key, source = load_key()
     if not key:
-        raise SystemExit(f"{KEY_ENV} is not set; no call was made")
-    if not args.run_id:
-        raise SystemExit("--run-id required")
+        raise SystemExit(f"{KEY_ENV} not found in env or Keychain; no call was made")
     if args.command == "connect":
-        result = connectivity(args.run_id, args.model, key)
+        result = connectivity(args.run_id, model, key)
         print(json.dumps({"ping_status": result["ping"]["status"],
                           "http_status": result["ping"]["http_status"],
+                          "model_listed": result["model_listed"],
                           "request_id": result["ping"]["request_id"]}, indent=2))
         return
-    print(json.dumps(run(args.run_id, args.model, key), indent=2))
+    print(json.dumps(run(args.run_id, model, key, key_source=source), indent=2))
 
 
 if __name__ == "__main__":

@@ -124,5 +124,43 @@ class LiveRunnerTests(unittest.TestCase):
         self.assertEqual(len(result["texts"]["A"]), 4001)
 
 
+    def test_truncated_output_is_excluded_not_scored(self):
+        cut = ok("A")
+        payload = json.loads(cut["text"])
+        payload["choices"][0]["finish_reason"] = "length"
+        cut["text"] = json.dumps(payload)
+        post = FakePost([cut, ok("B"), ok("APPROVE"), ok("APPROVE")])
+        result = live_runner.run_episode(packet(), "m", KEY, post)
+        self.assertEqual(result["status"], "truncated_output")
+        self.assertIsNone(live_runner.blind_evidence(result, {}))
+
+    def test_empty_content_is_a_failed_call(self):
+        post = FakePost([ok("")])
+        result = live_runner.run_episode(packet(), "m", KEY, post)
+        self.assertEqual(result["status"], "call_failed")
+        self.assertEqual(result["calls"][0]["error"], "empty_content")
+
+    def test_reasoning_is_stored_but_not_shown_to_the_other_actor(self):
+        reply = ok("A says hi")
+        payload = json.loads(reply["text"])
+        payload["choices"][0]["message"]["reasoning"] = "PRIVATE-CHAIN"
+        reply["text"] = json.dumps(payload)
+        post = FakePost([reply, ok("B"), ok("REJECT"), ok("REJECT")])
+        result = live_runner.run_episode(packet(), "m", KEY, post)
+        self.assertEqual(result["calls"][0]["reasoning"], "PRIVATE-CHAIN")
+        self.assertNotIn("PRIVATE-CHAIN", json.dumps(post.requests[1:]))
+        self.assertNotIn("PRIVATE-CHAIN", json.dumps(live_runner.blind_evidence(result, {})))
+
+    def test_run_requires_passing_connectivity_check(self):
+        with tempfile.TemporaryDirectory() as tmp, self.assertRaises(RuntimeError):
+            live_runner.run("r1", live_runner.AMENDMENT["run_settings"]["model"], KEY,
+                            out_root=tmp, post=FakePost([]))
+
+    def test_amendment_is_tied_to_the_frozen_protocol(self):
+        amended = live_runner.AMENDMENT["amends"]["protocol_sha256"]
+        self.assertEqual(amended, live_runner.sha256_file(live_runner.ROOT / "protocol.json"))
+        self.assertIsNone(live_runner.AMENDMENT["evaluation_limits"]["independent_evaluator"])
+
+
 if __name__ == "__main__":
     unittest.main()
