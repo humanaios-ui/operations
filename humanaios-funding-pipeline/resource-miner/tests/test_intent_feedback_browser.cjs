@@ -49,22 +49,39 @@ test('PDF and unknown file types save only fingerprints; legacy packets load',as
  b.context.packet=packet;
  assert.equal(vm.runInContext('validateReviewPacket(packet).length',b.context),3);
 });
-test('teaching remembers local preferences and changes local order without sending',()=>{
- const b=boot();b.context.row={...row,source_url:'https://example.org/second'};
+test('Ask Witness requires explicit consent, strips URL query and never sends notes',async()=>{
+ const b=boot();b.context.row={...row,source_url:'https://example.org/grant?secret=PRIVATE_QUERY',
+   source_name:'HumanAIOS Funding Pipeline',route:'WATCH',resource_id:'RES-TEST'};
  const all=descendants(vm.runInContext('addCard(row)',b.context));
- const area=all.find(e=>e.placeholder==='What was wrong? What should we remember next time?');
- area.value='This better fits my goal';
- const preference=all.find(e=>e.children.some(c=>c.value==='PRIORITIZE'));preference.value='PRIORITIZE';
- const fetchesBeforeSave=b.fetchCalls.length;
- all.find(e=>e.textContent==='Save lesson locally').listeners.click();
- assert.equal(b.fetchCalls.length,fetchesBeforeSave,'local save must not submit to network');
- assert.match(b.data.get('humanaios.intent_os_teaching.v0.1'),/This better fits my goal/);
- b.context.row.title='Preferred grant';b.context.rows=[row,b.context.row];vm.runInContext('latestCandidates=rows;renderCandidates()',b.context);
- assert.equal(b.dom.get('items').children[0].children[0].textContent,'Preferred grant');
- assert.equal(vm.runInContext('localPriority(rows[1])',b.context),1);
- assert.equal(vm.runInContext('localPriority(rows[0])',b.context),0);
+ const buttons=all.filter(e=>e.textContent==='Ask the Witness'&&e.listeners.click);
+ assert.equal(buttons.length,1);
+ const ask=buttons[0],check=all.find(e=>e.type==='checkbox');
+ const before=b.fetchCalls.length;
+ await ask.listeners.click();
+ assert.equal(b.fetchCalls.length,before,'without consent no MCP call is made');
+ check.checked=true;
+ await ask.listeners.click();
+ assert.equal(b.fetchCalls.length,before+1);
+ const [path,options]=b.fetchCalls.at(-1);
+ assert.equal(path,'/api/witness/ask-resource');
+ const body=JSON.parse(options.body);
+ assert.equal(body.consent,true);
+ assert.equal(body.resource.source_url,'https://example.org/grant');
+ assert.equal(body.resource.resource_id,'RES-TEST');
+ assert.equal(body.resource.private_notes,undefined);
+ assert.ok(!JSON.stringify(body).includes('PRIVATE_QUERY'));
+ assert.equal(options.method,'POST');
 });
-
+test('legacy locally saved preferences survive Ask Witness UI transition',()=>{
+ const data=new Map([['humanaios.intent_os_teaching.v0.1',JSON.stringify([
+  {source_url:'https://example.org/second',note:'Preferred',preference:'PRIORITIZE'}])]]);
+ const b=boot(data);
+ b.context.rows=[{...row,source_url:row.source_url},{...row,source_url:'https://example.org/second'}];
+ vm.runInContext('latestCandidates=rows;renderCandidates()',b.context);
+ assert.equal(b.dom.get('items').children[0].children[0].textContent,'Research grant');
+ assert.equal(b.dom.get('exportLessons').textContent,'');
+ assert.equal(vm.runInContext('localPriority(rows[1])',b.context),1);
+});
 test('oversized evidence fails without retaining the file or saving a report',async()=>{
  const b=boot();b.context.row=row;
  const all=descendants(vm.runInContext('addCard(row)',b.context));
