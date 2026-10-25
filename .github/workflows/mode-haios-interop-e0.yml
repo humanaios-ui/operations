@@ -1,0 +1,33 @@
+# Candidate-only research workflow. No credentials, external providers, RP authority,
+# governed learning admission, or live MODE filesystem operations are exercised.
+name: MODE-HumanAIOS E0 synthetic interoperability
+on:
+  pull_request:
+    paths:
+      - 'experiments/mode_haios_interop_e0.py'
+      - 'experiments/mode_haios_oct24_synthetic.json'
+      - 'tests/test_mode_haios_interop_e0.py'
+      - '.github/workflows/mode-haios-interop-e0.yml'
+      - 'docs/MODE_HAIOS_INTEROP_E0.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile synthetic trace consumer
+        run: python3 -m py_compile experiments/mode_haios_interop_e0.py tests/test_mode_haios_interop_e0.py
+      - name: Test actual HumanAIOS ACAT, receipt and Resource Miner E1 contract boundaries
+        env:
+          PYTHONPATH: .
+        run: |
+          python3 -m unittest discover -s tests -p 'test_mode_haios_interop_e0.py' -v
+          python3 -m unittest discover -s tests -p 'test_human_objective_e1.py' -v
+          python3 -m unittest discover -s tests -p 'test_verified_receipts.py' -v
+          python3 -m unittest discover -s tests -p 'test_agent_coordination_acat_loop.py' -v
