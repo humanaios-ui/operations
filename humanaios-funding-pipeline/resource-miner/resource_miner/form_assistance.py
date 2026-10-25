@@ -4,6 +4,7 @@ No website interaction, applicant profile lookup, submission, or storage.
 """
 from __future__ import annotations
 import math
+import re
 from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 
@@ -43,8 +44,13 @@ def _valid_funding_amount(value: Any) -> bool:
     """True only for a positive, finite amount in $50 increments."""
     if isinstance(value, bool):
         return False
+    raw = str(value).strip()
+    if raw.startswith("$"):
+        raw = raw[1:]
+    if not re.fullmatch(r"(?:[0-9]+|[1-9][0-9]{0,2}(?:,[0-9]{3})+)(?:\\.[0-9]+)?", raw):
+        return False
     try:
-        amount = Decimal(str(value).strip().lstrip("$").replace(",", ""))
+        amount = Decimal(raw.replace(",", ""))
     except (InvalidOperation, ValueError):
         return False
     return amount.is_finite() and amount > 0 and amount % FUNDING_STEP_USD == 0
