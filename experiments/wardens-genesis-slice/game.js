@@ -3,6 +3,13 @@
   const KEY = 'wardens.genesis.slice.v1';
   const allowedForms = ['Seeker', 'Warden', 'Builder', 'Memory-Bearer'];
   const allowedPaths = ['Ember', 'Archive', 'Forge'];
+  // MYTH ONLY. These are fictional route captions; they never enter observed
+  // history as a claim about a player's motive, nature, or real-world identity.
+  const routeLore = Object.freeze({
+    Ember: 'MYTH / Ember resists the distant Solar order with fire. This describes a story route, not your nature.',
+    Archive: 'MYTH / Archive studies gaps in the Solar record. A missing trace does not prove deliberate erasure.',
+    Forge: 'MYTH / Forge reworks buried remnants of sunlight. The Black Corpse is a fictional image, not a resource instruction.'
+  });
   const $ = id => document.getElementById(id);
   const qs = (selector, root = document) => [...root.querySelectorAll(selector)];
   const clean = value => String(value || '').replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, 280).trim();
@@ -47,7 +54,7 @@
     });
     $('witnessToggle').checked=Boolean(state.witness);
     qs('[data-query]').forEach(btn => { btn.disabled=!state.witness; });
-    if(state.form && state.path){$('routeNote').textContent=`Your ${state.form} followed the ${state.path} route. This is a record, not a judgment.`;}
+    if(state.form && state.path){$('routeNote').textContent=`Your ${state.form} followed the ${state.path} route. This is a record, not a judgment. ${routeLore[state.path] || ''}`;}
     if(state.path){$('trueClaim').textContent=`Your path was recorded as ${state.path}.`;}
     $('attestationNote').textContent=state.attestation?`W2 attestation: ${state.attestation} — a separate human event.`:'';
     if(state.calibration){$('calibrationNext').disabled=false;}
@@ -84,9 +91,9 @@
       const e=find('GENESIS_EVENT');return e?`Recorded: ${e.details}. [${e.id}]\nThis is an event in this local game, not a verified real-world origin.`:'Unknown. No genesis record is available.';
     }
     if(query==='route'){
-      const e=find('PATH_CHOSEN');return e?`Recorded: ${e.details}. [${e.id}]\nNo claim is made about what this says about you.`:'Not recorded. I cannot infer an unchosen route.';
+      const e=find('PATH_CHOSEN');return e?`Recorded: ${e.details}. [${e.id}]\nNo claim is made about what this says about you.`:'Not recorded. I cannot infer an unchosen route. Missing evidence does not prove it was deliberately erased.';
     }
-    return 'Unknown. No future event is recorded. I cannot predict your destiny, advise a move, or choose for you.';
+    return 'Unknown. No future event is recorded. Missing history does not prove deliberate erasure. I cannot predict your destiny, advise a move, or choose for you.';
   }
   qs('[data-query]').forEach(b=>b.addEventListener('click',()=>{$('witnessResponse').textContent=answer(b.dataset.query);}));
   function attest(choice){
