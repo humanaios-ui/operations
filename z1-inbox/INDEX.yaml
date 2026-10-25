@@ -8,7 +8,7 @@ ratifiers:
 - Night
 candidates:
 - q_id: Q-H-WITNESS-UX-LESSONS-01
-  title: 'Scope H2: W1 (game Witness) UX properties as a design reference for the real Witness Ledger'
+  title: 'Scope H2: W1 (game Witness) UX properties as a design reference for the Witness Ledger''s eventual human-facing view'
   path: z1-inbox/2026-10-25/Q-H-WITNESS-UX-LESSONS-01.md
   submitted: '2026-10-25'
   status: awaiting_z2

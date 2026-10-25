@@ -111,7 +111,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-24 | **Q-WITNESS-DATA-PLANE-01** | Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only | `z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md` |
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-H-SOUND-CALLOUT-ADAPTER-01** | Scope H4: bounded sound_intent-style vocabulary as a presentation layer over the callout taxonomy | `z1-inbox/2026-10-25/Q-H-SOUND-CALLOUT-ADAPTER-01.md` |
-| 2026-10-27 | **Q-H-WITNESS-UX-LESSONS-01** | Scope H2: W1 (game Witness) UX properties as a design reference for the real Witness Ledger | `z1-inbox/2026-10-25/Q-H-WITNESS-UX-LESSONS-01.md` |
+| 2026-10-27 | **Q-H-WITNESS-UX-LESSONS-01** | Scope H2: W1 (game Witness) UX properties as a design reference for the Witness Ledger's eventual human-facing view | `z1-inbox/2026-10-25/Q-H-WITNESS-UX-LESSONS-01.md` |
 
 ## Decided (16)
 
