@@ -1,0 +1,30 @@
+{
+  "schema": "humanaios.mode_influence.source_manifest.v0.1",
+  "source_repository": "truuzee-byte/governing-engines-ai-discovery",
+  "source_files": [
+    {
+      "path": "config/publication.json",
+      "git_blob_sha": "2de15fe396ed3c1c995edbd35d2e1cdd6a441153"
+    },
+    {
+      "path": "reports/instruction-experiment-public-extraction-2026-10-19.json",
+      "git_blob_sha": "c58f52c39acacd58efb70a716399522e44199e6e"
+    },
+    {
+      "path": "reports/experiment-observations-2026-10-19.jsonl",
+      "git_blob_sha": "1e4af5bb86de1657745a4695fe0fde8cd715d00c"
+    },
+    {
+      "path": "content/documents.json",
+      "git_blob_sha": "d6fb56bdc3bee1368cf8b16548c2c0b18ac456f2"
+    },
+    {
+      "path": "tools/publication.py",
+      "git_blob_sha": "6383bd28c7e0cefa6bea435de2ee5754200c8101"
+    }
+  ],
+  "historical_deployment_commit": "83a8cd2d975786a83865eb3789ceb561b7310d07",
+  "test_window": "2026-10-25",
+  "independent_model_calls": 0,
+  "live_page_fetches": 0
+}
