@@ -47,7 +47,7 @@ def _valid_funding_amount(value: Any) -> bool:
     raw = str(value).strip()
     if raw.startswith("$"):
         raw = raw[1:]
-    if not re.fullmatch(r"(?:[0-9]+|[1-9][0-9]{0,2}(?:,[0-9]{3})+)(?:\\.[0-9]+)?", raw):
+    if not re.fullmatch(r"(?:[0-9]+|[1-9][0-9]{0,2}(?:,[0-9]{3})+)(?:\.[0-9]+)?", raw):
         return False
     try:
         amount = Decimal(raw.replace(",", ""))
