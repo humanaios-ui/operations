@@ -9,6 +9,13 @@ on:
       - 'tests/test_mode_haios_interop_e0.py'
       - '.github/workflows/mode-haios-interop-e0.yml'
       - 'docs/MODE_HAIOS_INTEROP_E0.md'
+      - 'experiments/human_objective_e1.py'
+      - 'experiments/e1_ura_fixture.json'
+      - 'tools/verified_receipts.py'
+      - 'agent_coordination/acat_loop.py'
+      - 'tests/test_human_objective_e1.py'
+      - 'tests/test_verified_receipts.py'
+      - 'tests/test_agent_coordination_acat_loop.py'
   workflow_dispatch:
 permissions:
   contents: read
