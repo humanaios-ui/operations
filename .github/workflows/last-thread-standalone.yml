@@ -1,0 +1,57 @@
+name: The Last Thread Solo Campaign Prototype
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/the-last-thread/**'
+      - '.github/workflows/last-thread-standalone.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-30-tick-prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: experiments/the-last-thread
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify Node runtime
+        run: node --version
+      - name: Validate JS source syntax
+        run: |
+          node --check engine.mjs
+          node --check ui.mjs
+          node --check tests/engine.test.mjs
+      - name: Run deterministic three-ending game tests
+        run: node --test tests/engine.test.mjs
+      - name: Validate standalone packaging and independent-facing identifiers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          root=Path('.')
+          html=(root/'PLAY_OFFLINE.html').read_text()
+          assert '<style>' in html and '<script>' in html
+          assert 'THE LAST THREAD' in html
+          assert 'HUMANAIOS' not in html
+          assert 'Council of Wardens' not in html
+          assert 'ACAT' not in html
+          assert 'TOK-CH-' not in html
+          assert 'http://' not in html and 'https://' not in html
+          for file in ['engine.mjs','ui.mjs','index.html','style.css']:
+              assert (root/file).is_file()
+          class Tags(HTMLParser):
+              def __init__(self): super().__init__();self.ids=[]
+              def handle_starttag(self,tag,attrs):
+                  kv=dict(attrs)
+                  if 'id' in kv:self.ids.append(kv['id'])
+          t=Tags();t.feed(html)
+          assert len(t.ids)==len(set(t.ids))
+          print('PASS: self-contained source and distinct player-facing brand, no external references')
+          PY
