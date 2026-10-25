@@ -13,10 +13,12 @@ from html.parser import HTMLParser
 import json
 from pathlib import Path
 import random
+import sys
 import subprocess
 import urllib.error
 import urllib.request
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from experiments.mode_publisher_influence_e0.analyze import EXPECTED
 
 QUESTIONS = {
