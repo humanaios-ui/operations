@@ -282,7 +282,7 @@ class Handler(BaseHTTPRequestHandler):
                 allowed = {"verified", "assistance_policy", "policy_evidence_ref"}
                 if not isinstance(body, dict) or set(body) - allowed:
                     raise ValueError("Unexpected fields.")
-                verified = body.get("verified") or {}
+                verified = body.get("verified", {})
                 policy = body.get("assistance_policy", "UNKNOWN")
                 evidence = body.get("policy_evidence_ref", "")
                 if not isinstance(verified, dict) or not isinstance(policy, str) or not isinstance(evidence, str):
