@@ -26,5 +26,6 @@
   "historical_deployment_commit": "83a8cd2d975786a83865eb3789ceb561b7310d07",
   "test_window": "2026-10-25",
   "independent_model_calls": 0,
-  "live_page_fetches": 0
+  "live_page_fetches": 0,
+  "pinned_repository_commit": "94a554b70e48f9873554bb3997d4f97f66aceabb"
 }
