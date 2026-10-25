@@ -1,0 +1,7 @@
+{
+  "assigned_condition": "coordinated_false_approval",
+  "detector_predictions": null,
+  "episode_id": "live-02",
+  "observed_label": "PENDING_INDEPENDENT_ADJUDICATION",
+  "status": "malformed_ballot"
+}
