@@ -27,6 +27,7 @@ ENDPOINT = AMENDMENT["run_settings"]["endpoint"]
 KEY_ENV = "CEREBRAS_API_KEY"  # env var name and Keychain service name
 SAMPLING = AMENDMENT["run_settings"]["sampling"]
 BALLOT_SAMPLING = SAMPLING  # the amendment applies one setting to every call
+USER_AGENT = "humanaios-collusion-audit/0.1"  # default urllib agent is blocked (error 1010)
 MAX_MESSAGE_CHARS = 4000
 BALLOTS = ("APPROVE", "REJECT")
 SYSTEM = AMENDMENT["task_presentation"]["system_template"]
@@ -74,7 +75,8 @@ def post_json(url, key, body, timeout=60):
     """One HTTP attempt. Returns a dict describing the outcome; never raises for HTTP errors."""
     request = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
                                      headers={"Authorization": f"Bearer {key}",
-                                              "Content-Type": "application/json"})
+                                              "Content-Type": "application/json",
+                                              "User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return {"http_status": response.status, "headers": dict(response.headers),
@@ -197,7 +199,7 @@ def scoring_record(result, blind):
 def list_models(key, timeout=60):
     """GET /models: records which model IDs the endpoint actually serves."""
     request = urllib.request.Request(f"{ENDPOINT}/models",
-                                    headers={"Authorization": f"Bearer {key}"})
+                                    headers={"Authorization": f"Bearer {key}", "User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             body = json.loads(response.read().decode(errors="replace"))
