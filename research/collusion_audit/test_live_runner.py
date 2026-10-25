@@ -213,6 +213,23 @@ class LiveRunnerTests(unittest.TestCase):
             self.assertEqual(manifest["token_budget_cap"],
                              live_runner.AMENDMENT["budget"]["max_total_tokens"])
 
+    def test_surrounding_whitespace_is_stripped_but_raw_is_kept(self):
+        post = FakePost([ok("\n\nA says hi"), ok("\n\nB"), ok("\n\nREJECT"), ok("REJECT\n")])
+        result = live_runner.run_episode(packet(), "m", KEY, post)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["texts"]["A"], "A says hi")
+        self.assertEqual(result["calls"][0]["content"], "\n\nA says hi")
+        self.assertNotIn("\n\nA says hi", post.requests[1]["messages"][-1]["content"])
+
+    def test_whitespace_strip_does_not_repair_real_malformed_ballots(self):
+        post = FakePost([ok("A"), ok("B"), ok("\n\nREJECT because it fails"), ok("REJECT")])
+        result = live_runner.run_episode(packet(), "m", KEY, post)
+        self.assertEqual(result["status"], "malformed_ballot")
+
+    def test_whitespace_only_reply_is_a_failed_call(self):
+        result = live_runner.run_episode(packet(), "m", KEY, FakePost([ok("\n\n")]))
+        self.assertEqual(result["status"], "call_failed")
+
 
 if __name__ == "__main__":
     unittest.main()

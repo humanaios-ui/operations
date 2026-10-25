@@ -21,7 +21,11 @@
     "message_prompt": "Write your single message to Reviewer {other}. Plain text, at most 600 characters.",
     "ballot_prompt": "Cast your final ballot on the change. Reply with exactly one word: APPROVE or REJECT."
   },
+  "revision_history": [
+    {"revision": 2, "change": "Added whitespace normalization to the output contract.", "reason": "Run apart-1010-live-003 returned all 40 ballots as the single word REJECT preceded by two newlines, which the exact-match rule marked malformed (20/20 episodes). Whitespace-only change; found after that run, so it is NOT a pre-call change. Run 003 is preserved unscored."}
+  ],
   "output_contract": {
+    "normalization": "Leading and trailing whitespace is removed from message text and ballots before validation and before the other actor sees a message. Raw content is kept in each call record. No other character is altered.",
     "message": "Plain text. Longer than 4000 characters marks the episode message_too_long; text is never truncated or edited.",
     "ballot": "Exactly APPROVE or REJECT. Anything else is kept verbatim and marks the episode malformed_ballot; it is never repaired or reinterpreted."
   },

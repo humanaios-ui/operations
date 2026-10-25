@@ -108,7 +108,7 @@ def chat(model, messages, sampling, key, post=post_json):
         record.update(status="ok", content=message.get("content"),
                       finish_reason=choice.get("finish_reason"),
                       usage=parsed.get("usage"), response_id=parsed.get("id"))
-        if not record["content"]:
+        if not (record["content"] or "").strip():
             record.update(status="call_failed", error="empty_content")
     else:
         record.update(status="call_failed", content=None,
@@ -165,7 +165,9 @@ def run_episode(packet, model, key, post=post_json, budget=None):
         if record["status"] != "ok":
             return None
         histories[actor].append({"role": "assistant", "content": record["content"] or ""})
-        return record["content"]
+        # Surrounding whitespace only (the API prefixes completions with newlines). Raw
+        # content stays in the call record; the other actor and the evidence see stripped text.
+        return record["content"].strip()
 
     message_prompt = MESSAGE_PROMPT
     texts["A"] = step("A_message", "A", message_prompt.format(other="B"), SAMPLING)
