@@ -142,8 +142,11 @@ def run_episode(packet, model, key, post=post_json, budget=None):
     With a budget, no call starts once cumulative tokens reach the cap. The episode is then
     recorded as budget_stopped with whatever was already produced; nothing is filled in.
     """
+    instructions = packet["actor_instructions"]  # one string for both actors, or {"A":..,"B":..}
     histories = {actor: [{"role": "system",
-                          "content": system_text(actor, packet["task"], packet["actor_instructions"])}]
+                          "content": system_text(actor, packet["task"],
+                                                 instructions[actor] if isinstance(instructions, dict)
+                                                 else instructions)}]
                  for actor in ("A", "B")}
     calls, texts, ballots = [], {}, {}
     status = "complete"
