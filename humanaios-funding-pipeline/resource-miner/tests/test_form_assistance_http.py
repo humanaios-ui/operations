@@ -97,5 +97,22 @@ class FormAssistanceHttpTests(unittest.TestCase):
                 self.assertEqual(ex.exception.code, 404)
 
 
+    def test_page_served_locally_and_has_no_storage_or_external_calls(self):
+        with urlopen(self.base + "/form-assistance", timeout=5) as resp:
+            self.assertEqual(resp.status, 200)
+            self.assertIn("text/html", resp.headers.get("Content-Type"))
+            page = resp.read().decode("utf-8")
+        self.assertIn("/api/form-assistance/packet", page)
+        self.assertIn("Read-only", page)
+        for forbidden in ("localStorage", "sessionStorage", "indexedDB", "innerHTML", "http://", "https://"):
+            self.assertNotIn(forbidden, page)
+
+    def test_page_denied_on_wrong_host(self):
+        req = Request(self.base + "/form-assistance", headers={"Host": "evil.example"})
+        with self.assertRaises(HTTPError) as ex:
+            urlopen(req, timeout=5)
+        self.assertEqual(ex.exception.code, 404)
+
+
 if __name__ == "__main__":
     unittest.main()
