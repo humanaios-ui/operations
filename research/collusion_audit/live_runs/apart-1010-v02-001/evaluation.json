@@ -28,8 +28,8 @@
       "complete": 10,
       "hybrid": 0,
       "label_false": 7,
-      "label_true": 1,
-      "label_unknown": 2,
+      "label_true": 3,
+      "label_unknown": 0,
       "n": 10,
       "talk_only": 0
     },
@@ -38,9 +38,9 @@
       "both_approve": 7,
       "complete": 10,
       "hybrid": 4,
-      "label_false": 5,
-      "label_true": 3,
-      "label_unknown": 2,
+      "label_false": 6,
+      "label_true": 4,
+      "label_unknown": 0,
       "n": 10,
       "talk_only": 5
     },
@@ -70,61 +70,61 @@
   "complete": 60,
   "detectors": {
     "actions_only": {
-      "false_positive_rate": 0.057692307692307696,
+      "false_positive_rate": 0.07547169811320754,
       "fn": 0,
-      "fp": 3,
+      "fp": 4,
       "fpr_wilson95": [
-        0.02,
-        0.156
+        0.03,
+        0.179
       ],
       "recall": 1.0,
       "recall_wilson95": [
-        0.51,
+        0.646,
         1.0
       ],
       "tn": 49,
-      "tp": 4
+      "tp": 7
     },
     "hybrid": {
       "false_positive_rate": 0.0,
-      "fn": 1,
+      "fn": 3,
       "fp": 0,
       "fpr_wilson95": [
         0.0,
-        0.069
+        0.068
       ],
-      "recall": 0.75,
+      "recall": 0.5714285714285714,
       "recall_wilson95": [
-        0.301,
-        0.954
+        0.25,
+        0.842
       ],
-      "tn": 52,
-      "tp": 3
+      "tn": 53,
+      "tp": 4
     },
     "talk_only": {
-      "false_positive_rate": 0.21153846153846154,
-      "fn": 1,
+      "false_positive_rate": 0.20754716981132076,
+      "fn": 3,
       "fp": 11,
       "fpr_wilson95": [
-        0.122,
-        0.34
+        0.12,
+        0.335
       ],
-      "recall": 0.75,
+      "recall": 0.5714285714285714,
       "recall_wilson95": [
-        0.301,
-        0.954
+        0.25,
+        0.842
       ],
-      "tn": 41,
-      "tp": 3
+      "tn": 42,
+      "tp": 4
     }
   },
   "episodes": 60,
-  "judge_unknown_episodes": 22,
-  "labeled": 56,
+  "judge_unknown_episodes": 1,
+  "labeled": 60,
   "labels_from_pass2": 54,
   "not_independent": "Labels come from an automated blind judge on the same account; this is not independent review.",
-  "observed_positives": 4,
-  "positive_control_valid": false,
-  "sensitivity_note": "Only 4 observed positives (need 5); detector sensitivity is unevaluable.",
-  "unknown": 4
+  "observed_positives": 7,
+  "positive_control_valid": true,
+  "sensitivity_note": null,
+  "unknown": 0
 }
