@@ -37,3 +37,27 @@ Missing prior directory/file evidence; invented paths; traversal and Windows pat
 6. Maintain the 2026-08-02 `DEMARIUS_INTEGRATION_DECISION.md` boundary: no MODE-to-mesh export until MODE's own governance path is qualified and sharing is separately authorized.
 
 **PASS here means an offline synthetic contract passed. It is not a live MODE interoperability qualification, autonomy demonstration, or actual RP authorization verification.**
+
+
+## Discovered existing transport — 2026-10-25 repository audit
+
+The previous E0 description of "no live interop qualification" remains true **for this new E0 test**, but existing historical transport work must not be overlooked:
+
+- `humanaios-ui/operations/collaborators/DEMARIUS_J_LAWSON.md` documents an active research collaborator; `collaborator-ops/agreements/MODE_AI_PARTNERSHIP.md` describes partnership scope, with incomplete IP/security details. **A collaborator profile is not a runtime connector.**
+- `humanaios-ui/empirica-outreach/MODE_MESH_INTEGRATION.md`, `PHASE_1_INTERFACE_CONTRACT.md`, and `PHASE_1_PROOF_EXECUTION.md` report an **August 18, 2026** authenticated request/response to MODE via `POST https://governing-engines.replit.app/api/integrations/mesh/assess`; recorded request/transaction IDs and claimed 12-stage processing exist. This supports a *historical operator-reported bounded HTTP exchange*, not a current independently re-run RP or objective-continuity proof.
+- `docs/MODE_API_INTEGRATION_READINESS.md` also names `/api/mesh/exchange` in readiness language. The recorded working path is `/api/integrations/mesh/assess`; resolve interface/version differences with MODE operator before a live test.
+- `test-mode-endpoint.sh` currently issues **two POST requests** for a single test (one for the body, one for the HTTP status). Do **not** use it for a continuity or per-action authorization experiment without correcting this; tests would not be single-shot.
+- Critical secret hygiene: `MODE_MESH_INTEGRATION.md` contains a full bearer token in a **public repository**, including examples; the help text in `test-mode-mesh-integration.sh` repeats it. A copy also exists in public `humanaios-ui/practices-snapshot`. **Do not use that token.** Notify MODE token issuer, revoke/rotate it, redact all current copies and examples, assess repository history/other mirrors, install a newly scoped secret in a protected store, and prevent recurrence with secret scanning.
+- Historical reports use terms such as "governance authority verified" based on returned `reality_primacy_applied` and `completed_steps` fields. These are **MODE-response assertions**, not independent cryptographic or factual-claim governance proof.
+- Existing `DEMARIUS_INTEGRATION_DECISION.md` (August 2) defers broad Empirica mesh export until MODE internally qualifies its governance path. The August 18 isolated API exchange does **not** by itself supersede this collaboration boundary.
+- An unauthenticated current host check from this review environment could not establish reachability; this is **not** proof that the MODE service is down.
+
+### Safe live-retest path
+
+1. MODE operator revokes exposed credential and supplies a fresh restricted **test-only** credential privately. Confirm endpoint ownership, supported contract, request IDs, log retention, costs, and explicit allowed read-only actions.
+2. Run isolated network preflight with one bounded request, fresh nonce, no personal data, **no automatic Empirica publication**, and *one* POST maximum.
+3. Capture status, redacted request digest, response digest, server transaction ID, server identity, and timestamps; validate schema and correlation. Treat all claims from MODE as source-reported.
+4. Obtain independently checked MODE RP signature receipts/provenance before claiming authority checks. Obtain source bytes under a separate confined read-only capability before claiming `READ_FILE` or Objective Continuity.
+5. Deliver bounded HumanAIOS ACAT challenge and independent evaluator review; keep outputs advisory only. No self-certification, learning admission, or production changes.
+
+**Result of this audit: EXISTING HISTORICAL TRANSPORT FOUND; CURRENT LIVE TRANSPORT UNVERIFIED; EXPOSED TEST CREDENTIAL MUST BE ROTATED BEFORE REUSE.**
