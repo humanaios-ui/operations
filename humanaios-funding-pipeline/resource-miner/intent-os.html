@@ -57,12 +57,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <button type="button" data-example="Find training and certification programs">Training</button>
 </div>
 </section>
-<section class="panel" aria-labelledby="ats-title">
-<h2 id="ats-title">ATS application readiness (research pilot)</h2>
-<p class="muted">Historical Convergent Research example. The Lever listing is reported unavailable. This is not an open job or application invitation.</p>
-<button id="ats-show" type="button">View redacted readiness report</button>
-<div id="ats-result" role="status" aria-live="polite" class="meta" hidden></div>
-</section>
+
 <div id="feedback" role="status" aria-live="polite"></div>
 <section class="panel" id="results" hidden aria-labelledby="resTitle">
 <h2 id="resTitle">Resources to review</h2>
@@ -396,33 +391,6 @@ function addCard(row){
  }catch(_){}
  return card;
 }
-const atsShow=document.getElementById("ats-show"),atsResult=document.getElementById("ats-result");
-atsShow.addEventListener("click",async()=>{
- atsShow.disabled=true;atsResult.hidden=false;atsResult.replaceChildren();
- text(atsResult,"Loading read-only public specimen…");
- try{
-   const response=await fetch("/api/ats/readiness",{cache:"no-store"});
-   if(!response.ok)throw new Error("Readiness endpoint returned "+response.status);
-   const data=await response.json();
-   if(!data||data.specimen_id!=="CONVERGENT-PROGRAM-LAUNCH-MANAGER-20261022"||data.actionable!==false)
-     throw new Error("Readiness response not safe to present.");
-   atsResult.replaceChildren();
-   for(const value of [
-     "Source: "+data.source_status,
-     "Availability: NOT VERIFIED; role closure not established",
-     "Application decision: "+data.decision,
-     "Private resume: "+data.private_resume_evidence,
-     "ATS parser: "+data.ats_resume_parser,
-     "Human authority: "+data.authority,
-   ]){
-     const row=document.createElement("p");text(row,value);atsResult.append(row);
-   }
-   const a=document.createElement("a");a.href="https://github.com/humanaios-ui/operations/issues/992";
-   a.target="_blank";a.rel="noopener noreferrer";text(a,"Review public source-failure record ↗");
-   atsResult.append(a);
- }catch(error){text(atsResult,"Readiness report unavailable: "+error.message);}
- finally{atsShow.disabled=false;}
-});
 form.addEventListener("submit",async event=>{
  event.preventDefault();const objective=field.value.trim();
  if(!objective){field.focus();return;}
