@@ -172,7 +172,9 @@ async def _ask_mcp(envelope: dict[str, str], question: str, token: str) -> dict[
         "source_currentness": "PUBLIC_LEAD_NOT_INDEPENDENTLY_VERIFIED",
         "data_sent": "PUBLIC_RESOURCE_SUMMARY_AND_TYPED_QUESTION_ONLY",
         "authority": "NONE", "execution": "DISABLED",
-        "memory_effect": "NONE", "training_effect": "NONE",
+        "local_memory_effect": "NONE", "local_training_effect": "NONE",
+        "provider_data_handling": "SUBJECT_TO_PROVIDER_TERMS",
+        "request_provenance": "BROWSER_SUPPLIED_UNVERIFIED_PUBLIC_LEAD",
     }
 
 
