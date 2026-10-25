@@ -73,7 +73,7 @@ class FormAssistanceE0Tests(unittest.TestCase):
             self.assertIsNone(by_id(packet)["process_feedback"]["suggested_value"], policy)
 
     def test_funding_amount_validation(self):
-        for bad in ("unknown", -50, 0, 75, "75", float("nan"), float("inf"), True, "", "-100"):
+        for bad in ("unknown", -50, 0, 75, "75", float("nan"), float("inf"), True, "", "-100", "5,0", "15,00", "1,50", "$5,0"):
             packet = build_packet({"request_usd": {"value": bad, "origin": "USER_VERIFIED"}})
             self.assertIsNone(by_id(packet)["request_usd"]["suggested_value"], repr(bad))
         for good in (50, 1500, "2000", 20000.0, "$1,500"):
