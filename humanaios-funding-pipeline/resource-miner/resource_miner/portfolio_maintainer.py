@@ -55,6 +55,7 @@ def observe_portfolio(
         raise ValueError("owner approval required for even local profile matching")
     codes = personal["capability_codes"]
     if (not isinstance(codes, list) or len(codes) > 6
+            or not all(isinstance(code, str) for code in codes)
             or len(codes) != len(set(codes))
             or any(code not in CAPABILITY_CODES for code in codes)):
         raise ValueError("only allowlisted, non-identifying capability codes are accepted")
