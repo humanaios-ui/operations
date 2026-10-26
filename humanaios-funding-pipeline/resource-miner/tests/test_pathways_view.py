@@ -2,7 +2,15 @@
 from __future__ import annotations
 
 import unittest
+import json
+import threading
 from pathlib import Path
+from http.server import ThreadingHTTPServer
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+from unittest.mock import patch
+
+import app
 
 from resource_miner.pathways_view import MAX_CANDIDATES, project_pathways
 
@@ -118,6 +126,69 @@ class PathwaysProjectionTests(unittest.TestCase):
         self.assertIn('setInterval(', ui)
         self.assertIn('aria-live="polite"', ui)
         self.assertIn('No independent receipt linked', ui)
+
+
+class PathwayRealHttpTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), app.Handler)
+        cls.port = cls.server.server_address[1]
+        cls.base = "http://127.0.0.1:" + str(cls.port)
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.thread.join(timeout=5)
+        cls.server.server_close()
+
+    def read(self, route, headers=None):
+        request = Request(self.base + route, headers=headers or {})
+        with urlopen(request, timeout=10) as response:
+            return response.status, response.headers, response.read()
+
+    def test_local_page_serves_branched_live_graph(self):
+        status, headers, page = self.read("/pathways")
+        self.assertEqual(status, 200)
+        self.assertIn("text/html", headers["Content-Type"])
+        self.assertIn(b'id="branchSvg"', page)
+        self.assertIn(b"/api/pathways?mode=", page)
+        self.assertIn(b"Read public sources now", page)
+
+    def test_stored_endpoint_matches_local_snapshot_contract(self):
+        status, headers, raw = self.read("/api/pathways?mode=stored")
+        self.assertEqual(status, 200)
+        self.assertIn("application/json", headers["Content-Type"])
+        result = json.loads(raw)
+        self.assertEqual(result["schema"], "HUMANAIOS_RESOURCE_PATHWAYS_V0_1")
+        self.assertEqual(result["scope"], "LOCAL_LOOPBACK_ONLY")
+        self.assertEqual(result["authority"], "NONE")
+        self.assertEqual(result["execution"], "DISABLED")
+        self.assertIn(result["origin"], {"STORED_SNAPSHOT", "PERSISTED_RUNTIME"})
+        self.assertGreater(result["counts"]["configured_mines"], 0)
+        self.assertIsNone(result["counts"]["verified_human_outcomes"])
+
+    def test_on_demand_public_refresh_reuses_only_public_adapter(self):
+        with patch.object(app, "_intent_scan",
+                          return_value=([sample()], "PUBLIC_DEV_LIVE_PLUS_CURATED_FUNDING", "")):
+            status, _, raw = self.read("/api/pathways?mode=public")
+        self.assertEqual(status, 200)
+        result = json.loads(raw)
+        self.assertEqual(result["origin"], "PUBLIC_REFRESH")
+        self.assertEqual(result["counts"]["state_receipts"], 0)
+        self.assertEqual(result["counts"]["candidate_paths"], 1)
+        self.assertEqual(result["paths"][0]["eligibility"], "NOT_ASSESSED")
+
+    def test_bad_mode_and_untrusted_host_fail_closed(self):
+        with self.assertRaises(HTTPError) as bad_mode:
+            self.read("/api/pathways?mode=authorized")
+        self.assertEqual(bad_mode.exception.code, 400)
+        for route in ("/pathways", "/api/pathways?mode=stored"):
+            with self.subTest(route=route):
+                with self.assertRaises(HTTPError) as forbidden:
+                    self.read(route, {"Host": "evil.example"})
+                self.assertEqual(forbidden.exception.code, 404)
 
 
 if __name__ == "__main__":
