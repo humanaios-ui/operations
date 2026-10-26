@@ -69,6 +69,15 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--events-ledger", default=str(DEFAULT_CLAIM_EVENTS))
     resolve.add_argument("--dry-run", action="store_true")
 
+    profile = sub.add_parser(
+        "portfolio-check",
+        help="Read-only controlled profile resource drift check (local, approval-gated)",
+    )
+    profile.add_argument("--personal-projection", required=True)
+    profile.add_argument("--business-anchor", required=True)
+    profile.add_argument("--consumer-snapshot", required=True)
+    profile.add_argument("--prior-revisions")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -94,6 +103,21 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "portfolio-check":
+        from .portfolio_maintainer import observe_portfolio
+
+        def read_local(path: str) -> dict:
+            return json.loads(Path(path).read_text(encoding="utf-8"))
+
+        report = observe_portfolio(
+            read_local(args.personal_projection),
+            read_local(args.business_anchor),
+            read_local(args.consumer_snapshot),
+            prior=read_local(args.prior_revisions) if args.prior_revisions else None,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
 
     if args.command == "reconcile":
         audit = reconcile_snapshot(args.snapshot, args.receipts, args.out, args.audit_out)
