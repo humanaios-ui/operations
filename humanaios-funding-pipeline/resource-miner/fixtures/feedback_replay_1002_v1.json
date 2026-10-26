@@ -42,5 +42,6 @@
     "shared_approval": "NOT_APPROVED"
   },
   "authority_effect": "NONE",
-  "execution": "DISABLED"
+  "execution": "DISABLED",
+  "as_of_date": "2026-10-26"
 }
