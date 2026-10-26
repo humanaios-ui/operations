@@ -1,0 +1,46 @@
+{
+  "schema": "humanaios.feedback_replay_fixture.v0.1",
+  "experiment_id": "E1-1002-FIRST-SOURCE-REPLAY-20261026",
+  "pinned_main_commit": "9951e5dcbbc50c40a4bfbce3ca9f480b9b07fcdf",
+  "snapshot_git_blob_sha": "e7fba397546cbb6b97117a80ede245ecdb55af3b",
+  "snapshot_row_count": 51,
+  "ranker_git_blob_sha": "94b2590754ea209db2b3bcba9698e78b6311c8f3",
+  "objectives": {
+    "target": "Find Program Launch Manager work",
+    "heldout": "Find compute credits"
+  },
+  "target": {
+    "resource_id": "RES-26D48CDE47BB2BB0",
+    "canonical_source_url": "https://jobs.lever.co/convergentresearch/7b0506c1-caf2-4e92-9a44-d062c7a9b988",
+    "title": "Convergent Research Program Launch Manager"
+  },
+  "source_report": {
+    "report_id": "ISSUE-992-USER-REPORTED-404",
+    "reporter_class": "HUMAN_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+    "reported_status": "LINK_FAILED_404",
+    "report_url": "https://github.com/humanaios-ui/operations/issues/992",
+    "original_report_date": "2026-10-22"
+  },
+  "external_observation": {
+    "observation_id": "WEB-20261026-LEVER-404",
+    "method": "PUBLIC_WEB_FETCH_NOT_AUTHENTICATED_REVIEWER",
+    "status": "HTTP_404_OBSERVED",
+    "source_url": "https://jobs.lever.co/convergentresearch/7b0506c1-caf2-4e92-9a44-d062c7a9b988",
+    "observed_date": "2026-10-26",
+    "official_board_url": "https://jobs.lever.co/convergentresearch",
+    "board_listing_status": "NOT_LISTED_IN_RENDERED_BOARD_AT_OBSERVATION",
+    "limitations": [
+      "Search index retains cached copy of exact listing",
+      "Indexed application page can appear available although direct fetch returns 404",
+      "Neither result establishes permanent vacancy closure",
+      "Not an independently authenticated reviewer signature"
+    ]
+  },
+  "revision": {
+    "mode": "SHADOW_PROPOSED_HOLD_NO_CATALOG_EDIT",
+    "exclusion_reason": "SOURCE_RECHECK_HOLD_NOT_CLOSURE",
+    "shared_approval": "NOT_APPROVED"
+  },
+  "authority_effect": "NONE",
+  "execution": "DISABLED"
+}
