@@ -114,6 +114,25 @@ class SnapshotSourceHoldTests(unittest.TestCase):
         self.assertEqual(status, 503)
         self.assertNotIn("RES-HELD", json.dumps(result))
 
+    def test_deepgram_recheck_carries_to_real_snapshot_http_search(self):
+        # Real catalog's USER_REPORTED hold is a recheck, not verified closure.
+        deepgram = ("https://jobs.ashbyhq.com/Deepgram/"
+                    "681c5324-1234-4222-b783-a8a7a9440005")
+        catalog = json.loads(app.DEFAULT_FUNDING.read_text(encoding="utf-8"))
+        row = next(row for row in catalog if row.get("url") == deepgram)
+        self.assertEqual(row.get("source_verification_status"), "RECHECK_REQUIRED")
+        self.assertEqual(row.get("source_verification_observation", {}).get("kind"),
+                         "USER_REPORTED")
+        before = hashlib.sha256(app.SNAPSHOT_OUT.read_bytes()).hexdigest()
+        self.assertIn(deepgram.encode("utf-8"), app.SNAPSHOT_OUT.read_bytes())
+        status, result = intent_request("Deepgram Senior Program Manager Data Operations")
+        self.assertEqual(status, 200)
+        self.assertNotIn(deepgram, json.dumps(result.get("candidates", [])))
+        self.assertIn("withheld", result["source_warning"])
+        self.assertEqual(result["eligibility"], "NOT_ASSESSED")
+        self.assertEqual(result["authority"], "NONE")
+        self.assertEqual(hashlib.sha256(app.SNAPSHOT_OUT.read_bytes()).hexdigest(), before)
+
     def test_actual_curated_source_hold_survives_actual_snapshot_read(self):
         # The historical snapshot contains the disputed candidate; the later
         # curated catalog records ROLE_NOT_LISTED. They are intentionally not
