@@ -21,7 +21,7 @@ class SourceReviewUITests(unittest.TestCase):
             'maximum 10 MB',
             'crypto.subtle.digest("SHA-256",bytes)',
             'localStorage.setItem(reviewStoreKey',
-            'a.download="intent-os-source-verification.json"',
+            'a.download="intent-os-source-verification-REDACTED.json"',
             'Not independently verified.', "LINK_FAILED_404",
         ):
             with self.subTest(item=item):
