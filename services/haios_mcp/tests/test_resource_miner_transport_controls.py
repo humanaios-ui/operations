@@ -66,11 +66,11 @@ class NegativeResourceTransportTests(unittest.TestCase):
             runner.join(timeout=3)
 
     def test_refuses_unexpected_content_type(self):
-        with self.assertRaisesRegex(RuntimeError, "JSON"):
+        with self.assertRaisesRegex(RuntimeError, "Public Resource Miner snapshot query unavailable or invalid"):
             self.invoke(mime="text/html")
 
     def test_refuses_oversize_body(self):
-        with self.assertRaisesRegex(RuntimeError, "size limit"):
+        with self.assertRaisesRegex(RuntimeError, "Public Resource Miner snapshot query unavailable or invalid"):
             self.invoke(raw=b"X" * (MAX_MINER_RESPONSE_BYTES + 1))
 
     def test_refuses_upstream_authority_claim(self):
