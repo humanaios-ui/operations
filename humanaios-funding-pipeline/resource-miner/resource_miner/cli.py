@@ -88,6 +88,18 @@ def build_parser() -> argparse.ArgumentParser:
     local_profile.add_argument("--owner-approved", action="store_true")
     local_profile.add_argument("--prior-revisions")
 
+    app = sub.add_parser(
+        "render-private-application",
+        help="Build a review-only DOCX using the private master and local style template",
+    )
+    app.add_argument("--private-checkout", required=True)
+    app.add_argument("--template", required=True)
+    app.add_argument("--output", required=True)
+    app.add_argument("--target", default="")
+    app.add_argument("--max-projects", type=int, default=5)
+    app.add_argument("--owner-approved", action="store_true")
+    app.add_argument("--operations-checkout")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -113,6 +125,24 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "render-private-application":
+        from .application_portfolio import build_application
+        if not args.owner_approved:
+            raise SystemExit("owner approval required: supply --owner-approved")
+        if not (1 <= args.max_projects <= 12):
+            raise SystemExit("--max-projects must be between 1 and 12")
+        protected = (
+            (Path(args.operations_checkout).expanduser().resolve(),)
+            if args.operations_checkout else ()
+        )
+        receipt = build_application(
+            args.private_checkout, args.template, args.output,
+            target=args.target, max_projects=args.max_projects,
+            forbidden_checkouts=protected,
+        )
+        print(json.dumps(receipt, indent=2, sort_keys=True))
+        return
 
     if args.command == "connect-private-profile":
         from .private_profile_bridge import read_local_portfolio
