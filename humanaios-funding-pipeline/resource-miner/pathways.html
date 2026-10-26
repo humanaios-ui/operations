@@ -132,7 +132,7 @@ function sortedPaths(){const d=view.data;const q=$("query").value.trim().toLower
 return d.paths.filter(p=>(!n||p.need_ids.includes(n))&&(!q||(p.title+" "+p.source+" "+p.id).toLowerCase().includes(q)));
 }
 function renderList(){
-const a=sortedPaths();$("list").replaceChildren();const shown=a.slice(0,view.limit);
+const a=sortedPaths();if(!a.some(p=>p.id===view.selected))view.selected=a[0]?.id||null;$("list").replaceChildren();const shown=a.slice(0,view.limit);
 shown.forEach(p=>{
 const b=node("button","","row");b.type="button";b.setAttribute("aria-pressed",String(view.selected===p.id));
 b.append(node("strong",p.title),node("small",p.source+" · "+p.id+" · "+p.route));
@@ -141,8 +141,6 @@ $("list").append(b);
 });
 $("empty").hidden=a.length>0;$("more").hidden=a.length<=view.limit;
 $("listed").textContent="Showing "+shown.length+" of "+a.length+" filtered paths; "+view.data.counts.candidate_rows+" source rows observed; "+view.data.counts.unexamined_rows+" not projected.";
-if(view.selected&&!view.data.paths.some(p=>p.id===view.selected))view.selected=null;
-if(!view.selected&&a.length)view.selected=a[0].id;
 renderTrace();
 }
 function pipe(container,label,value){
@@ -152,6 +150,7 @@ function renderTrace(){
 const d=view.data,p=d.paths.find(x=>x.id===view.selected);$("trace").replaceChildren();
 if(!p){$("trace").append(node("p","No selected observation. This is not proof the need has no solution.","muted"));return;}
 $("trace").append(node("h3",p.title),node("p",p.id+" · "+p.source,"meta"));
+if(p.source_url){const link=document.createElement("a");link.href=p.source_url;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open source link · verify on official site ↗";$("trace").append(link);}
 const line=node("div","","trace");
 pipe(line,"Mine",p.mine_binding==="EXPLICIT"?p.mine_id:"Not bound (source label only)");
 line.append(node("span","→","sep"));pipe(line,"Candidate",p.id);
