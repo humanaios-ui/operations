@@ -109,6 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
     presence.add_argument("--probe-public", action="store_true",
                           help="Contact only fixed public GitHub/ORCID read APIs")
     presence.add_argument("--owner-approved", action="store_true")
+    presence.add_argument("--github-alias", help="Explicit owner-selected public alias to search GitHub once")
 
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
@@ -146,10 +147,17 @@ def main() -> None:
             json.loads(Path(args.candidate_observations).read_text(encoding="utf-8"))
             if args.candidate_observations else []
         )
+        if args.github_alias:
+            from .profile_presence import search_github_alias
+            search_result = search_github_alias(args.github_alias, owner_approved=True)
+            observations = observations + search_result["observations"]
+        else:
+            search_result = {"state": "NOT_REQUESTED", "observations": []}
         report = observe_owner_presence(
             master, owner_approved=True, observations=observations,
             probe_public=args.probe_public,
         )
+        report["search_state"] = search_result["state"]
         report["private_source_revision"] = revision
         print(json.dumps(report, indent=2, sort_keys=True))
         return
