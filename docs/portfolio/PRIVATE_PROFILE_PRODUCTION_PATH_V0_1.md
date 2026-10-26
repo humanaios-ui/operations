@@ -12,7 +12,7 @@
 
 The master stores all professional evidence and supported outcomes once. Applications are **views** with different ordering, emphasis, and selection for a specific job or grant. Never change source facts merely to make them fit a posting.
 
-## Local authenticated connection
+## Local pinned-origin read (not independent authentication)
 
 Clone the **private** repository locally using your own GitHub credentials, and ensure the repositories' `origin` remotes point to their exact canonical `humanaios-ui` paths. No PAT or credential value is passed to Resource Miner. Each source is read from committed `HEAD:<exact path>` via git, not from GitHub search snippets, uncommitted files or public caches. The read returns the exact Git blob SHA. This design also works offline.
 
