@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
       - name: Run fixed #1002 replay tests
         working-directory: humanaios-funding-pipeline/resource-miner
-        run: python3 -m unittest tests.test_feedback_replay_1002 -v
+        run: python3 -m unittest discover -s tests -p 'test_feedback_replay_1002.py' -v
       - name: Write reproducible non-authorizing behavioral baseline
         working-directory: humanaios-funding-pipeline/resource-miner
         run: python3 -m resource_miner.feedback_replay_1002 --output ../../outputs/feedback-replay-1002/first-shadow-replay.json
