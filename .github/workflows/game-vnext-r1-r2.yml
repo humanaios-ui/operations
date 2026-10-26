@@ -1,0 +1,46 @@
+name: Game vNext R1 freeze and R2 AI-off mission
+on:
+  pull_request:
+    paths:
+      - 'experiments/game-vnext/**'
+      - '.github/workflows/game-vnext-r1-r2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  game-vnext-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm syntax
+        run: |
+          node --check experiments/game-vnext/solo/engine.mjs
+          node --check experiments/game-vnext/solo/ui.mjs
+          node --check experiments/game-vnext/descent/engine.mjs
+          node --check experiments/game-vnext/descent/ui.mjs
+      - name: Full solo ending + repair tests, and R2 Descent regression
+        run: node --test experiments/game-vnext/solo/tests/*.mjs experiments/game-vnext/descent/tests/*.mjs
+      - name: Offline bundles reproduced from source
+        run: |
+          python3 experiments/game-vnext/solo/build_standalone.py
+          python3 experiments/game-vnext/descent/build_standalone.py
+          git diff --exit-code -- experiments/game-vnext/solo/PLAY_OFFLINE.html experiments/game-vnext/descent/PLAY_OFFLINE.html
+      - name: No server action or personal data in R2
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('experiments/game-vnext/descent')
+          engine=(root/'engine.mjs').read_text()
+          ui=(root/'ui.mjs').read_text()
+          assert not any(x in engine+ui for x in ['fetch(', 'XMLHttpRequest', 'eval(', 'new Function(', 'navigator.sendBeacon'])
+          assert 'worldTick:null' in engine
+          assert 'function witnessRecall' in engine
+          assert (root/'PLAY_OFFLINE.html').stat().st_size > 10000
+          print('R2 AI-off, no outbound requests, no authoritative campaign writes: PASS')
+          PY
