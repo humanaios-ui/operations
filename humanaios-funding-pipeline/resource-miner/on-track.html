@@ -249,7 +249,11 @@ function readLocalReports(){
 function renderHumanAIOSResourceLoop(){
  const records=readLocalReports();
  const latest=new Map();
- for(const r of records)latest.set(r.source_url,r);
+ for(const r of records){
+  const prior=latest.get(r.source_url);
+  if(!prior||r.observed_at>prior.observed_at||
+    (r.observed_at===prior.observed_at&&r.id>prior.id))latest.set(r.source_url,r);
+ }
  const values=[...latest.values()];
  text("loopTotal",values.length);
  text("loopInUse",values.filter(r=>r.status==="ALREADY_IN_USE").length);
@@ -268,7 +272,11 @@ function loadWitness(){
  const empty=document.createElement("option");empty.value="";
  empty.textContent="Select a source from the local feedback queue";sel.append(empty);
  const latest=new Map();
- for(const r of witnessReports)latest.set(r.source_url,r);
+ for(const r of witnessReports){
+  const prior=latest.get(r.source_url);
+  if(!prior||r.observed_at>prior.observed_at||
+    (r.observed_at===prior.observed_at&&r.id>prior.id))latest.set(r.source_url,r);
+ }
  for(const r of latest.values()){
   const o=document.createElement("option");o.value=r.source_url;
   o.textContent=r.resource_title.slice(0,100)+" · "+r.status;sel.append(o);
