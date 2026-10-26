@@ -40,6 +40,24 @@ class FeedbackReplay1002Tests(unittest.TestCase):
                          "NOT_RUN_CANONICAL_VERSION_PREREQUISITE_750")
         self.assertTrue(all(receipt["conditions"].values()), receipt["conditions"])
 
+    def test_preserved_observation_matches_recomputed_receipt(self):
+        """Durable small research summary must match a fresh, pinned replay."""
+        summary = json.loads((ROOT / "data/experiments/feedback_replay_1002_summary_20261026.json").read_text())
+        result = replay(self.snapshot, self.fixture)
+        self.assertEqual(summary["full_receipt_sha256"], result["receipt_sha256"])
+        self.assertEqual(summary["results"]["matched_before"], result["matched_count_before"])
+        self.assertEqual(summary["results"]["matched_after"], result["matched_count_after"])
+        self.assertEqual(summary["results"]["source_exposure_before_top10"],
+                         result["stale_source_exposure_at_10_before"])
+        self.assertEqual(summary["results"]["source_exposure_after_top10"],
+                         result["stale_source_exposure_at_10_after"])
+        self.assertEqual(summary["as_of_date"], result["replay_date_utc"])
+        self.assertEqual(summary["source_snapshot_git_blob"], result["corpus_before_revision"])
+        self.assertEqual(summary["shadow_after_projection_sha256"], result["corpus_after_revision"])
+        self.assertEqual(summary["ranker_git_blob"], result["ranker_git_blob_sha"])
+        self.assertTrue(result["conditions"]["unrelated_heldout_unchanged"])
+        self.assertEqual(result["authority_effect"], "NONE")
+
     def test_stable_receipt_same_day(self):
         self.assertEqual(replay(self.snapshot, self.fixture),
                          replay(self.snapshot, self.fixture))
