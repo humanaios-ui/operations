@@ -6,6 +6,7 @@ Never invent work history or persist profile data inside a repository.
 """
 from __future__ import annotations
 
+from copy import deepcopy
 import os
 import re
 from pathlib import Path
@@ -201,6 +202,9 @@ def render_docx(application: dict[str, Any], template: Path, output: Path,
     present = {p.text.strip().upper() for p in doc.paragraphs}
     if not set(ORDER).issubset(present):
         raise ValueError("DOCX is not the seven-section project/program template")
+    if not doc.tables or len(doc.tables[0].columns) != 6:
+        raise ValueError("template is missing the six-phase delivery table")
+    delivery_table = deepcopy(doc.tables[0]._element)
     body = doc.element.body
     for child in list(body):
         if child.tag != qn("w:sectPr"):
@@ -232,10 +236,7 @@ def render_docx(application: dict[str, Any], template: Path, output: Path,
     heading("PROFESSIONAL PROFILE")
     normal(application["professional_profile"])
     heading("PROJECT DELIVERY MODEL")
-    table = doc.add_table(rows=2, cols=6)
-    for col, (label, detail) in enumerate(application["delivery_model"]):
-        table.cell(0, col).text = label
-        table.cell(1, col).text = detail
+    body.insert(len(body) - 1, delivery_table)
     heading("CORE CAPABILITIES")
     for label, _, _ in application["capabilities"][:8]:
         doc.add_paragraph(label, style="List Bullet")
