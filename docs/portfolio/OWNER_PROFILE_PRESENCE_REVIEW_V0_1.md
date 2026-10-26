@@ -59,7 +59,16 @@ python3 -m resource_miner.cli profile-presence \
   --owner-approved
 ```
 
-The candidate results are kept in local output for owner review only. **No public search engine is automatically queried by the initial implementation.** A later adapter may supply bounded candidates after the owner chooses the sites and query terms. Never search the internet using a user's private attributes or arbitrary old email addresses without explicit consent.
+The candidate results are kept in local output for owner review only. For a **single explicit GitHub public user search**, the owner may also supply a bounded public name or handle. This is not an unattended scan:
+
+```bash
+python3 -m resource_miner.cli profile-presence \\
+  --private-checkout /path/to/humanaios-internal \\
+  --github-alias "chosen-public-alias" \\
+  --owner-approved
+```
+
+The query calls only GitHub's public user-search API (maximum ten results), records each candidate URL and observation ID, and never asserts owner identity. `SEARCH_FAILED_NOT_ZERO_ACCOUNTS` is distinct from an observed empty result. LinkedIn, ORCID and other providers are **not broadly searched** in this slice; they support only owner-supplied exact references and readback as otherwise documented. A later approved adapter may supply bounded candidate observations after the owner chooses the sites and query terms. Never search the internet using a user's private attributes or arbitrary old email addresses without explicit consent.
 
 ## Minimal data and graph contract
 
