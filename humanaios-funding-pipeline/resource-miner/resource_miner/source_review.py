@@ -31,19 +31,19 @@ MAX_RECORDS = 100
 # should request a source hold. Submission rules and setup failures are
 # constraints, NOT evidence of a missing public source.
 _JOB_NOT_LISTED = re.compile(
-    r"\\b(?:job|role|listing|position)\\b.{0,72}\\b(?:not found|not listed|unavailable|removed)\\b"
-    r"|\\bnot (?:on|listed on) (?:the )?(?:official )?(?:website|job board)\\b",
+    r"\b(?:job|role|listing|position)\b.{0,72}\b(?:not found|not listed|unavailable|removed)\b"
+    r"|\bnot (?:on|listed on) (?:the )?(?:official )?(?:website|job board)\b",
     re.IGNORECASE,
 )
 _USE_POLICY = re.compile(
-    r"\\b(?:restrict(?:s|ed|ions)?|reject(?:s|ed)?|prohibit(?:s|ed)?|"
-    r"no longer accepts)\\b.{0,85}\\b(?:ai|automated|written|application)\\b"
-    r"|\\b(?:ai-written|ai generated|ai-generated)\\b.{0,85}\\b(?:reject|restrict|prohibit)",
+    r"\b(?:restrict(?:s|ed|ions)?|reject(?:s|ed)?|prohibit(?:s|ed)?|"
+    r"no longer accepts)\b.{0,85}\b(?:ai|automated|written|application)\b"
+    r"|\b(?:ai-written|ai generated|ai-generated)\b.{0,85}\b(?:reject|restrict|prohibit)",
     re.IGNORECASE,
 )
-_SETUP_ISSUE = re.compile(r"\\b(?:could not|unable to|failed to)\\b.{0,55}\\b(?:set up|connect|configure|integrat)", re.IGNORECASE)
+_SETUP_ISSUE = re.compile(r"\b(?:could not|unable to|failed to)\b.{0,55}\b(?:set up|connect|configure|integrat)", re.IGNORECASE)
 _OPAQUE_SEGMENT = re.compile(
-    r"^(?:org_|prj_|project_|session_|user_|token_|cm[a-z0-9]{15,}|[A-Za-z0-9_-]{38,}|eyJ[A-Za-z0-9_.-]+)$",
+    r"^(?:org_[A-Za-z0-9_-]*|prj_[A-Za-z0-9_-]*|project_[A-Za-z0-9_-]*|session_[A-Za-z0-9_-]*|user_[A-Za-z0-9_-]*|token_[A-Za-z0-9_-]*|cm[a-z0-9]{15,}|[A-Za-z0-9_-]{38,}|eyJ[A-Za-z0-9_.-]+)$",
     re.IGNORECASE,
 )
 
