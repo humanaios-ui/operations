@@ -97,6 +97,40 @@ class SnapshotSourceHoldTests(unittest.TestCase):
         self.assertNotIn("SECRET_DO_NOT_ECHO", json.dumps(result))
         self.assertEqual(hashlib.sha256(self.snapshot.read_bytes()).hexdigest(), original_hash)
 
+    def test_correction_survives_two_subsequent_searches(self):
+        """One reported source hold must suppress the same candidate twice.
+
+        Baseline visible -> catalog correction -> two identical read-only queries.
+        Preserve the untouched historical snapshot and correction record.
+        """
+        self.write_fixture()
+        catalog = json.loads(self.catalog.read_text(encoding="utf-8"))
+        catalog[0].pop("source_verification_status")
+        self.catalog.write_text(json.dumps(catalog), encoding="utf-8")
+        before_status, before = intent_request("Convergent Research Program Launch Manager")
+        self.assertEqual(before_status, 200)
+        self.assertIn("RES-HELD", {row["resource_id"] for row in before["candidates"]})
+
+        catalog[0]["source_verification_status"] = "ROLE_NOT_LISTED"
+        self.catalog.write_text(json.dumps(catalog), encoding="utf-8")
+        corrected_catalog_bytes = self.catalog.read_bytes()
+        historical_snapshot_bytes = self.snapshot.read_bytes()
+
+        for repeat in (1, 2):
+            with self.subTest(post_correction_search=repeat):
+                status, result = intent_request("Convergent Research Program Launch Manager")
+                self.assertEqual(status, 200)
+                visible_ids = {row["resource_id"] for row in result["candidates"]}
+                self.assertNotIn("RES-HELD", visible_ids)
+                self.assertEqual(result["shown_count"], 2)
+                self.assertIn("RES-DIFFERENT", visible_ids)
+                self.assertIn("RES-OTHER-SOURCE", visible_ids)
+                self.assertIn("1 catalog-matched source(s) withheld", result["source_warning"])
+                self.assertEqual(result["authority"], "NONE")
+                self.assertEqual(result["execution"], "DISABLED")
+                self.assertEqual(self.catalog.read_bytes(), corrected_catalog_bytes)
+                self.assertEqual(self.snapshot.read_bytes(), historical_snapshot_bytes)
+
     def test_unknown_source_status_does_not_suppress(self):
         self.write_fixture()
         self.catalog.write_text(json.dumps([{
