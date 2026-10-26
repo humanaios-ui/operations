@@ -8,10 +8,11 @@ Nothing is persisted. Callers must keep outputs private.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from typing import Any, Callable
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlencode
 from urllib.request import Request, urlopen, build_opener, HTTPRedirectHandler
 
 SCHEMA = "humanaios.profile-presence-review.v0.1"
@@ -238,3 +239,47 @@ def observe_owner_presence(master: dict[str, Any], *,
         "owner_confirmation_required": True,
         "output_visibility": "PRIVATE_LOCAL_ONLY",
     }
+
+
+def search_github_alias(
+    alias: str, *, owner_approved: bool,
+    transport: Callable[[str], tuple[int, bytes]] = _get_public,
+) -> dict[str, Any]:
+    """One bounded public GitHub users search for a term the owner typed locally.
+
+    Do not derive search phrases from hidden fields or historic email addresses.
+    Search is untrusted evidence; return only candidate URLs and source IDs.
+    """
+    if not owner_approved:
+        raise PermissionError("explicit owner authorization required")
+    if not isinstance(alias, str) or not re.fullmatch(r"[A-Za-z0-9 ._-]{3,60}", alias):
+        raise ValueError("search term must be a bounded owner-supplied public alias")
+    url = "https://api.github.com/search/users?" + urlencode({
+        "q": alias.strip() + " in:login,name",
+        "per_page": 10,
+        "page": 1,
+    })
+    try:
+        code, payload = transport(url)
+        if code != 200 or len(payload) > MAX_PUBLIC_BYTES:
+            return {"state": "SEARCH_INCONCLUSIVE", "observations": []}
+        doc = json.loads(payload.decode("utf-8"))
+        if not isinstance(doc, dict) or not isinstance(doc.get("items"), list):
+            return {"state": "SEARCH_INCONCLUSIVE", "observations": []}
+        if len(doc["items"]) > 10:
+            return {"state": "SEARCH_INCONCLUSIVE", "observations": []}
+        observations = []
+        for item in doc["items"]:
+            if not isinstance(item, dict) or not isinstance(item.get("html_url"), str):
+                continue
+            try:
+                canonical = canonical_profile_url("github", item["html_url"])
+            except ValueError:
+                continue
+            source_id = "rm-github-" + hashlib.sha256(canonical.encode()).hexdigest()[:16]
+            observations.append({
+                "provider": "github", "url": canonical, "source_id": source_id,
+            })
+        return {"state": "PUBLIC_SEARCH_OBSERVED", "observations": observations}
+    except (OSError, TimeoutError, UnicodeDecodeError, ValueError):
+        return {"state": "SEARCH_FAILED_NOT_ZERO_ACCOUNTS", "observations": []}
