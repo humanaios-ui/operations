@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: humanaios-ui/operations
-          ref: c99cc785b3c224fc16b6290a3e5817ab50eb9c35
+          ref: 238f67d2c15483be7931e8bd17f7cefa31f7f74a
           path: e3-miner
           persist-credentials: false
           sparse-checkout: |
@@ -42,6 +42,9 @@ jobs:
 
       - name: Install bounded Witness MCP test dependencies
         run: python -m pip install -e ./services/haios_mcp
+
+      - name: Run offline E2/E3 tests from clean checked-out package
+        run: python -m unittest discover -s services/haios_mcp/tests -v
 
       - name: Run E3 corrected-branch real snapshot through MCP
         run: |
