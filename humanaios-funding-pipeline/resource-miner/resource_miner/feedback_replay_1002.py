@@ -12,8 +12,10 @@ from datetime import date
 import hashlib
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 from .intent_os import evaluate_objective
+from . import intent_os as _ranker_module
 
 SCHEMA = "humanaios.resource_feedback_shadow_replay.v0.1"
 RANKER = "LEXICAL_PLUS_DECLARED_TAXONOMY_RRF_K60_V1"
@@ -74,17 +76,27 @@ def replay(snapshot_path: Path, fixture: dict) -> dict:
         raise ValueError("Expected target and held-out objectives")
     base = dict(source_mode="snapshot", source_status="CURATED_SNAPSHOT_NOT_LIVE",
                 source_warning="Offline pinned snapshot, not current availability")
-    before = evaluate_objective(objectives["target"], rows, **base)
-    control_before = evaluate_objective(objectives["heldout"], rows, **base)
+    # Freeze ranker date in this isolated offline experiment. The original
+    # ranker uses date.today() for deadlines; this pin makes later replays
+    # comparable without changing the production ranker or dataset.
+    as_of = date.fromisoformat(fixture["as_of_date"])
+    class _PinnedDate(date):
+        @classmethod
+        def today(cls):
+            return as_of
+
     # A held source is not marked CLOSED or ARCHIVE. It is excluded only from
     # the experimental after-arm, not from persistent resource records.
     after_rows = [dict(row) for row in rows if not (
         row.get("resource_id") == resource_id and row.get("canonical_url") == url
     )]
-    after = evaluate_objective(objectives["target"], after_rows, **base)
-    control_after = evaluate_objective(objectives["heldout"], after_rows, **base)
-    repeat_before = evaluate_objective(objectives["target"], rows, **base)
-    repeat_after = evaluate_objective(objectives["target"], after_rows, **base)
+    with patch.object(_ranker_module, "date", _PinnedDate):
+        before = evaluate_objective(objectives["target"], rows, **base)
+        control_before = evaluate_objective(objectives["heldout"], rows, **base)
+        after = evaluate_objective(objectives["target"], after_rows, **base)
+        control_after = evaluate_objective(objectives["heldout"], after_rows, **base)
+        repeat_before = evaluate_objective(objectives["target"], rows, **base)
+        repeat_after = evaluate_objective(objectives["target"], after_rows, **base)
     before_ids, after_ids = _ids(before), _ids(after)
     heldout_before, heldout_after = _ids(control_before), _ids(control_after)
     conditions = {
@@ -111,8 +123,8 @@ def replay(snapshot_path: Path, fixture: dict) -> dict:
         "corpus_after_revision_kind": "IN_MEMORY_SHADOW_PROJECTION_SHA256_NOT_GIT_REVISION",
         "ranker_git_blob_sha": fixture["ranker_git_blob_sha"],
         "ranker_strategy": RANKER,
-        "date_dependency": "LIVE_DATE_IN_EXISTING_RANKER; reruns must record observed date",
-        "replay_date_utc": date.today().isoformat(),
+        "date_dependency": "PINNED_AS_OF_DATE_IN_ISOLATED_SHADOW_RUN",
+        "replay_date_utc": as_of.isoformat(),
         "objective_digests_sha256": {key: _digest(value) for key, value in objectives.items()},
         "source_target_id": resource_id,
         "candidate_ids_before": before_ids,
