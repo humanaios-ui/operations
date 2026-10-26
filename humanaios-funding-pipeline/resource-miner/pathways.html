@@ -32,6 +32,8 @@ label{font-size:.88rem;font-weight:700}.filters{display:flex;gap:11px;flex-wrap:
 .row{width:100%;display:block;text-align:left;background:#20343a;color:var(--ink);border:1px solid #3d5b64;border-radius:9px;padding:11px}
 .row strong{display:block}.row small{display:block;color:var(--sub)}
 .row[aria-pressed="true"]{background:#2d565d;border-color:#abe4d3}
+.branchwrap{overflow-x:auto;margin:12px 0;padding:7px 0}
+#branchSvg{display:block;width:100%;min-width:660px;height:auto}
 .trace{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0}
 .trace .box{max-width:100%;overflow-wrap:anywhere;background:#263d42;border:1px solid #57807f;border-radius:9px;padding:9px 12px;font-size:.85rem}
 .trace .sep{color:var(--hi)}.meta{font-size:.88rem;color:var(--sub);word-break:break-word}
@@ -87,6 +89,9 @@ code{color:#bdf4e2;word-break:break-all}#empty{padding:16px}
 <section class="panel" aria-labelledby="traceHeading">
 <h2 id="traceHeading">Selected path · linked evidence</h2>
 <div id="trace" role="status" aria-live="polite">Select one candidate. Follow its recorded path.</div>
+<div class="branchwrap"><svg id="branchSvg" viewBox="0 0 1100 260" role="img" aria-label="Selected candidate source branches into need and requirement links before evidence and human review">
+<text x="20" y="130" fill="#bbcdce" font-size="24">Select a candidate to draw its connected pathway.</text>
+</svg></div>
 </section>
 </div>
 <section class="panel" aria-labelledby="coverageHeading">
@@ -146,8 +151,29 @@ renderTrace();
 function pipe(container,label,value){
 const b=node("div","","box");b.append(node("strong",label+" "),node("span",value));container.append(b);
 }
+function drawBranch(p){
+const svg=$("branchSvg");svg.replaceChildren();if(!p)return;
+const NS="http://www.w3.org/2000/svg";
+const put=(tag,attrs,content)=>{const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,String(v)));if(content!==undefined)e.textContent=content;svg.append(e);return e;};
+const edge=(x,y,X,Y,dashed=false)=>{put("path",{d:"M"+x+","+y+" L"+X+","+Y,fill:"none",stroke:"#9ad8c3","stroke-width":2.5,...(dashed?{"stroke-dasharray":"6 6"}:{})});
+put("path",{d:"M"+(X-9)+","+(Y-6)+" L"+X+","+Y+" L"+(X-9)+","+(Y+6),fill:"none",stroke:"#9ad8c3","stroke-width":2});};
+const card=(x,y,w,h,title,value)=>{put("rect",{x,y,width:w,height:h,rx:11,fill:"#253c43",stroke:"#658b8b","stroke-width":1.5});
+put("text",{x:x+12,y:y+22,fill:"#c0e9dd","font-size":15,"font-weight":700},title);
+put("text",{x:x+12,y:y+48,fill:"#f0f5f3","font-size":17},value);};
+edge(177,131,219,131,p.mine_binding!=="EXPLICIT");
+edge(379,131,420,72);edge(379,131,420,197);
+edge(580,72,630,131);edge(580,197,630,131);
+edge(793,131,824,131);edge(969,131,988,131,true);
+card(5,98,172,67,"SOURCE",p.mine_binding==="EXPLICIT"?"Bound Mine":"Unbound origin");
+card(219,98,160,67,"CANDIDATE",p.id.slice(0,13));
+card(420,39,160,67,"NEED LINKS",String(p.need_ids.length)+" matched");
+card(420,163,160,67,"REQ. LINKS",String(p.requirement_ids.length)+" matched");
+card(630,98,163,67,"EVIDENCE",String(p.evidence_refs+p.receipts.length)+" recorded");
+card(824,98,145,67,"HUMAN GATE","No action");
+card(988,98,109,67,"OUTCOME","Unknown");
+}
 function renderTrace(){
-const d=view.data,p=d.paths.find(x=>x.id===view.selected);$("trace").replaceChildren();
+const d=view.data,p=d.paths.find(x=>x.id===view.selected);$("trace").replaceChildren();drawBranch(p);
 if(!p){$("trace").append(node("p","No selected observation. This is not proof the need has no solution.","muted"));return;}
 $("trace").append(node("h3",p.title),node("p",p.id+" · "+p.source,"meta"));
 if(p.source_url){const link=document.createElement("a");link.href=p.source_url;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open source link · verify on official site ↗";$("trace").append(link);}
