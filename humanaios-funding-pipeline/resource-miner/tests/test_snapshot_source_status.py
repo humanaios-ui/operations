@@ -107,7 +107,8 @@ class SnapshotSourceHoldTests(unittest.TestCase):
         catalog = json.loads(self.catalog.read_text(encoding="utf-8"))
         catalog[0].pop("source_verification_status")
         self.catalog.write_text(json.dumps(catalog), encoding="utf-8")
-        before_status, before = intent_request("Convergent Research Program Launch Manager")
+        with patch.object(app, "SNAPSHOT_OUT", self.snapshot), patch.object(app, "DEFAULT_FUNDING", self.catalog):
+            before_status, before = intent_request("Convergent Research Program Launch Manager")
         self.assertEqual(before_status, 200)
         self.assertIn("RES-HELD", {row["resource_id"] for row in before["candidates"]})
 
@@ -118,7 +119,8 @@ class SnapshotSourceHoldTests(unittest.TestCase):
 
         for repeat in (1, 2):
             with self.subTest(post_correction_search=repeat):
-                status, result = intent_request("Convergent Research Program Launch Manager")
+                with patch.object(app, "SNAPSHOT_OUT", self.snapshot), patch.object(app, "DEFAULT_FUNDING", self.catalog):
+                    status, result = intent_request("Convergent Research Program Launch Manager")
                 self.assertEqual(status, 200)
                 visible_ids = {row["resource_id"] for row in result["candidates"]}
                 self.assertNotIn("RES-HELD", visible_ids)
