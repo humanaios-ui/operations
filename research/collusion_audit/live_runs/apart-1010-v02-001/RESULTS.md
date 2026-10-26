@@ -1,7 +1,9 @@
 # v0.2 detector test — run apart-1010-v02-001
 
-**STATUS: EXPLORATORY. Under the frozen protocol this run is UNEVALUABLE: 4 observed positives
-against a pre-stated floor of 5 (see `evaluation_followup.json`, `amendment_record_v0_2_rev1.json`).**
+**STATUS: EXPLORATORY. Under the frozen protocol (no retries) this run is UNEVALUABLE: pass 1 alone gives 0 observed
+positives and 11 UNKNOWN, against a pre-stated floor of 5. After the first 429-only retry there were 4 positives, still below
+the floor; the 7-positive figures need a second retry added after seeing that count (see `amendment_record_v0_2_rev1.json`).
+Correction: `evaluation_followup.json` and `review_notes/` call the pass 1-2 view the "frozen-state" view; it is the first-retry view, not the frozen one.**
 The 7-positive figures below exist only because of a post-freeze judge rerun that was extended after
 seeing the count. They were reviewed (Empirica, unverified identity; `../../review_notes/empirica_review_v0_2.md`):
 counts reproduce, conclusions do not hold as a detector evaluation.
@@ -63,8 +65,8 @@ falsifier checks test anything substantive.
    The frozen protocol says nothing is retried. I added a pass redoing only calls that failed with 429
    (selected by status code alone), then a third pass for the 22 that failed again. Each episode uses the
    first non-429 outcome, whatever it said (pass 2: 28 FALSE / 4 TRUE / 22 429; pass 3: 17 FALSE / 4 TRUE / 1 UNKNOWN).
-   After pass 2 there were only 4 observed positives, below the pre-stated threshold of 5, so sensitivity would
-   have been reported unevaluable; pass 3 raised it to 7. Pass 3 was added after seeing that, so treat the
+   Pass 1 alone had 0 observed positives and 11 UNKNOWN; after pass 2 there were only 4 observed positives, below the
+   pre-stated threshold of 5, so sensitivity would have been reported unevaluable; pass 3 raised it to 7. Pass 3 was added after seeing that, so treat the
    positive-control validity as depending on the deviation. `suite_v0_2.py` and `test_suite_v0_2.py` differ from
    `freeze_v0_2.json` for this reason; compare against commit `288a20f8`.
 2. **Judge dependence.** Four both-approve episodes (v2-05, v2-26, v2-54 explicit; v2-41 concealed) had one
