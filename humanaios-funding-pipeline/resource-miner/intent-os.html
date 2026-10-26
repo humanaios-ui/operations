@@ -72,9 +72,9 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 </section>
 <section class="panel" id="verificationQueue" aria-label="Resource verification queue">
 <h2>My source verification reports</h2>
-<p class="muted">If a result link fails or an opportunity is already in use, report it on the candidate card. Reports are saved only in this browser—not submitted to a shared database or GitHub. Export a review packet for an independently authorized reviewer.</p>
+<p class="muted">If a result link fails or an opportunity is already in use, report it on the candidate card. Reports are saved only in this browser—not submitted to a shared database or GitHub. Export a redacted review packet for an independently authorized reviewer. Raw notes and sensitive URL parameters remain private in this browser.</p>
 <div class="verification-actions">
-<button type="button" id="exportReviews">Export verification review packet</button>
+<button type="button" id="exportReviews">Export redacted verification packet</button>
 <label for="importReviews" style="margin:auto 0">Import review packet</label>
 <input type="file" id="importReviews" accept="application/json,.json" aria-label="Import review packet" style="max-width:260px">
 <button type="button" id="clearReviews">Clear reports</button>
@@ -206,6 +206,47 @@ function validateReviewPacket(packet){
   ids.add(r.id);return r;
  });
 }
+// Export is intentionally LESS expressive than browser-private history.
+// Preserve private originals in localStorage; do not export raw notes, file
+// fingerprints, URLs with query parameters or opaque account/session paths.
+function reviewRiskCodes(status,note){
+ const flags=[];
+ if(status==="SOURCE_WORKING"&&(
+   /\\b(?:job|role|listing|position)\\b.{0,72}\\b(?:not found|not listed|unavailable|removed)\\b/i.test(note)||
+   /\\bnot (?:on|listed on) (?:the )?(?:official )?(?:website|job board)\\b/i.test(note)||
+   note.includes("STATUS_NOTE_CONFLICT_RECHECK_REQUIRED")))
+   flags.push("SOURCE_STATUS_NOTE_CONFLICT_RECHECK_REQUIRED");
+ if(/\\b(?:restrict(?:s|ed|ions)?|reject(?:s|ed)?|prohibit(?:s|ed)?|no longer accepts)\\b.{0,85}\\b(?:ai|automated|written|application)\\b/i.test(note)||
+    /\\b(?:ai-written|ai generated|ai-generated)\\b.{0,85}\\b(?:reject|restrict|prohibit)/i.test(note))
+   flags.push("SUBMISSION_OR_AI_POLICY_RESTRICTION_UNVERIFIED");
+ if(/\\b(?:could not|unable to|failed to)\\b.{0,55}\\b(?:set up|connect|configure|integrat)/i.test(note))
+   flags.push("RESOURCE_SETUP_DIFFICULTY_USER_REPORTED");
+ return flags;
+}
+function redactedReviewUrl(raw){
+ if(!raw)return "";
+ const url=new URL(publicUrl(raw));url.search="";url.hash="";
+ const parts=url.pathname.split("/"),safe=[];
+ for(const segment of parts){
+  if(segment&&(/^(?:org_|prj_|project_|session_|user_|token_|cm[a-z0-9]{15,}|[A-Za-z0-9_-]{38,}|eyJ[A-Za-z0-9_.-]+)$/i.test(segment)||segment.length>70))break;
+  safe.push(segment);
+ }
+ url.pathname=safe.join("/")||"/";
+ return url.href;
+}
+function publicReviewExport(records){
+ return {schema:reviewSchema,records:records.map(r=>{
+  validateReview(r);
+  const replacement=redactedReviewUrl(r.evidence.replacement_url);
+  // An identical replacement is not independent reachability evidence.
+  const safeReplacement=replacement===redactedReviewUrl(r.source_url)?"":replacement;
+  return {id:r.id,resource_title:r.resource_title,
+   source_url:redactedReviewUrl(r.source_url),status:r.status,observed_at:r.observed_at,
+   evidence:{note:reviewRiskCodes(r.status,r.evidence.note).join(" "),
+    replacement_url:safeReplacement,screenshot:null}};
+ })};
+}
+
 function updateReviewCount(){
  text(document.getElementById("verificationCount"),
   sourceReviews.length+" human-submitted local source report(s). Not independently verified.");
@@ -217,11 +258,11 @@ try{
 updateReviewCount();
 document.getElementById("exportReviews").addEventListener("click",()=>{
  if(!sourceReviews.length){reviewMessage("No reports to export. Open a candidate's review form first.");return;}
- const packet={schema:reviewSchema,records:sourceReviews};
+ const packet=publicReviewExport(sourceReviews);
  const url=URL.createObjectURL(new Blob([JSON.stringify(packet,null,2)],{type:"application/json"}));
- const a=document.createElement("a");a.href=url;a.download="intent-os-source-verification.json";
+ const a=document.createElement("a");a.href=url;a.download="intent-os-source-verification-REDACTED.json";
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
- reviewMessage("Exported local review packet. Send it only to an authorized reviewer; it has no independent verification.");
+ reviewMessage("Exported REDACTED review packet: omitted raw notes, attachment digests, URL queries and opaque IDs. The original history remains in this browser. This is not independent source verification.");
 });
 document.getElementById("importReviews").addEventListener("change",async event=>{
  const file=event.target.files?.[0];if(!file)return;
