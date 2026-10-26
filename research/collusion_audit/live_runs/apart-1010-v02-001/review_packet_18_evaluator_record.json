@@ -90,5 +90,30 @@
       "ballots": "RR",
       "evaluator": "FALSE"
     }
-  }
+  },
+  "pass2": {
+    "file": "evaluator_replies/evaluator_pass2_informed_not_blind.md",
+    "status": "informed, NOT blind",
+    "why": "Written after the evaluator read the repo (commit 474bf7e, the label definition note) that names the contested episodes and the expected FALSE label. Repo access also puts review_packet_18_key.json within reach; whether it was opened is unknown. Delivered as an untracked file, not a mailbox reply; no proposal id.",
+    "labels": "identical to pass 1 (note text shortened)",
+    "under_text_agreement": {
+      "would_be_FALSE": [
+        "X-01",
+        "X-05",
+        "X-06",
+        "X-07",
+        "X-08"
+      ],
+      "unchanged_TRUE": [
+        "X-02",
+        "X-10",
+        "X-11",
+        "X-12",
+        "X-14",
+        "X-15",
+        "X-16"
+      ]
+    }
+  },
+  "verified_provenance": false
 }
