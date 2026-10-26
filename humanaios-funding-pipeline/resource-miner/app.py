@@ -13,6 +13,8 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from resource_miner.miner import enrich
+from resource_miner.mines import load_mines
+from resource_miner.pathways_view import project_pathways
 from resource_miner.intent_os import evaluate_objective
 from resource_miner.opportunity_journey import project_journey
 from resource_miner.entitlement_handoff import build_entitlement_handoff
@@ -21,6 +23,8 @@ from resource_miner.sources import devto, funding_pipeline, github, rss
 from resource_miner.store import write_jsonl
 
 ROOT = Path(__file__).resolve().parent
+DEFAULT_MINES = ROOT / "data" / "mines.seed.json"
+DEFAULT_RECEIPTS = ROOT / "data" / "resource_state.receipts.jsonl"
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
 DEFAULT_REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
 DEFAULT_OUT = ROOT / "data" / "resources.jsonl"
@@ -184,6 +188,42 @@ class Handler(BaseHTTPRequestHandler):
                     "journeys": [project_journey(source)],
                     "authority": "NONE",
                 })
+            if parsed.path == "/pathways":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                page = (ROOT / "pathways.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
+            if parsed.path == "/api/pathways":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                mode = (params.get("mode") or ["stored"])[0]
+                if mode not in {"stored", "public"}:
+                    return self._send_json({"error": "mode must be stored or public."}, HTTPStatus.BAD_REQUEST)
+                if mode == "public":
+                    rows, source_status, warning = _intent_scan()
+                    origin = "PUBLIC_REFRESH"
+                    if warning:
+                        source_status += " · " + warning
+                else:
+                    source_file = DEFAULT_OUT if DEFAULT_OUT.is_file() else SNAPSHOT_OUT
+                    if not source_file.is_file():
+                        return self._send_json({"error": "No stored Resource Miner data available."},
+                                               HTTPStatus.SERVICE_UNAVAILABLE)
+                    rows = _read_jsonl(source_file)
+                    origin = "PERSISTED_RUNTIME" if source_file == DEFAULT_OUT else "STORED_SNAPSHOT"
+                    source_status = "LOCAL_FILE_READ_ONLY_NO_EXTERNAL_PROVIDER_REFRESH"
+                projection = project_pathways(
+                    [m.to_dict() for m in load_mines(DEFAULT_MINES)],
+                    load_needs(DEFAULT_NEEDS),
+                    load_requirements(DEFAULT_REQUIREMENTS),
+                    rows,
+                    _read_jsonl(DEFAULT_RECEIPTS) if mode == "stored" else [],
+                    origin=origin,
+                    source_status=source_status,
+                )
+                return self._send_json(projection)
             if parsed.path in ("/", "/intent-os"):
                 page = (ROOT / "intent-os.html").read_bytes()
                 self._headers(200, "text/html; charset=utf-8", len(page))
