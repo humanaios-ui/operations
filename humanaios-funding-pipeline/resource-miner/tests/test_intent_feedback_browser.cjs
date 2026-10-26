@@ -72,6 +72,25 @@ test('Ask Witness requires explicit consent, strips URL query and never sends no
  assert.ok(!JSON.stringify(body).includes('PRIVATE_QUERY'));
  assert.equal(options.method,'POST');
 });
+test('export removes raw evidence, session query and opaque dashboard identifiers',()=>{
+ const b=boot();
+ const record={id:'SYNTHETIC-R1',resource_title:'Compute credits',
+  source_url:'https://example.org/compute?session=SESSION_SECRET',
+  status:'SOURCE_WORKING',observed_at:'2026-10-25T21:00:00Z',
+  evidence:{note:'Job not found; secret PRIVATE_NOTE',
+    replacement_url:'https://console.example.org/platform/org_SYNTHETIC_ORG/prj_SYNTHETIC_PROJECT?token=HIDDEN',
+    screenshot:{mime:'application/pdf',sha256:'a'.repeat(64),size_bytes:11}}};
+ b.context.record=record;
+ const exported=vm.runInContext('publicReviewExport([record])',b.context);
+ assert.equal(exported.records.length,1);
+ const e=JSON.stringify(exported);
+ for(const secret of ['PRIVATE_NOTE','SESSION_SECRET','org_SYNTHETIC_ORG','prj_SYNTHETIC_PROJECT','HIDDEN'])
+  assert.ok(!e.includes(secret),secret);
+ assert.equal(exported.records[0].evidence.screenshot,null);
+ assert.ok(e.includes('SOURCE_STATUS_NOTE_CONFLICT_RECHECK_REQUIRED'));
+ // Original browser record remains unchanged for private operator correction.
+ assert.equal(record.evidence.note,'Job not found; secret PRIVATE_NOTE');
+});
 test('legacy locally saved preferences survive Ask Witness UI transition',()=>{
  const data=new Map([['humanaios.intent_os_teaching.v0.1',JSON.stringify([
   {source_url:'https://example.org/second',note:'Preferred',preference:'PRIORITIZE'}])]]);
