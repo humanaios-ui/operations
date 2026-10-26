@@ -127,6 +127,21 @@ class PrivateProfileBridgeTests(unittest.TestCase):
         self.assertIn("achievements[0]", app["projects"][0]["source"])
         self.assertEqual(app["status"], "DRAFT_REVIEW_REQUIRED")
 
+    def test_curated_project_evidence_requires_human_review(self):
+        master, _ = load_private_master(self.private)
+        master["project_evidence"] = [{
+            "title": "Extended clinical research project",
+            "mandate": "Build controlled laboratory workflows.",
+            "evidence_bullets": ["Authored SOPs and validation plans."],
+            "evidence_ref": "owner-supplied-local-docx:sha256-synthetic",
+            "review_status": "USER_SUPPLIED_NEEDS_HUMAN_REVIEW",
+        }]
+        draft = assemble_application(master, target="clinical research", max_projects=10)
+        self.assertFalse(any("Extended clinical" in p["heading"] for p in draft["projects"]))
+        master["project_evidence"][0]["review_status"] = "APPROVED"
+        approved = assemble_application(master, target="clinical research", max_projects=10)
+        self.assertTrue(any("Extended clinical" in p["heading"] for p in approved["projects"]))
+
     def test_owner_private_docx_does_not_overwrite(self):
         from docx import Document
         template = Path(self.temp.name) / "style.docx"
