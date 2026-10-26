@@ -58,7 +58,7 @@ Do not publish the DOCX to the public repository, create public PR attachments w
 
 The uploaded program/project management resume contains more project evidence than the August 14, 2026 master. Notably, the template includes 2004–2011 St. Joseph's/Barrow clinical-research work and expanded mandates/evidence per project. The bridge does **not** silently append these unreviewed claims to the master.
 
-A private, operator-review candidate should preserve each template section, evidence bullet, source document fingerprint, and status `USER_SUPPLIED_NEEDS_HUMAN_REVIEW`. After a local review, approved new fields enter the private master as `project_evidence` records with source and revision; the application builder can then promote them to its selection pool in a separate, tested change. This avoids creating a parallel authoritative profile.
+A private, operator-review candidate should preserve each template section, evidence bullet, source document fingerprint, and status `USER_SUPPLIED_NEEDS_HUMAN_REVIEW`. After a local review, approved new fields enter the private master as `project_evidence` records with source and revision; the application builder includes only records marked `review_status: APPROVED` and bearing `evidence_ref`; unapproved items remain outside production selection. This avoids creating a parallel authoritative profile.
 
 ## Gate conditions for production activation
 
