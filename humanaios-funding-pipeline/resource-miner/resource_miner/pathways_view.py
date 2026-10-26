@@ -10,6 +10,8 @@ from collections import Counter
 from datetime import datetime, timezone
 from typing import Any
 
+from .intent_os import _public_https
+
 MAX_CANDIDATES = 200
 
 
@@ -100,12 +102,14 @@ def project_pathways(
         discovered_at = _text(row.get("discovered_at"), 50)
         if discovered_at > max_observed_at:
             max_observed_at = discovered_at
-        # No links are returned: a route should never trust arbitrary source
-        # URLs as safe merely because they were copied from a JSONL row.
+        # Allow only checked external HTTPS source links, never local URLs.
         paths.append({
             "id": rid,
             "title": _text(row.get("title"), 170) or rid,
             "source": source,
+            "source_url": _public_https(
+                row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url")
+            ),
             "mine_id": explicit_mine or None,
             "mine_binding": "EXPLICIT" if explicit_mine else "UNBOUND_SOURCE",
             "need_ids": need_ids,
