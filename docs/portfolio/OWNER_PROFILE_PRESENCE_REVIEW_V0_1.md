@@ -92,6 +92,20 @@ The older `deliverables/p0-3-canonical-identity-map.md` includes links for ORCID
 
 ORCID's publicly readable record and GitHub public user endpoint are suitable for exact-handle readbacks. LinkedIn and other providers should use official OAuth/APIs where user permission and provider terms support it, otherwise manual owner-submitted evidence. No unsupported screen scraping is permitted.
 
+## Public observation example — October 26, 2026 (not an ownership audit)
+
+A bounded manual public search identified two concrete drift signals. Treat these as **external source observations**, not automatically admitted private identity facts:
+
+| Public source | Observation | Review consequence |
+| --- | --- | --- |
+| `https://github.com/humanaios-ui` | Public profile describes AI behavioral observability and links to ORCID, LinkedIn, Substack, X and an external personal-listing URL | Known link topology; any external listing is a **candidate**, not authenticated account ownership |
+| `https://www.linkedin.com/in/humanaios` | Public indexed biography contains earlier enterprise physical-execution positioning and a historical MRR target | **STALE_CONTENT_REVIEW** against canonical `SEED.md`; do not automatically rewrite LinkedIn |
+| `https://apartresearch.com/sprints/projects/talk-actions-and-planted-approval-pacts-an-exploratory-audit-d106` | Public sprint project page identifies Carly R Anderson / Team HumanAIOS and labels a participant sprint project, **not** an Apart Research publication | Candidate *research artifact* for the owner to add to the private portfolio only after review; not an account-ownership proof |
+
+**ORCID status:** the URL is listed on the public GitHub bio, but no authenticated ORCID-owner readback was performed in this manual observation. A public API 200 would mean that a public record exists, not that this operator controls it.
+
+**Unverified:** no additional lost or forgotten account is confirmed from these observations. Existing public links are merely candidates for a private account-ownership review.
+
 ## Hypothesis and minimum measurable validation
 
 **H1:** Owner-approved public-profile readbacks plus bounded Resource Miner candidates surface missing reference links without increasing falsely claimed personal account ownership.
