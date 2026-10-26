@@ -3,6 +3,9 @@
 
 This is an observational sidecar, not a graph compiler, admission gate, or
 execution router. No graph, repository file, or credential is modified.
+
+Builder v1.7 compliant - diagnostic_tool
+HumanAIOS
 """
 from __future__ import annotations
 
@@ -17,7 +20,12 @@ import sys
 import time
 import tracemalloc
 
-VERSION = "0.1.0"
+TOOL_NAME = "graph_resource_observer"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "diagnostic_tool"
+TOOL_ZONE = 1
+
+VERSION = TOOL_VERSION
 MAX_BYTES = 16 * 1024 * 1024
 MAX_TRIALS = 15
 SYSTEMS = (
@@ -182,15 +190,30 @@ def observe(repo: Path, filename: str, system: str, *, trials: int = 3,
     }
 
 
+def run_smoke_test() -> bool:
+    """In-memory integrity check: count and node scan without filesystem writes."""
+    fixture = {"nodes": {"A": {"id": "A"}},
+               "edges": [{"source": "A", "target": "A"}]}
+    passed = len(_nodes(fixture)) == 1 and _incident(_edges(fixture), "A") == 1
+    print(json.dumps({"smoke_test": "PASS" if passed else "FAIL",
+                      "authority_effect": "NONE"}))
+    return passed
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", default=".", help="read-only root of the existing repository")
-    parser.add_argument("--graph", required=True, help="relative existing JSON graph path")
-    parser.add_argument("--system", required=True, choices=SYSTEMS)
+    parser.add_argument("--graph", help="relative existing JSON graph path")
+    parser.add_argument("--system", choices=SYSTEMS)
+    parser.add_argument("--smoke-test", action="store_true", help="run in-memory self-check")
     parser.add_argument("--trials", type=int, default=3)
     parser.add_argument("--node-id", help="optional measured incident-edge scan")
     parser.add_argument("--context-id", default="UNSPECIFIED", help="optional pseudonymous host/context tag")
     args = parser.parse_args(argv)
+    if args.smoke_test:
+        return 0 if run_smoke_test() else 2
+    if not args.graph or not args.system:
+        parser.error("--graph and --system are required unless --smoke-test is used")
     try:
         result = observe(Path(args.repo), args.graph, args.system,
                          trials=args.trials, node_id=args.node_id,
