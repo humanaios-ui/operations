@@ -198,6 +198,9 @@ def render_docx(application: dict[str, Any], template: Path, output: Path,
     if not output.parent.is_dir():
         raise ValueError("output parent must exist")
     doc = Document(str(template))
+    present = {p.text.strip().upper() for p in doc.paragraphs}
+    if not set(ORDER).issubset(present):
+        raise ValueError("DOCX is not the seven-section project/program template")
     body = doc.element.body
     for child in list(body):
         if child.tag != qn("w:sectPr"):
