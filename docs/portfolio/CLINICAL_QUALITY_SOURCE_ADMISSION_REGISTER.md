@@ -34,6 +34,27 @@
 | Universal 24–48-hour governmental reporting requirement | Historical draft | **UNVERIFIED** | Replace with event-specific rule |
 | Four-hour rule applied to all HPLC and MALDI specimens in 2004 | Historical draft | **CONTRADICTED AS UNIVERSAL** | Keep test-specific handling and time |
 
+
+## New: PMC Hospital Transformation Program historical source batch (2026-10-26)
+
+Added `healthcare-operations/recap/pmc-htp-quality-achievements.md`
+(record `HAIOS-PORTFOLIO-PMC-HTP-20261026`).
+
+| Claim | Current state | Evidence/action |
+| --- | --- | --- |
+| PMC leader worked on HTP implementation, CHNE, quality reporting in 2021–2024 | SUPPORTED_BY_USER_ACCOUNT; state HTP program rules independently observed | Review private role documents before making individual achievement claims |
+| PMC received 2023 Chartis recognition in Patient Perspective | **OBSERVED (INSTITUTIONAL)** | Chartis 2023 Patient Perspective roster |
+| PMC received a **2023 Chartis Quality** award | **CONTRADICTED** as stated | Official 2023 Chartis Quality roster does not include PMC |
+| Owner personally caused the institutional Chartis award | UNVERIFIED | Clinical measurement baselines and accountable contemporaneous documentation needed |
+| “Perfect regulatory standing” / no survey findings | UNVERIFIED | Survey records needed |
+| Specific state payment gains due to HTP | UNVERIFIED | Actual HTP payment and implementation receipts needed |
+| PMC–Valley View–Vail Health formal regional reporting alliance and staffing model | UNVERIFIED | Dated rosters/agreements, no assumed institutional relationships |
+| 2026 PMC Rural Health Transformation Program (RHTP) award relates to 2021–2024 work | **CONTRADICTED temporal/program attribution** | RHTP is separate from HTP; do not attribute retroactively |
+
+**Master admission recommendation:** Candidate HTP planning, program quality oversight, community engagement and reporting experience may be added to the private master only after owner review. Institutional 2023 Patient Perspective recognition may be cited with its precise category and institution-only attribution. No personal award credit, financial impact estimate, or specific patient outcome without direct evidence.
+
+**Cross-project routing:** An approved career fact can inform Resource Miner relevance as a non-sensitive capability code; it must not certify grant eligibility, create employer authority, or publish private notes. Existing owner-controlled portfolio node remains read-only.
+
 ## Intake and disposition contract
 
 The private master is **canonical for the individual's reviewed career evidence**. These public docs are merely attributed research candidates.
