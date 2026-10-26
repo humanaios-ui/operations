@@ -195,7 +195,8 @@ def project_source_reviews(payload: dict) -> dict:
                             else "HUMAN_REVIEW_ONLY"),
             "observed_at_user_claim": stamp,
             "next_action": STATES[state],
-            "replacement_url_user_claim": redacted_public_url(replacement),
+            "replacement_url_user_claim": (redacted_public_url(replacement)
+                if redacted_public_url(replacement) != redacted_public_url(source_url) else None),
             "attachment_digest_present": shot is not None,
             "attachment_contents_saved": False,
             "screenshot_digest_present": shot is not None,
