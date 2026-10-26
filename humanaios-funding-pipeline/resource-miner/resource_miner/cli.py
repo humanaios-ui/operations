@@ -78,6 +78,16 @@ def build_parser() -> argparse.ArgumentParser:
     profile.add_argument("--consumer-snapshot", required=True)
     profile.add_argument("--prior-revisions")
 
+    local_profile = sub.add_parser(
+        "connect-private-profile",
+        help="On-demand owner-approved read from three local git checkouts",
+    )
+    local_profile.add_argument("--private-checkout", required=True)
+    local_profile.add_argument("--operations-checkout", required=True)
+    local_profile.add_argument("--consumer-checkout", required=True)
+    local_profile.add_argument("--owner-approved", action="store_true")
+    local_profile.add_argument("--prior-revisions")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -103,6 +113,24 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "connect-private-profile":
+        from .private_profile_bridge import read_local_portfolio
+        if not args.owner_approved:
+            raise SystemExit("owner approval required: supply --owner-approved")
+        prior = (
+            json.loads(Path(args.prior_revisions).read_text(encoding="utf-8"))
+            if args.prior_revisions else None
+        )
+        report = read_local_portfolio(
+            args.private_checkout,
+            args.operations_checkout,
+            args.consumer_checkout,
+            owner_approved=True,
+            prior=prior,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
 
     if args.command == "portfolio-check":
         from .portfolio_maintainer import observe_portfolio
