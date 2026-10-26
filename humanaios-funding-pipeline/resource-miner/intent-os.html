@@ -212,14 +212,14 @@ function validateReviewPacket(packet){
 function reviewRiskCodes(status,note){
  const flags=[];
  if(status==="SOURCE_WORKING"&&(
-   /\\b(?:job|role|listing|position)\\b.{0,72}\\b(?:not found|not listed|unavailable|removed)\\b/i.test(note)||
-   /\\bnot (?:on|listed on) (?:the )?(?:official )?(?:website|job board)\\b/i.test(note)||
+   /\b(?:job|role|listing|position)\b.{0,72}\b(?:not found|not listed|unavailable|removed)\b/i.test(note)||
+   /\bnot (?:on|listed on) (?:the )?(?:official )?(?:website|job board)\b/i.test(note)||
    note.includes("STATUS_NOTE_CONFLICT_RECHECK_REQUIRED")))
    flags.push("SOURCE_STATUS_NOTE_CONFLICT_RECHECK_REQUIRED");
- if(/\\b(?:restrict(?:s|ed|ions)?|reject(?:s|ed)?|prohibit(?:s|ed)?|no longer accepts)\\b.{0,85}\\b(?:ai|automated|written|application)\\b/i.test(note)||
-    /\\b(?:ai-written|ai generated|ai-generated)\\b.{0,85}\\b(?:reject|restrict|prohibit)/i.test(note))
+ if(/\b(?:restrict(?:s|ed|ions)?|reject(?:s|ed)?|prohibit(?:s|ed)?|no longer accepts)\b.{0,85}\b(?:ai|automated|written|application)\b/i.test(note)||
+    /\b(?:ai-written|ai generated|ai-generated)\b.{0,85}\b(?:reject|restrict|prohibit)/i.test(note))
    flags.push("SUBMISSION_OR_AI_POLICY_RESTRICTION_UNVERIFIED");
- if(/\\b(?:could not|unable to|failed to)\\b.{0,55}\\b(?:set up|connect|configure|integrat)/i.test(note))
+ if(/\b(?:could not|unable to|failed to)\b.{0,55}\b(?:set up|connect|configure|integrat)/i.test(note))
    flags.push("RESOURCE_SETUP_DIFFICULTY_USER_REPORTED");
  return flags;
 }
@@ -228,7 +228,7 @@ function redactedReviewUrl(raw){
  const url=new URL(publicUrl(raw));url.search="";url.hash="";
  const parts=url.pathname.split("/"),safe=[];
  for(const segment of parts){
-  if(segment&&(/^(?:org_|prj_|project_|session_|user_|token_|cm[a-z0-9]{15,}|[A-Za-z0-9_-]{38,}|eyJ[A-Za-z0-9_.-]+)$/i.test(segment)||segment.length>70))break;
+  if(segment&&(/^(?:org_[A-Za-z0-9_-]*|prj_[A-Za-z0-9_-]*|project_[A-Za-z0-9_-]*|session_[A-Za-z0-9_-]*|user_[A-Za-z0-9_-]*|token_[A-Za-z0-9_-]*|cm[a-z0-9]{15,}|[A-Za-z0-9_-]{38,}|eyJ[A-Za-z0-9_.-]+)$/i.test(segment)||segment.length>70))break;
   safe.push(segment);
  }
  url.pathname=safe.join("/")||"/";
