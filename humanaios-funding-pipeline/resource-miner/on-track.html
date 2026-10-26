@@ -124,7 +124,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </select>
 <div class="witness-buttons">
 <button type="button" id="witnessDecision" disabled>Record my local decision</button>
-<button type="button" id="exportWitness">Export Witness review packet</button>
+<button type="button" id="exportWitness">Export redacted Witness review</button>
 </div>
 <p class="muted" id="witnessNotice" role="status">The Witness recommends; only you choose a local dismissal. A 404 is not proof of employer closure. Corrections retain the source report.</p>
 </div>
@@ -366,13 +366,26 @@ find("witnessDecision").addEventListener("click",()=>{
 find("exportWitness").addEventListener("click",()=>{
  if(!witnessReview){witnessText("witnessNotice","Call the Witness first to export its review.");return;}
  const decision=readLocalDispositions()[witnessReview.source_url]||null;
+ // Deliberately do not export source_url, raw title, free-text falsifier,
+ // private evidence or account-identifying URL paths from a personal packet.
+ // report_id permits offline alignment with a *separately redacted* review.
+ const safeReview={
+  report_id:witnessReview.report_id,p1:witnessReview.p1,
+  p2_status:witnessReview.p2_status,p2_provenance:witnessReview.p2_provenance,
+  conflict:witnessReview.conflict===true,
+  falsifier_supplied:!!witnessReview.falsifier,authority_effect:"NONE"
+ };
+ const safeDecision=decision?{
+  state:decision.state,observed_status:decision.observed_status,
+  decided_at:decision.decided_at,authority_effect:"NONE"
+ }:null;
  const payload={schema:"humanaios.witness_source_feedback.v0.1",
-  review:witnessReview,p3_decision:decision,
-  note:"UNSIGNED_LOCAL_REVIEW_NOT_PROVIDER_VERIFICATION"};
+  review:safeReview,p3_decision:safeDecision,
+  note:"UNSIGNED_REDACTED_LOCAL_REVIEW_NOT_PROVIDER_VERIFICATION"};
  const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
  const a=document.createElement("a");a.href=url;a.download="intent-os-witness-feedback.json";
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
- witnessText("witnessNotice","Exported unsigned local Witness feedback; no source changed.");
+ witnessText("witnessNotice","Exported REDACTED local Witness review (no private notes, source URLs or falsifier text); no source changed.");
 });
 const atsShow=document.getElementById("ats-show"),atsResult=document.getElementById("ats-result");
 atsShow.addEventListener("click",async()=>{
