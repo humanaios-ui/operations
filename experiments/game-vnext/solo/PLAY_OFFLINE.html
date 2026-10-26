@@ -1,0 +1,189 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="Independent fictional, turn-based science fantasy campaign prototype."><title>THE LAST THREAD | Playable Prototype</title><style>:root{color-scheme:dark;--bg:#070d12;--panel:#101a22;--border:#38454a;--text:#e8e1d5;--gold:#edbe78;--blue:#98c8d1;--soft:#acb7b7;--red:#e78f88}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 70% 0%,#1b2936,transparent 50%),var(--bg);color:var(--text);font:16px/1.55 system-ui,'Segoe UI',sans-serif}button,select,input{font:inherit}button{cursor:pointer;color:var(--text);border:1px solid #57676b;background:#1a2832;border-radius:6px;padding:10px 14px;min-height:44px}button:hover,button:focus-visible{outline:2px solid var(--gold);background:#293742}button:disabled{cursor:not-allowed;opacity:.4}header{border-bottom:1px solid #536067;background:#080f18eb;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px max(18px,calc((100vw - 1250px)/2));min-height:82px}.mast{display:block;letter-spacing:.2em;font:700 1.27rem Georgia,serif;color:var(--gold)}header small{display:block;color:var(--blue);letter-spacing:.12em;font-size:.61rem;margin-top:3px}.topright{font-size:.68rem;letter-spacing:.09em;color:#9fb2bc}.badge{display:inline-block;border:1px solid #63816e;color:#a4dab7;padding:5px 7px;border-radius:3px;margin-left:10px}main{max-width:1250px;margin:auto;padding:20px 18px 55px}.lead{padding:30px 0 32px;border-bottom:1px solid #2d4651;margin-bottom:25px}.eyebrow{color:var(--gold);font-size:.75rem;font-weight:700;letter-spacing:.16em}h1{font:400 clamp(2.15rem,5vw,4.6rem)/1.06 Georgia,serif;letter-spacing:-.02em;margin:13px 0}h1 em{color:var(--gold);font-weight:400}.lead p:not(.eyebrow){max-width:770px;color:#bfc8ca}.card{background:linear-gradient(145deg,#111d27,#101a21);border:1px solid #344c57;border-radius:13px;padding:22px;box-shadow:0 16px 36px #0003}.card h2{font:400 1.6rem Georgia,serif;color:var(--gold);margin:0 0 9px}.card h3{font-size:.86rem;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}.start{max-width:600px;margin:auto}.start label{display:block;margin:15px 0 6px;color:var(--blue);font-size:.88rem}.start input,.start select{display:block;background:#162631;border:1px solid #56707b;color:white;padding:12px;border-radius:5px;width:100%}.mainbutton{background:#c6984c;color:#091014;font-weight:800;border:0;margin-top:23px}.hud{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;margin:20px 0;padding:15px 22px}.hud>div{border-right:1px solid #34424a}.hud>div:last-child{border:0}.hud span{display:block;color:var(--blue);font-size:.7rem;font-weight:700;letter-spacing:.1em}.hud strong{display:block;font-size:2rem;font-weight:550;color:var(--gold)}.hud small{display:block;font-size:.72rem;color:var(--soft)}.columns{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-bottom:18px}.columns.bottom{grid-template-columns:1fr 1fr}.capline{display:flex;align-items:center;justify-content:space-between;gap:15px}.capline span{font-size:.87rem;color:var(--blue)}.map{background:#080e14;border-radius:9px;overflow:hidden;border:1px solid #2a3944}svg{display:block;width:100%;height:auto}.chart-label{fill:#9aaab5;font:12px system-ui,sans-serif;letter-spacing:.09em}.node-label{fill:#e9d0a3;font:12px system-ui,sans-serif}.nodedot{stroke:#d7d3b6;stroke-width:2;fill:#425464}.nodedot.active{fill:#edbe78;stroke:#fff3cd}.node-group{cursor:pointer}.node-group:focus-visible .nodedot{stroke:#fff;stroke-width:5}.link{stroke:#6e828a;stroke-width:2;stroke-dasharray:5 6;opacity:.67}.link.available{stroke:var(--gold);stroke-width:3;opacity:1}.alert{background:#1c2530;border-left:3px solid var(--red);padding:10px 14px;min-height:46px;color:#e6cbc9}.key{display:flex;gap:13px;flex-wrap:wrap;color:var(--soft);font-size:.76rem}.panel{min-height:510px}.panel #placeDesc{color:#c7c9c7}.actions{display:grid;gap:9px}.actions button{text-align:left}.actions button small{display:block;font-size:.75rem;color:#a9bec8;margin-top:4px}.actions .ending{background:#453127;border-color:#deab68}.actions .mission{background:#1f3540;border-color:#618092}.small{font-size:.78rem;color:#9babb2}.meter label{display:block;color:#b0c3c7;margin-bottom:8px}progress{width:100%;height:13px;accent-color:#d97670}.list{display:grid;gap:6px}.list span{padding:5px 7px;background:#152730;border:1px solid #344c57;border-radius:4px;font-size:.78rem}.toggle{display:flex;gap:8px;align-items:center;color:var(--gold)}.wbuttons,.row{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.wbuttons button{padding:9px;font-size:.84rem}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#060d14;color:#c5d9dc;border:1px solid #364f5a;border-radius:5px;padding:14px;min-height:95px;font:13px/1.5 ui-monospace,monospace}.eventlog ol{max-height:310px;overflow:auto;padding-left:24px}.eventlog li{margin:7px 0;color:#c8d2d4;font-size:.86rem}.danger{border-color:#ae6969;color:#ffb4ac}footer{text-align:center;padding:30px;color:#a4afb2;border-top:1px solid #243640;font-size:.75rem;letter-spacing:.1em}@media(max-width:850px){.columns,.columns.bottom{grid-template-columns:1fr}.hud{grid-template-columns:repeat(3,1fr)}.hud>div{border:0}.card{padding:17px}}@media(max-width:550px){header{display:block}.topright{margin-top:10px}.hud{grid-template-columns:repeat(2,1fr)}.lead{padding:13px 0}.map{margin:0 -10px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><div><span class="mast">THE LAST THREAD</span><small>VESSEL CHRONICLES · FIRST CAMPAIGN · PROTOTYPE</small></div><div class="topright">SINGLE PLAYER / LOCAL SAVE <span class="badge">NO NETWORK</span></div></header>
+<main><section class="lead"><p class="eyebrow">THE VEIL MOVES · THE LAND REMEMBERS</p><h1>Thirty moves.<br><em>Three possible futures.</em></h1><p>Explore a fractured planet and decide whether to bind the world, awaken it, or cut its last thread. Every major choice advances time. No ending is chosen for you.</p></section>
+<div id="start" class="card start"><h2>Enter as Generation Zero</h2><p>Choose a name and a form. Your local history begins when you enter. This is fictional play, not a personality test. No sign-in or online tracking.</p><label for="player">Character name</label><input id="player" maxlength="40" placeholder="Traveler"><label for="form">Starting form</label><select id="form"><option>Seeker</option><option>Warden</option><option>Builder</option><option>Memory-Bearer</option></select><button id="newGame" class="mainbutton">BEGIN CAMPAIGN →</button></div>
+<div id="game" hidden>
+<div class="hud card"><div><span>TIME LEFT</span><strong id="clock">30</strong><small>Major actions remaining</small></div><div><span>SUPPLIES</span><strong id="supplies">7</strong><small>Move, prepare, survive</small></div><div><span>INSIGHT</span><strong id="insight">0</strong><small>Unlock chosen upgrades</small></div><div><span>RESONANCE</span><strong id="resonance">0</strong><small>Fragment exposure</small></div><div><span>FRAGMENTS</span><strong id="fragments">0</strong><small>Renounce for Severance</small></div></div>
+<div class="columns"><section class="card landscape"><div class="capline"><h2>World Map</h2><span id="locname">—</span></div><div class="map"><svg id="chart" viewBox="0 0 1000 620" role="img" aria-label="Topological map showing travel connections and a distant orbital haven"><defs><radialGradient id="glow"><stop stop-color="#f3b35d" stop-opacity="0.2"/><stop offset="1" stop-color="#f3b35d" stop-opacity="0"/></radialGradient><filter id="shade"><feGaussianBlur stdDeviation="18"/></filter></defs><circle cx="300" cy="355" r="280" fill="url(#glow)"/><g id="lines"></g><g id="nodes"></g><circle id="veilline" cx="300" cy="355" r="0" stroke="#e06a69" stroke-width="3" fill="#ad393a15" stroke-dasharray="12 12" pointer-events="none"/><text x="16" y="34" class="chart-label">TOPOLOGICAL ROUTES / NOT AU SCALE</text><text x="640" y="586" class="chart-label">OUTER HAVEN / +2.64 AU FICTIONAL TRANSIT</text></svg></div><p id="worldAlert" class="alert" role="status"></p><div class="key"><span>● Current place</span><span>◇ Other places</span><span>◌ Cinder Veil (diagram)</span></div></section>
+<section class="card panel"><p class="eyebrow">CHOOSE ONE ACTION</p><h2 id="placeTitle">—</h2><p id="placeDesc"></p><h3>Available actions</h3><div id="actions" class="actions"></div><p class="small">A move or mission costs one tick. Invalid choices cost nothing. Rest at a hub to restore supplies. Characters and places have original in-game names.</p></section></div>
+<div class="columns bottom"><section class="card"><h2>World State</h2><p id="stateDesc"></p><div class="meter"><label for="progress">Black Dawn / projected expansion</label><progress id="progress" max="30" value="0"></progress></div><p class="small">Shield first contact: tick 27. Center crossing: tick 30. Distinct events. The front is drawn schematically above.</p><h3>Mission ledger</h3><div id="missions" class="list"></div></section>
+<section class="card"><h2>Witness Archive</h2><p>The Witness reads recorded history only. It cannot take a turn, advise, vote, or speak as the Murmur.</p><label class="toggle"><input type="checkbox" id="witnessOn"> Enable local historical recall</label><div class="wbuttons"><button id="origin">My beginning</button><button id="journey">My journey</button><button id="unknown">What comes next?</button></div><pre id="answer" aria-live="polite">Witness recall is off.</pre></section></div>
+<section class="card eventlog"><h2>Record of Your Journey</h2><div class="row"><button id="export">Export local history</button><button id="reset" class="danger">Reset prototype</button></div><ol id="events"></ol><p class="small">Browser localStorage is demonstration storage, not secure or permanent memory. This app makes no API, analytics, or AI calls. Story choices never change real-world identity or laws.</p></section>
+</div></main><footer>AN INDEPENDENT FICTIONAL WORLD · WORKING TITLE / TRADEMARK REVIEW PENDING · PROTOTYPE</footer><script>/* Independent, deterministic prototype. No credentials, remote services or AI tools. */
+const RULES = Object.freeze({maxTick:30,frontSpeed:0.09,shieldContactTick:27,centerTick:30,
+  breachTick:20,tetherCollapseTick:25,latticeFailureTick:12,
+  orbitalCenter:[1,0],nullCenter:[2.78,1.95],nullRadius:0.28});
+const NODES = Object.freeze({
+  HAVEN:{name:'Cinder Quay',frame:'surface',x:20,y:70,links:['SANCTUARY','SHAFT','RELAY'],desc:'First-generation settlement beneath the old extraction towers.'},
+  SANCTUARY:{name:'Rootvault',frame:'surface',x:33,y:44,links:['HAVEN','ROOT'],desc:'Surface refuge and a place of bargains. First hub.'},
+  SHAFT:{name:'Ashshaft',frame:'depth',x:41,y:80,links:['HAVEN','ROOT','FURNACE'],desc:'A fault full of tools, witnesses and dangerous fragments.'},
+  ROOT:{name:'Living Seam',frame:'depth',x:52,y:55,links:['SHAFT','SANCTUARY','RN2'],desc:'Lattice roots hold a wounded seal.'},
+  RN2:{name:'Whisper Node',frame:'depth',x:56,y:30,links:['ROOT'],desc:'Here the Murmur speaks. It is not your Witness.'},
+  FURNACE:{name:'Crucible',frame:'depth',x:66,y:83,links:['SHAFT'],desc:'The pressure breach. An irreversible choice becomes possible at tick 20.'},
+  RELAY:{name:'Evacuation Relay',frame:'surface',x:18,y:42,links:['HAVEN','TRANSIT'],desc:'The old orbital court fled. A launch corridor remains.'},
+  TRANSIT:{name:'Far Passage',frame:'transit',x:15,y:20,links:['RELAY','NULL_ORBIT'],desc:'Fictional accelerated voyage; one action per leg. Not a real space elevator.'},
+  NULL_ORBIT:{name:'Outer Haven',frame:'orbit',x:77,y:22,links:['TRANSIT','NULL_CAP'],desc:'An orbital refuge 2.64 AU from the homeworld. Second hub.'},
+  NULL_CAP:{name:'Stillground',frame:'habitat',x:85,y:49,links:['NULL_ORBIT'],desc:'The surface of the distant refuge habitat. A local tether connects to its orbital ring.'}
+});
+const ACTORS=Object.freeze({
+  A:'Nera Vale',B:'Ilyr Vale',C:'Saren Vale',D:'Vey Oss',E:'Oren Thale',F:'Archon Solven',G:'Tes Ro',H:'The Murmur'
+});
+const FORMS=['Seeker','Warden','Builder','Memory-Bearer'];
+const perRoute={
+  M040:{name:'Pressure Is Attention',place:'HAVEN',open:0,close:29,description:'Repair the intake while families flee. Gain two supplies.',cost:0,reward:2},
+  M044:{name:'Strike at the Shafts',place:'SHAFT',open:1,close:19,description:'Choose rescue, not blind destruction. Recover supplies.',cost:1,reward:2},
+  M047:{name:'The Engineer’s Archive',place:'SHAFT',open:1,close:19,description:'Record the buried pact. Earn insight.',cost:1,insight:2},
+  M043:{name:'The Temple’s Tithe',place:'RELAY',open:1,close:18,description:'Intercept evacuated orbital records; no impossible trip to the destroyed ring.',cost:1,insight:1},
+  M048:{name:'The Inquisitor’s Offer',place:'SANCTUARY',open:1,close:18,description:'An evacuated envoy offers control. Open the Control route.',cost:1,ally:'CONTROL'},
+  M045:{name:'The Voice in the Stone',place:'RN2',open:1,close:19,description:'Hear the Murmur, a fictional NPC with no access to your private archive.',cost:1,ally:'AWAKENING',resonance:1},
+  M041:{name:'The Dying Lattice',place:'ROOT',open:12,close:19,description:'Decide whether to rupture the surviving roots. Open Awakening’s Furnace option.',cost:1,requires:['M045'],flag:'SHATTER'},
+  M049:{name:'The Tether’s Price',place:'SANCTUARY',open:1,close:24,description:'Secure passage remotely with a refugee envoy BEFORE reaching Outer Haven.',cost:1,flag:'TETHER_SECURED',ally:'SEVERANCE'},
+  M046:{name:'The Null Petition',place:'NULL_ORBIT',open:1,close:26,description:'Win refuge before the advancing wave touches the shield.',cost:1,requires:['M049'],flag:'PETITION_GRANTED'},
+  M042:{name:'The Controlled Burn',place:'FURNACE',open:20,close:29,description:'Commit to an ending at the Crucible. Select an available outcome.',cost:1}
+};
+const MISSIONS=Object.freeze(perRoute);
+const MAX_LOG=200;
+function clean(s,max=40){return String(s||'').replace(/[\x00-\x1f\x7f<>]/g,'').trim().slice(0,max);}
+function log(s,type,description){
+ const next={id:`EV-${String(s.events.length+1).padStart(3,'0')}`,tick:s.tick,type,description};
+ s.events.push(next); if(s.events.length>MAX_LOG)throw new Error('log limit reached');return next;
+}
+function create(name='Traveler',form='Seeker'){
+ if(!FORMS.includes(form))throw new Error('unknown form');
+ const s={version:1,name:clean(name)||'Traveler',form,tick:0,location:'HAVEN',supplies:form==='Warden'?8:7,
+   insight:form==='Seeker'||form==='Memory-Bearer'?1:0,resonance:0,fragments:0,history:[],done:[],flags:[],allegiances:[],
+   upgrades:[],ending:null,events:[],witnessEnabled:false};
+ log(s,'GENESIS',`${s.name} chose ${form} and entered Cinder Quay.`);return s;
+}
+function radiusAt(tick){return Math.min(30,Math.max(0,tick))*RULES.frontSpeed;}
+function frontStatus(tick){return tick<27?'approaching':tick<30?'shield_contact':'center_crossing';}
+function validState(s){return s&&Number.isInteger(s.tick)&&s.tick>=0&&s.tick<=30&&NODES[s.location]&&Array.isArray(s.events)&&s.events.length<=MAX_LOG;}
+function choices(s){
+ if(!validState(s)||s.ending||s.tick>=30)return [];
+ const opts=[];const canPay=s.supplies>=1;
+ for(const id of NODES[s.location].links){
+  if(id==='NULL_CAP' && !s.flags.includes('TETHER_SECURED'))continue;
+  if(id==='RELAY'&&s.location==='TRANSIT'&&s.tick>=30)continue;
+  const travelCost=id==='TRANSIT'&&s.upgrades.includes('Sight Lattice')?0:1;
+  if(s.supplies<travelCost)continue;
+  opts.push({id:`MOVE:${id}`,label:`Travel → ${NODES[id].name}`,kind:'travel',detail:(id==='TRANSIT'&&s.upgrades.includes('Sight Lattice')?'Sight Lattice: 0 supplies, 1 tick.':'Costs 1 supply and 1 tick.')});
+ }
+ const atHub=['HAVEN','SANCTUARY','NULL_ORBIT'].includes(s.location);
+ if(atHub)opts.push({id:'REST',label:'Rest and replenish',kind:'resource',detail:'+3 supplies, 1 tick. No hidden penalty.'});
+ if(!atHub&&s.supplies===0)opts.push({id:'SCAVENGE',label:'Scavenge emergency supplies',kind:'resource',detail:'+2 supplies and +1 Resonance, 1 tick; may cause time-out.'});
+ if(s.location==='FURNACE'&&s.fragments>0)opts.push({id:'CONVERT:FRAGMENT',label:'Burn a Fragment for supplies',kind:'resource',detail:'Consume 1 Fragment, +3 supplies, +2 Resonance, 1 tick.'});
+ if(s.location==='SHAFT'&&s.tick<19)opts.push({id:'FRAGMENT',label:'Gather one forbidden fragment',kind:'resource',detail:'+1 Fragment, +2 Resonance, 1 tick. Can be relinquished later.'});
+ for(const [id,m] of Object.entries(MISSIONS)){
+  if(id==='M042'||s.done.includes(id)||m.place!==s.location||s.tick<m.open||s.tick>m.close||s.supplies<m.cost)continue;
+  if(m.requires&&!m.requires.every(x=>s.done.includes(x)))continue;
+  if(id==='M044'){for(const v of ['RESCUE','SABOTAGE'])opts.push({id:`MISSION:${id}:${v}`,label:`${m.name}: ${v==='RESCUE'?'Rescue workers':'Sabotage the drills'}`,kind:'mission',detail:v==='RESCUE'?'Save people, gain 2 supplies.':'Break machines, gain 3 supplies, raise Resonance.'});}
+  else if(id==='M041'){for(const v of ['SHATTER','REINFORCE'])opts.push({id:`MISSION:${id}:${v}`,label:`${m.name}: ${v==='SHATTER'?'Shatter the roots':'Reinforce the roots'}`,kind:'mission',detail:v==='SHATTER'?'Open an Awakening path; fracture containment.':'Keep the surviving lattice; Awakening route remains sealed.'});}
+  else opts.push({id:`MISSION:${id}`,label:m.name,kind:'mission',detail:m.description});
+ }
+ if(s.location==='FURNACE'&&s.tick>=20&&s.tick<30&&s.done.includes('M048')&&canPay)
+   opts.push({id:'BURN:CONTROL',label:'End: The Crowned Grid',kind:'ending',detail:'Control the Deepheart, halt the front; accept the costs to the world.'});
+ if(s.location==='FURNACE'&&s.tick>=20&&s.tick<30&&s.done.includes('M045')&&s.flags.includes('SHATTER')&&canPay)
+   opts.push({id:'BURN:AWAKENING',label:'End: The Open Earth',kind:'ending',detail:'Release the Deepheart; risk catastrophic spread.'});
+ if(s.location==='NULL_CAP'&&s.done.includes('M046')&&s.done.includes('M049')&&s.tick<30&&canPay)
+   opts.push({id:'SEVER',label:'End: Cut the Last Thread',kind:'ending',detail:'Renounce all Fragments and secure a fragile refuge.'});
+ if(s.location==='SANCTUARY'&&s.insight>=2&&!s.upgrades.includes('Sight Lattice'))
+   opts.push({id:'EVOLVE:Sight Lattice',label:'Evolve: Sight Lattice',kind:'evolution',detail:'Spend 2 insight; explicitly choose a fictional visual mutation.'});
+ return opts;
+}
+function timeAdvance(s){s.tick++; if(s.tick===12)log(s,'WORLD','Lattice cracked. Root nodes remain reachable for a short window.');
+ if(s.tick===20)log(s,'WORLD','Crucible burn becomes irreversible. The approaching front is now a full breach.');
+ if(s.tick===25&&!s.flags.includes('TETHER_SECURED'))log(s,'WORLD','Unsecured local tether failed.');
+ if(s.tick===27)log(s,'WORLD','Cinder Veil contacts Outer Haven shield. Its protection is limited but holds until tick 30.');
+ if(s.tick===30){log(s,'WORLD','Cinder Veil reaches the center of Outer Haven.');if(!s.ending)s.ending='TIMEOUT';}
+}
+function advance(s,choiceId){
+ const allowed=choices(s).find(c=>c.id===choiceId);if(!allowed)throw new Error('Choice unavailable. Tick and state unchanged.');
+ const n=structuredClone(s);const [cmd,key]=choiceId.split(':');
+ if(cmd==='MOVE'){
+   n.supplies-=key==='TRANSIT'&&n.upgrades.includes('Sight Lattice')?0:1;n.location=key;log(n,'TRAVEL',`Entered ${NODES[key].name}.`);
+ }else if(choiceId==='REST'){
+   n.supplies=Math.min(12,n.supplies+3);log(n,'REST','Recovered supplies at a hub.');
+ }else if(choiceId==='SCAVENGE'){
+   n.supplies=Math.min(12,n.supplies+2);n.resonance=Math.min(10,n.resonance+1);
+   log(n,'RECOVERY','Scavenged 2 supplies under risk of time and Resonance.');
+ }else if(choiceId==='CONVERT:FRAGMENT'){
+   n.fragments--;n.supplies=Math.min(12,n.supplies+3);n.resonance=Math.min(10,n.resonance+2);log(n,'RESOURCE','Consumed a fragment to recover supplies; resonance rose.');
+ }else if(choiceId==='FRAGMENT'){
+   n.fragments++;n.resonance=Math.min(10,n.resonance+2);log(n,'RESOURCE','Carried a fragment. Resonance increased.');
+ }else if(cmd==='MISSION'){
+   const m=MISSIONS[key];const variant=choiceId.split(':')[2]||null;n.supplies-=m.cost;n.done.push(key);if(m.reward)n.supplies=Math.min(12,n.supplies+m.reward);
+   if(key==='M044'&&variant==='SABOTAGE'){n.supplies=Math.min(12,n.supplies+1);n.resonance=Math.min(10,n.resonance+2);n.flags.push('SABOTAGED_SHAFT');}
+   if(key==='M044'&&variant==='RESCUE')n.flags.push('RESCUED_WORKERS');
+   if(m.insight)n.insight+=m.insight;if(m.resonance)n.resonance=Math.min(10,n.resonance+m.resonance);
+   if(m.flag && (key!=='M041'||variant==='SHATTER'))n.flags.push(m.flag);
+   if(key==='M041'&&variant==='REINFORCE')n.flags.push('ROOTS_REINFORCED');if(m.ally&&!n.allegiances.includes(m.ally))n.allegiances.push(m.ally);
+   log(n,'MISSION',`${m.name} ${variant||'completed'} (${key}).`);
+ }else if(cmd==='EVOLVE'){
+   n.insight-=2;n.upgrades.push(key);log(n,'EVOLUTION',`${n.name} explicitly chose ${key}.`);
+ }else if(cmd==='BURN'){
+   n.supplies--;n.done.push('M042');n.ending=key;log(n,'ENDING',key==='CONTROL'?'Crowned Grid: extraction reigns; front halts.':'Open Earth: containment shattered; survival uncertain.');
+ }else if(choiceId==='SEVER'){
+   n.supplies--;n.fragments=0;n.resonance=0;n.flags.push('FRAGMENTS_RENOUNCED');n.ending='SEVERANCE';
+   log(n,'ENDING','Last Thread Cut: sacrifice all fragments to sever the old tie. New settlement remains fragile.');
+ }else throw new Error('invalid command');
+ timeAdvance(n);return n;
+}
+// W1 reads supplied events, never mutates them; do not expose any action tools here.
+function witness(s,question){
+ if(!s.witnessEnabled)return 'Witness memory is off. Enable it to view your record.';
+ if(question==='beginning')return s.events.filter(e=>e.type==='GENESIS').map(e=>`[${e.id}] ${e.description}`).join('\n')||'Not recorded.';
+ if(question==='journey')return s.events.filter(e=>['TRAVEL','MISSION','EVOLUTION','ENDING'].includes(e.type)).slice(-9).map(e=>`[${e.id} | tick ${e.tick}] ${e.description}`).join('\n')||'No journey events recorded.';
+ if(question==='unknown')return 'Not recorded. The absence of an event is not proof of intentional erasure. I cannot forecast, direct choices, or act.';
+ return 'I only recall recorded campaign history. No advice or future events.';
+}
+function setWitness(s,enabled){const n=structuredClone(s);n.witnessEnabled=enabled===true;return n;}
+function validateImport(s){if(!validState(s)||!FORMS.includes(s.form)||!Array.isArray(s.done)||!Array.isArray(s.flags)||!Array.isArray(s.upgrades)||!Array.isArray(s.allegiances)||!Number.isFinite(s.supplies)||s.supplies<0||s.supplies>12||s.events.some((e,i)=>e.id!==`EV-${String(i+1).padStart(3,'0')}`))throw Error('Unsupported or altered local demo save');return structuredClone(s);}
+const ENDING_TEXT={CONTROL:'THE CROWNED GRID — The front stops. Extraction endures. Order survives, but the future is unjust.',AWAKENING:'THE OPEN EARTH — The sealed presence awakes. Constraint ends; the cost to life is unresolved.',SEVERANCE:'THE LAST THREAD — The refuge survives, no longer fed by fragments. Freedom remains fragile.',TIMEOUT:'THE VEIL — The wave reaches Outer Haven. The remaining world must live with the consequences.'};
+
+
+const KEY='lastthread.prototype.v1';let state=null;
+const $=id=>document.getElementById(id);const SVG='http://www.w3.org/2000/svg';
+function svg(tag,attrs={},text){const n=document.createElementNS(SVG,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));if(text)n.textContent=text;return n;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{ /* temporary play still possible */}}
+try{const old=localStorage.getItem(KEY);if(old)state=validateImport(JSON.parse(old));}catch{state=null;}
+function show(){ $('start').hidden=!!state;$('game').hidden=!state;if(!state)return;
+ $('clock').textContent=30-state.tick;$('supplies').textContent=state.supplies;$('insight').textContent=state.insight;
+ $('resonance').textContent=state.resonance;$('fragments').textContent=state.fragments;
+ $('locname').textContent=NODES[state.location].name;$('placeTitle').textContent=NODES[state.location].name;
+ $('placeDesc').textContent=NODES[state.location].desc;
+ $('witnessOn').checked=state.witnessEnabled;
+ $('worldAlert').textContent=state.tick>=30?'Tick 30: the Veil crossed the Outer Haven center.':state.tick>=27?'Shield first contact. The refuge still has a narrow window.':state.tick>=25&&!state.flags.includes('TETHER_SECURED')?'Unsecured tether collapsed at tick 25.':state.tick>=20?'Crucible breach is irreversible. Choose carefully.':state.tick>=12?'The root lattice has failed; remaining nodes can still be reached.':'A precursor wave expands. Every major action costs one tick.';
+ $('progress').value=state.tick;
+ $('stateDesc').textContent=state.ending?ENDING_TEXT[state.ending]:`${state.name} · ${state.form} · ${NODES[state.location].name}. The Cinder Veil extends ${radiusAt(state.tick).toFixed(2)} AU (planet-centered display approximation). Shield: ${frontStatus(state.tick)}.`;
+ const actions=$('actions');actions.replaceChildren();const c=choices(state);
+ if(!c.length){const msg=document.createElement('p');msg.textContent='Campaign concluded. Read the ledger or start again.';actions.append(msg);}
+ for(const a of c){const b=document.createElement('button');b.type='button';b.className=a.kind;b.textContent=a.label;
+  const d=document.createElement('small');d.textContent=a.detail;b.append(d);b.onclick=()=>{try{state=advance(state,a.id);save();show();}catch(error){$('worldAlert').textContent=error.message;}};actions.append(b);}
+ const missions=$('missions');missions.replaceChildren();for(const [id,m] of Object.entries(MISSIONS)){
+  const el=document.createElement('span');el.textContent=`${state.done.includes(id)?'✓':'◇'} ${m.name} (${id}) · ${m.open}–${m.close}`;missions.append(el);}
+ const ol=$('events');ol.replaceChildren();for(const e of state.events.slice(-40).reverse()){
+  const li=document.createElement('li');li.textContent=`[${e.id} · ${e.tick}] ${e.type}: ${e.description}`;ol.append(li);}
+ draw();
+}
+function draw(){const links=$('lines');const nodes=$('nodes');links.replaceChildren();nodes.replaceChildren();const positions={};
+ for(const [id,n] of Object.entries(NODES))positions[id]=[n.x*10,n.y*6.2];
+ const available=new Set(choices(state).filter(x=>x.kind==='travel').map(x=>x.id.split(':')[1]));
+ for(const [id,n] of Object.entries(NODES))for(const to of n.links)if(id<to){const [x1,y1]=positions[id],[x2,y2]=positions[to];
+  links.append(svg('line',{x1,y1,x2,y2,class:`link ${(id===state.location&&available.has(to))||(to===state.location&&available.has(id))?'available':''}`}));}
+ for(const [id,n] of Object.entries(NODES)){
+  const [x,y]=positions[id];const group=svg('g',{class:'node-group',tabindex:'0',role:'group','aria-label':n.name});
+  group.append(svg('circle',{cx:x,cy:y,r:id===state.location?13:9,class:'nodedot'+(id===state.location?' active':'')}));
+  if(available.has(id)){group.setAttribute('role','button');group.setAttribute('aria-label','Travel to '+n.name);const act=()=>{try{state=advance(state,'MOVE:'+id);save();show();}catch(e){$('worldAlert').textContent=e.message;}};group.addEventListener('click',act);group.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();act();}});}
+  const label=svg('text',{x:x+14,y:y-12,class:'node-label'},n.name);group.append(label);nodes.append(group);
+ }
+ // The map is expressly topological. This radius is visual pressure, NOT AU geometry.
+ $('veilline').setAttribute('r',String(15+Math.min(30,state.tick)*9));
+}
+$('newGame').addEventListener('click',()=>{state=create($('player').value,$('form').value);save();show();});
+$('witnessOn').addEventListener('change',e=>{state=setWitness(state,e.target.checked);save();$('answer').textContent=state.witnessEnabled?'Historical recall enabled.':'Historical recall is off.';show();});
+for(const id of ['origin','journey','unknown'])$(id).addEventListener('click',()=>{$('answer').textContent=witness(state,id==='origin'?'beginning':id);});
+$('export').addEventListener('click',()=>{const file=new Blob([JSON.stringify({prototype:true,...state},null,2)],{type:'application/json'});const u=URL.createObjectURL(file);const a=document.createElement('a');a.href=u;a.download='the-last-thread-local-history.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),500);});
+$('reset').addEventListener('click',()=>{if(!confirm('Clear this browser prototype save? This does not change your separate game account.'))return;try{localStorage.removeItem(KEY);}catch{return alert('Browser blocked save deletion. Cannot confirm reset.');}state=null;$('answer').textContent='Witness recall is off.';show();});
+show();
+</script></body></html>
