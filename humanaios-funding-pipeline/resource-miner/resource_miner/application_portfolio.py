@@ -64,7 +64,9 @@ def assemble_application(master: dict[str, Any], *,
         raise ValueError("missing source-backed history")
     contact = master["contact"]
     summary = master.get("summary") or {}
-    professional = _safe_text(summary.get("professional_brief", ""), 1500)
+    professional = _safe_text(
+        summary.get("project_program_profile") or summary.get("professional_brief", ""), 1500
+    )
     competencies = master.get("competencies") or {}
     capabilities = []
     for domain in ("operations", "data_quality", "ai_research"):
