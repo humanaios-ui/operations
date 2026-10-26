@@ -31,7 +31,7 @@ PROVIDER_DOMAIN = {
 
 def canonical_profile_url(provider: str, url: str) -> str:
     """Only known public profile paths. Reject queries, redirects and arbitrary hosts."""
-    if provider not in KNOWN_PROVIDERS or not isinstance(url, str) or len(url) > 300:
+    if not isinstance(provider, str) or provider not in KNOWN_PROVIDERS or not isinstance(url, str) or len(url) > 300:
         raise ValueError("unapproved public-profile provider or URL")
     parsed = urlsplit(url)
     if parsed.scheme != "https" or parsed.username or parsed.password or parsed.port:
