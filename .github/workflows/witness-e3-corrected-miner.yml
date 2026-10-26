@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: humanaios-ui/operations
-          ref: dae487f8a8259925947478a674423710d20ac0a1
+          ref: ad64d638d4724a233f42b0cd58710b95238cda05
           path: e3-miner
           persist-credentials: false
           sparse-checkout: |
