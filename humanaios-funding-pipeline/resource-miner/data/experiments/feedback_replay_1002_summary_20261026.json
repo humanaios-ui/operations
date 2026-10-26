@@ -2,8 +2,8 @@
   "schema": "humanaios.resource_feedback_replay_summary.v0.1",
   "experiment_id": "E1-1002-FIRST-SOURCE-REPLAY-20261026",
   "observed_on": "2026-10-26",
-  "ci_run": "https://github.com/humanaios-ui/operations/actions/runs/40413816443",
-  "ci_job_id": 121890940498,
+  "ci_run": "https://github.com/humanaios-ui/operations/actions/runs/40414248960",
+  "ci_job_id": 121892418535,
   "ci_result": "SUCCESS",
   "test_suite": {
     "regression_count": 416,
@@ -23,7 +23,7 @@
     "deterministic_same_run": true,
     "unsupported_closure_claims": 0
   },
-  "full_receipt_sha256": "0f11f5478e06edaa5196cbfe8114aff0f67eb8e7410b0780aa0495f935c19516",
+  "full_receipt_sha256": "43b3b2494fec7b8c277ddaf9d9024e43adb09e7c120d7e4afb8b8db7b995c06a",
   "verification_limits": {
     "authenticated_independent_reviewer": "NOT_YET",
     "shared_human_approved_catalog_revision": "NOT_YET",
@@ -33,5 +33,7 @@
     "model_training": "NOT_PERFORMED"
   },
   "authority_effect": "NONE",
-  "execution": "DISABLED"
+  "execution": "DISABLED",
+  "as_of_date": "2026-10-26",
+  "replay_date_control": "PINNED_IN_ISOLATED_OFFLINE_RUN"
 }
