@@ -8,8 +8,6 @@ Nothing is persisted. Callers must keep outputs private.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timezone
 import json
 import re
 from typing import Any, Callable
@@ -82,7 +80,7 @@ def approved_seed_profiles(master: dict[str, Any], *, owner_approved: bool) -> l
         raise ValueError("master social record must be a map")
     out: list[dict[str, str]] = []
     for provider in sorted(KNOWN_PROVIDERS):
-        candidate = social.get(provider)
+        candidate = social.get(provider) or (social.get("twitter") if provider == "x" else None)
         if not candidate:
             continue
         try:
