@@ -100,6 +100,16 @@ def build_parser() -> argparse.ArgumentParser:
     app.add_argument("--owner-approved", action="store_true")
     app.add_argument("--operations-checkout")
 
+    presence = sub.add_parser(
+        "profile-presence",
+        help="Owner-approved, read-only public profile inventory and review",
+    )
+    presence.add_argument("--private-checkout", required=True)
+    presence.add_argument("--candidate-observations", help="Local Resource Miner public-result snapshot JSON")
+    presence.add_argument("--probe-public", action="store_true",
+                          help="Contact only fixed public GitHub/ORCID read APIs")
+    presence.add_argument("--owner-approved", action="store_true")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -125,6 +135,24 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "profile-presence":
+        from .private_profile_bridge import load_private_master
+        from .profile_presence import observe_owner_presence
+        if not args.owner_approved:
+            raise SystemExit("owner approval required: supply --owner-approved")
+        master, revision = load_private_master(args.private_checkout)
+        observations = (
+            json.loads(Path(args.candidate_observations).read_text(encoding="utf-8"))
+            if args.candidate_observations else []
+        )
+        report = observe_owner_presence(
+            master, owner_approved=True, observations=observations,
+            probe_public=args.probe_public,
+        )
+        report["private_source_revision"] = revision
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
 
     if args.command == "render-private-application":
         from .application_portfolio import build_application
