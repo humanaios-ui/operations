@@ -148,6 +148,7 @@ class PrivateProfileBridgeTests(unittest.TestCase):
         doc = Document()
         for name in ORDER:
             doc.add_paragraph(name)
+        doc.add_table(rows=2, cols=6)
         doc.save(template)
         receipt = build_application(self.private, template, self.output, target="quality",
                                     forbidden_checkouts=(self.ops,))
