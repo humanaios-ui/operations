@@ -131,6 +131,21 @@ def assemble_application(master: dict[str, Any], *,
         research.append({"text": text + (f" ({status})" if status else ""),
                          "source": f"publications[{i}]"})
 
+    for i, row in enumerate(master.get("project_evidence") or []):
+        if not isinstance(row, dict):
+            raise ValueError("bad project evidence")
+        if row.get("review_status") != "APPROVED":
+            continue
+        if not row.get("evidence_ref"):
+            raise ValueError("project evidence needs a source reference")
+        label = _safe_text(row.get("title"), 220)
+        mandate = _safe_text(row.get("mandate"), 500)
+        bullets = row.get("evidence_bullets") or []
+        if not isinstance(bullets, list) or not bullets or len(bullets) > 8:
+            raise ValueError("invalid project evidence bullets")
+        projects.append((label, [mandate] + [_safe_text(x, 450) for x in bullets],
+                         f"project_evidence[{i}]"))
+
     selected = _sort_records(projects, target)[:max_projects]
     return {
         "schema": "humanaios.application-portfolio.v0.1",
