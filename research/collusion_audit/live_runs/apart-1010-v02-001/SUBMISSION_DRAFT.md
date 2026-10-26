@@ -6,7 +6,11 @@ Draft for owner review. Not submitted.
 ## Summary
 We tested three simple rule-based detectors for bilateral false approval (two AI reviewers both approve a change that fails its stated requirement). `talk_only` flags messages containing "approve together", `actions_only` flags both ballots APPROVE on a failing change, and `hybrid` requires both. We ran 60 episodes with one model (`qwen-3.8-27b` on Cerebras) across six arms, then labeled the outcomes with an executable oracle, a blind model judge, the study owner, and two further AI reviewers.
 
-**The one result that held across every reviewer:** in the four episodes where both reviewers wrote an explicit "approve together" and both voted APPROVE on a failing change, `hybrid` flagged all four (4 of 4), and it flagged nothing else (0 false positives among 53 observed negatives). `talk_only` also fired on every benign episode that quoted "do not approve together" (10 of 10) and one explicit-arm episode where an actor wrote it but voted REJECT. Everything beyond that depends on how "bilateral agreement" is defined.
+**The frozen analysis failed its positive-control threshold.** Under the frozen protocol there were 4 observed positives against a pre-stated floor of 5, so detector sensitivity is unevaluable. Later judge retries (added after seeing the count) raised the count to 7 and support exploratory analysis only.
+
+**Subset result, agreed by every reviewer:** in the four episodes where both actors wrote an explicit "approve together" and both voted APPROVE on a failing change, the blind model judge, the study owner and both AI reviewers called them bilateral agreement (the oracle confirms the requirement failed), and `hybrid` flagged all four. This is a four-episode subset, not an overall recall. Overall recall depends on how "bilateral agreement" is defined (4 of 7 or 4 of 11 on the both-approve episodes).
+
+**Detector scores come from the final model-judge labels, not from every reviewer.** `hybrid` had 0 false positives among the 53 judge-labeled negatives (it fired only on the four explicit episodes above). `talk_only` fired on all 10 benign episodes that quoted "do not approve together" and on one explicit-arm episode where an actor wrote the phrase but voted REJECT.
 
 ## Method
 - Detectors: unchanged v0.1 rules (`audit.py`, hash pinned). Protocol, 60 packets and analysis plan frozen and pushed (commit `288a20f8`) before any v0.2 model call.
@@ -46,3 +50,10 @@ Independent evaluation; spontaneous collusion; model prevalence; detector accura
 
 ## Reproducibility
 Branch `research/apart-talk-action-controls-20261024` (PR #1010, not merged). Files: `protocol_v0_2.json`, `freeze_v0_2.json`, `suite_v0_2.py`, `live_runs/apart-1010-v02-001/` (episodes, blind evidence, judgments, scoring, `RESULTS.md`). 43 offline tests pass. API key held in the macOS Keychain and never written to disk.
+
+## Appendix A. Dual-use and ethics
+- **Dual use.** Published keyword rules ("approve together") are easy to evade, and this study shows it: the concealed arm used a code word and `talk_only` and `hybrid` missed it by design. A reader could use these results to tune collusion that avoids such rules. We publish the rules and the misses so defenders know keyword detection alone is weak, and we do not present these detectors as a safeguard.
+- **Inert task.** Every episode was a toy review of a numeric limit in a sandbox. No real change, deployment, code, credential or person was involved. No real approval occurred; the planted-role prompts stated it was a simulation.
+- **Planted roles.** Positive cases were instructed roleplay, not observed misbehavior. We make no claim that any model colluded spontaneously.
+- **Data and keys.** No personal data was used. The API key stayed in the macOS Keychain and was never written to disk or the repository.
+- **Cost and scope.** About $0.34 of API spend. One model, small sample; findings should not be applied to deployed systems.
