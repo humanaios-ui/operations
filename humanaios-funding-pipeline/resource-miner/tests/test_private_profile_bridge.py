@@ -130,7 +130,10 @@ class PrivateProfileBridgeTests(unittest.TestCase):
     def test_owner_private_docx_does_not_overwrite(self):
         from docx import Document
         template = Path(self.temp.name) / "style.docx"
-        Document().save(template)
+        doc = Document()
+        for name in ORDER:
+            doc.add_paragraph(name)
+        doc.save(template)
         receipt = build_application(self.private, template, self.output, target="quality",
                                     forbidden_checkouts=(self.ops,))
         self.assertEqual(receipt["status"], "PRIVATE_DRAFT_CREATED")
