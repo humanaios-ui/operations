@@ -38,6 +38,13 @@ class SourceReviewUITests(unittest.TestCase):
         self.assertIn("No PDF text is extracted", html)
         self.assertIn("do not change published source status or rankings", html)
 
+    def test_on_track_witness_export_is_redacted_not_raw_record(self):
+        html = self.page("on-track.html")
+        self.assertIn("review:safeReview", html)
+        self.assertIn("p3_decision:safeDecision", html)
+        self.assertNotIn("review:witnessReview", html)
+        self.assertIn("falsifier_supplied:", html)
+
     def test_fresh_checklist_has_no_predeclared_human_success(self):
         html = self.page("my-opportunities.html")
         self.assertIn("Start a blank-action checklist", html)
