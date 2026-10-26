@@ -95,6 +95,27 @@ class BridgeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.bridge.read_document("SEED.md")
 
+    def test_symlink_swapped_at_open_is_refused_without_reading_private_file(self):
+        # Deterministic TOCTOU challenge: after the filename is selected but
+        # before its descriptor is opened, replace it with a private symlink.
+        # O_NOFOLLOW must reject that descriptor, not merely a prior stat.
+        candidate = self.root / "SEED.md"
+        candidate.write_text("SAFE ALLOWLISTED CONTENT", encoding="utf-8")
+        original_open = os.open
+        swapped = []
+
+        def swap_before_open(path, flags, *args, **kwargs):
+            if str(path) == "SEED.md" and "dir_fd" in kwargs:
+                candidate.unlink()
+                candidate.symlink_to(self.root / "PRIVATE.md")
+                swapped.append(True)
+            return original_open(path, flags, *args, **kwargs)
+
+        with patch("haios_mcp.core.os.open", side_effect=swap_before_open):
+            with self.assertRaises(ValueError):
+                self.bridge.read_document("SEED.md")
+        self.assertTrue(swapped)
+
     def test_reject_oversized(self):
         (self.root / "SEED.md").write_bytes(b"A" * 2_000_001)
         with self.assertRaises(ValueError):
