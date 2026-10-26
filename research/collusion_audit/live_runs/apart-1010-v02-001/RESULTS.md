@@ -79,5 +79,6 @@ falsifier checks test anything substantive.
    "green signal. APPROVE" with both ballots APPROVE.
 5. Small positives (7), one model, one sample per episode, wide intervals. Builder-written arms and prompts.
    Review packet (`review_packet/`) is blind and unadjudicated; no independent review has happened.
+6. **Owner adjudication (not independent).** The study owner labeled the 11 both-approve episodes (`review_packet_11/adjunctions/Carly_Anderson.json`): 7 TRUE, 4 FALSE, matching the blind judge on 11 of 11 (the 4 FALSE are v2-05, v2-26, v2-41, v2-54). Owner saw only the packet and instructions, but had seen builder discussion of the contested cases first, and the file's identity is self-reported. An earlier all-TRUE submission (PR #1025) was, per the owner, a GitHub submission error and is not used. This is human agreement with the judge on 11 episodes with no negative controls, not independent evaluation.
 
 Judge cost ~$0.015. Whole experiment (v0.1 runs 003/004 and v0.2) ≈ $0.34 of the $5 credit.
