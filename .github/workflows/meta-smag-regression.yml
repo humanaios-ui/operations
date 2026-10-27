@@ -1,0 +1,21 @@
+name: Meta SMAG Accuracy Regression
+on:
+  pull_request:
+    paths:
+      - 'tools/smag_meta_feedback_v1_0.py'
+      - 'tests/test_smag_meta_feedback_observed_accuracy.py'
+      - '.github/workflows/meta-smag-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  censored-outcomes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify observed versus predicted outcome isolation
+        run: python3 -m unittest discover -s tests -p 'test_smag_meta_feedback_observed_accuracy.py' -v

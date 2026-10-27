@@ -1,8 +1,10 @@
 """Synthetic regression tests for advisory on-track reflex. No network or authority."""
 from __future__ import annotations
 
+import io
 import json
 import unittest
+from contextlib import redirect_stderr
 from unittest.mock import MagicMock, call, patch
 from urllib.error import HTTPError
 
@@ -245,6 +247,31 @@ class ThrottleRetryTests(unittest.TestCase):
                 ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues/9", "")
         self.assertEqual(opened.call_count, 1)
         sleep.assert_not_called()
+
+
+class ThrottleLoggingTests(unittest.TestCase):
+    def test_throttle_is_logged_with_rate_limit_facts_but_never_the_token(self):
+        refused = HTTPError(
+            "https://api.github.com/x", 403, "Forbidden",
+            {"x-ratelimit-remaining": "0", "x-ratelimit-resource": "core"},
+            io.BytesIO(b'{"message":"API rate limit exceeded"}'),
+        )
+        stderr = io.StringIO()
+        with patch.object(ot, "urlopen", side_effect=[refused, _ok_response([])]), \
+             patch.object(ot, "_sleep"), redirect_stderr(stderr):
+            ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "SECRET-TOKEN")
+        logged = stderr.getvalue()
+        self.assertIn("HTTP 403", logged)
+        self.assertIn('"x-ratelimit-remaining": "0"', logged)
+        self.assertIn("API rate limit exceeded", logged)
+        self.assertNotIn("SECRET-TOKEN", logged)
+
+    def test_synthetic_throttle_without_body_still_logs_status(self):
+        stderr = io.StringIO()
+        with patch.object(ot, "urlopen", side_effect=[_throttled(429), _ok_response([])]), \
+             patch.object(ot, "_sleep"), redirect_stderr(stderr):
+            ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "")
+        self.assertIn("HTTP 429", stderr.getvalue())
 
 
 if __name__ == "__main__":
