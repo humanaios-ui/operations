@@ -37,7 +37,7 @@ python3 -m unittest discover -s tests -p 'test_attractor_observatory_e0.py' -v
 python3 tools/attractor_observatory_e0.py --graph system_graph.json > /tmp/attractor-e0.json
 ```
 
-Only explicit local input paths are read. Without observation files, the output states `NOT_MEASURED`; no pretend conversions. Optional `--output /tmp/report.json` writes only a report, not repository state.
+To view the self-contained offline dashboard:\n\n```sh\npython3 tools/attractor_observatory_view_e0.py --input /tmp/attractor-e0.json --output /tmp/attractor-e0.html\n```\n\nOpen `/tmp/attractor-e0.html` in your browser. No network calls or JavaScript. CI packages both HTML and JSON as temporary, read-only artifacts.\n\nOnly explicit local input paths are read. Without observation files, the output states `NOT_MEASURED`; no pretend conversions. Optional `--output /tmp/report.json` writes only a report, not repository state.
 
 ### Observed trail record — one JSON object per line, **synthetic example**
 
