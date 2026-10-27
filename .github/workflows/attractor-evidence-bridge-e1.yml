@@ -1,0 +1,68 @@
+name: attractor-evidence-bridge-e1
+# Read-only E1: public GitHub PR events + independent-review attestations.
+on:
+  pull_request:
+    paths:
+      - 'tools/attractor_evidence_bridge_e1.py'
+      - 'tests/test_attractor_evidence_bridge_e1.py'
+      - 'docs/ATTRACTOR_EVIDENCE_BRIDGE_E1.md'
+      - '.github/workflows/attractor-evidence-bridge-e1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  checks: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Synthetic falsifiers (no network or private data)
+        run: python3 -m unittest discover -s tests -p 'test_attractor_evidence_bridge_e1.py' -v
+      - name: Built-in smoke test
+        run: python3 tools/attractor_evidence_bridge_e1.py --smoke-test
+
+  live-readonly:
+    needs: offline-contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Read exact-head GitHub records and reviewed-outcome issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/attractor_evidence_bridge_e1.py \
+            --live --repo humanaios-ui/operations --prs 835,841 \
+            --outcome-issue 588 \
+            --output "$RUNNER_TEMP/attractor-e1-public.json" \
+            --html "$RUNNER_TEMP/attractor-e1-public.html"
+          python3 - "$RUNNER_TEMP/attractor-e1-public.json" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1],encoding="utf-8"))
+          assert r["authority_effect"]=="NONE" and r["execution"]=="DISABLED"
+          assert r["source_mode"]=="LIVE_GITHUB_API"
+          assert r["repository_activity"]["observed_pr_count"]==2
+          assert r["verified_human_benefits"]=="NOT_ESTABLISHED"
+          assert all(p["source_commit_observed"] for p in r["repository_activity"]["prs"])
+          PY
+      - name: Upload source-pinned, public-only non-authoritative report
+        uses: actions/upload-artifact@v7
+        with:
+          name: attractor-e1-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/attractor-e1-public.json
+            ${{ runner.temp }}/attractor-e1-public.html
+          retention-days: 7
