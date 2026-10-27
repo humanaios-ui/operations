@@ -2,6 +2,7 @@ import json
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest import mock
 
 from resource_miner.miner import enrich
 from resource_miner.entitlement_handoff import build_entitlement_handoff
@@ -10,7 +11,7 @@ from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_
 from resource_miner.planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan, validate_resource_plan
 from resource_miner.reconcile import apply_receipt, reconcile_rows, validate_receipt
 from resource_miner.routing import route_candidate
-from resource_miner.sources import funding_pipeline
+from resource_miner.sources import devto, funding_pipeline
 from resource_miner.sources.rss import FeedRejected, MAX_FEED_BYTES, _parse_feed
 from resource_miner.store import dedupe
 
@@ -20,6 +21,27 @@ ROOT = Path(__file__).resolve().parents[1]
 class ResourceMinerTests(unittest.TestCase):
     def test_cash_extraction(self):
         self.assertEqual(cash_mentions("$2,500 pool; five at $500 each"), [2500.0, 500.0])
+
+    def test_devto_devteam_posts_no_longer_bypass_keyword_filter(self):
+        # Regression: any devteam-authored article was yielded regardless of title.
+        listing = [
+            {"id": 1, "title": "Introducing our new editor feature", "url": "https://dev.to/devteam/a-1",
+             "organization": {"username": "devteam", "name": "The DEV Team"}, "tag_list": ["devchallenge"]},
+            {"id": 2, "title": "Join the Benchmark Challenge", "url": "https://dev.to/devteam/b-2",
+             "organization": {"username": "devteam", "name": "The DEV Team"}, "tag_list": ["devchallenge"]},
+        ]
+        with mock.patch.object(devto, "_get_json", return_value=listing):
+            found = list(devto.discover(tags=["devchallenge"], hydrate=False))
+        self.assertEqual([c.title for c in found], ["Join the Benchmark Challenge"])
+
+    def test_devto_non_devteam_keyword_filter_unchanged(self):
+        listing = [
+            {"id": 3, "title": "My weekend project write-up", "url": "https://dev.to/someone/c-3",
+             "organization": {}, "tag_list": ["devchallenge"]},
+        ]
+        with mock.patch.object(devto, "_get_json", return_value=listing):
+            found = list(devto.discover(tags=["devchallenge"], hydrate=False))
+        self.assertEqual(found, [])
 
     def test_kaggle_maps_to_validation_and_revenue(self):
         fixture = json.loads((ROOT / "fixtures" / "devto_kaggle_article.json").read_text())
