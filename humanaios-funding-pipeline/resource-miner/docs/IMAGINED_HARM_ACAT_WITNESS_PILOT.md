@@ -34,7 +34,7 @@ Historical inspiration: #992 (Convergent Research job-link 404). The fixture use
 - P2 input: user-reported LINK_FAILED_404 via the existing Source Review contract, **not** an independently confirmed source failure or employer-closure proof.
 - P1 and P2 each declare the same resource ID, claimed source revision, and public source URL. All three must match before evaluation. This is an **internal consistency check**, not proof that the IDs are authentic or bound to a real source registry.
 - P3 revised claim: AVAILABILITY_UNKNOWN; display: SUPPRESS_PENDING_RECHECK.
-- Negative controls: false closure, false reopening, unverified working-source promotion, repeated unqualified presentation, unsupported severe-harm escalation even when minor burden is reported, lost unrelated held-out lead, mismatched source identities, forged verification, private-field injection.
+- Negative controls: false closure, false reopening, unqualified live promotion from any unverified source status, repeated unqualified presentation, unsupported severe-harm escalation even when minor burden is reported, lost unrelated held-out lead, mismatched source identities, forged verification, private-field injection.
 - Positive control: a SOURCE_WORKING user report does not establish verification but is not classified as a failed link.
 - The history counter and held-out before/after flags are **synthetic test inputs**, not measured UI telemetry.
 
@@ -55,7 +55,7 @@ The evaluation is read-only and emits a deterministic, **unsigned** digest with 
 4. Are severe harm forecasts kept separate from observed harm?
 5. Are replay results stable for identical input?
 
-This first 10-test suite validates the **synthetic evaluator only**. It does not establish real-model calibration, successful live suppression, independent review or user outcomes.
+This focused synthetic test suite validates the **evaluator only**. It does not establish real-model calibration, successful live suppression, independent review or user outcomes.
 
 **Falsifiers:** user report self-verifies; closure from 404; private material emitted; source catalog or rankings automatically changed; synthetic output claimed as a deployed result.
 
