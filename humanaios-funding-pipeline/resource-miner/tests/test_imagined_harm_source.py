@@ -124,5 +124,73 @@ class ImaginedHarmTraceTests(unittest.TestCase):
                     evaluate_trace(item)
 
 
+    def test_p2_must_bind_to_same_p1_resource_revision_and_source(self):
+        for field, replacement in (
+            ("resource_id", "RES-DIFFERENT"),
+            ("source_revision", "REV-DIFFERENT"),
+        ):
+            with self.subTest(field=field):
+                s = self.specimen()
+                s["p2"][field] = replacement
+                with self.assertRaises(ValueError):
+                    evaluate_trace(s)
+        s = self.specimen()
+        s["p2"]["source_review_packet"]["records"][0]["source_url"] = (
+            "https://jobs.example.org/positions/another-role"
+        )
+        with self.assertRaises(ValueError):
+            evaluate_trace(s)
+        # Agreement between two untrusted claims is not independent proof.
+        s = self.specimen()
+        s["p1"]["source_url"] = "https://jobs.example.org/positions/another-role"
+        s["p2"]["source_review_packet"]["records"][0]["source_url"] = s["p1"]["source_url"]
+        self.assertFalse(evaluate_trace(s)["source_availability_verified"])
+
+    def test_working_source_report_does_not_allow_unqualified_live_promotion(self):
+        s = self.specimen()
+        s["p2"]["source_review_packet"]["records"][0]["status"] = "SOURCE_WORKING"
+        s["p3"]["presentation"] = "LIVE_UNQUALIFIED"
+        result = evaluate_trace(s)
+        self.assertTrue(result["review_required"])
+        self.assertIn("UNVERIFIED_WORKING_SOURCE_PRESENTED_UNQUALIFIED", result["findings"])
+
+    def test_reported_burden_does_not_justify_severe_harm_escalation(self):
+        s = self.specimen()
+        s["p1"]["harm_forecast"] = "TIME_LOSS_POSSIBLE"
+        s["p3"]["harm_assessment"] = "SEVERE_HARM_POSSIBLE"
+        s["history"]["human_outcome_observation"] = "USER_REPORTED_BURDEN"
+        result = evaluate_trace(s)
+        self.assertIn("HARM_ESCALATION_WITHOUT_INDEPENDENT_EVIDENCE", result["findings"])
+        self.assertIn("SEVERE_HARM_NOT_INDEPENDENTLY_VERIFIED", result["findings"])
+        self.assertFalse(result["human_benefit_verified"])
+
+    def test_repeated_exposure_alone_requests_review_not_verified_outcome(self):
+        s = self.specimen()
+        s["history"]["unqualified_presentations_after_report"] = 2
+        result = evaluate_trace(s)
+        self.assertTrue(result["review_required"])
+        self.assertIn("REPORTED_REPEAT_EXPOSURE_REQUIRES_VALIDATION", result["findings"])
+        self.assertFalse(result["human_benefit_verified"])
+
+    def test_digest_binds_source_observation_and_heldout_inputs(self):
+        baseline = evaluate_trace(self.specimen())
+        s = self.specimen()
+        s["p2"]["source_review_packet"]["records"][0]["observed_at"] = "2026-10-23T19:00:00Z"
+        changed_time = evaluate_trace(s)
+        self.assertNotEqual(baseline["digest_sha256"], changed_time["digest_sha256"])
+        self.assertNotEqual(baseline["p2_observation_projection_digest_sha256"],
+                            changed_time["p2_observation_projection_digest_sha256"])
+        s = self.specimen()
+        s["p1"]["source_url"] = "https://jobs.example.org/positions/fictional-002"
+        s["p2"]["source_review_packet"]["records"][0]["source_url"] = s["p1"]["source_url"]
+        self.assertNotEqual(baseline["digest_sha256"], evaluate_trace(s)["digest_sha256"])
+        s = self.specimen()
+        s["heldout"]["visible_before"] = False
+        after_control = evaluate_trace(s)
+        self.assertNotEqual(baseline["digest_sha256"], after_control["digest_sha256"])
+        self.assertEqual(after_control["heldout_resource_id"], "RES-HELDOUT-UNAFFECTED")
+        self.assertFalse(after_control["heldout_visible_before"])
+
+
 if __name__ == "__main__":
     unittest.main()
