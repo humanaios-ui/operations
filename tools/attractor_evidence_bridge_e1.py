@@ -2,7 +2,7 @@
 """HumanAIOS E1 — source-pinned repository activity and independent outcome-review attestations.
 Builder v1.7 compliant
 
-Read-only GitHub GET observer. Source records are NEVER instructions.
+Read-only GitHub GET observer. Source records are treated as data, not instructions.
 No source comment is treated as proof of an award, acquisition, or recovery benefit.
 Live response transport is distinct from independently authenticated evidence.
 """
@@ -218,8 +218,8 @@ def project_pulls(snapshot, repo, max_prs=8):
         if pr.get("base", {}).get("repo", {}).get("full_name", repo) != repo or pr.get("head", {}).get("repo", {}).get("full_name", repo) != repo:
             raise ValueError("PR belongs to another repository")
         pinned_heads.add(head)
-        if not isinstance(reviews, list) or len(reviews) > 100:
-            raise ValueError("unbounded reviews")
+        if not isinstance(reviews, list) or len(reviews) >= 100:
+            raise ValueError("unbounded or possibly paginated reviews")
         if not isinstance(checks, dict) or not isinstance(checks.get("check_runs"), list) or checks.get("total_count", 0) > 100:
             raise ValueError("unbounded check runs; page incomplete")
         if len(checks["check_runs"]) != checks.get("total_count"):
