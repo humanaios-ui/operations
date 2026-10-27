@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-10-24'
+generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 115
-  records: 64
+  records: 65
 ratifiers:
 - Night
 candidates:
@@ -1056,4 +1056,7 @@ records:
 - path: z1-inbox/2026-10-02/SESSION_FINDINGS.md
   title: Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop
   note: 'Session close handoff for five friction point implementations and establishment of TENSION_FINDINGS.md governance feedback mechanism. Completed: all five friction points coded, governance integrity issue fixed (real digests recorded in CLAUDE.md), and feedback loop created for continuous guidance improvement. Receipt reconciliation: all claims verified against ledger with zero gaps. Also created root-level TENSION_FINDINGS.md artifact with template and backfilled findings from this and prior sessions. No Z2 ratification requested; Z1 reference handoff documenting completed work and filing Z2 governance decisions needed for PR #642 admission. Indexed as a record, not a live candidate.'
+- path: z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md
+  title: 'H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01'
+  note: 'Z2 decision window for Q-PR956-GOVERNANCE-ADMISSION-01 (Q-candidate for admission of PR #956 governance documentation to working set) closed on 2026-10-26 11:01 UTC without a recorded decision. Current status: 2026-10-27 06:16 UTC (19+ hours overdue). PR #1008 remains open with no Z2 comments or documented decision. ADMISSION_LEDGER.jsonl shows PR #956 not admitted. Falsifier set: Admiral must provide ACCEPT/EDIT/REJECT decision with timestamp and hash within 24 hours. Escalation routes to Admiral for governance decision enforcement.'
 excluded: []

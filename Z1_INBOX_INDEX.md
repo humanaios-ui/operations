@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**115 candidates** — ⏳ awaiting Z2 99 · ✅ ratified 16 · **64 records**
+**115 candidates** — ⏳ awaiting Z2 99 · ✅ ratified 16 · **65 records**
 
 ## Awaiting Z2 (99)
 
@@ -485,7 +485,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (64)
+## Records (65)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -554,6 +554,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md` | Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md` | Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md` | Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record) |
+| `z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md` | H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01 |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
