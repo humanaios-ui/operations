@@ -786,6 +786,135 @@ def reconcile_pr_lifecycle(
     }
 
 
+def reconcile_pr_snapshots(
+    *,
+    ledger_path: Path,
+    state_path: Path,
+    pr_snapshots: list[dict[str, Any]],
+    command_ref_prefix: str,
+    source_locator_prefix: str,
+    actor: str,
+    recorded_at: str,
+    source_policy_sha: str,
+) -> dict[str, Any]:
+    """Remove terminal or moved-head PRs from the active projection.
+
+    ``pr_snapshots`` must come from a trusted caller's fresh GitHub API reads.
+    Missing snapshots fail closed: absence is not evidence that a pull request
+    closed.  Legacy open admissions without an exact-head pin remain
+    grandfathered, while every head-bound admission is revoked as soon as its
+    live head differs.
+    """
+    verified = verify_projection(ledger_path, state_path)
+    active_numbers = {
+        int(value) for value in verified.get("admitted_pull_request_numbers") or []
+    }
+    by_number: dict[int, dict[str, Any]] = {}
+    for snapshot in pr_snapshots:
+        _require(isinstance(snapshot, dict), "PR snapshot must be an object")
+        number = snapshot.get("number")
+        _require(
+            isinstance(number, int) and not isinstance(number, bool) and number > 0,
+            "PR snapshot number must be a positive integer",
+        )
+        _require(number not in by_number, f"DUPLICATE_PR_SNAPSHOT:{number}")
+        by_number[number] = snapshot
+
+    missing = sorted(active_numbers - set(by_number))
+    _require(not missing, "MISSING_PR_SNAPSHOT:" + ",".join(map(str, missing)))
+    _require(
+        command_ref_prefix.startswith("RCC-"),
+        "command_ref_prefix must start with RCC-",
+    )
+    _require(bool(source_locator_prefix.strip()), "source_locator_prefix is required")
+
+    reconciled: list[dict[str, Any]] = []
+    retained: list[int] = []
+    for number in sorted(active_numbers):
+        snapshot = by_number[number]
+        state = str(snapshot.get("state") or "").lower()
+        merged = snapshot.get("merged") is True
+        locator = f"{source_locator_prefix}:pull:{number}"
+        command = f"{command_ref_prefix}-PR-{number}"
+
+        if merged or state == "closed":
+            terminal = "MERGED" if merged else "CLOSED"
+            result = reconcile_pr_lifecycle(
+                ledger_path=ledger_path,
+                state_path=state_path,
+                pr_number=number,
+                terminal_state=terminal,
+                command_ref_value=f"{command}-{terminal}",
+                source_locator=locator,
+                actor=actor,
+                recorded_at=recorded_at,
+                source_policy_sha=source_policy_sha,
+            )
+            if result.get("should_mutate"):
+                reconciled.append({
+                    "decision": result["event"]["decision"],
+                    "event_id": result["event"]["event_id"],
+                    "pr_number": number,
+                })
+            continue
+
+        _require(state == "open" and not merged, f"INVALID_PR_STATE:{number}:{state}")
+        live_sha = str((snapshot.get("head") or {}).get("sha") or "")
+        _require(
+            legacy.SHA40_RE.fullmatch(live_sha) is not None,
+            f"INVALID_LIVE_PR_HEAD:{number}",
+        )
+        current = verify_projection(ledger_path, state_path)
+        admission = (
+            (current.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}")
+            or {}
+        )
+        admitted_sha = str(admission.get("admitted_head_sha") or "")
+        if not admitted_sha or admitted_sha == live_sha:
+            retained.append(number)
+            continue
+
+        result = append_event(
+            ledger_path=ledger_path,
+            state_path=state_path,
+            decision="REVOKE",
+            subject_kind="PULL_REQUEST",
+            subject_number=number,
+            objective_issue_number=admission.get("objective_issue_number"),
+            admission_scope=str(
+                admission.get("admission_scope") or f"subject:PULL_REQUEST#{number}"
+            ),
+            command_ref_value=f"{command}-HEAD-MOVED-{live_sha}",
+            source_locator=locator,
+            actor=actor,
+            evidence=[
+                f"admitted-head:{admitted_sha}",
+                f"live-head:{live_sha}",
+                "fresh GitHub PR snapshot shows exact-head admission drift",
+                locator,
+            ],
+            recorded_at=recorded_at,
+            source_policy_sha=source_policy_sha,
+        )
+        if result.get("should_mutate"):
+            reconciled.append({
+                "decision": result["event"]["decision"],
+                "event_id": result["event"]["event_id"],
+                "pr_number": number,
+            })
+
+    final_state = verify_projection(ledger_path, state_path)
+    return {
+        "should_mutate": bool(reconciled),
+        "reason": "PR_SNAPSHOTS_RECONCILED" if reconciled else "NO_STALE_PR_ADMISSIONS",
+        "reconciled": reconciled,
+        "retained_pr_numbers": retained,
+        "state": final_state,
+        "authority_effect": AUTHORITY_EFFECT,
+        "merge_authority": False,
+    }
+
+
 def decision_receipt(
     *,
     gate_decision: dict[str, Any],
@@ -904,6 +1033,16 @@ def _parser() -> argparse.ArgumentParser:
     life.add_argument("--actor", required=True)
     life.add_argument("--recorded-at", required=True)
     life.add_argument("--source-policy-sha", required=True)
+
+    snapshot = sub.add_parser("reconcile-pr-snapshots")
+    snapshot.add_argument("--ledger", type=Path, required=True)
+    snapshot.add_argument("--state", type=Path, required=True)
+    snapshot.add_argument("--pr-snapshots", type=Path, required=True)
+    snapshot.add_argument("--command-ref-prefix", required=True)
+    snapshot.add_argument("--source-locator-prefix", required=True)
+    snapshot.add_argument("--actor", required=True)
+    snapshot.add_argument("--recorded-at", required=True)
+    snapshot.add_argument("--source-policy-sha", required=True)
     return parser
 
 
@@ -957,6 +1096,19 @@ def main(argv: list[str] | None = None) -> int:
                 terminal_state=args.terminal_state,
                 command_ref_value=args.command_ref,
                 source_locator=args.source_locator,
+                actor=args.actor,
+                recorded_at=args.recorded_at,
+                source_policy_sha=args.source_policy_sha,
+            )
+        elif args.command == "reconcile-pr-snapshots":
+            snapshots = json.loads(args.pr_snapshots.read_text(encoding="utf-8"))
+            _require(isinstance(snapshots, list), "PR snapshots file must contain an array")
+            result = reconcile_pr_snapshots(
+                ledger_path=args.ledger,
+                state_path=args.state,
+                pr_snapshots=snapshots,
+                command_ref_prefix=args.command_ref_prefix,
+                source_locator_prefix=args.source_locator_prefix,
                 actor=args.actor,
                 recorded_at=args.recorded_at,
                 source_policy_sha=args.source_policy_sha,
