@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
-"""Local-only static HTML view of E0. No JavaScript, network, or authority."""
+"""HumanAIOS E0 local-only static HTML view. No JavaScript, network, or authority.
+Builder v1.7 compliant
+"""
 import argparse
 from html import escape
 import json
 from pathlib import Path
+
+
+TOOL_NAME = "attractor_observatory_view"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "reporting_tool"
+TOOL_ZONE = 1
+TOOL_SESSION = "S-20261026-ATTRACTOR-E0"
 
 
 def safe(value):
@@ -114,11 +123,35 @@ Receipts in this observer are not independently authenticated.</div>"""
     return "".join(bits)
 
 
+def run_smoke_test():
+    """Synthetic, no-network smoke-test of safe output and absent observations."""
+    example = {
+        "schema": "humanaios.attractor_observatory.e0",
+        "authority_effect": "NONE", "execution": "DISABLED",
+        "graph_generated_at": "synthetic",
+        "internal": {
+            "node_count": 1, "edge_count": 0, "largest_cyclic_component_size": 0,
+            "first_stored_edge_loop_starts": 0, "first_stored_edge_policy": "synthetic",
+            "strongly_connected_components": [],
+        },
+        "observed_returns": {"state": "NOT_MEASURED", "repeated_returns": None},
+        "external_conversion": {"state": "NOT_MEASURED", "outcomes": None, "by_process": None},
+    }
+    html = render(example)
+    assert "NOT_MEASURED" in html and "<script" not in html
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True)
+    parser.add_argument("--input")
+    parser.add_argument("--output")
+    parser.add_argument("--smoke-test", action="store_true")
     args = parser.parse_args()
+    if args.smoke_test:
+        return run_smoke_test()
+    if not args.input or not args.output:
+        parser.error("--input and --output required except for --smoke-test")
     report = json.loads(Path(args.input).read_text(encoding="utf-8"))
     Path(args.output).write_text(render(report), encoding="utf-8")
 
