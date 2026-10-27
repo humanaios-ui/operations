@@ -20,7 +20,12 @@ from .query_quality import (
 MAX_OBJECTIVE = 500
 MAX_ROWS = 500
 PUBLIC_SOURCES = {"HumanAIOS Funding Pipeline", "DEV Community"}
-# These source states are holds, NOT proof the program is closed or the applicant is ineligible.\nHELD_SOURCE_STATUSES = frozenset({\n    "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE",\n    "RECHECK_REQUIRED", "UNVERIFIED_RECHECK",\n})\n
+# These source states are holds, NOT proof the program is closed or the applicant is ineligible.
+HELD_SOURCE_STATUSES = frozenset({
+    "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE",
+    "RECHECK_REQUIRED", "UNVERIFIED_RECHECK",
+})
+
 
 def _words(value: str) -> set[str]:
     return query_terms(value)
@@ -96,7 +101,12 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         if not isinstance(row, dict) or row.get("source_name") not in PUBLIC_SOURCES:
             omitted += 1
             continue
-        # Preserve a negative source correction through the user-facing search.\n        # A proposed official recheck cannot self-release a held lead.\n        if row.get("source_verification_status") in HELD_SOURCE_STATUSES:\n            omitted += 1\n            continue\n        url = _public_https(row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url"))
+        # Preserve a negative source correction through the user-facing search.
+        # A proposed official recheck cannot self-release a held lead.
+        if row.get("source_verification_status") in HELD_SOURCE_STATUSES:
+            omitted += 1
+            continue
+        url = _public_https(row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url"))
         if not url or _is_expired(row):
             omitted += 1
             continue
