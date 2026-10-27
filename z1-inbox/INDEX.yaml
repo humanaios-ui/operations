@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-10-14'
+generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 114
-  records: 64
+  candidates: 115
+  records: 65
 ratifiers:
 - Night
 candidates:
@@ -869,6 +869,13 @@ candidates:
   ratified_at: '2026-10-14'
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
+- q_id: Q-PR956-GOVERNANCE-ADMISSION-01
+  title: "Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff)"
+  path: z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md
+  submitted: '2026-10-24'
+  status: awaiting_z2
+  tier: 0
+  note: Repository coordinator decision receipt RCD-D4200E30F523D237 (FAIL with reason "ready non-maintenance work has no explicit admission record"). Governance documentation work split from PR #906 (M009). Content summary (8 files, 1458 additions): RED-TEAM-AUDIT-PR-630.md (12 security challenges), PR-630-WARRANT.md (evidence synthesis), PR-630-REMEDIATION-PATCHES.md (security patches), Z3-EXECUTION-CYCLE-1-HANDOFF.md (execution results), PR-630-CHALLENGE-EVIDENCE.jsonl, z1-inbox/INDEX.yaml (registry update). Classification: Non-maintenance, non-policy documentation; no control-plane changes. Authority effect: ADMISSION_ROUTING_ONLY (decides working-set standing only; does not ratify content, approve code, or authorize merge). Falsifier: If admission granted and PR #956 merges, admission confirmed in coordinator ledger; if PR fails to merge or is reverted, falsifier trips and IC candidate should be filed.
 records:
 - path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
@@ -1049,4 +1056,7 @@ records:
 - path: z1-inbox/2026-10-02/SESSION_FINDINGS.md
   title: Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop
   note: 'Session close handoff for five friction point implementations and establishment of TENSION_FINDINGS.md governance feedback mechanism. Completed: all five friction points coded, governance integrity issue fixed (real digests recorded in CLAUDE.md), and feedback loop created for continuous guidance improvement. Receipt reconciliation: all claims verified against ledger with zero gaps. Also created root-level TENSION_FINDINGS.md artifact with template and backfilled findings from this and prior sessions. No Z2 ratification requested; Z1 reference handoff documenting completed work and filing Z2 governance decisions needed for PR #642 admission. Indexed as a record, not a live candidate.'
+- path: z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md
+  title: 'H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01'
+  note: 'Z2 decision window for Q-PR956-GOVERNANCE-ADMISSION-01 (Q-candidate for admission of PR #956 governance documentation to working set) closed on 2026-10-26 11:01 UTC without a recorded decision. Current status: 2026-10-27 06:16 UTC (19+ hours overdue). PR #1008 remains open with no Z2 comments or documented decision. ADMISSION_LEDGER.jsonl shows PR #956 not admitted. Falsifier set: Admiral must provide ACCEPT/EDIT/REJECT decision with timestamp and hash within 24 hours. Escalation routes to Admiral for governance decision enforcement.'
 excluded: []
