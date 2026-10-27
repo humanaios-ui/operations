@@ -5,6 +5,8 @@ on:
     paths:
       - 'tools/attractor_observatory_e0.py'
       - 'tests/test_attractor_observatory_e0.py'
+      - 'tests/test_attractor_observatory_view_e0.py'
+      - 'tools/attractor_observatory_view_e0.py'
       - 'docs/ATTRACTOR_OBSERVATORY_E0.md'
       - 'system_graph.json'
       - '.github/workflows/attractor-observatory-e0.yml'
@@ -24,7 +26,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Falsifier tests
-        run: python3 -m unittest discover -s tests -p 'test_attractor_observatory_e0.py' -v
+        run: python3 -m unittest discover -s tests -p 'test_attractor_observatory*e0.py' -v
       - name: Structural observation only
         run: |
           python3 tools/attractor_observatory_e0.py --graph system_graph.json --output "$RUNNER_TEMP/attractor-e0.json"
@@ -36,8 +38,12 @@ jobs:
           assert r['observed_returns']['state'] == 'NOT_MEASURED'
           assert r['external_conversion']['state'] == 'NOT_MEASURED'
           PY
+      - name: Render safe standalone HTML
+        run: python3 tools/attractor_observatory_view_e0.py --input "$RUNNER_TEMP/attractor-e0.json" --output "$RUNNER_TEMP/attractor-e0.html"
       - uses: actions/upload-artifact@v7
         with:
           name: attractor-e0-${{ github.sha }}
-          path: ${{ runner.temp }}/attractor-e0.json
+          path: |
+            ${{ runner.temp }}/attractor-e0.json
+            ${{ runner.temp }}/attractor-e0.html
           retention-days: 7
