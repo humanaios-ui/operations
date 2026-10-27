@@ -1,10 +1,10 @@
 {
-  "pr": 983,
-  "actor_origin_claim": "Claude Code session; Z1 re-sign of Q-REPO-GRAPH-LOOKUP-01 and index fix, index and candidate-file edits only",
+  "pr": 1005,
+  "actor_origin_claim": "Codex Work session; owner-requested exact-head admission reconciliation; control-plane repair only",
   "checks": {
     "quality": {
       "conclusion": "success",
-      "p": 0.85
+      "p": 0.93
     },
     "guard": {
       "conclusion": "success",
@@ -12,20 +12,20 @@
     },
     "Secret scanning (gitleaks)": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.98
     },
     "Python dependency vulnerability scan": {
       "conclusion": "success",
-      "p": 0.92
+      "p": 0.96
     },
     "Verify Z2 Ratification Requirements": {
       "conclusion": "success",
-      "p": 0.6
+      "p": 0.85
     },
     "Repository admission/backpressure gate": {
       "conclusion": "success",
-      "p": 0.3
+      "p": 0.85
     }
   },
-  "note": "Declared in commit 2e4f7dd5's follow-up commit (first commit on this PR to add this file). Predictions were not revised after CI results. Changes: z1-inbox index and candidate-file hash clear, one new dated re-ratification record. No constants, gates, or workflow files touched. Admission and Z2 ratification checks are not fully in Z1 control."
+  "note": "Declared before protected CI for the exact-head reconciliation change. Focused tests and local readiness checks passed before publication. The workflow change is intentionally fail-closed; admission and Z2 outcomes still depend on repository state outside this branch."
 }
