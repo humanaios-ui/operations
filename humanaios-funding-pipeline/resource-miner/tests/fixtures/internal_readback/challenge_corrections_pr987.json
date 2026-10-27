@@ -1,0 +1,26 @@
+[
+  {
+    "action": "CORRECT",
+    "claim_id": "SOURCE_TITLE_EXACT",
+    "event_id": "CHAL-PR987-TITLE",
+    "evidence_url": "https://github.com/humanaios-ui/operations/pull/987",
+    "observed_at": "2026-10-23T18:46:05-05:00",
+    "reason_code": "SNAPSHOT_LABEL_NOT_GITHUB_TITLE"
+  },
+  {
+    "action": "CHALLENGE",
+    "claim_id": "CI_SUCCESS_IS_SECURITY_CLEARANCE",
+    "event_id": "CHAL-PR987-01",
+    "evidence_url": "https://github.com/humanaios-ui/operations/pull/987/files",
+    "observed_at": "2026-10-23T18:46:10-05:00",
+    "reason_code": "CI_NOT_SECURITY_CLEARANCE"
+  },
+  {
+    "action": "CORRECT",
+    "claim_id": "ALL_REVIEW_THREADS_RESOLVED",
+    "event_id": "CHAL-PR987-02",
+    "evidence_url": "https://github.com/humanaios-ui/operations/pull/987/files",
+    "observed_at": "2026-10-23T18:46:20-05:00",
+    "reason_code": "SIX_UNRESOLVED_THREADS"
+  }
+]

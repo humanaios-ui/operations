@@ -54,9 +54,11 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <div class="examples" aria-label="Example goals">
 <button type="button" data-example="Find grants to support independent AI evaluation research">Research grants</button>
 <button type="button" data-example="Find compute credits or free cloud infrastructure">Cloud credits</button>
+<button type="button" data-example="Find public compute resources, research partnerships, funding and infrastructure that could advance HumanAIOS ACAT evaluation, INTENT-OS and our recovery mission">HumanAIOS mission</button>
 <button type="button" data-example="Find training and certification programs">Training</button>
 </div>
 </section>
+
 <div id="feedback" role="status" aria-live="polite"></div>
 <section class="panel" id="results" hidden aria-labelledby="resTitle">
 <h2 id="resTitle">Resources to review</h2>
@@ -65,16 +67,19 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <div class="row"><label for="showDismissed" class="muted"><input id="showDismissed" type="checkbox"> Show candidates I dismissed locally</label></div>
 <p id="localFilter" class="muted" role="status"></p>
 <div id="items"></div>
+<button id="showMore" type="button" hidden>Show more</button>
 <p class="muted" id="receipt"></p>
 </section>
 <section class="panel" id="verificationQueue" aria-label="Resource verification queue">
 <h2>My source verification reports</h2>
-<p class="muted">If a result link fails or an opportunity is already in use, report it on the candidate card. Reports are saved only in this browser—not submitted to a shared database or GitHub. Export a review packet for an independently authorized reviewer.</p>
+<p class="muted">If a result link fails or an opportunity is already in use, report it on the candidate card. Reports are saved only in this browser—not submitted to a shared database or GitHub. Export a redacted review packet for an independently authorized reviewer. Raw notes and sensitive URL parameters remain private in this browser.</p>
 <div class="verification-actions">
-<button type="button" id="exportReviews">Export verification review packet</button>
+<button type="button" id="exportReviews">Export redacted verification packet</button>
 <label for="importReviews" style="margin:auto 0">Import review packet</label>
 <input type="file" id="importReviews" accept="application/json,.json" aria-label="Import review packet" style="max-width:260px">
 <button type="button" id="clearReviews">Clear reports</button>
+<button type="button" id="exportLessons">Export local sorting preferences</button>
+<button type="button" id="clearLessons">Clear local sorting preferences</button>
 </div>
 <p class="muted" id="verificationCount" aria-live="polite"></p>
 <p class="muted" id="verificationMessage" role="status" aria-live="polite"></p>
@@ -101,7 +106,21 @@ const reviewStates=[
 ], validStates=new Set(reviewStates.map(x=>x[0]));
 let sourceReviews=[];
 const dispositionKey="humanaios.intent_os_local_dispositions.v0.1";
-let latestCandidates=[];
+let latestCandidates=[], visibleLimit=10;
+const teachingKey="humanaios.intent_os_teaching.v0.1";
+function loadLessons(){
+ try{
+  const rows=JSON.parse(localStorage.getItem(teachingKey)||"[]");
+  if(!Array.isArray(rows)||rows.length>100)throw new Error("Invalid lessons");
+  return rows.filter(r=>r&&typeof r.note==="string"&&r.note.length<=500&&
+    typeof r.source_url==="string"&&["PRIORITIZE","DEPRIORITIZE","NOTE"].includes(r.preference));
+ }catch(_){return [];}
+}
+function lessonFor(url){return loadLessons().filter(r=>r.source_url===url).at(-1);}
+function localPriority(row, latestByUrl){
+ const p=(latestByUrl?latestByUrl.get(row.source_url):lessonFor(row.source_url))?.preference;
+ return p==="PRIORITIZE"?1:p==="DEPRIORITIZE"?-1:0;
+}
 function dispositions(){
  try{
   const v=JSON.parse(localStorage.getItem(dispositionKey)||"{}");
@@ -118,13 +137,22 @@ function renderCandidates(){
    visible.push(row);
  }
  items.replaceChildren();
- visible.forEach(row=>items.append(addCard(row)));
+ // Snapshot preferences once per render; never parse storage inside sort comparisons.
+ const latestByUrl=new Map(loadLessons().map(r=>[r.source_url,r]));
+ visible.sort((a,b)=>localPriority(b,latestByUrl)-localPriority(a,latestByUrl));
+ visible.slice(0,visibleLimit).forEach(row=>items.append(addCard(row)));
+ const more=document.getElementById("showMore");more.hidden=visibleLimit>=visible.length;
+ text(more,"Show more ("+Math.max(0,visible.length-visibleLimit)+" remaining)");
+ text(summary,"Found "+latestCandidates.length+" possible match(es); showing "+Math.min(visibleLimit,visible.length)+
+  ". These are leads to verify, not eligibility decisions.");
+ text(feedback,Math.min(visibleLimit,visible.length)+" resource candidate(s) displayed.");
  text(document.getElementById("localFilter"), hidden.length?
   hidden.length+" candidate(s) hidden in this browser by your Witness decisions. "+
   "Check 'Show candidates I dismissed locally' to inspect them. Shared source catalog unchanged.":
   "No locally dismissed candidates among the displayed results.");
 }
-document.getElementById("showDismissed").addEventListener("change",renderCandidates);
+document.getElementById("showDismissed").addEventListener("change",()=>{visibleLimit=10;renderCandidates();});
+document.getElementById("showMore").addEventListener("click",()=>{visibleLimit+=10;renderCandidates();});
 const message=document.getElementById("verificationMessage");
 function reviewMessage(value){text(message,value);}
 function publicUrl(raw){
@@ -159,11 +187,11 @@ function validateReview(r){
  if(attachment!==null){
   if(!attachment||typeof attachment!=="object"||Array.isArray(attachment)||
      Object.keys(attachment).sort().join("|")!=="mime|sha256|size_bytes"||
-     !["image/png","image/jpeg","image/webp"].includes(attachment.mime)||
+     !/^[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+$/.test(attachment.mime)||
      !Number.isInteger(attachment.size_bytes)||attachment.size_bytes<1||
-     attachment.size_bytes>1048576||
+     attachment.size_bytes>10485760||
      typeof attachment.sha256!=="string"||!/^[a-f0-9]{64}$/.test(attachment.sha256))
-    throw new Error("Invalid screenshot fingerprint.");
+    throw new Error("Invalid evidence file fingerprint.");
  }
  return r;
 }
@@ -178,6 +206,47 @@ function validateReviewPacket(packet){
   ids.add(r.id);return r;
  });
 }
+// Export is intentionally LESS expressive than browser-private history.
+// Preserve private originals in localStorage; do not export raw notes, file
+// fingerprints, URLs with query parameters or opaque account/session paths.
+function reviewRiskCodes(status,note){
+ const flags=[];
+ if(status==="SOURCE_WORKING"&&(
+   /\b(?:job|role|listing|position)\b.{0,72}\b(?:not found|not listed|unavailable|removed)\b/i.test(note)||
+   /\bnot (?:on|listed on) (?:the )?(?:official )?(?:website|job board)\b/i.test(note)||
+   note.includes("STATUS_NOTE_CONFLICT_RECHECK_REQUIRED")))
+   flags.push("SOURCE_STATUS_NOTE_CONFLICT_RECHECK_REQUIRED");
+ if(/\b(?:restrict(?:s|ed|ions)?|reject(?:s|ed)?|prohibit(?:s|ed)?|no longer accepts)\b.{0,85}\b(?:ai|automated|written|application)\b/i.test(note)||
+    /\b(?:ai-written|ai generated|ai-generated)\b.{0,85}\b(?:reject|restrict|prohibit)/i.test(note))
+   flags.push("SUBMISSION_OR_AI_POLICY_RESTRICTION_UNVERIFIED");
+ if(/\b(?:could not|unable to|failed to)\b.{0,55}\b(?:set up|connect|configure|integrat)/i.test(note))
+   flags.push("RESOURCE_SETUP_DIFFICULTY_USER_REPORTED");
+ return flags;
+}
+function redactedReviewUrl(raw){
+ if(!raw)return "";
+ const url=new URL(publicUrl(raw));url.search="";url.hash="";
+ const parts=url.pathname.split("/"),safe=[];
+ for(const segment of parts){
+  if(segment&&(/^(?:org_[A-Za-z0-9_-]*|prj_[A-Za-z0-9_-]*|project_[A-Za-z0-9_-]*|session_[A-Za-z0-9_-]*|user_[A-Za-z0-9_-]*|token_[A-Za-z0-9_-]*|cm[a-z0-9]{15,}|[A-Za-z0-9_-]{38,}|eyJ[A-Za-z0-9_.-]+)$/i.test(segment)||segment.length>70))break;
+  safe.push(segment);
+ }
+ url.pathname=safe.join("/")||"/";
+ return url.href;
+}
+function publicReviewExport(records){
+ return {schema:reviewSchema,records:records.map(r=>{
+  validateReview(r);
+  const replacement=redactedReviewUrl(r.evidence.replacement_url);
+  // An identical replacement is not independent reachability evidence.
+  const safeReplacement=replacement===redactedReviewUrl(r.source_url)?"":replacement;
+  return {id:r.id,resource_title:r.resource_title,
+   source_url:redactedReviewUrl(r.source_url),status:r.status,observed_at:r.observed_at,
+   evidence:{note:reviewRiskCodes(r.status,r.evidence.note).join(" "),
+    replacement_url:safeReplacement,screenshot:null}};
+ })};
+}
+
 function updateReviewCount(){
  text(document.getElementById("verificationCount"),
   sourceReviews.length+" human-submitted local source report(s). Not independently verified.");
@@ -189,11 +258,11 @@ try{
 updateReviewCount();
 document.getElementById("exportReviews").addEventListener("click",()=>{
  if(!sourceReviews.length){reviewMessage("No reports to export. Open a candidate's review form first.");return;}
- const packet={schema:reviewSchema,records:sourceReviews};
+ const packet=publicReviewExport(sourceReviews);
  const url=URL.createObjectURL(new Blob([JSON.stringify(packet,null,2)],{type:"application/json"}));
- const a=document.createElement("a");a.href=url;a.download="intent-os-source-verification.json";
+ const a=document.createElement("a");a.href=url;a.download="intent-os-source-verification-REDACTED.json";
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
- reviewMessage("Exported local review packet. Send it only to an authorized reviewer; it has no independent verification.");
+ reviewMessage("Exported REDACTED review packet: omitted raw notes, attachment digests, URL queries and opaque IDs. The original history remains in this browser. This is not independent source verification.");
 });
 document.getElementById("importReviews").addEventListener("change",async event=>{
  const file=event.target.files?.[0];if(!file)return;
@@ -218,6 +287,18 @@ document.getElementById("clearReviews").addEventListener("click",()=>{
   reviewMessage("Local reports cleared. Re-run the search to refresh candidate badges.");
  }catch(_){reviewMessage("Browser storage clear failed.");}
 });
+document.getElementById("exportLessons").addEventListener("click",()=>{
+ const packet={schema:teachingKey,records:loadLessons()};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(packet,null,2)],{type:"application/json"}));
+ const a=document.createElement("a");a.href=url;a.download="intent-os-local-preferences.json";
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ reviewMessage("Exported local lessons. Share only with an authorized reviewer; no model training or shared update occurred.");
+});
+document.getElementById("clearLessons").addEventListener("click",()=>{
+ if(!confirm("Clear local sorting preferences and preferences? Export first if needed."))return;
+ try{localStorage.removeItem(teachingKey);renderCandidates();reviewMessage("Local preferences cleared.");}
+ catch(error){reviewMessage("Could not clear lessons: "+error.message);}
+});
 // Show the personal preview link only when this instance is bound to loopback.
 fetch("/api/my-opportunities",{cache:"no-store"})
  .then(r=>{if(r.ok)document.getElementById("myOpportunitiesLink").hidden=false;})
@@ -240,6 +321,60 @@ function addCard(row){
    " · Observed: "+(row.observed_at||"unknown")+
    " · "+(row.last_verified_at?"Last verified (source claim): "+row.last_verified_at:"Not verified"));
  card.append(meta);
+ const askBox=document.createElement("details"),askHeading=document.createElement("summary");
+ text(askHeading,"Ask the Witness about this Resource");askBox.append(askHeading);
+ const askDisclosure=document.createElement("p");askDisclosure.className="muted";
+ text(askDisclosure,"Optional local MCP conversation. Only this candidate's public title, ID, source, route, source URL without query parameters, and your question will be sent to Unit Zero through the local authenticated Witness. Browser-local source reports, application notes and uploaded files are NOT sent. The question and resource summary are sent to Anthropic when you explicitly ask. No application or resource action is performed.");
+ const askQuestion=document.createElement("textarea");askQuestion.rows=3;askQuestion.maxLength=350;
+ askQuestion.setAttribute("aria-label","Your question for the Witness about this resource");
+ askQuestion.value="How might this resource advance HumanAIOS, INTENT-OS or our recovery mission? Separate evidence from uncertainty and recommend a verification step.";
+ const askConsent=document.createElement("label");
+ const askChecked=document.createElement("input");askChecked.type="checkbox";
+ askChecked.setAttribute("aria-label","Consent to send this public resource summary and question to the local Witness");
+ const consentCopy=document.createElement("span");text(consentCopy," I choose to send the displayed public resource summary and question to Unit Zero/Claude.");
+ askConsent.append(askChecked,consentCopy);
+ const askButton=document.createElement("button");askButton.type="button";
+ text(askButton,"Ask the Witness");
+ const askOutput=document.createElement("p");askOutput.setAttribute("role","status");
+ askOutput.setAttribute("aria-live","polite");askOutput.className="meta";
+ askButton.addEventListener("click",async()=>{
+  if(!askChecked.checked){text(askOutput,"Consent is required. Nothing was sent.");return;}
+  const question=askQuestion.value.trim();
+  if(question.length<3||question.length>350){text(askOutput,"Enter a question (3–350 characters).");return;}
+  askButton.disabled=true;text(askOutput,"Contacting your local authenticated Witness…");
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),85000);
+  try{
+   const publicUrlOnly=new URL(publicUrl(row.source_url));
+   publicUrlOnly.search="";publicUrlOnly.hash="";
+   const resource={resource_id:row.resource_id,title:row.title,
+    source_name:row.source_name,source_url:publicUrlOnly.href,route:row.route};
+   for(const key of ["observed_at","deadline","source_status"]){
+    if(typeof row[key]==="string")resource[key]=row[key].slice(0,80);
+   }
+   const response=await fetch("/api/witness/ask-resource",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({resource,question,consent:true}),
+    cache:"no-store",signal:controller.signal});
+   if(!response.ok)throw new Error(response.status===503?
+    "Local Witness is not enabled or available. No model response was recorded.":
+    "Local Witness request refused (HTTP "+response.status+").");
+   const reply=await response.json();
+   if(!reply||reply.authority!=="NONE"||reply.execution!=="DISABLED"||
+      typeof reply.answer!=="string"||reply.answer.length>12000||
+      reply.resource_id!==row.resource_id)throw new Error("Unsafe or mismatched Witness response.");
+   const manifests=Array.isArray(reply.source_manifest)?reply.source_manifest:[];
+   text(askOutput,reply.answer+"\\n\\n"+
+    "Witness context: "+manifests.map(m=>m.filename+
+    (m.truncated?" (truncated)":"")).join(", ")+
+    ". Resource availability and eligibility were NOT independently verified. No action authorized.");
+   askOutput.style.whiteSpace="pre-wrap";
+  }catch(error){text(askOutput,error.name==="AbortError"?
+   "Witness did not respond before the local timeout. No successful response was recorded.":
+   "Witness unavailable: "+error.message);
+  }finally{clearTimeout(timer);askButton.disabled=false;}
+ });
+ askBox.append(askDisclosure,askQuestion,askConsent,askButton,askOutput);
+ card.append(askBox);
  const matches=document.createElement("div");
  for(const word of (Array.isArray(row.matched_terms)?row.matched_terms:[])){
    const tag=document.createElement("span");tag.className="tag";text(tag,word);matches.append(tag);
@@ -269,11 +404,11 @@ function addCard(row){
  const replacement=document.createElement("input");replacement.type="url";replacement.maxLength=1600;
  replacement.placeholder="https://jobs.lever.co/...";
  const screenshotLabel=document.createElement("label");
- text(screenshotLabel,"Screenshot (optional; fingerprint only, maximum 1 MB)");
+ text(screenshotLabel,"Evidence file (PDF, image, document, text, or other type; maximum 10 MB)");
  const screenshot=document.createElement("input");screenshot.type="file";
- screenshot.accept="image/png,image/jpeg,image/webp";
+ // All file types are fingerprinted only; file content is never rendered or executed.
  const disclaimer=document.createElement("p");disclaimer.className="muted";
- text(disclaimer,"A screenshot file is hashed locally; its pixels are NOT uploaded, saved, or included in the report. Keep the original file if a reviewer needs it.");
+ text(disclaimer,"Saved in this browser: your note, URLs, selected status, time, file type, byte size, and SHA-256 fingerprint. File name and contents are NOT saved or uploaded. No PDF text is extracted. Keep the original file. Export includes only the saved report fields.");
  const save=document.createElement("button");save.type="button";text(save,"Save source observation locally");
  const localStatus=document.createElement("p");localStatus.className="muted";localStatus.setAttribute("role","status");
  reviewToggle.addEventListener("click",()=>{
@@ -289,11 +424,11 @@ function addCard(row){
    let screenshotProof=null;
    const file=screenshot.files?.[0];
    if(file){
-    if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size<1||file.size>1048576)
-      throw new Error("Screenshot must be PNG/JPEG/WebP and no larger than 1 MB.");
+    if(file.size<1||file.size>10485760)
+      throw new Error("Evidence file must contain 1 byte to 10 MB.");
     const bytes=await file.arrayBuffer();
     const digest=await crypto.subtle.digest("SHA-256",bytes);
-    screenshotProof={mime:file.type,size_bytes:file.size,sha256:[...new Uint8Array(digest)]
+    screenshotProof={mime:/^[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+$/.test(file.type)?file.type:"application/octet-stream",size_bytes:file.size,sha256:[...new Uint8Array(digest)]
       .map(n=>n.toString(16).padStart(2,"0")).join("")};
    }
    const record={
@@ -354,11 +489,11 @@ form.addEventListener("submit",async event=>{
      "No supported matches in these sources.")+" Try another goal or the other source mode.");
    warning.hidden=!result.source_warning;
    text(warning,result.source_warning);
-   latestCandidates=result.candidates||[];
+   latestCandidates=result.candidates||[];visibleLimit=10;
    renderCandidates();
    text(receipt,"Source: "+result.source_status+" · Unsigned selection digest: "+result.receipt_sha256);
    box.hidden=false;
-   text(feedback,result.shown_count+" resource candidate(s) displayed.");
+
  }catch(error){
    feedback.classList.add("error");
    text(feedback,error.name==="AbortError"?"The source did not respond in time. Try the stored snapshot.":

@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from resource_miner.intent_os import MAX_ROWS
 from resource_miner.on_track_execution import digest as digest_execution
 
 TOOL_NAME = "on_track_progress"
@@ -93,7 +94,7 @@ def projection(report: dict, receipt: dict | None) -> dict:
         ]:
             raise ValueError("Incomplete HTTP checks")
         count = receipt.get("candidate_count")
-        if isinstance(count, bool) or not isinstance(count, int) or not 1 <= count <= 10:
+        if isinstance(count, bool) or not isinstance(count, int) or not 1 <= count <= MAX_ROWS:
             raise ValueError("Invalid candidate count")
         technical = {"state": "TESTED_LOCAL_HTTP", "environment": "LOCAL_LOOPBACK_HTTP",
                      "candidate_count": count, "receipt_digest": receipt_hash,
