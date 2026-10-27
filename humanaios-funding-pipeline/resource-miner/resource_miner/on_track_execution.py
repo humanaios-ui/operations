@@ -15,7 +15,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 from urllib.parse import urlsplit
 
-from resource_miner.intent_os import PUBLIC_SOURCES, _public_https
+from resource_miner.intent_os import MAX_ROWS, PUBLIC_SOURCES, _public_https
 
 TOOL_NAME = "on_track_execution"
 TOOL_VERSION = "0.2.0"
@@ -76,7 +76,7 @@ def _check_result(data: dict, expect_matches: bool) -> tuple[bool, int, str]:
     if not re.fullmatch(r"[a-f0-9]{64}", str(data.get("receipt_sha256", ""))):
         raise ValueError("Missing bounded search digest")
     candidates = data.get("candidates")
-    if not isinstance(candidates, list) or len(candidates) > 10:
+    if not isinstance(candidates, list) or len(candidates) > MAX_ROWS:
         raise ValueError("Bad candidate collection")
     if not isinstance(data.get("shown_count"), int) or data["shown_count"] != len(candidates):
         raise ValueError("Candidate counts mismatch")

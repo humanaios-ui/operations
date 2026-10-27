@@ -12,6 +12,7 @@ import json
 import re
 from urllib.parse import urlsplit
 
+from .models import HELD_SOURCE_STATUSES
 from .source_risk import promotional_claim_flags
 from .query_quality import (
     blocked_resource_types, fuse_rankings, has_exact_anchors, query_terms,
@@ -61,6 +62,10 @@ def _public_https(value: object) -> str | None:
 
 def _is_expired(row: dict) -> bool:
     if row.get("route") == "ARCHIVE" or row.get("status") == "CLOSED_OR_STALE":
+        return True
+    # Explicit observed source failures require recheck; they do not prove closure.
+    # This only applies when an upstream row carries the verified status field.
+    if row.get("source_verification_status") in HELD_SOURCE_STATUSES:
         return True
     deadline = row.get("deadline")
     if isinstance(deadline, str):
@@ -154,7 +159,7 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         unique_matches.setdefault(match["resource_id"], match)
     duplicate_count = len(matches) - len(unique_matches)
     matches = fuse_rankings(list(unique_matches.values()))
-    shown = matches[:10]
+    shown = matches  # Bounded by MAX_ROWS; browser reveals ten at a time.
     receipt_input = json.dumps({
         "objective": objective, "mode": source_mode, "status": source_status,
         "candidates": shown, "unexamined_count": unexamined_count,
