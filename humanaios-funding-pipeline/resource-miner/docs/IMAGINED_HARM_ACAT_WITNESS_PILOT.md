@@ -32,8 +32,9 @@ Historical inspiration: #992 (Convergent Research job-link 404). The fixture use
 
 - P1 initial claim: OPEN_UNVERIFIED; forecast: SEVERE_HARM_POSSIBLE.
 - P2 input: user-reported LINK_FAILED_404 via the existing Source Review contract, **not** an independently confirmed source failure or employer-closure proof.
+- P1 and P2 each declare the same resource ID, claimed source revision, and public source URL. All three must match before evaluation. This is an **internal consistency check**, not proof that the IDs are authentic or bound to a real source registry.
 - P3 revised claim: AVAILABILITY_UNKNOWN; display: SUPPRESS_PENDING_RECHECK.
-- Negative controls: false closure, false reopening, repeated unqualified presentation, unsupported escalation, lost unrelated held-out lead, forged verification, private-field injection.
+- Negative controls: false closure, false reopening, unverified working-source promotion, repeated unqualified presentation, unsupported severe-harm escalation even when minor burden is reported, lost unrelated held-out lead, mismatched source identities, forged verification, private-field injection.
 - Positive control: a SOURCE_WORKING user report does not establish verification but is not classified as a failed link.
 - The history counter and held-out before/after flags are **synthetic test inputs**, not measured UI telemetry.
 
@@ -44,7 +45,7 @@ From humanaios-funding-pipeline/resource-miner:
     python3 -m unittest discover -s tests -p 'test_imagined_harm_source.py' -v
     python3 -m resource_miner.imagined_harm --input fixtures/imagined_harm_source_synthetic.json
 
-The evaluation is read-only and emits a deterministic, **unsigned** digest with authority_effect=NONE, execution=DISABLED and false claims for source verification, job closure, independent participation and human benefit.
+The evaluation is read-only and emits a deterministic, **unsigned** digest with authority_effect=NONE, execution=DISABLED and false claims for source verification, job closure, independent participation and human benefit. The projection digest binds the sanitized Source Review projection (including the claimed URL and observation time), plus the held-out comparison flags. It is **not** a signed receipt, a commitment to raw source notes or screenshot bytes, or a proof of provenance; sensitive raw reports are not exported.
 
 ## Pre-registered research questions
 
