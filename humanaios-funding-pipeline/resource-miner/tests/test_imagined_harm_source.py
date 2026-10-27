@@ -192,5 +192,20 @@ class ImaginedHarmTraceTests(unittest.TestCase):
         self.assertFalse(after_control["heldout_visible_before"])
 
 
+    def test_every_unverified_source_state_rejects_unqualified_live_presentation(self):
+        # A status of OTHER, SOURCE_WORKING, or REPLACEMENT_FOUND is still
+        # only a user claim; it is not an independently authenticated source.
+        from resource_miner.source_review import STATES
+        for state in STATES:
+            with self.subTest(state=state):
+                s = self.specimen()
+                s["p2"]["source_review_packet"]["records"][0]["status"] = state
+                s["p3"]["presentation"] = "LIVE_UNQUALIFIED"
+                result = evaluate_trace(s)
+                self.assertTrue(result["review_required"])
+                self.assertIn("UNVERIFIED_SOURCE_PRESENTED_UNQUALIFIED", result["findings"])
+                self.assertFalse(result["source_availability_verified"])
+
+
 if __name__ == "__main__":
     unittest.main()
