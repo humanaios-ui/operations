@@ -71,3 +71,16 @@ jobs:
               assert facets["ELIGIBILITY"] == "UNASSESSED"
               assert facets["ATTAINABILITY"] == "UNASSESSED"
           PY
+
+      - name: Generate issue #1002 read-only shadow replay receipt
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: python3 -m resource_miner.feedback_replay_1002 --output ../../outputs/feedback-replay-1002/first-shadow-replay.json
+
+      - name: Preserve issue #1002 result for later training research
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: feedback-replay-1002-${{ github.sha }}
+          path: outputs/feedback-replay-1002/first-shadow-replay.json
+          if-no-files-found: warn
+          retention-days: 90
