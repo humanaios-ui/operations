@@ -1,0 +1,98 @@
+name: Oracle SMAG Miner Trusted Policy
+
+# This policy is loaded from the trusted PR base. Candidate code runs only in
+# a credential-free container; its stdout is untrusted JSON, never shell input.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/**'
+      - 'oracles/engine/forecast_replay_v0_1.py'
+      - '.github/workflows/oracle-smag-miner-*.yml'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: oracle-smag-policy-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  policy:
+    name: Oracle SMAG policy for exact PR head
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      POLICY_SHA: ${{ github.sha }}
+    steps:
+      - name: Checkout candidate as data for the isolated replay
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+
+      - name: Verify exact candidate commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C candidate rev-parse HEAD)" = "$EXPECTED_HEAD_SHA"
+
+      - name: Replay candidate without credentials or host access
+        shell: bash
+        env:
+          CONTAINER_NAME: oracle-smag-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true' EXIT
+          docker pull python:3.10-slim
+          # No token, runner environment, Docker socket, or writable host path
+          # enters the container. Capture stderr too, avoiding workflow commands.
+          (
+            ulimit -f 2048
+            timeout 60s docker run --rm --name "$CONTAINER_NAME" \
+              --network none --read-only --cap-drop ALL \
+              --security-opt no-new-privileges --user 65534:65534 \
+              --pids-limit 64 --memory 256m --cpus 1 \
+              --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+              --mount "type=bind,source=$GITHUB_WORKSPACE/candidate,target=/candidate,readonly" \
+              --workdir /candidate/humanaios-funding-pipeline/resource-miner \
+              python:3.10-slim python3 -B -m resource_miner.oracle_smag_experiment \
+              > "$RUNNER_TEMP/oracle-smag.json" 2> "$RUNNER_TEMP/oracle-smag.stderr"
+          )
+
+      - name: Enforce trusted abstention policy on candidate output
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Isolated Python ignores candidate modules and Python environment hooks.
+          python3 -I - "$RUNNER_TEMP/oracle-smag.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as report:
+              d = json.load(report)
+          assert d["oracle_claim_status"] == "DESCRIPTIVE_ONLY"
+          assert d["authority_effect"] == "NONE"
+          assert d["merge_authority"] is False
+          assert type(d["resolved_count"]) is int and d["resolved_count"] == 2
+          assert type(d["pending_count"]) is int and d["pending_count"] == 3
+          assert d["retrospective_precommitment_authenticated"] is False
+          assert d["outcomes_independently_attested"] is False
+          PY
+
+      - name: Reject a stale PR head and record policy binding
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const {data: pr} = await github.rest.pulls.get({
+              ...context.repo, pull_number: context.payload.pull_request.number
+            });
+            if (pr.head.sha !== process.env.EXPECTED_HEAD_SHA) {
+              throw new Error("PR head changed during policy evaluation; rerun required");
+            }
+            await core.summary.addHeading("Oracle SMAG trusted policy")
+              .addRaw(`PR head: ${process.env.EXPECTED_HEAD_SHA}\n\n`)
+              .addRaw(`Trusted base policy: ${process.env.POLICY_SHA}\n\n`)
+              .addRaw("Descriptive output only; no admission or merge authority.\n")
+              .write();
