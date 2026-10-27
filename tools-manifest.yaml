@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 217
+  tools: 219
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 169
+  builder_markers_present: 171
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2762,6 +2762,32 @@ tools:
   builder_markers: true
   purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
   session: '#595'
+- tool_id: HAIOS-TOOL-231
+  name: attractor_observatory
+  path: tools/attractor_observatory_e0.py
+  version: 0.1.0
+  category: analytics_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only HumanAIOS convergence and conversion observatory (E0).
+  session: S-20261026-ATTRACTOR-E0
+- tool_id: HAIOS-TOOL-232
+  name: attractor_observatory_view
+  path: tools/attractor_observatory_view_e0.py
+  version: 0.1.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Render an offline and non-authorizing E0 HTML dashboard.
+  session: S-20261026-ATTRACTOR-E0
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
