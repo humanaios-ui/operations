@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**217 registered tools** · 2 MCP servers · 4 excluded · 169 carrying Builder v1.7 markers
+**219 registered tools** · 2 MCP servers · 4 excluded · 171 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 217 |
-| — status `draft` | 216 |
+| Registered tools | 219 |
+| — status `draft` | 218 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 169 |
+| Builder v1.7 markers present | 171 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -28,13 +28,14 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 |---|---|---|---|
 | HAIOS-TOOL-088 | `tools/message_calibration_v1_0.py` | 2 | Self-declares TOOL_ZONE = 2 (ratify) with no Z2 ratification on record. Z1 cannot grant Zone 2; routed to Z2 as an open item. Resolve by either recording a `ratified_by` hash or correcting the declaration to zone 1. |
 
-## Analytics — `analytics_tool` (3)
+## Analytics — `analytics_tool` (4)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-023 | acat_sdt_analytics | `tools/acat_sdt_analytics_v1_0.py` | 1.0.0 | 1 | draft | — | ACAT SDT Analytics — v1.0 |
 | HAIOS-TOOL-176 | grant_matching_engine_v1_0 | `tools/grant_matching_engine_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Matching Engine v1.0 |
 | HAIOS-TOOL-200 | workflow_telemetry_collector | `tools/workflow_telemetry_collector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Telemetry Collector |
+| HAIOS-TOOL-231 | attractor_observatory | `tools/attractor_observatory_e0.py` | 0.1.0 | 1 | draft | — | Read-only HumanAIOS convergence and conversion observatory (E0). |
 
 ## Audit — `audit_tool` (24)
 
@@ -239,7 +240,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-203 | control_plane_github_adapter | `tools/control_plane_github_adapter_v0_1.py` | 0.1.0 | 1 | draft | — | Transform exported GitHub evidence into authority-neutral raw custody observations. |
 | HAIOS-TOOL-208 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.1 | 1 | draft | — | Metadata-first and local-only by design. It does not read user document contents. |
 
-## Reporting — `reporting_tool` (7)
+## Reporting — `reporting_tool` (8)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -250,6 +251,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 | HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
 | HAIOS-TOOL-229 | system_graph_render | `tools/system_graph_render_v1_0.py` | 1.0.0 | 1 | draft | — | Renders system_graph.json to Markdown with a provenance header (source sha256, source generated_at, rendering commit) so prose copies of the system graph, including the Google Drive mirror, point back at the file they came from; --check detects drift of a rendered copy. |
+| HAIOS-TOOL-232 | attractor_observatory_view | `tools/attractor_observatory_view_e0.py` | 0.1.0 | 1 | draft | — | Render an offline and non-authorizing E0 HTML dashboard. |
 
 ## Research — `research_tool` (10)
 
@@ -353,7 +355,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 
 | category | meaning | count |
 |---|---|---|
-| `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
+| `analytics_tool` | Statistical or psychometric computation over collected data. | 4 |
 | `audit_tool` | Audits artifacts or state against rules and reports findings. | 24 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 17 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
@@ -364,7 +366,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
-| `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 7 |
+| `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 8 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
