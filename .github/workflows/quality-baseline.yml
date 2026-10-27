@@ -95,9 +95,15 @@ jobs:
 
       - name: Emit Workflow Telemetry (Phase 2B)
         if: always()
+        env:
+          # The title is data, not code: pass it through the environment rather
+          # than interpolating it into the Python source, where a quote breaks
+          # the script and attacker-chosen text could run.
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           python3 << 'TELEMETRY_EOF'
           import json
+          import os
           from datetime import datetime
 
           telemetry = {
@@ -112,7 +118,7 @@ jobs:
           # Add PR context if available
           if "${{ github.event_name }}" == "pull_request":
               telemetry["pr_number"] = "${{ github.event.pull_request.number }}"
-              telemetry["pr_title"] = "${{ github.event.pull_request.title }}"
+              telemetry["pr_title"] = os.environ.get("PR_TITLE", "")
 
           with open("telemetry.json", "w") as f:
               json.dump(telemetry, f, indent=2)

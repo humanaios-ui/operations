@@ -1,5 +1,7 @@
 # CLAUDE.md — HumanAIOS Authority & Governance Reference
 
+> **Agent entry/exit pilot (Z1, not ratified):** For issue/PR handoffs see [AGENTS.md](AGENTS.md) and [docs/AGENT_COORDINATION_REFLEX_PILOT.md](docs/AGENT_COORDINATION_REFLEX_PILOT.md). This is an advisory pointer only; it changes no Z2/Z3 authority or the requirements below.
+
 **Location:** `operations/CLAUDE.md` (canonical source)  
 **Updated:** 2026-09-25  
 **Purpose:** Unified authority map for all 31 HumanAIOS repositories  

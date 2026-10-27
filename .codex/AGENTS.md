@@ -1,5 +1,7 @@
 # ECC for Codex CLI
 
+> **Repository visit reflex (pilot):** Follow the bounded ENTER/EXIT handoff in [AGENTS.md](../AGENTS.md). This is not an instruction to bypass admission or publish without permission.
+
 This provides a repo-local ECC baseline for Codex CLI.
 
 ## Repo Skill
