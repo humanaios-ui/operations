@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import ipaddress
 from hmac import compare_digest
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -13,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 
 from resource_miner.miner import enrich
 from resource_miner.intent_os import evaluate_objective
+from resource_miner.opportunity_journey import project_journey
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
 from resource_miner.sources import devto, funding_pipeline, github, rss
@@ -24,6 +26,7 @@ DEFAULT_REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
 DEFAULT_OUT = ROOT / "data" / "resources.jsonl"
 SNAPSHOT_OUT = ROOT / "data" / "resources.snapshot.jsonl"
 DEFAULT_FUNDING = ROOT.parent / "data" / "sources.json"
+JOURNEY_STARTER = ROOT / "fixtures" / "opportunity_journey_apart_synthetic.json"
 
 
 def _json_bytes(data: Any) -> bytes:
@@ -105,6 +108,24 @@ class Handler(BaseHTTPRequestHandler):
             remaining -= len(chunk)
         return b"".join(chunks)
 
+    def _local_opportunities_allowed(self) -> bool:
+        """The private preview is NEVER enabled on 0.0.0.0 / Azure ingress.
+
+        Bound loopback and peer loopback are both required. Host/Origin checks
+        prevent browser DNS-rebinding and cross-origin request attempts.
+        """
+        try:
+            bound = ipaddress.ip_address(self.server.server_address[0])
+            peer = ipaddress.ip_address(self.client_address[0])
+            port = self.server.server_address[1]
+            permitted = {f"127.0.0.1:{port}", f"localhost:{port}", f"[::1]:{port}"}
+            origin = self.headers.get("Origin")
+            return (bound.is_loopback and peer.is_loopback
+                    and self.headers.get("Host") in permitted
+                    and (origin is None or origin in {"http://" + host for host in permitted}))
+        except (ValueError, AttributeError, IndexError, TypeError):
+            return False
+
     def _admin_allowed(self) -> bool:
         """Deny legacy scan/record APIs to anonymous public service callers.
 
@@ -144,6 +165,25 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path == "/my-opportunities":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                page = (ROOT / "my-opportunities.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
+            if parsed.path in ("/api/my-opportunities", "/api/my-opportunities/starter"):
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                # Only public synthetic examples are served by default.
+                source = json.loads(JOURNEY_STARTER.read_text(encoding="utf-8"))
+                if parsed.path.endswith("/starter"):
+                    return self._send_json(source)
+                return self._send_json({
+                    "mode": "SYNTHETIC_DEMONSTRATION_NOT_PERSONAL_EVIDENCE",
+                    "journeys": [project_journey(source)],
+                    "authority": "NONE",
+                })
             if parsed.path in ("/", "/intent-os"):
                 page = (ROOT / "intent-os.html").read_bytes()
                 self._headers(200, "text/html; charset=utf-8", len(page))
@@ -204,6 +244,29 @@ class Handler(BaseHTTPRequestHandler):
             )
 
     def do_POST(self) -> None:
+        if urlparse(self.path).path == "/api/my-opportunities/project":
+            if not self._local_opportunities_allowed():
+                return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("Expected application/json.")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 12288:
+                    raise ValueError("Journey payload must be 1–12288 bytes.")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                projected = project_journey(body)
+                return self._send_json({
+                    "mode": "LOCAL_USER_PROVIDED_UNVERIFIED",
+                    "journeys": [projected],
+                    "authority": "NONE",
+                })
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request deadline exceeded."}, HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+                return self._send_json({"error": "Invalid or unauthorized journey data."}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Journey projection unavailable."}, HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path == "/api/intent":
             try:
                 content_type = self.headers.get("Content-Type", "").lower()

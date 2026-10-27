@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 215
+  tools: 218
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 167
+  builder_markers_present: 169
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2734,6 +2734,46 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml.
+- tool_id: HAIOS-TOOL-229
+  name: system_graph_render
+  path: tools/system_graph_render_v1_0.py
+  version: 1.0.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Renders system_graph.json to Markdown with a provenance header (source sha256, source generated_at,
+    rendering commit) so prose copies of the system graph, including the Google Drive mirror, point back
+    at the file they came from; --check detects drift of a rendered copy.
+  session: S-100426-drive-graph-sync
+- tool_id: HAIOS-TOOL-230
+  name: calibration_graph_validate
+  path: tools/calibration_graph/validate_graph.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
+  session: '#595'
+- tool_id: HAIOS-TOOL-231
+  name: b4_admission
+  path: tools/b4_admission.py
+  version: unversioned
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'B4 controlled-operation admission: verify a GitHub-authenticated approval envelope.'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
