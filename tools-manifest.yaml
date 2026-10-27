@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 217
+  tools: 218
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 169
@@ -2762,6 +2762,18 @@ tools:
   builder_markers: true
   purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
   session: '#595'
+- tool_id: HAIOS-TOOL-231
+  name: b4_admission
+  path: tools/b4_admission.py
+  version: unversioned
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'B4 controlled-operation admission: verify a GitHub-authenticated approval envelope.'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
