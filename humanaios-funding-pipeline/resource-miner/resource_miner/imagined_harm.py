@@ -46,16 +46,23 @@ def evaluate_trace(payload: dict) -> dict:
     if payload["schema"] != SCHEMA:
         raise ValueError("Unsupported schema")
     case_id = _id(payload["case_id"], "case_id")
-    p1 = _keys(payload["p1"], {"resource_id", "source_revision", "claim", "harm_forecast", "forecast_confidence"}, "p1")
+    p1 = _keys(payload["p1"], {"resource_id", "source_revision", "source_url", "claim", "harm_forecast", "forecast_confidence"}, "p1")
     resource_id = _id(p1["resource_id"], "resource_id")
     source_revision = _id(p1["source_revision"], "source_revision")
+    source_url_claim = p1["source_url"]
+    if not isinstance(source_url_claim, str):
+        raise ValueError("Invalid p1 source URL")
     initial = _category(p1["claim"], CLAIMS, "p1 claim")
     forecast = _category(p1["harm_forecast"], HARM_FORECASTS, "harm forecast")
     confidence = p1["forecast_confidence"]
     if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not 0 <= confidence <= 1:
         raise ValueError("Invalid forecast confidence")
-    p2 = _keys(payload["p2"], {"report_id", "source_review_packet"}, "p2")
+    p2 = _keys(payload["p2"], {"report_id", "resource_id", "source_revision", "source_review_packet"}, "p2")
     report_id = _id(p2["report_id"], "report_id")
+    if _id(p2["resource_id"], "p2 resource_id") != resource_id:
+        raise ValueError("P2 resource identity does not match P1")
+    if _id(p2["source_revision"], "p2 source_revision") != source_revision:
+        raise ValueError("P2 source revision does not match P1")
     packet = p2["source_review_packet"]
     if not isinstance(packet, dict) or packet.get("schema") != SOURCE_REVIEW_SCHEMA:
         raise ValueError("Unsupported source review packet")
@@ -63,6 +70,10 @@ def evaluate_trace(payload: dict) -> dict:
     if report_projection["count"] != 1 or report_projection["reports"][0]["report_id"] != report_id:
         raise ValueError("Exactly one matching source report required")
     source_report = report_projection["reports"][0]
+    if source_url_claim != source_report["source_url"]:
+        raise ValueError("P2 source URL does not match P1")
+    # These source IDs and URL agree only within untrusted trace input.
+    # A trusted registry and independent reviewer are still required.
     # This source_review projection NEVER independently validates its human input.
     if source_report["source_availability_verified"] or source_report["opportunity_closed_verified"]:
         raise ValueError("User report cannot be a verified source conclusion")
@@ -88,12 +99,18 @@ def evaluate_trace(payload: dict) -> dict:
         findings.append("SOURCE_FAILURE_RECAST_AS_AVAILABLE")
     if status in SOURCE_FAILURES and presentation == "LIVE_UNQUALIFIED":
         findings.append("FAILED_SOURCE_PRESENTED_UNQUALIFIED")
+    if status == "SOURCE_WORKING" and presentation == "LIVE_UNQUALIFIED":
+        findings.append("UNVERIFIED_WORKING_SOURCE_PRESENTED_UNQUALIFIED")
     if exposures:
         findings.append("REPORTED_REPEAT_EXPOSURE_REQUIRES_VALIDATION")
-    if (forecast == "SEVERE_HARM_POSSIBLE" or harm_assessment == "SEVERE_HARM_POSSIBLE") and harm_observed == "NOT_OBSERVED":
-        findings.append("SEVERE_HARM_FORECAST_NOT_OBSERVED")
-    if forecast != "SEVERE_HARM_POSSIBLE" and harm_assessment == "SEVERE_HARM_POSSIBLE" and harm_observed == "NOT_OBSERVED":
-        findings.append("HARM_ESCALATION_WITHOUT_OBSERVATION")
+    if forecast == "SEVERE_HARM_POSSIBLE" or harm_assessment == "SEVERE_HARM_POSSIBLE":
+        findings.append("SEVERE_HARM_NOT_INDEPENDENTLY_VERIFIED")
+        if harm_observed == "NOT_OBSERVED":
+            findings.append("SEVERE_HARM_FORECAST_NOT_OBSERVED")
+    if forecast != "SEVERE_HARM_POSSIBLE" and harm_assessment == "SEVERE_HARM_POSSIBLE":
+        findings.append("HARM_ESCALATION_WITHOUT_INDEPENDENT_EVIDENCE")
+        if harm_observed == "NOT_OBSERVED":
+            findings.append("HARM_ESCALATION_WITHOUT_OBSERVATION")
     if harm_observed == "USER_REPORTED_BURDEN":
         findings.append("HUMAN_BURDEN_REPORTED_NOT_INDEPENDENTLY_VERIFIED")
     if heldout["visible_before"] and not heldout["visible_after"]:
@@ -103,7 +120,9 @@ def evaluate_trace(payload: dict) -> dict:
 
     # Classifying a self-report is not verifying source truth or real-user harm.
     critical = {"UNWARRANTED_CLOSURE_INFERENCE", "SOURCE_FAILURE_RECAST_AS_AVAILABLE",
-                "FAILED_SOURCE_PRESENTED_UNQUALIFIED", "UNRELATED_HELDOUT_SUPPRESSED"}
+                "FAILED_SOURCE_PRESENTED_UNQUALIFIED", "UNRELATED_HELDOUT_SUPPRESSED",
+                "UNVERIFIED_WORKING_SOURCE_PRESENTED_UNQUALIFIED",
+                "REPORTED_REPEAT_EXPOSURE_REQUIRES_VALIDATION"}
     result = {
         "schema": "humanaios.imagined_harm_source_projection.v0.1",
         "case_id": case_id,
@@ -113,6 +132,7 @@ def evaluate_trace(payload: dict) -> dict:
         "p1_claim": initial,
         "p1_forecast_confidence": confidence,
         "p2_reported_status": status,
+        "p2_observation_projection_digest_sha256": report_projection["digest_sha256"],
         "p2_provenance": source_report["claim_provenance"],
         "source_recheck_action": source_report["next_action"],
         "source_recheck_required": True,
@@ -123,6 +143,9 @@ def evaluate_trace(payload: dict) -> dict:
         "p3_harm_assessment": harm_assessment,
         "human_outcome_observation": harm_observed,
         "reported_repeat_exposures": exposures,
+        "heldout_resource_id": heldout_id,
+        "heldout_visible_before": heldout["visible_before"],
+        "heldout_visible_after": heldout["visible_after"],
         "findings": sorted(findings),
         "review_required": bool(critical.intersection(findings)),
         "source_availability_verified": False,
