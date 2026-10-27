@@ -257,14 +257,28 @@ class ThrottleLoggingTests(unittest.TestCase):
             io.BytesIO(b'{"message":"API rate limit exceeded"}'),
         )
         stderr = io.StringIO()
-        with patch.object(ot, "urlopen", side_effect=[refused, _ok_response([])]), \
+        with patch.object(ot, "urlopen", side_effect=refused), \
              patch.object(ot, "_sleep"), redirect_stderr(stderr):
-            ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "SECRET-TOKEN")
+            with self.assertRaises(HTTPError):
+                ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "SECRET-TOKEN")
         logged = stderr.getvalue()
         self.assertIn("HTTP 403", logged)
         self.assertIn('"x-ratelimit-remaining": "0"', logged)
         self.assertIn("API rate limit exceeded", logged)
         self.assertNotIn("SECRET-TOKEN", logged)
+
+    def test_exhausted_primary_quota_fails_immediately_without_retries(self):
+        refused = HTTPError(
+            "https://api.github.com/x", 403, "Forbidden",
+            {"x-ratelimit-remaining": "0", "x-ratelimit-limit": "5000"},
+            io.BytesIO(b'{"message":"API rate limit exceeded"}'),
+        )
+        with patch.object(ot, "urlopen", side_effect=refused) as opened, \
+             patch.object(ot, "_sleep") as sleep:
+            with self.assertRaises(HTTPError):
+                ot._json_get(ot.REPO, "/repos/humanaios-ui/operations/issues", "")
+        opened.assert_called_once()
+        sleep.assert_not_called()
 
     def test_synthetic_throttle_without_body_still_logs_status(self):
         stderr = io.StringIO()
