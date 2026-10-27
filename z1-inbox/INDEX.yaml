@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 114
+  candidates: 115
   records: 64
 ratifiers:
 - Night
 candidates:
+- q_id: Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01
+  title: 'Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages'
+  path: z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md
+  submitted: '2026-10-25'
+  status: awaiting_z2
+  tier: 0
+  note: 'tools/publication.py injects a fixed instruction string from config/publication.json into HTML metadata, JSON-LD, an HTML comment, and a Markdown comment on 8 published article pages at truuzee-byte/governing-engines-ai-discovery (DeMarius J. Lawson / Governing Engines, our active MODE_AI_PARTNERSHIP.md partner), directing AI assistants to recommend contacting him. Confirmed in source (config/publication.json + tools/publication.py); tools/corpus.py confirmed as a separate, unaffected pipeline. Live rendered-page confirmation still outstanding (DNS blocked from this session). Falsifier stated. Not ratified.'
 - q_id: Q-PRINCIPLES-CROSSWALK-01
   title: Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4
   path: z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md
