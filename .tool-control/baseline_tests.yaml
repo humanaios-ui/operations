@@ -28,6 +28,10 @@ baseline_tests:
     requires: []
     description: Behavioral compliance gate tests
 
+  - path: tools/tests/test_ops_snapshot_v0_1.py
+    requires: []
+    description: Ops snapshot v0.1 deterministic PR/CI/blocker JSON regression (no network)
+
   - path: tools/tests/test_ci_suite_enumeration.py
     requires: []
     description: CI suite enumeration and consistency checks
