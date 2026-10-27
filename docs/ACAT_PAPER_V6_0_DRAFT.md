@@ -128,7 +128,7 @@ What the inspected records directly establish is more limited: ACAT captures pro
 - **No external ground truth.** ACAT cannot independently verify that a Phase 3 score is "more accurate" than a Phase 1 score; it can only report that the two differ and by how much.
 - **Instrument-variant metadata incompleteness** in the live corpus (§4) currently constrains tier-stratified analysis to a tagged subset.
 - **Variant-family immaturity.** The h-ACAT, hCAT, Shadow Calibration, and Enterprise modes described in §3 are at early build or design stage and are not validated against the core instrument; we report them as related infrastructure, not as corroborating evidence for the core instrument's findings.
-- **TRL 2–3.** This is behavioral-observability infrastructure under active development. Numbers in this draft reflect the dataset as queried at time of writing and will change as the live corpus grows; the frozen corpus is the only stable basis for cross-paper citation.
+- **TRL 2–3.** This is behavioral-observability infrastructure under active development. The live database has changed since this June draft. No corpus is a defensible cross-paper citation basis until its exact released bytes, filtering rules, study cohort and analysis receipt are independently reproduced. In particular, the 629-row owner workbook is not interchangeable with the separately listed 604-row public release.
 
 ---
 
