@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Read-only HumanAIOS convergence and conversion observatory (E0).
+Builder v1.7 compliant
 
 Static edges show possible routing, not executed agent decisions.
 Outcome rows are unauthenticated assertions even when they carry a reviewer.
@@ -15,6 +16,12 @@ import json
 from pathlib import Path
 import re
 import sys
+
+TOOL_NAME = "attractor_observatory"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "analytics_tool"
+TOOL_ZONE = 1
+TOOL_SESSION = "S-20261026-ATTRACTOR-E0"
 
 SCHEMA = "humanaios.attractor_observatory.e0"
 STAGES = {
@@ -313,13 +320,29 @@ def build(graph_data, trails=None, outcomes=None, fingerprints=None):
     }
 
 
+def run_smoke_test():
+    """Non-authorizing synthetic smoke-test, no file or network access."""
+    synthetic = {
+        "nodes": {"X": {"id": "X"}, "Y": {"id": "Y"}},
+        "edges": [{"source": "X", "target": "Y"}, {"source": "Y", "target": "X"}],
+    }
+    report = build(synthetic)
+    assert report["authority_effect"] == "NONE"
+    assert report["internal"]["largest_cyclic_component_size"] == 2
+    assert report["external_conversion"]["state"] == "NOT_MEASURED"
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--smoke-test", action="store_true")
     parser.add_argument("--graph", default="system_graph.json")
     parser.add_argument("--trails", help="explicit read-only observed routing JSONL; optional")
     parser.add_argument("--outcomes", help="explicit receipt claims JSONL; optional")
     parser.add_argument("--output", help="optional local report file; defaults to stdout")
     args = parser.parse_args(argv)
+    if args.smoke_test:
+        return run_smoke_test()
     try:
         graph, ghash = _read(args.graph, "graph")
         trails, thash = _read(args.trails, "trails")
