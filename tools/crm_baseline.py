@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Builder v1.7 compliant — read-only HumanAIOS CRM source-pin validation."""
+"""Builder v1.7 compliant
+
+Validates a public-safe HumanAIOS CRM evidence snapshot.
+"""
 from __future__ import annotations
 
 import argparse
@@ -11,6 +14,8 @@ from pathlib import Path
 
 TOOL_NAME = "crm_baseline"
 TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "validation_tool"
+TOOL_ZONE = 1
 SCHEMA = "humanaios.crm.baseline.v0.1"
 REPO = "humanaios-ui/operations"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
