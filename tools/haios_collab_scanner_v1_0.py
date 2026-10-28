@@ -233,7 +233,7 @@ def run(data: dict) -> dict:
             warnings.append(f"Unknown source: {source}")
             continue
         # No live adapters are wired in v1.0. An unprovided injection key is
-        # NOT a successful source scan; never report an empty stub as checked.
+        # NOT a successful source scan; do not report an empty stub as checked.
         if f"_{source}_results" not in data:
             warnings.append(f"{source}: no authenticated adapter; not scanned")
             continue
@@ -307,7 +307,7 @@ def run(data: dict) -> dict:
                 "notes": f"Source: {source_ref}. Category: {category}. Signals: {', '.join(signals[:2])}",
             })
 
-    # Never invent aged outreach approvals from legacy hardcoded records.
+    # Aged outreach approval needs dated evidence, not a legacy hardcoded record.
     # Only source-linked candidates may appear in this Z1 review queue.
 
     crm_snapshot = None
