@@ -28,8 +28,8 @@ The snapshot is deliberately not the canonical live relationship state. Human-he
 From the repository root:
 
 ```sh
-python3 tools/crm_baseline.py collaborator-ops/crm/baseline-2026-10-28.json
-python3 tools/crm_baseline.py collaborator-ops/crm/baseline-2026-10-28.json --verify-local-git --repo-root .
+python3 collaborator-ops/crm/crm_baseline.py collaborator-ops/crm/baseline-2026-10-28.json
+python3 collaborator-ops/crm/crm_baseline.py collaborator-ops/crm/baseline-2026-10-28.json --verify-local-git --repo-root .
 python3 tools/haios_collab_scanner_v1_0.py --sources github --crm-baseline collaborator-ops/crm/baseline-2026-10-28.json --output /tmp/haios-crm-review
 python3 tools/haios_collab_scanner_v1_0.py --smoke-test
 python3 -m unittest discover -s tests -p 'test_crm_baseline.py' -v
