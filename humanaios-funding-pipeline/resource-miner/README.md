@@ -10,6 +10,68 @@ At discovery time, a `ResourceCandidate` is best read as a **candidate resource 
 
 ## Boundary
 
+### Preparation checks and file versions
+
+My Opportunities now supports an optional `preparation` object on the existing
+journey envelope. Old journey JSON and private bundles remain supported without
+adding preparation or changing their projection/digest.
+
+In an editable journey, enter an opaque file ID and role, choose a file, and
+record its version. The browser hashes files up to 10 MB. Names and contents
+are neither saved nor uploaded. Only declared requirements, IDs, roles, version
+numbers, SHA-256 fingerprints, and check reports reach the loopback projector.
+Save/Export retains these metadata in the existing private bundle, not file bytes.
+
+Record a named required check as unknown, failed, or passed after your review.
+The UI binds each report to all current required file versions. Recording a
+different file under the same ID appends a version; reports on earlier versions
+become `STALE` until reviewed again. Import supports check requirements for
+specific subsets of required files. Each report must cover its declared set.
+
+`preparation` has four arrays:
+
+- `required_files`: opaque file IDs, up to 16.
+- `required_checks`: up to 16 `{check_id, file_ids}` requirements. Each file set
+  is nonempty and references declared required files.
+- `files`: up to 32 version metadata entries
+  `{file_id, version, sha256, role}`. Versions are positive integer identifiers;
+  highest version per file is current, regardless of array order. Roles are
+  `INPUT`, `METADATA`, `OUTPUT`, `ARTIFACT`, or `INSTRUCTIONS` and stay fixed
+  for a file ID. Reusing an ID/version, even identically, is rejected. These
+  limits and the existing 12 KB request cap bound this prototype's history.
+- `checks`: up to 16 current reports
+  `{check_id, status, evidence_ref, observed_at, files}`. Status is `PASS`,
+  `FAIL`, or `UNKNOWN`; time is UTC. `files` contains exact
+  `{file_id, version, sha256}` references. A new report replaces that check's
+  previous report in the editable bundle; file version history is retained.
+  This is supplied history, not an append-only or tamper-proof journal.
+
+Readiness is `READY_FOR_HUMAN_REVIEW` only when requirements are nonempty,
+every required file exists and is covered by a required check, and every
+required check reports `PASS` for its exact current versions. Missing,
+unknown, failed and stale checks remain visible. Readiness evaluates the
+**declared** requirements; it cannot prove the provider's full rules were
+captured. Changing the declaration is not an authorized change to those rules.
+
+The reducer validates supplied metadata but does not read files, authenticate
+reports, store bytes, or verify claimed fingerprints. Browser hashing proves
+which selected bytes were hashed, not the file's truth, quality or authorship.
+Reports and fingerprints do not promote participant standing, task acceptance,
+submission, payment, or any execution permission. Human review remains needed.
+
+Run the preparation regressions in the existing journey/HTTP suites and the
+Node DOM interaction harness (which calls the real Python reducer):
+
+```bash
+python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
+node tests/opportunity_preparation_ui.cjs
+```
+
+The DOM harness covers select/hash/version, stale checks, recheck, failure,
+private export/save/import, absence of file-content transmission and unchanged
+provider outcomes. It is not a native-browser visual test.
+
 ```text
 Internet / public sources
   -> Resource Miner
