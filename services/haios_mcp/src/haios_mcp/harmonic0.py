@@ -22,6 +22,7 @@ SCHEMA = "humanaios.harmonic0.routing_receipt.v0.1"
 POLICY = "HARMONIC0-LOCAL-FIRST-Z1-v0.1"
 SIMULATED_CLOUD_SCOPE = "HARMONIC0_SIMULATED_CLOUD_ONLY"
 GENESIS = "0" * 64
+NONPUBLIC_DIGEST = "NONPUBLIC_PAYLOAD_NOT_FINGERPRINTED"
 ALLOWED_TASKS = frozenset({
     "haios_status", "haios_read_document", "haios_self_model",
     "haios_find_resources", "haios_talk",
@@ -165,7 +166,10 @@ def _decision(route: str, reason: str, attempts: list[dict[str, str]],
 
 
 def metadata(req: RouteRequest) -> dict[str, Any]:
-    digest = sha256(req.text.encode("utf-8"))
+    # A plain SHA-256 of a small private prompt enables offline guessing.
+    # Neither private nor unclassified text is fingerprinted in receipts.
+    digest = (sha256(req.text.encode("utf-8")) if req.privacy == "PUBLIC"
+              else NONPUBLIC_DIGEST)
     return {
         "request_id": req.request_id,
         "payload_sha256": digest,
@@ -181,7 +185,7 @@ def metadata(req: RouteRequest) -> dict[str, Any]:
             "payload_sha256": req.grant.payload_sha256,
             "scope": req.grant.scope,
             "operator_confirmed": req.grant.operator_confirmed,
-        } if req.grant else None),
+        } if req.grant and req.privacy == "PUBLIC" else None),
     }
 
 
@@ -214,9 +218,12 @@ def _validate_receipt(record: dict[str, Any], sequence: int, previous: str) -> s
         raise ValueError("Routing request metadata invalid")
     if (not isinstance(meta["request_id"], str)
             or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", meta["request_id"])
-            or not isinstance(meta["payload_sha256"], str)
-            or not re.fullmatch(r"[a-f0-9]{64}", meta["payload_sha256"])
             or meta["privacy"] not in PRIVACY
+            or not isinstance(meta["payload_sha256"], str)
+            or not (re.fullmatch(r"[a-f0-9]{64}", meta["payload_sha256"])
+                    if meta["privacy"] == "PUBLIC"
+                    else meta["payload_sha256"] == NONPUBLIC_DIGEST)
+            or (meta["privacy"] != "PUBLIC" and meta["grant"] is not None)
             or not isinstance(meta["task"], str)):
         raise ValueError("Routing request identifiers invalid")
     if any(type(meta[k]) is not bool for k in (
