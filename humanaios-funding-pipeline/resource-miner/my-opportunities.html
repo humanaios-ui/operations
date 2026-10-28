@@ -73,6 +73,28 @@ footer{font-size:.85rem;color:#bac8d9;line-height:1.55}
 <p class="subtle" id="warnings"></p>
 </article>
 </section>
+<section class="panel" id="preparationPanel">
+<h2>Preparation and file versions</h2>
+<p id="preparationStanding" role="status">No preparation requirements declared.</p>
+<div id="preparationDetails"></div>
+<p class="subtle">Checks are your reports about specific file versions. A changed version makes an earlier check stale. Ready for human review does not mean approved, submitted, accepted, or paid.</p>
+<fieldset id="preparationControls" disabled>
+<legend>Prepare this opportunity</legend>
+<label for="preparationFileId">File ID (letters, numbers, hyphen or underscore)</label>
+<input id="preparationFileId" maxlength="100" placeholder="QC-INPUT" autocomplete="off">
+<label for="preparationRole">File role</label>
+<select id="preparationRole"><option>INPUT</option><option>METADATA</option><option>INSTRUCTIONS</option><option>ARTIFACT</option><option>OUTPUT</option></select>
+<label for="preparationFile">Choose a file to fingerprint (maximum 10 MB)</label>
+<input id="preparationFile" type="file">
+<div class="actions"><button type="button" id="recordFile">Record required file version</button></div>
+<label for="preparationCheckId">Required check ID</label>
+<input id="preparationCheckId" maxlength="100" placeholder="GOAL-AND-INPUTS-MATCH" autocomplete="off">
+<label for="preparationCheckStatus">Your check result for all current required files</label>
+<select id="preparationCheckStatus"><option value="UNKNOWN">Not yet checked</option><option value="FAIL">Needs correction</option><option value="PASS">I checked this version</option></select>
+<div class="actions"><button type="button" id="recordPreparationCheck">Record required check</button></div>
+</fieldset>
+<p class="subtle">File name and contents are NOT saved or uploaded. Only the file ID you enter, role, version, SHA-256 fingerprint, declared requirements and check reports go to the local projector. They remain in memory until you choose Save or Export above. Export and browser save include version history and reports, not the files themselves. Do not put personal details in IDs.</p>
+</section>
 <section class="panel">
 <h2>Record an explicit human report</h2>
 <p class="subtle">Start a blank-action checklist above or import an existing journey to enable the checkboxes. A report records your statement, not provider confirmation, and does not contact any external service.</p>
@@ -134,7 +156,9 @@ const actions={
  COMPLETE_REQUIRED_SURVEY:"Complete the required participant survey if still outstanding.",
  VERIFY_PARTICIPANT_STANDING_WITH_PROVIDER:"Check with Apart whether your survey has been accepted and your participant standing is confirmed.",
  REVIEW_CALENDAR_SCHEDULE:"Review the official session schedule and your calendar.",
- REVIEW_EVENT_UPDATES_AND_RESEARCH_DELIVERABLE:"Follow official event updates and prepare the AI-agent collusion experiment."
+ REVIEW_EVENT_UPDATES_AND_RESEARCH_DELIVERABLE:"Follow official event updates and prepare the AI-agent collusion experiment.",
+ COMPLETE_PREPARATION_CHECKS:"Resolve missing files, uncovered requirements, or missing, failed, unknown and stale preparation checks.",
+ REVIEW_PREPARATION_PACKAGE:"Review the prepared file versions and check reports. Decide the next step yourself."
 };
 let current=null;
 const setText=(el,value)=>{el.textContent=String(value??"");};
@@ -180,7 +204,7 @@ function render(data){
    "LOCAL USER-PROVIDED PREVIEW — source/participant claims are not independently verified.");
  byId("export").disabled=!current;
  byId("save").disabled=!current;
- updateHumanChecks();renderEvidence();
+ renderPreparation(j.preparation);updateHumanChecks();renderEvidence();
 }
 async function requestProjection(payload){
  const body=JSON.stringify(payload);
@@ -276,6 +300,7 @@ function bundle(){
 }
 function updateHumanChecks(){
  const editing=!!current;
+ byId("preparationControls").disabled=!editing;
  byId("humanActions").disabled=!editing;
  for(const checkbox of document.querySelectorAll('input[name="humanAction"]')){
   const already=!!current?.events?.some(item=>item.kind===checkbox.value);
@@ -285,6 +310,77 @@ function updateHumanChecks(){
  byId("record").disabled=!editing;
  byId("addEvidence").disabled=!editing;
 }
+function renderPreparation(preparation){
+ const holder=byId("preparationDetails");holder.replaceChildren();
+ if(!preparation){setText(byId("preparationStanding"),"No preparation requirements declared.");return;}
+ setText(byId("preparationStanding"),preparation.standing==="READY_FOR_HUMAN_REVIEW"?
+  "Ready for human review — checks are user-reported.":"Preparation needs attention.");
+ for(const id of preparation.missing_files){const p=document.createElement("p");setText(p,"Missing required file: "+id);holder.append(p);}
+ for(const id of preparation.files_without_required_checks){const p=document.createElement("p");setText(p,"No required check covers file: "+id);holder.append(p);}
+ for(const file of preparation.current_files){
+  const item=document.createElement("article");item.className="evidence-item";
+  const title=document.createElement("p");setText(title,file.file_id+" · "+file.role+" · current version "+file.version);item.append(title);
+  for(const version of preparation.file_versions.filter(v=>v.file_id===file.file_id)){
+   const p=document.createElement("p");p.className="code";
+   setText(p,"v"+version.version+": "+version.sha256);item.append(p);
+  }holder.append(item);
+ }
+ for(const check of preparation.checks){
+  const p=document.createElement("p");
+  setText(p,check.check_id+": "+check.standing+" (reported: "+check.reported_status+")");holder.append(p);
+ }
+}
+function preparationCopy(journey){
+ return JSON.parse(JSON.stringify(journey.preparation||{required_files:[],required_checks:[],files:[],checks:[]}));
+}
+function preparationToken(value){
+ if(!/^[A-Za-z0-9_-]{1,100}$/.test(value))throw new Error("Use an opaque ID: letters, numbers, hyphen or underscore.");
+ return value;
+}
+byId("recordFile").addEventListener("click",async()=>{
+ if(!current)return;
+ try{
+  const base=current;
+  const id=preparationToken(byId("preparationFileId").value.trim());
+  const role=byId("preparationRole").value,file=byId("preparationFile").files?.[0];
+  if(!file||file.size>10*1024*1024)throw new Error("Choose one file, maximum 10 MB.");
+  const bytes=await file.arrayBuffer();
+  const hash=await crypto.subtle.digest("SHA-256",bytes);
+  const sha256=[...new Uint8Array(hash)].map(v=>v.toString(16).padStart(2,"0")).join("");
+  if(current!==base)throw new Error("The journey changed. Choose the file again.");
+  const preparation=preparationCopy(current);
+  const history=preparation.files.filter(f=>f.file_id===id);
+  const latest=history.reduce((a,b)=>!a||b.version>a.version?b:a,null);
+  if(latest&&latest.role!==role)throw new Error("Keep the role for an existing file ID.");
+  if(latest?.sha256===sha256){showStatus("This file matches the current version. No new version recorded.");return;}
+  preparation.files.push({file_id:id,version:(latest?.version||0)+1,sha256,role});
+  if(!preparation.required_files.includes(id))preparation.required_files.push(id);
+  const next={...current,preparation};
+  await requestProjection(next);setEditable(next,evidence);
+  byId("preparationFile").value="";
+  showStatus("File version recorded in memory. Earlier checks may be stale. Save or export to retain metadata; file contents are not retained.");
+ }catch(e){showError(e.message);}
+});
+byId("recordPreparationCheck").addEventListener("click",async()=>{
+ if(!current)return;
+ try{
+  const check_id=preparationToken(byId("preparationCheckId").value.trim());
+  const preparation=preparationCopy(current);
+  if(!preparation.required_files.length)throw new Error("Declare at least one required file first.");
+  const files=preparation.required_files.map(id=>{
+   const f=preparation.files.filter(x=>x.file_id===id).reduce((a,b)=>!a||b.version>a.version?b:a,null);
+   if(!f)throw new Error("Missing required file: "+id);
+   return {file_id:f.file_id,version:f.version,sha256:f.sha256};
+  });
+  preparation.required_checks=preparation.required_checks.filter(c=>c.check_id!==check_id);
+  preparation.required_checks.push({check_id,file_ids:preparation.required_files.slice()});
+  preparation.checks=preparation.checks.filter(c=>c.check_id!==check_id);
+  preparation.checks.push({check_id,status:byId("preparationCheckStatus").value,
+   evidence_ref:"LOCAL-HUMAN-PREPARATION-REPORT",observed_at:new Date().toISOString(),files});
+  const next={...current,preparation};await requestProjection(next);setEditable(next,evidence);
+  showStatus("Check report recorded for these file versions. It is not independent verification or permission to act. Save or export to retain.");
+ }catch(e){showError(e.message);}
+});
 function renderEvidence(){
  const panel=byId("evidenceList");panel.replaceChildren();
  if(!current){setText(panel,"Open an editable record to attach evidence.");return;}
