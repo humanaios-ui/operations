@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only, fail-closed validation of public-safe HumanAIOS CRM baseline."""
+"""Builder v1.7 compliant — read-only HumanAIOS CRM source-pin validation."""
 from __future__ import annotations
 
 import argparse
@@ -9,6 +9,8 @@ import subprocess
 from datetime import date
 from pathlib import Path
 
+TOOL_NAME = "crm_baseline"
+TOOL_VERSION = "0.1.0"
 SCHEMA = "humanaios.crm.baseline.v0.1"
 REPO = "humanaios-ui/operations"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
@@ -135,13 +137,28 @@ def summary(doc: dict) -> dict:
     }
 
 
+def run_smoke_test() -> bool:
+    """Exercise the frozen, source-pinned baseline without external actions."""
+    baseline = Path(__file__).resolve().parents[1] / "collaborator-ops/crm/baseline-2026-10-28.json"
+    try:
+        document = load_baseline(baseline)
+        return len(document["records"]) == 7 and summary(document)["authority_effect"] == "NONE"
+    except BaselineError:
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("baseline", help="source-pinned CRM baseline JSON")
+    parser.add_argument("baseline", nargs="?", help="source-pinned CRM baseline JSON")
     parser.add_argument("--verify-local-git", action="store_true",
                         help="verify each pinned blob against local git object")
     parser.add_argument("--repo-root", default=".")
+    parser.add_argument("--smoke-test", action="store_true", help="validate frozen baseline")
     args = parser.parse_args()
+    if args.smoke_test:
+        parser.exit(0 if run_smoke_test() else 1)
+    if not args.baseline:
+        parser.error("baseline is required unless --smoke-test")
     try:
         doc = load_baseline(args.baseline)
         if args.verify_local_git:
