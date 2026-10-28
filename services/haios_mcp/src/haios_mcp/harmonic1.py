@@ -230,11 +230,11 @@ def assess_results(results: list[dict[str, Any]], *, real_local: bool,
         "local_completed": len(successful),
         "rubric_passed": passed,
         "rubric_fraction": round(passed / len(results), 4),
-        "latency_ms_median": round(statistics.median(latencies), 2) if latencies else None,
-        "latency_ms_max_observed": max(latencies) if latencies else None,
-        "rss_kib_max_sampled_not_peak": max(rss) if rss else None,
+        "latency_ms_median": round(statistics.median(latencies), 2) if real_local and latencies else None,
+        "latency_ms_max_observed": max(latencies) if real_local and latencies else None,
+        "rss_kib_max_sampled_not_peak": max(rss) if real_local and rss else None,
         "gross_completion_tokens_per_wall_second": (
-            round(1000 * generated / duration_ms, 3) if duration_ms > 0 and generated else None
+            round(1000 * generated / duration_ms, 3) if real_local and duration_ms > 0 and generated else None
         ),
         "model_confidence_reported_count": len(confidences),
         "confidence_calibration": "NOT_INDEPENDENTLY_EVALUATED",
@@ -246,7 +246,8 @@ def assess_results(results: list[dict[str, Any]], *, real_local: bool,
         "authority_effect": "NONE",
         "human_admission": "PENDING",
         "independent_p2_evaluator": "NOT_PRESENT",
-        "qualification_state": "CANDIDATE_ONLY_NOT_PROMOTABLE",
+        "qualification_state": ("CANDIDATE_ONLY_NOT_PROMOTABLE" if real_local
+                                else "SYNTHETIC_PROTOCOL_ONLY_NO_MODEL_QUALIFICATION"),
         "results": results,
     }
     if baseline is None:
