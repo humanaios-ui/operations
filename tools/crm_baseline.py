@@ -20,7 +20,7 @@ PIN_KEYS = {"path", "blob_sha", "url", "supports"}
 CURRENT_STATES = {"NEEDS_REVALIDATION", "NEEDS_PRIVATE_REVALIDATION", "UNVERIFIED_PROSPECT"}
 EVIDENCE_STATES = {"OBSERVED", "SUPPORTED", "INFERRED", "HYPOTHESIZED", "UNVERIFIED", "CONTRADICTED"}
 FORBIDDEN_KEYS = {"email", "phone", "address", "contact", "secret", "token", "contract_value", "terms", "commission"}
-EMAIL = re.compile(r"(?<!\\w)[^\\s@]+@[^\\s@]+\\.[A-Za-z]{2,}")
+EMAIL = re.compile("@")  # Do not accept contact addresses in a public baseline
 
 class BaselineError(ValueError):
     """Invalid or untrusted CRM baseline."""
