@@ -53,7 +53,7 @@ def validate_baseline(doc: object) -> dict:
     if doc["schema_version"] != SCHEMA or doc["repository"] != REPO:
         raise BaselineError("schema or repository mismatch")
     if doc["authority_effect"] != "NONE" or doc["execution"] != "DISABLED":
-        raise BaselineError("CRM records must never grant authority or execution")
+        raise BaselineError("CRM baseline records cannot grant authority or execution")
     if doc["ratification"] != "Z1_PROPOSAL_NOT_RATIFIED":
         raise BaselineError("baseline cannot claim human approval")
     if not HEX40.fullmatch(str(doc["base_commit"])):
@@ -95,7 +95,7 @@ def validate_baseline(doc: object) -> dict:
                 raise BaselineError(f"{ident}: source URL not pinned to base commit")
             if not isinstance(p["supports"], str) or not p["supports"] or EMAIL.search(p["supports"]):
                 raise BaselineError(f"{ident}: missing or private claim")
-    # A public baseline is an observation cache, never an authenticated CRM or contact store.
+    # A public baseline is an observation cache, not an authenticated CRM or contact store.
     if FORBIDDEN_KEYS.intersection(json.dumps(doc).lower().split('"')):
         raise BaselineError("private data keys are forbidden")
     return doc
