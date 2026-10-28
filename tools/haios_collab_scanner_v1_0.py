@@ -314,6 +314,8 @@ def run(data: dict) -> dict:
     crm_invalid = False
     if data.get("crm_baseline_path"):
         try:
+            crm_dir = Path(__file__).resolve().parents[1] / "collaborator-ops" / "crm"
+            sys.path.append(str(crm_dir))
             from crm_baseline import load_baseline, summary as crm_summary
             crm_snapshot = crm_summary(load_baseline(data["crm_baseline_path"]))
         except (ValueError, OSError) as exc:
