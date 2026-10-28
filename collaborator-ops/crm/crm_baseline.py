@@ -144,7 +144,7 @@ def summary(doc: dict) -> dict:
 
 def run_smoke_test() -> bool:
     """Exercise the frozen, source-pinned baseline without external actions."""
-    baseline = Path(__file__).resolve().parents[1] / "collaborator-ops/crm/baseline-2026-10-28.json"
+    baseline = Path(__file__).resolve().with_name("baseline-2026-10-28.json")
     try:
         document = load_baseline(baseline)
         return len(document["records"]) == 7 and summary(document)["authority_effect"] == "NONE"
