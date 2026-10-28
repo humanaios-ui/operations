@@ -141,8 +141,22 @@ class ReceiptReplayTests(unittest.TestCase):
         raw = self.path.read_text()
         self.assertNotIn(PRIVATE, raw)
         self.assertNotIn(TEXT, raw)
-        self.assertIn(sha256(PRIVATE.encode()), raw)
+        self.assertNotIn(sha256(PRIVATE.encode()), raw)
+        self.assertIn("NONPUBLIC_PAYLOAD_NOT_FINGERPRINTED", raw)
+        self.assertIsNone(a["request"]["grant"])
         self.assertEqual(a["decision"], evaluate(a["request"]))
+
+    def test_unknown_privacy_excludes_payload_fingerprint_and_grant(self):
+        obscure = "MY_PRIVATE_ACCOUNT_PASSWORD_PLACEHOLDER"
+        r = request(name="unknown-risk", text=obscure, privacy="UNKNOWN",
+                    with_grant=True, local_healthy=False)
+        event = self.journal.append(r)
+        self.assertEqual(event["decision"]["route"], "UNAVAILABLE")
+        self.assertIsNone(event["request"]["grant"])
+        raw = self.path.read_text()
+        self.assertNotIn(obscure, raw)
+        self.assertNotIn(sha256(obscure.encode()), raw)
+        self.assertTrue(self.journal.verify()["valid"])
 
     def test_mutation_rejected(self):
         self.journal.append(request(), observed_utc="2026-10-28T00:00:00+00:00")
