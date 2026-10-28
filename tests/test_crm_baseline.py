@@ -9,6 +9,7 @@ from subprocess import CompletedProcess
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "collaborator-ops" / "crm"))
 
 import crm_baseline as crm  # noqa: E402
 import haios_collab_scanner_v1_0 as scanner  # noqa: E402
