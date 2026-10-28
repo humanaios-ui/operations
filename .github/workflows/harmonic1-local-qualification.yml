@@ -1,0 +1,26 @@
+name: HARMONIC-1 local inference qualification (hermetic)
+on:
+  pull_request:
+    paths:
+      - 'services/haios_mcp/src/haios_mcp/harmonic1.py'
+      - 'services/haios_mcp/tests/test_harmonic1.py'
+      - 'services/haios_mcp/scripts/harmonic1_qualify.py'
+      - 'services/haios_mcp/HARMONIC1.md'
+      - '.github/workflows/harmonic1-local-qualification.yml'
+permissions:
+  contents: read
+jobs:
+  hermetic-local-model-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run bounded local HTTP, privacy and comparison tests
+        run: |
+          PYTHONPATH=services/haios_mcp/src python -m unittest -v services/haios_mcp/tests/test_harmonic1.py
+          PYTHONPATH=services/haios_mcp/src python services/haios_mcp/scripts/harmonic1_qualify.py --mode synthetic
