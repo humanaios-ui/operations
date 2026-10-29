@@ -64,6 +64,39 @@ python3 -m resource_miner.privacy_footprint_cli \
 
 The adapter boundary is intentionally small so Devpost, HackerEarth, utility rebates, startup/cloud credits, tribal programs, procurement portals, and open-source bounty networks can be added without changing the resource schema.
 
+## CodeRabbit discount pilot (on demand)
+
+```bash
+python3 -m resource_miner.cli scan --source discounts --dry-run
+```
+
+This small discovery adapter observes three fixed official CodeRabbit endpoints:
+startup program, pricing, and public-repository reviews. It uses bounded GETs,
+refuses redirects, ignores comments/scripts and explicitly hidden HTML, and
+retains failed observations instead of silently erasing offers. It does not crawl
+coupon aggregators or test checkout codes. CSS-computed visibility and semantic
+interpretation of changing offer text are outside this parser's scope.
+
+`discount_offer` survives normal JSON export: source URL is on the candidate;
+observation time, content SHA-256 when fetched, source state, candidate terms,
+untested-code status, unknown eligibility, renewal/stacking and free baseline
+are in the metadata. `OFFER_TEXT_OBSERVED` means expected text markers occurred,
+not a verified-current offer or eligibility verdict. Captured terms are hints to
+recheck, never a parsed binding quote. Every run fetches fresh; retained JSON
+observations age and must be re-fetched before use. There is no guessed expiry.
+
+`compare_quotes` accepts complete integer-cent USD totals only when the caller
+establishes identical seats, term, and required features. A paid plan can cost
+more than free public reviews. Missing totals or unlike entitlements remain
+`NOT_COMPARABLE`; startup annual invoice/renewal/stacking require provider
+confirmation. Rates and funding caps are never cash awards. Existing need
+mapping/routing is reused without policy threshold changes; `WATCH` is expected
+when no active need matches. Source observations never authorize buying,
+claiming, signing up, or sending applicant data. No schedules are added.
+
+Run `python3 -m unittest discover -s tests -p 'test_discounts.py' -v` for
+failure, redirect, hidden/removed-terms, export, and cost-comparison cases.
+
 ## Adversarial hardening in v0.1.1
 
 Cross-substrate review of the v0.1 branch found three concrete implementation defects. v0.1.1 fixes those defects without changing the Z2-sensitive routing threshold:
