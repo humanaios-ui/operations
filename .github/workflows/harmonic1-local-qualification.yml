@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - 'services/haios_mcp/src/haios_mcp/harmonic1.py'
+      - 'services/haios_mcp/src/haios_mcp/resource_provenance.py'
+      - 'services/haios_mcp/tests/test_resource_provenance.py'
+      - 'services/haios_mcp/scripts/resource_provenance_replay.py'
+      - 'services/haios_mcp/fixtures/mac_neo_funding_pilot.json'
+      - 'services/haios_mcp/RESOURCE_PROVENANCE_E0.md'
       - 'services/haios_mcp/tests/test_harmonic1.py'
       - 'services/haios_mcp/scripts/harmonic1_qualify.py'
       - 'services/haios_mcp/HARMONIC1.md'
@@ -23,4 +28,6 @@ jobs:
       - name: Run bounded local HTTP, privacy and comparison tests
         run: |
           PYTHONPATH=services/haios_mcp/src python -m unittest -v services/haios_mcp/tests/test_harmonic1.py
+          PYTHONPATH=services/haios_mcp/src python -m unittest -v services/haios_mcp/tests/test_resource_provenance.py
+          PYTHONPATH=services/haios_mcp/src python services/haios_mcp/scripts/resource_provenance_replay.py
           PYTHONPATH=services/haios_mcp/src python services/haios_mcp/scripts/harmonic1_qualify.py --mode synthetic
