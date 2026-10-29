@@ -162,6 +162,43 @@ class OracleReadbackTests(unittest.TestCase):
             with self.assertRaises(m.OracleReadbackError):
                 m.project({"arbitrary": "source"})
 
+    def test_reader_rejects_unauthorized_paths_without_network(self):
+        reader = m.AuthenticatedGitHubReader("x" * 40)
+        with patch.object(reader._opener, "open") as net:
+            with self.assertRaises(m.OracleReadbackError):
+                reader.get("/issues/1065/comments/1")
+            net.assert_not_called()
+
+    def test_reader_uses_only_get_auth_and_does_not_follow_redirects(self):
+        from urllib.error import HTTPError
+        reader = m.AuthenticatedGitHubReader("x" * 40)
+        self.assertIsNone(m._NoRedirect().redirect_request(None, None, 302, "", {}, "https://evil.example"))
+        allowed = f"/commits/{m.COMMIT_SHA}"
+        with patch.object(reader._opener, "open",
+                          side_effect=HTTPError("https://api.github.com/", 302, "redirect", {}, None)) as net:
+            with self.assertRaises(m.OracleReadbackError) as caught:
+                reader.get(allowed)
+            req = net.call_args.args[0]
+            self.assertEqual(req.get_method(), "GET")
+            self.assertEqual(req.full_url, m.BASE + allowed)
+            self.assertEqual(req.get_header("Authorization"), "Bearer " + "x" * 40)
+            self.assertNotIn("evil.example", str(caught.exception))
+            self.assertNotIn("xxxx", str(caught.exception))
+
+    def test_rendered_html_script_is_valid_js_without_raw_newline_in_string(self):
+        import re
+        # JS string literal must contain two-character escape, not Python-converted LF.
+        self.assertIn(r'"\nCommit: "', m.HTML)
+        self.assertNotIn('"\nCommit: "', m.HTML)
+        match = re.search(r"<script>([\s\S]*?)</script>", m.HTML)
+        self.assertIsNotNone(match)
+        import shutil
+        import subprocess
+        if shutil.which("node"):
+            result = subprocess.run(["node", "--check", "--input-type=commonjs"],
+                                    input=match.group(1), text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_ledger_epoch_cannot_precede_original_commit(self):
         blob, fixture = specimen("2026-10-29T10:00:00Z")
         with patch.object(m, "BLOB_SHA", blob):
