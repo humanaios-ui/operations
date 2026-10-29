@@ -131,7 +131,7 @@ class IntentContractTests(unittest.TestCase):
 
     def test_private_feed_and_invalid_links_absent(self):
         result = project_verified_intent(intent(), [candidate(source_name="Private Gmail"),
-             candidate(resource_id="RES-HIDDEN", source_url="https://127.0.0.1/")], now=NOW)
+             candidate(resource_id="RES-HIDDEN", source_url="https://127.0.0.1/", canonical_url="https://127.0.0.1/")], now=NOW)
         self.assertEqual(result["review_candidates"], [])
         self.assertEqual(result["verified_recommendations"], [])
 
