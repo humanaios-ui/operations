@@ -238,3 +238,7 @@ baseline_tests:
   - path: tests/test_smag_meta_feedback_observed_accuracy.py
     requires: []
     description: Meta-SMAG observed outcome versus predicted confidence isolation regressions
+
+  - path: tools/tests/test_coderabbit_path_coverage.py
+    requires: []
+    description: CodeRabbit specialized review guidance reaches journey, resource, and calibration targets
