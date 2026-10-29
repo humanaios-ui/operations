@@ -187,6 +187,17 @@ class QualificationTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):write_new_private_report(link,report)
             self.assertEqual(secret.read_text(),"must_not_overwrite")
 
+    def test_truncated_output_is_not_counted_as_completed(self):
+        class LimitedClient:
+            def complete(self, question):
+                return Probe("No, not verified", 4, 10, 128, "test-model", "length")
+        result = run_suite(LimitedClient(), real_local=True)
+        self.assertEqual(result["local_responses_received"], 8)
+        self.assertEqual(result["local_completed"], 0)
+        self.assertEqual(result["local_output_truncated"], 8)
+        self.assertEqual(result["rubric_passed"], 0)
+        self.assertTrue(all(r["finish_reason"] == "length" for r in result["results"]))
+
     def test_no_imports_of_cloud_provider_or_mcp_runtime(self):
         from haios_mcp import harmonic1
         text=Path(harmonic1.__file__).read_text()
