@@ -90,7 +90,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 </main>
 <script>
 "use strict";
-if(["127.0.0.1","localhost","::1","[::1]"].includes(location.hostname))document.getElementById("oracleTelemetryLink").hidden=false;
+if(typeof location!=="undefined"&&["127.0.0.1","localhost","::1","[::1]"].includes(location.hostname))document.getElementById("oracleTelemetryLink").hidden=false;
 const form=document.getElementById("form"),field=document.getElementById("objective"),
   mode=document.getElementById("mode"),button=document.getElementById("go"),
   feedback=document.getElementById("feedback"),box=document.getElementById("results"),
