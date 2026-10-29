@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
@@ -106,7 +107,7 @@ class EvidencePreservationTests(unittest.TestCase):
                                text="incorrect", source="operator-reported")
             p1 = preserve_phase(d, run_id="pilot-20261028", phase="P1", actor="candidate-model",
                 text="Yes, the grant is verified open now.", source="operator-reported-synthetic")
-            with self.assertRaises((FileExistsError, ValueError)):
+            with self.assertRaises(FileExistsError):
                 preserve_phase(d, run_id="pilot-20261028", phase="P1", actor="candidate-model",
                                text="corrected", source="operator-reported-synthetic")
             preserve_phase(d, run_id="pilot-20261028", phase="P2", actor="human-operator",
@@ -129,6 +130,82 @@ class EvidencePreservationTests(unittest.TestCase):
             path.write_text(json.dumps(content))
             with self.assertRaises(ValueError):
                 replay_phases(d, run_id="pilot-20261028")
+
+    def test_non_ascii_max_text_replays_with_bounded_json_expansion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp)
+            preserve_phase(d, run_id="unicode-pilot", phase="P1",
+                actor="candidate-model", text="😀" * 3000, source="synthetic-test")
+            preserve_phase(d, run_id="unicode-pilot", phase="P2",
+                actor="human-review", text="challenge", source="synthetic-test")
+            preserve_phase(d, run_id="unicode-pilot", phase="P3",
+                actor="candidate-model", text="NOT_VERIFIED", source="synthetic-test")
+            rows=replay_phases(d, run_id="unicode-pilot", require_complete=True)
+            self.assertEqual(len(rows[0]["text"]), 3000)
+
+    def test_incomplete_phases_and_deleted_middle_receipt_fail_replay(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp)
+            for stage in ("P1", "P2", "P3"):
+                preserve_phase(d, run_id="missing-phase", phase=stage,
+                    actor="human-review", text="synthetic", source="fixture")
+            (d / "missing-phase-P3.json").unlink()
+            with self.assertRaises(ValueError):
+                replay_phases(d, run_id="missing-phase", require_complete=True)
+            preserve_phase(d, run_id="missing-phase", phase="P3",
+                actor="human-review", text="synthetic", source="fixture")
+            (d / "missing-phase-P2.json").unlink()
+            with self.assertRaises(ValueError):
+                replay_phases(d, run_id="missing-phase", require_complete=True)
+
+    def test_concurrent_writes_publish_exactly_one_complete_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp)
+            def write():
+                try:
+                    return preserve_phase(d, run_id="concurrent-pilot", phase="P1",
+                        actor="human-review", text="synthetic", source="fixture")
+                except Exception as error:
+                    return error
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results=list(pool.map(lambda _: write(), range(2)))
+            self.assertEqual(sum(isinstance(x, dict) for x in results), 1)
+            self.assertEqual(sum(isinstance(x, FileExistsError) for x in results), 1)
+            self.assertEqual(len(replay_phases(d, run_id="concurrent-pilot")), 1)
+            self.assertFalse(list(d.glob("*.tmp")))
+
+    def test_partial_and_empty_phase_files_fail_closed(self):
+        for fragment in ("", '{"phase":', "{}"):
+            with self.subTest(fragment=fragment):
+                with tempfile.TemporaryDirectory() as tmp:
+                    d=Path(tmp)
+                    (d / "partial-pilot-P1.json").write_text(fragment)
+                    with self.assertRaises((ValueError, json.JSONDecodeError)):
+                        replay_phases(d, run_id="partial-pilot")
+
+    def test_observation_malformed_types_urls_and_ports_abstain(self):
+        for variant in (
+            replace(observation(), source_url="https://funding.example.org:bad/grant"),
+            replace(observation(), source_url="https://funding.example.org:99999/grant"),
+            replace(observation(), source_url="https://[broken/grant"),
+            replace(observation(), observer_id=["source-adapter-01"]),
+            replace(observation(), status=["OPEN"]),
+        ):
+            with self.subTest(variant=str(variant)[:100]):
+                self.assertEqual(gate(variant)["status"], "NOT_VERIFIED")
+
+    def test_prose_with_matching_label_cannot_self_validate(self):
+        d=gate()
+        self.assertEqual(evaluate_model_claim("NOT_VERIFIED but it is verified open now.",d)["claim_check"],
+                         "INTERNAL_CONTRADICTION")
+        self.assertEqual(evaluate_model_claim("NOT_VERIFIED. Yet current reports say open.",d)["claim_check"],
+                         "MANUAL_REVIEW_REQUIRED")
+        self.assertEqual(evaluate_model_claim("VERIFIED_OPEN_NOW, no official source checked",d)["claim_check"],
+                         "INTERNAL_CONTRADICTION")
+        self.assertEqual(evaluate_model_claim("NOT_VERIFIED",d)["claim_check"],
+                         "LABEL_CONSISTENT_NOT_FACT_VERIFIED")
+        self.assertEqual(evaluate_model_claim("The grant is verified open now.",d)["claim_check"],
+                         "UNSUPPORTED_MODEL_ASSERTION")
 
     def test_synthetic_operator_fixture_exact_words_preserved(self):
         fixture = Path(__file__).resolve().parents[1] / "fixtures" / "mac_neo_funding_pilot.json"
