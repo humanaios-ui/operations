@@ -139,6 +139,7 @@ class ResourceCandidate:
     opportunity_source_kind: str = ""
     demand_snapshots: list[DemandSnapshot] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict)
+    discount_offer: dict[str, Any] | None = None
     # Public source-health metadata; never infer employer closure from this.
     source_verification_status: str | None = None
 
