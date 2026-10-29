@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 from typing import Mapping, Sequence
 from urllib.parse import urlsplit
 
@@ -22,9 +23,18 @@ SOURCE_KINDS = frozenset({"OFFICIAL_LIVE", "SAVED_SNAPSHOT", "THIRD_PARTY"})
 DECISIONS = frozenset({"VERIFIED_OPEN_NOW", "VERIFIED_CLOSED", "NOT_VERIFIED"})
 PHASES = ("P1", "P2", "P3")
 _MAX_TEXT = 3000
+# JSON ensure_ascii escapes any Unicode code point to at most 12 ASCII bytes.
+MAX_RECEIPT_BYTES = 12 * _MAX_TEXT + 4096
 _ID = re.compile(r"[a-z0-9][a-z0-9_-]{2,63}\Z")
 _LABEL = re.compile(r"(?<![A-Z_])(VERIFIED_OPEN_NOW|VERIFIED_CLOSED|NOT_VERIFIED)(?![A-Z_])")
-_NO_CHECK = re.compile(r"\b(?:no current (?:official )?source (?:was )?checked|without (?:a )?current (?:official )?source|not (?:been )?verified|source (?:was )?not checked)\b", re.I)
+_NO_CHECK = re.compile(
+    r"\b(?:no (?:current |official |live )?(?:official )?source (?:was |has been )?(?:checked|verified)"
+    r"|(?:current |official )?source (?:was |has )?not (?:been )?checked"
+    r"|without (?:checking|verifying) (?:a |the )?(?:current |official )?(?:official )?source"
+    r"|not (?:been )?verified|I (?:did not|didn\'t) check (?:the )?(?:official |current )?source)\b", re.I)
+_ASSERT_OPEN = re.compile(
+    r"\b(?:the )?(?:grant|listing|resource|funding|application|it)\s+"
+    r"(?:is|remains)\s+(?:currently\s+)?(?:verified|confirmed)\s+open\s+(?:now|today)\b", re.I)
 
 
 def _canonical(data: dict) -> bytes:
@@ -43,10 +53,13 @@ def _utc(timestamp: str) -> datetime:
 def _safe_url(url: str) -> bool:
     if not isinstance(url, str) or len(url) > 500:
         return False
-    p = urlsplit(url)
-    return (p.scheme == "https" and bool(p.hostname) and bool(p.netloc)
-            and p.username is None and p.password is None and not p.query
-            and not p.fragment and p.port is None)
+    try:
+        p = urlsplit(url)
+        return (p.scheme == "https" and bool(p.hostname) and bool(p.netloc)
+                and p.username is None and p.password is None and not p.query
+                and not p.fragment and p.port is None)
+    except ValueError:  # malformed IPv6 authority or nonnumeric/out-of-range port
+        return False
 
 
 @dataclass(frozen=True)
@@ -75,7 +88,9 @@ def _valid_observation(o: SourceObservation, keys: Mapping[str, bytes], now: dat
                        max_age_seconds: int, official_origins: frozenset[str], resource_id: str) -> bool:
     if not isinstance(o, SourceObservation) or o.resource_id != resource_id:
         return False
-    if o.status not in STATUSES or o.source_kind != "OFFICIAL_LIVE" or not _safe_url(o.source_url):
+    if (not isinstance(o.status, str) or o.status not in STATUSES
+            or not isinstance(o.source_kind, str) or o.source_kind != "OFFICIAL_LIVE"
+            or not isinstance(o.observer_id, str) or not _safe_url(o.source_url)):
         return False
     p = urlsplit(o.source_url)
     if f"{p.scheme}://{p.hostname}" not in official_origins:
@@ -135,15 +150,17 @@ def evaluate_model_claim(answer: str, source_decision: dict) -> dict:
     if source_decision.get("status") not in DECISIONS:
         raise ValueError("Invalid provenance decision")
     labels = set(_LABEL.findall(answer))
-    contradiction = ("VERIFIED_OPEN_NOW" in labels and bool(_NO_CHECK.search(answer)))
+    asserted_open = bool(_ASSERT_OPEN.search(answer))
+    contradiction = (("VERIFIED_OPEN_NOW" in labels and bool(_NO_CHECK.search(answer)))
+                     or ("NOT_VERIFIED" in labels and asserted_open))
     mismatch = any(x != source_decision["status"] for x in labels)
     if contradiction:
         result = "INTERNAL_CONTRADICTION"
     elif len(labels) > 1:
         result = "MULTIPLE_INCOMPATIBLE_LABELS"
-    elif mismatch:
+    elif mismatch or (asserted_open and source_decision["status"] != "VERIFIED_OPEN_NOW"):
         result = "UNSUPPORTED_MODEL_ASSERTION"
-    elif not labels:
+    elif answer.strip() not in DECISIONS:
         result = "MANUAL_REVIEW_REQUIRED"
     else:
         result = "LABEL_CONSISTENT_NOT_FACT_VERIFIED"
@@ -161,7 +178,8 @@ def preserve_phase(directory: Path, *, run_id: str, phase: str, actor: str,
 
     Verifies linkage on replay; append-only policy, not tamper-resistant storage.
     """
-    if not _ID.fullmatch(run_id) or phase not in PHASES or not _ID.fullmatch(actor):
+    if (not isinstance(run_id, str) or not _ID.fullmatch(run_id)
+            or phase not in PHASES or not isinstance(actor, str) or not _ID.fullmatch(actor)):
         raise ValueError("Invalid receipt identity")
     if not isinstance(text, str) or not 1 <= len(text) <= _MAX_TEXT:
         raise ValueError("Invalid bounded receipt text")
@@ -170,8 +188,13 @@ def preserve_phase(directory: Path, *, run_id: str, phase: str, actor: str,
     if observation_at is not None:
         _utc(observation_at)
     directory = Path(directory)
+    if directory.is_symlink():
+        raise ValueError("Receipt directory cannot be a symlink")
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
-    # Fail if all preceding phases do not exist; validate chain before appending.
+    path = directory / f"{run_id}-{phase}.json"
+    if path.exists() or path.is_symlink():
+        raise FileExistsError("Receipt already exists")
+    # Validate all already-published phases; fail closed on incomplete/invalid chain.
     i = PHASES.index(phase)
     old = replay_phases(directory, run_id=run_id)
     if len(old) != i:
@@ -183,23 +206,37 @@ def preserve_phase(directory: Path, *, run_id: str, phase: str, actor: str,
             "previous_digest": previous,
             "review_authentication": "NOT_ESTABLISHED"}
     record = {**body, "digest": _receipt_hash(body)}
-    path = directory / f"{run_id}-{phase}.json"
+    payload = _canonical(record) + b"\n"
+    if len(payload) > MAX_RECEIPT_BYTES:
+        raise ValueError("Receipt exceeds bounded JSON size")
+    # Prepare and fsync a complete private temporary file first; same-directory
+    # hardlink publishes it atomically, exclusively, without replacing a receipt.
+    temporary = directory / f".{run_id}-{phase}-{secrets.token_hex(16)}.tmp"
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
-    fd = os.open(path, flags, 0o600)
+    fd = os.open(temporary, flags, 0o600)
     try:
-        payload = _canonical(record) + b"\n"
-        if os.write(fd, payload) != len(payload):
-            raise OSError("Short receipt write")
-        os.fsync(fd)
+        try:
+            if os.write(fd, payload) != len(payload):
+                raise OSError("Short receipt write")
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        os.link(temporary, path)
+        if os.name != "nt":
+            dirfd = os.open(directory, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+            try:
+                os.fsync(dirfd)
+            finally:
+                os.close(dirfd)
     finally:
-        os.close(fd)
+        temporary.unlink(missing_ok=True)
     return {"phase": phase, "digest": record["digest"], "path": str(path)}
 
 
-def replay_phases(directory: Path, *, run_id: str) -> list[dict]:
-    if not _ID.fullmatch(run_id):
+def replay_phases(directory: Path, *, run_id: str, require_complete: bool = False) -> list[dict]:
+    if not isinstance(run_id, str) or not _ID.fullmatch(run_id):
         raise ValueError("Invalid run ID")
     old = []
     for p in PHASES:
@@ -211,7 +248,7 @@ def replay_phases(directory: Path, *, run_id: str) -> list[dict]:
                    for q in PHASES[PHASES.index(p) + 1:]):
                 raise ValueError("Missing earlier phase")
             break
-        if not path.is_file() or path.stat().st_size > 8192:
+        if not path.is_file() or not 1 <= path.stat().st_size <= MAX_RECEIPT_BYTES:
             raise ValueError("Invalid receipt file")
         record = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(record, dict) or record.get("phase") != p or record.get("run_id") != run_id:
@@ -221,4 +258,6 @@ def replay_phases(directory: Path, *, run_id: str) -> list[dict]:
         if digest != _receipt_hash(body) or body.get("previous_digest") != (old[-1]["digest"] if old else None):
             raise ValueError("Receipt hash-chain mismatch")
         old.append(record)
+    if require_complete and len(old) != len(PHASES):
+        raise ValueError("Incomplete P1-P2-P3 receipt chain")
     return old
