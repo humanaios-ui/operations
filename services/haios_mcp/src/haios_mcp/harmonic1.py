@@ -67,6 +67,7 @@ class Probe:
     prompt_tokens: int | None
     completion_tokens: int | None
     server_model_claim: str
+    finish_reason: str | None = "stop"
 
 
 class LoopbackChatClient:
@@ -119,6 +120,9 @@ class LoopbackChatClient:
         elapsed = round((time.monotonic() - started) * 1000, 3)
         try:
             answer = payload["choices"][0]["message"]["content"]
+            finish_reason = payload["choices"][0].get("finish_reason")
+            if finish_reason is not None and finish_reason not in ("stop", "length", "content_filter", "tool_calls"):
+                raise ValueError("Unsupported termination reason")
             model = payload.get("model", "UNDECLARED")
             usage = payload.get("usage", {})
             if (not isinstance(answer, str) or not 1 <= len(answer) <= MAX_TEXT_CHARS
@@ -134,7 +138,7 @@ class LoopbackChatClient:
                 tokens.append(n)
         except (KeyError, ValueError, IndexError, TypeError):
             raise LocalUnavailable("Local model schema is unsupported") from None
-        return Probe(answer, elapsed, tokens[0], tokens[1], model)
+        return Probe(answer, elapsed, tokens[0], tokens[1], model, finish_reason)
 
 
 @dataclass(frozen=True)
@@ -217,6 +221,8 @@ def assess_results(results: list[dict[str, Any]], *, real_local: bool,
         raise ValueError("Case identity/order mismatch")
     passed = sum(r["rubric_pass"] is True and r["status"] == "OK" for r in results)
     successful = [r for r in results if r["status"] == "OK"]
+    responses_received = [r for r in results if r["status"] in (
+        "OK", "TRUNCATED_OUTPUT", "UNCONFIRMED_FINISH", "CONTENT_FILTERED", "TOOL_REQUESTED")]
     latencies = [r["elapsed_ms"] for r in successful]
     confidences = [r["confidence"] for r in successful if r["confidence"] is not None]
     rss = [r["rss_sample_kib"] for r in successful if r["rss_sample_kib"] is not None]
@@ -228,6 +234,9 @@ def assess_results(results: list[dict[str, Any]], *, real_local: bool,
         "endpoint_kind": "REAL_LOCAL_LOOPBACK" if real_local else "SYNTHETIC_SCRIPTED_NOT_A_MODEL",
         "case_count": len(results),
         "local_completed": len(successful),
+        "local_responses_received": len(responses_received),
+        "local_output_truncated": sum(r["status"] == "TRUNCATED_OUTPUT" for r in results),
+        "local_finish_unconfirmed": sum(r["status"] == "UNCONFIRMED_FINISH" for r in results),
         "rubric_passed": passed,
         "rubric_fraction": round(passed / len(results), 4),
         "latency_ms_median": round(statistics.median(latencies), 2) if real_local and latencies else None,
@@ -285,8 +294,12 @@ def run_suite(client: Any, *, real_local: bool, model_pid: int | None = None,
             grade = score_answer(case, answer.answer)
             after = rss_snapshot_kib(model_pid)
             samples = [x for x in (before, after) if x is not None]
+            status = {"stop": "OK", "length": "TRUNCATED_OUTPUT",
+                      "content_filter": "CONTENT_FILTERED", "tool_calls": "TOOL_REQUESTED",
+                      None: "UNCONFIRMED_FINISH"}.get(answer.finish_reason, "UNCONFIRMED_FINISH")
             rows.append({
-                **grade, "status": "OK", "elapsed_ms": answer.elapsed_ms,
+                **grade, "status": status, "finish_reason": answer.finish_reason,
+                "elapsed_ms": answer.elapsed_ms,
                 "prompt_tokens": answer.prompt_tokens,
                 "completion_tokens": answer.completion_tokens,
                 "confidence": confidence_value(answer.answer),
@@ -297,6 +310,7 @@ def run_suite(client: Any, *, real_local: bool, model_pid: int | None = None,
         except LocalUnavailable:
             rows.append({
                 "case_id": case.id, "status": "LOCAL_UNAVAILABLE_ABSTAIN",
+                "finish_reason": None,
                 "rubric_pass": False, "matched_concepts": [], "prohibited_phrases": [],
                 "grade_kind": "NO_ANSWER", "elapsed_ms": None,
                 "prompt_tokens": None, "completion_tokens": None,
