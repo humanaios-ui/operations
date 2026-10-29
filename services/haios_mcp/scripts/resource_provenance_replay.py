@@ -24,12 +24,18 @@ def main() -> None:
     # There is no current authenticated source. This is the only allowed status.
     decision = decide_resource_status("synthetic-grant", [], trusted_observer_keys={},
         official_origins=frozenset(), now=datetime.now(timezone.utc))
-    check = evaluate_model_claim(fixture["P3"]["answer"], decision)
+    p1 = evaluate_model_claim(fixture["P1"]["answer"], decision)
+    p3 = evaluate_model_claim(fixture["P3"]["answer"], decision)
+    if (decision["status"] != "NOT_VERIFIED"
+            or p1["claim_check"] != "UNSUPPORTED_MODEL_ASSERTION"
+            or p3["claim_check"] != "INTERNAL_CONTRADICTION"
+            or fixture["P2"].get("review_type") != "OPERATOR_CHALLENGE_NOT_INDEPENDENT"):
+        raise ValueError("Replay verification failed closed")
     summary = {"pilot": RUN, "source": "OPERATOR_REPORTED_PUBLIC_SYNTHETIC",
-        "P1_assertion": "UNSUPPORTED", "P2_reviewer": "OPERATOR_NOT_INDEPENDENT",
-        "P3_claim_check": check["claim_check"],
+        "P1_claim_check": p1["claim_check"], "P2_reviewer": "OPERATOR_NOT_INDEPENDENT",
+        "P3_claim_check": p3["claim_check"],
         "provenance_status": decision["status"], "authority_effect": "NONE",
-        "cloud_requests": 0, "model_requests": 0}
+        "network_activity": "STATIC_NO_MODEL_OR_CLOUD_REQUESTS_IN_REPLAY_CODE"}
     if args.write_private is not None:
         for phase in ("P1", "P2", "P3"):
             receipt = fixture[phase]
@@ -37,7 +43,9 @@ def main() -> None:
                 actor="human-operator" if phase == "P2" else "candidate-model",
                 text=receipt["challenge"] if phase == "P2" else receipt["answer"],
                 source="operator-reported-public-synthetic")
-        rows = replay_phases(args.write_private, run_id=RUN)
+        rows = replay_phases(args.write_private, run_id=RUN, require_complete=True)
+        if len(rows) != 3:
+            raise ValueError("Incomplete replay receipt count")
         summary["receipts_created"] = len(rows)
         summary["final_receipt_sha256"] = rows[-1]["digest"]
     else:
