@@ -79,6 +79,16 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
             if path_pattern.startswith("**/"):
                 continue
 
+            # A trailing directory glob requires the directory to exist.
+            if path_pattern.endswith(("/**", "/*")):
+                base_path = path_pattern[:-3] if path_pattern.endswith("/**") else path_pattern[:-2]
+                full_path = repo_root / base_path
+                if not full_path.is_dir():
+                    errors.append(
+                        f"Path '{path_pattern}' requires existing directory '{base_path}'"
+                    )
+                continue
+
             # Inline wildcard is structurally valid; warn only if parent absent.
             if "*" in base_path or "?" in base_path:
                 if "/" in base_path:
@@ -88,11 +98,6 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
                             f"Path '{path_pattern}' references directory '{parent}' which does not exist"
                         )
                 continue
-
-            if path_pattern.endswith("/**"):
-                base_path = path_pattern[:-3]
-            elif path_pattern.endswith("/*"):
-                base_path = path_pattern[:-2]
 
             full_path = repo_root / base_path
             if not full_path.exists():
