@@ -84,6 +84,10 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
             if path_pattern.endswith(("/**", "/*")):
                 base_path = path_pattern[:-3] if path_pattern.endswith("/**") else path_pattern[:-2]
                 full_path = repo_root / base_path
+                if "*" in base_path or "?" in base_path:
+                    # A wildcard directory root is not a literal required path.
+                    # Example: _inbox_files*/** is a valid conditional trigger.
+                    continue
                 if not full_path.is_dir():
                     errors.append(
                         f"Path '{path_pattern}' requires existing directory '{base_path}'"
