@@ -67,7 +67,7 @@ class Probe:
     prompt_tokens: int | None
     completion_tokens: int | None
     server_model_claim: str
-    finish_reason: str | None = "stop"
+    finish_reason: str | None = None
 
 
 class LoopbackChatClient:
@@ -125,7 +125,8 @@ class LoopbackChatClient:
                 raise ValueError("Unsupported termination reason")
             model = payload.get("model", "UNDECLARED")
             usage = payload.get("usage", {})
-            if (not isinstance(answer, str) or not 1 <= len(answer) <= MAX_TEXT_CHARS
+            if (not isinstance(answer, str) or len(answer) > MAX_TEXT_CHARS
+                    or (not answer and finish_reason != "length")
                     or not isinstance(model, str) or not MODEL_PATTERN.fullmatch(model)
                     or "://" in model or model.startswith("/")
                     or not isinstance(usage, dict)):
@@ -297,6 +298,8 @@ def run_suite(client: Any, *, real_local: bool, model_pid: int | None = None,
             status = {"stop": "OK", "length": "TRUNCATED_OUTPUT",
                       "content_filter": "CONTENT_FILTERED", "tool_calls": "TOOL_REQUESTED",
                       None: "UNCONFIRMED_FINISH"}.get(answer.finish_reason, "UNCONFIRMED_FINISH")
+            if status != "OK":
+                grade["rubric_pass"] = False
             rows.append({
                 **grade, "status": status, "finish_reason": answer.finish_reason,
                 "elapsed_ms": answer.elapsed_ms,
