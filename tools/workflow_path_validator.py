@@ -63,31 +63,23 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
     for trigger_name, trigger_config in trigger_config_dict.items():
         if not isinstance(trigger_config, dict) or "paths" not in trigger_config:
             continue
-
-            paths = trigger_config[filter_key]
-            if not isinstance(paths, list):
-                errors.append(f"Trigger '{trigger_name}': {filter_key} must be a list")
-                continue
-
-            for path_pattern in paths:
-                # Patterns starting with "**/" can match at any level — always valid syntactically
-                if path_pattern.startswith("**/"):
-                    continue
+        filter_key = "paths"
+        paths = trigger_config[filter_key]
+        if not isinstance(paths, list):
+            errors.append(f"Trigger '{trigger_name}': {filter_key} must be a list")
+            continue
 
         for path_pattern in paths:
             if not isinstance(path_pattern, str) or not path_pattern.strip():
                 errors.append(f"Trigger '{trigger_name}': path entries must be non-empty strings")
                 continue
-
             base_path = path_pattern
 
-            # Recursive patterns can match at several repository depths, so
-            # there is no single literal base path to require.
+            # Recursive rootless pattern can match at many depths.
             if path_pattern.startswith("**/"):
                 continue
 
-            # Inline wildcards are structurally valid. A missing parent is
-            # surfaced as a warning because future files may satisfy the glob.
+            # Inline wildcard is structurally valid; warn only if parent absent.
             if "*" in base_path or "?" in base_path:
                 if "/" in base_path:
                     parent = str(Path(base_path).parent)
