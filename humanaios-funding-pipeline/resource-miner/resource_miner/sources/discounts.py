@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
+import multiprocessing
+import time
 import re
 import urllib.request
 from datetime import datetime, timezone
@@ -29,7 +32,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         raise ValueError("redirect refused")
 
 
-def fetch(url):
+def _fetch_direct(url):
     if url not in {row[1] for row in OFFERS}:
         raise ValueError("source is not allowlisted")
     request = urllib.request.Request(url, headers={"User-Agent": "HumanAIOS-ResourceMiner/discount-pilot"})
@@ -37,6 +40,53 @@ def fetch(url):
         body = response.read(MAX_BYTES + 1)
         return {"status": response.status, "final_url": response.geturl(),
                 "content_type": response.headers.get("Content-Type", ""), "body": body}
+
+
+def _fetch_worker(connection, url):
+    """Child owns the socket so a deadline can stop DNS, headers and body reads."""
+    try:
+        connection.send((True, _fetch_direct(url)))
+    except (OSError, ValueError, http.client.HTTPException) as exc:
+        # Keep exception details (which may include server data) out of IPC/logs.
+        connection.send((False, type(exc).__name__))
+    finally:
+        connection.close()
+
+
+def _bounded_fetch(url, *, timeout=8, worker=_fetch_worker):
+    started = time.monotonic()
+    context = multiprocessing.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    process = context.Process(target=worker, args=(sender, url), daemon=True)
+    try:
+        process.start()
+        sender.close()
+        remaining = max(0, timeout - (time.monotonic() - started))
+        if not receiver.poll(remaining):
+            raise TimeoutError("discount fetch deadline exceeded")
+        try:
+            success, result = receiver.recv()
+        except EOFError as exc:
+            raise OSError("discount fetch worker ended without a response") from exc
+        if time.monotonic() - started >= timeout:
+            raise TimeoutError("discount fetch deadline exceeded")
+        if not success:
+            raise OSError("discount fetch failed: " + result)
+        return result
+    finally:
+        sender.close()
+        receiver.close()
+        if process.pid is not None:
+            if process.is_alive():
+                process.kill()
+            process.join()
+            process.close()
+
+
+def fetch(url):
+    if url not in {row[1] for row in OFFERS}:
+        raise ValueError("source is not allowlisted")
+    return _bounded_fetch(url)
 
 
 class _Text(HTMLParser):
@@ -102,7 +152,7 @@ def discover(*, transport=fetch, now=None):
             metadata["verification"] = "TERMS_RECHECK_REQUIRED"
             if all(marker.casefold() in text for marker in markers):
                 metadata["verification"] = "OFFER_TEXT_OBSERVED"
-        except (OSError, ValueError, KeyError, TypeError) as exc:
+        except (OSError, ValueError, KeyError, TypeError, http.client.HTTPException) as exc:
             metadata["error_type"] = type(exc).__name__
         candidate = normalize_generic(title=title, url=url, source_name="CodeRabbit official discount pilot",
                                       discovery_method="official_discount_endpoint", sponsor="CodeRabbit",
@@ -111,6 +161,7 @@ def discover(*, transport=fetch, now=None):
                                       primary_source_url=url)
         candidate.resource_types = ["discount" if kind != "oss" else "free_infrastructure"]
         candidate.resource_affordances = ["software_cost_reduction"]
+        candidate.value_text = ""
         candidate.cash_mentions_usd = []  # A funding cap is not a cash award.
         candidate.discount_offer = metadata
         candidate.status = "UNVERIFIED"

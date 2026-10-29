@@ -72,7 +72,9 @@ python3 -m resource_miner.cli scan --source discounts --dry-run
 
 This small discovery adapter observes three fixed official CodeRabbit endpoints:
 startup program, pricing, and public-repository reviews. It uses bounded GETs,
-refuses redirects, ignores comments/scripts and explicitly hidden HTML, and
+refuses redirects, applies an eight-second elapsed-time budget using a spawned
+worker that is killed and reaped on expiry, ignores comments/scripts and explicitly
+hidden HTML, and
 retains failed observations instead of silently erasing offers. It does not crawl
 coupon aggregators or test checkout codes. CSS-computed visibility and semantic
 interpretation of changing offer text are outside this parser's scope.
@@ -80,7 +82,11 @@ interpretation of changing offer text are outside this parser's scope.
 `discount_offer` survives normal JSON export: source URL is on the candidate;
 observation time, content SHA-256 when fetched, source state, candidate terms,
 untested-code status, unknown eligibility, renewal/stacking and free baseline
-are in the metadata. `OFFER_TEXT_OBSERVED` means expected text markers occurred,
+are in the metadata. Duplicate URLs retain discount observations even when another
+source wins on description richness; differing observations are retained under an
+explicit conflict/recheck state. Eligibility stays unassessed and funding caps
+are cleared from exported value fields. Truncated HTTP streams become source
+failures without stopping other endpoint observations. `OFFER_TEXT_OBSERVED` means expected text markers occurred,
 not a verified-current offer or eligibility verdict. Captured terms are hints to
 recheck, never a parsed binding quote. Every run fetches fresh; retained JSON
 observations age and must be re-fetched before use. There is no guessed expiry.
