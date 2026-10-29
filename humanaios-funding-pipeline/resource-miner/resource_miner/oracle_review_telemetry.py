@@ -264,7 +264,7 @@ def read_cycle(token=None, *, reader=None):
     return project(source_readback(reader or AuthenticatedGitHubReader(token)))
 
 
-HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+HTML = r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HumanAIOS · Oracle Evidence Review</title>
 <style>body{font:16px/1.5 system-ui;margin:0;background:#0b1423;color:#eaf2fc}
