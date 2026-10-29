@@ -385,7 +385,7 @@ def _base_lane(
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[str, dict[str, Any]]:
     admitted, evidence, objectives = _admission_evidence(pr, state, referenced_items)
-    eval_admitted, eval_evidence, eval_objectives, eval_approvers = (
+    eval_admitted, eval_evidence, eval_objectives, eval_principals = (
         _evaluation_admission_evidence(pr, policy, referenced_items)
     )
     maintenance = _maintenance(pr, policy)
@@ -411,6 +411,9 @@ def _base_lane(
         "evaluation_admitted": eval_admitted,
         "evidence": evidence + eval_evidence,
         "objectives": list(dict.fromkeys(objectives + eval_objectives)),
+        "declared_objectives": sorted({
+            int(raw) for raw in ADMISSION_LINK_RE.findall(pr.get("body") or "")
+        }),
         "evaluation_principals": eval_principals,
         "maintenance": maintenance,
         "control_plane": control_plane,
