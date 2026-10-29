@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Workflow Path Validator — validate GitHub Actions path filters
-Version: 1.0.0 (Zone 1 draft)
+Builder v1.7 compliant — HumanAIOS validation_tool, Zone 1 draft
+Version: 1.0.0
 
 HumanAIOS validation tool for IC-032 prevention. It checks workflow path
 filters against the current repository tree while treating recursive and
@@ -63,31 +64,37 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
     for trigger_name, trigger_config in trigger_config_dict.items():
         if not isinstance(trigger_config, dict) or "paths" not in trigger_config:
             continue
-
-            paths = trigger_config[filter_key]
-            if not isinstance(paths, list):
-                errors.append(f"Trigger '{trigger_name}': {filter_key} must be a list")
-                continue
-
-            for path_pattern in paths:
-                # Patterns starting with "**/" can match at any level — always valid syntactically
-                if path_pattern.startswith("**/"):
-                    continue
+        filter_key = "paths"
+        paths = trigger_config[filter_key]
+        if not isinstance(paths, list):
+            errors.append(f"Trigger '{trigger_name}': {filter_key} must be a list")
+            continue
 
         for path_pattern in paths:
             if not isinstance(path_pattern, str) or not path_pattern.strip():
                 errors.append(f"Trigger '{trigger_name}': path entries must be non-empty strings")
                 continue
-
             base_path = path_pattern
 
-            # Recursive patterns can match at several repository depths, so
-            # there is no single literal base path to require.
+            # Recursive rootless pattern can match at many depths.
             if path_pattern.startswith("**/"):
                 continue
 
-            # Inline wildcards are structurally valid. A missing parent is
-            # surfaced as a warning because future files may satisfy the glob.
+            # A trailing directory glob requires the directory to exist.
+            if path_pattern.endswith(("/**", "/*")):
+                base_path = path_pattern[:-3] if path_pattern.endswith("/**") else path_pattern[:-2]
+                full_path = repo_root / base_path
+                if "*" in base_path or "?" in base_path:
+                    # A wildcard directory root is not a literal required path.
+                    # Example: _inbox_files*/** is a valid conditional trigger.
+                    continue
+                if not full_path.is_dir():
+                    errors.append(
+                        f"Path '{path_pattern}' requires existing directory '{base_path}'"
+                    )
+                continue
+
+            # Inline wildcard is structurally valid; warn only if parent absent.
             if "*" in base_path or "?" in base_path:
                 if "/" in base_path:
                     parent = str(Path(base_path).parent)
@@ -96,11 +103,6 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
                             f"Path '{path_pattern}' references directory '{parent}' which does not exist"
                         )
                 continue
-
-            if path_pattern.endswith("/**"):
-                base_path = path_pattern[:-3]
-            elif path_pattern.endswith("/*"):
-                base_path = path_pattern[:-2]
 
             full_path = repo_root / base_path
             if not full_path.exists():

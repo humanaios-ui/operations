@@ -22,6 +22,7 @@ from resource_miner.sources import devto, funding_pipeline, github, rss
 from resource_miner.store import write_jsonl
 from resource_miner.snapshot_status import reconcile_snapshot_source_holds
 from resource_miner.witness_bridge import ask_resource, enabled as witness_enabled, WitnessBridgeUnavailable
+from resource_miner.oracle_review_telemetry import read_cycle as oracle_read_cycle, HTML as ORACLE_REVIEW_HTML, OracleReadbackError
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
@@ -168,6 +169,27 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path in ("/oracle-review", "/api/oracle/review-telemetry"):
+                # Existing Oracle Source->Evidence projection, intentionally loopback-only.
+                # Hard-coded public GitHub REST objects, server-side read-only token,
+                # no automatic promotion, no secret sent to the browser.
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only Oracle review unavailable."},
+                                           HTTPStatus.NOT_FOUND)
+                if os.environ.get("HUMANAIOS_ORACLE_GITHUB_READONLY") != "1":
+                    return self._send_json({"error": "Operator opt-in required for Oracle readback."},
+                                           HTTPStatus.SERVICE_UNAVAILABLE)
+                if parsed.path == "/oracle-review":
+                    page = ORACLE_REVIEW_HTML.encode("utf-8")
+                    self._headers(200, "text/html; charset=utf-8", len(page))
+                    self.wfile.write(page)
+                    return
+                try:
+                    return self._send_json(oracle_read_cycle())
+                except OracleReadbackError:
+                    return self._send_json({"error": "Authenticated read-only source evidence unavailable.",
+                                            "state": "UNVERIFIED", "authority_effect": "NONE"},
+                                           HTTPStatus.SERVICE_UNAVAILABLE)
             if parsed.path == "/my-opportunities":
                 if not self._local_opportunities_allowed():
                     return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)

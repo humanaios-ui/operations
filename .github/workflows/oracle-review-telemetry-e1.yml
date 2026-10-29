@@ -1,0 +1,97 @@
+name: Oracle authenticated review telemetry E1 (read-only)
+on:
+  pull_request:
+    paths:
+      - "humanaios-funding-pipeline/resource-miner/resource_miner/oracle_review_telemetry.py"
+      - "humanaios-funding-pipeline/resource-miner/tests/test_oracle_review_*.py"
+      - "humanaios-funding-pipeline/resource-miner/app.py"
+      - "humanaios-funding-pipeline/resource-miner/intent-os.html"
+      - ".github/workflows/oracle-review-telemetry-e1.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  authenticated-evidence-readback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run E1 negative and replay tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: python3 -m unittest discover -s tests -p 'test_oracle_review_*.py' -v
+      - name: Authenticate and replay the five exact GitHub REST objects
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          HUMANAIOS_ORACLE_GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from resource_miner.oracle_review_telemetry import read_cycle
+          first = read_cycle()
+          second = read_cycle()
+          assert first == second, "Source replay drifted between authenticated reads"
+          assert first["telemetry"]["alert_count"] == 1
+          assert first["source_oracle"]["source_verification"].startswith("AUTHENTICATED_GITHUB_REST")
+          assert first["p1_commitment"]["state"] == "RETROSPECTIVE_BACKFILL_NOT_PRECHALLENGE"
+          assert not first["p1_commitment"]["historical_immutability_proven"]
+          assert first["authority_effect"] == "NONE" and not first["can_authorize"]
+          assert first["execution"] == "DISABLED"
+          Path("oracle_e1_authenticated_receipt.json").write_text(
+              json.dumps(first, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          print("AUTHENTICATED_READBACK_PASS", first["receipt_sha256"])
+          print("P1_RETENTION_STATUS", first["p1_commitment"]["state"])
+          print("NO_AUTHORITY_NO_EXECUTION")
+          PY
+      - name: Exercise live read-only Oracle -> INTENT-OS loopback HTTP
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          HUMANAIOS_ORACLE_GITHUB_READ_TOKEN: ${{ github.token }}
+          HUMANAIOS_ORACLE_GITHUB_READONLY: "1"
+        run: |
+          python3 - <<'PY'
+          import json
+          from http.server import ThreadingHTTPServer
+          from threading import Thread
+          from urllib.request import urlopen
+          from app import Handler
+
+          server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+          thread = Thread(target=server.serve_forever, daemon=True)
+          thread.start()
+          origin = "http://127.0.0.1:" + str(server.server_address[1])
+          try:
+              with urlopen(origin + "/api/oracle/review-telemetry", timeout=30) as response:
+                  assert response.status == 200
+                  data = json.load(response)
+              assert data["source_oracle"]["source_verification"].startswith("AUTHENTICATED_GITHUB_REST")
+              assert data["telemetry"]["alert_count"] == 1
+              assert data["p1_commitment"]["state"] == "RETROSPECTIVE_BACKFILL_NOT_PRECHALLENGE"
+              assert data["authority_effect"] == "NONE" and not data["can_authorize"]
+              assert data["execution"] == "DISABLED"
+              with urlopen(origin + "/oracle-review", timeout=8) as response:
+                  assert response.status == 200
+                  page = response.read()
+              assert b"Oracle graph telemetry" in page
+              assert b"/api/oracle/review-telemetry" in page
+              print("LIVE_LOOPBACK_INTENT_OS_ORACLE_E2E_PASS", data["receipt_sha256"])
+          finally:
+              server.shutdown()
+              server.server_close()
+              thread.join(timeout=5)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-e1-readonly-receipt-${{ github.sha }}
+          path: humanaios-funding-pipeline/resource-miner/oracle_e1_authenticated_receipt.json
+          retention-days: 30
+          if-no-files-found: error
