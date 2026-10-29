@@ -33,7 +33,7 @@ class FixtureServer:
                 ctx.posts.append((self.path, dict(self.headers), obj))
                 payload = ctx.data if ctx.data is not None else json.dumps({
                     "model": "Qwen-test",
-                    "choices": [{"message": {"content": "This is unverified. CONFIDENCE: 75"}}],
+                    "choices": [{"message": {"content": "This is unverified. CONFIDENCE: 75"}, "finish_reason": "stop"}],
                     "usage": {"prompt_tokens": 12, "completion_tokens": 7},
                 }).encode()
                 self.send_response(ctx.status)
@@ -129,7 +129,7 @@ class TransportTests(unittest.TestCase):
 class ScriptedClient:
     def complete(self, question):
         return Probe("No, not verified. Source remains unknown. CONFIDENCE: 70",
-                     4.0, 15, 10, "SCRIPTED_FAKE_NOT_AN_LLM")
+                     4.0, 15, 10, "SCRIPTED_FAKE_NOT_AN_LLM", "stop")
 
 
 class QualificationTests(unittest.TestCase):
@@ -186,6 +186,57 @@ class QualificationTests(unittest.TestCase):
             link=Path(d)/"report.json";link.symlink_to(secret)
             with self.assertRaises(FileExistsError):write_new_private_report(link,report)
             self.assertEqual(secret.read_text(),"must_not_overwrite")
+
+    def test_truncated_output_is_not_counted_as_completed(self):
+        class LimitedClient:
+            def complete(self, question):
+                return Probe("No, not verified", 4, 10, 128, "test-model", "length")
+        result = run_suite(LimitedClient(), real_local=True)
+        self.assertEqual(result["local_responses_received"], 8)
+        self.assertEqual(result["local_completed"], 0)
+        self.assertEqual(result["local_output_truncated"], 8)
+        self.assertEqual(result["rubric_passed"], 0)
+        self.assertTrue(all(r["finish_reason"] == "length" for r in result["results"]))
+
+    def test_empty_truncated_response_is_received_not_unavailable(self):
+        self.server = FixtureServer()
+        self.addCleanup(self.server.close)
+        self.client = lambda: LoopbackChatClient(LocalConfig(port=self.server.port))
+        self.server.data=json.dumps({
+            "model": "Qwen-test", "choices": [{"message": {"content": ""},
+                "finish_reason": "length"}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 128}}).encode()
+        result = self.client().complete("Test")
+        self.assertEqual(result.answer, "")
+        self.assertEqual(result.finish_reason, "length")
+        report = run_suite(self.client(), real_local=True)
+        self.assertEqual(report["local_responses_received"], 8)
+        self.assertEqual(report["local_output_truncated"], 8)
+        self.assertEqual(report["local_completed"], 0)
+        self.assertEqual(report["rubric_passed"], 0)
+        self.assertTrue(all(not r["rubric_pass"] for r in report["results"]))
+
+    def test_missing_finish_reason_not_assumed_to_be_stop(self):
+        self.server = FixtureServer()
+        self.addCleanup(self.server.close)
+        self.client = lambda: LoopbackChatClient(LocalConfig(port=self.server.port))
+        self.server.data=json.dumps({
+            "model": "Qwen-test", "choices": [{"message": {"content": "not verified"}}],
+            "usage": {"prompt_tokens": 5, "completion_tokens": 4}}).encode()
+        report = run_suite(self.client(), real_local=True)
+        self.assertEqual(report["local_responses_received"], 8)
+        self.assertEqual(report["local_finish_unconfirmed"], 8)
+        self.assertEqual(report["local_completed"], 0)
+        self.assertEqual(report["rubric_passed"], 0)
+        self.assertTrue(all(not r["rubric_pass"] for r in report["results"]))
+
+    def test_non_stop_with_lexical_hit_never_earns_pass(self):
+        class NonStop:
+            def complete(self, question):
+                return Probe("No, not verified.", 4, 10, 10, "test-model", "length")
+        report=run_suite(NonStop(), real_local=True)
+        self.assertEqual(report["rubric_passed"], 0)
+        self.assertTrue(all(not r["rubric_pass"] for r in report["results"]))
 
     def test_no_imports_of_cloud_provider_or_mcp_runtime(self):
         from haios_mcp import harmonic1
