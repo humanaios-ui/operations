@@ -6,7 +6,7 @@
 
 The fixed fixture `fixtures/mac_neo_funding_pilot.json` preserves the original P1 and P3 answers verbatim, alongside the P2 human challenge and its non-independent status. P1 claimed a historical funding snapshot was verified open now. The human challenged it, explicitly saying no live official source had been checked. P3 repeated `VERIFIED_OPEN_NOW` while admitting no official current source check. Local inference transport succeeded, but evidence-grounding and correction failed in this pilot. No actual grant was named or checked.
 
-A private replay may preserve these three stages into separate 0600, O_EXCL files chained by SHA-256. Replaying checks hashes and ordering and refuses to replace a previous phase. This is **accidental-overwrite and corruption detection**, not independently stored immutable evidence; an adversary with local write access can replace files and recompute hashes. For independent evaluation, separately retain the original operator logs and an authenticated reviewer receipt anchored outside this filesystem.
+A private replay may preserve these three stages into separate 0600, O_EXCL files chained by SHA-256. Replaying verifies hashes and ordering and rejects missing trailing phases when called with `require_complete=True`. Receipts are prepared and fsynced as temporary private files, then published with an exclusive hard-link. This avoids exposing partially written public receipt names and prohibits replacement, even for concurrent attempts. On Windows, parent-directory fsync is not asserted. An operator with local write access can still recompute the chain; this is not independent immutable storage. This is **accidental-overwrite and corruption detection**, not independently stored immutable evidence; an adversary with local write access can replace files and recompute hashes. For independent evaluation, separately retain the original operator logs and an authenticated reviewer receipt anchored outside this filesystem.
 
 ```sh
 PYTHONPATH=services/haios_mcp/src python3 \
@@ -57,3 +57,13 @@ PYTHONPATH=services/haios_mcp/src python3 -m unittest discover \
 ```
 
 No production database, account, model or credential is accessed by these tests.
+
+## CodeRabbit repair verification (follow-up)
+
+- Empty truncated outputs count as received/truncated rather than unavailable or complete. Missing finish reasons never default to `stop`.
+- All non-`stop` responses receive `rubric_pass=False`, even when the output includes a lexical match.
+- Only a bare recognized output label is label-consistent; prose with conflicting claims requires review.
+- Malformed URLs, ports and evidence field types fail closed; a current observation still requires trusted origin and receipt key.
+- Replay verification requires all three complete phases; Unicode-escaped receipts are bounded by `MAX_RECEIPT_BYTES`, with atomic exclusive publication.
+- Replay script independently checks expected P1 and P3 outcomes and raises on deviation. CI additionally asserts JSON output on Python 3.10 and 3.11.
+- Source authenticity and reviewer independence are still unestablished: this does not activate production INTENT-OS or grant status promotion.
