@@ -76,6 +76,38 @@ def _is_expired(row: dict) -> bool:
     return False
 
 
+
+def _verification_state(row: dict) -> tuple[str, str]:
+    """Conservative source-review view; never asserts verified availability."""
+    source = row.get("source_verification_status")
+    if source == "SOURCE_CONFLICT":
+        return "CONFLICTING", "SOURCE_CONFLICT"
+    if source in {"SOURCE_UNAVAILABLE", "LINK_FAILED_404"}:
+        return "UNAVAILABLE", source
+    if source in {"ROLE_NOT_LISTED", "RECHECK_REQUIRED"}:
+        return "UNKNOWN", source
+
+    # A declared validity end is a negative freshness boundary, not proof
+    # that any source or applicant was ever independently verified.
+    valid_until = row.get("source_evidence_valid_until")
+    if isinstance(valid_until, str):
+        try:
+            if date.fromisoformat(valid_until) < date.today():
+                return "STALE", "EVIDENCE_EXPIRED"
+        except ValueError:
+            pass
+    deadline = row.get("deadline")
+    if isinstance(deadline, str):
+        try:
+            if date.fromisoformat(deadline) < date.today():
+                return "STALE", "DEADLINE_PASSED"
+        except ValueError:
+            pass
+    if row.get("route") == "ARCHIVE" or row.get("status") == "CLOSED_OR_STALE":
+        return "STALE", "ARCHIVED_OR_STALE_CANDIDATE"
+    return "UNKNOWN", "CURRENT_SOURCE_NOT_INDEPENDENTLY_VERIFIED"
+
+
 def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
                        source_status: str, source_warning: str = "") -> dict:
     """Rank candidate discovery observations against a human objective.
@@ -95,6 +127,7 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         raise ValueError("Please add a specific goal, such as grants, training, or compute credits.")
 
     matches = []
+    verification_cases = []
     omitted = 0
     unexamined_count = max(0, len(rows) - MAX_ROWS)
     for row in rows[:MAX_ROWS]:
@@ -102,7 +135,7 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             omitted += 1
             continue
         url = _public_https(row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url"))
-        if not url or _is_expired(row):
+        if not url:
             omitted += 1
             continue
         title = str(row.get("title") or "")[:180]
@@ -133,6 +166,18 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         hits = title_hits | other_hits
         if not hits:
             continue
+        verification_state, reason_code = _verification_state(row)
+        if _is_expired(row) or verification_state == "STALE":
+            # Keep a bounded reason code in the public response, never raw
+            # source notes, evidence text, or application authority.
+            verification_cases.append({
+                "resource_id": candidate_id,
+                "verification_state": verification_state,
+                "reason_code": reason_code,
+                "action": "Review the authoritative source before pursuing.",
+            })
+            omitted += 1
+            continue
         score = 3 * len(title_hits) + len(other_hits)
         matches.append({
             "resource_id": candidate_id,
@@ -150,6 +195,8 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             "relevance_score": score,
             "_taxonomy_hit_count": len(taxonomy_hits),
             "eligibility_assessed": False,
+            "verification_state": verification_state,
+            "verification_reason_code": reason_code,
             "action": "Review official source and verify current rules before pursuing.",
         })
     # One visible result per resource identity, independent of repeated feeds.
@@ -158,11 +205,21 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
     for match in matches:
         unique_matches.setdefault(match["resource_id"], match)
     duplicate_count = len(matches) - len(unique_matches)
-    matches = fuse_rankings(list(unique_matches.values()))
+    # The same identity cannot remain an actionable discovery row if a
+    # separate snapshot row for that identity has an explicit source hold.
+    held_ids = {r["resource_id"] for r in verification_cases if r["resource_id"]}
+    matches = fuse_rankings(
+        [r for r in unique_matches.values() if r["resource_id"] not in held_ids]
+    )
+    verification_cases = list({
+        r["resource_id"]: r for r in verification_cases
+    }.values())
+    verification_cases.sort(key=lambda r: (r["resource_id"], r["reason_code"]))
     shown = matches  # Bounded by MAX_ROWS; browser reveals ten at a time.
     receipt_input = json.dumps({
         "objective": objective, "mode": source_mode, "status": source_status,
-        "candidates": shown, "unexamined_count": unexamined_count,
+        "candidates": shown, "verification_cases": verification_cases,
+        "unexamined_count": unexamined_count,
     }, sort_keys=True, separators=(",", ":"))
     return {
         "objective": objective,
@@ -171,6 +228,8 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         "source_status": source_status,
         "source_warning": (source_warning + (" Search incomplete: " + str(unexamined_count) + " source row(s) were not examined." if unexamined_count else "")).strip(),
         "candidates": shown,
+        "verification_cases": verification_cases,
+        "verification_case_count": len(verification_cases),
         "matched_count": len(matches),
         "shown_count": len(shown),
         "excluded_count": omitted,

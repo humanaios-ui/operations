@@ -7,6 +7,7 @@ the curated funding catalog may suppress an exact matching public source URL.
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -54,17 +55,37 @@ def reconcile_snapshot_source_holds(
         raise ValueError("Expected source catalog and stored snapshot arrays")
 
     holds: dict[str, str] = {}
+    positive_on: dict[str, set[str]] = {}
+    negative_on: dict[str, set[str]] = {}
     for source in catalog:
         if not isinstance(source, dict):
             continue
         status = source.get("source_verification_status")
-        # No arbitrary user text, unreviewed statuses, or positive assertions.
+        url = _exact_source_url(source.get("url"))
+        if not url:
+            continue
+        observation = source.get("source_verification_observation")
+        observed_on = observation.get("observed_on") if isinstance(observation, dict) else None
+        if not isinstance(observed_on, str) or len(observed_on) != 10:
+            observed_on = None
+        else:
+            try:
+                date.fromisoformat(observed_on)
+            except ValueError:
+                observed_on = None
+        if status == "SOURCE_WORKING":
+            if observed_on:
+                positive_on.setdefault(url, set()).add(observed_on)
+            continue
         if not isinstance(status, str) or status not in HELD_SOURCE_STATUSES:
             continue
-        url = _exact_source_url(source.get("url"))
-        if url:
-            # Conflicting negative statuses stay held rather than being cleared.
-            holds[url] = "RECHECK_REQUIRED" if url in holds and holds[url] != status else status
+        holds[url] = "RECHECK_REQUIRED" if url in holds and holds[url] != status else status
+        if status in {"SOURCE_UNAVAILABLE", "LINK_FAILED_404"} and observed_on:
+            negative_on.setdefault(url, set()).add(observed_on)
+
+    for url, days in positive_on.items():
+        if days & negative_on.get(url, set()):
+            holds[url] = "SOURCE_CONFLICT"
 
     projection: list[dict] = []
     held_count = 0

@@ -171,7 +171,7 @@ class SnapshotSourceHoldTests(unittest.TestCase):
 
     def test_actual_curated_source_hold_survives_actual_snapshot_read(self):
         # The historical snapshot contains the disputed candidate; the later
-        # curated catalog records ROLE_NOT_LISTED. They are intentionally not
+        # curated catalog records independent URL 404. They are intentionally not
         # rewritten during a query.
         catalog_bytes = app.DEFAULT_FUNDING.read_bytes()
         snapshot_bytes = app.SNAPSHOT_OUT.read_bytes()
@@ -179,7 +179,9 @@ class SnapshotSourceHoldTests(unittest.TestCase):
             row for row in json.loads(catalog_bytes)
             if row.get("url") == CONVERGENT_URL
         )
-        self.assertEqual(known["source_verification_status"], "ROLE_NOT_LISTED")
+        self.assertEqual(known["source_verification_status"], "LINK_FAILED_404")
+        self.assertEqual(known["source_verification_observation"]["http_status"], 404)
+        self.assertEqual(known["source_verification_history"][0]["kind"], "USER_REPORTED")
         self.assertIn(CONVERGENT_URL.encode("utf-8"), snapshot_bytes)
         status, result = intent_request("compute credits for AI research")
         self.assertEqual(status, 200)

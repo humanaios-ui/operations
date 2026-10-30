@@ -156,7 +156,7 @@ class ATSSearchTransportTests(unittest.TestCase):
             rows, _, _ = app._intent_scan()
             role = [r for r in rows if r["canonical_url"] == PUBLIC_CASE["source_url"]]
             self.assertEqual(len(role), 1)
-            self.assertEqual(role[0]["source_verification_status"], "ROLE_NOT_LISTED")
+            self.assertEqual(role[0]["source_verification_status"], "LINK_FAILED_404")
             handler = object.__new__(app.Handler)
             handler.path = "/api/intent"
             body = json.dumps({"objective": "Convergent Research Program Launch Manager", "source_mode": "live"}).encode()

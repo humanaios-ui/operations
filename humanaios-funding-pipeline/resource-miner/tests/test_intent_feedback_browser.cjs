@@ -119,3 +119,27 @@ test('lessons survive a page reload and clearing reverses preferences',()=>{
  b.dom.get('clearLessons').listeners.click();
  assert.equal(vm.runInContext('localPriority(row)',b.context),0);
 });
+
+test('ACAT-R verification review states remain visible without raw evidence',()=>{
+ const b=boot();
+ const rows=[
+  {resource_id:'RES-STALE',verification_state:'STALE',reason_code:'EVIDENCE_EXPIRED'},
+  {resource_id:'RES-CONFLICT',verification_state:'CONFLICTING',reason_code:'SOURCE_CONFLICT'},
+  {resource_id:'RES-OFFLINE',verification_state:'UNAVAILABLE',reason_code:'SOURCE_UNAVAILABLE'},
+ ];
+ b.context.verificationRows=rows;
+ vm.runInContext('renderVerificationCases(verificationRows)',b.context);
+ const section=b.dom.get('verificationCaseSection');
+ const list=b.dom.get('verificationCaseList');
+ assert.equal(section.hidden,false);
+ assert.equal(list.children.length,3);
+ assert.match(list.children[0].textContent,/STALE.*EVIDENCE_EXPIRED/);
+ assert.match(list.children[1].textContent,/CONFLICTING.*SOURCE_CONFLICT/);
+ assert.match(list.children[2].textContent,/UNAVAILABLE.*SOURCE_UNAVAILABLE/);
+ assert.match(b.dom.get('verificationCaseSummary').textContent,/not verified closed/);
+ b.context.unknown={...row,verification_state:'UNKNOWN'};
+ const card=vm.runInContext('addCard(unknown)',b.context);
+ assert.ok(descendants(card).some(x=>String(x.textContent).includes('Verification: UNKNOWN')));
+ vm.runInContext('renderVerificationCases([])',b.context);
+ assert.equal(section.hidden,true);
+});
