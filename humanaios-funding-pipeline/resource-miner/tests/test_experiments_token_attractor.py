@@ -1,22 +1,32 @@
-"""Synthetic tests for the token-attractor pilot. No real profile data."""
+"""Synthetic tests for the EXPERIMENT-ONLY token-attractor pilot. No real profile data."""
 import json
+import os
 import stat
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-from resource_miner import token_attractor as ta
+from resource_miner.experiments import token_attractor as ta
 from resource_miner.models import ResourceCandidate
 
 REV = "a" * 40
+
+
+def setUpModule():
+    # The research tests need both keys; the default-off tests below clear the env themselves.
+    os.environ[ta.EXPERIMENT_ENV] = "1"
+
+
+def tearDownModule():
+    os.environ.pop(ta.EXPERIMENT_ENV, None)
 MASTER = {
     "competencies": {
-        "data_quality": ["Quality Validation Systems", "Data Normalization"],
-        "ai_research": ["AI Evaluation Methodology", "Calibration Protocol Design"],
-        "operations": ["Process Improvement (DMAIC)", "Root Cause Analysis"],
+        "data_quality": ["Assay Validation Practice", "Data Pipeline Basics"],
+        "ai_research": ["AI Evaluation Practice", "Calibration Protocol Review"],
+        "operations": ["Process Improvement (Lean)", "Cause Review Practice"],
         "technical_skills": {
-            "quality_compliance": ["HPLC", "Regulatory Auditing (ISO, CAP, CLIA)"],
+            "quality_compliance": ["HPLC", "Regulatory Auditing (ISO, GLP)"],
             "data_analytics": ["Python"],
             "ai_infrastructure": [],
             "infrastructure": ["GitHub Actions"],
@@ -109,21 +119,21 @@ class TokenTests(unittest.TestCase):
     def test_predicates_carry_no_personal_text(self):
         members = ta.backed_concepts(self.tokens, self.supports)
         for c in members:
-            blob = json.dumps([ta.predicate_need(c, ta.expanded_signals(c, with_hypothesis=True), "B2"),
+            blob = json.dumps([ta.predicate_need(c, ta.expanded_signals(c, with_hypothesis=True, experiment=True), "B2"),
                                ta.predicate_need(c, ta.literal_signals(self.tokens, members[c]), "A")]).casefold()
             for private in ("sample hospital", "sample university", "quality director", "directed patient"):
                 self.assertNotIn(private, blob)
 
     def test_source_backing_gate_and_hypothesis_superset(self):
         corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark")]
-        arms = ta.run_arms(self.tokens, self.supports, corpus)
+        arms = ta.run_arms(self.tokens, self.supports, corpus, experiment=True, include_transfer_hypotheses=True)
         self.assertEqual(arms["gated_out"], [])  # all six concepts have a supporting token here
-        thin = ta.run_arms([t for t in self.tokens if t["type"] == "CONSTRAINT"], [], corpus)
+        thin = ta.run_arms([t for t in self.tokens if t["type"] == "CONSTRAINT"], [], corpus, experiment=True, include_transfer_hypotheses=True)
         self.assertEqual(thin["predicates"], {})  # nothing backed -> nothing asked
         self.assertEqual(len(thin["gated_out"]), len(ta.CONCEPTS))
         for c in ("AI_EVALUATION", "ANALYTICAL_METHOD_VALIDATION"):
-            self.assertTrue(set(ta.expanded_signals(c, with_hypothesis=False))
-                            <= set(ta.expanded_signals(c, with_hypothesis=True)))
+            self.assertTrue(set(ta.expanded_signals(c, with_hypothesis=False, experiment=True))
+                            <= set(ta.expanded_signals(c, with_hypothesis=True, experiment=True)))
             h1 = {h["resource_id"] for h in arms["hits"][f"{c}|B1"]}
             h2 = {h["resource_id"] for h in arms["hits"][f"{c}|B2"]}
             self.assertTrue(h1 <= h2)
@@ -199,8 +209,8 @@ class StrictMatcherTests(unittest.TestCase):
     def test_strict_results_are_a_subset_of_baseline_results(self):
         corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark program text here"),
                   resource("r2", "Coordination job", "coordination and operations and delivery for program launch teams")]
-        base = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT)
-        strict = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT, strict=True)
+        base = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT, experiment=True, include_transfer_hypotheses=True)
+        strict = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT, strict=True, experiment=True, include_transfer_hypotheses=True)
         for k, hs in strict["hits"].items():
             self.assertTrue({h["resource_id"] for h in hs} <= {h["resource_id"] for h in base["hits"][k]})
 
@@ -225,15 +235,15 @@ class ReviewerChallengeRegressions(unittest.TestCase):
         return ta.make_token(ttype, label, path, rev, "ref", "OWNER_COMMITTED_MASTER")
 
     def test_baseline_phrase_normalization_collapses_whitespace(self):  # finding 7
-        self.assertEqual(ta._norm_phrase("Process Improvement (DMAIC)"), "process improvement dmaic")
-        self.assertEqual(ta._norm_phrase("Regulatory Auditing (ISO, CAP, CLIA)"), "regulatory auditing iso cap clia")
-        hit = ta.discover_strict({"k": ta.predicate_need("PROJECT_DELIVERY", ["process improvement dmaic"], "A")},
-                                 [resource("r", "x", "a role in process improvement dmaic work for teams everywhere here")],
+        self.assertEqual(ta._norm_phrase("Process Improvement (Lean)"), "process improvement lean")
+        self.assertEqual(ta._norm_phrase("Regulatory Auditing (ISO, GLP)"), "regulatory auditing iso glp")
+        hit = ta.discover_strict({"k": ta.predicate_need("PROJECT_DELIVERY", ["process improvement lean"], "A")},
+                                 [resource("r", "x", "a role in process improvement lean work for teams everywhere here")],
                                  ta.ANY_HIT)["k"]
         self.assertEqual(len(hit), 1)
 
     def test_fair_bag_baseline_is_built_from_skill_phrases_only(self):  # finding 7
-        t = [self._tok("Calibration Protocol Design"), self._tok("Led the Acme program in 2019", path="experience[0].bullets[0]", ttype="OUTCOME")]
+        t = [self._tok("Calibration Protocol Review"), self._tok("Led the Acme program in 2019", path="experience[0].bullets[0]", ttype="OUTCOME")]
         sig = ta.bag_signals(t, [x["token_id"] for x in t])
         self.assertIn("calibration", sig)
         self.assertIn("calibration protocol", sig)
@@ -255,9 +265,9 @@ class ReviewerChallengeRegressions(unittest.TestCase):
     def test_classifier_no_longer_overmatches(self):  # finding 15
         for label in ("Collaborator network lead", "Cap table management", "Language proficiency Spanish",
                       "Worked in a lab-grown meat startup", "Risk management in startups",
-                      "Statistical analysis of sports"):
+                      "Statistical review of sports"):
             self.assertEqual(ta.classify([self._tok(label)]), [], label)
-        for label, concept in (("Regulatory Auditing (ISO, CAP, CLIA)", "HEALTHCARE_QUALITY_SYSTEMS"),
+        for label, concept in (("Regulatory Auditing (ISO, GLP)", "HEALTHCARE_QUALITY_SYSTEMS"),
                                ("Laboratory operations", "LABORATORY_OPERATIONS"),
                                ("Proficiency testing program", "ANALYTICAL_METHOD_VALIDATION")):
             self.assertIn(concept, [e["to"] for e in ta.classify([self._tok(label)])], label)
@@ -313,6 +323,63 @@ class ReviewerChallengeRegressions(unittest.TestCase):
             with self.assertRaises(ValueError):
                 ta.write_private_json(Path(tmp) / "x.json", {"a": 1})
             self.assertFalse((Path(tmp) / "x.json").exists())
+
+
+class ExperimentOnlyBoundaryTests(unittest.TestCase):
+    """The pilot's result was negative: expansion and transfer matching are off by default."""
+
+    def setUp(self):
+        from unittest import mock
+        self._env = mock.patch.dict(os.environ, {}, clear=False)
+        self._env.start()
+        os.environ.pop(ta.EXPERIMENT_ENV, None)
+        self.addCleanup(self._env.stop)
+        self.tokens = ta.build_tokens(MASTER, REV, PER)
+        self.supports = ta.classify(self.tokens)
+        self.corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark program text here")]
+
+    def test_defaults_are_off(self):
+        self.assertFalse(ta.CONCEPT_EXPANSION_ENABLED)
+        self.assertFalse(ta.TRANSFER_HYPOTHESIS_MATCHING_ENABLED)
+
+    def test_default_run_has_baselines_only(self):
+        arms = ta.run_arms(self.tokens, self.supports, self.corpus)
+        suffixes = {k.split("|")[1] for k in arms["predicates"]}
+        self.assertEqual(suffixes, {"A", "A2"})
+
+    def test_expansion_needs_both_keys(self):
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.expanded_signals("AI_EVALUATION", with_hypothesis=False)                 # no keys
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=True)  # arg only
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.expanded_signals("AI_EVALUATION", with_hypothesis=False)                 # env only
+        self.assertTrue(ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=True))
+
+    def test_run_arms_experiment_requires_the_environment_key(self):
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.run_arms(self.tokens, self.supports, self.corpus, experiment=True)
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.run_arms(self.tokens, self.supports, self.corpus, include_transfer_hypotheses=True)
+
+    def test_transfer_hypothesis_arm_needs_its_own_flag(self):
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        b1 = ta.run_arms(self.tokens, self.supports, self.corpus, experiment=True)
+        self.assertNotIn("B2", {k.split("|")[1] for k in b1["predicates"]})
+        self.assertIn("B1", {k.split("|")[1] for k in b1["predicates"]})
+        b2 = ta.run_arms(self.tokens, self.supports, self.corpus, experiment=True, include_transfer_hypotheses=True)
+        self.assertIn("B2", {k.split("|")[1] for k in b2["predicates"]})
+
+    def test_nothing_outside_experiments_imports_the_pilot(self):
+        root = Path(__file__).resolve().parents[1] / "resource_miner"
+        offenders = []
+        for f in root.rglob("*.py"):
+            if "experiments" in f.parts:
+                continue
+            if "token_attractor" in f.read_text(encoding="utf-8"):
+                offenders.append(str(f.relative_to(root)))
+        self.assertEqual(offenders, [])
 
 
 class PrivateWriteTests(unittest.TestCase):

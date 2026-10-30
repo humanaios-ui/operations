@@ -18,10 +18,26 @@ import re
 from pathlib import Path
 from typing import Any, Iterable
 
-from .models import ResourceCandidate
-from .needs import _score, map_to_needs
+from ..models import ResourceCandidate
+from ..needs import _score, map_to_needs
 
 SCHEMA = "humanaios.token-attractor.v0.1"
+
+# EXPERIMENT-ONLY BOUNDARY. The pilot's result was negative, so both features are off by default.
+EXPERIMENT_ENV = "HUMANAIOS_ALLOW_TOKEN_EXPERIMENT"
+CONCEPT_EXPANSION_ENABLED = False          # documented default; the gates below enforce it
+TRANSFER_HYPOTHESIS_MATCHING_ENABLED = False
+
+
+class ExperimentOnlyError(RuntimeError):
+    """Raised when expansion is requested without both explicit keys."""
+
+
+def _require_experiment(what: str, experiment: bool) -> None:
+    if not experiment or os.environ.get(EXPERIMENT_ENV) != "1":
+        raise ExperimentOnlyError(
+            f"{what} is experiment-only and disabled by default: pass experiment=True AND set "
+            f"{EXPERIMENT_ENV}=1 (see docs/TOKEN_ATTRACTOR_NEGATIVE_RESULT.md)")
 TOKEN_TYPES = ("CAPABILITY", "EXPERIENCE", "METHOD", "OUTCOME", "RESOURCE", "CONSTRAINT")
 EDGE_TYPES = ("SUPPORTS", "REQUIRES", "TRANSFERABLE_HYPOTHESIS", "CONTRADICTS", "DERIVED_FROM")
 ANY_HIT = 0.11          # one existing-scoring signal hit (sensitivity view)
@@ -330,7 +346,8 @@ def check_predicates_clean(predicates: dict[str, dict[str, Any]], private_terms:
             raise ValueError(f"predicate {key} contains owner/employer text")
 
 
-def expanded_signals(concept: str, *, with_hypothesis: bool) -> list[str]:
+def expanded_signals(concept: str, *, with_hypothesis: bool, experiment: bool = False) -> list[str]:
+    _require_experiment("concept expansion" + (" with transfer hypotheses" if with_hypothesis else ""), experiment)
     sigs = list(CONCEPTS[concept]["discover"])
     if with_hypothesis:
         for (a, b) in TRANSFER_TABLE:
@@ -392,7 +409,7 @@ def discover_strict(predicates: dict[str, dict[str, Any]], corpus: list[Resource
     so hypothesis neighbours alone cannot create a match; (R3) signals must start at a word
     boundary; (R4/R5) thin text and domain/status requirements are flagged, not hidden.
     """
-    from .needs import _candidate_text
+    from ..needs import _candidate_text
     hits: dict[str, list[dict[str, Any]]] = {k: [] for k in predicates}
     for r in corpus:
         text = _candidate_text(r)
@@ -416,11 +433,18 @@ def discover_strict(predicates: dict[str, dict[str, Any]], corpus: list[Resource
 
 def run_arms(tokens: list[dict[str, Any]], supports: list[dict[str, Any]],
              corpus: list[ResourceCandidate], threshold: float = EXISTING_THRESHOLD,
-             strict: bool = False, private_terms: set[str] | None = None) -> dict[str, Any]:
-    """Arm A literal, B1 normalized aliases, B2 aliases + hypothesis neighbours.
+             strict: bool = False, private_terms: set[str] | None = None,
+             experiment: bool = False, include_transfer_hypotheses: bool = False) -> dict[str, Any]:
+    """Baseline arms A (literal) and A2 (plain words) always; expansion arms only in experiment mode.
 
+    B1 (normalized aliases) needs experiment=True plus the environment key. B2 (aliases plus
+    transfer-hypothesis neighbours) additionally needs include_transfer_hypotheses=True.
     strict=True is the P3 correction set (stronger support gate + discover_strict).
     """
+    if experiment:
+        _require_experiment("concept expansion", experiment)
+    if include_transfer_hypotheses:
+        _require_experiment("transfer-hypothesis matching", experiment)
     members = backed_concepts(tokens, supports)
     if strict:  # R2: an OUTCOME bullet or a seed record alone cannot open a concept
         by_id = {t["token_id"]: t for t in tokens}
@@ -434,9 +458,13 @@ def run_arms(tokens: list[dict[str, Any]], supports: list[dict[str, Any]],
             continue  # source-backing gate: no supporting token, no query
         preds[f"{c}|A"] = predicate_need(c, literal_signals(tokens, members[c]), "A")
         preds[f"{c}|A2"] = predicate_need(c, bag_signals(tokens, members[c]), "A2")
-        preds[f"{c}|B1"] = predicate_need(c, expanded_signals(c, with_hypothesis=False), "B1")
-        preds[f"{c}|B2"] = predicate_need(c, expanded_signals(c, with_hypothesis=True), "B2",
-                                          own=expanded_signals(c, with_hypothesis=False))
+        if not experiment:
+            continue  # default: plain-word baselines only, no expansion
+        preds[f"{c}|B1"] = predicate_need(c, expanded_signals(c, with_hypothesis=False, experiment=True), "B1")
+        if include_transfer_hypotheses:
+            preds[f"{c}|B2"] = predicate_need(
+                c, expanded_signals(c, with_hypothesis=True, experiment=True), "B2",
+                own=expanded_signals(c, with_hypothesis=False, experiment=True))
     if private_terms:
         check_predicates_clean(preds, private_terms)
     run = discover_strict if strict else discover
@@ -456,7 +484,7 @@ def run_controls(corpus: list[ResourceCandidate], strict: bool = False) -> dict[
 
 def intent_os_preview(objective: str, corpus: list[ResourceCandidate]) -> dict[str, Any]:
     """Existing read-only projection over snapshot rows. No eligibility, no writes."""
-    from .intent_os import evaluate_objective
+    from ..intent_os import evaluate_objective
     rows = [dataclasses.asdict(r) for r in corpus]
     return evaluate_objective(objective, rows, source_mode="snapshot",
                               source_status="SNAPSHOT_NOT_LIVE_VERIFIED")
@@ -464,7 +492,7 @@ def intent_os_preview(objective: str, corpus: list[ResourceCandidate]) -> dict[s
 
 def write_private_json(path: str | Path, data: Any, *, guard_dir: bool = True) -> None:
     """Exclusive, 0600, and never inside a git work tree."""
-    from .application_portfolio import _inside_git_work_tree
+    from ..application_portfolio import _inside_git_work_tree
     p = Path(path).expanduser().resolve()
     if guard_dir and _inside_git_work_tree(p.parent):
         raise ValueError("refusing to write private pilot data inside a git work tree")
