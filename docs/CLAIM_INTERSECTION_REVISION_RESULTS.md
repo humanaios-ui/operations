@@ -25,6 +25,6 @@ Optional fifth field `context` is an object with exactly `opt_in`, `kind`, `text
 
 ## Controls
 
-Local unit suite: 25/25 PASS on content-matched files. No private case text committed. Independent audit pending. Exact-head repository CI and CodeRabbit review require inspection. Keep this PR draft. Human approval remains required.
+Local unit suite: 27/27 PASS on content-matched files. No private case text committed. Independent audit pending. Exact-head repository CI and CodeRabbit review require inspection. Keep this PR draft. Human approval remains required.
 
 Remaining hypothesis: more varied, independently adjudicated submissions could establish whether the increased coverage improves human decision burden without producing false matches. Current results do not demonstrate that.
