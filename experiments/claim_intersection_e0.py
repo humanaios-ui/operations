@@ -120,13 +120,17 @@ def _public_source_ref(raw: object) -> str | None:
         raise ValueError("IP source references are not supported")
     if host not in {"github.com", "www.linkedin.com", "linkedin.com"}:
         raise ValueError("source_ref host is outside this pilot's public allowlist")
-    if any(c.isspace() for c in parts.path) or chr(92) in parts.path:
-        raise ValueError("invalid source_ref path")
+    # Reject percent encoding, path traversal and nested/empty slugs, including
+    # encoded dot and slash segments, BEFORE any export. Do not rely on URL
+    # rendering or a browser's canonicalization to enforce source boundaries.
+    if any(c.isspace() for c in parts.path) or chr(92) in parts.path or "%" in parts.path:
+        raise ValueError("invalid or encoded source_ref path")
     if host == "github.com":
-        if not re.fullmatch(r"/humanaios-ui/[A-Za-z0-9._-]+/(?:issues|pull)/[1-9][0-9]*", parts.path):
+        match = re.fullmatch(r"/humanaios-ui/([A-Za-z0-9][A-Za-z0-9._-]{0,95})/(?:issues|pull)/[1-9][0-9]*", parts.path)
+        if not match or match.group(1) in {".", ".."}:
             raise ValueError("only public HumanAIOS issue/PR source references are allowed")
-    elif not parts.path.startswith("/posts/"):
-        raise ValueError("only public LinkedIn post references are allowed")
+    elif not re.fullmatch(r"/posts/[A-Za-z0-9][A-Za-z0-9._-]{0,250}/?", parts.path):
+        raise ValueError("only nonempty bounded public LinkedIn post slugs are allowed")
     # Tracking query strings and fragments are intentionally never exported.
     return urlunsplit(("https", host, parts.path, "", ""))
 
