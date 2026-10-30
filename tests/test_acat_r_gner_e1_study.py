@@ -20,9 +20,11 @@ These tests pin the harness, not the GNER-E1 runtime. They assert that the study
     never break these tests;
   * live-probe receipts are sanitized, pin-verified, and hash the consumed response.
 """
+import hashlib
 import importlib.util
 import json
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -358,6 +360,20 @@ class AdjudicationTests(unittest.TestCase):
         adj["decisions"]["type_lead_bool_id"].update(decision="REJECT", contract_citation="none")
         study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))  # allowed for REJECT
 
+    def test_human_accept_citation_must_reference_real_file_lines(self):
+        base = {"decision": "ACCEPT", "rationale": "r", "reviewer_identity": "ref", "reviewer_kind": "HUMAN"}
+        for bad in ("n/a", "see docs", "tools/does_not_exist.py:1", "tools/gner_verify_e1.py:99999",
+                    "tools/gner_verify_e1.py:60-50", "../etc/passwd:1", "tools/gner_verify_e1.py"):
+            adj = json.loads(json.dumps(self.pending))
+            adj["decisions"]["type_lead_bool_id"].update(base, contract_citation=bad)
+            with self.assertRaisesRegex(ValueError, "citation", msg=bad):
+                study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
+        adj = json.loads(json.dumps(self.pending))
+        adj["decisions"]["type_lead_bool_id"].update(base, contract_citation="tools/gner_verify_e1.py:50; docs/GNER_E1.md:17-19")
+        study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
+        refs = study.validate_contract_citation("tools/gner_verify_e1.py:50-53")
+        self.assertEqual(refs, [{"path": "tools/gner_verify_e1.py", "start": 50, "end": 53}])
+
     def test_entry_shape_is_validated_even_when_pending(self):
         adj = json.loads(json.dumps(self.pending))
         adj["decisions"]["valid_failure"] = {"decision": "PENDING"}
@@ -371,7 +387,7 @@ class AdjudicationTests(unittest.TestCase):
         disagreements = [{"id": cid} for cid in sorted(BOOL_CASES)]
         adj = json.loads(json.dumps(self.pending))
         human = {"decision": "ACCEPT", "rationale": "r", "reviewer_identity": "ref", "reviewer_kind": "HUMAN",
-                 "contract_citation": "c"}
+                 "contract_citation": "tools/gner_verify_e1.py:50"}
         agent = dict(human, reviewer_kind="AGENT_REVIEWED_NOT_HUMAN_INDEPENDENT")
         adj["decisions"]["type_lead_bool_id"].update(human)                 # flagged + human accept -> confirmed
         adj["decisions"]["type_lead_bool_pr"].update(agent)                 # flagged + agent accept -> not confirmed
@@ -493,6 +509,76 @@ class LiveProbeReceiptTests(unittest.TestCase):
                 self.assertEqual(consumed["id_json_type"], "int")
                 self.assertEqual(consumed["pull_request_number_json_types"], ["int"])
                 self.assertTrue(p["consumed_matches_independent_fetch"])
+
+
+class LiveProbeOfflineTests(unittest.TestCase):
+    """Exercises the consumed-response capture without any network (Copilot r4429301796)."""
+
+    def _probe_module(self):
+        pspec = importlib.util.spec_from_file_location("acat_r_live_probe3", LIVE_PROBE)
+        probe = importlib.util.module_from_spec(pspec)
+        pspec.loader.exec_module(probe)
+        return probe
+
+    @staticmethod
+    def _fake_urlopen(bodies):
+        class Resp:
+            def __init__(self, raw, url):
+                self._raw, self._url, self.status = raw, url, 200
+                self.headers = {"Date": "x", "X-RateLimit-Remaining": "1"}
+
+            def geturl(self):
+                return self._url
+
+            def read(self, amt=-1):
+                data, self._raw = self._raw, b""
+                return data
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+        queue = list(bodies)
+
+        def fake(request, *a, **k):
+            return Resp(queue.pop(0), request.full_url)
+        return fake
+
+    def _run(self, probe, bodies):
+        import urllib.request
+        spec = {"id": "offline", "run_id": 41120652951, "workflow": "quality-baseline",
+                "kind": "WORKFLOW_FAILURE_LEAD", "sha_prefix": "7ea76aa", "pr": None}
+        with mock.patch.object(urllib.request, "urlopen", self._fake_urlopen(bodies)):
+            return probe.run_probe(spec, "not-a-real-token")
+
+    def test_receipt_hashes_the_consumed_body_and_flags_divergence(self):
+        probe = self._probe_module()
+        canonical = {"id": 41120652951, "repository": {"full_name": "humanaios-ui/operations"},
+                     "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9", "name": "quality-baseline",
+                     "event": "pull_request", "status": "completed", "conclusion": "failure", "pull_requests": []}
+        body_a = json.dumps(canonical).encode()
+        body_b = json.dumps(dict(canonical, conclusion="success")).encode()
+        out = self._run(probe, [body_a, body_b])
+        self.assertEqual(out["verify_lead"]["result"]["state"], "CANONICAL_VERIFIED")
+        self.assertEqual(out["consumed_response"]["response_sha256"], hashlib.sha256(body_a).hexdigest())
+        self.assertEqual(out["independent_fetch"]["response_sha256"], hashlib.sha256(body_b).hexdigest())
+        self.assertIs(out["consumed_matches_independent_fetch"], False)
+        same = self._run(probe, [body_a, body_a])
+        self.assertIs(same["consumed_matches_independent_fetch"], True)
+        self.assertEqual(same["consumed_response"]["public_fields"]["conclusion"], "failure")
+
+
+class EvidencePacketDigestTests(unittest.TestCase):
+    """Every 'sha256 of path' row in the evidence packet must match the committed file (Copilot r4429301823)."""
+
+    def test_packet_file_digests_are_current(self):
+        packet = (REPO / "experiments/acat_r_comparison/EVIDENCE_PACKET_1081.md").read_text()
+        rows = re.findall(r"sha256 of `([^`]+)`[^|]*\|\s*`([0-9a-f]{64})`", packet)
+        self.assertGreaterEqual(len(rows), 4)
+        for rel, digest in rows:
+            actual = hashlib.sha256((REPO / rel).read_bytes()).hexdigest()
+            self.assertEqual(actual, digest, f"{rel} digest in EVIDENCE_PACKET_1081.md is stale")
 
 
 class CliTests(unittest.TestCase):

@@ -31,6 +31,7 @@ import hashlib
 import io
 import json
 import pathlib
+import re
 import subprocess
 import sys
 import unittest
@@ -287,6 +288,32 @@ def fair_conventional(cases, rows, out):
 
 
 # ---------------------------------------------------------------- adjudication
+CITATION = re.compile(r"^(?P<path>[A-Za-z0-9_./-]+):(?P<start>[1-9]\d*)(?:-(?P<end>[1-9]\d*))?$")
+
+
+def validate_contract_citation(citation, root=ROOT):
+    """A HUMAN ACCEPT must cite real file:line (or file:start-end) ranges, ';'-separated.
+
+    Each path must exist under the repository root and each range must lie within the file
+    (Copilot r4429301750). Returns the parsed references.
+    """
+    refs = []
+    for part in [x.strip() for x in str(citation).split(";") if x.strip()]:
+        m = CITATION.match(part)
+        validate(m is not None, f"citation {part!r} is not path:line or path:start-end")
+        rel = m.group("path")
+        validate(".." not in rel.split("/") and not rel.startswith("/"), f"citation path {rel!r} must be repository-relative")
+        target = root / rel
+        validate(target.is_file(), f"citation path {rel!r} does not exist in the repository")
+        total = target.read_bytes().count(b"\n") + 1
+        start = int(m.group("start"))
+        end = int(m.group("end") or start)
+        validate(start <= end <= total, f"citation {part!r} is outside the file's {total} lines")
+        refs.append({"path": rel, "start": start, "end": end})
+    validate(refs, "citation is empty")
+    return refs
+
+
 def load_adjudication(cases, rubric_record, path=ADJUDICATION):
     """Human decisions live here, separate from the generated PENDING template.
 
@@ -315,6 +342,10 @@ def load_adjudication(cases, rubric_record, path=ADJUDICATION):
             if d["decision"] == "ACCEPT" and d["reviewer_kind"] == "HUMAN":
                 validate(d["contract_citation"].strip().lower() != "none",
                          f"{cid}: HUMAN ACCEPT requires a file:line contract citation, not 'none'")
+                try:
+                    validate_contract_citation(d["contract_citation"])
+                except ValueError as exc:
+                    raise ValueError(f"{cid}: HUMAN ACCEPT citation rejected: {exc}") from None
             if d["decision"] == "REVISE":
                 validate(isinstance(d.get("proposed_expected_state"), str) and d["proposed_expected_state"],
                          f"{cid}: REVISE requires proposed_expected_state")

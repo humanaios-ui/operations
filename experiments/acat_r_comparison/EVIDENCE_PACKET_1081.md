@@ -27,10 +27,10 @@ held-out set exists, so that gate is HOLD.
 | Rubric sha256 (rev 1, enforced) | `6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7` |
 | Rubric sha256 (rev 0, predeclared, unrecoverable) | `19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a` |
 | P2 = P3 stdout sha256 (rev 2 harness, full responses) | `2b70d6cf7aa0fe7fd8ca2094d60e368ba16bfd362301c070922eb21fe8c79596` |
-| `oracle/oracle_packet.json` sha256 | `9656a2966ed813dad182bd5cf61996882ac9cd21b6e824b8a8f23c1b8f885341` |
-| `oracle/ORACLE_REVIEW_PACKET.md` sha256 | `1ef1cbb74b4e4e704f5eedafbb4389477da935512ceec26cfc5f221fe19f264e` |
-| `receipts/live_probe_receipts.json` sha256 (re-run 3, schema v0.3, 14 probes, modules loaded from verified bytes, GET-only guard) | `cce97f0036b95c706a1324ed7543cae755345a7424f242577721db9529b50861` |
-| `receipts/report_local_reproduction.json` sha256 | `0fa0011d1f0afd887c1681fde26039471d1490e5403725129215e84039799b36` |
+| sha256 of `experiments/acat_r_comparison/oracle/oracle_packet.json` | `1fff1b55f9292c8f7f54f7376d4f0d2df8deee66350c2eb197c3929f23cde7e5` |
+| sha256 of `experiments/acat_r_comparison/oracle/ORACLE_REVIEW_PACKET.md` | `5ad8bd2590655ee6b02b623befbbe086aff7fa90e4da09bf35c7f0ad23136a63` |
+| sha256 of `experiments/acat_r_comparison/receipts/live_probe_receipts.json` (re-run 3, schema v0.3, 14 probes) | `cce97f0036b95c706a1324ed7543cae755345a7424f242577721db9529b50861` |
+| sha256 of `experiments/acat_r_comparison/receipts/report_local_reproduction.json` | `0fa0011d1f0afd887c1681fde26039471d1490e5403725129215e84039799b36` |
 
 ## 3. Gate-by-gate status
 
