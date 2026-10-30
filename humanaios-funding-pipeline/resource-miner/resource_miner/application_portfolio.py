@@ -191,7 +191,13 @@ def _inside_git_work_tree(directory: Path) -> bool:
         )
     except (OSError, subprocess.TimeoutExpired):
         return True  # cannot prove it is outside a repository: fail closed
-    return probe.returncode == 0 and probe.stdout.strip() == "true"
+    if probe.returncode == 0:
+        return True  # "true", or "false" inside a .git directory: both are inside a repository
+    if ".git" in directory.parts:
+        return True
+    # Only git's explicit "not a git repository" counts as outside; any other
+    # failure (ownership, corruption) cannot prove it, so fail closed.
+    return "not a git repository" not in probe.stderr.lower()
 
 
 def render_docx(application: dict[str, Any], template: Path, output: Path,

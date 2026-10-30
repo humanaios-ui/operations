@@ -78,7 +78,7 @@ def load_private_master(private_checkout: str | Path) -> tuple[dict[str, Any], s
         raise RuntimeError("install PyYAML locally before running this command") from exc
     try:
         profile = yaml.safe_load(source)
-    except yaml.YAMLError:
+    except (yaml.YAMLError, ValueError):  # constructors raise ValueError on bad timestamps
         # Do not chain: the parser error embeds a snippet of private source.
         raise ValueError("invalid master profile YAML") from None
     if not isinstance(profile, dict):
@@ -150,12 +150,21 @@ def project_consumer(consumer_checkout: str | Path) -> tuple[dict[str, Any], str
     scope = source.split("export const humanaiosProfile", 1)
     if len(scope) != 2:
         raise ValueError("consumer export missing")
-    text = scope[1].split("/**\n * Calculate grant relevance", 1)[0]
+    marker = "/**\n * Calculate grant relevance"
+    if marker not in scope[1]:
+        raise ValueError("consumer model could not be read safely")
+    text = scope[1].split(marker, 1)[0]
+    # Whole-line // comments are inert. Anything else ambiguous (block comments,
+    # repeated keys) could make us read a different description than the one the
+    # consumer exports, so it fails closed.
+    text = re.sub(r"(?m)^\s*//.*$", "", text)
+    if "/*" in text or len(re.findall(r"\bdescription\s*:", text)) != 1:
+        raise ValueError("consumer model could not be read safely")
     # Reject backslash escapes and require a property boundary: a truncated
     # description would hide an unsupported claim behind NO_DRIFT_OBSERVED.
     desc = re.search(r"description:\s*'([^'\\]{1,2000})'\s*[,}]", text)
     stage = re.search(r"fundingStage:\s*'([a-z-]+)'", text)
-    budget = re.search(r"budgetRange:\s*(null|\{)", text)
+    budget = re.search(r"budgetRange:\s*(null\b|\{)", text)
     team = re.search(r"teamProfile:\s*\{\s*size:\s*'([a-z]+)'", text)
     if not (desc and stage and budget and team):
         raise ValueError("consumer model could not be read safely")

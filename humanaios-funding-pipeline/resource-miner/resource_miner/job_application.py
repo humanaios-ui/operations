@@ -17,6 +17,8 @@ def downgrade_for_removed_evidence(record, removed_ids):
             continue
         kept = [x for x in refs if x not in removed]
         row['evidence_ids'] = kept
+        if row.get('status') == 'CONTRADICTED':
+            continue  # a removed source never erases a contradiction
         if kept:
             row['status'] = 'PARTIAL' if row.get('status') == 'SUPPORTED' else row.get('status')
         else:
@@ -56,8 +58,10 @@ def prepare(record, source_rows=()):
             raise ValueError('Broken evidence link')
         if row['status'] in {'SUPPORTED', 'PARTIAL'} and (not refs or row['mapping'] == 'GAP'):
             raise ValueError('Support requires evidence')
-        if row['status'] == 'SUPPORTED' and all(indexed[x]['state'] == 'IN_PROGRESS' for x in refs):
+        if row['status'] == 'SUPPORTED' and any(indexed[x]['state'] == 'IN_PROGRESS' for x in refs):
             raise ValueError('In-progress evidence cannot fully support a requirement')
+        if row['status'] == 'CONTRADICTED' and row['mapping'] != 'GAP':
+            raise ValueError('Contradicted requirements stay a gap')
         if row['status'] == 'UNKNOWN' and (refs or row['mapping'] != 'GAP'):
             raise ValueError('Unknown must stay a gap')
         for key in ('gap', 'proposed_execution', 'deliverable', 'success_check'):
@@ -80,7 +84,7 @@ def prepare(record, source_rows=()):
                evidence_verification='USER_SUPPLIED_NOT_INDEPENDENTLY_CHECKED')
     rows = []
     for row in requirements:
-        proof = '; '.join(indexed[x]['claim'] + ' [source: ' + indexed[x]['source'] + ']' for x in row.get('evidence_ids', [])) or 'Not established in supplied evidence'
+        proof = '; '.join(indexed[x]['claim'] + ' [' + indexed[x]['state'] + '; source: ' + indexed[x]['source'] + ']' for x in row.get('evidence_ids', [])) or 'Not established in supplied evidence'
         cells = [row['requirement'], row['status'] + ' / ' + row['mapping'] + ': ' + proof,
                  row.get('proposed_execution', '') + '\nDeliverable: ' + row.get('deliverable', '') + '\nCheck: ' + row.get('success_check', '')]
         rows.append('<tr>' + ''.join('<td>' + escape(x) + '</td>' for x in cells) + '</tr>')

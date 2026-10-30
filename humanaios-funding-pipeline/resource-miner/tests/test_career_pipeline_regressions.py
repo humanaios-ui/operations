@@ -6,6 +6,7 @@ real application.
 """
 import json
 import os
+import shutil
 import stat
 import subprocess
 import sys
@@ -245,6 +246,92 @@ class HumanAdmissionBoundaryTests(unittest.TestCase):
         source = (ROOT / "resource_miner" / "job_application.py").read_text()
         for name in ("urllib", "requests", "socket", "http.client", "smtplib"):
             self.assertNotIn(f"import {name}", source)
+
+
+class SecondPassRegressionTests(unittest.TestCase):
+    """Added after the independent diff review of ae772bd8."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+
+    def test_dot_git_directory_counts_as_inside_a_repository(self):
+        from resource_miner.application_portfolio import _inside_git_work_tree
+        repo = self.root / "other"
+        make_repo(repo, "https://github.com/humanaios-ui/opportunity-aggregator", {"a": "x"})
+        self.assertTrue(_inside_git_work_tree(repo))
+        self.assertTrue(_inside_git_work_tree(repo / ".git"))
+
+    def test_plain_directory_outside_git_is_outside(self):
+        from resource_miner.application_portfolio import _inside_git_work_tree
+        probe = subprocess.run(["git", "-C", str(self.root), "rev-parse", "--is-inside-work-tree"],
+                               capture_output=True, text=True)
+        if probe.returncode == 0:
+            self.skipTest("temp dir is inside a git work tree on this machine")
+        self.assertFalse(_inside_git_work_tree(self.root))
+
+    def test_mixed_in_progress_and_documented_cannot_be_supported(self):
+        rec = record(evidence=[{"id": "e1", "claim": "c", "source": "s", "state": "DOCUMENTED"},
+                               {"id": "e2", "claim": "c2", "source": "s", "state": "IN_PROGRESS"}],
+                     requirements=[{"id": "r1", "requirement": "x", "kind": "duty", "status": "SUPPORTED",
+                                    "mapping": "DIRECT", "evidence_ids": ["e1", "e2"]}])
+        with self.assertRaises(ValueError):
+            prepare(rec)
+
+    def test_evidence_state_is_visible_in_the_map(self):
+        html = prepare(record())["evidence_map_html"]
+        self.assertIn("DOCUMENTED; source: doc-1", html)
+        self.assertIn("USER_ATTESTED; source: doc-2", html)
+
+    def test_contradicted_requirement_must_stay_a_gap_and_survives_source_removal(self):
+        bad = record(requirements=[{"id": "r1", "requirement": "x", "kind": "duty",
+                                    "status": "CONTRADICTED", "mapping": "DIRECT", "evidence_ids": ["e1"]}])
+        with self.assertRaises(ValueError):
+            prepare(bad)
+        ok = record(requirements=[{"id": "r1", "requirement": "x", "kind": "duty",
+                                   "status": "CONTRADICTED", "mapping": "GAP", "evidence_ids": ["e1"]}])
+        out = downgrade_for_removed_evidence(ok, ["e1"])
+        self.assertEqual(out["requirements"][0]["status"], "CONTRADICTED")
+
+    def _consumer(self, body):
+        repo = self.root / "consumer"
+        make_repo(repo, "https://github.com/humanaios-ui/opportunity-aggregator",
+                  {"lib/matching/humanaios-profile.ts": body})
+        return repo
+
+    GOOD = ("export const humanaiosProfile = {\n description: 'Open research.',\n"
+            " fundingStage: 'research', budgetRange: null,\n teamProfile: { size: 'solo' },\n}\n"
+            "/**\n * Calculate grant relevance\n */\n")
+
+    def test_consumer_parse_accepts_the_expected_shape(self):
+        data, _ = project_consumer(self._consumer(self.GOOD))
+        self.assertEqual(data["description"], "Open research.")
+
+    def test_commented_out_description_is_inert(self):
+        body = self.GOOD.replace(" description:", " // description: 'OLD 374K verified workers'\n description:")
+        data, _ = project_consumer(self._consumer(body))
+        self.assertEqual(data["description"], "Open research.")
+
+    def test_consumer_parse_fails_closed_on_ambiguity(self):
+        for body in (
+            self.GOOD.replace(" fundingStage:", " description: 'second',\n fundingStage:"),
+            self.GOOD.replace(" fundingStage:", " /* description: 'x' */\n fundingStage:"),
+            self.GOOD.replace("/**\n * Calculate grant relevance\n */\n", ""),
+        ):
+            with self.subTest(body=body[:40]):
+                shutil.rmtree(self.root / "consumer", ignore_errors=True)
+                with self.assertRaises(ValueError):
+                    project_consumer(self._consumer(body))
+
+    def test_profile_presence_cli_has_no_traceback_on_missing_checkout(self):
+        result = subprocess.run(
+            [sys.executable, "-m", "resource_miner.cli", "profile-presence",
+             "--private-checkout", str(self.root / "absent"), "--owner-approved"],
+            cwd=ROOT, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("repository checkout not found", result.stderr)
 
 
 if __name__ == "__main__":

@@ -149,7 +149,10 @@ def main() -> None:
         from .profile_presence import observe_owner_presence
         if not args.owner_approved:
             raise SystemExit("owner approval required: supply --owner-approved")
-        master, revision = load_private_master(args.private_checkout)
+        try:
+            master, revision = load_private_master(args.private_checkout)
+        except (ValueError, RuntimeError, PermissionError, OSError) as exc:
+            raise SystemExit(f"profile-presence failed: {_safe_reason(exc)}") from None
         observations = (
             json.loads(Path(args.candidate_observations).read_text(encoding="utf-8"))
             if args.candidate_observations else []

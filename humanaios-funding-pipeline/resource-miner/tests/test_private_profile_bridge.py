@@ -95,6 +95,7 @@ class PrivateProfileBridgeTests(unittest.TestCase):
                 " fundingStage: 'research', budgetRange: null,\n"
                 " teamProfile: { size: 'solo' },\n"
                 "}\n"
+                "/**\n * Calculate grant relevance\n */\n"
             )
         })
 
