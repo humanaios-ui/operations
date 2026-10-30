@@ -1,4 +1,5 @@
 {
+  "adjudication_file": "experiments/acat_r_comparison/oracle/ADJUDICATION.json",
   "cases": [
     {
       "classification_rationale": "Run metadata agrees on every compared field; documented CANONICAL_VERIFIED meaning; pinned by test_matching_canonical_metadata.",
@@ -580,15 +581,19 @@
     "tools/gner_verify_e1.py": "8290c51cd75c7de78a226770936a8f48766c24f0"
   },
   "rubric": {
+    "active_accepted_at": null,
+    "active_accepted_by": null,
     "active_digest_matches": true,
     "active_human_accepted": false,
     "active_revision": 1,
     "active_revision_status": "PROPOSED_PENDING_HUMAN_ACCEPTANCE",
     "active_rubric_sha256": "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7",
+    "block_reason": "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED",
     "computed_rubric_sha256": "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7",
     "predeclared_digest_matches": false,
     "predeclared_revision": 0,
-    "predeclared_rubric_sha256": "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a"
+    "predeclared_rubric_sha256": "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a",
+    "runtime_permitted": false
   },
   "schema": "humanaios.acat-r.oracle-decision-packet.v0.1"
 }

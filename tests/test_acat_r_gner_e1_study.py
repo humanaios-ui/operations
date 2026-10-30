@@ -3,16 +3,19 @@
 These tests pin the harness, not the GNER-E1 runtime. They assert that the study
   * refuses to call the runtime at all unless the computed rubric digest equals the
     ACTIVE registered revision AND that revision is human-accepted with a named
-    acceptor; the real registry is currently pending, so the real run BLOCKS;
+    acceptor (exercised on explicitly pending and accepted FIXTURE registries, so a
+    human accepting the committed registry does not break CI);
+  * keeps the committed registry internally consistent whatever its acceptance state;
   * records the unrecoverable predeclared digest beside the computed one;
   * preserves the full reconcile() response per case and rejects empty, truncated,
     reordered or incomplete worker output;
   * pins tools/gner_notification_e0.py beside the runtime and test blobs;
-  * runs the unchanged conventional suite before the P1 commitment and probe
-    (exercised under a TEST-ONLY accepted registry fixture);
+  * runs the unchanged conventional suite before the P1 commitment and probe;
   * keeps the four boolean-boundary cases in PROPOSED_POLICY, separate from the
-    contract-derived cases, and scores confirmed_defects as 0 while labels are PENDING;
-  * emits an oracle packet whose 30 rows match the committed snapshot;
+    contract-derived cases;
+  * emits a PENDING oracle template whose non-editable fields match the committed
+    snapshot, validates the separate ADJUDICATION.json, and scores confirmed_defects
+    only from HUMAN ACCEPT decisions on disagreements;
   * live-probe receipts are sanitized, pin-verified, and hash the consumed response.
 """
 import importlib.util
@@ -40,6 +43,10 @@ BOOL_CASES = {"type_canonical_bool_id", "type_lead_bool_id", "type_boolean_pr_in
 GIT_AVAILABLE = shutil.which("git") is not None and (REPO / ".git").exists()
 REV1 = "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7"
 PREDECLARED = "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a"
+EDITABLE_FIELDS = {"reviewer_decision", "reviewer_rationale", "reviewer_identity", "label_review_state"}
+PENDING_FIXTURE = {"human_accepted": False, "accepted_by": None, "accepted_at": None}
+ACCEPTED_FIXTURE = {"human_accepted": True, "accepted_by": "TEST_FIXTURE_NOT_A_HUMAN_DECISION",
+                    "accepted_at": "1970-01-01T00:00:00Z"}
 
 
 def _fake_pins(*_a, **_k):
@@ -47,7 +54,7 @@ def _fake_pins(*_a, **_k):
 
 
 def _write_registry(tmpdir, **overrides):
-    """Copy the real registry and override fields on the active revision (TEST FIXTURE ONLY)."""
+    """Copy the committed registry and override fields on the active revision (TEST FIXTURE ONLY)."""
     registry = json.loads(study.RUBRIC_REGISTRY.read_text())
     for r in registry["revisions"]:
         if r["revision"] == registry["active_revision"]:
@@ -57,21 +64,24 @@ def _write_registry(tmpdir, **overrides):
     return path
 
 
-ACCEPTED_FIXTURE = {"human_accepted": True, "accepted_by": "TEST_FIXTURE_NOT_A_HUMAN_DECISION",
-                    "accepted_at": "1970-01-01T00:00:00Z"}
+def _strip_editable(rows):
+    return [{k: v for k, v in r.items() if k not in EDITABLE_FIELDS} for r in rows]
 
 
 class RubricGateTests(unittest.TestCase):
-    def test_real_registry_matches_rev1_but_is_not_accepted(self):
-        record = study.enforce_rubric(study.encoded(study.build()), study.load_registry())
-        self.assertTrue(record["active_digest_matches"])
+    def test_committed_registry_is_consistent_in_either_acceptance_state(self):
+        registry = study.load_registry()
+        record = study.enforce_rubric(study.encoded(study.build()), registry)
+        self.assertTrue(record["active_digest_matches"], "rubric bytes changed without a new registered revision")
         self.assertEqual(record["active_rubric_sha256"], REV1)
         self.assertEqual(record["predeclared_rubric_sha256"], PREDECLARED)
         self.assertFalse(record["predeclared_digest_matches"])
-        self.assertFalse(record["active_human_accepted"])
-        self.assertIsNone(record["active_accepted_by"])
-        self.assertEqual(record["block_reason"], "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED")
-        self.assertFalse(record["runtime_permitted"])
+        self.assertEqual(record["runtime_permitted"], record["active_human_accepted"])
+        if record["active_human_accepted"]:
+            self.assertTrue(record["active_accepted_by"] and record["active_accepted_at"])
+            self.assertIsNone(record["block_reason"])
+        else:
+            self.assertEqual(record["block_reason"], "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED")
 
     def test_registry_revisions_are_unique_and_active_exists(self):
         registry = study.load_registry()
@@ -81,6 +91,7 @@ class RubricGateTests(unittest.TestCase):
         for r in registry["revisions"]:
             self.assertRegex(r["rubric_sha256"], r"^[0-9a-f]{64}$")
             self.assertIn("status", r)
+            self.assertIn("human_accepted", r)
 
     def test_accepted_revision_requires_named_acceptor(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -88,13 +99,14 @@ class RubricGateTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "without accepted_by/accepted_at"):
                 study.load_registry(path)
 
-    def test_real_registry_blocks_before_any_runtime_call(self):
+    def test_pending_revision_blocks_before_any_runtime_call(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = pathlib.Path(tmp) / "ev"
+            registry = _write_registry(tmp, **PENDING_FIXTURE)
             with mock.patch.object(study, "check_pins", _fake_pins), \
                  mock.patch.object(study, "baseline") as baseline, \
                  mock.patch.object(study, "run_phase") as run_phase:
-                result = study.main(out)
+                result = study.main(out, registry_path=registry)
             baseline.assert_not_called()
             run_phase.assert_not_called()
             self.assertEqual(result["status"], "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED")
@@ -124,7 +136,9 @@ class RubricGateTests(unittest.TestCase):
 
     def test_cli_exit_code_two_when_blocked(self):
         with tempfile.TemporaryDirectory() as tmp:
-            with mock.patch.object(study, "check_pins", _fake_pins):
+            registry = _write_registry(tmp, **PENDING_FIXTURE)
+            with mock.patch.object(study, "check_pins", _fake_pins), \
+                 mock.patch.object(study, "RUBRIC_REGISTRY", registry):
                 self.assertEqual(study.cli(["--run-owned-offline", "--out", str(pathlib.Path(tmp) / "ev")]), 2)
 
 
@@ -230,6 +244,56 @@ class EvidenceClassTests(unittest.TestCase):
             study.load_evidence_classes(cases, path=fh.name)
 
 
+class AdjudicationTests(unittest.TestCase):
+    def setUp(self):
+        self.cases = study.build()
+        self.adj = study.load_adjudication(self.cases)
+
+    def _tmp(self, adj):
+        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump(adj, fh)
+        fh.close()
+        return fh.name
+
+    def test_committed_adjudication_covers_30_cases_with_valid_decisions(self):
+        self.assertEqual(sorted(self.adj["decisions"]), sorted(c["id"] for c in self.cases))
+        for d in self.adj["decisions"].values():
+            self.assertIn(d["decision"], study.DECISIONS)
+
+    def test_non_pending_decisions_require_rationale_identity_kind_citation(self):
+        adj = json.loads(json.dumps(self.adj))
+        adj["decisions"]["type_lead_bool_id"].update(decision="ACCEPT")
+        with self.assertRaisesRegex(ValueError, "requires rationale"):
+            study.load_adjudication(self.cases, path=self._tmp(adj))
+        adj["decisions"]["type_lead_bool_id"].update(rationale="x", reviewer_identity="y", contract_citation="z",
+                                                     reviewer_kind="ROBOT")
+        with self.assertRaisesRegex(ValueError, "reviewer_kind"):
+            study.load_adjudication(self.cases, path=self._tmp(adj))
+        adj["decisions"]["type_lead_bool_id"].update(decision="REVISE", reviewer_kind="HUMAN")
+        with self.assertRaisesRegex(ValueError, "proposed_expected_state"):
+            study.load_adjudication(self.cases, path=self._tmp(adj))
+        adj["decisions"].pop("valid_failure")
+        with self.assertRaisesRegex(ValueError, "exactly the 30 case ids"):
+            study.load_adjudication(self.cases, path=self._tmp(adj))
+
+    def test_confirmed_defects_count_only_human_accepts_on_disagreements(self):
+        disagreements = [{"id": cid} for cid in sorted(BOOL_CASES)]
+        adj = json.loads(json.dumps(self.adj))
+        human = dict(decision="ACCEPT", rationale="r", reviewer_identity="ref", reviewer_kind="HUMAN", contract_citation="c")
+        agent = dict(human, reviewer_kind="AGENT_REVIEWED_NOT_HUMAN_INDEPENDENT")
+        adj["decisions"]["type_lead_bool_id"].update(human)                 # flagged + human accept -> confirmed
+        adj["decisions"]["type_lead_bool_pr"].update(agent)                 # flagged + agent accept -> not confirmed
+        adj["decisions"]["type_canonical_bool_id"].update(human, decision="REJECT")
+        adj["decisions"]["valid_failure"].update(human)                     # not flagged + accept -> not a defect
+        scored = study.score_adjudication(disagreements, study.load_adjudication(self.cases, path=self._tmp(adj)))
+        self.assertEqual(scored["confirmed_defects"], ["type_lead_bool_id"])
+        self.assertEqual(scored["accept_agent_only"], ["type_lead_bool_pr"])
+        self.assertEqual(scored["reject"], ["type_canonical_bool_id"])
+        self.assertEqual(scored["disagreements_pending"], ["type_boolean_pr_in_canonical"])
+        self.assertEqual(scored["decided"], 4)
+        self.assertEqual(scored["pending"], 26)
+
+
 @unittest.skipUnless(GIT_AVAILABLE, "git checkout required for pin check")
 class EndToEndUnderAcceptedFixtureTests(unittest.TestCase):
     """Full path exercised under a TEST-ONLY accepted registry; not a human decision."""
@@ -274,25 +338,30 @@ class EndToEndUnderAcceptedFixtureTests(unittest.TestCase):
         self.assertEqual(p3["record_count"], 30)
         self.assertEqual((self.out / "P2_stdout.json").read_bytes(), (self.out / "P3_stdout.json").read_bytes())
 
-    def test_disagreements_are_only_proposed_policy_and_nothing_is_confirmed(self):
+    def test_disagreements_are_only_proposed_policy_and_scoring_follows_adjudication(self):
         self.assertEqual(set(self.report["proposed_policy_disagreements"]), BOOL_CASES)
         self.assertEqual(self.report["contract_derived_disagreements"], [])
-        self.assertEqual(self.report["confirmed_defects"], 0)
         self.assertEqual(self.report["acatr_detection_advantage_on_equal_inputs"], 0)
         self.assertEqual(self.report["acatr_equal"]["detected"], self.report["conventional_equal"]["detected"])
         self.assertEqual(self.report["admission"], "HOLD")
         self.assertFalse(self.report["predeclared_digest_matches"])
         self.assertEqual(self.report["rubric_accepted_by"], ACCEPTED_FIXTURE["accepted_by"])
+        summary = self.report["adjudication_summary"]
+        self.assertEqual(self.report["confirmed_defects"], len(summary["confirmed_defects"]))
+        self.assertTrue(set(summary["confirmed_defects"]) <= BOOL_CASES)
 
-    def test_oracle_packet_has_30_pending_rows_and_matches_snapshot(self):
+    def test_oracle_template_is_pending_and_matches_snapshot_on_non_editable_fields(self):
         packet = json.loads((self.out / "oracle_packet.json").read_text())
         snapshot = json.loads((ORACLE_DIR / "oracle_packet.json").read_text())
         self.assertEqual(len(packet["cases"]), 30)
         self.assertTrue(all(r["reviewer_decision"] == "PENDING" for r in packet["cases"]))
-        self.assertEqual(packet["confirmed_defects"], 0)
-        self.assertEqual(packet["cases"], snapshot["cases"])
-        generated = (self.out / "ORACLE_REVIEW_PACKET.md").read_text().replace("human_accepted=True", "human_accepted=False")
-        self.assertEqual(generated, (ORACLE_DIR / "ORACLE_REVIEW_PACKET.md").read_text())
+        self.assertEqual(_strip_editable(packet["cases"]), _strip_editable(snapshot["cases"]))
+        adjudicated = json.loads((self.out / "oracle_adjudicated.json").read_text())
+        self.assertEqual(len(adjudicated["cases"]), 30)
+        self.assertEqual({r["id"] for r in adjudicated["cases"]}, {r["id"] for r in packet["cases"]})
+        markdown = (self.out / "ORACLE_REVIEW_PACKET.md").read_text()
+        self.assertEqual(sum(1 for line in markdown.splitlines() if line.startswith("| ") and "`" in line), 30)
+        self.assertIn("ADJUDICATION.json", markdown)
 
 
 class LiveProbeReceiptTests(unittest.TestCase):

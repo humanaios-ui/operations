@@ -125,9 +125,12 @@ that unblocks execution, and is decision 1 below.**
 1. Accept, reject or supersede rubric revision 1 (`rubric_registry.json`): set `human_accepted: true`
    with `accepted_by` and `accepted_at` to unblock, or append a new revision with justification.
    Never edit revision 1's digest or labels. Until then `study.py` exits 2 and runs nothing.
-2. Record ACCEPT / REJECT / REVISE with a contract citation for each of the 30 rows in
-   `oracle/ORACLE_REVIEW_PACKET.md`, at minimum the five individually listed (four PROPOSED_POLICY
-   and `unsupported_conclusion`). Note the consistency question between rows 27 and 29.
+2. Record ACCEPT / REJECT / REVISE with a contract citation for each of the 30 rows **in
+   `oracle/ADJUDICATION.json`** (the generated packet is a PENDING template and is overwritten), at
+   minimum the five individually listed (four PROPOSED_POLICY and `unsupported_conclusion`). Note the
+   consistency question between rows 27 and 29. `study.py` validates the file and computes
+   `confirmed_defects` from HUMAN ACCEPT decisions on disagreements; agent-only acceptances are listed
+   but never counted.
 3. Name an independent held-out author and follow `HELD_OUT_PROTOCOL.md`, or leave that gate HOLD.
 4. Decide whether the session-credential live probe satisfies the authenticated gate, or require a
    dedicated read-only PAT run.

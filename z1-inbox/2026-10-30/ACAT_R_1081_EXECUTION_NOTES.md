@@ -71,3 +71,14 @@ Four medium findings, all reproduced, all repaired in the next commit:
 Live probe re-run 2 at 22:21Z: identical outcomes to re-run 1; every network probe's consumed-response hash equals its independent second GET; same run ids returned byte-identical responses to the 22:00Z run. Receipts sha256 `656a165b9aec3d3334e648717dcf336c1ef31c1ec6a569adf4d87e002409ec2c`.
 
 CodeRabbit: hourly allowance exhausted at 22:10Z; review re-requested after the window reopens.
+
+## Addendum 2: Copilot review of PR #1083 head `a1c2675` (2026-10-30T22:30Z)
+
+Two medium findings on the tests, both valid, repaired in the next commit:
+
+| Finding | Repair |
+|---|---|
+| r4429028855 tests hard-coded the committed registry as unaccepted, so the documented acceptance edit would turn CI red | Rejection, blocking and exit-2 tests now use an explicitly pending fixture registry; the committed registry is checked only for state-independent invariants (digest match, predeclared mismatch recorded, acceptor fields iff accepted, `runtime_permitted == human_accepted`) |
+| r4429028909 recording decisions in the generated oracle packet would break the snapshot test | Decisions move to `oracle/ADJUDICATION.json` (30 PENDING entries; validated: ACCEPT/REJECT/REVISE need rationale, identity, reviewer kind, contract citation). `study.py` emits a separate `oracle_adjudicated.json` and computes `confirmed_defects` = disagreements ACCEPTed by a HUMAN reviewer. The generated packet stays a PENDING template; the snapshot test compares non-editable fields only |
+
+Previous four findings (`8a4003e`) were marked resolved by Copilot in the same review.

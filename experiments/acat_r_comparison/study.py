@@ -47,6 +47,9 @@ PINNED_BLOBS = {"tools/gner_verify_e1.py": SOURCE_BLOB,
                 "tests/test_gner_verify_e1.py": TEST_BLOB}
 RUBRIC_REGISTRY = HERE / "rubric_registry.json"
 EVIDENCE_CLASSES = HERE / "evidence_classes.json"
+ADJUDICATION = HERE / "oracle" / "ADJUDICATION.json"
+DECISIONS = ("PENDING", "ACCEPT", "REJECT", "REVISE")
+REVIEWER_KINDS = ("HUMAN", "AGENT_REVIEWED_NOT_HUMAN_INDEPENDENT")
 EVIDENCE_CLASS_NAMES = ("CONTRACT_EXPLICIT", "IMPLEMENTATION_DERIVED", "PROPOSED_POLICY")
 DEFAULT_OUT = ROOT / "acatr-gner-evidence"
 WORKER_INPUT_LIMIT = 150000
@@ -276,6 +279,47 @@ def fair_conventional(cases, rows, out):
     return sorted(t._testMethodName[5:] for t, _ in result.failures + result.errors)
 
 
+# ---------------------------------------------------------------- adjudication
+def load_adjudication(cases, path=ADJUDICATION):
+    """Human decisions live here, separate from the generated PENDING template."""
+    adj = json.loads(pathlib.Path(path).read_text())
+    decisions = adj["decisions"]
+    validate(sorted(decisions) == sorted(c["id"] for c in cases), "adjudication must cover exactly the 30 case ids")
+    for cid, d in decisions.items():
+        validate(d.get("decision") in DECISIONS, f"{cid}: unknown decision {d.get('decision')!r}")
+        if d["decision"] != "PENDING":
+            for field in ("rationale", "reviewer_identity", "contract_citation"):
+                validate(isinstance(d.get(field), str) and d[field].strip(), f"{cid}: {d['decision']} requires {field}")
+            validate(d.get("reviewer_kind") in REVIEWER_KINDS, f"{cid}: reviewer_kind must be one of {REVIEWER_KINDS}")
+            if d["decision"] == "REVISE":
+                validate(isinstance(d.get("proposed_expected_state"), str) and d["proposed_expected_state"],
+                         f"{cid}: REVISE requires proposed_expected_state")
+    return adj
+
+
+def score_adjudication(disagreements, adjudication):
+    """confirmed_defects = disagreements whose label a HUMAN reviewer ACCEPTed."""
+    decisions = adjudication["decisions"]
+    flagged = {x["id"] for x in disagreements}
+    summary = {"decided": 0, "pending": 0, "accept_human": [], "accept_agent_only": [], "reject": [], "revise": [],
+               "confirmed_defects": [], "disagreements_pending": []}
+    for cid, d in sorted(decisions.items()):
+        if d["decision"] == "PENDING":
+            summary["pending"] += 1
+            if cid in flagged:
+                summary["disagreements_pending"].append(cid)
+            continue
+        summary["decided"] += 1
+        if d["decision"] == "ACCEPT":
+            key = "accept_human" if d["reviewer_kind"] == "HUMAN" else "accept_agent_only"
+            summary[key].append(cid)
+            if cid in flagged and key == "accept_human":
+                summary["confirmed_defects"].append(cid)
+        else:
+            summary[d["decision"].lower()].append(cid)
+    return summary
+
+
 # ---------------------------------------------------------------- oracle packet
 def oracle_rows(cases, output, classes, rubric_record):
     indexed = {r["id"]: r for r in output.rows}
@@ -301,8 +345,10 @@ def render_oracle_markdown(rows, meta):
     lines = ["# Independent oracle decision packet: GNER-E1 equal-workload study (issue #1081)", "",
              "Every `reviewer_decision` below is **PENDING**. The referee (human, or an agent explicitly marked",
              "AGENT_REVIEWED / NOT_HUMAN_INDEPENDENT) records ACCEPT, REJECT or REVISE per case with a contract",
-             "citation. A label that is not ACCEPTed is never scored as a confirmed defect. Changing any label",
-             "requires a new revision in `rubric_registry.json`; this packet pins the revision it was built from.", "",
+             "citation **in `oracle/ADJUDICATION.json`**, not in this generated file, which is regenerated as a PENDING",
+             "template by every run. A label that is not ACCEPTed by a HUMAN reviewer is never scored as a confirmed",
+             "defect. Changing any label requires a new revision in `rubric_registry.json`; this packet pins the",
+             "revision it was built from.", "",
              f"- Rubric revision: {meta['active_revision']} (`{meta['active_rubric_sha256']}`), status {meta['active_revision_status']}, human_accepted={meta['active_human_accepted']}",
              f"- Predeclared digest (revision {meta['predeclared_revision']}): `{meta['predeclared_rubric_sha256']}`; matches computed rubric: {meta['predeclared_digest_matches']}",
              "- Pinned sources: " + ", ".join(f"`{k}`@`{v[:12]}`" for k, v in sorted(PINNED_BLOBS.items())),
@@ -337,6 +383,7 @@ def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
     rubric = encoded(cases)
     rubric_record = enforce_rubric(rubric, registry)
     classes = load_evidence_classes(cases)
+    adjudication = load_adjudication(cases)
     out.mkdir(exist_ok=False)
     if not rubric_record["runtime_permitted"]:
         # Issue #1081 plan: a rubric that is not the human-accepted reference blocks execution.
@@ -400,6 +447,20 @@ def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
               "confirmed_defects": 0, "cases": rows}
     (out / "oracle_packet.json").write_text(json.dumps(packet, indent=2, sort_keys=True) + "\n")
     (out / "ORACLE_REVIEW_PACKET.md").write_text(render_oracle_markdown(rows, rubric_record))
+    scored = score_adjudication(acatr, adjudication)
+    adjudicated_rows = []
+    for r in rows:
+        d = adjudication["decisions"][r["id"]]
+        adjudicated_rows.append(dict(r, reviewer_decision=d["decision"], reviewer_rationale=d["rationale"],
+                                     reviewer_identity=d["reviewer_identity"], reviewer_kind=d.get("reviewer_kind"),
+                                     contract_citation=d.get("contract_citation"),
+                                     proposed_expected_state=d.get("proposed_expected_state"),
+                                     label_review_state=("NOT_INDEPENDENTLY_REVIEWED" if d["decision"] == "PENDING"
+                                                         else d.get("reviewer_kind"))))
+    (out / "oracle_adjudicated.json").write_text(json.dumps(
+        {"schema": "humanaios.acat-r.oracle-adjudicated.v0.1", "adjudication_sha256": sha(ADJUDICATION.read_bytes()),
+         "rubric": rubric_record, "summary": scored, "cases": adjudicated_rows}, indent=2, sort_keys=True) + "\n")
+    confirmed = len(scored["confirmed_defects"])
     # 6. report
     result = {
         "schema": "humanaios.acat-r.equal-workload.v0.2",
@@ -432,8 +493,11 @@ def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
         "contract_derived_disagreements": by_class["CONTRACT_EXPLICIT"] + by_class["IMPLEMENTATION_DERIVED"],
         "proposed_policy_disagreements": by_class["PROPOSED_POLICY"],
         "suspected_type_schema_false_promotions": false_promotions,
-        "confirmed_defects": 0,
-        "confirmed_defects_basis": "no expected label has independent acceptance; see oracle_packet.json",
+        "confirmed_defects": confirmed,
+        "confirmed_defects_basis": "disagreements whose label a HUMAN reviewer ACCEPTed in oracle/ADJUDICATION.json; "
+                                   "agent-only acceptances are listed but never counted",
+        "adjudication_summary": scored,
+        "adjudication_sha256": sha(ADJUDICATION.read_bytes()),
         "acatr_detection_advantage_on_equal_inputs": len(set(flags) - set(conv)),
         "measured_false_alarm_rate": "UNDETERMINED: oracle labels not independently approved",
         "captures_real_github_data": False, "auth_path_tested": False,
@@ -456,7 +520,8 @@ def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
                       "contract_derived_disagreements": result["contract_derived_disagreements"],
                       "false_promotions": false_promotions, "replay": replay["byte_identical"],
                       "detection_advantage": result["acatr_detection_advantage_on_equal_inputs"],
-                      "confirmed_defects": 0, "admission": "HOLD"}, sort_keys=True))
+                      "confirmed_defects": confirmed, "adjudication_pending": scored["pending"],
+                      "admission": "HOLD"}, sort_keys=True))
     return result
 
 

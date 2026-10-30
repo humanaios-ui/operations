@@ -65,13 +65,16 @@ jobs:
           assert sorted(r['acatr_equal']['detected'])==sorted(r['conventional_equal']['detected'])
           assert r['acatr_detection_advantage_on_equal_inputs']==0
           assert r['contract_derived_disagreements']==[]
-          assert r['confirmed_defects']==0
+          assert r['confirmed_defects']==len(r['adjudication_summary']['confirmed_defects'])
+          assert set(r['adjudication_summary']['confirmed_defects'])<=set(r['acatr_equal']['detected'])
           assert r['measured_false_alarm_rate'].startswith('UNDETERMINED')
           assert r['can_authorize'] is False and r['authority_effect']=='NONE'
           assert r['admission']=='HOLD'
           p=json.loads((ev/'oracle_packet.json').read_text())
-          assert len(p['cases'])==30 and all(c['reviewer_decision']=='PENDING' for c in p['cases'])
-          print('ACAT_R_EQUAL_WORKLOAD_VALIDATION_PASS')
+          assert len(p['cases'])==30 and all(c['reviewer_decision']=='PENDING' for c in p['cases'])  # generated template
+          a=json.loads((ev/'oracle_adjudicated.json').read_text())
+          assert len(a['cases'])==30
+          print('ACAT_R_EQUAL_WORKLOAD_VALIDATION_PASS confirmed_defects=',r['confirmed_defects'],'pending=',a['summary']['pending'])
           PY
       - name: Preserve raw machine execution evidence
         if: always()

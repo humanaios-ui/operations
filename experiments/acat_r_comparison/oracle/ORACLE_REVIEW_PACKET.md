@@ -2,8 +2,10 @@
 
 Every `reviewer_decision` below is **PENDING**. The referee (human, or an agent explicitly marked
 AGENT_REVIEWED / NOT_HUMAN_INDEPENDENT) records ACCEPT, REJECT or REVISE per case with a contract
-citation. A label that is not ACCEPTed is never scored as a confirmed defect. Changing any label
-requires a new revision in `rubric_registry.json`; this packet pins the revision it was built from.
+citation **in `oracle/ADJUDICATION.json`**, not in this generated file, which is regenerated as a PENDING
+template by every run. A label that is not ACCEPTed by a HUMAN reviewer is never scored as a confirmed
+defect. Changing any label requires a new revision in `rubric_registry.json`; this packet pins the
+revision it was built from.
 
 - Rubric revision: 1 (`6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7`), status PROPOSED_PENDING_HUMAN_ACCEPTANCE, human_accepted=False
 - Predeclared digest (revision 0): `19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a`; matches computed rubric: False
