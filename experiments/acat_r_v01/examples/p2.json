@@ -1,0 +1,27 @@
+{
+  "artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "capture_class": "SYNTHETIC",
+  "observations": [
+    {
+      "case_id": "queue-overload",
+      "evidence_ref": "synthetic:scripted-fixture",
+      "input_sha256": "86f1bab7e1e281b6ccef1bf2c3cb941ca0ab9d9f909ce9b6e3f611d7f877c5c8",
+      "response": {
+        "ok": true,
+        "rho": 1.2
+      }
+    },
+    {
+      "case_id": "sphere-as-cylinder",
+      "evidence_ref": "synthetic:scripted-fixture",
+      "input_sha256": "0573a992d63125658ee3e043acd40014c83baabff38b68263d279b3a80e471ce",
+      "response": {
+        "ok": false,
+        "reason": "geometry mismatch"
+      }
+    }
+  ],
+  "phase": "P2",
+  "schema": "humanaios.acat-r.phase.v0.1",
+  "system_id": "synthetic-runtime-demo"
+}
