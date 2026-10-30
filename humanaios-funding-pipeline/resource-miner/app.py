@@ -168,6 +168,12 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path == "/app.webmanifest":
+                # Only public app identity. No service worker or private caching.
+                body = (ROOT / "app.webmanifest").read_bytes()
+                self._headers(200, "application/manifest+json; charset=utf-8", len(body))
+                self.wfile.write(body)
+                return
             if parsed.path == "/my-opportunities":
                 if not self._local_opportunities_allowed():
                     return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
