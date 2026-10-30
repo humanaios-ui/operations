@@ -155,6 +155,58 @@ class RuntimePilotTests(unittest.TestCase):
         self.files['commit'] = str(self.root/'missing-commit.json')
         with self.assertRaises(FileNotFoundError):self.run_eval()
 
+    def test_signed_nonfinite_numeric_strings_refused(self):
+        oracle=self.protocol['cases'][0]['baseline_oracle']
+        for v in ['+NaN','-NaN',' +nan ', '-INF','+infinity']:
+            self.assertFalse(r.check_response({'ok':True,'rho':0.8,'aux':v},oracle)[0])
+
+    def test_large_integer_no_uncaught_exception(self):
+        oracle=self.protocol['cases'][0]['baseline_oracle']
+        ok, _=r.check_response({'ok':True,'rho':10**400},oracle)
+        self.assertFalse(ok)
+        bad=copy.deepcopy(self.protocol)
+        bad['cases'][0]['baseline_oracle']['expected']=10**400
+        with self.assertRaisesRegex(r.InvalidEvidence,'finite'):
+            r.validate_protocol(bad)
+
+    def test_numeric_comparison_exact_large_int_distinction(self):
+        oracle={'kind':'numeric','path':'amount','expected':9007199254740993,'atol':0,'rtol':0}
+        self.assertFalse(r.check_response({'ok':True,'amount':9007199254740992.0},oracle)[0])
+
+    def test_numeric_comparison_no_overflow(self):
+        oracle={'kind':'numeric','path':'amount','expected':1e308,'atol':0,'rtol':1.9}
+        self.assertFalse(r.check_response({'ok':True,'amount':-1e308},oracle)[0])
+
+    def test_cli_existing_output_preserved(self):
+        out=self.root/'claimed.json'
+        out.write_bytes(b'no overwrites')
+        rc=r.main(['commit','--protocol',self.files['protocol'],'--p1',self.files['p1'],
+                   '--output',str(out)])
+        self.assertEqual(rc,2)
+        self.assertEqual(out.read_bytes(),b'no overwrites')
+
+    def test_cli_malformed_evidence_is_code_2(self):
+        out=self.root/'new.json'
+        bad=self.root/'malformed.json'
+        bad.write_text('{"a":NaN}')
+        self.assertEqual(r.main(['commit','--protocol',str(bad),'--p1',self.files['p1'],
+                                 '--output',str(out)]),2)
+        self.assertFalse(out.exists())
+
+    def test_bounded_loader_rejects_large_file(self):
+        p=self.root/'oversize.json'
+        p.write_bytes(b' '*(r.MAX_BYTES+2))
+        with self.assertRaisesRegex(r.InvalidEvidence,'1 MB'):
+            r.load(p)
+
+    def test_dangling_symlink_not_followed(self):
+        out=self.root/'link'
+        victim=self.root/'target'
+        out.symlink_to(victim)
+        self.assertEqual(r.main(['commit','--protocol',self.files['protocol'],
+           '--p1',self.files['p1'],'--output',str(out)]),2)
+        self.assertFalse(victim.exists())
+
     def test_no_shell_runtime_invocation_in_module(self):
         code = SOURCE.read_text()
         for forbidden in ['subprocess.', 'os.system(', 'eval(', 'exec(']:
