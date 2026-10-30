@@ -76,8 +76,25 @@ class LivePilotTests(unittest.TestCase):
     def test_explicit_opt_in_required(self):
         run=subprocess.run([sys.executable,str(LIVE/'collect_live.py'), '--output-dir',str(self.output)],
                            capture_output=True,text=True,timeout=5)
-        self.assertNotEqual(run.returncode,0)
+        self.assertEqual(run.returncode,2)
+        self.assertIn('--run-owned',run.stderr)
         self.assertFalse(self.output.exists())
+
+    def test_changed_oracle_refused_before_replay(self):
+        c.collect(self.output)
+        p=self.output/'protocol.json'
+        doc=json.loads(p.read_bytes())
+        doc['cases'][0]['challenge_oracle']['expected']=90
+        p.write_text(json.dumps(doc))
+        with self.assertRaisesRegex(ValueError,'frozen reference contract'):
+            verify.verify(self.output)
+
+    def test_timeout_maps_to_bounded_failure(self):
+        from unittest.mock import patch
+        from subprocess import TimeoutExpired
+        with patch.object(c.subprocess,'run',side_effect=TimeoutExpired('owned',6)):
+            with self.assertRaisesRegex(RuntimeError,'timed out'):
+                c.run_one(c.BASE,{'operation':'quantity','value':1})
 
     def test_existing_capture_refused(self):
         c.collect(self.output)
