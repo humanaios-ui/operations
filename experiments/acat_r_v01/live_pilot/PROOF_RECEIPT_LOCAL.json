@@ -1,0 +1,50 @@
+{
+  "admission": "HOLD_FOR_INDEPENDENT_REVIEW",
+  "artifact_sha256": {
+    "P1": "17b449d7d512a3030d487f890d303851b5c9556097f4e3b9e6da0272fdd3bfbb",
+    "P2": "17b449d7d512a3030d487f890d303851b5c9556097f4e3b9e6da0272fdd3bfbb",
+    "P3": "90d543844669b96667cfa465c263dec2e293f4d21eed612be2add95f7ad542be"
+  },
+  "authority_effect": "NONE",
+  "can_authorize": false,
+  "captured_child_processes": 12,
+  "challenge_replay_gain": 0.75,
+  "code_ownership": "user-controlled workload with planted application flaws; no claim of Python or SQLite flaws",
+  "environment": {
+    "os_family": "Linux",
+    "python_executable_sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1",
+    "python_version": "3.13.5",
+    "sqlite_native_extension_sha256": "ad902edee2ed8dbbaec17309130436ffef1b69b1547a204e41e01e0d807a0c3d",
+    "sqlite_version": "3.46.1"
+  },
+  "evidence_sha256": "d24968b7897ded856e86899ecde3ecbc28e0c6432c70369b88da0caf57025975",
+  "evidence_state": "UNVERIFIED_RUNTIME_OBSERVATIONS",
+  "limitations": [
+    "local captures and independent-process replay are under same operator, not an authenticated independent witness",
+    "controlled induced wrapper faults; no claim of underlying CPython or SQLite bug",
+    "4-case protocol has not established field accuracy, false positive rate, or broad measurement validity",
+    "hash-chain under one operator does not establish an external immutable timeline",
+    "does not verify DASE or third-party software"
+  ],
+  "p1_commit_sha256": "26f90dfa443cba82ed0b6218635bd88b40f26db0a6cdf198523a49467c8396c0",
+  "passes": {
+    "P1": 4,
+    "P2": 1,
+    "P3": 4
+  },
+  "protocol_sha256": "749b13344ebfd2a4c099ff2da116fc78897f702fa6e69a52e0ccf8102e56b303",
+  "recovered_cases": 3,
+  "regressed_cases": 0,
+  "replayed_child_processes": 12,
+  "schema": "humanaios.acat-r.owned-live-provisional-receipt.v0.1",
+  "source_sha256": {
+    "after": "da655e1efd9a99980a444ee90de540102686ee367d3af7032164880dfc54f9d2",
+    "before": "6b19c8f43eb21c414e1531bb0e0af186e1ae846a704159224621226379522d5b"
+  },
+  "subject": "CPython interpreter child processes + native SQLite via deliberately buggy/patched owned application wrapper",
+  "subprocess_exit_codes": {
+    "P1": 0,
+    "P2": 0,
+    "P3": 0
+  }
+}
