@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from decimal import Decimal
 import hashlib
 import json
 import math
@@ -50,7 +51,8 @@ def reject_constant(s):
 
 
 def load(path):
-    raw = Path(path).read_bytes()
+    with open(path, 'rb') as handle:
+        raw = handle.read(MAX_BYTES + 1)
     require(len(raw) <= MAX_BYTES, 'input exceeds 1 MB limit')
     try:
         obj = json.loads(raw, object_pairs_hook=no_duplicates, parse_constant=reject_constant)
@@ -75,7 +77,12 @@ def valid_sha(value, label):
 
 
 def finite_number(value):
-    return type(value) in (int, float) and math.isfinite(value)
+    if type(value) not in (int, float):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
 
 
 def validate_oracle(o):
@@ -163,7 +170,7 @@ def check_response(response, oracle):
         return False, 'expected successful result'
     def unsafe_numeric_string(o):
         if isinstance(o, str):
-            return o.strip().lower() in {'nan', 'inf', '+inf', '-inf', 'infinity', '+infinity', '-infinity'}
+            return o.strip().lower() in {'nan', '+nan', '-nan', 'inf', '+inf', '-inf', 'infinity', '+infinity', '-infinity'}
         if isinstance(o, dict):
             return any(unsafe_numeric_string(v) for v in o.values())
         if isinstance(o, list):
@@ -181,8 +188,14 @@ def check_response(response, oracle):
     if not finite_number(value):
         return False, 'output is not finite numeric'
     target = oracle['expected']
-    tolerance = max(oracle.get('atol',0), oracle.get('rtol',0)*abs(target))
-    return (abs(value-target) <= tolerance, 'numeric reference and tolerance check')
+    # Decimal from string representation preserves large integer distinctions
+    # and avoids float overflow in difference/relative-tolerance arithmetic.
+    observed = Decimal(str(value))
+    reference = Decimal(str(target))
+    atol = Decimal(str(oracle.get('atol', 0)))
+    rtol = Decimal(str(oracle.get('rtol', 0)))
+    tolerance = max(atol, rtol * abs(reference))
+    return (abs(observed-reference) <= tolerance, 'numeric reference and tolerance check')
 
 
 def commit_p1(protocol_path, p1_path):
@@ -263,8 +276,9 @@ def main(argv=None):
         else:
             report = evaluate(args.protocol,args.p1,args.p2,args.p3,args.commit)
         output = Path(args.output)
-        require(not output.exists(), 'output already exists; refusing overwrite')
-        output.write_bytes(json.dumps(report,sort_keys=True,indent=2,ensure_ascii=False,allow_nan=False).encode() + b'\n')
+        payload = json.dumps(report,sort_keys=True,indent=2,ensure_ascii=False,allow_nan=False).encode() + b'\n'
+        with open(output, 'xb') as handle:
+            handle.write(payload)
         print(json.dumps({'output':str(output),'schema':report['schema'],'admission':report.get('admission','NONE')}))
         return 0
     except (InvalidEvidence, OSError, ValueError) as e:
