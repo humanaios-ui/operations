@@ -66,7 +66,7 @@ class ResourceMinerFourStateExperiment(unittest.TestCase):
         self.snapshot = root / "synthetic-snapshot.jsonl"
         self.catalog = root / "synthetic-curated-catalog.json"
         self.rows = [
-            record("ACATR-STALE", deadline="2020-01-01"),
+            record("ACATR-STALE", source_evidence_valid_until="2020-01-01"),
             record("ACATR-UNKNOWN"),
             record("ACATR-CONFLICTING"),
             record("ACATR-UNAVAILABLE"),
@@ -74,8 +74,12 @@ class ResourceMinerFourStateExperiment(unittest.TestCase):
         self.save_rows(self.rows)
         self.save_catalog([
             {"url": URL_BASE + "acatr-conflicting",
-             "source_verification_status": "SOURCE_CONFLICT",
+             "source_verification_status": "SOURCE_WORKING",
+             "source_verification_observation": {"observed_on": "2026-10-29"},
              "private_notes": "PRIVATE_CATALOG_NOTE_DO_NOT_ECHO"},
+            {"url": URL_BASE + "acatr-conflicting",
+             "source_verification_status": "SOURCE_UNAVAILABLE",
+             "source_verification_observation": {"observed_on": "2026-10-29"}},
             {"url": URL_BASE + "acatr-unavailable",
              "source_verification_status": "SOURCE_UNAVAILABLE",
              "source_verification_observation": {"kind": "USER_REPORTED"}},
@@ -109,7 +113,7 @@ class ResourceMinerFourStateExperiment(unittest.TestCase):
             "CURRENT_SOURCE_NOT_INDEPENDENTLY_VERIFIED",
         )
         self.assertEqual(review["ACATR-STALE"]["verification_state"], "STALE")
-        self.assertEqual(review["ACATR-STALE"]["reason_code"], "DEADLINE_PASSED")
+        self.assertEqual(review["ACATR-STALE"]["reason_code"], "EVIDENCE_EXPIRED")
         self.assertEqual(review["ACATR-CONFLICTING"]["verification_state"], "CONFLICTING")
         self.assertEqual(review["ACATR-UNAVAILABLE"]["verification_state"], "UNAVAILABLE")
         self.assertEqual(set(visible), {"ACATR-UNKNOWN"})
