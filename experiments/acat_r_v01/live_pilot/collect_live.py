@@ -10,13 +10,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
+import _sqlite3
 from pathlib import Path
 import platform
 import sqlite3
 import subprocess
 import sys
-import tempfile
 
 HERE = Path(__file__).resolve().parent
 ACAT = HERE.parent / 'calibrate.py'
@@ -58,11 +57,11 @@ def protocol():
 
 def runtime_manifest(script):
     exe = Path(sys.executable).resolve()
-    sqlite_ext = Path(sqlite3.__file__).resolve()
+    sqlite_ext = Path(_sqlite3.__file__).resolve()
     return {'python_executable_sha256':SHA(exe.read_bytes()),
             'python_version':platform.python_version(),
             'sqlite_version':sqlite3.sqlite_version,
-            'sqlite3_module_sha256':SHA(sqlite_ext.read_bytes()),
+            'sqlite_native_extension_sha256':SHA(sqlite_ext.read_bytes()),
             'source_sha256':SHA(script.read_bytes()),
             'runtime_mode':'CPython -I -S, stdin JSON, in-memory SQLite',
             'network':'not used by pilot code; no OS-level network sandbox',
