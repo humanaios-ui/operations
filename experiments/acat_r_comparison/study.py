@@ -280,9 +280,19 @@ def fair_conventional(cases, rows, out):
 
 
 # ---------------------------------------------------------------- adjudication
-def load_adjudication(cases, path=ADJUDICATION):
-    """Human decisions live here, separate from the generated PENDING template."""
+def load_adjudication(cases, rubric_record, path=ADJUDICATION):
+    """Human decisions live here, separate from the generated PENDING template.
+
+    Decisions are bound to one rubric: the file must name the enforced revision and the
+    computed digest, so decisions recorded for an older rubric can never score a newer one
+    (Copilot r4429077705).
+    """
     adj = json.loads(pathlib.Path(path).read_text())
+    validate(adj.get("rubric_revision") == rubric_record["active_revision"],
+             f"adjudication is for rubric revision {adj.get('rubric_revision')!r}, "
+             f"enforced revision is {rubric_record['active_revision']}")
+    validate(adj.get("rubric_sha256") == rubric_record["computed_rubric_sha256"],
+             "adjudication rubric_sha256 does not match the computed rubric digest")
     decisions = adj["decisions"]
     validate(sorted(decisions) == sorted(c["id"] for c in cases), "adjudication must cover exactly the 30 case ids")
     for cid, d in decisions.items():
@@ -383,7 +393,6 @@ def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
     rubric = encoded(cases)
     rubric_record = enforce_rubric(rubric, registry)
     classes = load_evidence_classes(cases)
-    adjudication = load_adjudication(cases)
     out.mkdir(exist_ok=False)
     if not rubric_record["runtime_permitted"]:
         # Issue #1081 plan: a rubric that is not the human-accepted reference blocks execution.
@@ -401,6 +410,8 @@ def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
                           "active_human_accepted": blocked["active_human_accepted"],
                           "runtime_calls_made": 0, "admission": "HOLD"}, sort_keys=True))
         return blocked
+    # adjudication is read only on the permitted path and must be bound to this exact rubric
+    adjudication = load_adjudication(cases, rubric_record)
     # 1. unchanged conventional 10-case suite FIRST
     conventional_baseline = baseline(out)
     # 2. commitment before any case is sent to the runtime

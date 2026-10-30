@@ -14,8 +14,10 @@ These tests pin the harness, not the GNER-E1 runtime. They assert that the study
   * keeps the four boolean-boundary cases in PROPOSED_POLICY, separate from the
     contract-derived cases;
   * emits a PENDING oracle template whose non-editable fields match the committed
-    snapshot, validates the separate ADJUDICATION.json, and scores confirmed_defects
-    only from HUMAN ACCEPT decisions on disagreements;
+    snapshot, validates the separate ADJUDICATION.json (bound to the enforced rubric
+    revision and digest), and scores confirmed_defects only from HUMAN ACCEPT
+    decisions on disagreements, using all-PENDING fixtures so recorded decisions
+    never break these tests;
   * live-probe receipts are sanitized, pin-verified, and hash the consumed response.
 """
 import importlib.util
@@ -245,9 +247,20 @@ class EvidenceClassTests(unittest.TestCase):
 
 
 class AdjudicationTests(unittest.TestCase):
+    """Mutation and scoring fixtures are built from an all-PENDING template, never from the
+    committed file, so recorded human decisions cannot change expected errors or counts."""
+
     def setUp(self):
         self.cases = study.build()
-        self.adj = study.load_adjudication(self.cases)
+        self.rubric = study.enforce_rubric(study.encoded(self.cases), study.load_registry())
+        self.pending = {
+            "schema": "humanaios.acat-r.oracle-adjudication.v0.1",
+            "rubric_revision": self.rubric["active_revision"],
+            "rubric_sha256": self.rubric["computed_rubric_sha256"],
+            "decisions": {c["id"]: {"decision": "PENDING", "rationale": "", "reviewer_identity": "",
+                                    "reviewer_kind": "", "contract_citation": "",
+                                    "proposed_expected_state": None, "decided_at": None}
+                          for c in self.cases}}
 
     def _tmp(self, adj):
         fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
@@ -255,37 +268,52 @@ class AdjudicationTests(unittest.TestCase):
         fh.close()
         return fh.name
 
-    def test_committed_adjudication_covers_30_cases_with_valid_decisions(self):
-        self.assertEqual(sorted(self.adj["decisions"]), sorted(c["id"] for c in self.cases))
-        for d in self.adj["decisions"].values():
+    def test_committed_adjudication_loads_and_is_bound_to_the_enforced_rubric(self):
+        adj = study.load_adjudication(self.cases, self.rubric)
+        self.assertEqual(sorted(adj["decisions"]), sorted(c["id"] for c in self.cases))
+        self.assertEqual(adj["rubric_revision"], self.rubric["active_revision"])
+        self.assertEqual(adj["rubric_sha256"], self.rubric["computed_rubric_sha256"])
+        for d in adj["decisions"].values():
             self.assertIn(d["decision"], study.DECISIONS)
 
+    def test_adjudication_for_another_rubric_is_rejected(self):
+        stale = json.loads(json.dumps(self.pending))
+        stale["rubric_revision"] = self.rubric["active_revision"] + 1
+        with self.assertRaisesRegex(ValueError, "rubric revision"):
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(stale))
+        stale = json.loads(json.dumps(self.pending))
+        stale["rubric_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "rubric_sha256"):
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(stale))
+
     def test_non_pending_decisions_require_rationale_identity_kind_citation(self):
-        adj = json.loads(json.dumps(self.adj))
+        adj = json.loads(json.dumps(self.pending))
         adj["decisions"]["type_lead_bool_id"].update(decision="ACCEPT")
         with self.assertRaisesRegex(ValueError, "requires rationale"):
-            study.load_adjudication(self.cases, path=self._tmp(adj))
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
         adj["decisions"]["type_lead_bool_id"].update(rationale="x", reviewer_identity="y", contract_citation="z",
                                                      reviewer_kind="ROBOT")
         with self.assertRaisesRegex(ValueError, "reviewer_kind"):
-            study.load_adjudication(self.cases, path=self._tmp(adj))
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
         adj["decisions"]["type_lead_bool_id"].update(decision="REVISE", reviewer_kind="HUMAN")
         with self.assertRaisesRegex(ValueError, "proposed_expected_state"):
-            study.load_adjudication(self.cases, path=self._tmp(adj))
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
         adj["decisions"].pop("valid_failure")
         with self.assertRaisesRegex(ValueError, "exactly the 30 case ids"):
-            study.load_adjudication(self.cases, path=self._tmp(adj))
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
 
     def test_confirmed_defects_count_only_human_accepts_on_disagreements(self):
         disagreements = [{"id": cid} for cid in sorted(BOOL_CASES)]
-        adj = json.loads(json.dumps(self.adj))
-        human = dict(decision="ACCEPT", rationale="r", reviewer_identity="ref", reviewer_kind="HUMAN", contract_citation="c")
+        adj = json.loads(json.dumps(self.pending))
+        human = {"decision": "ACCEPT", "rationale": "r", "reviewer_identity": "ref", "reviewer_kind": "HUMAN",
+                 "contract_citation": "c"}
         agent = dict(human, reviewer_kind="AGENT_REVIEWED_NOT_HUMAN_INDEPENDENT")
         adj["decisions"]["type_lead_bool_id"].update(human)                 # flagged + human accept -> confirmed
         adj["decisions"]["type_lead_bool_pr"].update(agent)                 # flagged + agent accept -> not confirmed
         adj["decisions"]["type_canonical_bool_id"].update(human, decision="REJECT")
         adj["decisions"]["valid_failure"].update(human)                     # not flagged + accept -> not a defect
-        scored = study.score_adjudication(disagreements, study.load_adjudication(self.cases, path=self._tmp(adj)))
+        loaded = study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
+        scored = study.score_adjudication(disagreements, loaded)
         self.assertEqual(scored["confirmed_defects"], ["type_lead_bool_id"])
         self.assertEqual(scored["accept_agent_only"], ["type_lead_bool_pr"])
         self.assertEqual(scored["reject"], ["type_canonical_bool_id"])
