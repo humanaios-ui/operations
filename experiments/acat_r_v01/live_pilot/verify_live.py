@@ -7,6 +7,7 @@ an executable path; only hashes and runs two fixed repository-owned files.
 from __future__ import annotations
 import argparse
 import json
+import subprocess
 from pathlib import Path
 import sys
 
@@ -19,6 +20,8 @@ def verify(folder):
     protocol=folder/'protocol.json'
     p, _=acat.load(protocol)
     acat.validate_protocol(p)
+    if p != pilot.protocol():
+        raise ValueError('protocol differs from code-owned frozen reference contract')
     manifest_before=acat.load(folder/'runtime_before.manifest.json')[0]
     manifest_after=acat.load(folder/'runtime_after.manifest.json')[0]
     if manifest_before != pilot.runtime_manifest(pilot.BASE):
@@ -71,6 +74,6 @@ if __name__=='__main__':
     try:
         output=verify(args.evidence_dir)
         print(json.dumps(output,sort_keys=True))
-    except (ValueError, OSError, acat.InvalidEvidence) as exc:
+    except (ValueError, OSError, RuntimeError, KeyError, TypeError, subprocess.SubprocessError) as exc:
         print('REPLAY REFUSED: '+str(exc),file=sys.stderr)
         sys.exit(2)
