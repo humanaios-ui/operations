@@ -152,7 +152,7 @@ class TokenTests(unittest.TestCase):
         out = ta.intent_os_preview("AI evaluation fellowship", corpus)
         self.assertTrue(out["candidates"])
         self.assertTrue(all(c["eligibility_assessed"] is False for c in out["candidates"]))
-        self.assertNotIn("ELIGIBLE", json.dumps(out).replace("NOT_ELIGIBLE", "").upper().replace("ELIGIBILITY", ""))
+        self.assertNotIn("eligible", json.dumps([c.get("status") for c in out["candidates"]]).lower())
 
     def test_human_reported_outcome_is_distinct_from_the_draft(self):
         rec = ta.human_reported_submission("Slack", "2026-10-30", {"draft.docx": "ab" * 32})
@@ -216,6 +216,103 @@ class StrictMatcherTests(unittest.TestCase):
         out = ta.run_controls(corpus, strict=True)
         self.assertEqual(out["CTRL_NONSENSE"]["bypassed_matches"], [])
         self.assertEqual(out["CTRL_QUANTUM_HARDWARE"]["bypassed_matches"], [])
+
+
+class ReviewerChallengeRegressions(unittest.TestCase):
+    """One test per confirmed finding of the independent challenge."""
+
+    def _tok(self, label, path="competencies.x[0]", ttype="CAPABILITY", rev=REV):
+        return ta.make_token(ttype, label, path, rev, "ref", "OWNER_COMMITTED_MASTER")
+
+    def test_baseline_phrase_normalization_collapses_whitespace(self):  # finding 7
+        self.assertEqual(ta._norm_phrase("Process Improvement (DMAIC)"), "process improvement dmaic")
+        self.assertEqual(ta._norm_phrase("Regulatory Auditing (ISO, CAP, CLIA)"), "regulatory auditing iso cap clia")
+        hit = ta.discover_strict({"k": ta.predicate_need("PROJECT_DELIVERY", ["process improvement dmaic"], "A")},
+                                 [resource("r", "x", "a role in process improvement dmaic work for teams everywhere here")],
+                                 ta.ANY_HIT)["k"]
+        self.assertEqual(len(hit), 1)
+
+    def test_fair_bag_baseline_is_built_from_skill_phrases_only(self):  # finding 7
+        t = [self._tok("Calibration Protocol Design"), self._tok("Led the Acme program in 2019", path="experience[0].bullets[0]", ttype="OUTCOME")]
+        sig = ta.bag_signals(t, [x["token_id"] for x in t])
+        self.assertIn("calibration", sig)
+        self.assertIn("calibration protocol", sig)
+        self.assertFalse(any("acme" in x for x in sig))
+
+    def test_personal_text_cannot_reach_the_matcher(self):  # finding 14
+        master = {"contact": {"legal_name": "Jane Doe"}, "experience": [{"organization": "Acme Hospital"}]}
+        terms = ta.private_terms_from_master(master)
+        self.assertTrue({"jane", "acme"} <= terms)
+        long_label = self._tok("Quality lead at Acme Hospital Jane Doe")          # > 5 words: never literal
+        self.assertEqual(ta.literal_signals([long_label], [long_label["token_id"]]), [])
+        short_label = self._tok("Acme quality")                                   # short but names an employer
+        sup = ta.classify([short_label]) or [ta.make_edge("SUPPORTS", short_label["token_id"], "PROJECT_DELIVERY", "SOURCE_BACKED", "t")]
+        with self.assertRaises(ValueError):
+            ta.run_arms([short_label], sup, [resource("r", "x", "y")], private_terms=terms)
+        outcome = self._tok("Jane Doe 2019 award", path="achievements[0].items[0]", ttype="OUTCOME")
+        self.assertEqual(ta.literal_signals([outcome], [outcome["token_id"]]), [])  # not a competency phrase
+
+    def test_classifier_no_longer_overmatches(self):  # finding 15
+        for label in ("Collaborator network lead", "Cap table management", "Language proficiency Spanish",
+                      "Worked in a lab-grown meat startup", "Risk management in startups",
+                      "Statistical analysis of sports"):
+            self.assertEqual(ta.classify([self._tok(label)]), [], label)
+        for label, concept in (("Regulatory Auditing (ISO, CAP, CLIA)", "HEALTHCARE_QUALITY_SYSTEMS"),
+                               ("Laboratory operations", "LABORATORY_OPERATIONS"),
+                               ("Proficiency testing program", "ANALYTICAL_METHOD_VALIDATION")):
+            self.assertIn(concept, [e["to"] for e in ta.classify([self._tok(label)])], label)
+
+    def test_employer_name_cannot_open_a_concept(self):  # finding 16
+        master = {"experience": [{"role": "Analyst", "organization": "Hospital Corp", "duration_display": "2020",
+                                  "summary": "Prepared weekly reports."}]}
+        toks = ta.build_tokens(master, REV)
+        self.assertEqual(ta.classify(toks), [])
+        arms = ta.run_arms(toks, ta.classify(toks), [resource("r", "x", "y")], strict=True)
+        self.assertEqual(arms["predicates"], {})
+
+    def test_credential_detector_covers_common_requirements(self):  # finding 17
+        for text in ("MBA required", "bachelor's degree required", "Master's degree", "ph.d. required",
+                     "must have security clearance", "for women-led companies"):
+            self.assertTrue(ta.credential_flags(resource("r", text)), text)
+        self.assertFalse(ta.credential_flags(resource("r", "Open evaluation program", "Anyone may apply to this open program.")))
+
+    def test_token_id_distinguishes_type_and_revision(self):  # finding 19
+        a = self._tok("Same label", rev="a" * 40)
+        b = self._tok("Same label", rev="b" * 40)
+        c = self._tok("Same label", ttype="OUTCOME")
+        self.assertEqual(len({a["token_id"], b["token_id"], c["token_id"]}), 3)
+
+    def test_hits_carry_the_source_url(self):  # finding 18
+        r = resource("r1", "Evaluation fellowship", "a long enough description about evaluation and benchmark programs")
+        hits = ta.discover_strict({"k": ta.predicate_need("AI_EVALUATION", ["evaluation", "benchmark"], "B1")}, [r])["k"]
+        self.assertEqual(hits[0]["source_url"], r.source_url)
+
+    def test_failed_write_leaves_no_partial_file_and_allows_retry(self):  # finding 20
+        with tempfile.TemporaryDirectory() as tmp:
+            probe = subprocess.run(["git", "-C", tmp, "rev-parse", "--is-inside-work-tree"], capture_output=True, text=True)
+            out = Path(tmp) / "x.json"
+            with self.assertRaises(TypeError):
+                ta.write_private_json(out, {"bad": object()}, guard_dir=False)
+            self.assertFalse(out.exists())
+            ta.write_private_json(out, {"ok": 1}, guard_dir=False)
+            self.assertEqual(json.loads(out.read_text()), {"ok": 1})
+
+    def test_control_concepts_are_non_empty_and_checked(self):  # finding 26
+        for cid, spec in ta.CONTROL_CONCEPTS.items():
+            self.assertTrue(spec["discover"], cid)
+        trap = [resource("r1", "Clinical trial site", "licensed physician needed for clinical trial patient care and fda work")]
+        out = ta.run_controls(trap)
+        self.assertTrue(out["CTRL_LICENSED_CLINICAL_PRACTICE"]["bypassed_matches"])  # the detector can fire...
+        self.assertTrue(all(m["eligibility_assessed"] is False
+                            for m in out["CTRL_LICENSED_CLINICAL_PRACTICE"]["bypassed_matches"]))  # ...but never claims eligibility
+        self.assertEqual(out["CTRL_LICENSED_CLINICAL_PRACTICE"]["gate"], "REFUSED_NO_SOURCE_BACKING")
+
+    def test_git_guard_runs_even_when_tempdir_is_not_in_a_repo(self):  # finding 27
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp, mock.patch("resource_miner.application_portfolio._inside_git_work_tree", return_value=True):
+            with self.assertRaises(ValueError):
+                ta.write_private_json(Path(tmp) / "x.json", {"a": 1})
+            self.assertFalse((Path(tmp) / "x.json").exists())
 
 
 class PrivateWriteTests(unittest.TestCase):

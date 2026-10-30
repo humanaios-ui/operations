@@ -34,15 +34,15 @@ CONCEPTS: dict[str, dict[str, Any]] = {
         "label": "Analytical method validation",
         "classify": [r"method validation", r"analytical validation", r"assay validation",
                      r"\bhplc\b", r"mass spectrometry", r"\blc/ms\b", r"\bmaldi", r"immunoassay",
-                     r"proficiency", r"analytical chemistry", r"validation pipeline",
+                     r"proficiency testing", r"analytical chemistry", r"validation pipeline",
                      r"quality validation", r"statistical validation"],
         "discover": ["validation", "method validation", "analytical", "assay", "measurement",
                      "reproducib", "replication"],
     },
     "HEALTHCARE_QUALITY_SYSTEMS": {
         "label": "Healthcare quality systems",
-        "classify": [r"quality assurance", r"quality director", r"patient safety", r"risk management",
-                     r"regulatory audit", r"\bclia\b", r"\bcap\b", r"document control",
+        "classify": [r"quality assurance", r"quality director", r"patient safety", r"clinical risk",
+                     r"regulatory audit", r"\bclia\b", r"document control",
                      r"incident[- ]report", r"quality (?:program|system)", r"healthcare|hospital"],
         "discover": ["healthcare", "patient safety", "clinical quality", "hospital", "medical",
                      "quality assurance", "health system"],
@@ -65,14 +65,14 @@ CONCEPTS: dict[str, dict[str, Any]] = {
     },
     "LABORATORY_OPERATIONS": {
         "label": "Laboratory operations",
-        "classify": [r"laborator", r"\blab\b", r"biochemical genetics", r"proteomics", r"\bsops?\b",
+        "classify": [r"\blaborator(?:y|ies)\b", r"\blab\b(?![- ]grown)", r"biochemical genetics", r"proteomics", r"\bsops?\b",
                      r"\blis\b", r"specimen"],
         "discover": ["laboratory", "wet lab", "lab operations", "biochemical", "instrument"],
     },
     "DATA_VALIDATION": {
         "label": "Data validation",
         "classify": [r"data pipeline", r"data normalization", r"corrections?[- ]ledger",
-                     r"sample-size", r"statistical analysis"],
+                     r"sample-size"],
         "discover": ["data quality", "dataset", "data validation", "annotation"],
     },
 }
@@ -91,7 +91,8 @@ TRANSFER_TABLE: dict[tuple[str, str], str] = {
 
 CREDENTIAL_PATTERNS = (r"\bphd\b", r"\bdoctoral\b", r"\blicensed\b", r"\bmd\b", r"citizen",
                        r"\bstudent", r"\bundergraduate", r"\bgraduate\b", r"\bresident of\b",
-                       r"\bnonprofit\b|\b501\(c\)")
+                       r"\bnonprofit\b|\b501\(c\)", r"\bmba\b", r"\bbachelor", r"\bmaster'?s\b",
+                       r"ph\.d", r"\bm\.d\b", r"clearance", r"women-led|woman-owned|minority-owned")
 # P3 (R5): domain/status requirements the P1 detector missed. Used only in strict mode so
 # P1 stays reproducible.
 DOMAIN_REQUIREMENT_PATTERNS = (r"\bbackground\b", r"\bdegree\b", r"\bcertif", r"\bexpert",
@@ -121,18 +122,20 @@ def _clean(text: Any) -> str:
     return " ".join(str(text or "").split())
 
 
-def token_id(source_path: str, label: str) -> str:
-    return "TK-" + _sha(source_path, label)[:12]
+def token_id(source_path: str, label: str, ttype: str = "", revision: str = "") -> str:
+    return "TK-" + _sha(source_path, label, ttype, revision)[:12]
 
 
 def make_token(ttype: str, label: str, source_path: str, source_revision: str,
-               evidence_ref: str, approval_status: str, meaning: str = "") -> dict[str, Any]:
+               evidence_ref: str, approval_status: str, meaning: str = "",
+               classify_text: str = "") -> dict[str, Any]:
     if ttype not in TOKEN_TYPES:
         raise ValueError("unknown token type")
     label = _clean(label)
     if not label or not source_path or not source_revision or not evidence_ref:
         raise ValueError("a token needs a label, source path, revision and evidence reference")
-    return {"token_id": token_id(source_path, label), "type": ttype, "label": label,
+    return {"token_id": token_id(source_path, label, ttype, source_revision), "type": ttype, "label": label,
+            "classify_text": _clean(classify_text),
             "meaning": _clean(meaning) or label, "source_path": source_path,
             "source_revision": source_revision, "evidence_ref": evidence_ref,
             "approval_status": approval_status}
@@ -161,7 +164,8 @@ def build_tokens(master: dict[str, Any], revision: str,
         label = " | ".join(_clean(row.get(k)) for k in ("role", "organization")) + \
             " | " + _clean(row.get("duration_display") or
                            f"{row.get('start_date', '')} - {row.get('end_date', 'Present')}")
-        add("EXPERIENCE", label, f"experience[{i}]", revision, own, committed, _clean(row.get("summary")))
+        add("EXPERIENCE", label, f"experience[{i}]", revision, own, committed, _clean(row.get("summary")),
+            classify_text=f"{_clean(row.get('role'))} {_clean(row.get('summary'))}")
         for j, b in enumerate(row.get("bullets") or []):
             add("OUTCOME", b, f"experience[{i}].bullets[{j}]", revision, own, committed)
     for i, cat in enumerate(master.get("achievements") or []):
@@ -172,7 +176,8 @@ def build_tokens(master: dict[str, Any], revision: str,
         status = row.get("review_status") or "UNREVIEWED"
         ref = _clean(row.get("evidence_ref")) or own
         add("EXPERIENCE", row.get("title"), f"project_evidence[{i}]", revision, ref, status,
-            _clean(row.get("mandate")))
+            _clean(row.get("mandate")),
+            classify_text=f"{_clean(row.get('title')).split(' | ')[0]} {_clean(row.get('mandate'))}")
         for j, b in enumerate(row.get("evidence_bullets") or []):
             add("OUTCOME", b, f"project_evidence[{i}].evidence_bullets[{j}]", revision, ref, status)
     for i, row in enumerate(master.get("publications") or []):
@@ -180,7 +185,8 @@ def build_tokens(master: dict[str, Any], revision: str,
             _clean(row.get("status") or row.get("type")))
     for i, row in enumerate(master.get("education") or []):
         add("EXPERIENCE", f"{_clean(row.get('degree'))} | {_clean(row.get('school'))}",
-            f"education[{i}]", revision, own, committed, _clean(row.get("status")))
+            f"education[{i}]", revision, own, committed, _clean(row.get("status")),
+            classify_text=_clean(row.get("degree")))
     for p in per_records:
         pid = p.get("project_id")
         for i, c in enumerate(p.get("constraints") or []):
@@ -194,7 +200,7 @@ def classify(tokens: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for t in tokens:
         if t["type"] == "CONSTRAINT":
             continue  # a limit on the work is not evidence of a capability
-        text = (t["label"] + " " + t["meaning"]).casefold()
+        text = (t.get("classify_text") or (t["label"] + " " + t["meaning"])).casefold()
         for cid, spec in CONCEPTS.items():
             hits = [p for p in spec["classify"] if re.search(p, text)]
             if hits:
@@ -258,7 +264,7 @@ def backed_concepts(tokens: list[dict[str, Any]], supports: list[dict[str, Any]]
 # ---- predicates handed to the existing matcher: no personal text crosses this line ----
 
 def _norm_phrase(s: str) -> str:
-    return re.sub(r"[^a-z0-9/ ]+", " ", s.casefold()).strip()
+    return " ".join(re.sub(r"[^a-z0-9/ ]+", " ", s.casefold()).split())
 
 
 def literal_signals(tokens: list[dict[str, Any]], members: list[str]) -> list[str]:
@@ -267,9 +273,61 @@ def literal_signals(tokens: list[dict[str, Any]], members: list[str]) -> list[st
     sigs = []
     for m in members:
         t = by_id[m]
-        if t["type"] in ("CAPABILITY", "METHOD") and 4 <= len(t["label"]) <= 60:
+        if _is_skill_phrase(t):
             sigs.append(_norm_phrase(t["label"]))
     return sorted(set(s for s in sigs if s))
+
+
+STOPWORDS = frozenset("and the for with from into over under data design systems system "
+                      "management analysis using use used based such this that".split())
+
+
+def _is_skill_phrase(t: dict[str, Any]) -> bool:
+    """Only the master's own competency phrases may be sent as literal text: short, no digits."""
+    return (t["type"] in ("CAPABILITY", "METHOD") and t["source_path"].startswith("competencies.")
+            and 4 <= len(t["label"]) <= 60 and len(t["label"].split()) <= 5
+            and not re.search(r"\d", t["label"]))
+
+
+def bag_signals(tokens: list[dict[str, Any]], members: list[str]) -> list[str]:
+    """Fair baseline A2: unigrams and adjacent-word bigrams of the same skill phrases."""
+    by_id = {t["token_id"]: t for t in tokens}
+    out: set[str] = set()
+    for m in members:
+        t = by_id[m]
+        if not _is_skill_phrase(t):
+            continue
+        words = [w for w in _norm_phrase(t["label"]).split() if len(w) >= 4 and w not in STOPWORDS]
+        out.update(words)
+        out.update(" ".join(pair) for pair in zip(words, words[1:]))
+    return sorted(out)
+
+
+def private_terms_from_master(master: dict[str, Any]) -> set[str]:
+    """Words that identify the owner or an employer/school; they must never reach the matcher."""
+    terms: set[str] = set()
+    def add(v):
+        for w in re.findall(r"[a-z0-9@.]{4,}", str(v or "").casefold()):
+            terms.add(w)
+    c = master.get("contact") or {}
+    for k in ("legal_name", "location", "email", "phone"):
+        add(c.get(k))
+    for row in (master.get("experience") or []) + (master.get("leadership") or []):
+        add(row.get("organization"))
+    for row in master.get("education") or []:
+        add(row.get("school"))
+    for row in master.get("project_evidence") or []:
+        parts = str(row.get("title") or "").split(" | ")
+        if len(parts) > 1:
+            add(parts[1])
+    return terms - {"hospital", "center", "medical", "university", "institute", "health"}
+
+
+def check_predicates_clean(predicates: dict[str, dict[str, Any]], private_terms: set[str]) -> None:
+    for key, need in predicates.items():
+        blob = " ".join([need["label"], *need["signals"], *need.get("own_signals", [])]).casefold()
+        if any(re.search(r"(?<![a-z0-9])" + re.escape(t), blob) for t in private_terms):
+            raise ValueError(f"predicate {key} contains owner/employer text")
 
 
 def expanded_signals(concept: str, *, with_hypothesis: bool) -> list[str]:
@@ -346,6 +404,7 @@ def discover_strict(predicates: dict[str, dict[str, Any]], corpus: list[Resource
             score = round(min(1.0, min(0.55, 0.11 * len(sigs))), 2)
             if own and score >= threshold:
                 hits[key].append({"resource_id": r.resource_id, "title": r.title, "score": score,
+                                  "source_url": r.source_url,
                                   "signals": sorted(sigs), "own_signal_hits": sorted(own),
                                   "eligibility_assessed": False, "eligibility_status": "UNASSESSED",
                                   "credential_flags": credential_flags(r),
@@ -357,7 +416,7 @@ def discover_strict(predicates: dict[str, dict[str, Any]], corpus: list[Resource
 
 def run_arms(tokens: list[dict[str, Any]], supports: list[dict[str, Any]],
              corpus: list[ResourceCandidate], threshold: float = EXISTING_THRESHOLD,
-             strict: bool = False) -> dict[str, Any]:
+             strict: bool = False, private_terms: set[str] | None = None) -> dict[str, Any]:
     """Arm A literal, B1 normalized aliases, B2 aliases + hypothesis neighbours.
 
     strict=True is the P3 correction set (stronger support gate + discover_strict).
@@ -374,9 +433,12 @@ def run_arms(tokens: list[dict[str, Any]], supports: list[dict[str, Any]],
         if c not in members:
             continue  # source-backing gate: no supporting token, no query
         preds[f"{c}|A"] = predicate_need(c, literal_signals(tokens, members[c]), "A")
+        preds[f"{c}|A2"] = predicate_need(c, bag_signals(tokens, members[c]), "A2")
         preds[f"{c}|B1"] = predicate_need(c, expanded_signals(c, with_hypothesis=False), "B1")
         preds[f"{c}|B2"] = predicate_need(c, expanded_signals(c, with_hypothesis=True), "B2",
                                           own=expanded_signals(c, with_hypothesis=False))
+    if private_terms:
+        check_predicates_clean(preds, private_terms)
     run = discover_strict if strict else discover
     return {"predicates": preds, "hits": run(preds, corpus, threshold),
             "gated_out": sorted(set(CONCEPTS) - set(members))}
@@ -407,9 +469,16 @@ def write_private_json(path: str | Path, data: Any, *, guard_dir: bool = True) -
     if guard_dir and _inside_git_work_tree(p.parent):
         raise ValueError("refusing to write private pilot data inside a git work tree")
     fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, indent=2, sort_keys=True, ensure_ascii=False)
-        fh.write("\n")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(data, fh, indent=2, sort_keys=True, ensure_ascii=False)
+            fh.write("\n")
+    except BaseException:
+        try:
+            os.unlink(p)  # a failed write must not block a retry
+        except OSError:
+            pass
+        raise
 
 
 def sha256_file(path: str | Path) -> str:
