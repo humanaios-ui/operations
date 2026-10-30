@@ -1,0 +1,11 @@
+{
+  "id": "/intent-os",
+  "name": "HumanAIOS INTENT-OS (Pilot)",
+  "short_name": "INTENT-OS",
+  "description": "Human-reviewed resource discovery and evidence progress pilot.",
+  "start_url": "/intent-os",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1423",
+  "theme_color": "#0b1423"
+}
