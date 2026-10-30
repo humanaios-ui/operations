@@ -29,7 +29,7 @@ held-out set exists, so that gate is HOLD.
 | P2 = P3 stdout sha256 (rev 2 harness, full responses) | `2b70d6cf7aa0fe7fd8ca2094d60e368ba16bfd362301c070922eb21fe8c79596` |
 | `oracle/oracle_packet.json` sha256 | `9656a2966ed813dad182bd5cf61996882ac9cd21b6e824b8a8f23c1b8f885341` |
 | `oracle/ORACLE_REVIEW_PACKET.md` sha256 | `1ef1cbb74b4e4e704f5eedafbb4389477da935512ceec26cfc5f221fe19f264e` |
-| `receipts/live_probe_receipts.json` sha256 (re-run 2, schema v0.2, pins verified, consumed bytes hashed) | `656a165b9aec3d3334e648717dcf336c1ef31c1ec6a569adf4d87e002409ec2c` |
+| `receipts/live_probe_receipts.json` sha256 (re-run 3, schema v0.3, 14 probes, modules loaded from verified bytes, GET-only guard) | `cce97f0036b95c706a1324ed7543cae755345a7424f242577721db9529b50861` |
 | `receipts/report_local_reproduction.json` sha256 | `0fa0011d1f0afd887c1681fde26039471d1490e5403725129215e84039799b36` |
 
 ## 3. Gate-by-gate status
@@ -42,7 +42,7 @@ held-out set exists, so that gate is HOLD.
 | Independent oracle review packet | PREPARED, decisions PENDING | `oracle/ORACLE_REVIEW_PACKET.md`: 30 rows, all `PENDING` |
 | Conventional vs ACAT-R comparison | DONE (executed before the acceptance gate; re-execution now BLOCKED) | run 41132149131 at `8481574` and `receipts/report_local_reproduction.json`: identical detections, advantage 0, confirmed defects 0. `study.py` now exits 2 with `RUBRIC_BLOCKED.json` until a human accepts rubric revision 1 |
 | Held-out testing | HOLD | `HELD_OUT_PROTOCOL.md`; no set exists; none invented |
-| Authenticated `verify_lead()` | DONE under session credential, PARTIAL against plan | `receipts/live_probe_receipts.json` (re-run 2): runtime blobs verified before import; the hash is of the bytes `verify_lead` itself consumed; not a dedicated read-only PAT |
+| Authenticated `verify_lead()` | EXECUTED; credential requirement **OPEN FINDING** | `receipts/live_probe_receipts.json` (re-run 3, 14 probes): runtime modules loaded from pin-verified bytes; hash is of the bytes `verify_lead` consumed; GET-only guard active. Credential was the session's GitHub App grant, scope not verified read-only; the #1081 requirement for a dedicated read-only PAT is NOT closed by these receipts |
 | Copilot + CodeRabbit review of corrected head | REQUESTED | on the stacked draft PR |
 | Separate CI repair (#1070) | NOT IN THIS BRANCH | kept distinct as the plan requires; `workflow-path-validation` and enumeration guard still red on `main` |
 | Admission | HOLD | human decision pending |
@@ -69,7 +69,7 @@ Reading: on these inputs the unchanged runtime does everything its documentation
 tests require. The four flags are a proposal that `reconcile()` should reject `bool` where it
 accepts `int`. Whether that is a requirement is the referee's call.
 
-## 5. Live read-only probe of `verify_lead()` (13 probes; re-run 2 at 2026-10-30T22:21Z)
+## 5. Live probe of `verify_lead()` (14 probes; re-run 3 at 2026-10-30T23:2xZ)
 
 | Probe | Real run | verify_lead outcome | Reads as |
 |---|---|---|---|
@@ -81,7 +81,8 @@ accepts `int`. Whether that is a requirement is the referee's call.
 | security-gates success, notification lead | 41132149057 | CANONICAL_VERIFIED | positive control |
 | repository-admission-gate run (event pull_request_review) | 41133165536 | CONFLICT (unsupported event) | real-path boundary |
 | repository-admission-gate run, conclusion `action_required` | 41132641562 | CONFLICT (unsupported event) | `action_required` is real GitHub data |
-| run of a workflow not in ALLOWED_WORKFLOWS | 41132149131 | CONFLICT (workflow unsupported) | negative control |
+| name mismatch: lead says quality-baseline, run is the ACAT-R comparison workflow | 41132149131 | CONFLICT (workflow mismatch or unsupported) | name-mismatch control, not allowlist evidence |
+| lead names the real unlisted workflow (allowlist branch) | 41132149131 | CONFLICT (workflow mismatch or unsupported) | ALLOWED_WORKFLOWS rejection |
 | lead `run_id=True` | none | VerificationDenied, no network | bool run_id unreachable |
 | lead `run_id="…"` string | none | VerificationDenied, no network | string run_id unreachable |
 | lead `pr=True` | 41120652951 | ABSTAIN (PR association) | reachable, benign here |
@@ -104,10 +105,14 @@ import (`source_pins` in the receipt), and the recorded `response_sha256` is of 
 for every network probe (`consumed_matches_independent_fetch: true`). The same run fetched at 22:00Z
 and 22:21Z returned identical bytes.
 
-Credential note: the probe used the Claude Code session's GitHub credential through the session
-proxy. The value was never read or logged by the code, and the receipts contain no bearer or PAT
-markers. The plan specified a dedicated fine-grained read-only PAT in a trusted context; this run
-does not meet that wording. Re-run `live_probe.py` under such a token if the distinction matters.
+**Open finding (credential scope).** The probe used the Claude Code session's GitHub credential
+through the session proxy. Its upper scope is the session's GitHub App grant and may include write;
+the probe cannot verify it is read-only. Read-only behaviour was enforced only by the pinned
+`verify_lead` source (one GET) and by the probe's `urlopen` guard, which refuses any non-GET method
+or off-endpoint URL. The value was never read or logged and the receipts contain no bearer or PAT
+markers. The #1081 plan asked for a dedicated fine-grained read-only PAT in a trusted context; these
+receipts do **not** close that requirement. Remedy: re-run `live_probe.py` under such a token, or the
+operator records explicit acceptance of the gap.
 
 ## 6. Rubric digest record
 
@@ -119,6 +124,16 @@ digest silently, `rubric_registry.json` records both. Because revision 1 is not 
 that record. Revision 1 carries the same 30 ids, inputs and labels as PR #1082 head. **Human
 acceptance of revision 1 (setting `human_accepted`, `accepted_by`, `accepted_at`) is the single edit
 that unblocks execution, and is decision 1 below.**
+
+## 6b. Open finding: acceptance and adjudication provenance are self-asserted
+
+The rubric acceptance gate reads `human_accepted`, `accepted_by` and `accepted_at` from
+`rubric_registry.json` in the checked-out revision, and the HUMAN-only scoring reads `reviewer_kind`
+from `oracle/ADJUDICATION.json`. Nothing in code verifies who set those fields: a PR can set them and
+be judged on them, and CODEOWNERS resolves to the PR author. The report and the blocked record carry
+`acceptance_enforcement: SELF_ASSERTED_RECORD`. Remedies, outside this research PR: compare the
+acceptance and adjudication fields against the base branch in a protected check, or require a
+reviewer other than the author for those paths (CodeRabbit r4429247096).
 
 ## 7. Decisions requested from the human referee
 
@@ -137,6 +152,8 @@ that unblocks execution, and is decision 1 below.**
 5. Land the #1070 repair in its own PR so required CI can be green on the admission candidate.
 6. Merge the stacked draft PR into `z1/acatr-gner-e1-fair-comparison-20261030` if the fixes are
    acceptable, then re-request agent review on PR #1082.
+7. Decide how acceptance provenance is to be enforced (base-branch comparison in a protected check,
+   or a second-reviewer requirement for `rubric_registry.json` and `oracle/ADJUDICATION.json`).
 
 ## 8. Limits
 

@@ -1,17 +1,19 @@
 {
   "authority_effect": "NONE",
   "credential_logged": false,
-  "credential_note": "GITHUB_TOKEN environment variable as provided by the Claude Code cloud session (session_01YcQhcschwVHBWTS7KwVbJZ); outbound HTTPS traverses the session agent proxy, which manages GitHub authentication for humanaios-ui/operations. The variable's value was not inspected, printed or stored. This is NOT the dedicated fine-grained read-only PAT the issue #1081 plan specified; the credential's upper scope is the session's GitHub App grant, and verify_lead issued GET requests only. Re-run 2 (schema v0.2): source pins verified before import; consumed response bytes hashed pass-through.",
+  "credential_note": "GITHUB_TOKEN environment variable as provided by the Claude Code cloud session; outbound HTTPS traverses the session agent proxy, which manages GitHub authentication for humanaios-ui/operations. The variable's value was not inspected, printed or stored. This is NOT the dedicated fine-grained read-only PAT the issue #1081 plan specified; the credential's upper scope is the session's GitHub App grant, which may include write. Read-only behaviour was enforced only by the pinned verify_lead source (single GET) and by the probe's urlopen guard, which refuses any non-GET method or any URL outside the runs endpoint. These receipts do not close the #1081 credential requirement; that gate is an open finding. Re-run 3 (schema v0.3): pins verified and modules loaded from the verified bytes; consumed response bytes hashed pass-through; tri-state independent-fetch comparison.",
+  "credential_requirement_status": "OPEN: issue #1081 asked for a dedicated fine-grained read-only PAT; these receipts do not close that requirement",
   "entry_point": "tools/gner_verify_e1.py::verify_lead",
+  "entry_point_loaded_from_verified_bytes": true,
   "entry_point_verified_unmodified": true,
-  "finished_at_utc": "2026-10-30T22:21:53.041058+00:00",
+  "finished_at_utc": "2026-10-30T23:15:59.987830+00:00",
   "probes": [
     {
       "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:47 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:53 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -33,15 +35,17 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14976",
+        "ratelimit_remaining": "14977",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:47.425302+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:53.648299+00:00",
         "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
@@ -82,7 +86,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:48 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:54 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -104,15 +108,17 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14974",
+        "ratelimit_remaining": "14975",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:48.007585+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:54.240240+00:00",
         "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
@@ -153,7 +159,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:48 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:54 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -175,15 +181,17 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14972",
+        "ratelimit_remaining": "14973",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:48.526016+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:54.773284+00:00",
         "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
@@ -217,7 +225,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:49 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:55 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -239,15 +247,17 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14970",
+        "ratelimit_remaining": "14971",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:49.154972+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:55.321292+00:00",
         "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
@@ -281,7 +291,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:49 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:55 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -303,15 +313,17 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14968",
+        "ratelimit_remaining": "14969",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057",
         "response_bytes": 13608,
         "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:49.612870+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:55.874625+00:00",
         "http_status": 200,
         "response_bytes": 13608,
         "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
@@ -345,7 +357,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:50 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:56 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -367,15 +379,17 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14966",
+        "ratelimit_remaining": "14967",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057",
         "response_bytes": 13608,
         "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:50.189867+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:56.407296+00:00",
         "http_status": 200,
         "response_bytes": 13608,
         "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
@@ -416,7 +430,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:50 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:56 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -438,15 +452,17 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14964",
+        "ratelimit_remaining": "14965",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41133165536",
         "response_bytes": 13778,
         "response_sha256": "3e628220bbe5dc93ce1aeb7417413295ab11c18b9adfd1b99ef6929dbc4a01b9",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41133165536"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:50.764958+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:56.937689+00:00",
         "http_status": 200,
         "response_bytes": 13778,
         "response_sha256": "3e628220bbe5dc93ce1aeb7417413295ab11c18b9adfd1b99ef6929dbc4a01b9",
@@ -480,7 +496,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:51 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:57 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -502,15 +518,17 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14962",
+        "ratelimit_remaining": "14963",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132641562",
         "response_bytes": 13578,
         "response_sha256": "e60bb092a77854055cb260cd223983a04bd60a80a820fd43f7d70a57c05e0d65",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132641562"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:51.377490+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:57.588330+00:00",
         "http_status": 200,
         "response_bytes": 13578,
         "response_sha256": "e60bb092a77854055cb260cd223983a04bd60a80a820fd43f7d70a57c05e0d65",
@@ -544,7 +562,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:51 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:58 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -566,15 +584,17 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14960",
+        "ratelimit_remaining": "14961",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131",
         "response_bytes": 13646,
         "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:51.904799+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:58.191186+00:00",
         "http_status": 200,
         "response_bytes": 13646,
         "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
@@ -590,8 +610,74 @@
         "workflow": "quality-baseline"
       },
       "network_call_made": true,
-      "probe_id": "unlisted_workflow_name",
-      "purpose": "Negative control: real run of a workflow not in ALLOWED_WORKFLOWS (ACAT-R Second Runtime Fair Comparison); expect CONFLICT.",
+      "probe_id": "name_mismatch_unlisted_run",
+      "purpose": "Name-mismatch control: lead claims quality-baseline, the real run is named 'ACAT-R Second Runtime Fair Comparison'; expect CONFLICT. NOT evidence about ALLOWED_WORKFLOWS because the lead never names the unlisted workflow (CodeRabbit r4429247051).",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "workflow mismatch or unsupported",
+          "schema": "GNER-E1-v0.1",
+          "state": "CONFLICT"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 23:15:58 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "success",
+          "created_at": "2026-10-30T21:35:14Z",
+          "event": "pull_request",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "id": 41132149131,
+          "name": "ACAT-R Second Runtime Fair Comparison",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T21:35:14Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T21:35:24Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1082
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14959",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131",
+        "response_bytes": 13646,
+        "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T23:15:58.738797+00:00",
+        "http_status": 200,
+        "response_bytes": 13646,
+        "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
+        "run_id": 41132149131
+      },
+      "lead": {
+        "kind": "NOTIFICATION_LEAD",
+        "pr": 1082,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41132149131,
+        "sha_prefix": "8481574",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "ACAT-R Second Runtime Fair Comparison"
+      },
+      "network_call_made": true,
+      "probe_id": "unlisted_workflow_in_lead",
+      "purpose": "Allowlist control: lead names the real but unlisted workflow 'ACAT-R Second Runtime Fair Comparison', so canonical name matches the lead and only the ALLOWED_WORKFLOWS check can reject; expect CONFLICT.",
       "verify_lead": {
         "outcome": "RETURNED",
         "result": {
@@ -650,7 +736,7 @@
       "consumed_matches_independent_fetch": true,
       "consumed_response": {
         "authorization_header_present": true,
-        "date_header": "Fri, 30 Oct 2026 22:21:52 GMT",
+        "date_header": "Fri, 30 Oct 2026 23:15:59 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -672,15 +758,17 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14958",
+        "ratelimit_remaining": "14957",
+        "read_only_guard": "GET to runs endpoint enforced",
         "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
       },
       "independent_fetch": {
-        "fetched_at_utc": "2026-10-30T22:21:52.368443+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:59.346292+00:00",
         "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
@@ -711,16 +799,18 @@
     },
     {
       "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
-      "consumed_matches_independent_fetch": false,
+      "consumed_matches_independent_fetch": null,
       "consumed_response": {
         "authorization_header_present": true,
         "error": "HTTPError",
         "http_status": 404,
+        "read_only_guard": "GET to runs endpoint enforced",
+        "request_method": "GET",
         "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/1"
       },
       "independent_fetch": {
         "error": "HTTPError",
-        "fetched_at_utc": "2026-10-30T22:21:52.794464+00:00",
+        "fetched_at_utc": "2026-10-30T23:15:59.793787+00:00",
         "http_status": 404,
         "run_id": 1
       },
@@ -743,7 +833,8 @@
       }
     }
   ],
-  "schema": "humanaios.acat-r.live-verify-lead-probe.v0.2",
+  "read_only_enforcement": "pinned verify_lead source (single GET) plus urlopen observer refusing non-GET or off-endpoint requests; credential scope itself is NOT verified by this probe",
+  "schema": "humanaios.acat-r.live-verify-lead-probe.v0.3",
   "source_pins": {
     "tools/gner_notification_e0.py": {
       "expected_git_blob": "e8f893a3d433f900b10c101828d1cbb013413fa6",
@@ -758,6 +849,6 @@
       "verified": true
     }
   },
-  "spec_sha256": "4f395112dfb3fe4a3c3c9f6d8c853e7bf55a5f00261c76f15b650e6f7fde9d30",
-  "started_at_utc": "2026-10-30T22:21:46.948319+00:00"
+  "spec_sha256": "b46eeadb57ef7d4c25597c336524f2d536290beefbeb181a940e61e53f6549f4",
+  "started_at_utc": "2026-10-30T23:15:53.170308+00:00"
 }

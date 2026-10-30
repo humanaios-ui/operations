@@ -84,6 +84,8 @@ revision it was built from.
 
 ## Scoring rule
 
-confirmed_defects = disagreements whose label the referee ACCEPTed with a contract citation. At this
-revision that number is 0 because no label has been accepted. Proposed-policy disagreements are
-reported separately and are never added to contract-derived counts.
+confirmed_defects = disagreements whose label a HUMAN reviewer ACCEPTed in `oracle/ADJUDICATION.json`
+with a file:line contract citation. Agent-only acceptances are listed but never counted.
+Proposed-policy disagreements are reported separately and are never added to contract-derived counts.
+
+At generation time: confirmed_defects = 0 (none); decisions pending = 30; agent-only acceptances = 0.

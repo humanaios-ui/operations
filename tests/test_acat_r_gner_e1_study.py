@@ -143,17 +143,39 @@ class RubricGateTests(unittest.TestCase):
             self.assertEqual(result["status"], "BLOCKED_RUBRIC_DIGEST_MISMATCH")
             self.assertFalse((out / "report.json").exists())
 
-    def test_cli_exit_code_two_when_blocked_and_uses_patched_registry(self):
+    def test_cli_exit_three_on_digest_mismatch_and_uses_patched_registry(self):
         with tempfile.TemporaryDirectory() as tmp:
             # A fixture whose active digest cannot match proves the CLI read THIS registry, not the committed one.
             registry = _write_registry(tmp, **ACCEPTED_FIXTURE, rubric_sha256="f" * 64)
             out = pathlib.Path(tmp) / "ev"
             with mock.patch.object(study, "check_pins", _fake_pins), \
                  mock.patch.object(study, "RUBRIC_REGISTRY", registry):
-                self.assertEqual(study.cli(["--run-owned-offline", "--out", str(out)]), 2)
+                self.assertEqual(study.cli(["--run-owned-offline", "--out", str(out)]), 3)
             blocked = json.loads((out / "RUBRIC_BLOCKED.json").read_text())
             self.assertEqual(blocked["status"], "BLOCKED_RUBRIC_DIGEST_MISMATCH")
             self.assertEqual(blocked["active_rubric_sha256"], "f" * 64)
+            self.assertIn("SELF_ASSERTED_RECORD", blocked["acceptance_enforcement"])
+
+    def test_cli_exit_two_when_pending(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = _write_registry(tmp, **PENDING_FIXTURE)
+            out = pathlib.Path(tmp) / "ev"
+            with mock.patch.object(study, "check_pins", _fake_pins), \
+                 mock.patch.object(study, "RUBRIC_REGISTRY", registry):
+                self.assertEqual(study.cli(["--run-owned-offline", "--out", str(out)]), 2)
+            self.assertEqual(json.loads((out / "RUBRIC_BLOCKED.json").read_text())["status"],
+                             "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED")
+
+    @unittest.skipUnless(GIT_AVAILABLE, "git checkout required for pin check")
+    def test_cli_exit_zero_on_permitted_fixture(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = _write_registry(tmp, **ACCEPTED_FIXTURE)
+            out = pathlib.Path(tmp) / "ev"
+            with mock.patch.object(study, "RUBRIC_REGISTRY", registry):
+                self.assertEqual(study.cli(["--run-owned-offline", "--out", str(out)]), 0)
+            report = json.loads((out / "report.json").read_text())
+            self.assertEqual(report["rubric_accepted_by"], ACCEPTED_FIXTURE["accepted_by"])
+            self.assertIn("SELF_ASSERTED_RECORD", report["acceptance_enforcement"])
 
 
 class WorkerOutputTests(unittest.TestCase):
@@ -235,6 +257,19 @@ class SourcePinTests(unittest.TestCase):
             self.assertEqual(blob, study.PINNED_BLOBS[rel])
         self.assertTrue(all(v["verified"] for v in probe.SOURCE_PINS.values()))
         self.assertEqual(probe.git_blob_sha1(b"hello\n"), "ce013625030ba8dba906f756967f9e9ca394464a")
+        self.assertEqual(probe.verify_lead.__module__, "gner_verify_e1")
+        self.assertTrue(probe.import_verified)  # loader that compiles the verified bytes exists
+
+    def test_probe_observer_refuses_non_get_and_off_endpoint_requests(self):
+        pspec = importlib.util.spec_from_file_location("acat_r_live_probe2", LIVE_PROBE)
+        probe = importlib.util.module_from_spec(pspec)
+        pspec.loader.exec_module(probe)
+        import urllib.request
+        with probe.observe_urlopen():
+            with self.assertRaisesRegex(RuntimeError, "only GET"):
+                urllib.request.urlopen(urllib.request.Request(probe.API + "1", method="POST"))
+            with self.assertRaisesRegex(RuntimeError, "only GET"):
+                urllib.request.urlopen(urllib.request.Request("https://api.github.com/repos/x/y/issues", method="GET"))
 
 
 class EvidenceClassTests(unittest.TestCase):
@@ -312,6 +347,24 @@ class AdjudicationTests(unittest.TestCase):
             study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
         adj["decisions"].pop("valid_failure")
         with self.assertRaisesRegex(ValueError, "exactly the 30 case ids"):
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
+
+    def test_human_accept_rejects_none_citation_but_reject_may_use_it(self):
+        adj = json.loads(json.dumps(self.pending))
+        adj["decisions"]["type_lead_bool_id"].update(decision="ACCEPT", rationale="r", reviewer_identity="ref",
+                                                     reviewer_kind="HUMAN", contract_citation="None")
+        with self.assertRaisesRegex(ValueError, "not 'none'"):
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
+        adj["decisions"]["type_lead_bool_id"].update(decision="REJECT", contract_citation="none")
+        study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))  # allowed for REJECT
+
+    def test_entry_shape_is_validated_even_when_pending(self):
+        adj = json.loads(json.dumps(self.pending))
+        adj["decisions"]["valid_failure"] = {"decision": "PENDING"}
+        with self.assertRaisesRegex(ValueError, "must be a string"):
+            study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
+        adj["decisions"]["valid_failure"] = "PENDING"
+        with self.assertRaisesRegex(ValueError, "must be an object"):
             study.load_adjudication(self.cases, self.rubric, path=self._tmp(adj))
 
     def test_confirmed_defects_count_only_human_accepts_on_disagreements(self):
@@ -421,12 +474,21 @@ class LiveProbeReceiptTests(unittest.TestCase):
         self.assertFalse(by_id["bool_lead_run_id_reachability"]["network_call_made"])
         self.assertEqual(by_id["nonexistent_run_expiry_behaviour"]["verify_lead"]["outcome"], "DENIED")
         self.assertEqual(by_id["nonexistent_run_expiry_behaviour"]["consumed_response"]["http_status"], 404)
+        self.assertIsNone(by_id["nonexistent_run_expiry_behaviour"]["consumed_matches_independent_fetch"])
+        self.assertTrue(receipts["entry_point_loaded_from_verified_bytes"])
+        self.assertIn("OPEN", receipts["credential_requirement_status"])
+        self.assertNotIn("session_01", text)
+        self.assertEqual(by_id["unlisted_workflow_in_lead"]["verify_lead"]["result"]["reason"],
+                         "workflow mismatch or unsupported")
+        self.assertEqual(by_id["unlisted_workflow_in_lead"]["lead"]["workflow"], "ACAT-R Second Runtime Fair Comparison")
         self.assertEqual(by_id["qb_failure_valid_with_pr"]["verify_lead"]["result"]["state"], "CANONICAL_VERIFIED")
         for p in receipts["probes"]:
             if p["verify_lead"]["outcome"] == "RETURNED":
                 consumed = p["consumed_response"]
                 self.assertRegex(consumed["response_sha256"], r"^[0-9a-f]{64}$")
                 self.assertTrue(consumed["authorization_header_present"])
+                self.assertEqual(consumed["request_method"], "GET")
+                self.assertIn("read_only_guard", consumed)
                 self.assertTrue(consumed["request_url"].startswith("https://api.github.com/repos/humanaios-ui/operations/actions/runs/"))
                 self.assertEqual(consumed["id_json_type"], "int")
                 self.assertEqual(consumed["pull_request_number_json_types"], ["int"])

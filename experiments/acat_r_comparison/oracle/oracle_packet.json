@@ -581,6 +581,7 @@
     "tools/gner_verify_e1.py": "8290c51cd75c7de78a226770936a8f48766c24f0"
   },
   "rubric": {
+    "acceptance_enforcement": "SELF_ASSERTED_RECORD: fields are read from rubric_registry.json in the checked-out revision; no branch protection or second-reviewer requirement enforces who set them (CodeRabbit r4429247096)",
     "active_accepted_at": null,
     "active_accepted_by": null,
     "active_digest_matches": true,

@@ -16,9 +16,11 @@ Revision 2 (issue #1081 delegated plan; PR #1082 Copilot + CodeRabbit findings):
     never counted together with contract-derived ones (CodeRabbit r4428742321);
   * emits the independent oracle decision packet with every reviewer decision
     PENDING. No label is scored as a confirmed defect;
-  * refuses to run the runtime at all (exit 2, RUBRIC_BLOCKED.json) until the
-    active rubric revision is human-accepted with a named acceptor
-    (Copilot r4428945870 on PR #1083).
+  * refuses to run the runtime at all (exit 2 = not human-accepted, exit 3 =
+    digest mismatch; RUBRIC_BLOCKED.json) until the active rubric revision is
+    human-accepted with a named acceptor (Copilot r4428945870 on PR #1083).
+    Acceptance provenance is a self-asserted record, not an enforced control
+    (CodeRabbit r4429247096).
 
 Expected labels are proposed by the investigator, NOT independently ratified.
 All canonical metadata is constructed. No live GitHub API, Gmail or credentials.
@@ -166,6 +168,9 @@ def enforce_rubric(rubric_bytes, registry):
     else:
         record["block_reason"] = None
     record["runtime_permitted"] = record["block_reason"] is None
+    record["acceptance_enforcement"] = ("SELF_ASSERTED_RECORD: fields are read from rubric_registry.json in the "
+                                        "checked-out revision; no branch protection or second-reviewer requirement "
+                                        "enforces who set them (CodeRabbit r4429247096)")
     return record
 
 
@@ -298,11 +303,18 @@ def load_adjudication(cases, rubric_record, path=ADJUDICATION):
     decisions = adj["decisions"]
     validate(sorted(decisions) == sorted(c["id"] for c in cases), "adjudication must cover exactly the 30 case ids")
     for cid, d in decisions.items():
+        validate(isinstance(d, dict), f"{cid}: decision entry must be an object")
+        for field in ("rationale", "reviewer_identity", "contract_citation"):
+            validate(isinstance(d.get(field), str), f"{cid}: {field} must be a string (may be empty while PENDING)")
+        validate(d.get("decided_at") is None or isinstance(d.get("decided_at"), str), f"{cid}: decided_at must be a string or null")
         validate(d.get("decision") in DECISIONS, f"{cid}: unknown decision {d.get('decision')!r}")
         if d["decision"] != "PENDING":
             for field in ("rationale", "reviewer_identity", "contract_citation"):
-                validate(isinstance(d.get(field), str) and d[field].strip(), f"{cid}: {d['decision']} requires {field}")
+                validate(d[field].strip(), f"{cid}: {d['decision']} requires {field}")
             validate(d.get("reviewer_kind") in REVIEWER_KINDS, f"{cid}: reviewer_kind must be one of {REVIEWER_KINDS}")
+            if d["decision"] == "ACCEPT" and d["reviewer_kind"] == "HUMAN":
+                validate(d["contract_citation"].strip().lower() != "none",
+                         f"{cid}: HUMAN ACCEPT requires a file:line contract citation, not 'none'")
             if d["decision"] == "REVISE":
                 validate(isinstance(d.get("proposed_expected_state"), str) and d["proposed_expected_state"],
                          f"{cid}: REVISE requires proposed_expected_state")
@@ -353,7 +365,7 @@ def oracle_rows(cases, output, classes, rubric_record):
     return rows
 
 
-def render_oracle_markdown(rows, meta):
+def render_oracle_markdown(rows, meta, scored=None):
     lines = ["# Independent oracle decision packet: GNER-E1 equal-workload study (issue #1081)", "",
              "Every `reviewer_decision` below is **PENDING**. The referee (human, or an agent explicitly marked",
              "AGENT_REVIEWED / NOT_HUMAN_INDEPENDENT) records ACCEPT, REJECT or REVISE per case with a contract",
@@ -380,9 +392,15 @@ def render_oracle_markdown(rows, meta):
                       f"- Classification rationale: {r['classification_rationale']}",
                       "- Reviewer decision: PENDING. Rationale: (empty). Identity: (empty).", ""]
     lines += ["## Scoring rule", "",
-              "confirmed_defects = disagreements whose label the referee ACCEPTed with a contract citation. At this",
-              "revision that number is 0 because no label has been accepted. Proposed-policy disagreements are",
-              "reported separately and are never added to contract-derived counts.", ""]
+              "confirmed_defects = disagreements whose label a HUMAN reviewer ACCEPTed in `oracle/ADJUDICATION.json`",
+              "with a file:line contract citation. Agent-only acceptances are listed but never counted.",
+              "Proposed-policy disagreements are reported separately and are never added to contract-derived counts.", ""]
+    if scored is not None:
+        lines += [f"At generation time: confirmed_defects = {len(scored['confirmed_defects'])} "
+                  f"({', '.join(scored['confirmed_defects']) or 'none'}); decisions pending = {scored['pending']}; "
+                  f"agent-only acceptances = {len(scored['accept_agent_only'])}.", ""]
+    else:
+        lines += ["At generation time: no adjudication scored (template rendered without a run).", ""]
     return "\n".join(lines)
 
 
@@ -459,8 +477,8 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
               "rubric": rubric_record, "pinned_git_blobs": pins, "label_review_state": "NOT_INDEPENDENTLY_REVIEWED",
               "confirmed_defects": 0, "cases": rows}
     (out / "oracle_packet.json").write_text(json.dumps(packet, indent=2, sort_keys=True) + "\n")
-    (out / "ORACLE_REVIEW_PACKET.md").write_text(render_oracle_markdown(rows, rubric_record))
     scored = score_adjudication(acatr, adjudication)
+    (out / "ORACLE_REVIEW_PACKET.md").write_text(render_oracle_markdown(rows, rubric_record, scored))
     adjudicated_rows = []
     for r in rows:
         d = adjudication["decisions"][r["id"]]
@@ -488,6 +506,7 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
         "rubric_human_accepted": rubric_record["active_human_accepted"],
         "rubric_accepted_by": rubric_record["active_accepted_by"],
         "rubric_accepted_at": rubric_record["active_accepted_at"],
+        "acceptance_enforcement": rubric_record["acceptance_enforcement"],
         "predeclared_rubric_sha256": rubric_record["predeclared_rubric_sha256"],
         "predeclared_digest_matches": rubric_record["predeclared_digest_matches"],
         "evidence_classes_sha256": commitment["evidence_classes_sha256"],
@@ -522,7 +541,11 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
             "Reference labels written by investigator; require independent adjudication before publishing bug counts.",
             "Both methods share the same source, observations and expected labels; added detection is zero.",
             "P3 is repeated input with unchanged code, not correction, recovery or learning.",
-            "The predeclared revision-0 rubric digest cannot be reproduced; revision 1 is enforced and awaits human acceptance.",
+            "The predeclared revision-0 rubric digest cannot be reproduced; revision "
+            f"{rubric_record['active_revision']} is enforced (human_accepted={rubric_record['active_human_accepted']}, "
+            f"accepted_by={rubric_record['active_accepted_by']!r}).",
+            "Acceptance and adjudication provenance are self-asserted records in the checked-out files, not controls "
+            "enforced by branch protection or a second reviewer.",
         ]}
     (out / "report.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(json.dumps({"status": result["status"], "P1": 8, "P2": 30, "P3": 30,
@@ -550,7 +573,9 @@ def cli(argv):
         elif rest:
             raise SystemExit("Use --run-owned-offline [--out DIR] or --worker")
         result = main(out)
-        return 2 if result.get("runtime_permitted") is False else 0
+        if result.get("runtime_permitted", True):
+            return 0
+        return {"BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED": 2, "BLOCKED_RUBRIC_DIGEST_MISMATCH": 3}[result["status"]]
     raise SystemExit("Use --run-owned-offline [--out DIR] or --worker")
 
 

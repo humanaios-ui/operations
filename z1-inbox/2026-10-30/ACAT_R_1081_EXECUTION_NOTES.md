@@ -82,3 +82,26 @@ Two medium findings on the tests, both valid, repaired in the next commit:
 | r4429028909 recording decisions in the generated oracle packet would break the snapshot test | Decisions move to `oracle/ADJUDICATION.json` (30 PENDING entries; validated: ACCEPT/REJECT/REVISE need rationale, identity, reviewer kind, contract citation). `study.py` emits a separate `oracle_adjudicated.json` and computes `confirmed_defects` = disagreements ACCEPTed by a HUMAN reviewer. The generated packet stays a PENDING template; the snapshot test compares non-editable fields only |
 
 Previous four findings (`8a4003e`) were marked resolved by Copilot in the same review.
+
+## Addendum 3: Copilot pass 4 and CodeRabbit review (2026-10-30T22:45Z to 23:11Z)
+
+Copilot pass 4 (`492fef4`): no threads; two body concerns fixed in `8e5bd6a` (non-boolean `human_accepted` rejected; `main` registry path resolved at call time so CLI tests exercise the patched registry).
+
+CodeRabbit on `8e5bd6a`: 12 findings, 1 Major, 8 Minor, 3 Trivial. Disposition:
+
+| Finding | Disposition |
+|---|---|
+| Major r4429247044 `contract_citation: "none"` scores a HUMAN ACCEPT | Fixed: rejected for HUMAN ACCEPT; allowed for REJECT/REVISE; instructions updated |
+| r4429247051 `unlisted_workflow_name` probe is a name-mismatch, not an allowlist test | Fixed: relabelled; new probe names the real unlisted workflow in the lead |
+| r4429247057 pins read twice; import not bound to verified bytes | Fixed: read once; modules compiled from the verified bytes via a custom loader |
+| r4429247069 observer does not enforce read-only | Fixed: refuses non-GET or off-endpoint requests |
+| r4429247074 non-object JSON crashes probe | Fixed: recorded as `unexpected JSON shape` |
+| r4429247080 error body not recorded | Not changed: `verify_lead` collapses all HTTP failures, so the body is not what the runtime sees; status code kept |
+| r4429247085 match flag false when not comparable | Fixed: tri-state |
+| r4429247090 credential note contradicts read-only framing; session id committed | Fixed: note rewritten, session id removed; credential gate recorded as OPEN FINDING |
+| r4429247096 acceptance/adjudication provenance self-asserted | Not fixable in this PR: labelled `SELF_ASSERTED_RECORD` in report and blocked record; open finding with remedies (base-branch comparison or second reviewer) put to the operator |
+| r4429247099 PENDING entry shape not validated | Fixed: full shape validated for every entry |
+| r4429247104 static status strings | Fixed: computed from the run |
+| r4429247108 CLI exit-code coverage | Fixed: 0 permitted, 2 pending, 3 digest mismatch; all three tested |
+
+Live probe re-run 3 (14 probes): identical outcomes for the original 13; new allowlist probe CONFLICT as expected.

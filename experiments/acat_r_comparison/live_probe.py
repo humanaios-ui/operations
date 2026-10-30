@@ -2,32 +2,35 @@
 """Live read-only probe of the supported GNER-E1 entry point ``verify_lead``.
 
 Issue #1081 "Real authenticated verify_lead() gate". This script is NOT run by
-CI. It runs only when a human invokes it with an authorized read-only GitHub
-credential in the environment variable ``GITHUB_TOKEN`` (the same convention as
+CI. It runs only when a human invokes it with a GitHub credential in the
+environment variable ``GITHUB_TOKEN`` (the same convention as
 ``tools/gner_verify_e1.py``). The credential value is never printed, hashed or
 written anywhere.
 
-Before importing the runtime, the script verifies that ``tools/gner_verify_e1.py``
-and ``tools/gner_notification_e0.py`` hash to the frozen Git blobs pinned by
-``study.py`` and refuses to run otherwise, so "unmodified" is checked, not
-asserted (Copilot r4428945853). The verified identifiers go into the receipt.
+Trust boundary, stated plainly: the credential's scope is whatever the caller
+holds; this script does not and cannot verify that it is read-only. Read-only
+behaviour is enforced here by (a) the pinned ``verify_lead`` source, which issues
+a single GET, and (b) the ``urlopen`` observer below, which refuses any request
+that is not a GET to the pinned runs endpoint (CodeRabbit r4429247069,
+r4429247090).
+
+Before importing the runtime, the script reads ``tools/gner_verify_e1.py`` and
+``tools/gner_notification_e0.py`` ONCE, verifies that those bytes hash to the
+frozen Git blobs pinned by ``study.py``, and then imports the modules FROM THOSE
+SAME BYTES through a loader that compiles the verified source directly, so the
+executed code is exactly what was hashed (Copilot r4428945853, CodeRabbit
+r4429247057). The verified identifiers go into the receipt.
 
 What it does, per probe in the spec file:
   1. Builds ONLY the lead (the untrusted email-side hint) from the spec. The
      canonical mapping is fetched by ``verify_lead`` itself; no caller-created
      canonical dictionary is passed anywhere.
-  2. Calls the unmodified ``verify_lead`` with a pass-through observer on
-     ``urllib.request.urlopen`` that records the exact bytes, HTTP status and
-     URL the function consumed, without altering them. The receipt hashes
-     THOSE bytes, so the hash and the result come from the same response
-     (Copilot r4428945818).
+  2. Calls the unmodified ``verify_lead`` with the pass-through observer, which
+     records the exact bytes, HTTP status and URL the function consumed without
+     altering them. The receipt hashes THOSE bytes (Copilot r4428945818).
   3. Separately GETs the same endpoint once more as a second observation and
-     records whether it matched the consumed bytes.
-
-Boolean-boundary reachability probes (``lead_overrides`` containing booleans)
-are included so the review packet can state, from observed behaviour rather
-than argument, which of the four offline boolean cases the live entry point
-can reach.
+     records whether it matched the consumed bytes (tri-state: true / false /
+     null when either side has no body).
 
 Output: ``<out>/live_probe_receipts.json`` (sanitized; safe to attach).
 """
@@ -36,6 +39,8 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import hashlib
+import importlib.machinery
+import importlib.util
 import json
 import os
 import pathlib
@@ -62,22 +67,51 @@ def git_blob_sha1(data: bytes) -> str:
     return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
 
 
-def verify_source_pins(root: pathlib.Path = ROOT) -> dict:
-    """Return {path: {expected, observed, verified}}; raise if any pin fails."""
-    report = {}
+def verify_source_pins(root: pathlib.Path = ROOT):
+    """Read each pinned file once; return (report, verified_bytes). Raise if any pin fails."""
+    report, verified = {}, {}
     for rel, expected in PINNED_BLOBS.items():
-        observed = git_blob_sha1((root / rel).read_bytes())
+        data = (root / rel).read_bytes()
+        observed = git_blob_sha1(data)
         report[rel] = {"expected_git_blob": expected, "observed_git_blob": observed,
-                       "sha256": _sha((root / rel).read_bytes()), "verified": observed == expected}
+                       "sha256": _sha(data), "verified": observed == expected}
+        verified[rel] = data
     failed = [k for k, v in report.items() if not v["verified"]]
     if failed:
         raise SystemExit(f"source pin mismatch, refusing to probe a modified runtime: {failed}")
-    return report
+    return report, verified
 
 
-SOURCE_PINS = verify_source_pins()
-sys.path.insert(0, str(ROOT / "tools"))
-from gner_verify_e1 import REPO, VerificationDenied, verify_lead  # noqa: E402  (after pin check by design)
+class _VerifiedSourceLoader(importlib.machinery.SourceFileLoader):
+    """Compiles the exact bytes that passed the pin check; never re-reads the path or a .pyc."""
+
+    def __init__(self, fullname, path, data):
+        super().__init__(fullname, path)
+        self._data = data
+
+    def get_data(self, path):
+        if pathlib.Path(path).resolve() == pathlib.Path(self.path).resolve():
+            return self._data
+        return super().get_data(path)
+
+    def get_code(self, fullname):
+        return compile(self._data, self.path, "exec", dont_inherit=True)
+
+
+def import_verified(name: str, rel: str, data: bytes):
+    path = str(ROOT / rel)
+    loader = _VerifiedSourceLoader(name, path, data)
+    spec = importlib.util.spec_from_loader(name, loader, origin=path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    loader.exec_module(module)
+    return module
+
+
+SOURCE_PINS, _VERIFIED = verify_source_pins()
+import_verified("gner_notification_e0", "tools/gner_notification_e0.py", _VERIFIED["tools/gner_notification_e0.py"])
+_gner = import_verified("gner_verify_e1", "tools/gner_verify_e1.py", _VERIFIED["tools/gner_verify_e1.py"])
+REPO, VerificationDenied, verify_lead = _gner.REPO, _gner.VerificationDenied, _gner.verify_lead
 
 API = f"https://api.github.com/repos/{REPO}/actions/runs/"
 
@@ -115,7 +149,8 @@ class _Observed:
 
 
 class observe_urlopen:
-    """Context manager: records the response verify_lead actually consumed."""
+    """Context manager: records the response verify_lead actually consumed and
+    refuses anything that is not a GET to the pinned runs endpoint."""
 
     def __init__(self):
         self.capture: dict = {}
@@ -126,8 +161,15 @@ class observe_urlopen:
         real = self._real
 
         def wrapper(request, *args, **kwargs):
-            cap["request_url"] = request.full_url if hasattr(request, "full_url") else str(request)
+            method = request.get_method() if hasattr(request, "get_method") else "GET"
+            url = request.full_url if hasattr(request, "full_url") else str(request)
+            cap["request_url"] = url
+            cap["request_method"] = method
             cap["authorization_header_present"] = bool(request.has_header("Authorization")) if hasattr(request, "has_header") else None
+            if method != "GET" or not url.startswith(API):
+                cap["error"] = "REFUSED_BY_READ_ONLY_GUARD"
+                raise RuntimeError("probe permits only GET to the pinned runs endpoint")
+            cap["read_only_guard"] = "GET to runs endpoint enforced"
             try:
                 inner = real(request, *args, **kwargs)
             except urllib.error.HTTPError as exc:
@@ -162,6 +204,8 @@ def summarize_consumed(capture: dict) -> dict:
             out["pull_request_number_json_types"] = sorted({type(pr.get("number")).__name__ for pr in (body.get("pull_requests") or []) if isinstance(pr, dict)})
         except ValueError:
             out["error"] = "non-JSON response"
+        except (AttributeError, TypeError):
+            out["error"] = "unexpected JSON shape"
     return out
 
 
@@ -171,7 +215,7 @@ def fetch_independent(run_id: int, token: str, timeout: int = 10) -> dict:
         "Authorization": "Bearer " + token,
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "humanaios-acat-r-live-probe/0.2",
+        "User-Agent": "humanaios-acat-r-live-probe/0.3",
     }, method="GET")
     record: dict = {"run_id": run_id, "fetched_at_utc": _dt.datetime.now(_dt.timezone.utc).isoformat()}
     try:
@@ -210,9 +254,9 @@ def run_probe(probe: dict, token: str) -> dict:
     if out["network_call_made"] and probe.get("fetch_independent", True) and type(run_id) is int and run_id > 0:
         second = fetch_independent(run_id, token)
         out["independent_fetch"] = second
-        out["consumed_matches_independent_fetch"] = (
-            second.get("response_sha256") is not None
-            and second.get("response_sha256") == out["consumed_response"].get("response_sha256"))
+        a = out["consumed_response"].get("response_sha256")
+        b = second.get("response_sha256")
+        out["consumed_matches_independent_fetch"] = (a == b) if (a is not None and b is not None) else None
     return out
 
 
@@ -231,10 +275,13 @@ def main() -> int:
     out_dir = pathlib.Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     receipts = {
-        "schema": "humanaios.acat-r.live-verify-lead-probe.v0.2",
+        "schema": "humanaios.acat-r.live-verify-lead-probe.v0.3",
         "entry_point": "tools/gner_verify_e1.py::verify_lead",
         "entry_point_verified_unmodified": all(v["verified"] for v in SOURCE_PINS.values()),
+        "entry_point_loaded_from_verified_bytes": True,
         "source_pins": SOURCE_PINS,
+        "read_only_enforcement": "pinned verify_lead source (single GET) plus urlopen observer refusing non-GET or off-endpoint requests; credential scope itself is NOT verified by this probe",
+        "credential_requirement_status": "OPEN: issue #1081 asked for a dedicated fine-grained read-only PAT; these receipts do not close that requirement",
         "spec_sha256": _sha(spec_path.read_bytes()),
         "started_at_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(),
         "credential_note": args.credential_note,
