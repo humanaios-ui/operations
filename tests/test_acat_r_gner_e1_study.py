@@ -374,6 +374,17 @@ class AdjudicationTests(unittest.TestCase):
         refs = study.validate_contract_citation("tools/gner_verify_e1.py:50-53")
         self.assertEqual(refs, [{"path": "tools/gner_verify_e1.py", "start": 50, "end": 53}])
 
+    def test_citation_line_count_ignores_trailing_newline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            for name, content in (("with_nl.md", b"Only real line\n"), ("no_nl.md", b"Only real line")):
+                (root / name).write_bytes(content)
+                study.validate_contract_citation(f"{name}:1", root=root)
+                with self.assertRaisesRegex(ValueError, "outside the file's 1 lines"):
+                    study.validate_contract_citation(f"{name}:2", root=root)
+                with self.assertRaisesRegex(ValueError, "outside the file's 1 lines"):
+                    study.validate_contract_citation(f"{name}:1-2", root=root)
+
     def test_entry_shape_is_validated_even_when_pending(self):
         adj = json.loads(json.dumps(self.pending))
         adj["decisions"]["valid_failure"] = {"decision": "PENDING"}

@@ -305,7 +305,7 @@ def validate_contract_citation(citation, root=ROOT):
         validate(".." not in rel.split("/") and not rel.startswith("/"), f"citation path {rel!r} must be repository-relative")
         target = root / rel
         validate(target.is_file(), f"citation path {rel!r} does not exist in the repository")
-        total = target.read_bytes().count(b"\n") + 1
+        total = len(target.read_bytes().splitlines())  # real lines; a trailing newline adds none
         start = int(m.group("start"))
         end = int(m.group("end") or start)
         validate(start <= end <= total, f"citation {part!r} is outside the file's {total} lines")
