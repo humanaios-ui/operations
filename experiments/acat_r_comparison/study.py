@@ -126,7 +126,9 @@ def load_registry(path=RUBRIC_REGISTRY):
     validate(len(revisions) == len(registry["revisions"]), "duplicate rubric revision numbers")
     validate(registry["active_revision"] in revisions, "active rubric revision not in registry")
     for r in registry["revisions"]:
-        if r.get("human_accepted"):
+        validate(isinstance(r.get("human_accepted"), bool),
+                 f"revision {r['revision']}: human_accepted must be a JSON boolean, got {r.get('human_accepted')!r}")
+        if r["human_accepted"]:
             validate(isinstance(r.get("accepted_by"), str) and r["accepted_by"].strip()
                      and isinstance(r.get("accepted_at"), str) and r["accepted_at"].strip(),
                      f"revision {r['revision']} is marked accepted without accepted_by/accepted_at")
@@ -150,7 +152,7 @@ def enforce_rubric(rubric_bytes, registry):
               "active_revision": active["revision"],
               "active_rubric_sha256": active["rubric_sha256"],
               "active_revision_status": active["status"],
-              "active_human_accepted": bool(active.get("human_accepted", False)),
+              "active_human_accepted": active.get("human_accepted") is True,
               "predeclared_revision": predeclared["revision"],
               "predeclared_rubric_sha256": predeclared["rubric_sha256"],
               "active_accepted_by": active.get("accepted_by"),
@@ -385,10 +387,10 @@ def render_oracle_markdown(rows, meta):
 
 
 # ------------------------------------------------------------------------ main
-def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
+def main(out_dir=DEFAULT_OUT, registry_path=None):
     out = pathlib.Path(out_dir)
     pins = check_pins()
-    registry = load_registry(registry_path)
+    registry = load_registry(registry_path or RUBRIC_REGISTRY)  # resolved at call time, not def time
     cases = build()
     rubric = encoded(cases)
     rubric_record = enforce_rubric(rubric, registry)

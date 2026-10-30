@@ -95,6 +95,13 @@ class RubricGateTests(unittest.TestCase):
             self.assertIn("status", r)
             self.assertIn("human_accepted", r)
 
+    def test_non_boolean_acceptance_values_are_rejected_not_coerced(self):
+        for bad in ("true", "false", 1, "yes", None):
+            with tempfile.TemporaryDirectory() as tmp:
+                path = _write_registry(tmp, human_accepted=bad, accepted_by="x", accepted_at="y")
+                with self.assertRaisesRegex(ValueError, "must be a JSON boolean", msg=repr(bad)):
+                    study.load_registry(path)
+
     def test_accepted_revision_requires_named_acceptor(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _write_registry(tmp, human_accepted=True, accepted_by=None, accepted_at=None)
@@ -136,12 +143,17 @@ class RubricGateTests(unittest.TestCase):
             self.assertEqual(result["status"], "BLOCKED_RUBRIC_DIGEST_MISMATCH")
             self.assertFalse((out / "report.json").exists())
 
-    def test_cli_exit_code_two_when_blocked(self):
+    def test_cli_exit_code_two_when_blocked_and_uses_patched_registry(self):
         with tempfile.TemporaryDirectory() as tmp:
-            registry = _write_registry(tmp, **PENDING_FIXTURE)
+            # A fixture whose active digest cannot match proves the CLI read THIS registry, not the committed one.
+            registry = _write_registry(tmp, **ACCEPTED_FIXTURE, rubric_sha256="f" * 64)
+            out = pathlib.Path(tmp) / "ev"
             with mock.patch.object(study, "check_pins", _fake_pins), \
                  mock.patch.object(study, "RUBRIC_REGISTRY", registry):
-                self.assertEqual(study.cli(["--run-owned-offline", "--out", str(pathlib.Path(tmp) / "ev")]), 2)
+                self.assertEqual(study.cli(["--run-owned-offline", "--out", str(out)]), 2)
+            blocked = json.loads((out / "RUBRIC_BLOCKED.json").read_text())
+            self.assertEqual(blocked["status"], "BLOCKED_RUBRIC_DIGEST_MISMATCH")
+            self.assertEqual(blocked["active_rubric_sha256"], "f" * 64)
 
 
 class WorkerOutputTests(unittest.TestCase):
