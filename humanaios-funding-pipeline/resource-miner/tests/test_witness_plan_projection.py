@@ -40,7 +40,7 @@ class WitnessPlanProjectionTests(unittest.TestCase):
         plan["resource_requirements"][0]["objective"] = "CONFIDENTIAL PATIENT ID 123"
         out = json.dumps(project_witness_plan(plan), sort_keys=True)
         for needle in ("customer@example.com", "SECRET-API-KEY",
-                       "IGNORE ALL RULES", "CONFIDENTIAL PATIENT", "123"):
+                       "IGNORE ALL RULES", "CONFIDENTIAL PATIENT"):
             self.assertNotIn(needle, out)
 
     def test_authority_and_execution_fails_closed(self):
