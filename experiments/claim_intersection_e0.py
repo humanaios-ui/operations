@@ -15,6 +15,7 @@ import ipaddress
 import json
 from pathlib import Path
 import re
+import unicodedata
 from urllib.parse import urlsplit, urlunsplit
 
 SCHEMA = "humanaios.claim_intersection_e0.v0.1"
@@ -70,13 +71,27 @@ INTERSECTIONS = (
     },
     {
         "id": "oracle-challenge", "title": "Evidence claim to independent Oracle challenge",
-        "terms": ("oracle", "independent challenge", "knowledge graph", "p1 retention", "graph telemetry"),
+        "terms": ("source oracle", "oracle review", "oracle challenge", "independent challenge", "knowledge graph", "p1 retention", "graph telemetry", "p1 p2 p3 record", "original incorrect answer"),
         "issues": (1065,), "prs": (1066,),
         "review_question": "Is the P1 commitment independent and earlier than P2, rather than retrospective?",
     },
     {
+        "id": "workspace-ux", "title": "Resource tracking and source feedback in the existing workspace",
+        "terms": ("track this resource", "find resources", "work queue", "stay on find resources",
+                  "source card", "my opportunities", "record an outcome", "notify the user"),
+        "issues": (1002,), "prs": (),
+        "review_question": "Does the resource tracking action preserve the user's current page and surface a non-authoritative notification?",
+    },
+    {
+        "id": "resource-portfolio", "title": "Owned machine and migration resources",
+        "terms": ("macbook pro", "windows desktop", "desktop windows", "owned hardware",
+                  "hardware migration", "machine migration", "device inventory", "local work on my", "machine substrate"),
+        "issues": (1052, 1051), "prs": (),
+        "review_question": "Are the machines actually owned/available and are their capabilities evidenced independently?",
+    },
+    {
         "id": "prior-art", "title": "External idea to scoped prior-art and attribution review",
-        "terms": ("prior art", "novel", "earlier work", "name ledger", "term ledger"),
+        "terms": ("prior art", "prior art engine", "novel", "earlier work", "name ledger", "term ledger"),
         "issues": (1043, 1002, 1065), "prs": (),
         "review_question": "What was searched, what remains unsearched, and who contributed the earlier idea?",
     },
@@ -116,39 +131,81 @@ def _public_source_ref(raw: object) -> str | None:
     return urlunsplit(("https", host, parts.path, "", ""))
 
 
+def _normalize(raw: str) -> str:
+    """Collapse arbitrary separators, including arrows, into word boundaries."""
+    plain = unicodedata.normalize("NFKC", raw).casefold()
+    plain = plain.replace("\u2019", "'")
+    return re.sub(r"\s+", " ", re.sub(r"[^\w]+", " ", plain, flags=re.UNICODE)).strip()
+
+
 def _hit(text: str, signal: str) -> bool:
-    return re.search(r"(?<!\w)" + re.escape(signal) + r"(?!\w)", text) is not None
+    pattern = _normalize(signal)
+    return bool(pattern and re.search(r"(?<!\w)" + re.escape(pattern) + r"(?!\w)", text))
+
+
+def _read_opt_in_context(raw: object, original_source: str | None) -> tuple[str, str] | None:
+    """Use one explicitly opted-in, bounded *human-supplied* description.
+
+    Never fetch a URL, inspect the attachment, or treat the descriptor as verified.
+    Source references are checked for equivalence to the claim's existing source.
+    """
+    if raw is None:
+        return None
+    if not isinstance(raw, dict) or set(raw) != {"opt_in", "kind", "text", "source_ref"}:
+        raise ValueError("context must have exactly opt_in, kind, text, source_ref")
+    if raw["opt_in"] is not True:
+        raise ValueError("context requires explicit opt-in")
+    if raw["kind"] not in {"IMAGE_DESCRIPTION", "PUBLIC_POST_EXCERPT", "DOCUMENT_EXCERPT", "HUMAN_SUMMARY"}:
+        raise ValueError("unsupported context kind")
+    if not isinstance(raw["text"], str) or not 1 <= len(raw["text"].strip()) <= 800:
+        raise ValueError("context text outside the bounded 1..800 character range")
+    canonical = _public_source_ref(raw["source_ref"])
+    if canonical != original_source:
+        raise ValueError("context source_ref must match the submission source_ref")
+    return raw["kind"], raw["text"]
 
 
 def project(payload: dict) -> dict:
-    """Return deterministic *candidate* intersections; never verify/promote a claim."""
-    if not isinstance(payload, dict) or not {"schema", "claim_text", "kind", "source_ref"} == set(payload):
-        raise ValueError("expect exact schema, claim_text, kind, source_ref fields")
+    """Offer candidate intersections; human must verify every proposed equivalence."""
+    if not isinstance(payload, dict) or set(payload) not in (
+        {"schema", "claim_text", "kind", "source_ref"},
+        {"schema", "claim_text", "kind", "source_ref", "context"},
+    ):
+        raise ValueError("expect exact v0.1 fields, optionally context")
     if payload["schema"] != SCHEMA or not isinstance(payload["kind"], str) or payload["kind"] not in KINDS:
         raise ValueError("unknown schema or kind")
     claim = payload["claim_text"]
     if not isinstance(claim, str) or not 1 <= len(claim.strip()) <= MAX_TEXT:
         raise ValueError("claim_text must contain 1..4000 characters")
     source_ref = _public_source_ref(payload["source_ref"])
-    normalized = claim.casefold().replace("→", " ").replace("/", " ")
+    context = _read_opt_in_context(payload.get("context"), source_ref)
+    normalized = _normalize(claim)
+    context_words = _normalize(context[1]) if context else ""
     scored = []
     for entry in INTERSECTIONS:
-        matched = tuple(s for s in entry["terms"] if _hit(normalized, s))
-        if matched:
+        primary_hits = tuple(t for t in entry["terms"] if _hit(normalized, t))
+        context_hits = tuple(t for t in entry["terms"] if context_words and _hit(context_words, t))
+        if primary_hits or context_hits:
             refs = [f"https://github.com/humanaios-ui/operations/issues/{n}" for n in entry["issues"]]
             refs.extend(f"https://github.com/humanaios-ui/operations/pull/{n}" for n in entry["prs"])
-            scored.append((len(matched), {
+            # Direct human wording wins tie with indirect contextual description.
+            score = (len(primary_hits) + len(context_hits), bool(primary_hits))
+            scored.append((score, {
                 "intersection_id": entry["id"], "title": entry["title"],
-                "match_basis": "UNVERIFIED_LEXICAL_HINT", "matched_terms": list(matched),
+                "match_basis": "UNVERIFIED_HUMAN_TEXT_HINT" if primary_hits else "UNVERIFIED_OPT_IN_CONTEXT_HINT",
+                "matched_terms": list(dict.fromkeys((*primary_hits, *context_hits))),
                 "existing_work_refs": refs, "review_question": entry["review_question"],
                 "review_state": "UNVERIFIED", "status_of_linked_work": "NOT_RECHECKED",
             }))
-    scored.sort(key=lambda item: (-item[0], item[1]["intersection_id"]))
+    scored.sort(key=lambda item: (-item[0][0], -int(item[0][1]), item[1]["intersection_id"]))
     matches = [item[1] for item in scored[:MAX_HITS]]
     return {
         "schema": SCHEMA, "snapshot": SNAPSHOT, "kind": payload["kind"],
         "claim_sha256": hashlib.sha256(claim.encode("utf-8")).hexdigest(),
         "claim_text_in_output": False, "source_ref": source_ref,
+        "context_consumed": bool(context), "context_kind": context[0] if context else None,
+        "context_evidence_state": "HUMAN_SUPPLIED_UNVERIFIED" if context else "NOT_SUPPLIED",
+        "context_content_in_output": False,
         "origin_authentication": "NOT_PERFORMED",
         "candidate_intersections": matches,
         "needs_human_mapping": not bool(matches),
@@ -156,7 +213,7 @@ def project(payload: dict) -> dict:
         "prior_art_status": "NOT_SEARCHED", "claim_truth": "NOT_ESTABLISHED",
         "authority_effect": "NONE", "execution": "DISABLED", "can_authorize": False,
         "merge_authority": False, "human_approval": "NOT_INFERRED",
-        "notes": "Topic hints are mutable pointers; read and challenge source contents before conclusions.",
+        "notes": "Lexical hints and optional human-supplied descriptions are not evidence authentication or novelty claims.",
     }
 
 
