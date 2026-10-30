@@ -160,6 +160,59 @@ class TokenTests(unittest.TestCase):
         self.assertFalse({"email", "phone", "contact", "name"} & set(rec))
 
 
+class StrictMatcherTests(unittest.TestCase):
+    """P3 corrections, each tied to a P2 adjudication finding."""
+
+    def setUp(self):
+        self.tokens = ta.build_tokens(MASTER, REV, PER)
+        self.supports = ta.classify(self.tokens)
+
+    def _pred(self, own, signals):
+        return {"k": ta.predicate_need("AI_EVALUATION", signals, "B2", own=own)}
+
+    def test_neighbour_signals_alone_cannot_create_a_match(self):
+        corpus = [resource("r1", "Program launch", "a long enough description about coordination and operations work")]
+        pred = self._pred(["evaluation"], ["evaluation", "coordination", "operations"])
+        self.assertEqual(len(ta.discover(pred, corpus)["k"]), 1)          # P1 behaviour
+        self.assertEqual(ta.discover_strict(pred, corpus)["k"], [])        # P3: no own-signal hit
+
+    def test_in_word_hits_are_rejected_stem_prefixes_still_work(self):
+        corpus = [resource("r1", "Cooperation board", "a long enough description of cooperations and reproducibility work")]
+        self.assertEqual(ta.discover_strict(self._pred(["operations"], ["operations"]), corpus, ta.ANY_HIT)["k"], [])
+        hit = ta.discover_strict(self._pred(["reproducib"], ["reproducib"]), corpus, ta.ANY_HIT)["k"]
+        self.assertEqual(len(hit), 1)
+
+    def test_thin_text_and_domain_requirements_are_flagged_not_hidden(self):
+        corpus = [resource("r1", "Evaluation role", "evaluation; chemistry background required"),
+                  resource("r2", "Evaluation program", "A sufficiently long description of an evaluation program open to many applicants everywhere.")]
+        hits = {h["resource_id"]: h for h in ta.discover_strict(self._pred(["evaluation"], ["evaluation"]), corpus, ta.ANY_HIT)["k"]}
+        self.assertTrue(hits["r1"]["thin_text"])
+        self.assertTrue(hits["r1"]["domain_requirement_flags"])
+        self.assertFalse(hits["r2"]["thin_text"])
+        self.assertTrue(all(h["eligibility_assessed"] is False for h in hits.values()))
+
+    def test_strict_results_are_a_subset_of_baseline_results(self):
+        corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark program text here"),
+                  resource("r2", "Coordination job", "coordination and operations and delivery for program launch teams")]
+        base = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT)
+        strict = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT, strict=True)
+        for k, hs in strict["hits"].items():
+            self.assertTrue({h["resource_id"] for h in hs} <= {h["resource_id"] for h in base["hits"][k]})
+
+    def test_strict_gate_needs_a_non_outcome_approved_token(self):
+        outcome_only = [t for t in self.tokens if t["type"] == "OUTCOME"]
+        sup = ta.classify(outcome_only)
+        self.assertTrue(ta.backed_concepts(outcome_only, sup))             # P1 gate would open
+        arms = ta.run_arms(outcome_only, sup, [resource("r", "x", "evaluation validation")], strict=True)
+        self.assertEqual(arms["predicates"], {})                           # strict gate stays shut
+
+    def test_strict_controls_still_match_nothing(self):
+        corpus = [resource("r1", "AI benchmark grant", "evaluation calibration validation of models and data")]
+        out = ta.run_controls(corpus, strict=True)
+        self.assertEqual(out["CTRL_NONSENSE"]["bypassed_matches"], [])
+        self.assertEqual(out["CTRL_QUANTUM_HARDWARE"]["bypassed_matches"], [])
+
+
 class PrivateWriteTests(unittest.TestCase):
     def test_exclusive_0600_and_refuses_git_work_tree(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -92,6 +92,13 @@ TRANSFER_TABLE: dict[tuple[str, str], str] = {
 CREDENTIAL_PATTERNS = (r"\bphd\b", r"\bdoctoral\b", r"\blicensed\b", r"\bmd\b", r"citizen",
                        r"\bstudent", r"\bundergraduate", r"\bgraduate\b", r"\bresident of\b",
                        r"\bnonprofit\b|\b501\(c\)")
+# P3 (R5): domain/status requirements the P1 detector missed. Used only in strict mode so
+# P1 stays reproducible.
+DOMAIN_REQUIREMENT_PATTERNS = (r"\bbackground\b", r"\bdegree\b", r"\bcertif", r"\bexpert",
+                               r"\bsenior\b", r"years of experience", r"work authori[sz]ation",
+                               r"\busa-remote\b|\bu\.?s\.?-based\b", r"\bcontractor\b",
+                               r"\bfounder", r"\bstartup")
+MIN_TEXT_CHARS = 80  # P3 (R4): thinner descriptions cannot support a capability claim
 
 CONTROL_CONCEPTS: dict[str, dict[str, Any]] = {
     "CTRL_LICENSED_CLINICAL_PRACTICE": {
@@ -272,11 +279,13 @@ def expanded_signals(concept: str, *, with_hypothesis: bool) -> list[str]:
     return sorted(set(s.casefold() for s in sigs if len(s) >= 4))
 
 
-def predicate_need(concept: str, signals: list[str], arm: str) -> dict[str, Any]:
+def predicate_need(concept: str, signals: list[str], arm: str,
+                   own: list[str] | None = None) -> dict[str, Any]:
     """The only object the existing matcher sees. Opaque id, concept label, signal phrases."""
     label = (CONCEPTS.get(concept) or CONTROL_CONCEPTS[concept])["label"]
     return {"need_id": f"{concept}|{arm}", "label": label, "resource_types": [],
-            "affordances": [], "signals": signals}
+            "affordances": [], "signals": signals,
+            "own_signals": signals if own is None else own}
 
 
 def load_corpus(path: str | Path) -> list[ResourceCandidate]:
@@ -312,27 +321,72 @@ def discover(predicates: dict[str, dict[str, Any]], corpus: list[ResourceCandida
     return hits
 
 
+def _word_start(sig: str, text: str) -> bool:
+    return re.search(r"(?<![a-z0-9])" + re.escape(sig), text) is not None
+
+
+def discover_strict(predicates: dict[str, dict[str, Any]], corpus: list[ResourceCandidate],
+                    threshold: float = EXISTING_THRESHOLD) -> dict[str, list[dict[str, Any]]]:
+    """P3 matcher. Same signal-count scoring as needs._score, with three corrections drawn
+    from the P2 adjudication: (R1) a hit needs at least one of the concept's OWN signals,
+    so hypothesis neighbours alone cannot create a match; (R3) signals must start at a word
+    boundary; (R4/R5) thin text and domain/status requirements are flagged, not hidden.
+    """
+    from .needs import _candidate_text
+    hits: dict[str, list[dict[str, Any]]] = {k: [] for k in predicates}
+    for r in corpus:
+        text = _candidate_text(r)
+        thin = len((r.description or "").strip()) < MIN_TEXT_CHARS
+        reqs = [p for p in DOMAIN_REQUIREMENT_PATTERNS if re.search(p, text)]
+        for key, need in predicates.items():
+            sigs = [x for x in need["signals"] if _word_start(x, text)]
+            own = [x for x in sigs if x in set(need.get("own_signals", need["signals"]))]
+            score = round(min(1.0, min(0.55, 0.11 * len(sigs))), 2)
+            if own and score >= threshold:
+                hits[key].append({"resource_id": r.resource_id, "title": r.title, "score": score,
+                                  "signals": sorted(sigs), "own_signal_hits": sorted(own),
+                                  "eligibility_assessed": False, "eligibility_status": "UNASSESSED",
+                                  "credential_flags": credential_flags(r),
+                                  "domain_requirement_flags": reqs, "thin_text": thin})
+    for v in hits.values():
+        v.sort(key=lambda h: (-h["score"], h["resource_id"]))
+    return hits
+
+
 def run_arms(tokens: list[dict[str, Any]], supports: list[dict[str, Any]],
-             corpus: list[ResourceCandidate], threshold: float = EXISTING_THRESHOLD) -> dict[str, Any]:
-    """Arm A literal, B1 normalized aliases, B2 aliases + hypothesis neighbours."""
+             corpus: list[ResourceCandidate], threshold: float = EXISTING_THRESHOLD,
+             strict: bool = False) -> dict[str, Any]:
+    """Arm A literal, B1 normalized aliases, B2 aliases + hypothesis neighbours.
+
+    strict=True is the P3 correction set (stronger support gate + discover_strict).
+    """
     members = backed_concepts(tokens, supports)
+    if strict:  # R2: an OUTCOME bullet or a seed record alone cannot open a concept
+        by_id = {t["token_id"]: t for t in tokens}
+        members = {c: ids for c, ids in members.items()
+                   if any(by_id[i]["type"] in ("CAPABILITY", "METHOD", "EXPERIENCE")
+                          and by_id[i]["approval_status"] in ("APPROVED", "OWNER_COMMITTED_MASTER")
+                          for i in ids)}
     preds: dict[str, dict[str, Any]] = {}
     for c in CONCEPTS:
         if c not in members:
             continue  # source-backing gate: no supporting token, no query
         preds[f"{c}|A"] = predicate_need(c, literal_signals(tokens, members[c]), "A")
         preds[f"{c}|B1"] = predicate_need(c, expanded_signals(c, with_hypothesis=False), "B1")
-        preds[f"{c}|B2"] = predicate_need(c, expanded_signals(c, with_hypothesis=True), "B2")
-    return {"predicates": preds, "hits": discover(preds, corpus, threshold),
+        preds[f"{c}|B2"] = predicate_need(c, expanded_signals(c, with_hypothesis=True), "B2",
+                                          own=expanded_signals(c, with_hypothesis=False))
+    run = discover_strict if strict else discover
+    return {"predicates": preds, "hits": run(preds, corpus, threshold),
             "gated_out": sorted(set(CONCEPTS) - set(members))}
 
 
-def run_controls(corpus: list[ResourceCandidate]) -> dict[str, Any]:
+def run_controls(corpus: list[ResourceCandidate], strict: bool = False) -> dict[str, Any]:
     out: dict[str, Any] = {}
+    run = discover_strict if strict else discover
     for cid, spec in CONTROL_CONCEPTS.items():
         pred = {cid: predicate_need(cid, [s for s in spec["discover"]], "CTRL")}
         out[cid] = {"gate": "REFUSED_NO_SOURCE_BACKING",
-                    "bypassed_matches": discover(pred, corpus, ANY_HIT)[cid]}
+                    "bypassed_matches": run(pred, corpus, ANY_HIT)[cid]}
     return out
 
 
