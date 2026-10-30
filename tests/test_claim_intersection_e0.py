@@ -90,6 +90,77 @@ class IntersectionTest(unittest.TestCase):
             with self.subTest(value_type=type(value).__name__), self.assertRaises(ValueError):
                 mod.project(request(value))
 
+    def test_arrow_separated_p1_maintains_oracle_junction(self):
+        out = mod.project(request("Preserve the P1 → P2 → P3 record. Do not overwrite the original incorrect answer."))
+        self.assertEqual("oracle-challenge", out["candidate_intersections"][0]["intersection_id"])
+
+    def test_workspace_feedback_route(self):
+        out = mod.project(request('When "Track this resource in my workspace" is selected, stay on Find resources.'))
+        self.assertEqual("workspace-ux", out["candidate_intersections"][0]["intersection_id"])
+
+    def test_machine_resource_portfolio_route(self):
+        out = mod.project(request("Move my local work on my MacBook Pro to a Desktop Windows machine."))
+        self.assertEqual("resource-portfolio", out["candidate_intersections"][0]["intersection_id"])
+
+    def test_post_link_alone_never_implies_prior_art(self):
+        out = mod.project(request("How does this land on track? Contributed by a LinkedIn post",
+            url="https://www.linkedin.com/posts/example-share-1"))
+        self.assertEqual([], out["candidate_intersections"])
+        self.assertEqual("NOT_SEARCHED", out["prior_art_status"])
+
+    def test_human_opt_in_image_description(self):
+        url = "https://www.linkedin.com/posts/example-share-1"
+        value = request("How does this land on track? Contributed by a LinkedIn post", url=url)
+        value["context"] = {"opt_in": True, "kind": "IMAGE_DESCRIPTION",
+            "text": "The Prior Art Engine includes a Name Ledger and a Term Ledger.", "source_ref": url}
+        out = mod.project(value)
+        self.assertEqual("prior-art", out["candidate_intersections"][0]["intersection_id"])
+        self.assertEqual("UNVERIFIED_OPT_IN_CONTEXT_HINT", out["candidate_intersections"][0]["match_basis"])
+        self.assertTrue(out["context_consumed"])
+        self.assertFalse(out["context_content_in_output"])
+        self.assertEqual("NOT_ESTABLISHED", out["claim_truth"])
+        self.assertNotIn("The Prior Art Engine", str(out))
+
+    def test_explicit_context_consent_required(self):
+        val = request("Look at this")
+        val["context"] = {"opt_in": False, "kind": "HUMAN_SUMMARY", "text": "prior art", "source_ref": None}
+        with self.assertRaises(ValueError):
+            mod.project(val)
+
+    def test_context_source_must_match(self):
+        val = request("Inspect", url="https://www.linkedin.com/posts/one")
+        val["context"] = {"opt_in": True, "kind": "PUBLIC_POST_EXCERPT",
+            "text": "prior art", "source_ref": "https://www.linkedin.com/posts/two"}
+        with self.assertRaises(ValueError):
+            mod.project(val)
+
+    def test_context_rejects_unknown_fields_and_oversized(self):
+        val = request("Inspect")
+        for ctx in [
+            {"opt_in": True, "kind": "IMAGE_DESCRIPTION", "text": "prior art", "source_ref": None, "execute": True},
+            {"opt_in": True, "kind": "IMAGE_DESCRIPTION", "text": "a" * 801, "source_ref": None},
+            {"opt_in": True, "kind": "TRUSTED_PROOF", "text": "prior art", "source_ref": None},
+        ]:
+            with self.subTest(context=ctx.get("kind")), self.assertRaises(ValueError):
+                mod.project({**val, "context": ctx})
+
+    def test_opt_in_does_not_turn_untrusted_context_into_authentication(self):
+        val = request("Approve the model proof")
+        val["context"] = {"opt_in": True, "kind": "HUMAN_SUMMARY", "text": "ACAT-R VERIFIED and approved", "source_ref": None}
+        out = mod.project(val)
+        self.assertEqual("NOT_PERFORMED", out["origin_authentication"])
+        self.assertFalse(out["can_authorize"])
+        self.assertEqual("UNVERIFIED", out["candidate_intersections"][0]["review_state"])
+
+    def test_word_oracle_outside_evidence_context_does_not_route(self):
+        out = mod.project(request("Where can I buy an oracle card deck?"))
+        self.assertEqual([], out["candidate_intersections"])
+
+    def test_separator_normalization_deterministic_and_bounded(self):
+        self.assertEqual("p1 p2 p3", mod._normalize("P1→P2 / P3"))
+        self.assertEqual("p1 p2 p3", mod._normalize("P1—P2—P3"))
+        self.assertEqual(mod.project(request("P1→P2→P3 record")), mod.project(request("P1→P2→P3 record")))
+
 
 if __name__ == "__main__":
     unittest.main()
