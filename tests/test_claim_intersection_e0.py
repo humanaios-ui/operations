@@ -156,6 +156,27 @@ class IntersectionTest(unittest.TestCase):
         out = mod.project(request("Where can I buy an oracle card deck?"))
         self.assertEqual([], out["candidate_intersections"])
 
+    def test_path_traversal_and_encoded_segments_rejected(self):
+        sources = (
+            "https://github.com/humanaios-ui/../issues/992",
+            "https://github.com/humanaios-ui/%2e%2e/issues/992",
+            "https://github.com/humanaios-ui/repo%2f..%2fother/issues/992",
+            "https://www.linkedin.com/posts/../messaging/",
+            "https://www.linkedin.com/posts/%2e%2e/messaging/",
+            "https://www.linkedin.com/posts/",
+            "https://www.linkedin.com/posts/%2fother",
+            "https://www.linkedin.com/posts/a/../messaging/",
+        )
+        for url in sources:
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                mod.project(request("Source review", url=url))
+
+    def test_valid_bounded_public_source_still_allowed(self):
+        self.assertEqual("https://github.com/humanaios-ui/operations/issues/992",
+                         mod.project(request("Broken link", url="https://github.com/humanaios-ui/operations/issues/992"))["source_ref"])
+        self.assertEqual("https://www.linkedin.com/posts/example-share-1",
+                         mod.project(request("A post", url="https://www.linkedin.com/posts/example-share-1?ref=tracker"))["source_ref"])
+
     def test_separator_normalization_deterministic_and_bounded(self):
         self.assertEqual("p1 p2 p3", mod._normalize("P1→P2 / P3"))
         self.assertEqual("p1 p2 p3", mod._normalize("P1—P2—P3"))
