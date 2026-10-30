@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {simulate,evaluate,validPlacement,position} from '../engine.mjs';
+const bridge=[2,5,8,11].map(c=>({type:'beam',c,r:4,angle:0}));
+test('an empty course fails without magic rescue',()=>{const r=simulate([]);assert.equal(r.success,false);assert.equal(evaluate([]).total,0);});
+test('four assembled beams span a real gap and rescue the capsule',()=>{const r=simulate(bridge);assert.equal(r.outcome,'DELIVERED');assert(r.steps<215);assert(r.frames.length===r.steps);});
+test('physics is deterministic and depends on placement',()=>{assert.deepEqual(simulate(bridge),simulate(bridge));const short=bridge.slice(0,2);assert.equal(simulate(short).success,false);});
+test('performance score contains published transparent categories',()=>{const r=evaluate(bridge);assert.equal(r.score.completion,40);assert.equal(r.consistency,3);assert.equal(r.score.reliability,20);assert.equal(r.score.efficiency,13);assert.equal(r.total,Object.values(r.score).reduce((a,b)=>a+b,0));});
+test('small launch variation is tested independently',()=>{const r=evaluate(bridge);assert.equal(r.consistency,[simulate(bridge,-.016),simulate(bridge,0),simulate(bridge,.016)].filter(v=>v.success).length);});
+test('ramp slope constrained; impossible grid positions rejected',()=>{assert(validPlacement('ramp',2,2,-1));assert(!validPlacement('ramp',2,2,0));assert(!validPlacement('beam',-1,2,0));assert(!validPlacement('beam',2,100,0));assert.deepEqual(position(2,4),{x:340,y:390});});
+test('material cap is enforced for evaluated designs',()=>{assert.throws(()=>evaluate(Array(9).fill({type:'spring',c:2,r:2,angle:0})),/budget/i);});
