@@ -1,0 +1,33 @@
+name: ACAT-R v0.1 Offline Contract Tests
+on:
+  pull_request:
+    paths:
+      - 'experiments/acat_r_v01/**'
+      - 'tests/test_acat_r_v01.py'
+      - '.github/workflows/acat-r-v01.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acat-r-synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline unit tests (no runtime launch)
+        run: python -m unittest discover -s tests -p test_acat_r_v01.py -v
+      - name: Verify synthetic example against checked-in expected output
+        run: |
+          python experiments/acat_r_v01/calibrate.py evaluate \
+            --protocol experiments/acat_r_v01/examples/protocol.json \
+            --p1 experiments/acat_r_v01/examples/p1.json \
+            --p2 experiments/acat_r_v01/examples/p2.json \
+            --p3 experiments/acat_r_v01/examples/p3.json \
+            --commit experiments/acat_r_v01/examples/p1.commit.json \
+            --output /tmp/acat-r-ci-report.json
+          python -c "import json; d=json.load(open('/tmp/acat-r-ci-report.json')); assert d['evidence_state']=='SYNTHETIC_ONLY' and d['admission']=='HOLD_FOR_INDEPENDENT_REVIEW' and d['passes']=={'P1':2,'P2':1,'P3':2}"
