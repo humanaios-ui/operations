@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My job applications · INTENT-OS</title>
+<style>body{font:16px system-ui;background:#0b1423;color:#eaf2fc;max-width:850px;margin:auto;padding:28px}a{color:#87d6fa}label{display:block;margin-top:18px}input,textarea,select,button{font:inherit;padding:10px;border-radius:7px;border:1px solid #789;background:#13243a;color:inherit}input,textarea,select{width:100%;box-sizing:border-box}textarea{min-height:130px}button{margin:12px 8px 0 0;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere}section{border:1px solid #456;padding:18px;margin:18px 0}button:focus-visible,input:focus,textarea:focus,select:focus{outline:3px solid #87d6fa}#result[hidden]{display:none}</style>
+<body><a href="/intent-os">← INTENT-OS</a><h1>My job applications</h1>
+<p>Local workspace. Inputs go only to this loopback server. Nothing is saved automatically. Export your record before leaving. This is a single-user local preview, not a signed-in cloud account.</p>
+<p>Step 1: add the job. Step 2: map evidence. Step 3: export the map and handoff. Use the handoff with our saved skill here to build the Word and PDF resume and letter.</p>
+<label>Import an existing application.json<input id="import" type="file" accept=".json,application/json"></label>
+<form id="form"><label>Application ID<input id="application_id" maxlength="200" required></label>
+<label>Employer<input id="employer" maxlength="200" required></label><label>Role<input id="role" maxlength="200" required></label>
+<label>Source URL or description<input id="job_source" maxlength="2000" required></label>
+<label>Original job description<textarea id="job_text" maxlength="40000" required></textarea></label>
+<label>Source status<select id="source_verification_status"><option>UNVERIFIED</option><option>LINK_FAILED_404</option><option>ROLE_NOT_LISTED</option><option>SOURCE_UNAVAILABLE</option><option>RECHECK_REQUIRED</option></select></label>
+<p>A source hold never establishes role closure or applicant ineligibility. Drafting may continue while availability remains unverified.</p>
+<label>Evidence records (JSON)<textarea id="evidence" spellcheck="false">[]</textarea></label>
+<p>Each record needs id, claim, source and state: DOCUMENTED, USER_ATTESTED or IN_PROGRESS. Supplied labels are not independent verification.</p>
+<label>Requirement map (JSON)<textarea id="requirements" spellcheck="false">[]</textarea></label>
+<details><summary>Show the record shape</summary><pre>{"id":"E1","claim":"Your supported fact","source":"Master resume, named paragraph","state":"DOCUMENTED"}
+
+{"id":"R1","requirement":"Exact job requirement","kind":"minimum","status":"SUPPORTED","mapping":"TRANSFERABLE","evidence_ids":["E1"],"proposed_execution":"Future work","deliverable":"Work product","success_check":"Review check","gap":""}
+
+Kinds: duty, minimum, preferred
+Statuses: SUPPORTED, PARTIAL, UNKNOWN, CONTRADICTED
+Mappings: DIRECT, TRANSFERABLE, GAP
+For missing proof use UNKNOWN / GAP / evidence_ids: [].</pre></details>
+<button type="submit">Prepare private handoff</button></form>
+<p id="message" role="status" aria-live="polite"></p>
+<section id="result" hidden><h2>Private handoff ready</h2><p id="state"></p><p>The evidence map is a working file. Resume and cover letter generation happens through the saved skill.</p><button id="record">Export application.json</button><button id="map">Export evidence map</button><button id="handoff">Export skill handoff</button><pre id="prompt"></pre></section>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),fields=['application_id','employer','role','job_source','job_text','source_verification_status'];
+let original={},prepared=null;
+function invalidate(){prepared=null;$('result').hidden=true;}
+$('form').addEventListener('input',invalidate);
+$('import').addEventListener('change',async()=>{invalidate();try{const file=$('import').files[0];if(!file||file.size>100000)throw Error('File too large or missing.');const data=JSON.parse(await file.text());if(!data||Array.isArray(data)||typeof data!=='object')throw Error('Expected application object.');original=data;for(const id of fields)$(id).value=typeof data[id]==='string'?data[id]:(id==='source_verification_status'?'UNVERIFIED':'');for(const id of ['evidence','requirements'])$(id).value=JSON.stringify(data[id]||[],null,2);$('message').textContent='Imported locally. Review the fields before preparing.';}catch(e){$('message').textContent=e.message;}});
+$('form').addEventListener('submit',async event=>{event.preventDefault();invalidate();try{const data={...original};for(const id of fields)data[id]=$(id).value;for(const id of ['evidence','requirements'])data[id]=JSON.parse($(id).value);const response=await fetch('/api/my-applications/prepare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'});const result=await response.json();if(!response.ok)throw Error(result.error||'Preparation failed.');prepared=result;$('state').textContent='Source hold: '+result.application.source_hold+' · Availability: UNVERIFIED · NOT SUBMITTED';$('prompt').textContent=result.skill_handoff;$('result').hidden=false;$('message').textContent='Map checked for structure and evidence links. Claims still need human review.';}catch(e){$('message').textContent=e.message;}});
+function download(name,content,type){if(!prepared)return;const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('record').onclick=()=>prepared&&download('application.json',JSON.stringify(prepared.application,null,2),'application/json');
+$('map').onclick=()=>prepared&&download('application-evidence-map.html',prepared.evidence_map_html,'text/html');
+$('handoff').onclick=()=>prepared&&download('map-job-application-handoff.txt',prepared.skill_handoff,'text/plain');
+</script></body></html>
