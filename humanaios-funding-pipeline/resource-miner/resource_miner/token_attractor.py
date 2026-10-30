@@ -192,6 +192,8 @@ def classify(tokens: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """SUPPORTS edges token -> concept. A token may support several concepts; facts stay separate."""
     edges = []
     for t in tokens:
+        if t["type"] == "CONSTRAINT":
+            continue  # a limit on the work is not evidence of a capability
         text = (t["label"] + " " + t["meaning"]).casefold()
         for cid, spec in CONCEPTS.items():
             hits = [p for p in spec["classify"] if re.search(p, text)]

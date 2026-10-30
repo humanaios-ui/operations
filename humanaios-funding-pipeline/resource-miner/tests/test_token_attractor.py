@@ -82,6 +82,11 @@ class TokenTests(unittest.TestCase):
         self.assertGreaterEqual(len(hplc_a), 2)
         self.assertEqual(len({t["token_id"] for t in hplc_a}), len(hplc_a))
 
+    def test_constraints_never_support_a_capability_concept(self):
+        cons = ta.build_tokens({}, REV, [{"project_id": "PER-Y", "constraints": ["regulated laboratory environment, CLIA audits"]}])
+        self.assertEqual({x["type"] for x in cons}, {"CONSTRAINT"})
+        self.assertEqual(ta.classify(cons), [])
+
     def test_structural_edges(self):
         edges = ta.structural_edges(self.tokens)
         kinds = {e["type"] for e in edges}
