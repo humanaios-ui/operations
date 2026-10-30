@@ -129,9 +129,13 @@ def reconcile_public_candidates(
             continue
         key = (provider, url)
         if key in seen:
+            for existing in candidates:
+                if (existing["provider"], existing["url"]) == key and source_id not in existing["source_ids"]:
+                    existing["source_ids"].append(source_id)
             continue
         seen.add(key)
         candidates.append({
+            "source_ids": [source_id],
             "provider": provider,
             "url": url,
             "source_id": source_id,
@@ -202,8 +206,12 @@ def public_readback(
                     state = "READBACK_INCONCLUSIVE"
                 elif provider == "github" and str(record.get("login", "")).casefold() == identifier.casefold():
                     state = "PUBLIC_RECORD_OBSERVED"
-                elif provider == "orcid" and str(record.get("orcid-identifier", {}).get("path", "")) == identifier:
-                    state = "PUBLIC_RECORD_OBSERVED"
+                elif provider == "orcid":
+                    orcid_identifier = record.get("orcid-identifier")
+                    if isinstance(orcid_identifier, dict) and str(orcid_identifier.get("path", "")) == identifier:
+                        state = "PUBLIC_RECORD_OBSERVED"
+                    else:
+                        state = "READBACK_INCONCLUSIVE"
                 else:
                     state = "READBACK_INCONCLUSIVE"
         except (ValueError, OSError, TimeoutError, UnicodeDecodeError, json.JSONDecodeError):

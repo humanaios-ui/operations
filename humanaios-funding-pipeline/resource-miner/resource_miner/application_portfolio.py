@@ -9,6 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 import os
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -182,6 +183,17 @@ def assemble_application(master: dict[str, Any], *,
     }
 
 
+def _inside_git_work_tree(directory: Path) -> bool:
+    try:
+        probe = subprocess.run(
+            ["git", "-C", str(directory), "rev-parse", "--is-inside-work-tree"],
+            capture_output=True, text=True, timeout=15,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return True  # cannot prove it is outside a repository: fail closed
+    return probe.returncode == 0 and probe.stdout.strip() == "true"
+
+
 def render_docx(application: dict[str, Any], template: Path, output: Path,
                 *, protected_roots: tuple[Path, ...] = ()) -> None:
     """Render privately, borrowing the user's DOCX page and heading styles."""
@@ -198,6 +210,8 @@ def render_docx(application: dict[str, Any], template: Path, output: Path,
         raise FileExistsError("will not overwrite an existing application")
     if not output.parent.is_dir():
         raise ValueError("output parent must exist")
+    if _inside_git_work_tree(output.parent):
+        raise ValueError("refusing to write a private application inside a git work tree")
     doc = Document(str(template))
     present = {p.text.strip().upper() for p in doc.paragraphs}
     if not set(ORDER).issubset(present):
@@ -255,12 +269,19 @@ def render_docx(application: dict[str, Any], template: Path, output: Path,
     heading("EDUCATION & SELECTED RESEARCH")
     for item in application["education_and_research"]:
         doc.add_paragraph(item["text"], style="List Bullet")
-    old_umask = os.umask(0o077)
     try:
-        doc.save(str(output))
-        os.chmod(output, 0o600)
-    finally:
-        os.umask(old_umask)
+        fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    except FileExistsError:
+        raise FileExistsError("will not overwrite an existing application") from None
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            doc.save(handle)
+    except BaseException:
+        try:
+            os.unlink(output)
+        except OSError:
+            pass
+        raise
 
 
 def build_application(private_checkout: str | Path, template: str | Path,

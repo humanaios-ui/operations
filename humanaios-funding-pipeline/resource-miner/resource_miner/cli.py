@@ -134,6 +134,13 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
     return requirements
 
 
+def _safe_reason(exc: BaseException) -> str:
+    """Short, fixed-vocabulary reason; never echo parser or file contents."""
+    if isinstance(exc, (ValueError, RuntimeError, PermissionError, FileExistsError)):
+        return str(exc)[:120]
+    return "local file or git access failed"
+
+
 def main() -> None:
     args = build_parser().parse_args()
 
@@ -172,11 +179,14 @@ def main() -> None:
             (Path(args.operations_checkout).expanduser().resolve(),)
             if args.operations_checkout else ()
         )
-        receipt = build_application(
-            args.private_checkout, args.template, args.output,
-            target=args.target, max_projects=args.max_projects,
-            forbidden_checkouts=protected,
-        )
+        try:
+            receipt = build_application(
+                args.private_checkout, args.template, args.output,
+                target=args.target, max_projects=args.max_projects,
+                forbidden_checkouts=protected,
+            )
+        except (ValueError, RuntimeError, PermissionError, OSError) as exc:
+            raise SystemExit(f"render-private-application failed: {_safe_reason(exc)}") from None
         print(json.dumps(receipt, indent=2, sort_keys=True))
         return
 
@@ -188,13 +198,16 @@ def main() -> None:
             json.loads(Path(args.prior_revisions).read_text(encoding="utf-8"))
             if args.prior_revisions else None
         )
-        report = read_local_portfolio(
-            args.private_checkout,
-            args.operations_checkout,
-            args.consumer_checkout,
-            owner_approved=True,
-            prior=prior,
-        )
+        try:
+            report = read_local_portfolio(
+                args.private_checkout,
+                args.operations_checkout,
+                args.consumer_checkout,
+                owner_approved=True,
+                prior=prior,
+            )
+        except (ValueError, RuntimeError, PermissionError, OSError) as exc:
+            raise SystemExit(f"connect-private-profile failed: {_safe_reason(exc)}") from None
         print(json.dumps(report, indent=2, sort_keys=True))
         return
 

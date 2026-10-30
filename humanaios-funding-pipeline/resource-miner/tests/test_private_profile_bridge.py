@@ -3,6 +3,7 @@
 No real personal profile, contact detail, or repo token enters the fixtures.
 """
 import json
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -154,6 +155,7 @@ class PrivateProfileBridgeTests(unittest.TestCase):
                                     forbidden_checkouts=(self.ops,))
         self.assertEqual(receipt["status"], "PRIVATE_DRAFT_CREATED")
         self.assertTrue(self.output.exists())
+        self.assertEqual(stat.S_IMODE(self.output.stat().st_mode), 0o600)
         text = "\n".join(p.text for p in Document(self.output).paragraphs)
         self.assertIn("SELECTED PROJECT EVIDENCE PORTFOLIO", text)
         self.assertIn("Sample Hospital", text)

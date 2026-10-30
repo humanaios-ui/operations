@@ -14,7 +14,7 @@ The master stores all professional evidence and supported outcomes once. Applica
 
 ## Local pinned-origin read (not independent authentication)
 
-Clone the **private** repository locally using your own GitHub credentials, and ensure the repositories' `origin` remotes point to their exact canonical `humanaios-ui` paths. No PAT or credential value is passed to Resource Miner. Each source is read from committed `HEAD:<exact path>` via git, not from GitHub search snippets, uncommitted files or public caches. The read returns the exact Git blob SHA. This design also works offline.
+Clone the **private** repository locally using your own GitHub credentials, and ensure the repositories' `origin` remotes point to their exact canonical `humanaios-ui` paths. No PAT or credential value is passed to Resource Miner. Each source is read from the local committed `HEAD:<exact path>` via git, by resolved blob SHA (HEAD is not checked for reachability from `origin/main`), not from GitHub search snippets, uncommitted files or public caches. The read returns the exact Git blob SHA. This design also works offline.
 
 From the local `operations/humanaios-funding-pipeline/resource-miner` checkout on the proposed branch:
 
@@ -56,7 +56,7 @@ Do not publish the DOCX to the public repository, create public PR attachments w
 
 ## Migration from the uploaded resume
 
-The private migration proposal maps the supplied resume's professional-profile candidate to the master `summary.project_program_profile`. After review, its project evidence candidates become `project_evidence[]` records with `title`, `mandate`, `evidence_bullets`, `evidence_ref`, and `review_status: APPROVED`. New experience claims are compared for overlap before any `experience[]` entry is added. The uploaded program/project management resume contains more project evidence than the August 14, 2026 master. Notably, the template includes 2004–2011 St. Joseph's/Barrow clinical-research work and expanded mandates/evidence per project. The bridge does **not** silently append these unreviewed claims to the master.
+The private migration proposal maps the supplied resume's professional-profile candidate to the master `summary.project_program_profile`. After review, its project evidence candidates become `project_evidence[]` records with `title`, `mandate`, `evidence_bullets`, `evidence_ref`, and `review_status: APPROVED`. New experience claims are compared for overlap before any `experience[]` entry is added. The uploaded resume may contain more project evidence than the committed master. The bridge does **not** silently append these unreviewed claims to the master.
 
 A private, operator-review candidate should preserve each template section, evidence bullet, source document fingerprint, and status `USER_SUPPLIED_NEEDS_HUMAN_REVIEW`. After a local review, approved new fields enter the private master as `project_evidence` records with source and revision; the application builder includes only records marked `review_status: APPROVED` and bearing `evidence_ref`; unapproved items remain outside production selection. This avoids creating a parallel authoritative profile.
 

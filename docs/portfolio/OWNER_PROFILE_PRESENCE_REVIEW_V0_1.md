@@ -62,9 +62,9 @@ python3 -m resource_miner.cli profile-presence \
 The candidate results are kept in local output for owner review only. For a **single explicit GitHub public user search**, the owner may also supply a bounded public name or handle. This is not an unattended scan:
 
 ```bash
-python3 -m resource_miner.cli profile-presence \\
-  --private-checkout /path/to/humanaios-internal \\
-  --github-alias "chosen-public-alias" \\
+python3 -m resource_miner.cli profile-presence \
+  --private-checkout /path/to/humanaios-internal \
+  --github-alias "chosen-public-alias" \
   --owner-approved
 ```
 

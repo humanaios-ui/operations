@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install private-profile bridge test dependencies
-        run: python3 -m pip install 'PyYAML>=6.0,<7.0' 'python-docx>=1.1,<2.0'
+        run: python3 -m pip install 'PyYAML==6.0.3' 'python-docx==1.2.0'
       - name: Run Resource Miner regression tests
         working-directory: humanaios-funding-pipeline/resource-miner
         env:

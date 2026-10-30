@@ -6,6 +6,25 @@ import json
 HELD = {'LINK_FAILED_404', 'ROLE_NOT_LISTED', 'SOURCE_UNAVAILABLE', 'RECHECK_REQUIRED'}
 
 
+def downgrade_for_removed_evidence(record, removed_ids):
+    """Return a copy where only requirements citing removed evidence are downgraded."""
+    app = deepcopy(record)
+    removed = set(removed_ids)
+    app['evidence'] = [e for e in app.get('evidence', []) if e.get('id') not in removed]
+    for row in app.get('requirements', []):
+        refs = row.get('evidence_ids', [])
+        if not any(x in removed for x in refs):
+            continue
+        kept = [x for x in refs if x not in removed]
+        row['evidence_ids'] = kept
+        if kept:
+            row['status'] = 'PARTIAL' if row.get('status') == 'SUPPORTED' else row.get('status')
+        else:
+            row.update(status='UNKNOWN', mapping='GAP')
+            row['gap'] = 'Supporting evidence was removed; re-establish before use.'
+    return app
+
+
 def prepare(record, source_rows=()):
     if not isinstance(record, dict) or len(json.dumps(record).encode()) > 100000:
         raise ValueError('Invalid application')
@@ -37,6 +56,8 @@ def prepare(record, source_rows=()):
             raise ValueError('Broken evidence link')
         if row['status'] in {'SUPPORTED', 'PARTIAL'} and (not refs or row['mapping'] == 'GAP'):
             raise ValueError('Support requires evidence')
+        if row['status'] == 'SUPPORTED' and all(indexed[x]['state'] == 'IN_PROGRESS' for x in refs):
+            raise ValueError('In-progress evidence cannot fully support a requirement')
         if row['status'] == 'UNKNOWN' and (refs or row['mapping'] != 'GAP'):
             raise ValueError('Unknown must stay a gap')
         for key in ('gap', 'proposed_execution', 'deliverable', 'success_check'):
@@ -46,9 +67,13 @@ def prepare(record, source_rows=()):
     if not isinstance(status, str) or status not in HELD | {'UNVERIFIED'}:
         raise ValueError('Live source verification unsupported')
     # A known catalog hold overrides a user import that tries to clear it.
-    for source in source_rows:
-        if isinstance(source, dict) and source.get('url') == app['job_source'] and source.get('source_verification_status') in HELD:
-            status = source['source_verification_status']
+    held = {s['source_verification_status'] for s in source_rows
+            if isinstance(s, dict) and s.get('url') == app['job_source']
+            and s.get('source_verification_status') in HELD}
+    if len(held) == 1:
+        status = next(iter(held))
+    elif len(held) > 1:
+        status = 'RECHECK_REQUIRED'  # conflicting catalog observations, never last-row-wins
     app.update(source_verification_status=status, availability='UNVERIFIED',
                external_state='NOT_SUBMITTED', authority='NONE',
                source_hold=status in HELD, review_state='DRAFT_REQUIRES_HUMAN_REVIEW',

@@ -37,7 +37,10 @@ def _git(root: Path, *args: str) -> str:
 
 
 def _approved_repo(root: str | Path, expected: str) -> Path:
-    path = Path(root).expanduser().resolve(strict=True)
+    try:
+        path = Path(root).expanduser().resolve(strict=True)
+    except (OSError, RuntimeError):
+        raise ValueError("repository checkout not found") from None
     if not path.is_dir():
         raise ValueError("repository checkout must be a directory")
     remote = _git(path, "remote", "get-url", "origin").rstrip("/")
@@ -58,9 +61,11 @@ def _git_file(root: str | Path, repo: str, file_path: str) -> tuple[str, str]:
     revision = _git(checkout, "rev-parse", f"HEAD:{file_path}")
     if not REV.fullmatch(revision):
         raise ValueError("invalid source blob SHA")
-    data = _git(checkout, "show", f"HEAD:{file_path}")
-    if len(data) > 200_000:
+    # Read by the resolved blob SHA so the reported revision is the content read.
+    size = _git(checkout, "cat-file", "-s", revision)
+    if not size.isdigit() or int(size) > 200_000:
         raise ValueError("source exceeds bounded read limit")
+    data = _git(checkout, "cat-file", "blob", revision)
     return revision, data
 
 
@@ -71,7 +76,11 @@ def load_private_master(private_checkout: str | Path) -> tuple[dict[str, Any], s
         import yaml  # optional local package dependency; never CI secret injection
     except ImportError as exc:
         raise RuntimeError("install PyYAML locally before running this command") from exc
-    profile = yaml.safe_load(source)
+    try:
+        profile = yaml.safe_load(source)
+    except yaml.YAMLError:
+        # Do not chain: the parser error embeds a snippet of private source.
+        raise ValueError("invalid master profile YAML") from None
     if not isinstance(profile, dict):
         raise ValueError("invalid master profile YAML")
     required = {"version", "profile_id", "contact", "summary",
@@ -142,7 +151,9 @@ def project_consumer(consumer_checkout: str | Path) -> tuple[dict[str, Any], str
     if len(scope) != 2:
         raise ValueError("consumer export missing")
     text = scope[1].split("/**\n * Calculate grant relevance", 1)[0]
-    desc = re.search(r"description:\s*'([^']{1,2000})'", text)
+    # Reject backslash escapes and require a property boundary: a truncated
+    # description would hide an unsupported claim behind NO_DRIFT_OBSERVED.
+    desc = re.search(r"description:\s*'([^'\\]{1,2000})'\s*[,}]", text)
     stage = re.search(r"fundingStage:\s*'([a-z-]+)'", text)
     budget = re.search(r"budgetRange:\s*(null|\{)", text)
     team = re.search(r"teamProfile:\s*\{\s*size:\s*'([a-z]+)'", text)
@@ -164,7 +175,12 @@ def read_local_portfolio(
     owner_approved: bool = False,
     prior: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """One explicit, bounded local read of all three authoritative source roles."""
+    """One explicit, bounded local read of all three authoritative source roles.
+
+    Reads local committed HEAD only; HEAD is not verified as reachable from origin/main.
+    """
+    if not owner_approved:
+        raise PermissionError("explicit local owner approval required")
     master, master_rev = load_private_master(private_checkout)
     personal = project_personal(master, master_rev, owner_approved=owner_approved)
     seed = project_seed(operations_checkout)

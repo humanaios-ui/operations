@@ -58,6 +58,8 @@ class PortfolioMaintainerTests(unittest.TestCase):
         report = observe_portfolio(personal, business, consumer)
         self.assertEqual(report["review_state"], "REVIEW_REQUIRED")
         self.assertIn("STAGE_DRIFT", report["issues"])
+        self.assertIn("UNSUPPORTED_CLAIM:374K_VERIFIED_WORKERS", report["issues"])
+        self.assertIn("UNSUPPORTED_CLAIM:PHYSICAL_EXECUTION_LAYER", report["issues"])
         self.assertIn("UNAPPROVED_BUDGET_RANGE", report["issues"])
         self.assertIn("TEAM_SIZE_RECHECK", report["issues"])
         self.assertEqual(report["next_action"], "HUMAN_REVIEW")
