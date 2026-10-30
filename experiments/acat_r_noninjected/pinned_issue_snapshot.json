@@ -1,0 +1,193 @@
+{
+  "items": [
+    {
+      "body": "## User-visible result — INTENT-OS × existing Resource Miner",
+      "labels": [],
+      "number": 822,
+      "state": "closed",
+      "title": "feat(INTENT-OS): usable objective-to-Resource-Miner page on existing service"
+    },
+    {
+      "body": "## Human objective",
+      "labels": [],
+      "number": 928,
+      "state": "open",
+      "title": "On-Track Reflex v0.1 — show verified progress toward usable INTENT-OS × Resource Miner"
+    },
+    {
+      "body": "## Purpose",
+      "labels": [],
+      "number": 1067,
+      "state": "open",
+      "title": "[Z1 Audit] DASE Capability R2 — source replay, defects, corrections, admission hold"
+    },
+    {
+      "body": "## ACAT-R v0.1 — approved implementation, Z1 research",
+      "labels": [],
+      "number": 1068,
+      "state": "open",
+      "title": "[Z1 Research] ACAT-R v0.1 — general machine-runtime calibration, offline three-phase contract"
+    },
+    {
+      "body": "## Context",
+      "labels": [],
+      "number": 1070,
+      "state": "open",
+      "title": "[CI blocker] Pre-existing workflow path validator crash and unlisted baseline test files"
+    },
+    {
+      "body": "# Intent and scope",
+      "labels": [],
+      "number": 1043,
+      "state": "open",
+      "title": "[Z1 pilot] Projects → Issues → PRs → verified human outcomes: 10-PR burden and proof study"
+    },
+    {
+      "body": "## Goal — one actual source-pinned observation cycle, not a future design",
+      "labels": [],
+      "number": 1065,
+      "state": "open",
+      "title": "[Z1 E0] Prove graph telemetry → independent review challenge → corrected Witness interpretation"
+    },
+    {
+      "body": "**State:** ADMISSION_REQUESTED (Z1 E0 workbench; not admitted). **Authority effect:** NONE. **Draft implementation:** #1064 at head `695ee477a590f2eb600d5c97036a166cde49c1f7`. Independent review requested; protected CI and Z2 ratification remain separate.",
+      "labels": [],
+      "number": 1063,
+      "state": "open",
+      "title": "[Z1][INTENT-OS] Natural language to verified resource state — bounded typed contract and shadow route"
+    },
+    {
+      "body": "## Human objective",
+      "labels": [],
+      "number": 1057,
+      "state": "open",
+      "title": "[Z1 pilot] Live E1 communication cycle: issue → agent handoff → CI/peer evidence → human review"
+    },
+    {
+      "body": "ADMISSION_REQUESTED",
+      "labels": [],
+      "number": 1055,
+      "state": "open",
+      "title": "Resource Miner: bounded CodeRabbit discount discovery pilot"
+    },
+    {
+      "body": "## Intent",
+      "labels": [],
+      "number": 1052,
+      "state": "open",
+      "title": "INTENT-OS Resource Portfolio E0: owned hardware, builds, capabilities, holds, and receipts"
+    },
+    {
+      "body": "## Objective",
+      "labels": [],
+      "number": 1051,
+      "state": "open",
+      "title": "HARMONIC device mesh P0–P3: Neo Witness ↔ Windows Arc inference ↔ Intel observer (no deployment)"
+    },
+    {
+      "body": "## Goal — Wardens' Council: player-maintained game governance + HumanAIOS + Azure shadow backend",
+      "labels": [],
+      "number": 920,
+      "state": "open",
+      "title": "Wardens' Council — player-governed co-op game + HumanAIOS + Azure shadow integration"
+    },
+    {
+      "body": "# Unified Game Charter — fresh planning issue (discussion, not an implementation PR)",
+      "labels": [],
+      "number": 1020,
+      "state": "open",
+      "title": "Game vNext — Solo-First Campaign, Optional Multiplayer, Descent & Communion"
+    },
+    {
+      "body": "## Requested work",
+      "labels": [],
+      "number": 1049,
+      "state": "open",
+      "title": "INTENT-OS: preparation checks and artifact versions in opportunity journeys"
+    },
+    {
+      "body": "## What this issue is",
+      "labels": [],
+      "number": 350,
+      "state": "open",
+      "title": "📐 Molt-tier gap ledger (auto-capture sink)"
+    },
+    {
+      "body": "ROLE",
+      "labels": [
+        {
+          "name": "governance"
+        },
+        {
+          "name": "audit-protocol"
+        }
+      ],
+      "number": 974,
+      "state": "open",
+      "title": "SYSTEM AUDIT PROMPT v3 — OFFLINE AGENT EXECUTION & RECURSIVE IMPROVEMENT"
+    },
+    {
+      "body": "Append-only ledger for the SMAG pilot study. The `smag-capture` workflow posts one comment per merged PR — **predicted** (acceptance) vs **measured** (gate/merge outcome) vs **substrate** vs **gap**. Rows are consolidated into `audits/smag_pilot_ledger.jsonl` via periodic PR.",
+      "labels": [
+        {
+          "name": "audit:5s-s070726"
+        }
+      ],
+      "number": 103,
+      "state": "open",
+      "title": "📊 SMAG pilot ledger (auto-capture sink)"
+    },
+    {
+      "body": "**state:** `ADMISSION_REQUESTED`",
+      "labels": [],
+      "number": 625,
+      "state": "closed",
+      "title": "[Session Graph] Salvage Phase 2B workflow path validation and telemetry"
+    },
+    {
+      "body": "## Observation",
+      "labels": [],
+      "number": 870,
+      "state": "open",
+      "title": "[CI Predict][Z2] Reconcile 17 consolidation PRs and same-token rerun conflicts"
+    },
+    {
+      "body": "## Decision",
+      "labels": [],
+      "number": 588,
+      "state": "open",
+      "title": "HumanAIOS Resource System — commit Miner + Manager + PII + Activity Graph as repository project"
+    },
+    {
+      "body": "## Intent",
+      "labels": [],
+      "number": 1036,
+      "state": "open",
+      "title": "[Z1][Resource Miner] Publication-as-resource: ACAT moderation → verified venue routing pilot"
+    },
+    {
+      "body": "## Objective / authority boundary",
+      "labels": [],
+      "number": 1037,
+      "state": "open",
+      "title": "[Z1][Resource Miner] Tax-aware opportunity screen: business relief, tax-free benefits, personal credits (20-source pilot)"
+    },
+    {
+      "body": "## Objective",
+      "labels": [],
+      "number": 1069,
+      "pull_request": {
+        "url": "https://api.github.com/repos/humanaios-ui/operations/pulls/1069"
+      },
+      "state": "open",
+      "title": "[Research] ACAT-R v0.1 offline general-runtime calibration evaluator + 22 tests"
+    }
+  ],
+  "observed_window": "2026-10-30",
+  "original_module_git_blob_sha1": "25bcb7d1be105d4e7869f9b918436eac430e2709",
+  "original_source_sha": "52aa7c0ed70f6e24ec050d0d56788a791e5f78f7",
+  "repository": "humanaios-ui/operations",
+  "schema": "acat-r.external-workload-input.v0.1",
+  "scope": "selected 23 issues + 1 PR; convenience sample; NOT complete inventory; issue bodies reduced to first nonempty line plus all explicit on_track_target marker lines",
+  "source": "user-connected GitHub issues & PRs, minimized metadata projection"
+}
