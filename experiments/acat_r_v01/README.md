@@ -4,7 +4,7 @@
 
 ## What this does
 
-The evaluator accepts a **declared reference protocol** and three sets of **pre-collected, exact-input-linked runtime observations**. Its job is to measure agreement with bounded reference oracles, structured refusal under challenge, and replay results after an attempted correction. It never launches a target binary, contacts a network endpoint, changes machine settings, or authorizes a deployment.
+The **core evaluator** accepts a **declared reference protocol** and three sets of **pre-collected, exact-input-linked runtime observations**. Its job is to measure agreement with bounded reference oracles, structured refusal under challenge, and replay results after an attempted correction. It never launches a target binary, contacts a network endpoint, changes machine settings, or authorizes a deployment.
 
 - **P1 — Baseline:** assess the original runtime on a valid input. First `commit` the *exact bytes* of the P1 observation file and protocol.
 - **P2 — Challenge:** assess the *same pinned artifact* on a specified invalid/stress input. The phase must reference the challenge input hash.
@@ -47,7 +47,8 @@ Allowed capture classes are `SYNTHETIC`, `SELF_REPORTED`, and `INDEPENDENT_CAPTU
 
 ## Safety and integration gates
 
-- Input data **only**; no subprocess, shell, privileged operations, automatic patches, vendor scraping, or network calls.
+- Core evaluator: input data **only**; no subprocess, shell, privileged operations, automatic patches, vendor scraping, or network calls.
+- **Separate opt-in, owned-only pilot** at `live_pilot/collect_live.py` launches 12 controlled local CPython/SQLite child processes with no shell or network calls. It never accepts an arbitrary command, external binary, or target URL. This is executable research and is not an OS-level sandbox.
 - Do **not** put synthetic observations in ACAT behavioral corpus tables or use them as external certification.
 - Remain distinct from DASE AEC issue #803 and capability-R2 verification issue #1067. Those remain blocked until authorized code and real evidence exist.
 - PR review should check the oracle's independence, version-pinned real input adapters, false-positive and false-negative rates, host isolation, CI exact-head checks, and an independent reviewer.
@@ -61,4 +62,10 @@ Allowed capture classes are `SYNTHETIC`, `SELF_REPORTED`, and `INDEPENDENT_CAPTU
 4. Repeating the same evaluation over identical files changes report bytes.
 5. A corrected artifact produces a worse P3 result without being reported as a regression.
 
-These are contract-level acceptance criteria, **not** evidence of real-world runtime calibration. Follow-on pilot: select an operator-owned local program with independently documented mathematical references, collect phase data through an independently reviewed adapter and witness, then test incremental defect detection against ordinary unit tests at equal false-positive rates.
+These are contract-level acceptance criteria, **not** a general calibration accuracy claim.
+
+## Observed owned-runtime pilot
+
+See [`live_pilot/README.md`](live_pilot/README.md) and the locally captured, self-reported evidence bundle. We actually ran CPython child processes executing in-memory SQLite through deliberately flawed and repaired **owned application code**: baseline P1=4/4, challenge P2=1/4, corrected replay P3=4/4; three injected wrapper faults detected and resolved, zero regressions. Another 12 live child processes reproduced the recorded responses. The original ACAT-R CLI does not launch them; the separate opt-in collector does. This is **not** a demonstration of faults in SQLite or CPython, and it is **not** an independent witness. The original ACAT-R corpus remains unchanged, and the system keeps the evidence state `UNVERIFIED_RUNTIME_OBSERVATIONS` and admission HOLD.
+
+Local test matrix: 30 offline evaluator tests and 8 live-process tests. Future work: capture an operator-controlled non-injected workload through an independent witness and compare incremental defect detection against ordinary unit tests at equal false-positive rates.
