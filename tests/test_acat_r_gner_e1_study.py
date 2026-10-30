@@ -1,15 +1,19 @@
-"""Regression tests for experiments/acat_r_comparison/study.py (issue #1081, PR #1082 findings).
+"""Regression tests for experiments/acat_r_comparison/study.py (issue #1081, PR #1082/#1083 findings).
 
 These tests pin the harness, not the GNER-E1 runtime. They assert that the study
-  * enforces the ACTIVE registered rubric digest and fails closed BEFORE any runtime
-    call on mismatch, while recording the unrecoverable predeclared digest;
+  * refuses to call the runtime at all unless the computed rubric digest equals the
+    ACTIVE registered revision AND that revision is human-accepted with a named
+    acceptor; the real registry is currently pending, so the real run BLOCKS;
+  * records the unrecoverable predeclared digest beside the computed one;
   * preserves the full reconcile() response per case and rejects empty, truncated,
     reordered or incomplete worker output;
   * pins tools/gner_notification_e0.py beside the runtime and test blobs;
-  * runs the unchanged conventional suite before the P1 commitment and probe;
+  * runs the unchanged conventional suite before the P1 commitment and probe
+    (exercised under a TEST-ONLY accepted registry fixture);
   * keeps the four boolean-boundary cases in PROPOSED_POLICY, separate from the
     contract-derived cases, and scores confirmed_defects as 0 while labels are PENDING;
-  * emits an oracle packet identical to the committed snapshot.
+  * emits an oracle packet whose 30 rows match the committed snapshot;
+  * live-probe receipts are sanitized, pin-verified, and hash the consumed response.
 """
 import importlib.util
 import json
@@ -23,6 +27,7 @@ from unittest import mock
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 STUDY = REPO / "experiments/acat_r_comparison/study.py"
+LIVE_PROBE = REPO / "experiments/acat_r_comparison/live_probe.py"
 ORACLE_DIR = REPO / "experiments/acat_r_comparison/oracle"
 RECEIPTS = REPO / "experiments/acat_r_comparison/receipts/live_probe_receipts.json"
 
@@ -33,24 +38,40 @@ spec.loader.exec_module(study)
 
 BOOL_CASES = {"type_canonical_bool_id", "type_lead_bool_id", "type_boolean_pr_in_canonical", "type_lead_bool_pr"}
 GIT_AVAILABLE = shutil.which("git") is not None and (REPO / ".git").exists()
+REV1 = "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7"
+PREDECLARED = "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a"
 
 
 def _fake_pins(*_a, **_k):
     return dict(study.PINNED_BLOBS)
 
 
-class RubricEnforcementTests(unittest.TestCase):
-    def test_build_matches_active_registered_digest_and_records_predeclared_mismatch(self):
-        registry = study.load_registry()
-        record = study.enforce_rubric(study.encoded(study.build()), registry)
+def _write_registry(tmpdir, **overrides):
+    """Copy the real registry and override fields on the active revision (TEST FIXTURE ONLY)."""
+    registry = json.loads(study.RUBRIC_REGISTRY.read_text())
+    for r in registry["revisions"]:
+        if r["revision"] == registry["active_revision"]:
+            r.update(overrides)
+    path = pathlib.Path(tmpdir) / "rubric_registry_fixture.json"
+    path.write_text(json.dumps(registry, indent=2))
+    return path
+
+
+ACCEPTED_FIXTURE = {"human_accepted": True, "accepted_by": "TEST_FIXTURE_NOT_A_HUMAN_DECISION",
+                    "accepted_at": "1970-01-01T00:00:00Z"}
+
+
+class RubricGateTests(unittest.TestCase):
+    def test_real_registry_matches_rev1_but_is_not_accepted(self):
+        record = study.enforce_rubric(study.encoded(study.build()), study.load_registry())
         self.assertTrue(record["active_digest_matches"])
-        self.assertEqual(record["active_rubric_sha256"],
-                         "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7")
-        self.assertEqual(record["predeclared_rubric_sha256"],
-                         "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a")
+        self.assertEqual(record["active_rubric_sha256"], REV1)
+        self.assertEqual(record["predeclared_rubric_sha256"], PREDECLARED)
         self.assertFalse(record["predeclared_digest_matches"])
         self.assertFalse(record["active_human_accepted"])
-        self.assertEqual(record["active_revision_status"], "PROPOSED_PENDING_HUMAN_ACCEPTANCE")
+        self.assertIsNone(record["active_accepted_by"])
+        self.assertEqual(record["block_reason"], "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED")
+        self.assertFalse(record["runtime_permitted"])
 
     def test_registry_revisions_are_unique_and_active_exists(self):
         registry = study.load_registry()
@@ -61,24 +82,50 @@ class RubricEnforcementTests(unittest.TestCase):
             self.assertRegex(r["rubric_sha256"], r"^[0-9a-f]{64}$")
             self.assertIn("status", r)
 
-    def test_changed_label_fails_closed_before_any_runtime_call(self):
+    def test_accepted_revision_requires_named_acceptor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_registry(tmp, human_accepted=True, accepted_by=None, accepted_at=None)
+            with self.assertRaisesRegex(ValueError, "without accepted_by/accepted_at"):
+                study.load_registry(path)
+
+    def test_real_registry_blocks_before_any_runtime_call(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = pathlib.Path(tmp) / "ev"
+            with mock.patch.object(study, "check_pins", _fake_pins), \
+                 mock.patch.object(study, "baseline") as baseline, \
+                 mock.patch.object(study, "run_phase") as run_phase:
+                result = study.main(out)
+            baseline.assert_not_called()
+            run_phase.assert_not_called()
+            self.assertEqual(result["status"], "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED")
+            blocked = json.loads((out / "RUBRIC_BLOCKED.json").read_text())
+            self.assertEqual(blocked["computed_rubric_sha256"], REV1)
+            self.assertEqual(blocked["predeclared_rubric_sha256"], PREDECLARED)
+            self.assertEqual(blocked["runtime_calls_made"], 0)
+            self.assertEqual(blocked["admission"], "HOLD")
+            for name in ("P1_stdout.json", "P2_stdout.json", "report.json", "oracle_packet.json"):
+                self.assertFalse((out / name).exists(), name)
+
+    def test_changed_label_blocks_even_when_revision_is_accepted(self):
         tampered = study.build()
         tampered[0]["expected"] = "CONFLICT"
         with tempfile.TemporaryDirectory() as tmp:
             out = pathlib.Path(tmp) / "ev"
+            registry = _write_registry(tmp, **ACCEPTED_FIXTURE)
             with mock.patch.object(study, "check_pins", _fake_pins), \
                  mock.patch.object(study, "build", lambda: tampered), \
                  mock.patch.object(study, "baseline") as baseline, \
                  mock.patch.object(study, "run_phase") as run_phase:
-                with self.assertRaisesRegex(ValueError, "rubric digest mismatch"):
-                    study.main(out)
+                result = study.main(out, registry_path=registry)
             baseline.assert_not_called()
             run_phase.assert_not_called()
-            mismatch = json.loads((out / "RUBRIC_MISMATCH.json").read_text())
-            self.assertEqual(mismatch["status"], "BLOCKED_RUBRIC_DIGEST_MISMATCH")
-            self.assertFalse(mismatch["active_digest_matches"])
-            self.assertFalse((out / "P1_stdout.json").exists())
+            self.assertEqual(result["status"], "BLOCKED_RUBRIC_DIGEST_MISMATCH")
             self.assertFalse((out / "report.json").exists())
+
+    def test_cli_exit_code_two_when_blocked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(study, "check_pins", _fake_pins):
+                self.assertEqual(study.cli(["--run-owned-offline", "--out", str(pathlib.Path(tmp) / "ev")]), 2)
 
 
 class WorkerOutputTests(unittest.TestCase):
@@ -152,6 +199,15 @@ class SourcePinTests(unittest.TestCase):
     def test_working_tree_matches_pins(self):
         self.assertEqual(study.check_pins(), study.PINNED_BLOBS)
 
+    def test_live_probe_pins_match_study_pins_and_verify_without_git(self):
+        pspec = importlib.util.spec_from_file_location("acat_r_live_probe", LIVE_PROBE)
+        probe = importlib.util.module_from_spec(pspec)
+        pspec.loader.exec_module(probe)  # performs the pin check at import; SystemExit on drift
+        for rel, blob in probe.PINNED_BLOBS.items():
+            self.assertEqual(blob, study.PINNED_BLOBS[rel])
+        self.assertTrue(all(v["verified"] for v in probe.SOURCE_PINS.values()))
+        self.assertEqual(probe.git_blob_sha1(b"hello\n"), "ce013625030ba8dba906f756967f9e9ca394464a")
+
 
 class EvidenceClassTests(unittest.TestCase):
     def test_manifest_covers_all_cases_and_isolates_proposed_policy(self):
@@ -175,12 +231,15 @@ class EvidenceClassTests(unittest.TestCase):
 
 
 @unittest.skipUnless(GIT_AVAILABLE, "git checkout required for pin check")
-class EndToEndTests(unittest.TestCase):
+class EndToEndUnderAcceptedFixtureTests(unittest.TestCase):
+    """Full path exercised under a TEST-ONLY accepted registry; not a human decision."""
+
     @classmethod
     def setUpClass(cls):
         cls.tmp = tempfile.mkdtemp()
         cls.out = pathlib.Path(cls.tmp) / "ev"
         cls.order = []
+        registry = _write_registry(cls.tmp, **ACCEPTED_FIXTURE)
         real_baseline, real_run_phase = study.baseline, study.run_phase
 
         def baseline(*a, **k):
@@ -191,7 +250,7 @@ class EndToEndTests(unittest.TestCase):
             cls.order.append(f"run_phase:{len(cases)}")
             return real_run_phase(cases, *a, **k)
         with mock.patch.object(study, "baseline", baseline), mock.patch.object(study, "run_phase", run_phase):
-            cls.report = study.main(cls.out)
+            cls.report = study.main(cls.out, registry_path=registry)
 
     @classmethod
     def tearDownClass(cls):
@@ -223,34 +282,46 @@ class EndToEndTests(unittest.TestCase):
         self.assertEqual(self.report["acatr_equal"]["detected"], self.report["conventional_equal"]["detected"])
         self.assertEqual(self.report["admission"], "HOLD")
         self.assertFalse(self.report["predeclared_digest_matches"])
+        self.assertEqual(self.report["rubric_accepted_by"], ACCEPTED_FIXTURE["accepted_by"])
 
     def test_oracle_packet_has_30_pending_rows_and_matches_snapshot(self):
         packet = json.loads((self.out / "oracle_packet.json").read_text())
+        snapshot = json.loads((ORACLE_DIR / "oracle_packet.json").read_text())
         self.assertEqual(len(packet["cases"]), 30)
         self.assertTrue(all(r["reviewer_decision"] == "PENDING" for r in packet["cases"]))
         self.assertEqual(packet["confirmed_defects"], 0)
-        self.assertEqual(packet, json.loads((ORACLE_DIR / "oracle_packet.json").read_text()))
-        self.assertEqual((self.out / "ORACLE_REVIEW_PACKET.md").read_text(),
-                         (ORACLE_DIR / "ORACLE_REVIEW_PACKET.md").read_text())
+        self.assertEqual(packet["cases"], snapshot["cases"])
+        generated = (self.out / "ORACLE_REVIEW_PACKET.md").read_text().replace("human_accepted=True", "human_accepted=False")
+        self.assertEqual(generated, (ORACLE_DIR / "ORACLE_REVIEW_PACKET.md").read_text())
 
 
 class LiveProbeReceiptTests(unittest.TestCase):
-    def test_receipts_are_sanitized_and_bool_run_id_denied(self):
+    def test_receipts_are_sanitized_pin_verified_and_hash_consumed_bytes(self):
         receipts = json.loads(RECEIPTS.read_text())
         text = RECEIPTS.read_text()
         self.assertFalse(receipts["credential_logged"])
         for marker in ("Bearer ", "ghp_", "gho_", "github_pat_"):
             self.assertNotIn(marker, text)
+        self.assertTrue(receipts["entry_point_verified_unmodified"])
+        for rel, blob in study.PINNED_BLOBS.items():
+            if rel in receipts["source_pins"]:
+                self.assertEqual(receipts["source_pins"][rel]["observed_git_blob"], blob)
+                self.assertTrue(receipts["source_pins"][rel]["verified"])
         by_id = {p["probe_id"]: p for p in receipts["probes"]}
         self.assertEqual(by_id["bool_lead_run_id_reachability"]["verify_lead"]["outcome"], "DENIED")
-        self.assertNotIn("independent_fetch", by_id["bool_lead_run_id_reachability"])
+        self.assertFalse(by_id["bool_lead_run_id_reachability"]["network_call_made"])
         self.assertEqual(by_id["nonexistent_run_expiry_behaviour"]["verify_lead"]["outcome"], "DENIED")
+        self.assertEqual(by_id["nonexistent_run_expiry_behaviour"]["consumed_response"]["http_status"], 404)
         self.assertEqual(by_id["qb_failure_valid_with_pr"]["verify_lead"]["result"]["state"], "CANONICAL_VERIFIED")
         for p in receipts["probes"]:
-            fetch = p.get("independent_fetch")
-            if fetch and fetch.get("public_fields"):
-                self.assertEqual(fetch["id_json_type"], "int")
-                self.assertEqual(fetch["pull_request_number_json_types"], ["int"])
+            if p["verify_lead"]["outcome"] == "RETURNED":
+                consumed = p["consumed_response"]
+                self.assertRegex(consumed["response_sha256"], r"^[0-9a-f]{64}$")
+                self.assertTrue(consumed["authorization_header_present"])
+                self.assertTrue(consumed["request_url"].startswith("https://api.github.com/repos/humanaios-ui/operations/actions/runs/"))
+                self.assertEqual(consumed["id_json_type"], "int")
+                self.assertEqual(consumed["pull_request_number_json_types"], ["int"])
+                self.assertTrue(p["consumed_matches_independent_fetch"])
 
 
 class CliTests(unittest.TestCase):

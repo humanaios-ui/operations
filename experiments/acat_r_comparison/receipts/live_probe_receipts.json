@@ -1,15 +1,17 @@
 {
   "authority_effect": "NONE",
   "credential_logged": false,
-  "credential_note": "GITHUB_TOKEN environment variable as provided by the Claude Code cloud session (session_01YcQhcschwVHBWTS7KwVbJZ); outbound HTTPS traverses the session agent proxy, which manages GitHub authentication for humanaios-ui/operations. The variable's value was not inspected, printed or stored. This is NOT the dedicated fine-grained read-only PAT the issue #1081 plan specified; the credential's upper scope is the session's GitHub App grant, and verify_lead issued GET requests only.",
-  "entry_point": "tools/gner_verify_e1.py::verify_lead (unmodified)",
-  "finished_at_utc": "2026-10-30T22:00:29.809229+00:00",
+  "credential_note": "GITHUB_TOKEN environment variable as provided by the Claude Code cloud session (session_01YcQhcschwVHBWTS7KwVbJZ); outbound HTTPS traverses the session agent proxy, which manages GitHub authentication for humanaios-ui/operations. The variable's value was not inspected, printed or stored. This is NOT the dedicated fine-grained read-only PAT the issue #1081 plan specified; the credential's upper scope is the session's GitHub App grant, and verify_lead issued GET requests only. Re-run 2 (schema v0.2): source pins verified before import; consumed response bytes hashed pass-through.",
+  "entry_point": "tools/gner_verify_e1.py::verify_lead",
+  "entry_point_verified_unmodified": true,
+  "finished_at_utc": "2026-10-30T22:21:53.041058+00:00",
   "probes": [
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:24 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:24.097319+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:47 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -31,8 +33,16 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14967",
+        "ratelimit_remaining": "14976",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:47.425302+00:00",
+        "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "run_id": 41120652951
@@ -46,6 +56,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": true,
       "probe_id": "qb_failure_valid_with_pr",
       "purpose": "Positive control: real quality-baseline failure run on PR #1077; lead agrees on run, SHA prefix, workflow, PR.",
       "verify_lead": {
@@ -67,10 +78,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:25 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:24.864506+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:48 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -92,8 +104,16 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14965",
+        "ratelimit_remaining": "14974",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:48.007585+00:00",
+        "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "run_id": 41120652951
@@ -107,6 +127,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": true,
       "probe_id": "qb_failure_valid_no_pr",
       "purpose": "Positive control without PR hint; PR association branch skipped.",
       "verify_lead": {
@@ -128,10 +149,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:25 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:25.424308+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:48 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -153,8 +175,16 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14963",
+        "ratelimit_remaining": "14972",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:48.526016+00:00",
+        "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "run_id": 41120652951
@@ -168,6 +198,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": true,
       "probe_id": "qb_wrong_sha_prefix",
       "purpose": "Negative control: email SHA hint contradicts GitHub head SHA; expect CONFLICT.",
       "verify_lead": {
@@ -182,10 +213,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:26 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:25.920470+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:49 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -207,8 +239,16 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14961",
+        "ratelimit_remaining": "14970",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:49.154972+00:00",
+        "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "run_id": 41120652951
@@ -222,6 +262,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": true,
       "probe_id": "qb_other_pr",
       "purpose": "Negative control: PR hint not in GitHub pull_requests; expect ABSTAIN.",
       "verify_lead": {
@@ -236,10 +277,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:26 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:26.437383+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:49 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -261,8 +303,16 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14959",
+        "ratelimit_remaining": "14968",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057",
+        "response_bytes": 13608,
+        "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:49.612870+00:00",
+        "http_status": 200,
         "response_bytes": 13608,
         "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
         "run_id": 41132149057
@@ -276,6 +326,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "security-gates"
       },
+      "network_call_made": true,
       "probe_id": "sg_success_claimed_failure",
       "purpose": "Negative control: failure claim against a real success run; expect CONFLICT.",
       "verify_lead": {
@@ -290,10 +341,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:27 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:26.922976+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:50 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -315,8 +367,16 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14957",
+        "ratelimit_remaining": "14966",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057",
+        "response_bytes": 13608,
+        "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:50.189867+00:00",
+        "http_status": 200,
         "response_bytes": 13608,
         "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
         "run_id": 41132149057
@@ -330,6 +390,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "security-gates"
       },
+      "network_call_made": true,
       "probe_id": "sg_success_notification",
       "purpose": "Positive control on a second allowed workflow with success conclusion.",
       "verify_lead": {
@@ -351,10 +412,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:27 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:27.400980+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:50 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -376,8 +438,16 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14955",
+        "ratelimit_remaining": "14964",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41133165536",
+        "response_bytes": 13778,
+        "response_sha256": "3e628220bbe5dc93ce1aeb7417413295ab11c18b9adfd1b99ef6929dbc4a01b9",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41133165536"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:50.764958+00:00",
+        "http_status": 200,
         "response_bytes": 13778,
         "response_sha256": "3e628220bbe5dc93ce1aeb7417413295ab11c18b9adfd1b99ef6929dbc4a01b9",
         "run_id": 41133165536
@@ -391,6 +461,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "repository-admission-gate"
       },
+      "network_call_made": true,
       "probe_id": "admission_gate_review_event",
       "purpose": "Real-path boundary: repository-admission-gate runs fire on pull_request_review; reconcile accepts only pull_request/push/workflow_dispatch.",
       "verify_lead": {
@@ -405,10 +476,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:28 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:27.914666+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:51 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -430,8 +502,16 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14953",
+        "ratelimit_remaining": "14962",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132641562",
+        "response_bytes": 13578,
+        "response_sha256": "e60bb092a77854055cb260cd223983a04bd60a80a820fd43f7d70a57c05e0d65",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132641562"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:51.377490+00:00",
+        "http_status": 200,
         "response_bytes": 13578,
         "response_sha256": "e60bb092a77854055cb260cd223983a04bd60a80a820fd43f7d70a57c05e0d65",
         "run_id": 41132641562
@@ -445,6 +525,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "repository-admission-gate"
       },
+      "network_call_made": true,
       "probe_id": "admission_gate_action_required",
       "purpose": "Real-path evidence that conclusion=action_required occurs in authenticated GitHub data (relevant to offline case unsupported_conclusion).",
       "verify_lead": {
@@ -459,10 +540,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:28 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:28.407634+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:51 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -484,8 +566,16 @@
           1082
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14951",
+        "ratelimit_remaining": "14960",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131",
+        "response_bytes": 13646,
+        "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:51.904799+00:00",
+        "http_status": 200,
         "response_bytes": 13646,
         "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
         "run_id": 41132149131
@@ -499,6 +589,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": true,
       "probe_id": "unlisted_workflow_name",
       "purpose": "Negative control: real run of a workflow not in ALLOWED_WORKFLOWS (ACAT-R Second Runtime Fair Comparison); expect CONFLICT.",
       "verify_lead": {
@@ -513,7 +604,8 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_response": {},
       "lead": {
         "kind": "WORKFLOW_FAILURE_LEAD",
         "pr": null,
@@ -523,6 +615,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": false,
       "probe_id": "bool_lead_run_id_reachability",
       "purpose": "Reachability of offline case type_lead_bool_id through verify_lead: run_id=True.",
       "verify_lead": {
@@ -532,7 +625,8 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_response": {},
       "lead": {
         "kind": "WORKFLOW_FAILURE_LEAD",
         "pr": null,
@@ -542,6 +636,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": false,
       "probe_id": "str_lead_run_id_reachability",
       "purpose": "Reachability of offline case unknown_run_id_as_str through verify_lead: run_id as string.",
       "verify_lead": {
@@ -551,10 +646,11 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
-      "independent_fetch": {
-        "date_header": "Fri, 30 Oct 2026 22:00:29 GMT",
-        "fetched_at_utc": "2026-10-30T22:00:28.927236+00:00",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Fri, 30 Oct 2026 22:21:52 GMT",
         "http_status": 200,
         "id_json_type": "int",
         "public_fields": {
@@ -576,8 +672,16 @@
           1077
         ],
         "pull_requests_present": true,
-        "ratelimit_remaining": "14949",
+        "ratelimit_remaining": "14958",
         "repository_full_name": "humanaios-ui/operations",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-30T22:21:52.368443+00:00",
+        "http_status": 200,
         "response_bytes": 13613,
         "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
         "run_id": 41120652951
@@ -591,6 +695,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": true,
       "probe_id": "bool_lead_pr_reachability",
       "purpose": "Reachability of offline case type_lead_bool_pr through verify_lead: pr=True against a real run whose PR list is [1077].",
       "verify_lead": {
@@ -605,10 +710,17 @@
       }
     },
     {
-      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; not caller-supplied",
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": false,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "error": "HTTPError",
+        "http_status": 404,
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/1"
+      },
       "independent_fetch": {
         "error": "HTTPError",
-        "fetched_at_utc": "2026-10-30T22:00:29.423979+00:00",
+        "fetched_at_utc": "2026-10-30T22:21:52.794464+00:00",
         "http_status": 404,
         "run_id": 1
       },
@@ -621,6 +733,7 @@
         "state": "EMAIL_OBSERVED_UNVERIFIED",
         "workflow": "quality-baseline"
       },
+      "network_call_made": true,
       "probe_id": "nonexistent_run_expiry_behaviour",
       "purpose": "Absent/expired run: GitHub returns 404; verify_lead must fail closed, not ABSTAIN or VERIFIED.",
       "verify_lead": {
@@ -630,7 +743,21 @@
       }
     }
   ],
-  "schema": "humanaios.acat-r.live-verify-lead-probe.v0.1",
+  "schema": "humanaios.acat-r.live-verify-lead-probe.v0.2",
+  "source_pins": {
+    "tools/gner_notification_e0.py": {
+      "expected_git_blob": "e8f893a3d433f900b10c101828d1cbb013413fa6",
+      "observed_git_blob": "e8f893a3d433f900b10c101828d1cbb013413fa6",
+      "sha256": "ed59e44de765d4ba9eac44f490ee89b9c3d043423a40b3d0c0b9346ec5fe9a45",
+      "verified": true
+    },
+    "tools/gner_verify_e1.py": {
+      "expected_git_blob": "8290c51cd75c7de78a226770936a8f48766c24f0",
+      "observed_git_blob": "8290c51cd75c7de78a226770936a8f48766c24f0",
+      "sha256": "78e0e0236583c4280f658de972b2f4b9acca52b40425d34e8ccb28efedfde764",
+      "verified": true
+    }
+  },
   "spec_sha256": "4f395112dfb3fe4a3c3c9f6d8c853e7bf55a5f00261c76f15b650e6f7fde9d30",
-  "started_at_utc": "2026-10-30T22:00:24.097006+00:00"
+  "started_at_utc": "2026-10-30T22:21:46.948319+00:00"
 }

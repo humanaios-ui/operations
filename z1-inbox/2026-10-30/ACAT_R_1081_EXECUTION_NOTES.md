@@ -56,3 +56,18 @@ No independently authored set exists. Protocol and sealing procedure written (`H
 | Missing independent review | Yes |
 
 Admission remains HOLD on four of these.
+
+## Addendum: Copilot review of PR #1083 head `8a4003e` (2026-10-30T22:15Z)
+
+Four medium findings, all reproduced, all repaired in the next commit:
+
+| Finding | Repair |
+|---|---|
+| r4428945776 seal URL inside the hashed held-out manifest | Field removed; unhashed sidecar `held_out/SEAL_RECORD_TEMPLATE.json`; protocol steps 1 and 3 updated |
+| r4428945818 receipt hashed a second GET, not the response `verify_lead` consumed | Pass-through observer on `urlopen` records the exact bytes, URL and status `verify_lead` read; receipts regenerated (schema v0.2); second GET kept as `independent_fetch` with a match flag |
+| r4428945853 probe did not verify runtime pins | Pure-Python Git blob ids checked before import; `source_pins` and `entry_point_verified_unmodified` in receipt |
+| r4428945870 revision 1 reached the runtime without human acceptance | `study.py` blocks (exit 2, `RUBRIC_BLOCKED.json`) unless digest matches AND the active revision is human-accepted with `accepted_by`/`accepted_at`; workflow verifies the blocked record; full path tested only under a labelled fixture registry |
+
+Live probe re-run 2 at 22:21Z: identical outcomes to re-run 1; every network probe's consumed-response hash equals its independent second GET; same run ids returned byte-identical responses to the 22:00Z run. Receipts sha256 `656a165b9aec3d3334e648717dcf336c1ef31c1ec6a569adf4d87e002409ec2c`.
+
+CodeRabbit: hourly allowance exhausted at 22:10Z; review re-requested after the window reopens.

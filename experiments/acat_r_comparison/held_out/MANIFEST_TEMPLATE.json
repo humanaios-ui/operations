@@ -1,9 +1,9 @@
 {
-  "schema": "humanaios.acat-r.held-out-manifest.v0.1",
+  "schema": "humanaios.acat-r.held-out-manifest.v0.2",
   "status": "TEMPLATE_ONLY_NOT_A_HELD_OUT_SET",
+  "note": "This file is what gets hashed and sealed. It must not reference its own seal: the seal comment URL and timestamp live in held_out/SEAL_RECORD.json (unhashed sidecar) and in the issue #1081 comment that carries the digest.",
   "author": "<identity of the independent held-out author; must not be the implementer>",
   "authored_at": "<RFC3339 UTC>",
-  "sealed_digest_posted_at": "<issue #1081 comment URL carrying sha256 of this file BEFORE reveal>",
   "runtime": {
     "tools/gner_verify_e1.py": "8290c51cd75c7de78a226770936a8f48766c24f0",
     "tools/gner_notification_e0.py": "e8f893a3d433f900b10c101828d1cbb013413fa6",

@@ -26,17 +26,39 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.11'
-      - name: Harness regression tests (rubric digest, replay, evidence classes)
+      - name: Harness regression tests (rubric gate, replay, evidence classes)
         run: python -m unittest tests/test_acat_r_gner_e1_study.py -v
-      - name: Run unmodified conventional suite first, then equal-input ACAT-R comparison
-        run: python experiments/acat_r_comparison/study.py --run-owned-offline
-      - name: Verify no authority, no false superiority, no unreviewed defect count
+      - name: Run study (BLOCKS with exit 2 until the human accepts the active rubric revision)
+        run: |
+          set +e
+          python experiments/acat_r_comparison/study.py --run-owned-offline
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then
+            echo "study failed with exit $rc"; exit "$rc"
+          fi
+          echo "study exit code $rc (0 = ran under an accepted rubric, 2 = blocked, no runtime call)"
+      - name: Verify gate behaviour, no authority, no false superiority, no unreviewed defect count
         run: |
           python - <<'PY'
           import json,pathlib
-          r=json.loads(pathlib.Path('acatr-gner-evidence/report.json').read_text())
-          assert r['rubric_revision']==1 and r['predeclared_digest_matches'] is False
-          assert r['rubric_human_accepted'] is False
+          ev=pathlib.Path('acatr-gner-evidence')
+          PREDECLARED='19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a'
+          REV1='6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7'
+          if (ev/'RUBRIC_BLOCKED.json').exists():
+              b=json.loads((ev/'RUBRIC_BLOCKED.json').read_text())
+              assert b['status'] in ('BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED','BLOCKED_RUBRIC_DIGEST_MISMATCH')
+              assert b['predeclared_rubric_sha256']==PREDECLARED
+              assert b['computed_rubric_sha256']==REV1, 'rubric bytes changed without a registered revision'
+              assert b['runtime_calls_made']==0 and b['conventional_suite_run'] is False
+              assert b['admission']=='HOLD' and b['authority_effect']=='NONE'
+              for f in ('P1_stdout.json','P2_stdout.json','P3_stdout.json','report.json','oracle_packet.json'):
+                  assert not (ev/f).exists(), f'{f} must not exist when blocked'
+              print('ACAT_R_RUBRIC_GATE_BLOCKED_AS_REQUIRED:', b['status'])
+              raise SystemExit(0)
+          r=json.loads((ev/'report.json').read_text())
+          assert r['rubric_human_accepted'] is True and r['rubric_accepted_by']
+          assert r['predeclared_digest_matches'] is False and r['predeclared_rubric_sha256']==PREDECLARED
           assert r['conventional_baseline']['passed'] is True and r['conventional_baseline']['ran_before_P1'] is True
           assert r['P2']['cases']==30 and r['P3']['byte_identical'] is True
           assert r['P3']['record_hashes_identical'] is True and r['P3']['id_order_identical'] is True
@@ -47,7 +69,7 @@ jobs:
           assert r['measured_false_alarm_rate'].startswith('UNDETERMINED')
           assert r['can_authorize'] is False and r['authority_effect']=='NONE'
           assert r['admission']=='HOLD'
-          p=json.loads(pathlib.Path('acatr-gner-evidence/oracle_packet.json').read_text())
+          p=json.loads((ev/'oracle_packet.json').read_text())
           assert len(p['cases'])==30 and all(c['reviewer_decision']=='PENDING' for c in p['cases'])
           print('ACAT_R_EQUAL_WORKLOAD_VALIDATION_PASS')
           PY

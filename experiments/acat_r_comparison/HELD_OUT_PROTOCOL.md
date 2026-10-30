@@ -18,11 +18,16 @@ that when a *different* reviewer authors the set, both methods can be run unchan
    identity, an `authored_at` timestamp, a frozen `runtime` pin (same three Git blobs as
    `study.PINNED_BLOBS`), and `cases[]` each with `id`, `lead`, `canonical`, `expected`,
    `evidence_class`, `contract_ref` and `rationale`. Include at least two negative controls whose
-   expected state is `CANONICAL_VERIFIED` (valid inputs that must not be flagged).
+   expected state is `CANONICAL_VERIFIED` (valid inputs that must not be flagged). The manifest
+   must not reference its own seal (no comment URL, no digest of itself): those bytes are what
+   gets hashed, and anything added after hashing would break verification.
 2. Compute `sha256(file bytes)` of the manifest. Post **only the digest**, the case count and the
    author identity to issue #1081 before revealing the file. That comment is the seal.
 3. Reveal the file (commit it under `held_out/`, or attach it) only after the seal comment exists.
-   `study.py` is not modified for the held-out run; the runner below is a separate entry point.
+   Then write the unhashed sidecar `held_out/SEAL_RECORD.json` (template
+   `SEAL_RECORD_TEMPLATE.json`) with the manifest digest, the seal comment URL, and the seal and
+   reveal timestamps. `study.py` is not modified for the held-out run; the runner below is a
+   separate entry point.
 
 ## Execution (implementer side, after reveal)
 

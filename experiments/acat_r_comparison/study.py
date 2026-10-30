@@ -15,7 +15,10 @@ Revision 2 (issue #1081 delegated plan; PR #1082 Copilot + CodeRabbit findings):
     / PROPOSED_POLICY) from evidence_classes.json so proposed schema cases are
     never counted together with contract-derived ones (CodeRabbit r4428742321);
   * emits the independent oracle decision packet with every reviewer decision
-    PENDING. No label is scored as a confirmed defect.
+    PENDING. No label is scored as a confirmed defect;
+  * refuses to run the runtime at all (exit 2, RUBRIC_BLOCKED.json) until the
+    active rubric revision is human-accepted with a named acceptor
+    (Copilot r4428945870 on PR #1083).
 
 Expected labels are proposed by the investigator, NOT independently ratified.
 All canonical metadata is constructed. No live GitHub API, Gmail or credentials.
@@ -119,6 +122,11 @@ def load_registry(path=RUBRIC_REGISTRY):
     revisions = {r["revision"]: r for r in registry["revisions"]}
     validate(len(revisions) == len(registry["revisions"]), "duplicate rubric revision numbers")
     validate(registry["active_revision"] in revisions, "active rubric revision not in registry")
+    for r in registry["revisions"]:
+        if r.get("human_accepted"):
+            validate(isinstance(r.get("accepted_by"), str) and r["accepted_by"].strip()
+                     and isinstance(r.get("accepted_at"), str) and r["accepted_at"].strip(),
+                     f"revision {r['revision']} is marked accepted without accepted_by/accepted_at")
     return registry
 
 
@@ -142,8 +150,17 @@ def enforce_rubric(rubric_bytes, registry):
               "active_human_accepted": bool(active.get("human_accepted", False)),
               "predeclared_revision": predeclared["revision"],
               "predeclared_rubric_sha256": predeclared["rubric_sha256"],
+              "active_accepted_by": active.get("accepted_by"),
+              "active_accepted_at": active.get("accepted_at"),
               "predeclared_digest_matches": computed == predeclared["rubric_sha256"],
               "active_digest_matches": computed == active["rubric_sha256"]}
+    if not record["active_digest_matches"]:
+        record["block_reason"] = "BLOCKED_RUBRIC_DIGEST_MISMATCH"
+    elif not record["active_human_accepted"]:
+        record["block_reason"] = "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED"
+    else:
+        record["block_reason"] = None
+    record["runtime_permitted"] = record["block_reason"] is None
     return record
 
 
@@ -312,19 +329,31 @@ def render_oracle_markdown(rows, meta):
 
 
 # ------------------------------------------------------------------------ main
-def main(out_dir=DEFAULT_OUT):
+def main(out_dir=DEFAULT_OUT, registry_path=RUBRIC_REGISTRY):
     out = pathlib.Path(out_dir)
     pins = check_pins()
-    registry = load_registry()
+    registry = load_registry(registry_path)
     cases = build()
     rubric = encoded(cases)
     rubric_record = enforce_rubric(rubric, registry)
     classes = load_evidence_classes(cases)
     out.mkdir(exist_ok=False)
-    if not rubric_record["active_digest_matches"]:
-        rubric_record["status"] = "BLOCKED_RUBRIC_DIGEST_MISMATCH"
-        (out / "RUBRIC_MISMATCH.json").write_bytes(encoded(rubric_record))
-        raise ValueError("rubric digest mismatch with active registered revision; BLOCKED, no P1/P2 executed")
+    if not rubric_record["runtime_permitted"]:
+        # Issue #1081 plan: a rubric that is not the human-accepted reference blocks execution.
+        blocked = dict(rubric_record, schema="humanaios.acat-r.rubric-blocked.v0.1",
+                       status=rubric_record["block_reason"], pinned_git_blobs=pins,
+                       evidence_class_sha256=sha(EVIDENCE_CLASSES.read_bytes()),
+                       runtime_calls_made=0, conventional_suite_run=False,
+                       unblock="human referee sets human_accepted=true with accepted_by/accepted_at on the active "
+                               "revision in rubric_registry.json, or appends a new accepted revision",
+                       authority_effect="NONE", admission="HOLD")
+        (out / "RUBRIC_BLOCKED.json").write_bytes(encoded(blocked))
+        print(json.dumps({"status": blocked["status"], "computed_rubric_sha256": blocked["computed_rubric_sha256"],
+                          "active_rubric_sha256": blocked["active_rubric_sha256"],
+                          "predeclared_rubric_sha256": blocked["predeclared_rubric_sha256"],
+                          "active_human_accepted": blocked["active_human_accepted"],
+                          "runtime_calls_made": 0, "admission": "HOLD"}, sort_keys=True))
+        return blocked
     # 1. unchanged conventional 10-case suite FIRST
     conventional_baseline = baseline(out)
     # 2. commitment before any case is sent to the runtime
@@ -383,6 +412,8 @@ def main(out_dir=DEFAULT_OUT):
         "rubric_revision": rubric_record["active_revision"],
         "rubric_revision_status": rubric_record["active_revision_status"],
         "rubric_human_accepted": rubric_record["active_human_accepted"],
+        "rubric_accepted_by": rubric_record["active_accepted_by"],
+        "rubric_accepted_at": rubric_record["active_accepted_at"],
         "predeclared_rubric_sha256": rubric_record["predeclared_rubric_sha256"],
         "predeclared_digest_matches": rubric_record["predeclared_digest_matches"],
         "evidence_classes_sha256": commitment["evidence_classes_sha256"],
@@ -440,8 +471,8 @@ def cli(argv):
             out = pathlib.Path(rest[1])
         elif rest:
             raise SystemExit("Use --run-owned-offline [--out DIR] or --worker")
-        main(out)
-        return 0
+        result = main(out)
+        return 2 if result.get("runtime_permitted") is False else 0
     raise SystemExit("Use --run-owned-offline [--out DIR] or --worker")
 
 

@@ -29,7 +29,7 @@ held-out set exists, so that gate is HOLD.
 | P2 = P3 stdout sha256 (rev 2 harness, full responses) | `2b70d6cf7aa0fe7fd8ca2094d60e368ba16bfd362301c070922eb21fe8c79596` |
 | `oracle/oracle_packet.json` sha256 | `9656a2966ed813dad182bd5cf61996882ac9cd21b6e824b8a8f23c1b8f885341` |
 | `oracle/ORACLE_REVIEW_PACKET.md` sha256 | `1ef1cbb74b4e4e704f5eedafbb4389477da935512ceec26cfc5f221fe19f264e` |
-| `receipts/live_probe_receipts.json` sha256 | `04bac7f65320594361cdde31a231eb1f536658651f9badd31dbd690000c39f68` |
+| `receipts/live_probe_receipts.json` sha256 (re-run 2, schema v0.2, pins verified, consumed bytes hashed) | `656a165b9aec3d3334e648717dcf336c1ef31c1ec6a569adf4d87e002409ec2c` |
 | `receipts/report_local_reproduction.json` sha256 | `0fa0011d1f0afd887c1681fde26039471d1490e5403725129215e84039799b36` |
 
 ## 3. Gate-by-gate status
@@ -37,17 +37,19 @@ held-out set exists, so that gate is HOLD.
 | Gate (issue #1081 plan) | Status | Evidence |
 |---|---|---|
 | Reproduce reviewer findings | DONE | `z1-inbox/2026-10-30/ACAT_R_1081_EXECUTION_NOTES.md` table; all six reproduced at `8481574` |
-| Repair confirmed harness defects | DONE | `study.py` rev 2; workflow; `rubric_registry.json`; `evidence_classes.json` |
-| Regression tests | DONE | `tests/test_acat_r_gner_e1_study.py`, 20 tests, listed in `.tool-control/baseline_tests.yaml` |
+| Repair confirmed harness defects | DONE | `study.py` rev 2; workflow; `rubric_registry.json`; `evidence_classes.json`; four further Copilot findings on PR #1083 repaired (seal sidecar, consumed-bytes hash, probe pin check, hard acceptance gate) |
+| Regression tests | DONE | `tests/test_acat_r_gner_e1_study.py`, 24 tests, listed in `.tool-control/baseline_tests.yaml` |
 | Independent oracle review packet | PREPARED, decisions PENDING | `oracle/ORACLE_REVIEW_PACKET.md`: 30 rows, all `PENDING` |
-| Conventional vs ACAT-R comparison | DONE | report: identical detections, advantage 0, confirmed defects 0 |
+| Conventional vs ACAT-R comparison | DONE (executed before the acceptance gate; re-execution now BLOCKED) | run 41132149131 at `8481574` and `receipts/report_local_reproduction.json`: identical detections, advantage 0, confirmed defects 0. `study.py` now exits 2 with `RUBRIC_BLOCKED.json` until a human accepts rubric revision 1 |
 | Held-out testing | HOLD | `HELD_OUT_PROTOCOL.md`; no set exists; none invented |
-| Authenticated `verify_lead()` | DONE under session credential, PARTIAL against plan | `receipts/live_probe_receipts.json`; not a dedicated read-only PAT |
+| Authenticated `verify_lead()` | DONE under session credential, PARTIAL against plan | `receipts/live_probe_receipts.json` (re-run 2): runtime blobs verified before import; the hash is of the bytes `verify_lead` itself consumed; not a dedicated read-only PAT |
 | Copilot + CodeRabbit review of corrected head | REQUESTED | on the stacked draft PR |
 | Separate CI repair (#1070) | NOT IN THIS BRANCH | kept distinct as the plan requires; `workflow-path-validation` and enumeration guard still red on `main` |
 | Admission | HOLD | human decision pending |
 
-## 4. Offline results at this revision
+## 4. Offline results (executed under rubric revision 1 before the acceptance gate existed)
+
+These numbers come from GitHub Actions run 41132149131 at `8481574` and the local reproduction committed under `receipts/`. Since Copilot finding r4428945870, `study.py` refuses to re-run them until the active revision is human-accepted; CI at the current head verifies the BLOCKED record instead. The numbers stand as what the unchanged code did; they are not admissible as confirmed defects.
 
 | Measure | Value |
 |---|---|
@@ -67,7 +69,7 @@ Reading: on these inputs the unchanged runtime does everything its documentation
 tests require. The four flags are a proposal that `reconcile()` should reject `bool` where it
 accepts `int`. Whether that is a requirement is the referee's call.
 
-## 5. Live read-only probe of `verify_lead()` (13 probes, 2026-10-30T22:00Z)
+## 5. Live read-only probe of `verify_lead()` (13 probes; re-run 2 at 2026-10-30T22:21Z)
 
 | Probe | Real run | verify_lead outcome | Reads as |
 |---|---|---|---|
@@ -96,6 +98,12 @@ defect: repository-admission-gate runs fire on `pull_request_review` / `pull_req
 runtime's event allowlist makes them always `CONFLICT`; and `action_required` occurs as a real
 conclusion, so the `unsupported_conclusion` ABSTAIN is a reachable branch.
 
+Receipt mechanics (re-run 2): the two runtime modules were verified against the frozen Git blobs before
+import (`source_pins` in the receipt), and the recorded `response_sha256` is of the exact bytes
+`verify_lead` read through a pass-through observer on `urlopen`; a second independent GET matched it
+for every network probe (`consumed_matches_independent_fetch: true`). The same run fetched at 22:00Z
+and 22:21Z returned identical bytes.
+
 Credential note: the probe used the Claude Code session's GitHub credential through the session
 proxy. The value was never read or logged by the code, and the receipts contain no bearer or PAT
 markers. The plan specified a dedicated fine-grained read-only PAT in a trusted context; this run
@@ -105,15 +113,18 @@ does not meet that wording. Re-run `live_probe.py` under such a token if the dis
 
 The issue predeclared `19a18260…`. No bytes anywhere in the repository, the PR, or the CI run
 hash to it. The only rubric ever executed hashes to `6971fd8d…`. Rather than accept the different
-digest silently, `rubric_registry.json` records both; `study.py` enforces revision 1 and fails
-closed on anything else; the report and packet print `predeclared_digest_matches: false`. Revision
-1 carries the same 30 ids, inputs and labels as PR #1082 head. **Human acceptance of revision 1 is
-one of the decisions requested below.**
+digest silently, `rubric_registry.json` records both. Because revision 1 is not human-accepted,
+`study.py` now **blocks before any runtime or conventional-suite call**: it writes
+`RUBRIC_BLOCKED.json` (both digests, `runtime_calls_made: 0`) and exits 2, and the workflow verifies
+that record. Revision 1 carries the same 30 ids, inputs and labels as PR #1082 head. **Human
+acceptance of revision 1 (setting `human_accepted`, `accepted_by`, `accepted_at`) is the single edit
+that unblocks execution, and is decision 1 below.**
 
 ## 7. Decisions requested from the human referee
 
-1. Accept, reject or supersede rubric revision 1 (`rubric_registry.json`). Superseding means a new
-   revision with justification, never an edit to revision 1.
+1. Accept, reject or supersede rubric revision 1 (`rubric_registry.json`): set `human_accepted: true`
+   with `accepted_by` and `accepted_at` to unblock, or append a new revision with justification.
+   Never edit revision 1's digest or labels. Until then `study.py` exits 2 and runs nothing.
 2. Record ACCEPT / REJECT / REVISE with a contract citation for each of the 30 rows in
    `oracle/ORACLE_REVIEW_PACKET.md`, at minimum the five individually listed (four PROPOSED_POLICY
    and `unsupported_conclusion`). Note the consistency question between rows 27 and 29.
