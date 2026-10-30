@@ -1,32 +1,32 @@
 {
   "admission": "HOLD_FOR_INDEPENDENT_REVIEW",
   "artifact_sha256": {
-    "P1": "f65078f5a1491ee5e212916775c121917097e79296dec6c0823ffc7e9cc6744c",
-    "P2": "f65078f5a1491ee5e212916775c121917097e79296dec6c0823ffc7e9cc6744c",
-    "P3": "b6cf2bb5dbf152e77cbb46055672edb88d82e15fdf73508802e6bf7d58de56ca"
+    "P1": "17b449d7d512a3030d487f890d303851b5c9556097f4e3b9e6da0272fdd3bfbb",
+    "P2": "17b449d7d512a3030d487f890d303851b5c9556097f4e3b9e6da0272fdd3bfbb",
+    "P3": "90d543844669b96667cfa465c263dec2e293f4d21eed612be2add95f7ad542be"
   },
   "authority_effect": "NONE",
   "can_authorize": false,
   "captured_child_processes": 12,
   "challenge_replay_gain": 0.75,
-  "code_ownership": "user-controlled synthetic workload; planted application faults; no claim CPython/SQLite flaws",
+  "code_ownership": "user-controlled workload with planted application flaws; no claim of Python or SQLite flaws",
   "environment": {
     "os_family": "Linux",
     "python_executable_sha256": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1",
     "python_version": "3.13.5",
-    "sqlite3_module_sha256": "6e956d2166e24ccf36fef21ad63d06a5dd8f7b674aca6c81ea91eacca6b85b01",
+    "sqlite_native_extension_sha256": "ad902edee2ed8dbbaec17309130436ffef1b69b1547a204e41e01e0d807a0c3d",
     "sqlite_version": "3.46.1"
   },
-  "evidence_sha256": "107d3578f6ce905cd6597e6c5fa72b8be4b743b52d4d47e73fc67045f188324d",
+  "evidence_sha256": "d24968b7897ded856e86899ecde3ecbc28e0c6432c70369b88da0caf57025975",
   "evidence_state": "UNVERIFIED_RUNTIME_OBSERVATIONS",
   "limitations": [
-    "local captures under same operator; no authenticated independent witness",
-    "induced application-wrapper defects only, not native SQLite or Python vulnerabilities",
-    "prototype 4-case contract has no general calibration validity or measured false-positive rates",
-    "source-based replay on same environment does not establish an immutable trusted history",
-    "does not validate DASE or any third-party runtime"
+    "local captures and independent-process replay are under same operator, not an authenticated independent witness",
+    "controlled induced wrapper faults; no claim of underlying CPython or SQLite bug",
+    "4-case protocol has not established field accuracy, false positive rate, or broad measurement validity",
+    "hash-chain under one operator does not establish an external immutable timeline",
+    "does not verify DASE or third-party software"
   ],
-  "p1_commit_sha256": "abd0b64f34d44e119a6e923b53bfed3a74b7b78987b608b6cbf7bbbc25a5565f",
+  "p1_commit_sha256": "26f90dfa443cba82ed0b6218635bd88b40f26db0a6cdf198523a49467c8396c0",
   "passes": {
     "P1": 4,
     "P2": 1,
@@ -41,7 +41,7 @@
     "after": "da655e1efd9a99980a444ee90de540102686ee367d3af7032164880dfc54f9d2",
     "before": "6b19c8f43eb21c414e1531bb0e0af186e1ae846a704159224621226379522d5b"
   },
-  "subject": "CPython interpreter child processes + native SQLite through deliberately buggy and patched user-owned application wrapper",
+  "subject": "CPython interpreter child processes + native SQLite via deliberately buggy/patched owned application wrapper",
   "subprocess_exit_codes": {
     "P1": 0,
     "P2": 0,
