@@ -105,3 +105,13 @@ CodeRabbit on `8e5bd6a`: 12 findings, 1 Major, 8 Minor, 3 Trivial. Disposition:
 | r4429247108 CLI exit-code coverage | Fixed: 0 permitted, 2 pending, 3 digest mismatch; all three tested |
 
 Live probe re-run 3 (14 probes): identical outcomes for the original 13; new allowlist probe CONFLICT as expected.
+
+## Addendum 4: Copilot passes 5 to 7 (2026-10-30T23:22Z to 23:38Z)
+
+| Pass / head | Findings | Disposition |
+|---|---|---|
+| 5 / `6c18068` | r4429301750 HUMAN ACCEPT citation `n/a` passes; r4429301796 receipt tests do not exercise consumed-response capture; r4429301823 oracle digest rows stale | All fixed in `316f4e7`: `path:line` citation validator against real files; offline `run_probe()` test with distinct bodies; machine-checkable `sha256 of \`path\`` rows plus a test that recomputes every row |
+| 6 / `316f4e7` | r4429347226 citation line count off by one on a trailing newline | Fixed in `edb8f16`: `splitlines()` count, boundary test |
+| 7 / `edb8f16` | None open. Summary asks for human interpretation of detection counts (labels investigator-authored) and notes exceptions might be misread as false positives | No change: `assess()` records a worker `EXCEPTION` as a disagreement with the exception type; it can never satisfy an expected label |
+
+CodeRabbit re-requested at 23:17Z and 23:52Z; both times the hourly allowance was exhausted at the first attempt. Open thread r4429247096 (provenance) stays with the operator.
