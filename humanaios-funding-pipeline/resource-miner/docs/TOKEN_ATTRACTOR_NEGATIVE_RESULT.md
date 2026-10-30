@@ -44,7 +44,7 @@ Two of eight frozen predictions failed outright (an expected concentration of ex
 - An independent challenge confirmed and the authors fixed: a whitespace bug that made the literal baseline unmatchable, owner text able to reach the matcher through the baseline arm, over-broad classifier patterns, an employer name able to open a concept, a weak credential detector, id aliasing, and a partial-write leak. Each fix has a regression test.
 
 ## What this change does about it
-- The code lives under `resource_miner/experiments/` and nothing in production paths imports it (tested).
-- Concept expansion and transfer-hypothesis matching are **off by default** and need two explicit keys: a function argument and `HUMANAIOS_ALLOW_TOKEN_EXPERIMENT=1`.
+- The code lives under `resource_miner/experiments/`; a whole-tree test checks that no code, script or workflow outside the pilot's own files references it.
+- Concept expansion and transfer-hypothesis matching are **off by default** and need two explicit keys: a function argument and `HUMANAIOS_ALLOW_TOKEN_EXPERIMENT=1`. This stops accidental use through the sanctioned entry points (including expansion-tagged predicates reaching the matcher). It is a guardrail, not a security boundary: someone reading the module can still hand-build a predicate from its vocabulary.
 - The existing plain-word matcher (`needs.py`, `intent_os.py`) is unchanged.
 - A new, preregistered-style experiment on evidence accuracy, human decision burden and correction rate is proposed in `EXPERIMENT_PROPOSAL_EVIDENCE_ACCURACY_BURDEN_V0_1.md`. It is not run.

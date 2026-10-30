@@ -1,6 +1,7 @@
 """Synthetic tests for the EXPERIMENT-ONLY token-attractor pilot. No real profile data."""
 import json
 import os
+import re
 import stat
 import subprocess
 import tempfile
@@ -18,8 +19,14 @@ def setUpModule():
     os.environ[ta.EXPERIMENT_ENV] = "1"
 
 
+_PRIOR_ENV = os.environ.get(ta.EXPERIMENT_ENV)
+
+
 def tearDownModule():
-    os.environ.pop(ta.EXPERIMENT_ENV, None)
+    if _PRIOR_ENV is None:
+        os.environ.pop(ta.EXPERIMENT_ENV, None)
+    else:
+        os.environ[ta.EXPERIMENT_ENV] = _PRIOR_ENV
 MASTER = {
     "competencies": {
         "data_quality": ["Assay Validation Practice", "Data Pipeline Basics"],
@@ -299,13 +306,20 @@ class ReviewerChallengeRegressions(unittest.TestCase):
 
     def test_failed_write_leaves_no_partial_file_and_allows_retry(self):  # finding 20
         with tempfile.TemporaryDirectory() as tmp:
-            probe = subprocess.run(["git", "-C", tmp, "rev-parse", "--is-inside-work-tree"], capture_output=True, text=True)
             out = Path(tmp) / "x.json"
             with self.assertRaises(TypeError):
                 ta.write_private_json(out, {"bad": object()}, guard_dir=False)
             self.assertFalse(out.exists())
             ta.write_private_json(out, {"ok": 1}, guard_dir=False)
             self.assertEqual(json.loads(out.read_text()), {"ok": 1})
+
+    def test_control_gate_is_computed_from_backing_not_asserted(self):
+        corpus = [resource("r1", "x", "clinical trial site licensed physician fda")]
+        refused = ta.run_controls(corpus)
+        self.assertEqual(refused["CTRL_LICENSED_CLINICAL_PRACTICE"]["gate"], "REFUSED_NO_SOURCE_BACKING")
+        backed = ta.run_controls(corpus, members={"CTRL_LICENSED_CLINICAL_PRACTICE": ["TK-x"]})
+        self.assertEqual(backed["CTRL_LICENSED_CLINICAL_PRACTICE"]["gate"], "BACKED")
+        self.assertEqual(refused["CTRL_NONSENSE"]["gate"], "REFUSED_NO_SOURCE_BACKING")
 
     def test_control_concepts_are_non_empty_and_checked(self):  # finding 26
         for cid, spec in ta.CONTROL_CONCEPTS.items():
@@ -338,9 +352,33 @@ class ExperimentOnlyBoundaryTests(unittest.TestCase):
         self.supports = ta.classify(self.tokens)
         self.corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark program text here")]
 
-    def test_defaults_are_off(self):
-        self.assertFalse(ta.CONCEPT_EXPANSION_ENABLED)
-        self.assertFalse(ta.TRANSFER_HYPOTHESIS_MATCHING_ENABLED)
+    def test_expansion_flags_are_not_decorative_constants(self):
+        self.assertFalse(hasattr(ta, "CONCEPT_EXPANSION_ENABLED"))
+        self.assertFalse(hasattr(ta, "TRANSFER_HYPOTHESIS_MATCHING_ENABLED"))
+
+    def test_expansion_tagged_predicates_are_gated_where_they_reach_the_matcher(self):
+        pred = {"k": ta.predicate_need("AI_EVALUATION", ["evaluation"], "B1")}
+        for run in (ta.discover, ta.discover_strict):
+            with self.assertRaises(ta.ExperimentOnlyError):
+                run(pred, self.corpus)
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        self.assertEqual(set(ta.discover(pred, self.corpus)), {"k"})
+        pred_b2 = {"k": ta.predicate_need("AI_EVALUATION", ["evaluation"], "B2")}
+        os.environ.pop(ta.EXPERIMENT_ENV)
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.discover_strict(pred_b2, self.corpus)
+
+    def test_experiment_argument_must_be_literally_true(self):
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        for bad in ("no", 1, "yes", None):
+            with self.assertRaises(ta.ExperimentOnlyError):
+                ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=bad)
+
+    def test_environment_value_must_be_exactly_one(self):
+        for val in ("true", "01", " 1", "yes", ""):
+            os.environ[ta.EXPERIMENT_ENV] = val
+            with self.assertRaises(ta.ExperimentOnlyError):
+                ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=True)
 
     def test_default_run_has_baselines_only(self):
         arms = ta.run_arms(self.tokens, self.supports, self.corpus)
@@ -371,14 +409,27 @@ class ExperimentOnlyBoundaryTests(unittest.TestCase):
         b2 = ta.run_arms(self.tokens, self.supports, self.corpus, experiment=True, include_transfer_hypotheses=True)
         self.assertIn("B2", {k.split("|")[1] for k in b2["predicates"]})
 
-    def test_nothing_outside_experiments_imports_the_pilot(self):
-        root = Path(__file__).resolve().parents[1] / "resource_miner"
+    def test_nothing_outside_the_pilot_references_it_anywhere_in_the_tree(self):
+        repo = Path(__file__).resolve().parents[3]
+        allowed = {"resource_miner/experiments/token_attractor.py", "resource_miner/experiments/__init__.py",
+                   "tests/test_experiments_token_attractor.py",
+                   "docs/TOKEN_ATTRACTOR_NEGATIVE_RESULT.md", "docs/EXPERIMENT_PROPOSAL_EVIDENCE_ACCURACY_BURDEN_V0_1.md"}
+        base = repo / "humanaios-funding-pipeline" / "resource-miner"
         offenders = []
-        for f in root.rglob("*.py"):
-            if "experiments" in f.parts:
+        for f in repo.rglob("*"):
+            if not f.is_file() or f.suffix not in {".py", ".yml", ".yaml", ".md", ".sh", ".toml", ".json", ".cjs", ".js"}:
                 continue
-            if "token_attractor" in f.read_text(encoding="utf-8"):
-                offenders.append(str(f.relative_to(root)))
+            if any(part in {".git", "node_modules", "__pycache__"} for part in f.parts):
+                continue
+            rel = f.relative_to(base).as_posix() if base in f.parents else None
+            if rel in allowed:
+                continue
+            try:
+                text = f.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            if "token_attractor" in text or re.search(r"resource_miner\.experiments|from\s+\.+\s*experiments|from\s+resource_miner\s+import\s+experiments", text):
+                offenders.append(f.relative_to(repo).as_posix())
         self.assertEqual(offenders, [])
 
 

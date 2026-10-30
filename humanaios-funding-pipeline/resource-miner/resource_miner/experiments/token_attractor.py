@@ -23,10 +23,11 @@ from ..needs import _score, map_to_needs
 
 SCHEMA = "humanaios.token-attractor.v0.1"
 
-# EXPERIMENT-ONLY BOUNDARY. The pilot's result was negative, so both features are off by default.
+# EXPERIMENT-ONLY BOUNDARY. The pilot's result was negative, so concept expansion and transfer-hypothesis
+# matching are off by default. This is a guardrail against ACCIDENTAL use through the sanctioned entry
+# points (expanded_signals, run_arms, and expansion-tagged predicates in discover*). It is not a security
+# boundary: someone who reads this file can still build a predicate by hand from CONCEPTS.
 EXPERIMENT_ENV = "HUMANAIOS_ALLOW_TOKEN_EXPERIMENT"
-CONCEPT_EXPANSION_ENABLED = False          # documented default; the gates below enforce it
-TRANSFER_HYPOTHESIS_MATCHING_ENABLED = False
 
 
 class ExperimentOnlyError(RuntimeError):
@@ -34,7 +35,7 @@ class ExperimentOnlyError(RuntimeError):
 
 
 def _require_experiment(what: str, experiment: bool) -> None:
-    if not experiment or os.environ.get(EXPERIMENT_ENV) != "1":
+    if experiment is not True or os.environ.get(EXPERIMENT_ENV) != "1":
         raise ExperimentOnlyError(
             f"{what} is experiment-only and disabled by default: pass experiment=True AND set "
             f"{EXPERIMENT_ENV}=1 (see docs/TOKEN_ATTRACTOR_NEGATIVE_RESULT.md)")
@@ -356,6 +357,15 @@ def expanded_signals(concept: str, *, with_hypothesis: bool, experiment: bool = 
     return sorted(set(s.casefold() for s in sigs if len(s) >= 4))
 
 
+EXPANSION_ARMS = ("B1", "B2")
+
+
+def _gate_predicates(predicates: dict[str, dict[str, Any]]) -> None:
+    for need in predicates.values():
+        if str(need.get("need_id", "")).rsplit("|", 1)[-1] in EXPANSION_ARMS:
+            _require_experiment("an expansion-arm predicate", True)
+
+
 def predicate_need(concept: str, signals: list[str], arm: str,
                    own: list[str] | None = None) -> dict[str, Any]:
     """The only object the existing matcher sees. Opaque id, concept label, signal phrases."""
@@ -384,6 +394,7 @@ def credential_flags(resource: ResourceCandidate) -> list[str]:
 def discover(predicates: dict[str, dict[str, Any]], corpus: list[ResourceCandidate],
              threshold: float = EXISTING_THRESHOLD) -> dict[str, list[dict[str, Any]]]:
     """Run the existing scorer. Returns need_id -> hits. Eligibility is never assessed."""
+    _gate_predicates(predicates)
     hits: dict[str, list[dict[str, Any]]] = {k: [] for k in predicates}
     for r in corpus:
         for key, need in predicates.items():
@@ -410,6 +421,7 @@ def discover_strict(predicates: dict[str, dict[str, Any]], corpus: list[Resource
     boundary; (R4/R5) thin text and domain/status requirements are flagged, not hidden.
     """
     from ..needs import _candidate_text
+    _gate_predicates(predicates)
     hits: dict[str, list[dict[str, Any]]] = {k: [] for k in predicates}
     for r in corpus:
         text = _candidate_text(r)
@@ -472,12 +484,15 @@ def run_arms(tokens: list[dict[str, Any]], supports: list[dict[str, Any]],
             "gated_out": sorted(set(CONCEPTS) - set(members))}
 
 
-def run_controls(corpus: list[ResourceCandidate], strict: bool = False) -> dict[str, Any]:
+def run_controls(corpus: list[ResourceCandidate], strict: bool = False,
+                 members: dict[str, list[str]] | None = None) -> dict[str, Any]:
+    """Controls are never source-backed by construction; the gate is computed, not asserted."""
+    members = members or {}
     out: dict[str, Any] = {}
     run = discover_strict if strict else discover
     for cid, spec in CONTROL_CONCEPTS.items():
         pred = {cid: predicate_need(cid, [s for s in spec["discover"]], "CTRL")}
-        out[cid] = {"gate": "REFUSED_NO_SOURCE_BACKING",
+        out[cid] = {"gate": "BACKED" if members.get(cid) else "REFUSED_NO_SOURCE_BACKING",
                     "bypassed_matches": run(pred, corpus, ANY_HIT)[cid]}
     return out
 
