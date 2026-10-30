@@ -14,6 +14,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # sibling test helpers, any run mode
+
 from resource_miner.application_portfolio import ORDER, build_application
 from resource_miner.job_application import downgrade_for_removed_evidence, prepare
 from resource_miner.private_profile_bridge import (
@@ -332,6 +334,26 @@ class SecondPassRegressionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertNotIn("Traceback", result.stderr)
         self.assertIn("repository checkout not found", result.stderr)
+
+
+class ProfilePresenceRegressionTests(unittest.TestCase):
+    def test_repeated_candidate_retains_every_source_id(self):
+        from resource_miner.profile_presence import reconcile_public_candidates
+        url = "https://github.com/example-handle"
+        obs = [{"provider": "github", "url": url, "source_id": "src-one"},
+               {"provider": "github", "url": url, "source_id": "src-two"}]
+        out = reconcile_public_candidates([], obs, owner_approved=True)
+        cands = out["candidates"]
+        self.assertEqual(len(cands), 1)
+        self.assertEqual(cands[0]["source_ids"], ["src-one", "src-two"])
+        self.assertEqual(cands[0]["source_id"], "src-one")
+
+    def test_orcid_null_identifier_is_inconclusive_not_a_crash(self):
+        from resource_miner.profile_presence import public_readback
+        seeds = [{"provider": "orcid", "url": "https://orcid.org/0000-0002-1825-0097"}]
+        body = json.dumps({"orcid-identifier": None}).encode()
+        result = public_readback(seeds, owner_approved=True, transport=lambda u: (200, body))
+        self.assertEqual(result[0]["state"], "READBACK_INCONCLUSIVE")
 
 
 if __name__ == "__main__":
