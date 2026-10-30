@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'self'; object-src 'none'">
 <title>INTENT-OS · What Moved Our Goal?</title>
 <style>
@@ -35,7 +35,19 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #reviewList{padding-left:20px}
 #reviewList li{margin:12px 0}
 #reviewList button{margin-left:10px}
+
+@media(max-width:719px){
+main{padding:20px 14px calc(116px + env(safe-area-inset-bottom,0px))}
+button,select,input[type=file]{min-height:44px}
+table{min-width:0}
+.mobile-tabs{position:fixed;bottom:0;left:0;right:0;display:flex;z-index:50;background:#091625;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));gap:8px;border-top:1px solid #6b94b7}
+.mobile-tabs a,.mobile-tabs span{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid #47617c;border-radius:10px;padding:8px 4px;font-size:.85rem;font-weight:650;text-decoration:none}
+.mobile-tabs a[aria-current=page]{background:#285c81;color:#fff}
+.mobile-tabs span{color:#bac9d9}
+}
+@media(min-width:720px){.mobile-tabs{display:none}}
 </style>
+<meta name="theme-color" content="#0b1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="INTENT-OS"><link rel="manifest" href="/app.webmanifest">
 </head>
 <body>
 <main>
@@ -132,7 +144,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <ul id="reviewList"><li>No source report imported or saved in this browser.</li></ul>
 <p class="muted">Nothing here updates production rankings, changes an account, deletes evidence, or issues a provider-status determination. An independent source verification and separate authorization are required before a global archive action.</p>
 </section>
-</main>
+<nav class="mobile-tabs" aria-label="Phone navigation"><a href="/intent-os">Resources</a><a href="/on-track" aria-current="page">On-Track</a><span>Private locked</span></nav></main>
 <!--@@EMBED_SNAPSHOT@@-->
 <script>
 "use strict";
