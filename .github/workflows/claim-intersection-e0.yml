@@ -1,0 +1,20 @@
+name: claim-intersection-e0
+on:
+  pull_request:
+    paths:
+      - 'experiments/claim_intersection_e0.py'
+      - 'tests/test_claim_intersection_e0.py'
+      - '.github/workflows/claim-intersection-e0.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run offline claim-intersection regression tests at checked-out HEAD
+        shell: bash
+        run: |
+          echo "HEAD=$(git rev-parse HEAD)"
+          python3 -m unittest discover -s tests -p 'test_claim_intersection_e0.py' -v
