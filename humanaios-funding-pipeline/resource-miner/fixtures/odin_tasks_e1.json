@@ -1,0 +1,38 @@
+{
+  "schema": "humanaios.opportunity_tasks.e1.v1",
+  "opportunity_id": "OPP-MERCOR-ODIN",
+  "events": [
+    {
+      "event_id": "E1",
+      "task_id": "task_ebbb0b082ada4455a86c455a91052150",
+      "kind": "IDEA_APPROVED",
+      "observed_at": "2026-10-29T18:55:41Z",
+      "evidence_ref": "MERCOR-TASK-QC",
+      "source_kind": "PROVIDER_UI_OBSERVATION"
+    },
+    {
+      "event_id": "E2",
+      "task_id": "task_6f4550812cf949e6b7cf165fff22d70b",
+      "kind": "IDEA_APPROVED",
+      "observed_at": "2026-10-30T18:50:38Z",
+      "evidence_ref": "MERCOR-TASK-3",
+      "source_kind": "PROVIDER_UI_OBSERVATION"
+    },
+    {
+      "event_id": "E3",
+      "task_id": "task_333855bc4e864798b00f46ff77ec5e90",
+      "kind": "IDEA_APPROVED",
+      "observed_at": "2026-10-30T19:03:01Z",
+      "evidence_ref": "MERCOR-TASK-2",
+      "source_kind": "PROVIDER_UI_OBSERVATION"
+    },
+    {
+      "event_id": "E4",
+      "task_id": "task_ebbb0b082ada4455a86c455a91052150",
+      "kind": "HARDWARE_HOLD_REPORTED",
+      "observed_at": "2026-10-30T20:27:00Z",
+      "evidence_ref": "HUMAN-HARDWARE-HOLD",
+      "source_kind": "HUMAN_REPORT"
+    }
+  ]
+}
