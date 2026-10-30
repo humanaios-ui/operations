@@ -64,6 +64,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <h2 id="resTitle">Resources to review</h2>
 <p id="summary"></p>
 <div id="warning" class="notice" hidden></div>
+<details id="verificationCaseSection" hidden><summary id="verificationCaseSummary">Source states requiring review</summary><ul id="verificationCaseList"></ul></details>
 <div class="row"><label for="showDismissed" class="muted"><input id="showDismissed" type="checkbox"> Show candidates I dismissed locally</label></div>
 <p id="localFilter" class="muted" role="status"></p>
 <div id="items"></div>
@@ -126,6 +127,23 @@ function dispositions(){
   const v=JSON.parse(localStorage.getItem(dispositionKey)||"{}");
   return v&&typeof v==="object"&&!Array.isArray(v)?v:{};
  }catch(_){return {};}
+}
+function renderVerificationCases(rows){
+ const section=document.getElementById("verificationCaseSection");
+ const list=document.getElementById("verificationCaseList");
+ list.replaceChildren();
+ const cases=Array.isArray(rows)?rows:[];
+ section.hidden=cases.length===0;
+ text(document.getElementById("verificationCaseSummary"),
+  cases.length+" source state(s) held for review — not verified closed");
+ for(const row of cases.slice(0,100)){
+  if(!row||typeof row!=="object")continue;
+  const entry=document.createElement("li");
+  text(entry,String(row.resource_id||"Unknown ID")+" — "+
+    String(row.verification_state||"UNKNOWN")+" ("+
+    String(row.reason_code||"NO_REASON")+")");
+  list.append(entry);
+ }
 }
 function renderCandidates(){
  const saved=dispositions();
@@ -319,6 +337,7 @@ function addCard(row){
  text(meta,(row.source_name||"Source unknown")+" · "+(row.route||"WATCH")+
    " · Eligibility: NOT ASSESSED"+(row.deadline?" · Reported deadline: "+row.deadline:"")+
    " · Observed: "+(row.observed_at||"unknown")+
+   " · Verification: "+(row.verification_state||"UNKNOWN")+
    " · "+(row.last_verified_at?"Last verified (source claim): "+row.last_verified_at:"Not verified"));
  card.append(meta);
  const askBox=document.createElement("details"),askHeading=document.createElement("summary");
@@ -490,6 +509,7 @@ form.addEventListener("submit",async event=>{
    warning.hidden=!result.source_warning;
    text(warning,result.source_warning);
    latestCandidates=result.candidates||[];visibleLimit=10;
+   renderVerificationCases(result.verification_cases);
    renderCandidates();
    text(receipt,"Source: "+result.source_status+" · Unsigned selection digest: "+result.receipt_sha256);
    box.hidden=false;
