@@ -105,7 +105,7 @@ def _public_source_ref(raw: object) -> str | None:
         raise ValueError("IP source references are not supported")
     if host not in {"github.com", "www.linkedin.com", "linkedin.com"}:
         raise ValueError("source_ref host is outside this pilot's public allowlist")
-    if any(c.isspace() for c in parts.path) or "\" in parts.path:
+    if any(c.isspace() for c in parts.path) or chr(92) in parts.path:
         raise ValueError("invalid source_ref path")
     if host == "github.com":
         if not re.fullmatch(r"/humanaios-ui/[A-Za-z0-9._-]+/(?:issues|pull)/[1-9][0-9]*", parts.path):
