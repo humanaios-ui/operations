@@ -49,7 +49,7 @@ class WitnessPlanProjectionTests(unittest.TestCase):
             bad = fixture()
             bad[field] = value
             with self.subTest(field=field), self.assertRaisesRegex(
-                ValueError, "authority or execution"
+                ValueError, "approval or execution authority"
             ):
                 project_witness_plan(bad)
 
