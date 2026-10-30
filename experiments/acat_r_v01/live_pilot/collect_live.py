@@ -71,9 +71,12 @@ def runtime_manifest(script):
 def run_one(script, data):
     args = [sys.executable, '-I', '-S', str(script)]
     environment = {'PYTHONHASHSEED':'0', 'PYTHONDONTWRITEBYTECODE':'1', 'LC_ALL':'C.UTF-8'}
-    completed = subprocess.run(args, input=CANON(data)+b'\n',
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        timeout=6,check=False, env=environment, cwd=str(HERE))
+    try:
+        completed = subprocess.run(args, input=CANON(data)+b'\n',
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=6,check=False, env=environment, cwd=str(HERE))
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError('owned runtime timed out (6-second bound)') from exc
     if completed.returncode != 0:
         raise RuntimeError('owned process terminated with exit='+str(completed.returncode))
     if len(completed.stdout)>8192 or len(completed.stderr)>8192:
