@@ -1,0 +1,58 @@
+# Execution notes: issue #1081 delegated ACAT-R validation plan
+
+**Role:** Z1 implementer / test operator (Claude Code). **Authority effect:** NONE.
+**Admission status:** HOLD. Nothing here merges, deploys, admits or grants authority.
+
+## Position (session open)
+
+- Base `main` pinned at `52aa7c0ed70f6e24ec050d0d56788a791e5f78f7`.
+- Draft PR #1082 head `8481574af8adffee83fdb89250847822485e4c86`, branch `z1/acatr-gner-e1-fair-comparison-20261030`.
+- Pinned originals unchanged on both: `tools/gner_verify_e1.py` blob `8290c51c…`, `tests/test_gner_verify_e1.py` blob `8517a93f…`; `tools/gner_notification_e0.py` blob `e8f893a3…` (newly pinned).
+- Work branch: `claude/acat-r-validation-1081-m4mp6q`, created from the PR #1082 head so it carries both PR commits. The harness constrains pushes to this branch; the delegated plan asked for fixes on the draft branch itself. Resolution: a stacked draft PR from this branch **into** `z1/acatr-gner-e1-fair-comparison-20261030`, so the operator can land the fixes on the draft branch with one merge. No PR to `main` was opened.
+
+## Baseline reproduction (before any change)
+
+Ran `study.py --run-owned-offline` at `8481574`:
+- exit 0; conventional suite 10/10; P1 8/8; P2 four disagreements (`type_canonical_bool_id`, `type_lead_bool_id`, `type_boolean_pr_in_canonical`, `type_lead_bool_pr`), all observed `CANONICAL_VERIFIED`; P3 byte-identical.
+- rubric sha256 `6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7` (matches CI run 41132149131; does **not** match the issue-body predeclared `19a18260…`).
+- P2 stdout sha256 `de4f559f20b254b855bb5cbd04fb8a43a853cd4f4fa8bf9827a93ceb50bbfffe`. The 47-character value in the 21:36 issue comment is a truncated rendering of this digest.
+- Manifest staleness (`tools/governance_invariant_evaluator.py` not in `tools-manifest.yaml`) and the `test_every_tools_test_file_is_enumerated` failure are present on `main` too; they are the #1070 inheritance, not PR #1082 effects.
+
+## Reviewer findings: reproduction and disposition
+
+| Finding | Reproduced | Disposition |
+|---|---|---|
+| Copilot r4428713850 rubric digest not enforced | Yes: computed `6971fd…` ≠ predeclared `19a182…`, no check | `rubric_registry.json` records rev 0 (predeclared, bytes unrecoverable) and rev 1 (`6971fd…`, labels unchanged, PENDING human acceptance). `study.py` fails closed before baseline/P1 unless computed digest equals the active revision; mismatch writes `RUBRIC_MISMATCH.json`. Test `test_changed_label_fails_closed_before_any_runtime_call`. |
+| Copilot r4428713900 replay captured 3 fields only | Yes: worker dropped `reason`, `head_sha`, `conclusion`, `evidence_url` | Worker now emits the full `response`; `parse_worker_output` requires non-empty, newline-terminated, exact id order and count, all fields, response present; P3 compares bytes, per-record hashes and id order. Tests in `WorkerOutputTests`. |
+| CodeRabbit r4428742295 triggers omit pinned inputs | Yes | Workflow `paths` now include the three pinned files and the new test. |
+| CodeRabbit r4428742321 bool cases mixed with contract cases; `unsupported_conclusion` undocumented | Yes | `evidence_classes.json`: 11 CONTRACT_EXPLICIT, 15 IMPLEMENTATION_DERIVED, 4 PROPOSED_POLICY; `unsupported_conclusion` is IMPLEMENTATION_DERIVED. Report splits `contract_derived_disagreements` (0) from `proposed_policy_disagreements` (4). No label changed. The 27-vs-29 consistency question is recorded for the referee, not resolved by the implementer. |
+| CodeRabbit r4428742324 `gner_notification_e0.py` unpinned | Yes: imported at module load, not hashed | Pinned blob `e8f893a3…` checked with the others; sha256 in `P1_COMMIT.json`. Module imports stdlib only. |
+| CodeRabbit r4428742330 baseline ran after P1 | Yes: `run_phase(cases[:8])` preceded `baseline()` | Order is now pin check → rubric enforcement → conventional 10 → P1 commit → P1 → P2 → P3. Test `test_conventional_suite_runs_before_p1`. |
+| zizmor concurrency / anonymous job | Yes | `concurrency` group and job `name` added. |
+
+Also changed: `byte_identical`, `detection_advantage` and `passed` are computed, not literal constants; `--out DIR` added for testability.
+
+## Live `verify_lead()` probe (read-only)
+
+Executed `live_probe.py` once at 2026-10-30T22:00Z against 13 probes (real run ids 41120652951, 41132149057, 41133165536, 41132641562, 41132149131, plus id 1). Credential: the Claude Code session's `GITHUB_TOKEN`, traffic via the session agent proxy, value never inspected or written; `grep` for bearer/PAT markers in receipts returns 0. **This is not the dedicated fine-grained read-only PAT the plan specified**; the operator decides whether to accept it or re-run under one.
+
+Outcomes matched the unchanged runtime on every probe: 3 `CANONICAL_VERIFIED`, 5 `CONFLICT`, 2 `ABSTAIN`, 3 `VerificationDenied` (bool run_id, string run_id, HTTP 404). Same run fetched five times returned the same response sha256 (`40d530d0…`). Every real response typed `id` and `pull_requests[].number` as integers.
+
+## Held-out gate
+
+No independently authored set exists. Protocol and sealing procedure written (`HELD_OUT_PROTOCOL.md`, `held_out/MANIFEST_TEMPLATE.json`). HOLD; no set invented.
+
+## Stop-condition check
+
+| Condition | State |
+|---|---|
+| Changed source | No (three blobs verified) |
+| Changed rubric | Digest ≠ predeclared; recorded as rev 1, enforced, not accepted |
+| Unknown oracle | Yes: all 30 labels PENDING |
+| Missing read-only credential | Partial: session credential used, not dedicated PAT |
+| Conflicting labels | Consistency question on cases 27/29 recorded |
+| Leaked secrets | None found |
+| Failing protected CI | Yes, inherited #1070 (`workflow-path-validation`, `quality-baseline` enumeration) |
+| Missing independent review | Yes |
+
+Admission remains HOLD on four of these.
