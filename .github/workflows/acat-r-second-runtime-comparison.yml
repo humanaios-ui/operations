@@ -3,12 +3,20 @@ on:
   pull_request:
     paths:
       - 'experiments/acat_r_comparison/**'
+      - 'tools/gner_verify_e1.py'
+      - 'tools/gner_notification_e0.py'
+      - 'tests/test_gner_verify_e1.py'
+      - 'tests/test_acat_r_gner_e1_study.py'
       - '.github/workflows/acat-r-second-runtime-comparison.yml'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: acat-r-second-runtime-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   compare-gner-e1:
+    name: Equal-workload GNER-E1 comparison (offline, no authority)
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -18,19 +26,29 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.11'
-      - name: Run unmodified conventional suite and equal-input ACAT-R comparison
+      - name: Harness regression tests (rubric digest, replay, evidence classes)
+        run: python -m unittest tests/test_acat_r_gner_e1_study.py -v
+      - name: Run unmodified conventional suite first, then equal-input ACAT-R comparison
         run: python experiments/acat_r_comparison/study.py --run-owned-offline
-      - name: Verify no authority and no false superiority
+      - name: Verify no authority, no false superiority, no unreviewed defect count
         run: |
           python - <<'PY'
           import json,pathlib
           r=json.loads(pathlib.Path('acatr-gner-evidence/report.json').read_text())
+          assert r['rubric_revision']==1 and r['predeclared_digest_matches'] is False
+          assert r['rubric_human_accepted'] is False
+          assert r['conventional_baseline']['passed'] is True and r['conventional_baseline']['ran_before_P1'] is True
           assert r['P2']['cases']==30 and r['P3']['byte_identical'] is True
+          assert r['P3']['record_hashes_identical'] is True and r['P3']['id_order_identical'] is True
           assert sorted(r['acatr_equal']['detected'])==sorted(r['conventional_equal']['detected'])
           assert r['acatr_detection_advantage_on_equal_inputs']==0
+          assert r['contract_derived_disagreements']==[]
+          assert r['confirmed_defects']==0
           assert r['measured_false_alarm_rate'].startswith('UNDETERMINED')
           assert r['can_authorize'] is False and r['authority_effect']=='NONE'
           assert r['admission']=='HOLD'
+          p=json.loads(pathlib.Path('acatr-gner-evidence/oracle_packet.json').read_text())
+          assert len(p['cases'])==30 and all(c['reviewer_decision']=='PENDING' for c in p['cases'])
           print('ACAT_R_EQUAL_WORKLOAD_VALIDATION_PASS')
           PY
       - name: Preserve raw machine execution evidence
