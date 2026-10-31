@@ -35,6 +35,7 @@ on:
       - 'Z1_INBOX_INDEX.md'
       - 'REGISTERED.md'
       - '.z1-control/**'
+      - '.github/workflows/coordinator-admission-sweep.yml'
       - 'tools/coordinator_admission_sweep_dryrun.py'
       - '.github/workflows/z2_ratification_gate.yml'
   push:
@@ -49,6 +50,7 @@ on:
       - 'Z1_INBOX_INDEX.md'
       - 'REGISTERED.md'
       - '.z1-control/**'
+      - '.github/workflows/coordinator-admission-sweep.yml'
       - 'tools/coordinator_admission_sweep_dryrun.py'
       - '.github/workflows/z2_ratification_gate.yml'
   workflow_dispatch:
