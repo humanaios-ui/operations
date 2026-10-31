@@ -150,3 +150,15 @@ Copilot marked the redirect and symlink findings resolved and raised three singl
 | r4430456683 the adjudication digest came from fresh reads, separate from the scored decisions | `main` reads the adjudication bytes once, scores that snapshot and reuses its digest in both outputs; test where any second read sees an edited file |
 
 Live probe re-run 6: all 14 outcomes and consumed-body hashes identical to re-run 5; spec digest unchanged. Receipts sha256 `5b5abb65674e469dfa402604b7425a414bfad84dff63e148a2c6e54e0f635f4b`. 46 harness tests pass.
+
+## Addendum 8: Copilot third review of PR #1083 head `c3d93c4` (2026-10-31T04:27Z)
+
+Copilot marked the three single-snapshot findings resolved and raised three more, all reproduced and repaired:
+
+| Finding | Repair |
+|---|---|
+| r4430488346 (Medium) the evidence-class manifest was read three times (validation, blocked-record digest, saved copy and commitment digest) | One read at the top of `main`; validation, blocked record, saved copy and commitment digest all use that snapshot; permitted-path and blocked-path tests return edited bytes on any second read |
+| r4430488425 the packet said the `unsupported_conclusion` ABSTAIN branch is reachable, but the one `action_required` run was rejected on its event first and returned CONFLICT | The packet separates the two observations and marks branch reachability unverified until an allowed-event run with that conclusion is observed |
+| r4430488475 the held-out protocol asked for TP/FP/FN counts, but the manifest holds expected states only, so the counts would be defined by the labels | The protocol reports state agreement only and says confusion counts need a separately sealed, independently authored detection label |
+
+No probe code changed, so no live re-run. 48 harness tests pass.

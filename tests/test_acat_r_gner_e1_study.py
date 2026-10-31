@@ -305,6 +305,49 @@ class AdjudicationSnapshotTests(unittest.TestCase):
         self.assertEqual(written["adjudication_sha256"], report["adjudication_sha256"])
 
 
+class EvidenceClassSnapshotTests(unittest.TestCase):
+    """The saved and hashed evidence classes must be the ones validated and used, even if the manifest
+    changes while the study runs (Copilot r4430488346)."""
+
+    def _racing(self, calls):
+        original = pathlib.Path.read_bytes
+        manifest = pathlib.Path(study.EVIDENCE_CLASSES)
+        snapshot = original(manifest)
+
+        def racing(self_path):
+            if self_path == manifest:
+                calls.append(1)
+                return snapshot if len(calls) == 1 else snapshot + b" "
+            return original(self_path)
+        return racing, snapshot
+
+    def test_permitted_path_reads_the_manifest_once(self):
+        calls = []
+        racing, snapshot = self._racing(calls)
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = _write_registry(tmp, **ACCEPTED_FIXTURE)
+            out = pathlib.Path(tmp) / "ev"
+            with mock.patch.object(pathlib.Path, "read_bytes", racing):
+                study.main(out, registry_path=registry)
+            commit = json.loads((out / "P1_COMMIT.json").read_text())
+            saved = (out / "evidence_classes.json").read_bytes()
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(saved, snapshot)
+        self.assertEqual(commit["evidence_classes_sha256"], hashlib.sha256(snapshot).hexdigest())
+
+    def test_blocked_path_reads_the_manifest_once(self):
+        calls = []
+        racing, snapshot = self._racing(calls)
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = _write_registry(tmp, **PENDING_FIXTURE)
+            out = pathlib.Path(tmp) / "ev"
+            with mock.patch.object(pathlib.Path, "read_bytes", racing):
+                study.main(out, registry_path=registry)
+            blocked = json.loads((out / "RUBRIC_BLOCKED.json").read_text())
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(blocked["evidence_class_sha256"], hashlib.sha256(snapshot).hexdigest())
+
+
 class RedirectRefusalTests(unittest.TestCase):
     """urlopen follows redirects internally and forwards Authorization, so the endpoint guard alone
     would not see the destination (Copilot r4430416455). Local servers, no network."""

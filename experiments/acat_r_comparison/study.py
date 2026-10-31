@@ -175,8 +175,10 @@ def enforce_rubric(rubric_bytes, registry):
     return record
 
 
-def load_evidence_classes(cases, path=EVIDENCE_CLASSES):
-    manifest = json.loads(pathlib.Path(path).read_text())
+def load_evidence_classes(cases, path=EVIDENCE_CLASSES, raw=None):
+    # `raw` is a snapshot the caller already read, so the digest and the saved copy describe the
+    # classifications that were validated and used (Copilot r4430488346).
+    manifest = json.loads(pathlib.Path(path).read_bytes() if raw is None else raw)
     classes = manifest["cases"]
     ids = [c["id"] for c in cases]
     validate(sorted(classes) == sorted(ids), "evidence class manifest must cover exactly the 30 case ids")
@@ -465,13 +467,14 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
     cases = build()
     rubric = encoded(cases)
     rubric_record = enforce_rubric(rubric, registry)
-    classes = load_evidence_classes(cases)
+    classes_bytes = pathlib.Path(EVIDENCE_CLASSES).read_bytes()
+    classes = load_evidence_classes(cases, raw=classes_bytes)
     out.mkdir(exist_ok=False)
     if not rubric_record["runtime_permitted"]:
         # Issue #1081 plan: a rubric that is not the human-accepted reference blocks execution.
         blocked = dict(rubric_record, schema="humanaios.acat-r.rubric-blocked.v0.1",
                        status=rubric_record["block_reason"], pinned_git_blobs=pins,
-                       evidence_class_sha256=sha(EVIDENCE_CLASSES.read_bytes()),
+                       evidence_class_sha256=sha(classes_bytes),
                        runtime_calls_made=0, conventional_suite_run=False,
                        unblock="human referee sets human_accepted=true with accepted_by/accepted_at on the active "
                                "revision in rubric_registry.json, or appends a new accepted revision",
@@ -491,7 +494,6 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
     conventional_baseline = baseline(out)
     # 2. commitment before any case is sent to the runtime
     (out / "reference_proposed.json").write_bytes(rubric)
-    classes_bytes = EVIDENCE_CLASSES.read_bytes()
     (out / "evidence_classes.json").write_bytes(classes_bytes)
     commitment = {"source_sha256": sha(SOURCE.read_bytes()), "imported_module_sha256": sha(IMPORTED.read_bytes()),
                   "conventional_test_sha256": sha(TESTS.read_bytes()), "pinned_git_blobs": pins,

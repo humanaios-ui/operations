@@ -97,7 +97,11 @@ Reachability of the four offline PROPOSED_POLICY cases through the supported ent
 Two real-path observations for the referee, both IMPLEMENTATION_DERIVED, neither a documented
 defect: repository-admission-gate runs fire on `pull_request_review` / `pull_request_target`, so the
 runtime's event allowlist makes them always `CONFLICT`; and `action_required` occurs as a real
-conclusion, so the `unsupported_conclusion` ABSTAIN is a reachable branch.
+conclusion in GitHub data. The second is an observation about the data only. The one run observed with
+that conclusion is an admission-gate run whose event the runtime rejects first, so the probe returned
+`CONFLICT` ("unsupported workflow event") and never reached the conclusion check. Whether the
+`unsupported_conclusion` ABSTAIN branch is reachable with a live response is therefore **unverified**
+until a run with an allowed event and an unsupported conclusion is observed.
 
 Receipt mechanics (re-run 2): the two runtime modules were verified against the frozen Git blobs before
 import (`source_pins` in the receipt), and the recorded `response_sha256` is of the exact bytes

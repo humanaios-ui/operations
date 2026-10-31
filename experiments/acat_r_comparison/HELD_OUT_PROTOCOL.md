@@ -36,11 +36,15 @@ that when a *different* reviewer authors the set, both methods can be run unchan
 3. Run the unchanged `reconcile` through the same isolated worker (`study.run_phase`) on the
    held-out cases once (P2) and once more (P3); require byte-identical replay.
 4. Run the equal-workload conventional assertions on the same rows and expectations.
-5. Report the confusion matrix per method using the held-out author's labels **as given**:
-   true positive = flagged and author expects non-match; false positive = flagged on a valid
-   negative control; false negative = author expects a mismatch the method did not flag;
-   agreement between methods; replay result. Do not reclassify a held-out label; record any
-   disagreement as a reviewer question.
+5. Report **state agreement only**, using the held-out author's `expected` states **as given**:
+   per method, the cases where the observed state equals the author's expected state and the cases
+   where it differs (ids and counts), the agreement between the two methods, and the replay result.
+   Do not compute true-positive, false-positive or false-negative counts: `expected` is a state,
+   not a defect label (an expected `CONFLICT` can be a correct rejection), and with only that label
+   a method "flags" a case exactly when its observed state differs from it, so the counts would be
+   defined by the labels themselves rather than measured against them. Such counts need a separately
+   sealed, independently authored detection label, which this protocol does not request. Do not
+   reclassify a held-out label; record any disagreement as a reviewer question.
 6. Keep held-out results separate from the 30-case results. Neither replaces the other.
 
 ## Stop conditions
