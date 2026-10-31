@@ -151,13 +151,35 @@ class _Observed:
         return data
 
 
+class _RefuseRedirect(urllib.request.HTTPRedirectHandler):
+    """urllib follows redirects inside urlopen and forwards the Authorization header, so the
+    endpoint guard alone would not see the destination (Copilot r4430416455). Refuse them."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, "redirect refused by read-only probe", headers, fp)
+
+
+class refuse_redirects:
+    """Install a redirect-refusing global opener for the duration of the block, then restore it."""
+
+    def __enter__(self):
+        self._previous = urllib.request._opener
+        urllib.request.install_opener(urllib.request.build_opener(_RefuseRedirect()))
+        return self
+
+    def __exit__(self, *exc):
+        urllib.request._opener = self._previous
+        return False
+
+
 class observe_urlopen:
     """Context manager: records the response verify_lead actually consumed and
-    refuses anything that is not a GET to the pinned runs endpoint."""
+    refuses anything that is not a GET to the pinned runs endpoint, and refuses redirects."""
 
     def __init__(self):
         self.capture: dict = {}
         self._real = urllib.request.urlopen
+        self._redirects = refuse_redirects()
 
     def __enter__(self):
         cap = self.capture
@@ -183,11 +205,14 @@ class observe_urlopen:
                 cap["error"] = type(exc).__name__
                 raise
             return _Observed(inner, cap)
+        self._redirects.__enter__()
+        cap["redirects"] = "refused"
         urllib.request.urlopen = wrapper
         return self
 
     def __exit__(self, *exc):
         urllib.request.urlopen = self._real
+        self._redirects.__exit__(*exc)
         return False
 
 
@@ -222,7 +247,7 @@ def fetch_independent(run_id: int, token: str, timeout: int = 10) -> dict:
     }, method="GET")
     record: dict = {"run_id": run_id, "fetched_at_utc": _dt.datetime.now(_dt.timezone.utc).isoformat()}
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with refuse_redirects(), urllib.request.urlopen(request, timeout=timeout) as response:
             raw = response.read(131073)
             record["http_status"] = response.status
     except urllib.error.HTTPError as exc:
@@ -286,7 +311,7 @@ def main() -> int:
             isinstance(getattr(sys.modules.get(n), "__loader__", None), _VerifiedSourceLoader)
             for n in ("gner_verify_e1", "gner_notification_e0")),
         "source_pins": SOURCE_PINS,
-        "read_only_enforcement": "pinned verify_lead source (single GET) plus urlopen observer refusing non-GET or off-endpoint requests; credential scope itself is NOT verified by this probe",
+        "read_only_enforcement": "pinned verify_lead source (single GET) plus urlopen observer refusing non-GET or off-endpoint requests, with redirects refused on both request paths; credential scope itself is NOT verified by this probe",
         "credential_requirement_status": "OPEN: issue #1081 asked for a dedicated fine-grained read-only PAT; these receipts do not close that requirement",
         "spec_sha256": _sha(spec_path.read_bytes()),
         "started_at_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(),

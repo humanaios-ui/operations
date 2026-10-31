@@ -304,8 +304,8 @@ def _is_tracked(root, rel):
 def validate_contract_citation(citation, root=ROOT):
     """A HUMAN ACCEPT must cite real file:line (or file:start-end) ranges, ';'-separated.
 
-    Each path must be a tracked file that resolves under the repository root (no .git, no escaping
-    symlinks) and each range must lie within the file (Copilot r4429301750, CodeRabbit). Returns the parsed references.
+    Each path, and the file it resolves to, must be tracked, under the repository root and outside .git
+    (no escaping or smuggling symlinks) and each range must lie within the file (Copilot r4429301750, CodeRabbit). Returns the parsed references.
     """
     refs = []
     for part in [x.strip() for x in str(citation).split(";") if x.strip()]:
@@ -317,10 +317,14 @@ def validate_contract_citation(citation, root=ROOT):
         target = root / rel
         validate(target.is_file(), f"citation path {rel!r} does not exist in the repository")
         try:
-            target.resolve().relative_to(root.resolve())
+            resolved_rel = target.resolve().relative_to(root.resolve()).as_posix()
         except ValueError:
             raise ValueError(f"citation path {rel!r} resolves outside the repository root") from None
-        validate(_is_tracked(root, rel), f"citation path {rel!r} is not a tracked repository file")
+        # A tracked symlink must not smuggle in .git metadata or an untracked file (Copilot r4430416481):
+        # the exclusion and the tracking check apply to the resolved target as well as the named path.
+        validate(".git" not in resolved_rel.split("/"), f"citation path {rel!r} resolves into .git")
+        validate(_is_tracked(root, rel) and _is_tracked(root, resolved_rel),
+                 f"citation path {rel!r} is not a tracked repository file")
         total = len(target.read_bytes().splitlines())  # real lines; a trailing newline adds none
         start = int(m.group("start"))
         end = int(m.group("end") or start)

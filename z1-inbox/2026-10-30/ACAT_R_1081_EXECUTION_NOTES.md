@@ -127,3 +127,14 @@ Five Minor findings, all reproduced against the code, all repaired in the next c
 | r4430375927 `None` hid one-sided body divergence | `None` only when neither side has a hash; one-sided is `False`; tested |
 | r4430375936 `entry_point_loaded_from_verified_bytes` was a constant | Derived from the loaded modules' loaders |
 | r4430375942 citation could name `.git/config` or an untracked or escaping file | Reject `.git`, require resolved path under root and `git ls-files` tracking; real temporary git repository tests |
+
+## Addendum 6: Copilot review of PR #1083 head `9808faa` and test follow-up (2026-10-31T04:10Z)
+
+CodeRabbit marked all five of its `47b9228` findings addressed at `9808faa` and asked for one more test (git unable to answer), added in `1bcb349`. Copilot then raised two findings on the same code, both reproduced and repaired:
+
+| Finding | Repair |
+|---|---|
+| r4430416455 (High) `urlopen` follows redirects internally and forwards Authorization, bypassing the endpoint guard on both request paths | `_RefuseRedirect` opener installed for the observer and the independent fetch; a redirect surfaces as an HTTP error and `verify_lead` denies. Local-server tests show a plain opener forwards the credential to the redirect target while the probe paths do not, and that the global opener is restored |
+| r4430416481 a tracked symlink to `.git/config` or an untracked file passed the citation checks, which tested only the link | The `.git` exclusion and the tracking check now apply to the resolved target too; tests cover links to `.git/config`, to an untracked file, and to a tracked file (still accepted) |
+
+Live probe re-run 5: all 14 outcomes and consumed-body hashes identical to re-run 4; no probe followed a redirect (every network response was status 200 or 404). Receipts sha256 `9110031424610a6b6af549b4b47abc42a78120ccfe032043750d3481aa537451`. 43 harness tests pass.

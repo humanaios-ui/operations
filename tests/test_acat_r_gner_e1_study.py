@@ -278,6 +278,84 @@ class SourcePinTests(unittest.TestCase):
                     urllib.request.urlopen(urllib.request.Request(probe.API + extra, method="GET"))
 
 
+class RedirectRefusalTests(unittest.TestCase):
+    """urlopen follows redirects internally and forwards Authorization, so the endpoint guard alone
+    would not see the destination (Copilot r4430416455). Local servers, no network."""
+
+    @staticmethod
+    def _servers():
+        import http.server
+        import threading
+
+        hits = []
+
+        class Target(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                hits.append(self.headers.get("Authorization"))
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"{}")
+
+            def log_message(self, *a):
+                pass
+
+        target = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Target)
+
+        class Redirector(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(302)
+                self.send_header("Location", f"http://127.0.0.1:{target.server_address[1]}/stolen")
+                self.end_headers()
+
+            def log_message(self, *a):
+                pass
+
+        redirector = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Redirector)
+        for srv in (target, redirector):
+            threading.Thread(target=srv.serve_forever, daemon=True).start()
+        return redirector, target, hits
+
+    def _probe(self):
+        pspec = importlib.util.spec_from_file_location("acat_r_live_probe_redirect", LIVE_PROBE)
+        probe = importlib.util.module_from_spec(pspec)
+        pspec.loader.exec_module(probe)
+        return probe
+
+    def test_redirects_are_refused_on_both_request_paths(self):
+        import urllib.error
+        import urllib.request
+        redirector, target, hits = self._servers()
+        self.addCleanup(lambda: [s.shutdown() or s.server_close() for s in (redirector, target)])
+        base = f"http://127.0.0.1:{redirector.server_address[1]}/runs/"
+        env = {"no_proxy": "127.0.0.1", "NO_PROXY": "127.0.0.1"}
+        with mock.patch.dict("os.environ", env):
+            probe = self._probe()
+            probe.API = base
+            probe._RUN_URL = re.compile(re.escape(base) + r"[0-9]{1,15}")
+            request = urllib.request.Request(base + "1", headers={"Authorization": "Bearer t"}, method="GET")
+
+            # Control: a plain opener follows the redirect and forwards the credential.
+            plain = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            plain.open(request, timeout=5).read()
+            self.assertEqual(hits, ["Bearer t"])
+            hits.clear()
+
+            # Independent-fetch path.
+            record = probe.fetch_independent(1, "t", timeout=5)
+            self.assertEqual((record.get("http_status"), record.get("error")), (302, "HTTPError"))
+            self.assertEqual(hits, [])
+
+            # Observed verify_lead path, and the global opener is restored afterwards.
+            before = urllib.request._opener
+            with probe.observe_urlopen() as obs:
+                with self.assertRaises(urllib.error.HTTPError):
+                    urllib.request.urlopen(request, timeout=5)
+            self.assertEqual(obs.capture.get("http_status"), 302)
+            self.assertEqual(obs.capture.get("redirects"), "refused")
+            self.assertEqual(hits, [])
+            self.assertIs(urllib.request._opener, before)
+
+
 class EvidenceClassTests(unittest.TestCase):
     def test_manifest_covers_all_cases_and_isolates_proposed_policy(self):
         cases = study.build()
@@ -405,6 +483,21 @@ class AdjudicationTests(unittest.TestCase):
             self._track(root, "escape.md")
             with self.assertRaisesRegex(ValueError, "outside the repository root"):
                 study.validate_contract_citation("escape.md:1", root=root)
+
+    def test_symlinks_cannot_smuggle_git_metadata_or_untracked_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._git_root(tmp)
+            (root / "tracked.md").write_bytes(b"line\n")
+            (root / "untracked.md").write_bytes(b"line\n")
+            (root / "contract.md").symlink_to(".git/config")      # tracked link to excluded metadata
+            (root / "to_untracked.md").symlink_to("untracked.md")  # tracked link to an untracked file
+            (root / "to_tracked.md").symlink_to("tracked.md")      # tracked link to a tracked file
+            self._track(root, "tracked.md", "contract.md", "to_untracked.md", "to_tracked.md")
+            with self.assertRaisesRegex(ValueError, r"resolves into \.git"):
+                study.validate_contract_citation("contract.md:1", root=root)
+            with self.assertRaisesRegex(ValueError, "not a tracked repository file"):
+                study.validate_contract_citation("to_untracked.md:1", root=root)
+            self.assertEqual(study.validate_contract_citation("to_tracked.md:1", root=root)[0]["end"], 1)
 
     def test_citation_fails_closed_when_git_cannot_answer(self):
         with tempfile.TemporaryDirectory() as tmp:

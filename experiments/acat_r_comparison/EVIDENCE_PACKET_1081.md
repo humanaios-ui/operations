@@ -29,7 +29,7 @@ held-out set exists, so that gate is HOLD.
 | P2 = P3 stdout sha256 (rev 2 harness, full responses) | `2b70d6cf7aa0fe7fd8ca2094d60e368ba16bfd362301c070922eb21fe8c79596` |
 | sha256 of `experiments/acat_r_comparison/oracle/oracle_packet.json` | `1fff1b55f9292c8f7f54f7376d4f0d2df8deee66350c2eb197c3929f23cde7e5` |
 | sha256 of `experiments/acat_r_comparison/oracle/ORACLE_REVIEW_PACKET.md` | `5ad8bd2590655ee6b02b623befbbe086aff7fa90e4da09bf35c7f0ad23136a63` |
-| sha256 of `experiments/acat_r_comparison/receipts/live_probe_receipts.json` (re-run 4, schema v0.3, 14 probes) | `c869799be7633e77101664a5696725da63148453f93f6619b5bd68fcb267a0bd` |
+| sha256 of `experiments/acat_r_comparison/receipts/live_probe_receipts.json` (re-run 5, schema v0.3, 14 probes) | `9110031424610a6b6af549b4b47abc42a78120ccfe032043750d3481aa537451` |
 | sha256 of `experiments/acat_r_comparison/receipts/report_local_reproduction.json` | `0fa0011d1f0afd887c1681fde26039471d1490e5403725129215e84039799b36` |
 
 ## 3. Gate-by-gate status
@@ -42,7 +42,7 @@ held-out set exists, so that gate is HOLD.
 | Independent oracle review packet | PREPARED, decisions PENDING | `oracle/ORACLE_REVIEW_PACKET.md`: 30 rows, all `PENDING` |
 | Conventional vs ACAT-R comparison | DONE (executed before the acceptance gate; re-execution now BLOCKED) | run 41132149131 at `8481574` and `receipts/report_local_reproduction.json`: identical detections, advantage 0, confirmed defects 0. `study.py` now exits 2 with `RUBRIC_BLOCKED.json` until a human accepts rubric revision 1 |
 | Held-out testing | HOLD | `HELD_OUT_PROTOCOL.md`; no set exists; none invented |
-| Authenticated `verify_lead()` | EXECUTED; credential requirement **OPEN FINDING** | `receipts/live_probe_receipts.json` (re-run 4, 14 probes): runtime modules loaded from pin-verified bytes (measured from the loaded modules); hash is of the bytes `verify_lead` consumed; GET-only guard active (exact runs-endpoint URL shape). Credential was the session's GitHub App grant, scope not verified read-only; the #1081 requirement for a dedicated read-only PAT is NOT closed by these receipts |
+| Authenticated `verify_lead()` | EXECUTED; credential requirement **OPEN FINDING** | `receipts/live_probe_receipts.json` (re-run 5, 14 probes): runtime modules loaded from pin-verified bytes (measured from the loaded modules); hash is of the bytes `verify_lead` consumed; GET-only guard active (exact runs-endpoint URL shape, redirects refused). Credential was the session's GitHub App grant, scope not verified read-only; the #1081 requirement for a dedicated read-only PAT is NOT closed by these receipts |
 | Copilot + CodeRabbit review of corrected head | REQUESTED | on the stacked draft PR |
 | Separate CI repair (#1070) | NOT IN THIS BRANCH | kept distinct as the plan requires; `workflow-path-validation` and enumeration guard still red on `main` |
 | Admission | HOLD | human decision pending |
@@ -69,7 +69,7 @@ Reading: on these inputs the unchanged runtime does everything its documentation
 tests require. The four flags are a proposal that `reconcile()` should reject `bool` where it
 accepts `int`. Whether that is a requirement is the referee's call.
 
-## 5. Live probe of `verify_lead()` (14 probes; re-run 4 at 2026-10-31T04:03Z)
+## 5. Live probe of `verify_lead()` (14 probes; re-run 5 at 2026-10-31T04:12Z)
 
 | Probe | Real run | verify_lead outcome | Reads as |
 |---|---|---|---|
