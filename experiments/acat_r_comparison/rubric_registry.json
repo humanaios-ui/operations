@@ -1,0 +1,31 @@
+{
+  "schema": "humanaios.acat-r.rubric-registry.v0.2",
+  "purpose": "Immutable record of every reference-rubric digest ever declared for the GNER-E1 equal-workload study (issue #1081). study.py computes the rubric digest, compares it with the ACTIVE revision, and refuses to send any case to the runtime unless (a) the digests match and (b) the active revision carries human_accepted: true with a named acceptor. Otherwise it records the mismatch and exits BLOCKED. Changing labels requires appending a revision with a justification; editing an existing revision's digest or labels is not allowed.",
+  "acceptance_instructions": "To unblock, the human referee (Z2 or a designated independent reviewer) sets human_accepted to true on the active revision and fills accepted_by and accepted_at. That edit is the explicit protocol/version revision the issue #1081 plan requires. Agents may not set these fields.",
+  "active_revision": 1,
+  "revisions": [
+    {
+      "revision": 0,
+      "rubric_sha256": "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a",
+      "status": "PREDECLARED_BYTES_UNRECOVERABLE",
+      "declared_in": "issue #1081 body, 2026-10-30 (operator)",
+      "registered_by": "operator (issue author)",
+      "human_accepted": false,
+      "accepted_by": null,
+      "accepted_at": null,
+      "note": "No file in the repository at 52aa7c0ed70f6e24ec050d0d56788a791e5f78f7, in PR #1082 at head 8481574af8adffee83fdb89250847822485e4c86, or in GitHub Actions run 41132149131 hashes to this digest. The bytes were never committed, so this revision cannot be enforced or reproduced. Recorded so the mismatch is visible instead of silently replaced (Copilot finding r4428713850)."
+    },
+    {
+      "revision": 1,
+      "rubric_sha256": "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7",
+      "status": "PROPOSED_PENDING_HUMAN_ACCEPTANCE",
+      "first_observed": "PR #1082 head 8481574af8adffee83fdb89250847822485e4c86; GitHub Actions run 41132149131; reproduced locally 2026-10-30 by the issue #1081 implementer",
+      "registered_by": "Z1 implementer (Claude Code, delegated plan in issue #1081)",
+      "human_accepted": false,
+      "accepted_by": null,
+      "accepted_at": null,
+      "label_changes_from_previous": "NONE. Same 30 case ids, same expected labels, same lead/canonical inputs as PR #1082 head. Only the digest record is new.",
+      "justification": "These are the only rubric bytes that were ever executed (P1/P2/P3 in run 41132149131 and in the local reproduction). Registering them records, rather than hides, that they differ from the predeclared revision-0 digest. Because no human has accepted this revision, study.py BLOCKS before any runtime call (Copilot finding r4428945870 on PR #1083). Acceptance of the labels themselves remains with the human/domain referee; every case is PENDING in the oracle packet."
+    }
+  ]
+}
