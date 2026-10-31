@@ -1,5 +1,11 @@
 {
   "active_admissions": {
+    "ISSUE#1101": {
+      "admission_scope": "objective:ISSUE#1101",
+      "command_ref": "RCC-GITHUB-COMMENT-6550735944",
+      "event_id": "RCSEVT-C415086B96F31752",
+      "objective_issue_number": 1101
+    },
     "ISSUE#378": {
       "admission_scope": "objective:ISSUE#378",
       "command_ref": null,
@@ -47,6 +53,7 @@
     }
   },
   "active_event_ids": {
+    "ISSUE#1101": "RCSEVT-C415086B96F31752",
     "ISSUE#378": "RCSEVT-BOOTSTRAP-ISSUE-000378",
     "ISSUE#598": "RCSEVT-BOOTSTRAP-ISSUE-000598",
     "ISSUE#755": "RCSEVT-95A9AAA9DD86D7B4",
@@ -58,7 +65,8 @@
   "admitted_issue_numbers": [
     378,
     598,
-    755
+    755,
+    1101
   ],
   "admitted_pull_request_numbers": [
     809,
@@ -131,6 +139,7 @@
     "RCC-GITHUB-COMMENT-6550076901",
     "RCC-GITHUB-COMMENT-6550146466",
     "RCC-GITHUB-COMMENT-6550487638",
+    "RCC-GITHUB-COMMENT-6550735944",
     "RCC-GITHUB-PR-LIFECYCLE-1013-703c989c905d69f254fd374957fcc1cc6336dca5-2026-10-31T22:47:18Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-1096-2ea2467d5fad32fb532a8e813153d612b912a532-2026-10-31T22:49:06Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-1100-1835e902d23ad58ae4e954f499befbf210095a5a-2026-10-31T23:21:24Z-MERGED",
@@ -180,11 +189,11 @@
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "bdfda7e0f368a067ec36c5bd214ae4e7047554eb89f60b50e01861f35c758bbd",
-  "last_event_id": "RCSEVT-BDFDA7E0F368A067",
-  "last_sequence": 136,
-  "ledger_event_count": 136,
-  "ledger_sha256": "375c92901e677e3ccdd9f988ba9575b2364e10ceab2f1ca26757a5671cfe522d",
+  "last_event_hash": "c415086b96f317527f4177f5a189533410317e25f924e01c213b04bccf8b9284",
+  "last_event_id": "RCSEVT-C415086B96F31752",
+  "last_sequence": 137,
+  "ledger_event_count": 137,
+  "ledger_sha256": "7b311c7ffe61bdba2bfb25305a2457aa21580a9e8db15f3848e7a4328edcb992",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
