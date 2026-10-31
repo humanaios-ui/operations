@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 223
+  tools: 225
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 174
+  builder_markers_present: 176
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2835,6 +2835,30 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'IEW-002: distinguish self-reported receipts from trusted execution observations.'
+- tool_id: HAIOS-TOOL-237
+  name: metaculus_mode_gate
+  path: tools/Metaculus/mode_gate.py
+  version: 0.1.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Fail-closed approval guard for Metaculus actions with external side effects.
+- tool_id: HAIOS-TOOL-238
+  name: metaculus_offline_fixture
+  path: tools/Metaculus/offline_fixture.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Pure-stdlib, offline Metaculus forecast validation harness.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
