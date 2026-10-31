@@ -1,3 +1,4 @@
+# Builder v1.7 compliant
 """Pure-stdlib, offline Metaculus forecast validation harness.
 
 No external calls, models, Supabase, file writes or credentials. A *synthetic*
@@ -5,6 +6,11 @@ fixture exercises probability validation, a bounded sample ensemble and a binary
 Brier score. This is NOT a tournament score or evidence of forecasting skill.
 """
 from __future__ import annotations
+
+TOOL_NAME = "metaculus_offline_fixture"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "calibration_tool"
+TOOL_ZONE = 1
 
 import argparse
 import json
@@ -87,6 +93,19 @@ def main(argv: list[str] | None = None) -> int:
         record = json.load(handle)
     print(json.dumps(run_fixture(record), sort_keys=True))
     return 0
+
+
+def run_smoke_test() -> bool:
+    """Synthetic-only smoke test; does not call any provider."""
+    synthetic = {
+        "schema": "humanaios.metaculus.synthetic-fixture.v1",
+        "access_tier": "NO_CP",
+        "source_kind": "SYNTHETIC",
+        "question": {"id": "synthetic-smoke", "type": "binary", "resolved_as": 1},
+        "samples": [0.5],
+    }
+    result = run_fixture(synthetic)
+    return result["brier"] == 0.25 and result["external_api_calls"] == 0
 
 
 if __name__ == "__main__":
