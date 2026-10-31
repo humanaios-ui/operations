@@ -138,3 +138,15 @@ CodeRabbit marked all five of its `47b9228` findings addressed at `9808faa` and 
 | r4430416481 a tracked symlink to `.git/config` or an untracked file passed the citation checks, which tested only the link | The `.git` exclusion and the tracking check now apply to the resolved target too; tests cover links to `.git/config`, to an untracked file, and to a tracked file (still accepted) |
 
 Live probe re-run 5: all 14 outcomes and consumed-body hashes identical to re-run 4; no probe followed a redirect (every network response was status 200 or 404). Receipts sha256 `9110031424610a6b6af549b4b47abc42a78120ccfe032043750d3481aa537451`. 43 harness tests pass.
+
+## Addendum 7: Copilot re-review of PR #1083 head `b6d6b9a` (2026-10-31T04:19Z)
+
+Copilot marked the redirect and symlink findings resolved and raised three single-snapshot findings, all reproduced and repaired:
+
+| Finding | Repair |
+|---|---|
+| r4430456633 the second fetch used the spec's `run_id`, not the lead's after `lead_overrides` | Eligibility and the second fetch use the lead's run id; the receipt records `effective_run_id`; offline test with spec 111 overridden to 222 |
+| r4430456661 the spec was parsed and digested from two reads | `load_spec` reads the bytes once and returns the parsed probes and the digest of the same bytes; test with a file that changes between reads |
+| r4430456683 the adjudication digest came from fresh reads, separate from the scored decisions | `main` reads the adjudication bytes once, scores that snapshot and reuses its digest in both outputs; test where any second read sees an edited file |
+
+Live probe re-run 6: all 14 outcomes and consumed-body hashes identical to re-run 5; spec digest unchanged. Receipts sha256 `5b5abb65674e469dfa402604b7425a414bfad84dff63e148a2c6e54e0f635f4b`. 46 harness tests pass.

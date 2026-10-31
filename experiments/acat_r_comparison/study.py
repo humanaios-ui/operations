@@ -334,14 +334,16 @@ def validate_contract_citation(citation, root=ROOT):
     return refs
 
 
-def load_adjudication(cases, rubric_record, path=ADJUDICATION):
+def load_adjudication(cases, rubric_record, path=ADJUDICATION, raw=None):
     """Human decisions live here, separate from the generated PENDING template.
 
     Decisions are bound to one rubric: the file must name the enforced revision and the
     computed digest, so decisions recorded for an older rubric can never score a newer one
     (Copilot r4429077705).
     """
-    adj = json.loads(pathlib.Path(path).read_text())
+    # `raw` is a snapshot the caller already read, so the digest it records describes the decisions scored
+    # (Copilot r4430456683); without it the file is read once here.
+    adj = json.loads(pathlib.Path(path).read_bytes() if raw is None else raw)
     validate(adj.get("rubric_revision") == rubric_record["active_revision"],
              f"adjudication is for rubric revision {adj.get('rubric_revision')!r}, "
              f"enforced revision is {rubric_record['active_revision']}")
@@ -482,7 +484,9 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
                           "runtime_calls_made": 0, "admission": "HOLD"}, sort_keys=True))
         return blocked
     # adjudication is read only on the permitted path and must be bound to this exact rubric
-    adjudication = load_adjudication(cases, rubric_record)
+    adjudication_raw = pathlib.Path(ADJUDICATION).read_bytes()
+    adjudication_sha256 = sha(adjudication_raw)
+    adjudication = load_adjudication(cases, rubric_record, raw=adjudication_raw)
     # 1. unchanged conventional 10-case suite FIRST
     conventional_baseline = baseline(out)
     # 2. commitment before any case is sent to the runtime
@@ -540,7 +544,7 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
                                      label_review_state=("NOT_INDEPENDENTLY_REVIEWED" if d["decision"] == "PENDING"
                                                          else d.get("reviewer_kind"))))
     (out / "oracle_adjudicated.json").write_text(json.dumps(
-        {"schema": "humanaios.acat-r.oracle-adjudicated.v0.1", "adjudication_sha256": sha(ADJUDICATION.read_bytes()),
+        {"schema": "humanaios.acat-r.oracle-adjudicated.v0.1", "adjudication_sha256": adjudication_sha256,
          "rubric": rubric_record, "summary": scored, "cases": adjudicated_rows}, indent=2, sort_keys=True) + "\n")
     confirmed = len(scored["confirmed_defects"])
     # 6. report
@@ -580,7 +584,7 @@ def main(out_dir=DEFAULT_OUT, registry_path=None):
         "confirmed_defects_basis": "disagreements whose label a HUMAN reviewer ACCEPTed in oracle/ADJUDICATION.json; "
                                    "agent-only acceptances are listed but never counted",
         "adjudication_summary": scored,
-        "adjudication_sha256": sha(ADJUDICATION.read_bytes()),
+        "adjudication_sha256": adjudication_sha256,
         "acatr_detection_advantage_on_equal_inputs": len(set(flags) - set(conv)),
         "measured_false_alarm_rate": "UNDETERMINED: oracle labels not independently approved",
         "captures_real_github_data": False, "auth_path_tested": False,

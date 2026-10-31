@@ -278,6 +278,33 @@ class SourcePinTests(unittest.TestCase):
                     urllib.request.urlopen(urllib.request.Request(probe.API + extra, method="GET"))
 
 
+class AdjudicationSnapshotTests(unittest.TestCase):
+    """The recorded adjudication digest must describe the decisions that were scored, even if the file is
+    edited while the study runs (Copilot r4430456683)."""
+
+    def test_adjudication_is_read_once_and_its_digest_is_reused(self):
+        original = pathlib.Path.read_bytes
+        adjudication = pathlib.Path(study.ADJUDICATION)
+        snapshot = original(adjudication)
+        calls = []
+
+        def racing(self_path):
+            if self_path == adjudication:
+                calls.append(1)
+                # any later read would see an edited file
+                return snapshot if len(calls) == 1 else snapshot + b" "
+            return original(self_path)
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = _write_registry(tmp, **ACCEPTED_FIXTURE)
+            out = pathlib.Path(tmp) / "ev"
+            with mock.patch.object(pathlib.Path, "read_bytes", racing):
+                report = study.main(out, registry_path=registry)
+            written = json.loads((out / "oracle_adjudicated.json").read_text())
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(report["adjudication_sha256"], hashlib.sha256(snapshot).hexdigest())
+        self.assertEqual(written["adjudication_sha256"], report["adjudication_sha256"])
+
+
 class RedirectRefusalTests(unittest.TestCase):
     """urlopen follows redirects internally and forwards Authorization, so the endpoint guard alone
     would not see the destination (Copilot r4430416455). Local servers, no network."""
@@ -721,6 +748,36 @@ class LiveProbeOfflineTests(unittest.TestCase):
         same = self._run(probe, [body_a, body_a])
         self.assertIs(same["consumed_matches_independent_fetch"], True)
         self.assertEqual(same["consumed_response"]["public_fields"]["conclusion"], "failure")
+
+    def test_second_fetch_uses_the_effective_lead_run_id(self):
+        import urllib.request
+        probe = self._probe_module()
+        canonical = {"id": 222, "repository": {"full_name": "humanaios-ui/operations"},
+                     "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9", "name": "quality-baseline",
+                     "event": "pull_request", "status": "completed", "conclusion": "failure", "pull_requests": []}
+        body = json.dumps(canonical).encode()
+        urls = []
+        inner = self._fake_urlopen([body, body])
+
+        def recording(request, *a, **k):
+            urls.append(request.full_url)
+            return inner(request, *a, **k)
+        spec = {"id": "override", "run_id": 111, "workflow": "quality-baseline", "kind": "WORKFLOW_FAILURE_LEAD",
+                "sha_prefix": "7ea76aa", "pr": None, "lead_overrides": {"run_id": 222}}
+        with mock.patch.object(urllib.request, "urlopen", recording):
+            out = probe.run_probe(spec, "not-a-real-token")
+        self.assertEqual(out["effective_run_id"], 222)
+        self.assertEqual([u.rsplit("/", 1)[1] for u in urls], ["222", "222"])
+        self.assertIs(out["consumed_matches_independent_fetch"], True)
+
+    def test_spec_is_read_once_and_digest_matches_the_parsed_snapshot(self):
+        probe = self._probe_module()
+        first, second = b'[{"id": "a"}]', b'[{"id": "b"}]'
+        with mock.patch.object(pathlib.Path, "read_bytes", side_effect=[first, second]) as reader:
+            probes, digest = probe.load_spec("ignored.json")
+        self.assertEqual(reader.call_count, 1)
+        self.assertEqual(probes, [{"id": "a"}])
+        self.assertEqual(digest, hashlib.sha256(first).hexdigest())
 
     def test_one_sided_body_hash_is_a_divergence_not_unknown(self):
         probe = self._probe_module()

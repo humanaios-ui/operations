@@ -279,14 +279,25 @@ def run_probe(probe: dict, token: str) -> dict:
                                   "cause": type(exc.__cause__).__name__ if exc.__cause__ else None}
     out["consumed_response"] = summarize_consumed(obs.capture)
     out["network_call_made"] = "request_url" in obs.capture
-    if out["network_call_made"] and probe.get("fetch_independent", True) and type(run_id) is int and run_id > 0:
-        second = fetch_independent(run_id, token)
+    # The lead that verify_lead saw may override run_id; compare two observations of that same endpoint
+    # (Copilot r4430456633).
+    effective_run_id = lead["run_id"]
+    out["effective_run_id"] = effective_run_id
+    if out["network_call_made"] and probe.get("fetch_independent", True) and type(effective_run_id) is int and effective_run_id > 0:
+        second = fetch_independent(effective_run_id, token)
         out["independent_fetch"] = second
         a = out["consumed_response"].get("response_sha256")
         b = second.get("response_sha256")
         # None only when neither side has a body to compare; one-sided evidence is a divergence.
         out["consumed_matches_independent_fetch"] = None if (a is None and b is None) else (a == b)
     return out
+
+
+def load_spec(path):
+    """Read the spec bytes once; the probes that run and the digest recorded describe the same snapshot
+    (Copilot r4430456661)."""
+    raw = pathlib.Path(path).read_bytes()
+    return json.loads(raw), _sha(raw)
 
 
 def main() -> int:
@@ -299,8 +310,7 @@ def main() -> int:
     if not token:
         print("GITHUB_TOKEN not set; refusing to probe (fail closed)", file=sys.stderr)
         return 2
-    spec_path = pathlib.Path(args.spec)
-    probes = json.loads(spec_path.read_text())
+    probes, spec_sha256 = load_spec(args.spec)
     out_dir = pathlib.Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     receipts = {
@@ -313,7 +323,7 @@ def main() -> int:
         "source_pins": SOURCE_PINS,
         "read_only_enforcement": "pinned verify_lead source (single GET) plus urlopen observer refusing non-GET or off-endpoint requests, with redirects refused on both request paths; credential scope itself is NOT verified by this probe",
         "credential_requirement_status": "OPEN: issue #1081 asked for a dedicated fine-grained read-only PAT; these receipts do not close that requirement",
-        "spec_sha256": _sha(spec_path.read_bytes()),
+        "spec_sha256": spec_sha256,
         "started_at_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(),
         "credential_note": args.credential_note,
         "credential_logged": False,
