@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 12
     steps:
       - name: Checkout exact tested source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
@@ -104,11 +104,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Compile existing Azure Bicep without Azure credentials
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           inlineScript: |
             az bicep build --file humanaios-funding-pipeline/infra/resource-miner-containerapp.bicep --stdout > /dev/null
