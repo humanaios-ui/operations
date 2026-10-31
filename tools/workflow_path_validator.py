@@ -119,7 +119,7 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
                         f"(resolved to: {full_path.relative_to(repo_root)})"
                     )
                 elif pattern.endswith(("/**", "/*")) and not full_path.is_dir():
-                    # Nothing can match under a regular file, so the filter never fires.
+                    # Nothing can match under a regular file, so the filter cannot fire.
                     errors.append(
                         f"Path '{path_pattern}' requires '{base_path}' to be a directory"
                     )
