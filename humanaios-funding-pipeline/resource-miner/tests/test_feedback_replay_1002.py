@@ -3,19 +3,24 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import tempfile
+from unittest.mock import patch
 from pathlib import Path
 import unittest
 
 from resource_miner.feedback_replay_1002 import replay
+from resource_miner import intent_os as ranker_module
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@unittest.skipUnless(os.getenv("RUN_PINNED_E1_1002") == "1", 
+                     "Historical pinned E1 replay runs only in explicit isolated CI")
 class FeedbackReplay1002Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.snapshot = ROOT / "data/resources.snapshot.jsonl"
+        cls.snapshot = ROOT / "fixtures/feedback_replay_1002_corpus_20261026.jsonl"
         cls.fixture = json.loads((ROOT / "fixtures/feedback_replay_1002_v1.json").read_text())
 
     def test_baseline_and_proposed_replay(self):
@@ -23,6 +28,7 @@ class FeedbackReplay1002Tests(unittest.TestCase):
         receipt = replay(self.snapshot, self.fixture)
         self.assertEqual(self.snapshot.read_bytes(), before, "Historical source changed")
         self.assertEqual(receipt["status"], "PASS_SHADOW_ONLY")
+        self.assertEqual(receipt["corpus_before_revision"], self.fixture["snapshot_git_blob_sha"])
         self.assertEqual(receipt["stale_source_exposure_at_10_before"], 1)
         self.assertEqual(receipt["stale_source_exposure_at_10_after"], 0)
         self.assertEqual(receipt["unsupported_closure_claims_emitted"], 0)
@@ -71,6 +77,25 @@ class FeedbackReplay1002Tests(unittest.TestCase):
         f["snapshot_row_count"] = 1
         with self.assertRaises(ValueError):
             replay(self.snapshot, f)
+
+    def test_reject_stale_ranker_and_helper_pins(self):
+        for changed in ("ranker_git_blob_sha", "query_quality.py", "source_risk.py"):
+            fixture = copy.deepcopy(self.fixture)
+            if changed == "ranker_git_blob_sha":
+                fixture[changed] = "0" * 40
+            else:
+                fixture["ranker_dependency_git_blobs"][changed] = "0" * 40
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                replay(self.snapshot, fixture)
+        fixture = copy.deepcopy(self.fixture)
+        del fixture["ranker_dependency_git_blobs"]
+        with self.assertRaises(ValueError):
+            replay(self.snapshot, fixture)
+
+    def test_reject_execution_with_unpinned_import(self):
+        with patch.object(ranker_module, "query_terms", lambda text: {"fake"}):
+            with self.assertRaises(ValueError):
+                replay(self.snapshot, self.fixture)
 
     def test_reject_unreviewed_status_and_forged_approval(self):
         f = copy.deepcopy(self.fixture)
