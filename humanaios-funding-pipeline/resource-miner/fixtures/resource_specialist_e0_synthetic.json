@@ -1,0 +1,123 @@
+{
+  "schema": "humanaios.resource-specialist.e0.synthetic.v0.1",
+  "authority_effect": "NONE",
+  "evidence_status": "SYNTHETIC_ONLY_NOT_SOURCE_VERIFIED",
+  "rationale": "Bounded comparison of baseline ResourceCandidate normalization, need routing and proposed broader resource-form facets; no real account claims.",
+  "specimens": [
+    {
+      "case_id": "E0-01",
+      "context_ref": "https://github.com/humanaios-ui/operations/issues/588",
+      "title": "Restricted cloud compute credit",
+      "description": "Cloud compute credit for an approved workload; non-cash and service restricted.",
+      "source_url": "https://example.org/synthetic/credit",
+      "source_category": "compute_credit",
+      "expected_type": "compute_credit",
+      "expected_affordances": [
+        "compute_capacity"
+      ],
+      "expected_baseline_route": "VERIFY_NOW",
+      "origin": "INTERNAL_REPORTED",
+      "control_proof": "NOT_IN_SYNTHETIC_FIXTURE",
+      "form_facets": [
+        "DIGITAL_CAPACITY",
+        "RESTRICTED_FINANCIAL_INSTRUMENT"
+      ],
+      "simulated_source_status": "SOURCE_WORKING"
+    },
+    {
+      "case_id": "E0-02",
+      "context_ref": "https://github.com/humanaios-ui/operations/pull/1080",
+      "title": "Paid contract task held for equipment",
+      "description": "Paid project with accepted task but required recording equipment unavailable; no submitted output or income established.",
+      "source_url": "https://example.org/synthetic/contract",
+      "source_category": "paid_work",
+      "expected_type": "paid_work",
+      "expected_affordances": [
+        "earned_income"
+      ],
+      "expected_baseline_route": "VERIFY_NOW",
+      "origin": "EXTERNAL_PERMISSIONED_REPORTED",
+      "control_proof": "NO_COMPLETION_PROOF",
+      "form_facets": [
+        "CONTRACTUAL_OPPORTUNITY",
+        "HUMAN_LABOR"
+      ],
+      "simulated_source_status": "SOURCE_WORKING"
+    },
+    {
+      "case_id": "E0-03",
+      "context_ref": "https://github.com/humanaios-ui/operations/issues/1091",
+      "title": "Reusable internal code and regression tests",
+      "description": "Versioned source code with a repeatable verification test module.",
+      "source_url": "https://example.org/synthetic/code",
+      "source_category": "",
+      "expected_type": "general_resource",
+      "expected_affordances": [],
+      "expected_baseline_route": "WATCH",
+      "origin": "INTERNAL_REPOSITORY",
+      "control_proof": "REQUIRES_EXACT_HEAD",
+      "form_facets": [
+        "DIGITAL_SOFTWARE",
+        "KNOWLEDGE_EVIDENCE"
+      ],
+      "simulated_source_status": "SOURCE_WORKING"
+    },
+    {
+      "case_id": "E0-04",
+      "context_ref": "https://github.com/humanaios-ui/operations/issues/611",
+      "title": "Available human attention hours",
+      "description": "Constrained operator time for human review and decisions.",
+      "source_url": "https://example.org/synthetic/attention",
+      "source_category": "",
+      "expected_type": "general_resource",
+      "expected_affordances": [],
+      "expected_baseline_route": "WATCH",
+      "origin": "INTERNAL_USER_REPORTED",
+      "control_proof": "NOT_IN_SYNTHETIC_FIXTURE",
+      "form_facets": [
+        "HUMAN_ATTENTION",
+        "TEMPORAL_CAPACITY"
+      ],
+      "simulated_source_status": "SOURCE_WORKING"
+    },
+    {
+      "case_id": "E0-05",
+      "context_ref": "https://github.com/humanaios-ui/operations/issues/588",
+      "title": "Research evaluation grant",
+      "description": "Grant funding for independent research evaluation and replication.",
+      "source_url": "https://example.org/synthetic/grant",
+      "source_category": "research_grant",
+      "expected_type": "grant",
+      "expected_affordances": [
+        "project_funding"
+      ],
+      "expected_baseline_route": "VERIFY_NOW",
+      "origin": "EXTERNAL_PUBLIC_CANDIDATE",
+      "control_proof": "NOT_ACQUIRED",
+      "form_facets": [
+        "FINANCIAL_OPPORTUNITY",
+        "RESEARCH_ACCESS_POSSIBLE"
+      ],
+      "simulated_source_status": "SOURCE_WORKING"
+    },
+    {
+      "case_id": "E0-06",
+      "context_ref": "https://github.com/humanaios-ui/operations/issues/1091",
+      "title": "Research grant with failed link",
+      "description": "Grant funding for independent research evaluation and replication.",
+      "source_url": "https://example.org/synthetic/failed-grant",
+      "source_category": "research_grant",
+      "expected_type": "grant",
+      "expected_affordances": [
+        "project_funding"
+      ],
+      "expected_baseline_route": "VERIFY_NOW",
+      "origin": "EXTERNAL_PUBLIC_CANDIDATE",
+      "control_proof": "NOT_ACQUIRED",
+      "form_facets": [
+        "FINANCIAL_OPPORTUNITY"
+      ],
+      "simulated_source_status": "LINK_FAILED_404"
+    }
+  ]
+}
