@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import itertools
 import json
 import os
 import urllib.error
@@ -145,8 +146,13 @@ class HackerOneClient:
         else:
             raise HackerOneAPIError("HackerOne pagination exceeded max_pages safety bound")
 
-    def list_programs(self, page_size: int = DEFAULT_PAGE_SIZE) -> list[dict[str, Any]]:
-        return list(self._iter_paginated("/programs", page_size=page_size))
+    def list_programs(
+        self, page_size: int = DEFAULT_PAGE_SIZE, max_results: int | None = None
+    ) -> list[dict[str, Any]]:
+        programs = self._iter_paginated("/programs", page_size=page_size)
+        if max_results is not None:
+            programs = itertools.islice(programs, max_results)
+        return list(programs)
 
     def get_program(self, handle: str) -> dict[str, Any]:
         handle = handle.strip()
