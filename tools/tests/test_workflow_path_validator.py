@@ -77,3 +77,28 @@ def test_trailing_directory_glob_requires_existing_directory(tmp_path, monkeypat
     assert valid is True
     assert errors == []
     assert warnings == []
+
+
+def test_wildcard_parent_is_the_literal_prefix(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "tools").mkdir()
+    workflow = write_workflow(tmp_path, ["tools/**/*.py"])
+    valid, errors, warnings = validator.validate_workflow_paths(str(workflow))
+    assert valid is True
+    assert errors == []
+    assert warnings == []
+
+    workflow = write_workflow(tmp_path, ["missing/**/*.py"])
+    valid, errors, warnings = validator.validate_workflow_paths(str(workflow))
+    assert valid is True
+    assert len(warnings) == 1
+    assert "'missing'" in warnings[0]
+
+
+def test_paths_ignore_is_checked_too(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    workflow = tmp_path / "workflow.yml"
+    workflow.write_text(yaml.safe_dump({"on": {"push": {"paths-ignore": ["gone.md"]}}}))
+    valid, errors, _ = validator.validate_workflow_paths(str(workflow))
+    assert valid is False
+    assert "gone.md" in errors[0]
