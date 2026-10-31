@@ -78,18 +78,21 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
                     errors.append(f"Trigger '{trigger_name}': path entries must be non-empty strings")
                     continue
 
+                # A leading `!` negates the pattern; the path it names is the rest.
+                pattern = path_pattern[1:] if path_pattern.startswith("!") else path_pattern
+
                 # Recursive patterns can match at several repository depths, so
                 # there is no single literal base path to require.
-                if path_pattern.startswith("**/"):
+                if pattern.startswith("**/"):
                     continue
 
                 # A trailing directory glob names a literal directory, which
                 # must exist; strip it before looking for inline wildcards.
-                base_path = path_pattern
-                if path_pattern.endswith("/**"):
-                    base_path = path_pattern[:-3]
-                elif path_pattern.endswith("/*"):
-                    base_path = path_pattern[:-2]
+                base_path = pattern
+                if pattern.endswith("/**"):
+                    base_path = pattern[:-3]
+                elif pattern.endswith("/*"):
+                    base_path = pattern[:-2]
 
                 # Inline wildcards are structurally valid. A missing parent is
                 # surfaced as a warning because future files may satisfy the glob.
@@ -115,9 +118,10 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
                         f"Path '{path_pattern}' not found in repository "
                         f"(resolved to: {full_path.relative_to(repo_root)})"
                     )
-                elif path_pattern.endswith("/**") and not full_path.is_dir():
-                    warnings.append(
-                        f"Path '{path_pattern}' uses recursive glob but '{base_path}' is not a directory"
+                elif pattern.endswith(("/**", "/*")) and not full_path.is_dir():
+                    # Nothing can match under a regular file, so the filter never fires.
+                    errors.append(
+                        f"Path '{path_pattern}' requires '{base_path}' to be a directory"
                     )
 
     return len(errors) == 0, errors, warnings
