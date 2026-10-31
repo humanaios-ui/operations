@@ -96,7 +96,7 @@
     "kind": "WORKFLOW_FAILURE_LEAD",
     "sha_prefix": "7ea76aa",
     "pr": null,
-    "fetch_raw": false,
+    "fetch_independent": false,
     "purpose": "Reachability of offline case type_lead_bool_id through verify_lead: run_id=True."
   },
   {
@@ -106,7 +106,7 @@
     "kind": "WORKFLOW_FAILURE_LEAD",
     "sha_prefix": "7ea76aa",
     "pr": null,
-    "fetch_raw": false,
+    "fetch_independent": false,
     "purpose": "Reachability of offline case unknown_run_id_as_str through verify_lead: run_id as string."
   },
   {

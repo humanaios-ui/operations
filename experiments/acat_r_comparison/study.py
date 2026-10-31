@@ -291,11 +291,21 @@ def fair_conventional(cases, rows, out):
 CITATION = re.compile(r"^(?P<path>[A-Za-z0-9_./-]+):(?P<start>[1-9]\d*)(?:-(?P<end>[1-9]\d*))?$")
 
 
+def _is_tracked(root, rel):
+    """True only if git lists exactly this path as tracked; fails closed if git cannot answer."""
+    try:
+        p = subprocess.run(["git", "--literal-pathspecs", "-C", str(root), "ls-files", "-z", "--", rel],
+                           capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return p.returncode == 0 and rel.encode() in p.stdout.split(b"\0")
+
+
 def validate_contract_citation(citation, root=ROOT):
     """A HUMAN ACCEPT must cite real file:line (or file:start-end) ranges, ';'-separated.
 
-    Each path must exist under the repository root and each range must lie within the file
-    (Copilot r4429301750). Returns the parsed references.
+    Each path must be a tracked file that resolves under the repository root (no .git, no escaping
+    symlinks) and each range must lie within the file (Copilot r4429301750, CodeRabbit). Returns the parsed references.
     """
     refs = []
     for part in [x.strip() for x in str(citation).split(";") if x.strip()]:
@@ -303,8 +313,14 @@ def validate_contract_citation(citation, root=ROOT):
         validate(m is not None, f"citation {part!r} is not path:line or path:start-end")
         rel = m.group("path")
         validate(".." not in rel.split("/") and not rel.startswith("/"), f"citation path {rel!r} must be repository-relative")
+        validate(".git" not in rel.split("/"), f"citation path {rel!r} must not point into .git")
         target = root / rel
         validate(target.is_file(), f"citation path {rel!r} does not exist in the repository")
+        try:
+            target.resolve().relative_to(root.resolve())
+        except ValueError:
+            raise ValueError(f"citation path {rel!r} resolves outside the repository root") from None
+        validate(_is_tracked(root, rel), f"citation path {rel!r} is not a tracked repository file")
         total = len(target.read_bytes().splitlines())  # real lines; a trailing newline adds none
         start = int(m.group("start"))
         end = int(m.group("end") or start)

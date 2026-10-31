@@ -272,6 +272,10 @@ class SourcePinTests(unittest.TestCase):
                 urllib.request.urlopen(urllib.request.Request(probe.API + "1", method="POST"))
             with self.assertRaisesRegex(RuntimeError, "only GET"):
                 urllib.request.urlopen(urllib.request.Request("https://api.github.com/repos/x/y/issues", method="GET"))
+            # Prefix matches under the runs endpoint are also outside the one shape verify_lead builds.
+            for extra in ("1/logs", "1/artifacts", "1?x=y", "abc", "", "1234567890123456"):
+                with self.assertRaisesRegex(RuntimeError, "only GET", msg=extra):
+                    urllib.request.urlopen(urllib.request.Request(probe.API + extra, method="GET"))
 
 
 class EvidenceClassTests(unittest.TestCase):
@@ -374,11 +378,40 @@ class AdjudicationTests(unittest.TestCase):
         refs = study.validate_contract_citation("tools/gner_verify_e1.py:50-53")
         self.assertEqual(refs, [{"path": "tools/gner_verify_e1.py", "start": 50, "end": 53}])
 
+    @staticmethod
+    def _git_root(tmp):
+        root = pathlib.Path(tmp)
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        return root
+
+    @staticmethod
+    def _track(root, *names):
+        subprocess.run(["git", "-C", str(root), "add", "--", *names], check=True)
+
+    def test_citation_must_name_a_tracked_file_under_the_root(self):
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as outside:
+            root = self._git_root(tmp)
+            (root / "untracked.md").write_bytes(b"line\n")
+            with self.assertRaisesRegex(ValueError, "not a tracked repository file"):
+                study.validate_contract_citation("untracked.md:1", root=root)
+            (root / "tracked.md").write_bytes(b"line\n")
+            self._track(root, "tracked.md")
+            study.validate_contract_citation("tracked.md:1", root=root)
+            with self.assertRaisesRegex(ValueError, r"\.git"):
+                study.validate_contract_citation(".git/config:1", root=root)
+            secret = pathlib.Path(outside) / "secret.md"
+            secret.write_bytes(b"line\n")
+            (root / "escape.md").symlink_to(secret)
+            self._track(root, "escape.md")
+            with self.assertRaisesRegex(ValueError, "outside the repository root"):
+                study.validate_contract_citation("escape.md:1", root=root)
+
     def test_citation_line_count_ignores_trailing_newline(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = pathlib.Path(tmp)
+            root = self._git_root(tmp)
             for name, content in (("with_nl.md", b"Only real line\n"), ("no_nl.md", b"Only real line")):
                 (root / name).write_bytes(content)
+                self._track(root, name)
                 study.validate_contract_citation(f"{name}:1", root=root)
                 with self.assertRaisesRegex(ValueError, "outside the file's 1 lines"):
                     study.validate_contract_citation(f"{name}:2", root=root)
@@ -503,6 +536,8 @@ class LiveProbeReceiptTests(unittest.TestCase):
         self.assertEqual(by_id["nonexistent_run_expiry_behaviour"]["consumed_response"]["http_status"], 404)
         self.assertIsNone(by_id["nonexistent_run_expiry_behaviour"]["consumed_matches_independent_fetch"])
         self.assertTrue(receipts["entry_point_loaded_from_verified_bytes"])
+        spec_probes = json.loads((REPO / "experiments/acat_r_comparison/live_probe_spec.json").read_text())
+        self.assertFalse([k for p in spec_probes for k in p if k == "fetch_raw"], "unconsumed spec key")
         self.assertIn("OPEN", receipts["credential_requirement_status"])
         self.assertNotIn("session_01", text)
         self.assertEqual(by_id["unlisted_workflow_in_lead"]["verify_lead"]["result"]["reason"],
@@ -578,6 +613,17 @@ class LiveProbeOfflineTests(unittest.TestCase):
         same = self._run(probe, [body_a, body_a])
         self.assertIs(same["consumed_matches_independent_fetch"], True)
         self.assertEqual(same["consumed_response"]["public_fields"]["conclusion"], "failure")
+
+    def test_one_sided_body_hash_is_a_divergence_not_unknown(self):
+        probe = self._probe_module()
+        with mock.patch.object(probe, "summarize_consumed", return_value={"http_status": 404}), \
+                mock.patch.object(probe, "fetch_independent", return_value={"response_sha256": "ab" * 32}):
+            out = self._run(probe, [b"{}"])
+        self.assertIs(out["consumed_matches_independent_fetch"], False)
+        with mock.patch.object(probe, "summarize_consumed", return_value={"http_status": 404}), \
+                mock.patch.object(probe, "fetch_independent", return_value={"http_status": 404}):
+            out = self._run(probe, [b"{}"])
+        self.assertIsNone(out["consumed_matches_independent_fetch"])
 
 
 class EvidencePacketDigestTests(unittest.TestCase):

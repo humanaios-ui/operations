@@ -44,6 +44,7 @@ import importlib.util
 import json
 import os
 import pathlib
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -114,6 +115,8 @@ _gner = import_verified("gner_verify_e1", "tools/gner_verify_e1.py", _VERIFIED["
 REPO, VerificationDenied, verify_lead = _gner.REPO, _gner.VerificationDenied, _gner.verify_lead
 
 API = f"https://api.github.com/repos/{REPO}/actions/runs/"
+# The one URL shape verify_lead builds: the runs endpoint plus a bounded integer (CodeRabbit, prefix match too wide).
+_RUN_URL = re.compile(re.escape(API) + r"[0-9]{1,15}")
 
 
 class _Observed:
@@ -166,7 +169,7 @@ class observe_urlopen:
             cap["request_url"] = url
             cap["request_method"] = method
             cap["authorization_header_present"] = bool(request.has_header("Authorization")) if hasattr(request, "has_header") else None
-            if method != "GET" or not url.startswith(API):
+            if method != "GET" or not _RUN_URL.fullmatch(url):
                 cap["error"] = "REFUSED_BY_READ_ONLY_GUARD"
                 raise RuntimeError("probe permits only GET to the pinned runs endpoint")
             cap["read_only_guard"] = "GET to runs endpoint enforced"
@@ -256,7 +259,8 @@ def run_probe(probe: dict, token: str) -> dict:
         out["independent_fetch"] = second
         a = out["consumed_response"].get("response_sha256")
         b = second.get("response_sha256")
-        out["consumed_matches_independent_fetch"] = (a == b) if (a is not None and b is not None) else None
+        # None only when neither side has a body to compare; one-sided evidence is a divergence.
+        out["consumed_matches_independent_fetch"] = None if (a is None and b is None) else (a == b)
     return out
 
 
@@ -278,7 +282,9 @@ def main() -> int:
         "schema": "humanaios.acat-r.live-verify-lead-probe.v0.3",
         "entry_point": "tools/gner_verify_e1.py::verify_lead",
         "entry_point_verified_unmodified": all(v["verified"] for v in SOURCE_PINS.values()),
-        "entry_point_loaded_from_verified_bytes": True,
+        "entry_point_loaded_from_verified_bytes": all(
+            isinstance(getattr(sys.modules.get(n), "__loader__", None), _VerifiedSourceLoader)
+            for n in ("gner_verify_e1", "gner_notification_e0")),
         "source_pins": SOURCE_PINS,
         "read_only_enforcement": "pinned verify_lead source (single GET) plus urlopen observer refusing non-GET or off-endpoint requests; credential scope itself is NOT verified by this probe",
         "credential_requirement_status": "OPEN: issue #1081 asked for a dedicated fine-grained read-only PAT; these receipts do not close that requirement",

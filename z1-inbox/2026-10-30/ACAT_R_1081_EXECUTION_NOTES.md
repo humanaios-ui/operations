@@ -115,3 +115,15 @@ Live probe re-run 3 (14 probes): identical outcomes for the original 13; new all
 | 7 / `edb8f16` | None open. Summary asks for human interpretation of detection counts (labels investigator-authored) and notes exceptions might be misread as false positives | No change: `assess()` records a worker `EXCEPTION` as a disagreement with the exception type; it can never satisfy an expected label |
 
 CodeRabbit re-requested at 23:17Z and 23:52Z; both times the hourly allowance was exhausted at the first attempt. Open thread r4429247096 (provenance) stays with the operator.
+
+## Addendum 5: CodeRabbit review of PR #1083 head `47b9228` (2026-10-31T04:01Z)
+
+Five Minor findings, all reproduced against the code, all repaired in the next commit. Live probe re-run 4: all 14 outcomes and consumed-body hashes identical to re-run 3; receipts sha256 `c869799be7633e77101664a5696725da63148453f93f6619b5bd68fcb267a0bd`.
+
+| Finding | Repair |
+|---|---|
+| r4430375904 `fetch_raw` spec key never consumed | Renamed to `fetch_independent` in both entries; test forbids the dead key |
+| r4430375923 read-only guard used a prefix match | `fullmatch` on the runs endpoint plus a bounded integer; six extra refused shapes tested |
+| r4430375927 `None` hid one-sided body divergence | `None` only when neither side has a hash; one-sided is `False`; tested |
+| r4430375936 `entry_point_loaded_from_verified_bytes` was a constant | Derived from the loaded modules' loaders |
+| r4430375942 citation could name `.git/config` or an untracked or escaping file | Reject `.git`, require resolved path under root and `git ls-files` tracking; real temporary git repository tests |
