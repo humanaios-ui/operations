@@ -102,3 +102,28 @@ def test_paths_ignore_is_checked_too(tmp_path, monkeypatch):
     valid, errors, _ = validator.validate_workflow_paths(str(workflow))
     assert valid is False
     assert "gone.md" in errors[0]
+
+
+def test_directory_glob_on_a_regular_file_fails(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "docs").write_text("not a directory\n")
+    for pattern in ("docs/**", "docs/*"):
+        workflow = write_workflow(tmp_path, [pattern])
+        valid, errors, _ = validator.validate_workflow_paths(str(workflow))
+        assert valid is False, pattern
+        assert "requires 'docs' to be a directory" in errors[0]
+
+
+def test_negated_pattern_is_checked_without_its_bang(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "src").mkdir()
+    workflow = write_workflow(tmp_path, ["!src/**", "!**/*.md"])
+    valid, errors, warnings = validator.validate_workflow_paths(str(workflow))
+    assert valid is True
+    assert errors == []
+    assert warnings == []
+
+    workflow = write_workflow(tmp_path, ["!gone/**"])
+    valid, errors, _ = validator.validate_workflow_paths(str(workflow))
+    assert valid is False
+    assert "!gone/**" in errors[0]
