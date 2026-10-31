@@ -12,6 +12,7 @@ import sys
 
 TOOL_NAME = "iew_runner"
 TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "diagnostic_tool"
 
 PIN = "c1137e7bfe1f92376729a83e96ab6dcd7a40b1a93cf6bcbc754b55c66da983d1"
 def sha(value):

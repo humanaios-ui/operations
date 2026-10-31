@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Workflow Path Validator — validate GitHub Actions path filters
+Builder v1.7 compliant - validation_tool
 Version: 1.0.0 (Zone 1 draft)
 
 HumanAIOS validation tool for IC-032 prevention. It checks workflow path
@@ -61,57 +62,67 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
         return True, [], []
 
     for trigger_name, trigger_config in trigger_config_dict.items():
-        if not isinstance(trigger_config, dict) or "paths" not in trigger_config:
+        if not isinstance(trigger_config, dict):
             continue
 
+        for filter_key in ("paths", "paths-ignore"):
+            if filter_key not in trigger_config:
+                continue
             paths = trigger_config[filter_key]
             if not isinstance(paths, list):
                 errors.append(f"Trigger '{trigger_name}': {filter_key} must be a list")
                 continue
 
             for path_pattern in paths:
-                # Patterns starting with "**/" can match at any level — always valid syntactically
-                if path_pattern.startswith("**/"):
+                if not isinstance(path_pattern, str) or not path_pattern.strip():
+                    errors.append(f"Trigger '{trigger_name}': path entries must be non-empty strings")
                     continue
 
-        for path_pattern in paths:
-            if not isinstance(path_pattern, str) or not path_pattern.strip():
-                errors.append(f"Trigger '{trigger_name}': path entries must be non-empty strings")
-                continue
+                # A leading `!` negates the pattern; the path it names is the rest.
+                pattern = path_pattern[1:] if path_pattern.startswith("!") else path_pattern
 
-            base_path = path_pattern
+                # Recursive patterns can match at several repository depths, so
+                # there is no single literal base path to require.
+                if pattern.startswith("**/"):
+                    continue
 
-            # Recursive patterns can match at several repository depths, so
-            # there is no single literal base path to require.
-            if path_pattern.startswith("**/"):
-                continue
+                # A trailing directory glob names a literal directory, which
+                # must exist; strip it before looking for inline wildcards.
+                base_path = pattern
+                if pattern.endswith("/**"):
+                    base_path = pattern[:-3]
+                elif pattern.endswith("/*"):
+                    base_path = pattern[:-2]
 
-            # Inline wildcards are structurally valid. A missing parent is
-            # surfaced as a warning because future files may satisfy the glob.
-            if "*" in base_path or "?" in base_path:
-                if "/" in base_path:
-                    parent = str(Path(base_path).parent)
-                    if parent != "." and not (repo_root / parent).exists():
-                        warnings.append(
-                            f"Path '{path_pattern}' references directory '{parent}' which does not exist"
-                        )
-                continue
+                # Inline wildcards are structurally valid. A missing parent is
+                # surfaced as a warning because future files may satisfy the glob.
+                if "*" in base_path or "?" in base_path:
+                    # The literal directory is the part before the first
+                    # wildcard segment (e.g. `tools` for `tools/**/*.py`).
+                    literal = []
+                    for part in base_path.split("/")[:-1]:
+                        if "*" in part or "?" in part:
+                            break
+                        literal.append(part)
+                    if literal:
+                        parent = "/".join(literal)
+                        if not (repo_root / parent).exists():
+                            warnings.append(
+                                f"Path '{path_pattern}' references directory '{parent}' which does not exist"
+                            )
+                    continue
 
-            if path_pattern.endswith("/**"):
-                base_path = path_pattern[:-3]
-            elif path_pattern.endswith("/*"):
-                base_path = path_pattern[:-2]
-
-            full_path = repo_root / base_path
-            if not full_path.exists():
-                errors.append(
-                    f"Path '{path_pattern}' not found in repository "
-                    f"(resolved to: {full_path.relative_to(repo_root)})"
-                )
-            elif path_pattern.endswith("/**") and not full_path.is_dir():
-                warnings.append(
-                    f"Path '{path_pattern}' uses recursive glob but '{base_path}' is not a directory"
-                )
+                full_path = repo_root / base_path
+                if not full_path.exists():
+                    errors.append(
+                        f"Path '{path_pattern}' not found in repository "
+                        f"(resolved to: {full_path.relative_to(repo_root)})"
+                    )
+                elif pattern.endswith(("/**", "/*")) and not full_path.is_dir():
+                    # Nothing can match under a regular file, so the filter cannot fire.
+                    errors.append(
+                        f"Path '{path_pattern}' requires '{base_path}' to be a directory"
+                    )
 
     return len(errors) == 0, errors, warnings
 
