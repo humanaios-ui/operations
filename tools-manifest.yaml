@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 222
+  tools: 223
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 173
+  builder_markers_present: 174
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2779,7 +2779,7 @@ tools:
   name: governance_invariant_evaluator
   path: tools/governance_invariant_evaluator.py
   version: 1.0.0
-  category: governance_tool
+  category: audit_tool
   zone: 1
   status: draft
   interface: cli
@@ -2788,6 +2788,18 @@ tools:
   builder_markers: true
   purpose: Advisory governance invariant evaluator. No admission or ratification capability.
 - tool_id: HAIOS-TOOL-233
+  name: hiae_assurance
+  path: tools/hiae_assurance.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: HIAE-001 assurance transaction core — v0.1 (proposal stage)
+- tool_id: HAIOS-TOOL-234
   name: iew_witness_fixture
   path: tools/iew/fixtures/witness_fixture.py
   version: 0.1.0
@@ -2799,11 +2811,11 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Deterministic stdin/stdout smoke-test fixture for IEW-003.
-- tool_id: HAIOS-TOOL-234
+- tool_id: HAIOS-TOOL-235
   name: iew_runner
   path: tools/iew/iew_runner.py
   version: 0.1.0
-  category: audit_tool
+  category: diagnostic_tool
   zone: 1
   status: draft
   interface: module
@@ -2811,7 +2823,7 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'IEW-003: runner captures subprocess output in place of author-reported outcomes.'
-- tool_id: HAIOS-TOOL-235
+- tool_id: HAIOS-TOOL-236
   name: iew_witness_gate
   path: tools/iew/witness_gate.py
   version: 0.1.0

@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**115 candidates** — ⏳ awaiting Z2 99 · ✅ ratified 16 · **64 records**
+**116 candidates** — ⏳ awaiting Z2 100 · ✅ ratified 16 · **64 records**
 
-## Awaiting Z2 (99)
+## Awaiting Z2 (100)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -106,6 +106,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-03 | **Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01** | Z3 executor assignments and execution plan for 90 tier-assigned candidates | `z1-inbox/2026-10-01/Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01.md` |
 | 2026-10-10 | **Q-SYSTEM-GRAPH-TEMPORAL-01** | Temporal sequencing for system_graph.json schema | `z1-inbox/2026-10-08/SYSTEM_GRAPH_TEMPORAL_SCHEMA_PROPOSAL.md` |
 | 2026-10-11 | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Governance registry structural repair — 162 entries, 127 defects | `z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md` |
+| 2026-10-12 | **Q-HIAE-001-ASSIGNMENT-RECEIPTS-01** | HIAE-001 neutral reviewer assignment, versioned receipts, synthetic transaction | `z1-inbox/2026-10-10/HIAE-001-PROPOSAL.md` |
 | 2026-10-24 | **Q-EXTERNAL-ADVISORY-INTAKE-01** | Finding — no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded) | `z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md` |
 | 2026-10-24 | **Q-HOST-INVENTORY-01** | Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked | `z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md` |
 | 2026-10-24 | **Q-WITNESS-DATA-PLANE-01** | Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only | `z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md` |
