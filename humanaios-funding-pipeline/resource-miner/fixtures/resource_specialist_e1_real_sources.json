@@ -1,0 +1,130 @@
+{
+  "schema": "humanaios.resource-specialist.e1.public-source-corpus.v0.1",
+  "collection_date": "2026-10-31",
+  "basis": "SOURCE_LINKS_RETRIEVED; BOUNDED_HUMAN_AUTHORED_SUMMARIES; LABELS_NOT_INDEPENDENTLY_ADJUDICATED",
+  "authority_effect": "NONE",
+  "comparison_scope": "FIXED_MANUALLY_CURATED_SOURCE_POOL_ONLY_NOT_LIVE_DISCOVERY",
+  "head_sha": "2460a54d7c1c20d6ba030b5eb3bfa06efb420324",
+  "sources": [
+    {
+      "id": "I01",
+      "source_url": "https://github.com/humanaios-ui/operations/blob/2460a54d7c1c20d6ba030b5eb3bfa06efb420324/humanaios-funding-pipeline/resource-miner/resource_miner/planning.py",
+      "title": "Resource plan validation module",
+      "description": "Python module validates resource plans and derives gap and substitution status for controlled resources and requirements.",
+      "source_category": "",
+      "origin": "INTERNAL_PUBLIC_REPOSITORY",
+      "gold_form": "SOFTWARE_CODE",
+      "gold_need": "REUSABLE_RESOURCE_PLANNING",
+      "positive": true,
+      "source_status": "GITHUB_EXACT_COMMIT_READ"
+    },
+    {
+      "id": "I02",
+      "source_url": "https://github.com/humanaios-ui/operations/blob/2460a54d7c1c20d6ba030b5eb3bfa06efb420324/.github/workflows/resource-miner-pr.yml",
+      "title": "Resource Miner PR regression workflow",
+      "description": "GitHub Actions workflow runs automated regression tests and verifies the persistent Mine resolver contract.",
+      "source_category": "",
+      "origin": "INTERNAL_PUBLIC_REPOSITORY",
+      "gold_form": "AUTOMATED_TEST_WORKFLOW",
+      "gold_need": "REUSABLE_REGRESSION_TESTING",
+      "positive": true,
+      "source_status": "GITHUB_EXACT_COMMIT_READ"
+    },
+    {
+      "id": "I03",
+      "source_url": "https://github.com/humanaios-ui/operations/blob/2460a54d7c1c20d6ba030b5eb3bfa06efb420324/docs/RESOURCE_BASED_ECONOMICS.md",
+      "title": "Resource-Based Economics for Organizational Operations",
+      "description": "Resource unit, ledger and cost-accounting guidance for HumanAIOS operations. Most of this document is a proposal, not active policy.",
+      "source_category": "",
+      "origin": "INTERNAL_PUBLIC_REPOSITORY",
+      "gold_form": "KNOWLEDGE_GUIDANCE",
+      "gold_need": "RESOURCE_ACCOUNTING_REFERENCE",
+      "positive": true,
+      "source_status": "GITHUB_EXACT_COMMIT_READ"
+    },
+    {
+      "id": "I04",
+      "source_url": "https://github.com/humanaios-ui/operations/blob/2460a54d7c1c20d6ba030b5eb3bfa06efb420324/humanaios-funding-pipeline/resource-miner/resource_miner/query_quality.py",
+      "title": "Resource Miner query quality module",
+      "description": "Python module implements deterministic lexical ranking, declared taxonomy fusion, and exact query anchor handling.",
+      "source_category": "",
+      "origin": "INTERNAL_PUBLIC_REPOSITORY",
+      "gold_form": "SOFTWARE_CODE",
+      "gold_need": "REUSABLE_QUERY_QUALITY_CODE",
+      "positive": true,
+      "source_status": "GITHUB_EXACT_COMMIT_READ"
+    },
+    {
+      "id": "E01",
+      "source_url": "https://airc.nist.gov/airmf-resources/playbook/",
+      "title": "NIST AI Risk Management Framework Playbook",
+      "description": "Public guidance with suggested actions for AI risk management in Govern, Map, Measure and Manage.",
+      "source_category": "",
+      "origin": "EXTERNAL_PUBLIC",
+      "gold_form": "KNOWLEDGE_GUIDANCE",
+      "gold_need": "AI_GOVERNANCE_GUIDANCE",
+      "positive": true,
+      "source_status": "PUBLIC_SOURCE_RETRIEVED"
+    },
+    {
+      "id": "E02",
+      "source_url": "https://huggingface.co/datasets/allenai/ai2_arc",
+      "title": "AI2 ARC benchmark dataset",
+      "description": "Public dataset of 7,787 science question answering examples for evaluation benchmarks, licensed CC BY-SA 4.0.",
+      "source_category": "",
+      "origin": "EXTERNAL_PUBLIC",
+      "gold_form": "RESEARCH_DATASET",
+      "gold_need": "EVALUATION_DATA_ACCESS",
+      "positive": true,
+      "source_status": "PUBLIC_SOURCE_RETRIEVED"
+    },
+    {
+      "id": "E03",
+      "source_url": "https://seedfund.nsf.gov/",
+      "title": "NSF America's Seed Fund SBIR/STTR",
+      "description": "NSF research grant program supporting early-stage research and development for startup technology. Current application window unverified.",
+      "source_category": "research_grant",
+      "origin": "EXTERNAL_PUBLIC",
+      "gold_form": "FUNDING_PATHWAY",
+      "gold_need": "STARTUP_RESEARCH_FUNDING",
+      "positive": true,
+      "source_status": "PUBLIC_SOURCE_RETRIEVED_CURRENT_ROUND_UNVERIFIED"
+    },
+    {
+      "id": "E04",
+      "source_url": "https://github.com/pytest-dev/pytest",
+      "title": "pytest Python testing framework",
+      "description": "Open source Python testing framework for test functions, fixtures, automated discovery and assertion diagnostics.",
+      "source_category": "",
+      "origin": "EXTERNAL_PUBLIC",
+      "gold_form": "TEST_SOFTWARE",
+      "gold_need": "REUSABLE_REGRESSION_TESTING",
+      "positive": true,
+      "source_status": "PUBLIC_SOURCE_RETRIEVED"
+    },
+    {
+      "id": "E05",
+      "source_url": "https://learn.microsoft.com/en-us/azure/architecture/guide/",
+      "title": "Azure application architecture guidance",
+      "description": "Public Microsoft documentation describing cloud architecture patterns, distributed services, resilience and design tradeoffs.",
+      "source_category": "",
+      "origin": "EXTERNAL_PUBLIC",
+      "gold_form": "KNOWLEDGE_GUIDANCE",
+      "gold_need": "DEPLOYMENT_ARCHITECTURE_GUIDANCE",
+      "positive": true,
+      "source_status": "PUBLIC_SOURCE_RETRIEVED"
+    },
+    {
+      "id": "N01",
+      "source_url": "https://github.com/humanaios-ui/operations/issues/1091",
+      "title": "Resource Specialist E0 classification proposal",
+      "description": "Open GitHub work item proposing resource classification research and tests, not itself an acquired opportunity or usable resource capability.",
+      "source_category": "",
+      "origin": "INTERNAL_PUBLIC_REPOSITORY",
+      "gold_form": "NOT_RESOURCE_DELIVERY",
+      "gold_need": "NONE",
+      "positive": false,
+      "source_status": "GITHUB_ISSUE_READ"
+    }
+  ]
+}
