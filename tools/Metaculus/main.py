@@ -70,6 +70,7 @@ from datetime import datetime, timezone
 from typing import Literal, Optional
 
 import dotenv
+from mode_gate import ExternalWritesNotApproved, require_explicit_live_approval
 from forecasting_tools import (
     AskNewsSearcher,
     BinaryPrediction,
@@ -1177,13 +1178,25 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mode", type=str,
         choices=["tournament", "metaculus_cup", "test_questions"],
-        default="tournament",
+        default="test_questions",
     )
     parser.add_argument(
         "--run-id", type=str, default=None,
         help="Override BOT_RUN_ID (default: BOT_RUN_ID env var or S-bot-MMDDYY-auto)",
     )
+    parser.add_argument(
+        "--publish", action="store_true",
+        help="Allow external Metaculus writes only with operator-approved environment gates.",
+    )
     args = parser.parse_args()
+
+    # Every existing mode (including test_questions) can post to Metaculus.
+    # Fail before constructing clients or calling a model unless BOTH explicit
+    # CLI and deployment gates are set. Coordinator admission alone is not consent.
+    try:
+        require_explicit_live_approval(mode=args.mode, publish=args.publish)
+    except ExternalWritesNotApproved as exc:
+        parser.error(str(exc))
 
     if args.run_id:
         BOT_RUN_ID = args.run_id
