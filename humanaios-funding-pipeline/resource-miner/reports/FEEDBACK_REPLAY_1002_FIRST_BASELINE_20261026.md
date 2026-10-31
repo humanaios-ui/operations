@@ -22,11 +22,11 @@ The first issue #1002 run is a **deterministic source-status replay**, NOT a mod
 
 ## Expected baseline and acceptance
 
-The command below generates an **unsigned** JSON observation. The existing Resource Miner PR CI workflow also archives it as a 90-day artifact. A durable, curated summary is in `data/experiments/feedback_replay_1002_summary_20261026.json`; CI run evidence: https://github.com/humanaios-ui/operations/actions/runs/40413816443 (initial 2026-10-26 run before the as-of-date pin).
+The command below generates an **unsigned** JSON observation. The dedicated E1 pinned-replay CI workflow archives it as a 90-day artifact; the generic Resource Miner PR and scheduled-scan checks remain unchanged. A durable, curated summary is in `data/experiments/feedback_replay_1002_summary_20261026.json`; CI run evidence: https://github.com/humanaios-ui/operations/actions/runs/40413816443 (initial 2026-10-26 run before the as-of-date pin).
 
 ```sh
 cd humanaios-funding-pipeline/resource-miner
-python3 -m unittest discover -s tests -p 'test_feedback_replay_1002.py' -v
+RUN_PINNED_E1_1002=1 python3 -m unittest discover -s tests -p 'test_feedback_replay_1002.py' -v
 python3 -m resource_miner.feedback_replay_1002 \
   --output ../../outputs/feedback-replay-1002/first-shadow-replay.json
 ```
@@ -47,3 +47,38 @@ python3 -m resource_miner.feedback_replay_1002 \
 Preserve task input and output digests, exact ranking strategy, source revision, case IDs, uncertainty, controls, version IDs, and limitations. This supports a later measured comparison but contains **no model-weight intervention, no parameter inference, no training label, and no claim that training caused any difference**. A later training study must run control and treatment model checkpoints on blinded, held-out tasks under a separate authorization.
 
 **Governance:** `authority_effect: NONE`, `execution: DISABLED`, no external API calls, no provider action, no source deletion, no new graph authority, no merge or deployment authorization.
+
+## Independent-review repairs on the draft PR (research only)
+
+Copilot review of PR #1034 identified two open concerns: (1) replay tests
+read from a mutable operational daily-scan snapshot, and (2) the ranker
+revision was only copied from fixture metadata instead of verifying the
+Python implementation used. These concerns require exact-head re-review.
+
+Changes proposed on the **draft PR branch only**:
+
+- A copy of the original 51-row corpus now lives at
+  `fixtures/feedback_replay_1002_corpus_20261026.jsonl`. Its Git blob
+  remains `e7fba397546cbb6b97117a80ede245ecdb55af3b`.
+  The operational `data/resources.snapshot.jsonl` is not pinned or edited.
+- The evaluator verifies the on-disk executed `intent_os.py`,
+  `query_quality.py`, and `source_risk.py` blobs, plus imported function
+  identities. Recorded helper pins are in the public fixture.
+- Historical pinned replay tests run only when
+  `RUN_PINNED_E1_1002=1`. The scheduled Resource Miner scanner does not
+  depend on historical experiments after future catalog/ranker changes.
+- The generic `resource-miner-pr.yml` file is restored unchanged.
+  Dedicated `.github/workflows/feedback-replay-1002.yml` performs the
+  experimental test and unsigned artifact export on the PR's exact head.
+
+**Do not treat prior CI run results or the prior durable summary hash as
+proof of the repaired head.** Read the new exact-head Actions job and compare
+its receipt to the historical summary. That historical summary remains a
+record of the original experiment, not an independent source label.
+
+No production ranker, source review, catalog, admission rule, protected branch,
+user record, private account, or governance file was modified. The source
+failure is still an observation needing independent verification, not a
+provider-closure claim. Full #1002 completion remains gated by authenticated
+source review, independent relevance/false-closure labels, and a separate
+human-approved catalog revision.
