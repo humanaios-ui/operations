@@ -23,6 +23,20 @@ class SourceVerificationTests(unittest.TestCase):
             "observed_at": "2026-10-22T19:00:00Z",
         }]}
 
+    def test_pdf_and_other_fingerprints_remain_nonverified_metadata(self):
+        for mime in ("application/pdf", "text/plain", "application/zip", "application/octet-stream"):
+            with self.subTest(mime=mime):
+                packet = self.specimen()
+                packet["records"][0]["evidence"]["screenshot"]["mime"] = mime
+                packet["records"][0]["evidence"]["screenshot"]["size_bytes"] = 10485760
+                result = project_source_reviews(packet)["reports"][0]
+                self.assertTrue(result["attachment_digest_present"])
+                self.assertFalse(result["attachment_contents_saved"])
+                self.assertFalse(result["source_availability_verified"])
+        packet["records"][0]["evidence"]["screenshot"]["size_bytes"] += 1
+        with self.assertRaises(ValueError):
+            project_source_reviews(packet)
+
     def test_404_creates_review_not_closure(self):
         result = project_source_reviews(self.specimen())
         self.assertEqual(result["count"], 1)
