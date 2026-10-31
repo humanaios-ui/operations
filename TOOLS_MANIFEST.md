@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**223 registered tools** · 2 MCP servers · 4 excluded · 174 carrying Builder v1.7 markers
+**225 registered tools** · 2 MCP servers · 4 excluded · 176 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 223 |
-| — status `draft` | 222 |
+| Registered tools | 225 |
+| — status `draft` | 224 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 174 |
+| Builder v1.7 markers present | 176 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -66,7 +66,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-222 | coderabbit_coverage_inventory | `tools/coderabbit_coverage_inventory.py` | 0.2.0 | 1 | draft | — | Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806) |
 | HAIOS-TOOL-232 | governance_invariant_evaluator | `tools/governance_invariant_evaluator.py` | 1.0.0 | 1 | draft | — | Advisory governance invariant evaluator. No admission or ratification capability. |
 
-## Calibration — `calibration_tool` (17)
+## Calibration — `calibration_tool` (18)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -87,6 +87,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-123 | smag_resolve | `tools/smag_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve. |
 | HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
 | HAIOS-TOOL-224 | ci_predict_rollup | `tools/ci_predict_rollup_v0_1.py` | 0.1.0 | 1 | draft | — | ci_predict_rollup_v0_1.py |
+| HAIOS-TOOL-238 | metaculus_offline_fixture | `tools/Metaculus/offline_fixture.py` | 0.1.0 | 1 | draft | — | Pure-stdlib, offline Metaculus forecast validation harness. |
 
 ## Connectors — `connector_tool` (13)
 
@@ -269,7 +270,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
 
-## Security gates — `security_gate_tool` (12)
+## Security gates — `security_gate_tool` (13)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -285,6 +286,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-134 | tier_b_activation_gate | `tools/tier_b_activation_gate.py` | 1.0.0 | 1 | draft | — | tier_b_activation_gate.py |
 | HAIOS-TOOL-185 | smag_gate_enforcer | `tools/smag_gate_enforcer_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up) |
 | HAIOS-TOOL-231 | b4_admission | `tools/b4_admission.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | B4 controlled-operation admission: verify a GitHub-authenticated approval envelope. |
+| HAIOS-TOOL-237 | metaculus_mode_gate | `tools/Metaculus/mode_gate.py` | 0.1.0 | 1 | draft | — | Fail-closed approval guard for Metaculus actions with external side effects. |
 
 ## Templates — `template_tool` (3)
 
@@ -361,7 +363,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
 | `audit_tool` | Audits artifacts or state against rules and reports findings. | 25 |
-| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 17 |
+| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 18 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 23 |
@@ -372,7 +374,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 7 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
-| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 12 |
+| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 13 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 32 |
 
