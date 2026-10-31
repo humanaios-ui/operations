@@ -1053,6 +1053,14 @@
     "ai_safety_relevant": true,
     "trl_fit": "any",
     "status": "active",
+    "source_verification_status": "ROLE_NOT_LISTED",
+    "source_verification_observation": {
+      "kind": "USER_REPORTED",
+      "observed_on": "2026-10-22",
+      "source_url": "https://jobs.lever.co/convergentresearch",
+      "evidence_url": "https://github.com/humanaios-ui/operations/issues/992",
+      "claim": "Role reported absent from employer index; employer closure not independently established."
+    },
     "last_checked": "2026-10-02",
     "url_ok": true,
     "notes": "Full-time remote Program Launch Manager. Lead scientific-organization launches, founder programs, launch plans, ownership/dependency/risk tracking, handoffs, playbooks, vendor/partner coordination, and AI-enabled operational systems. East Coast hours preferred.",
@@ -1082,6 +1090,14 @@
     "last_checked": "2026-10-02",
     "url_ok": true,
     "notes": "USA-remote full-time Senior Program Manager, Data Operations. Own end-to-end AI data workflows, labeling specs, tooling/automation, provenance/evaluation, QA, vendor management, throughput/quality/cost metrics, and cross-functional Research/Engineering/Product execution.",
-    "source": "jobs.ashbyhq.com"
+    "source": "jobs.ashbyhq.com",
+    "source_verification_status": "RECHECK_REQUIRED",
+    "source_verification_observation": {
+      "kind": "USER_REPORTED",
+      "observed_on": "2026-10-23",
+      "source": "OPERATOR_BROWSER_SOURCE_REVIEW",
+      "claim": "OFFICIAL_JOB_LISTING_NOT_FOUND_USER_REPORT_NOT_PROVIDER_CONFIRMED",
+      "authority_effect": "NONE"
+    }
   }
 ]
