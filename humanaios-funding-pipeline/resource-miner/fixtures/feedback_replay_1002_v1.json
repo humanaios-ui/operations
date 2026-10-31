@@ -43,5 +43,10 @@
   },
   "authority_effect": "NONE",
   "execution": "DISABLED",
-  "as_of_date": "2026-10-26"
+  "as_of_date": "2026-10-26",
+  "ranker_dependency_git_blobs": {
+    "query_quality.py": "d16e6f1bfaae4190cc5609255dd419d083cff649",
+    "source_risk.py": "8e5df89190e23d5ba67a122c8b6cf421cb53962f"
+  },
+  "frozen_corpus_path": "fixtures/feedback_replay_1002_corpus_20261026.jsonl"
 }
