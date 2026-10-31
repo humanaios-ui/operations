@@ -1,0 +1,114 @@
+# Credential-free image + HTTP smoke test. NEVER deploys or spends Azure resources.
+# The production deployment is a separate Z3 human-authorized act.
+name: Resource Miner Azure Container Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/Dockerfile.resource-miner'
+      - 'humanaios-funding-pipeline/Dockerfile.resource-miner.dockerignore'
+      - 'humanaios-funding-pipeline/infra/resource-miner-containerapp.bicep'
+      - 'humanaios-funding-pipeline/data/sources.json'
+      - 'humanaios-funding-pipeline/resource-miner/**'
+      - '.github/workflows/resource-miner-azure-readiness.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'humanaios-funding-pipeline/Dockerfile.resource-miner'
+      - 'humanaios-funding-pipeline/Dockerfile.resource-miner.dockerignore'
+      - 'humanaios-funding-pipeline/infra/resource-miner-containerapp.bicep'
+      - 'humanaios-funding-pipeline/data/sources.json'
+      - 'humanaios-funding-pipeline/resource-miner/**'
+      - '.github/workflows/resource-miner-azure-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  image-http-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact tested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Build existing Resource Miner image without pushing
+        working-directory: humanaios-funding-pipeline
+        run: docker build --file Dockerfile.resource-miner --tag humanaios-resource-miner:ci .
+
+      - name: Start unprivileged container on localhost only
+        run: |
+          docker run --detach --rm --name rm-intentos-smoke \
+            --publish 127.0.0.1:18766:8080 humanaios-resource-miner:ci
+
+      - name: Verify live HTTP routes, snapshot mode and fail-closed admin
+        run: |
+          python3 - <<'PY'
+          import json, time, urllib.error, urllib.request
+          base = "http://127.0.0.1:18766"
+          last = None
+          for i in range(20):
+              try:
+                  with urllib.request.urlopen(base + "/api/health", timeout=2) as r:
+                      health = json.load(r)
+                  if health.get("ok") is True:
+                      break
+              except Exception as exc:
+                  last = type(exc).__name__
+                  time.sleep(1)
+          else:
+              raise AssertionError("Container health probe failed: " + str(last))
+          for path, expected in (("/intent-os", b"INTENT-OS"),
+                                 ("/on-track", b"INTENT-OS")):
+              with urllib.request.urlopen(base + path, timeout=5) as r:
+                  assert r.status == 200
+                  assert r.headers.get_content_type() == "text/html"
+                  body = r.read(100000)
+                  assert b"<!doctype html>" in body.lower()
+                  assert expected in body
+          request = urllib.request.Request(
+              base + "/api/intent",
+              data=json.dumps({
+                  "objective": "Find compute credits for independent research",
+                  "source_mode": "snapshot",
+              }).encode(),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(request, timeout=12) as r:
+              body = json.load(r)
+          assert body["eligibility"] == "NOT_ASSESSED"
+          assert body["authority"] == "NONE"
+          assert body["execution"] == "DISABLED"
+          assert body["source_mode"] == "snapshot"
+          for path in ("/api/resources", "/api/scan", "/api/entitlement/handoff"):
+              try:
+                  urllib.request.urlopen(base + path, timeout=5)
+                  raise AssertionError(path + " was exposed without credentials")
+              except urllib.error.HTTPError as exc:
+                  assert exc.code == 403, (path, exc.code)
+          print("PASS: actual container HTTP, pages, read-only intent and admin deny")
+          PY
+
+      - name: Collect container logs on failure
+        if: failure()
+        run: docker logs rm-intentos-smoke || true
+
+      - name: Stop smoke container
+        if: always()
+        run: docker stop rm-intentos-smoke || true
+
+  bicep-syntax-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Compile existing Azure Bicep without Azure credentials
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az bicep build --file humanaios-funding-pipeline/infra/resource-miner-containerapp.bicep --stdout > /dev/null

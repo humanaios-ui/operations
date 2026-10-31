@@ -12,8 +12,14 @@ WORKDIR /app
 
 COPY resource-miner/resource_miner/ ./resource-miner/resource_miner/
 COPY resource-miner/app.py ./resource-miner/app.py
+# The public intent and on-track routes read these files at request time.
+# Omitting them gives a healthy container with broken pages (500 responses).
+COPY resource-miner/intent-os.html ./resource-miner/intent-os.html
+COPY resource-miner/on-track.html ./resource-miner/on-track.html
 COPY resource-miner/pyproject.toml ./resource-miner/pyproject.toml
 COPY resource-miner/data/needs.seed.json ./resource-miner/data/needs.seed.json
+# /api/intent calls enrich() using the explicit requirement seed file.
+COPY resource-miner/data/resource_requirements.seed.json ./resource-miner/data/resource_requirements.seed.json
 COPY resource-miner/data/resources.seed.jsonl ./resource-miner/data/resources.seed.jsonl
 COPY resource-miner/data/resources.snapshot.jsonl ./resource-miner/data/resources.snapshot.jsonl
 COPY data/sources.json ./data/sources.json

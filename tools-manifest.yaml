@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 218
+  tools: 223
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 170
+  builder_markers_present: 173
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2374,11 +2374,12 @@ tools:
   category: validation_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: true
-  builder_markers: true
+  builder_markers: false
   purpose: Workflow Path Validator
+  session: PHASE-2B-SALVAGE
 - tool_id: HAIOS-TOOL-200
   name: workflow_telemetry_collector
   path: tools/workflow_telemetry_collector.py
@@ -2544,7 +2545,7 @@ tools:
   category: diagnostic_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: true
   builder_markers: true
@@ -2763,6 +2764,30 @@ tools:
   purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
   session: '#595'
 - tool_id: HAIOS-TOOL-231
+  name: b4_admission
+  path: tools/b4_admission.py
+  version: unversioned
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'B4 controlled-operation admission: verify a GitHub-authenticated approval envelope.'
+- tool_id: HAIOS-TOOL-232
+  name: governance_invariant_evaluator
+  path: tools/governance_invariant_evaluator.py
+  version: 1.0.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Advisory governance invariant evaluator. No admission or ratification capability.
+- tool_id: HAIOS-TOOL-233
   name: hiae_assurance
   path: tools/hiae_assurance.py
   version: 0.1.0
@@ -2774,6 +2799,42 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: HIAE-001 assurance transaction core — v0.1 (proposal stage)
+- tool_id: HAIOS-TOOL-234
+  name: iew_witness_fixture
+  path: tools/iew/fixtures/witness_fixture.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic stdin/stdout smoke-test fixture for IEW-003.
+- tool_id: HAIOS-TOOL-235
+  name: iew_runner
+  path: tools/iew/iew_runner.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'IEW-003: runner captures subprocess output in place of author-reported outcomes.'
+- tool_id: HAIOS-TOOL-236
+  name: iew_witness_gate
+  path: tools/iew/witness_gate.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'IEW-002: distinguish self-reported receipts from trusted execution observations.'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
