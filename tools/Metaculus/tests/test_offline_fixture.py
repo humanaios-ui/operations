@@ -1,6 +1,7 @@
 """Zero-dependency E0 Metaculus offline/no-CP and live-mode guard regressions."""
 from __future__ import annotations
 
+import ast
 import json
 import pathlib
 import subprocess
@@ -58,6 +59,23 @@ class OfflineFixtureTests(unittest.TestCase):
             check=True, capture_output=True, text=True, env={"PATH": ""},
         )
         self.assertEqual(json.loads(result.stdout)["external_api_calls"], 0)
+
+
+class EntryPointWiringTests(unittest.TestCase):
+    def test_live_guard_runs_before_metaculus_client_creation(self):
+        tree = ast.parse((ROOT / "main.py").read_text(encoding="utf-8"))
+        calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)]
+        gated = [n.lineno for n in calls if isinstance(n.func, ast.Name)
+                 and n.func.id == "require_explicit_live_approval"]
+        client = [n.lineno for n in calls if isinstance(n.func, ast.Name)
+                  and n.func.id == "MetaculusClient"]
+        self.assertEqual(len(gated), 1)
+        self.assertEqual(len(client), 1)
+        self.assertLess(gated[0], client[0])
+
+    def test_docker_image_includes_write_gate(self):
+        text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn("COPY main.py mode_gate.py ./", text)
 
 
 class LiveModeGateTests(unittest.TestCase):
