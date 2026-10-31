@@ -114,3 +114,20 @@ test("malformed data is rejected rather than formatted as a verified result", ()
   assert.equal(p.records.length,1);
   assert.equal(p.rejected,2);
 });
+
+
+test("out-of-order short GitHub pages fail closed", async () => {
+  const a=record(20,{updated_at:NOW-3*86400000});
+  const b=record(21,{updated_at:NOW-86400000});
+  const result=await api.fetchRepository(REPO,NOW,async ()=>
+    ({ok:true,json:async()=>[a,b]}));
+  assert.equal(result.coverage,"PARTIAL_UNSORTED");
+  assert.equal(result.items.length,0);
+});
+
+test("missing creation timestamp does not produce misleading created totals", () => {
+  const missing={...record(22),created_at:null};
+  const p=api.project(REPO,[missing],NOW,"COMPLETE_WINDOW");
+  assert.equal(p.touched_issues,0);
+  assert.equal(p.rejected,1);
+});
