@@ -80,7 +80,7 @@
     const issues = records.filter(x => x.kind === "ISSUE");
     const buckets = Array(DAYS).fill(0);
     for (const x of records) {
-      const index = Math.floor((x.updated_ms - cutoff) / DAY_MS);
+      const index = Math.min(DAYS - 1, Math.floor((x.updated_ms - cutoff) / DAY_MS));
       if (index >= 0 && index < DAYS) buckets[index] += 1;
     }
     const week = records.filter(x => x.updated_ms >= nowMs - 7 * DAY_MS).length;
