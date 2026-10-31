@@ -406,6 +406,21 @@ class AdjudicationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "outside the repository root"):
                 study.validate_contract_citation("escape.md:1", root=root)
 
+    def test_citation_fails_closed_when_git_cannot_answer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._git_root(tmp)
+            (root / "tracked.md").write_bytes(b"line\n")
+            self._track(root, "tracked.md")
+            study.validate_contract_citation("tracked.md:1", root=root)
+            for failure in (OSError("git missing"), subprocess.TimeoutExpired("git", 20)):
+                with mock.patch.object(study.subprocess, "run", side_effect=failure):
+                    with self.assertRaisesRegex(ValueError, "not a tracked repository file"):
+                        study.validate_contract_citation("tracked.md:1", root=root)
+            failed = subprocess.CompletedProcess(args=[], returncode=128, stdout=b"tracked.md\0", stderr=b"fatal")
+            with mock.patch.object(study.subprocess, "run", return_value=failed):
+                with self.assertRaisesRegex(ValueError, "not a tracked repository file"):
+                    study.validate_contract_citation("tracked.md:1", root=root)
+
     def test_citation_line_count_ignores_trailing_newline(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = self._git_root(tmp)
