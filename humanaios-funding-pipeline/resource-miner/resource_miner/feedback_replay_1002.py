@@ -1,6 +1,6 @@
 """Issue #1002: deterministic, non-authorizing shadow source-feedback replay.
 
-The before arm is the exact committed Resource Miner snapshot. The after arm
+The before arm is a separately frozen Resource Miner corpus. The after arm
 removes *one exact source observation* from an in-memory query projection only.
 Neither arm edits catalogs, performs an external request, makes a closure claim,
 or authorizes applying a shared correction. This is not an ACAT measurement.
@@ -16,6 +16,8 @@ from unittest.mock import patch
 
 from .intent_os import evaluate_objective
 from . import intent_os as _ranker_module
+from . import query_quality as _query_quality_module
+from . import source_risk as _source_risk_module
 
 SCHEMA = "humanaios.resource_feedback_shadow_replay.v0.1"
 RANKER = "LEXICAL_PLUS_DECLARED_TAXONOMY_RRF_K60_V1"
@@ -33,6 +35,38 @@ def _git_blob_sha(data: bytes) -> str:
     return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
 
 
+def _verify_executed_ranker(fixture: dict) -> None:
+    """Reject stale claims about the actual Python source executed in this replay.
+
+    A strategy name is not proof of code identity. Pin the imported modules and
+    check that the functions called by intent_os come from those pinned modules.
+    This is a local integrity check, NOT a GitHub signature or source attestation.
+    """
+    dependencies = fixture.get("ranker_dependency_git_blobs")
+    expected = {"query_quality.py", "source_risk.py"}
+    if not isinstance(dependencies, dict) or set(dependencies) != expected:
+        raise ValueError("Missing or unexpected ranker dependency pins")
+    sources = (
+        ("intent_os.py", _ranker_module, fixture.get("ranker_git_blob_sha")),
+        ("query_quality.py", _query_quality_module, dependencies["query_quality.py"]),
+        ("source_risk.py", _source_risk_module, dependencies["source_risk.py"]),
+    )
+    for name, module, pin in sources:
+        source = Path(module.__file__).resolve()
+        if source.name != name or source.suffix != ".py" or (
+            not isinstance(pin, str) or _git_blob_sha(source.read_bytes()) != pin
+        ):
+            raise ValueError("Executed ranker source revision mismatch: " + name)
+    if evaluate_objective is not _ranker_module.evaluate_objective:
+        raise ValueError("Ranker entrypoint identity mismatch")
+    for name in ("query_terms", "blocked_resource_types", "fuse_rankings",
+                 "has_exact_anchors"):
+        if getattr(_ranker_module, name) is not getattr(_query_quality_module, name):
+            raise ValueError("Ranker imported dependency mismatch: " + name)
+    if _ranker_module.promotional_claim_flags is not _source_risk_module.promotional_claim_flags:
+        raise ValueError("Ranker imported source-risk dependency mismatch")
+
+
 def _ids(result):
     return [row["resource_id"] for row in result["candidates"]]
 
@@ -46,6 +80,7 @@ def replay(snapshot_path: Path, fixture: dict) -> dict:
     """
     if fixture.get("schema") != "humanaios.feedback_replay_fixture.v0.1":
         raise ValueError("Unexpected experiment fixture")
+    _verify_executed_ranker(fixture)
     snapshot_bytes = snapshot_path.read_bytes()
     blob = _git_blob_sha(snapshot_bytes)
     if blob != fixture["snapshot_git_blob_sha"]:
@@ -162,7 +197,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run #1002 bounded offline shadow replay")
     root = Path(__file__).resolve().parents[1]
     parser.add_argument("--fixture", type=Path, default=root / "fixtures/feedback_replay_1002_v1.json")
-    parser.add_argument("--snapshot", type=Path, default=root / "data/resources.snapshot.jsonl")
+    parser.add_argument("--snapshot", type=Path, default=root / "fixtures/feedback_replay_1002_corpus_20261026.jsonl")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     result = replay(args.snapshot, json.loads(args.fixture.read_text(encoding="utf-8")))
