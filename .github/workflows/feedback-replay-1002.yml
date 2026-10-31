@@ -9,6 +9,8 @@ on:
       - 'humanaios-funding-pipeline/resource-miner/resource_miner/feedback_replay_1002.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_feedback_replay_1002.py'
       - 'humanaios-funding-pipeline/resource-miner/fixtures/feedback_replay_1002*'
+      - 'humanaios-funding-pipeline/resource-miner/reports/FEEDBACK_REPLAY_1002_FIRST_BASELINE_20261026.md'
+      - 'humanaios-funding-pipeline/resource-miner/data/experiments/feedback_replay_1002_summary_20261026.json'
   workflow_dispatch:
 
 permissions:
