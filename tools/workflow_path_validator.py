@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Workflow Path Validator — validate GitHub Actions path filters
+Builder v1.7 compliant - validation_tool
 Version: 1.0.0 (Zone 1 draft)
 
 HumanAIOS validation tool for IC-032 prevention. It checks workflow path
