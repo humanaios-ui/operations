@@ -6,6 +6,7 @@ HumanAIOS
 import argparse, hashlib, json, pathlib, re
 TOOL_NAME = 'governance_invariant_evaluator'
 TOOL_VERSION = '1.0.0'
+TOOL_CATEGORY = 'audit_tool'
 SHA=re.compile(r'[0-9a-f]{40}\Z')
 REQUIRED=('GOVERNANCE_FILES.md','SESSION_RITUALS.md','BOOT_PROCESS_MAP.md','REGISTRY_SPEC.md','REPOSITORY_COORDINATOR_POLICY.json')
 def normalize(path):
