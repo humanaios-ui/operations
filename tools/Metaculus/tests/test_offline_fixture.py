@@ -70,8 +70,10 @@ class EntryPointWiringTests(unittest.TestCase):
         client = [n.lineno for n in calls if isinstance(n.func, ast.Name)
                   and n.func.id == "MetaculusClient"]
         self.assertEqual(len(gated), 1)
-        self.assertEqual(len(client), 1)
-        self.assertLess(gated[0], client[0])
+        # HumanAIOSBotV2 constructs a client in __init__ and main creates one.
+        # Both must remain after the gate (not just the explicit main client).
+        self.assertEqual(len(client), 2)
+        self.assertTrue(all(gated[0] < line for line in client))
 
     def test_docker_image_includes_write_gate(self):
         text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
