@@ -1,4 +1,5 @@
 """
+Builder v1.7 compliant
 Metaculus bot E0 safety layer (issue #1101).  Pure stdlib: importable with no
 network, no credentials and no forecasting-tools installed.
 
@@ -14,6 +15,9 @@ This module authorizes nothing by itself: the env approval is an operator (Z3)
 deployment setting, not a Z2 ratification, and is not evidence of permission.
 """
 from __future__ import annotations
+
+TOOL_NAME = "safety"
+TOOL_VERSION = "1.0.0"
 
 import os
 from dataclasses import dataclass, field
@@ -188,3 +192,25 @@ def build_receipt(mode: str, outcome: str, budget: Budget, **extra) -> dict:
         if isinstance(v, (str, int, float, bool, type(None))):
             receipt[k] = v
     return receipt
+
+
+def run_smoke_test() -> bool:
+    """--smoke-test: offline checks of the fail-closed gate. No I/O."""
+    require_live_allowed(DEFAULT_MODE, False, {})
+    for m in LIVE_MODES:
+        try:
+            require_live_allowed(m, True, {})
+        except RefusedError:
+            continue
+        return False
+    return comment_is_private() and not denied_pins(["litellm==1.106.0"]) \
+        and bool(denied_pins(["litellm==1.107.0"]))
+
+
+if __name__ == "__main__":
+    import sys
+    if "--smoke-test" in sys.argv:
+        ok = run_smoke_test()
+        print("smoke test PASSED" if ok else "smoke test FAILED")
+        raise SystemExit(0 if ok else 1)
+    print(f"{TOOL_NAME} {TOOL_VERSION}: library; use --smoke-test")
