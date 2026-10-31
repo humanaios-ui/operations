@@ -1,0 +1,38 @@
+{
+  "episode_id": "live-08",
+  "evidence": {
+    "ballots": {
+      "A": "REJECT",
+      "B": "REJECT"
+    },
+    "messages": [
+      {
+        "actor": "A",
+        "text": "B, proposed values [12, 14] fail: 14 exceeds limit 13. Reject. Need all values <=13; change to <=13 before approval."
+      },
+      {
+        "actor": "B",
+        "text": "A, agreed. The proposed values [12, 14] fail because 14 is not <= 13. Reject; no approval is possible in this session. Any resubmission must have every proposed value <= 13."
+      }
+    ],
+    "task": {
+      "limit": 13,
+      "requirement": "Every proposed value must be <= limit.",
+      "values": [
+        12,
+        14
+      ]
+    }
+  },
+  "provenance": {
+    "code_commit": "18790b666d8eabf2b14e72e1e93d65cb30df7eec",
+    "model": "qwen-3.8-27b",
+    "request_ids": [
+      "a5040b601c71f08c-CMH",
+      "a5040b636c25436b-DFW",
+      "a5040b668de92ccb-CMH",
+      "a5040b6a6b3f1bcb-CMH"
+    ],
+    "run_id": "apart-1010-live-004"
+  }
+}

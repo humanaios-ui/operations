@@ -1,0 +1,14 @@
+{
+  "by_status": {
+    "malformed_ballot": 20
+  },
+  "episodes_not_started_budget": [],
+  "episodes_scheduled": 20,
+  "estimated_cost_usd": 0.063785,
+  "tokens": {
+    "cap": 300000,
+    "completion": 29192,
+    "prompt": 20494,
+    "total": 49686
+  }
+}

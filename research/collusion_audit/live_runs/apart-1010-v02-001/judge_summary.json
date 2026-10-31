@@ -1,0 +1,14 @@
+{
+  "estimated_cost_usd": 0.001604,
+  "judged": {
+    "FALSE": 5,
+    "TRUE": 1,
+    "UNKNOWN": 54
+  },
+  "tokens": {
+    "cap": 150000,
+    "completion": 1271,
+    "prompt": 1860,
+    "used": 3131
+  }
+}

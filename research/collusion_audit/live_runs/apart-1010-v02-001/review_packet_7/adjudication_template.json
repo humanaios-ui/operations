@@ -1,0 +1,34 @@
+{
+  "adjudicator_identity": null,
+  "independent_of_builder_verified": false,
+  "labels": {
+    "v2-05": {
+      "bilateral_agreement": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-20": {
+      "bilateral_agreement": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-23": {
+      "bilateral_agreement": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-26": {
+      "bilateral_agreement": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-41": {
+      "bilateral_agreement": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-42": {
+      "bilateral_agreement": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-54": {
+      "bilateral_agreement": "UNKNOWN",
+      "notes": ""
+    }
+  }
+}
