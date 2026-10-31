@@ -222,7 +222,7 @@ Privacy and control: Reports and local dispositions are stored in **unencrypted 
 - \`ALREADY_IN_USE\` — user believes this resource is already controlled/used; ownership not independently established.
 - \`OTHER\` — other issue or observation.
 
-Add an optional explanation and **replacement/evidence HTTPS URL**. Optionally choose a **PNG, JPEG or WebP screenshot (max 1 MiB)**; it is **hashed in this browser only**, never transmitted, saved or embedded in the JSON packet. Store the original screenshot separately if reviewers need to view it and match its SHA-256 hash.
+Add an optional explanation and **replacement/evidence HTTPS URL**. Optionally choose an **evidence file of any type, including PDF (max 10 MiB)**; it is **hashed in this browser only**. The file contents and filename are never transmitted, saved or embedded in the JSON packet. Only MIME type, size and SHA-256 accompany your saved note, URLs, status and time. Keep the original file for a reviewer.
 
 Click **Save source observation locally**. The record is appended to the browser's private source-review queue. The candidate card shows the most recent observation on the next search. **Export verification review packet** downloads \`intent-os-source-verification.json\` with schema \`humanaios.resource_source_review.v0.1\`. Use **Import review packet** to move reports to another origin/port or combine locally. An offline reviewer can execute:
 
@@ -664,3 +664,80 @@ The parsers accept exported CSV evidence so observations can be receipted withou
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+
+### Evidence files, Show more, and teaching the Witness
+
+Source review accepts any file type, including PDFs, images, documents, text and
+archives (1 byte to 10 MiB). Files are hashed locally, never parsed, executed,
+uploaded or retained by the app. Saved in browser storage and review exports:
+notes, URLs, selected status, observation time, MIME type, byte size and SHA-256.
+The filename and file contents are not saved. Keep the original evidence file.
+For compatibility, attachment metadata still uses the existing `evidence.screenshot`
+field; old image-only review packets remain supported. A fingerprint does not
+prove source availability or verify a document's claims.
+
+The search API returns every match within its existing 500-row examination bound.
+The browser starts with ten cards; **Show more** reveals the next ten without
+repeating the search. Counts reflect the currently visible cards. Witness local
+dismissals stay separate and reversible through **Show candidates I dismissed locally**.
+
+Each card has **Teach the Witness about this resource**. Save a note and choose
+**Remember note only**, **Show this earlier**, or **Show this later**. Notes and
+preferences persist only in this browser, capped at 100 lessons. Preferences reorder
+future local displays while keeping every eligible candidate accessible. They do
+not change shared ranking, provider data, source verification, or model weights.
+**Export Witness lessons** creates a separate JSON packet for human review;
+**Clear Witness lessons** reverses these local preferences. No automatic central
+submission, model training, or promotion of a human note into verified evidence occurs.
+
+
+## Local HumanAIOS Witness resource conversation (opt-in, experimental)
+
+INTENT-OS now offers **Ask the Witness about this Resource** on individual
+public resource cards. The historical Convergent/Lever ATS research specimen
+was moved to the **/on-track** view and remains *historical and non-actionable*.
+
+The browser **does not receive an MCP credential**. Its button asks the local
+Resource Miner service to send a bounded, sanitized public resource summary
+(only ID, title, source, route, HTTPS source URL *without query or fragment*,
+and optional short source date/status) plus your typed question to Unit Zero's
+authenticated MCP `haios_talk`. No review-packet notes, uploaded documents,
+private account details, contact records, eligibility data or application
+payloads are forwarded. The button requires explicit consent each time. This
+is a model call to Anthropic, not machine learning, long-term memory,
+provider verification, or automatic approval. Provider data-handling is
+subject to the provider's applicable terms and settings.
+
+**Operator prerequisites on macOS:** your existing authenticated HumanAIOS
+MCP service must already be running on `127.0.0.1:8768/mcp` and have
+`haios_talk`. Use the same Mac Python environment that has the `mcp` and
+`httpx2` libraries available; the isolated MCP service virtualenv is suitable
+for a controlled preview. Start a separate loopback-only Resource Miner process
+using the branch's `app.py` and explicit one-process opt-in:
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+HAIOS_WITNESS_BRIDGE_ENABLED=1 \
+  "$HOME/Library/Application Support/HumanAIOS/mcp/.venv/bin/python" \
+  app.py --host 127.0.0.1 --port 8769
+```
+
+Only run this command when port 8769 is free, and do not replace the installed
+MCP service or modify unrelated working trees. `/on-track` shows personal
+**browser-local** feedback counts; import an existing source review packet into
+INTENT-OS on the *same origin* to populate them. User-reported `ALREADY_IN_USE`
+is not verified account ownership, and `SOURCE_WORKING` is not an acquisition.
+Neither proves mission benefit or earnings delivered to recovery programs.
+
+The bridge is **disabled by default**, refuses non-loopback or cross-origin
+browser requests, reads the MCP bearer token only from the Mac Keychain, never
+exposes it to the browser, and returns generic errors on provider failures.
+Never bind this opted-in interface to `0.0.0.0`, publish it behind a public
+proxy, or send private eligibility/job application/identity data through it.
+No personal feedback is sent just by visiting a page or searching.
+
+UI → bounded public-source payload → local origin/auth gate → Unit Zero MCP
+→ source-aware answer → *human review and decision* is the intended Z1 path.
+No merge, deployment, source-status change, provider action, account access or
+application submission is authorized by the exchange.

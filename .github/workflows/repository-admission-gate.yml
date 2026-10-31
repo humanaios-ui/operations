@@ -1,4 +1,5 @@
 name: repository-admission-gate
+run-name: ${{ inputs.dispatch_id && format('Admission dispatch {0}', inputs.dispatch_id) || github.workflow }}
 
 # Required check: Repository admission/backpressure gate.
 # Trusted control law comes from the default branch. Mutable working-set
@@ -24,6 +25,10 @@ on:
       - created
   workflow_dispatch:
     inputs:
+      dispatch_id:
+        description: Correlation ID for a sweep dispatch (never authorization)
+        required: false
+        type: string
       decision:
         description: Admission-state decision
         required: true
