@@ -100,7 +100,7 @@ test("partial pagination remains partial, never passes as full totals", async ()
   let calls=0;
   const r=await api.fetchRepository(REPO,NOW,async ()=>{
     calls++;
-    const items=Array.from({length:100},(_,i)=>record(calls*100+i,{updated_at:NOW-1000-i}));
+    const items=Array.from({length:100},(_,i)=>record(calls*100+i,{updated_at:NOW-(calls*100+i)*1000}));
     return {ok:true,json:async()=>items};
   });
   assert.equal(r.coverage,"PARTIAL_PAGE_LIMIT");
