@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**116 candidates** — ⏳ awaiting Z2 99 · ✅ ratified 17 · **65 records**
+**116 candidates** — ⏳ awaiting Z2 98 · ✅ ratified 18 · **65 records**
 
-## Awaiting Z2 (99)
+## Awaiting Z2 (98)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -93,7 +93,6 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-25 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** ⚠️ falsifier waived | Phase 2a interrogation approvals + Design E/A ratification record awaiting canonical signature | `z1-inbox/2026-09-23/interrogation_approvals.md` |
 | 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
 | 2026-09-27 | **Q-CRB-COMPILE-01** | Computational Review Board — portable adjudication institution | `z1-inbox/2026-09-25/COMPUTATIONAL_REVIEW_BOARD_PROPOSAL.md` |
-| 2026-09-27 | **Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01** ⚠️ falsifier waived | Phase 2 CI/CD consolidation roadmap — Options A-D prioritization | `z1-inbox/2026-09-25/PHASE-2-CI-CONSOLIDATION-ROADMAP.md` |
 | 2026-09-29 | **Q-ACAT-DISTRIBUTION-PLAYS-01** | ACAT distribution plays — applying an externally-sourced growth playbook | `z1-inbox/2026-09-27/Q-ACAT-DISTRIBUTION-PLAYS-01.md` |
 | 2026-09-29 | **Q-GATE-BYPASS-LEDGER-01** | Merges through non-required-but-meaningful gates leave no in-repo trace | `z1-inbox/2026-09-27/F-CAND-SILENT-GATE-BYPASS-01.md` |
 | 2026-09-29 | **Q-PROCESS-PRODUCT-RATIO-01** | Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs | `z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md` |
@@ -112,7 +111,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-26 | **Q-ZONE-Z011-RESEARCH-CAP-01** | Proposal — change Z-011 (research) from READ-ONLY to LIMITED cap (publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record) | `z1-inbox/2026-10-24/Q-ZONE-Z011-RESEARCH-CAP-01.md` |
 
-## Decided (17)
+## Decided (18)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -133,6 +132,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-QUEUE-SWEEP-PIN-SPEC-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`3823b1ed565652db123cfa2f519c72fe5ae13c194085ff539b7596c782793dc4` |
 | ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md`<br>`3d9fd60e45ad381233420f6086dcfee37da3b44d657c6ba6986ea9286d63e800` |
 | ✅ ratified | **Q-HIAE-001-ASSIGNMENT-RECEIPTS-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0` |
+| ✅ ratified | **Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`ce40510fa97b6df060aa5cdc4fc12809dd80dfe282a2a17f93d2169513788c83` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
