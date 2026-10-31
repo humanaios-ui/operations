@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 223
+  tools: 224
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 174
+  builder_markers_present: 175
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2835,6 +2835,18 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'IEW-002: distinguish self-reported receipts from trusted execution observations.'
+- tool_id: HAIOS-TOOL-237
+  name: safety
+  path: tools/Metaculus/safety.py
+  version: 1.0.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Metaculus bot E0 safety layer (issue #1101).  Pure stdlib: importable with no'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

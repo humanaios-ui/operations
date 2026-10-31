@@ -3,7 +3,7 @@ Builder v1.7 compliant
 Metaculus bot E0 safety layer (issue #1101).  Pure stdlib: importable with no
 network, no credentials and no forecasting-tools installed.
 
-Guarantees (each is unit-tested in test_safety.py):
+Checks (each is unit-tested in test_safety.py):
   * Default run mode is OFFLINE (no Metaculus / LLM / Supabase I/O).
   * Any live mode fails closed unless BOTH an explicit --publish flag AND the
     operator-set env HUMANAIOS_METACULUS_PUBLISH_APPROVED=1 are present, and the
@@ -18,6 +18,7 @@ from __future__ import annotations
 
 TOOL_NAME = "safety"
 TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "security_gate_tool"
 
 import os
 from dataclasses import dataclass, field
@@ -122,7 +123,7 @@ class BudgetTracker:
     seen: set = field(default_factory=set)
 
     def may_dispatch(self, key: str) -> tuple[bool, str]:
-        """Pre-dispatch check; never mutates. key = question+bot+competition."""
+        """Pre-dispatch check; does not mutate state. key = question+bot+competition."""
         b = self.budget
         if key in self.seen:
             return False, "duplicate submission"
