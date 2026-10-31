@@ -3,7 +3,7 @@ generated: '2026-10-14'
 decision_window_days: 2
 counts:
   candidates: 116
-  records: 64
+  records: 65
 ratifiers:
 - Night
 candidates:
@@ -800,11 +800,15 @@ candidates:
   title: Phase 2 CI/CD consolidation roadmap — Options A-D prioritization
   path: z1-inbox/2026-09-25/PHASE-2-CI-CONSOLIDATION-ROADMAP.md
   submitted: '2026-09-25'
-  status: awaiting_z2
+  status: ratified
   falsifier_waiver: 'As filed, this candidate presents four strategic options (A-D) for Z2 to prioritize rather than a single falsifiable prediction, and contains no explicit ''## Falsifier'' heading or falsifier: field. Recorded as the gap, not as an accepted exemption: Z2 accepts or refuses the waiver, or requires a falsifier scoped to whichever option(s) it selects.'
   note: 'Self-declares this q_id in its own closing line ("Ready for: Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01 governance candidate"). Proposes four Phase 2 options after Phase 1 (path-filter deployment-frequency reduction, PRs #541/#542): A (monitoring), B (path-filter validator + telemetry, molt_tier 1+2), C (expand path filters to more workflows), D (Vercel account-level rate-limit review). Options A and B were actioned same-day per z1-inbox/2026-09-25/PHASE-2-EXECUTIVE-START.md ("user approval received") rather than through a REGISTERED.md Z2 hash; B has since shipped (tools/workflow_path_validator.py, tools/workflow_telemetry_collector.py both exist in tree; commits 9085233/45bfdaf), though the doc-referenced .github/workflows/workflow-validation.yml CI gate and .github/TELEMETRY.md spec were never created. Options C and D were never picked up — no matching commits found. Live governance question: was A/B properly ratified (informal in-session approval, not a REGISTERED.md entry — Q-Z2-CI-CONSOLIDATION-PHASE-1,
     which z1-inbox/2026-09-25/SESSION-CLOSURE-HANDOFF.md claims was added to REGISTERED.md, does not in fact exist there), and should C/D be picked up, deferred, or formally closed as not pursued.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-10-31"
+  z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
+  z2_hash: "ce40510fa97b6df060aa5cdc4fc12809dd80dfe282a2a17f93d2169513788c83"
 - q_id: Q-LEDGER-GROUNDING-STUB-01
   title: p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification
   path: z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md
@@ -887,6 +891,10 @@ candidates:
     changed. Signatures are HMAC stand-ins; the overclaim filter is lexical. Z2 decides the
     assignment rule, the signature scheme, and the overclaim vocabulary.'
 records:
+- path: z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md
+  title: "Z2 rulings — 2026-10-31 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
