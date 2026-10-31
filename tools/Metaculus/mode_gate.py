@@ -1,3 +1,4 @@
+# Builder v1.7 compliant
 """Fail-closed approval guard for Metaculus actions with external side effects.
 
 This is a technical safety belt, not HumanAIOS governance admission. GitHub issue
@@ -5,6 +6,11 @@ admission, code review, bot registration and operator deployment consent remain
 separate obligations. No API credentials are read or required by this module.
 """
 from __future__ import annotations
+
+TOOL_NAME = "metaculus_mode_gate"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "security_gate_tool"
+TOOL_ZONE = 1
 
 import os
 from collections.abc import Mapping
@@ -40,3 +46,16 @@ def require_explicit_live_approval(
             "Scored tournament writes disabled. Explicit "
             "METACULUS_SCORED_WRITES=APPROVED is also required."
         )
+
+
+def run_smoke_test() -> bool:
+    """Offline safety gate smoke test; never reads live credentials."""
+    try:
+        require_explicit_live_approval(mode="test_questions", publish=False, environ={})
+    except ExternalWritesNotApproved:
+        return True
+    return False
+
+
+if __name__ == "__main__":
+    raise SystemExit(0 if run_smoke_test() else 1)
