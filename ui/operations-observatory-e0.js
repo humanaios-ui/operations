@@ -39,6 +39,7 @@
     const updated = dateMs(raw.updated_at);
     if (updated === null || updated > nowMs + 300000) return null;
     const created = dateMs(raw.created_at);
+    if (created === null || created > updated) return null;
     const closed = dateMs(raw.closed_at);
     const labels = Array.isArray(raw.labels) ? raw.labels
       .filter(x => x && typeof x.name === "string")
@@ -129,6 +130,7 @@
     let coverage = "PARTIAL_PAGE_LIMIT";
     let reason = "Pagination capped at " + MAX_PAGES + " pages";
     let pages = 0;
+    let oldestPreviousPage = Infinity;
     for (let p = 1; p <= MAX_PAGES; p++) {
       const url = "https://api.github.com/repos/" + repo +
         "/issues?state=all&sort=updated&direction=desc&per_page=" + PAGE_SIZE + "&page=" + p;
@@ -162,19 +164,21 @@
         return {items, coverage: items.length ? "PARTIAL_INVALID_RESPONSE" : "UNAVAILABLE",
           reason: "Unexpected GitHub response shape", pages};
       }
+      // GitHub promises newest-first records. Check the promise on every
+      // page, including the final short page, before claiming completeness.
+      const times = page.map(x => dateMs(x && x.updated_at));
+      if (times.some(t => t === null) || times.some((t, i) => i > 0 && t > times[i-1]) ||
+          (times.length && times[0] > oldestPreviousPage)) {
+        coverage = "PARTIAL_UNSORTED";
+        reason = "GitHub results have invalid or unsorted updated timestamps";
+        break;
+      }
       pages += 1;
       items.push(...page);
+      if (times.length) oldestPreviousPage = times[times.length - 1];
       if (page.length < PAGE_SIZE) {
         coverage = "COMPLETE_WINDOW";
         reason = "End of paginated GitHub results";
-        break;
-      }
-      // API is explicitly sorted by descending updated time. Stop when older
-      // records are reached. If ordering is violated, fail to partial.
-      const times = page.map(x => dateMs(x && x.updated_at));
-      if (times.some(t => t === null) || times.some((t, i) => i > 0 && t > times[i-1])) {
-        coverage = "PARTIAL_UNSORTED";
-        reason = "GitHub results have invalid or unsorted updated timestamps";
         break;
       }
       if (times[times.length - 1] < cutoff) {
