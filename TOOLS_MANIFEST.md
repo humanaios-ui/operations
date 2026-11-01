@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**225 registered tools** · 2 MCP servers · 4 excluded · 176 carrying Builder v1.7 markers
+**227 registered tools** · 2 MCP servers · 4 excluded · 177 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 225 |
-| — status `draft` | 224 |
+| Registered tools | 227 |
+| — status `draft` | 226 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 176 |
-| Uncategorized | 0 |
+| Builder v1.7 markers present | 177 |
+| Uncategorized | 1 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -270,7 +270,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
 
-## Security gates — `security_gate_tool` (13)
+## Security gates — `security_gate_tool` (14)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -287,6 +287,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-185 | smag_gate_enforcer | `tools/smag_gate_enforcer_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up) |
 | HAIOS-TOOL-231 | b4_admission | `tools/b4_admission.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | B4 controlled-operation admission: verify a GitHub-authenticated approval envelope. |
 | HAIOS-TOOL-237 | metaculus_mode_gate | `tools/Metaculus/mode_gate.py` | 0.1.0 | 1 | draft | — | Fail-closed approval guard for Metaculus actions with external side effects. |
+| HAIOS-TOOL-239 | safety | `tools/Metaculus/safety.py` | 1.1.0 | 1 | draft | — | Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no |
 
 ## Templates — `template_tool` (3)
 
@@ -333,6 +334,12 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-233 | hiae_assurance | `tools/hiae_assurance.py` | 0.1.0 | 1 | draft | — | HIAE-001 assurance transaction core — v0.1 (proposal stage) |
 | HAIOS-TOOL-236 | iew_witness_gate | `tools/iew/witness_gate.py` | 0.1.0 | 1 | draft | — | IEW-002: distinguish self-reported receipts from trusted execution observations. |
 
+## Unclassified — blocks the gate — `unclassified` (1)
+
+| tool_id | tool | path | ver | zone | status | flags | purpose |
+|---|---|---|---|---|---|---|---|
+| HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
+
 ## MCP servers (2)
 
 External tool surfaces the agent may call. Registered here because an MCP server is a tool with a network boundary: `scope` and `data_classification` must be set by an owner before a server can reach `approved`.
@@ -374,7 +381,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 7 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
-| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 13 |
+| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 14 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 32 |
 
