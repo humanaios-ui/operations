@@ -18,19 +18,19 @@ WHAT IT DOES
 1. Reads open PRs, the default-branch head, check runs on each head, and open
    issues carrying a blocker label.
 2. Applies fixed, named blocker rules (see BLOCKER_RULES).
-3. Writes one JSON document. Same API responses in -> same JSON out, except
-   for `generated_at`.
+3. Writes one JSON document. Same API responses and observation clock produce
+   identical JSON, including derived stale-PR signals.
 
 WHAT IT DOES NOT DO
 -------------------
 - No writes to GitHub. No comments, labels, merges, dispatches.
 - No language model. No prose interpretation.
 - No unresolved-review-thread counts (needs GraphQL; listed in coverage.not_collected).
-- A green check is CAPABILITY evidence only, never approval or admission.
+- A green check is CAPABILITY evidence only. It is not approval or admission.
 
 Usage:
   GITHUB_TOKEN=... python3 tools/ops_snapshot_v0_1.py --repo humanaios-ui/operations --out ops_snapshot.json
-  python3 tools/ops_snapshot_v0_1.py --from-raw raw.json --out ops_snapshot.json   # offline replay
+  python3 tools/ops_snapshot_v0_1.py --from-raw raw.json --out ops_snapshot.json   # replay saved observation clock
   python3 tools/ops_snapshot_v0_1.py --smoke-test
 """
 from __future__ import annotations
@@ -54,7 +54,8 @@ API = "https://api.github.com"
 FAILING = {"failure", "timed_out", "action_required", "startup_failure"}
 DEFAULT_BLOCKER_LABELS = ("blocker", "blocked", "P0")
 STALE_DAYS = 14
-MAX_PRS = 100
+PAGE_SIZE = 100
+MAX_PAGES = 20  # Bounded collection: incomplete pages cause UNKNOWN totals.
 
 BLOCKER_RULES = {
     "MAIN_CHECK_FAILED": "A check run on the default-branch head concluded failing.",
@@ -95,37 +96,82 @@ class GitHub:
             return None
 
 
-def fetch_raw(gh: GitHub, repo: str, blocker_labels: tuple[str, ...]) -> dict:
-    """Collect the raw API responses the snapshot is built from."""
-    meta = gh.get(f"/repos/{repo}") or {}
-    branch = meta.get("default_branch", "main")
-    head = gh.get(f"/repos/{repo}/commits/{branch}") or {}
-    main_sha = head.get("sha")
+def _pages(gh: GitHub, path: str, params: dict, key: str | None = None) -> tuple[list, bool]:
+    """Fetch a bounded, complete REST collection. PRs count toward issue page size."""
+    out: list = []
+    expected_total: int | None = None
+    for page in range(1, MAX_PAGES + 1):
+        response = gh.get(path, {**params, "per_page": PAGE_SIZE, "page": page})
+        if response is None:
+            return out, False
+        if key is None:
+            rows = response
+        else:
+            if not isinstance(response, dict) or not isinstance(response.get("total_count"), int):
+                gh.errors.append({"path": path, "status": "malformed_total_count"})
+                return out, False
+            if expected_total is None:
+                expected_total = response["total_count"]
+            elif expected_total != response["total_count"]:
+                gh.errors.append({"path": path, "status": "total_count_changed"})
+                return out, False
+            rows = response.get(key)
+        if not isinstance(rows, list):
+            gh.errors.append({"path": path, "status": "malformed_page"})
+            return out, False
+        out.extend(rows)
+        if key is not None and expected_total is not None:
+            if len(out) >= expected_total:
+                if len(out) > expected_total:
+                    gh.errors.append({"path": path, "status": "inconsistent_total_count"})
+                    return out, False
+                return out, True
+            if len(rows) < PAGE_SIZE:
+                gh.errors.append({"path": path, "status": "truncated_page"})
+                return out, False
+        elif len(rows) < PAGE_SIZE:
+            return out, True
+    gh.errors.append({"path": path, "status": "page_limit", "limit": MAX_PAGES})
+    return out, False
 
-    prs_res = gh.get(f"/repos/{repo}/pulls", {"state": "open", "per_page": MAX_PRS})
-    prs = prs_res or []
+
+def fetch_raw(gh: GitHub, repo: str, blocker_labels: tuple[str, ...]) -> dict:
+    """Collect source observations with explicit completeness and a replay clock."""
+    observed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    meta = gh.get(f"/repos/{repo}")
+    branch = meta.get("default_branch") if isinstance(meta, dict) else None
+    head = gh.get(f"/repos/{repo}/commits/{branch}") if branch else None
+    main_sha = head.get("sha") if isinstance(head, dict) else None
+    main_observed = bool(branch and main_sha)
+
+    prs, prs_complete = _pages(gh, f"/repos/{repo}/pulls", {"state": "open"})
     checks: dict[str, list] = {}
-    shas = [main_sha] + [p.get("head", {}).get("sha") for p in prs]
-    for sha in [s for s in shas if s]:
-        res = gh.get(f"/repos/{repo}/commits/{sha}/check-runs", {"per_page": 100})
-        checks[sha] = (res or {}).get("check_runs", [])
+    check_observed_by_sha: dict[str, bool] = {}
+    shas = [main_sha] + [p.get("head", {}).get("sha") for p in prs if isinstance(p, dict)]
+    for sha in dict.fromkeys(s for s in shas if s):
+        rows, complete = _pages(gh, f"/repos/{repo}/commits/{sha}/check-runs", {}, "check_runs")
+        checks[sha] = rows
+        check_observed_by_sha[sha] = complete
 
     issues: list = []
+    issues_complete = True
     for label in blocker_labels:
-        res = gh.get(f"/repos/{repo}/issues", {"state": "open", "labels": label, "per_page": 100}) or []
-        issues.extend(i for i in res if "pull_request" not in i)
+        rows, complete = _pages(gh, f"/repos/{repo}/issues", {"state": "open", "labels": label})
+        issues.extend(i for i in rows if isinstance(i, dict) and "pull_request" not in i)
+        issues_complete = issues_complete and complete
 
     return {
-        "repo": repo,
-        "default_branch": branch,
-        "main_sha": main_sha,
-        "observed": {"main": main_sha is not None, "pulls": prs_res is not None},
-        "pulls": prs,
-        "check_runs": checks,
-        "blocker_issues": issues,
-        "blocker_labels": list(blocker_labels),
-        "api_calls": gh.calls,
-        "api_errors": gh.errors,
+        "repo": repo, "default_branch": branch, "main_sha": main_sha,
+        "observed_at": observed_at,
+        "observed": {
+            "main": main_observed, "pulls": prs_complete,
+            "checks": all(check_observed_by_sha.values()) and bool(check_observed_by_sha),
+            "blocker_issues": issues_complete,
+        },
+        "pulls": prs, "check_runs": checks,
+        "check_observed_by_sha": check_observed_by_sha,
+        "blocker_issues": issues, "blocker_labels": list(blocker_labels),
+        "api_calls": gh.calls, "api_errors": gh.errors,
     }
 
 
@@ -134,10 +180,13 @@ def fetch_raw(gh: GitHub, repo: str, blocker_labels: tuple[str, ...]) -> dict:
 def _parse(ts: str | None) -> datetime | None:
     if not ts:
         return None
-    return datetime.fromisoformat(ts)
+    parsed = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("timestamp requires timezone")
+    return parsed.astimezone(UTC)
 
 
-def summarize_checks(runs: list) -> dict:
+def summarize_checks(runs: list, complete: bool = True) -> dict:
     counts: dict[str, int] = {}
     failed: list[dict] = []
     for r in runs:
@@ -147,15 +196,25 @@ def summarize_checks(runs: list) -> dict:
             failed.append({"name": r.get("name"), "conclusion": r.get("conclusion"),
                            "url": r.get("html_url")})
     failed.sort(key=lambda f: (f["name"] or "", f["url"] or ""))
-    return {"total": len(runs), "by_conclusion": dict(sorted(counts.items())), "failed": failed}
+    return {"total": len(runs) if complete else None,
+            "by_conclusion": dict(sorted(counts.items())), "failed": failed,
+            "observed_complete": complete}
 
 
 def build_snapshot(raw: dict, now: datetime) -> dict:
     """Pure: raw API responses + clock -> snapshot. No I/O."""
     checks = raw.get("check_runs", {})
+    observed = raw.get("observed") or {}
+    # Historic/hand-authored files without observation flags remain unverified.
+    observed_main = observed.get("main") is True
+    observed_pulls = observed.get("pulls") is True
+    observed_issues = observed.get("blocker_issues") is True
+    check_status = raw.get("check_observed_by_sha") or {}
     main_sha = raw.get("main_sha")
-    main_checks = summarize_checks(checks.get(main_sha, [])) if main_sha else summarize_checks([])
+    main_check_complete = bool(observed_main and main_sha and check_status.get(main_sha) is True)
+    main_checks = summarize_checks(checks.get(main_sha, []), main_check_complete) if main_sha else summarize_checks([], False)
     blockers: list[dict] = []
+    all_checks_complete = main_check_complete
 
     for f in main_checks["failed"]:
         blockers.append({"rule": "MAIN_CHECK_FAILED", "ref": f"{raw.get('default_branch')}@{main_sha}",
@@ -164,7 +223,9 @@ def build_snapshot(raw: dict, now: datetime) -> dict:
     prs = []
     for p in raw.get("pulls", []):
         sha = p.get("head", {}).get("sha")
-        cs = summarize_checks(checks.get(sha, []))
+        complete = bool(sha and check_status.get(sha) is True)
+        all_checks_complete = all_checks_complete and complete
+        cs = summarize_checks(checks.get(sha, []), complete)
         updated = _parse(p.get("updated_at"))
         idle = (now - updated).days if updated else None
         pr = {
@@ -206,13 +267,15 @@ def build_snapshot(raw: dict, now: datetime) -> dict:
         by_rule[b["rule"]] = by_rule.get(b["rule"], 0) + 1
 
     errors = raw.get("api_errors", [])
-    observed = raw.get("observed", {"main": True, "pulls": True})
-    # Fail closed: a failed fetch must read as UNKNOWN, never as "zero".
-    if not (observed.get("main") and observed.get("pulls")):
+    # An incomplete core fetch cannot establish counts; partial pages cannot prove zero.
+    if not (observed_main and observed_pulls):
         tag = "UNOBSERVED"
+    elif errors or not (all_checks_complete and observed_issues):
+        tag = "OBSERVED_PARTIAL"
     else:
-        tag = "OBSERVED" if not errors else "OBSERVED_PARTIAL"
-    unknown = not observed.get("pulls")
+        tag = "OBSERVED"
+    unknown = tag == "UNOBSERVED"
+    incomplete_blockers = tag != "OBSERVED"
     not_collected = ["unresolved_review_threads", "required_status_check_inventory",
                      "deployment_runtime_state", "resource_or_revenue_outcomes"]
     return {
@@ -226,16 +289,18 @@ def build_snapshot(raw: dict, now: datetime) -> dict:
         "pull_requests": {
             "open_count": None if unknown else len(prs),
             "draft_count": None if unknown else sum(1 for p in prs if p["draft"]),
-            "with_failing_checks": None if unknown else sum(1 for p in prs if p["checks"]["failed"]),
-            "truncated_at": MAX_PRS if len(prs) >= MAX_PRS else None,
+            "with_failing_checks": None if unknown or not all_checks_complete else sum(1 for p in prs if p["checks"]["failed"]),
+            "truncated_at": PAGE_SIZE * MAX_PAGES if not observed_pulls and len(prs) >= PAGE_SIZE * MAX_PAGES else None,
             "items": prs,
         },
-        "blockers": {"rules": BLOCKER_RULES, "count": len(blockers),
+        "blockers": {"rules": BLOCKER_RULES, "count": None if incomplete_blockers else len(blockers),
                      "by_rule": dict(sorted(by_rule.items())), "items": blockers},
         "coverage": {
             "source": "github-rest",
             "api_calls": raw.get("api_calls"),
             "api_errors": errors,
+            "check_observed_by_sha": dict(sorted(check_status.items())),
+            "blocker_issue_collection_complete": observed_issues,
             "blocker_labels": raw.get("blocker_labels", []),
             "not_collected": not_collected,
             "note": "Green checks are capability evidence, not approval, admission or benefit.",
@@ -249,10 +314,12 @@ def markdown_summary(s: dict) -> str:
     m = s["main"]["checks"]
     lines = [
         f"## Ops snapshot — {s['repo']} — {s['generated_at']}",
-        f"- main `{(s['main']['sha'] or '')[:7]}`: {m['total']} checks, {len(m['failed'])} failing",
+        (f"- main `{(s['main']['sha'] or '')[:7]}`: "
+         f"{m['total'] if m['total'] is not None else 'unknown'} checks, "
+         f"{len(m['failed']) if m['observed_complete'] else 'at least ' + str(len(m['failed']))} failing"),
         (f"- open PRs: {s['pull_requests']['open_count']} "
          f"({s['pull_requests']['draft_count']} draft, {s['pull_requests']['with_failing_checks']} with failing checks)"),
-        f"- blockers: {s['blockers']['count']} " + ", ".join(f"{k}={v}" for k, v in s["blockers"]["by_rule"].items()),
+        f"- blockers: {s['blockers']['count'] if s['blockers']['count'] is not None else 'unknown'} " + ", ".join(f"{k}={v}" for k, v in s["blockers"]["by_rule"].items()),
         f"- tag: {s['epistemic_tag']} · authority_effect: {s['authority_effect']}",
     ]
     return "\n".join(lines) + "\n"
@@ -276,6 +343,9 @@ def _fixture() -> dict:
         "check_runs": {"m1": [ok, bad], "p1": [ok], "p2": [bad], "p3": [bad]},
         "blocker_issues": [{"number": 9, "title": "host gate", "html_url": "i/9"}],
         "blocker_labels": ["blocker"], "api_calls": 7, "api_errors": [],
+        "observed": {"main": True, "pulls": True, "checks": True, "blocker_issues": True},
+        "check_observed_by_sha": {"m1": True, "p1": True, "p2": True, "p3": True},
+        "observed_at": "2026-10-24T00:00:00Z",
     }
 
 
@@ -305,6 +375,7 @@ def main() -> int:
     ap.add_argument("--save-raw", help="save raw API responses here (for replay)")
     ap.add_argument("--blocker-label", action="append",
                     help=f"issue label treated as blocker (default: {', '.join(DEFAULT_BLOCKER_LABELS)})")
+    ap.add_argument("--now", help="explicit ISO-8601 UTC observation clock override")
     ap.add_argument("--smoke-test", action="store_true")
     args = ap.parse_args()
 
@@ -323,7 +394,19 @@ def main() -> int:
             with open(args.save_raw, "w", encoding="utf-8") as f:
                 json.dump(raw, f, indent=2, sort_keys=True)
 
-    snap = build_snapshot(raw, datetime.now(UTC))
+    observation_time = args.now or raw.get("observed_at")
+    if args.from_raw and not observation_time:
+        ap.error("raw replay requires observed_at or --now")
+    if observation_time:
+        try:
+            now = _parse(observation_time)
+            if now is None or now.utcoffset().total_seconds() != 0:
+                raise ValueError("clock is not UTC")
+        except (TypeError, ValueError) as exc:
+            ap.error(f"invalid UTC replay clock: {exc}")
+    else:
+        now = datetime.now(UTC)
+    snap = build_snapshot(raw, now)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(snap, f, indent=2, sort_keys=True)
         f.write("\n")
@@ -331,7 +414,7 @@ def main() -> int:
         with open(args.summary, "w", encoding="utf-8") as f:
             f.write(markdown_summary(snap))
     print(markdown_summary(snap), end="")
-    # Exit 2 when the core facts were not observed, so a scheduled run goes red
+    # Exit 2 when the core facts were not observed, so the manual run goes red
     # instead of publishing an empty snapshot that looks like "nothing wrong".
     return 2 if snap["epistemic_tag"] == "UNOBSERVED" else 0
 
