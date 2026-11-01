@@ -2,7 +2,7 @@ name: Audit Protocol v3.1 Synthetic Gates
 on:
   pull_request:
     paths:
-      - 'docs/audit/SYSTEM_AUDIT_PROTOCOL_v3_1.md'
+      - 'docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md'
       - 'tools/audit_protocol_gate_v3_1.py'
       - 'tests/test_audit_protocol_gate_v3_1.py'
       - '.github/workflows/audit-protocol-v3-1-regression.yml'

@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 225
+  tools: 226
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 176
+  builder_markers_present: 177
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2859,6 +2859,18 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Pure-stdlib, offline Metaculus forecast validation harness.
+- tool_id: HAIOS-TOOL-239
+  name: audit_protocol_gate_v3_1
+  path: tools/audit_protocol_gate_v3_1.py
+  version: 3.1.1
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
