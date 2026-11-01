@@ -66,6 +66,7 @@ import asyncio
 import logging
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from typing import Literal, Optional
 
@@ -96,6 +97,9 @@ from forecasting_tools import (
 )
 from supabase import create_client, Client
 
+# safety.py sits next to this file. Add that directory so the import also works when this
+# module is loaded by path from elsewhere (e.g. the forecasting-tools smoke workflow).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from safety import (
     DEFAULT_MODE,
     DUPLICATE_REASON,
@@ -1298,3 +1302,5 @@ if __name__ == "__main__":
         forecast_reports = asyncio.run(
             humanaios_bot.forecast_questions(questions, return_exceptions=True)
         )
+
+    humanaios_bot.log_report_summary(forecast_reports)

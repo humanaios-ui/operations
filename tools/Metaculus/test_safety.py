@@ -63,6 +63,7 @@ class TestBudget(unittest.TestCase):
         self.assertEqual(s.backoff_seconds(2), 8.0)
         self.assertEqual(s.backoff_seconds(0, retry_after=30), 30)
         self.assertEqual(s.backoff_seconds(10), 60.0)
+        self.assertEqual(s.backoff_seconds(0, retry_after=120), 120)  # server wait honored
 
     def test_nan_budget_rejected(self):
         with self.assertRaises(s.RefusedError):
@@ -85,6 +86,10 @@ class TestBudget(unittest.TestCase):
     def test_duplicate_reason_code(self):
         t = s.BudgetTracker(s.Budget()); t.record_dispatch("a")
         self.assertEqual(t.may_dispatch("a"), (False, s.DUPLICATE_REASON))
+
+    def test_zero_samples_rejected(self):
+        with self.assertRaises(s.RefusedError):
+            s.budget_from_env({"BOT_MAX_SAMPLES": "0"})
 
     def test_env_budget(self):
         self.assertEqual(s.budget_from_env({"BOT_MAX_QUESTIONS": "3"}).max_questions, 3)
@@ -112,8 +117,16 @@ class TestPrivacyAndDeps(unittest.TestCase):
         self.assertIn("-c constraints.txt", (HERE / "Dockerfile").read_text())
 
     def test_receipt_no_secrets_and_unverified(self):
-        r = s.build_receipt("offline_fixture", "offline_ok", s.Budget(), key=object(), n=1)
-        self.assertNotIn("key", r)
+        r = s.build_receipt(
+            "offline_fixture", "offline_ok", s.Budget(),
+            key="secret-token", api_token="abc", skip_reason="none",
+            permission_state="VERIFIED", network_io=True, mode_override="x",
+        )
+        self.assertNotIn("secret-token", json.dumps(r))
+        self.assertNotIn("abc", json.dumps(r))
+        self.assertEqual(r["skip_reason"], "none")           # named extra is kept
+        self.assertEqual(r["permission_state"], s.PERMISSION_UNVERIFIED)  # not replaceable
+        self.assertFalse(r["network_io"])
         self.assertEqual(r["permission_state"], s.PERMISSION_UNVERIFIED)
         self.assertEqual(r["access_tier"], s.NO_CP)
         self.assertFalse(r["network_io"])
@@ -130,7 +143,9 @@ class TestEntryPoint(unittest.TestCase):
 
     def run_main(self, *a, env=None):
         e = {k: v for k, v in os.environ.items() if not k.endswith(("_KEY", "_TOKEN"))}
-        e.pop(s.APPROVAL_ENV, None); e.update(env or {})
+        # Explicit non-approved value: dotenv never overrides a variable that is set, so a
+        # local .env cannot re-enable publishing in these tests.
+        e[s.APPROVAL_ENV] = "0"; e.update(env or {})
         return subprocess.run([sys.executable, str(HERE / "main.py"), *a],
                               capture_output=True, text=True, env=e, cwd=HERE)
 

@@ -83,6 +83,9 @@ class Budget:
     est_usd_upper_per_question: float = 0.20
 
     def validate(self) -> None:
+        # forecasting-tools requires at least one prediction per research report.
+        if self.max_samples_per_question < 1:
+            raise RefusedError("budget max_samples_per_question must be >= 1")
         for name in ("max_questions", "max_samples_per_question",
                      "max_requests_per_question", "max_total_retries"):
             if not getattr(self, name) >= 0:
@@ -156,9 +159,9 @@ class BudgetTracker:
 def backoff_seconds(attempt: int, retry_after: Optional[float] = None,
                     base: float = 2.0, cap: float = 60.0) -> float:
     """Exponential backoff; honors a 429 Retry-After if larger."""
-    delay = min(cap, base * (2 ** max(attempt, 0)))
+    delay = min(cap, base * (2 ** max(attempt, 0)))  # cap only our own delay
     if retry_after is not None and retry_after > delay:
-        delay = min(retry_after, cap)
+        delay = retry_after  # never retry before the server's requested wait
     return delay
 
 
@@ -184,8 +187,15 @@ def denied_pins(requirement_lines: list[str]) -> list[str]:
     return bad
 
 
+RECEIPT_EXTRA_FIELDS = frozenset({
+    "question_id", "post_id", "skip_reason", "n_questions", "n_forecasts",
+    "model_version", "http_status",
+})
+
+
 def build_receipt(mode: str, outcome: str, budget: Budget, **extra) -> dict:
-    """Versioned run receipt. No secrets: only whitelisted scalar fields."""
+    """Versioned run receipt. No secrets: only explicitly named extra fields, scalar
+    values only, and extras can never replace the base evidence fields."""
     receipt = {
         "receipt_version": 1,
         "mode": mode,
@@ -196,7 +206,9 @@ def build_receipt(mode: str, outcome: str, budget: Budget, **extra) -> dict:
         "budget": budget.__dict__.copy(),
     }
     for k, v in extra.items():
-        if isinstance(v, (str, int, float, bool, type(None))):
+        if k in RECEIPT_EXTRA_FIELDS and k not in receipt and isinstance(
+            v, (str, int, float, bool, type(None))
+        ):
             receipt[k] = v
     return receipt
 
