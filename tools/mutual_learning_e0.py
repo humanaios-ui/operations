@@ -41,6 +41,10 @@ ADAPT = {"PROPOSED", "REJECTED", "APPROVED_FOR_FUTURE_REVIEW"}
 DISAGREEMENT = {"OPEN", "RESOLVED_WITH_EVIDENCE"}
 
 
+def is_choice(value: Any, choices: set[str]) -> bool:
+    return isinstance(value, str) and value in choices
+
+
 def require_keys(value: Any, keys: set[str], path: str, errors: list[str]) -> bool:
     if not isinstance(value, dict):
         errors.append(f"{path}: expected object")
@@ -113,13 +117,13 @@ def validate(record: Any) -> list[str]:
             errors.append(f"{p}: invalid/duplicate id")
         else:
             ids.add(oid)
-        if obj["actor"] not in ACTORS:
+        if not is_choice(obj["actor"], ACTORS):
             errors.append(f"{p}: unknown actor")
         if not isinstance(obj["claim"], str) or not obj["claim"].strip():
             errors.append(f"{p}: empty claim")
-        if obj["epistemic_status"] not in STATUS:
+        if not is_choice(obj["epistemic_status"], STATUS):
             errors.append(f"{p}: unsupported epistemic state")
-        if obj["review_state"] not in REVIEW:
+        if not is_choice(obj["review_state"], REVIEW):
             errors.append(f"{p}: unsupported review state")
         if obj["review_state"] == "INDEPENDENT_REVIEW_RECORDED" and obj["actor"] != "INDEPENDENT_REVIEWER":
             errors.append(f"{p}: self/agent report cannot claim independent review")
@@ -140,9 +144,9 @@ def validate(record: Any) -> list[str]:
             if not require_keys(d, {"observation_ids", "status", "resolution_evidence"}, p, errors):
                 continue
             links = d["observation_ids"]
-            if not isinstance(links, list) or len(set(map(str, links))) < 2 or any(x not in ids for x in links):
+            if not isinstance(links, list) or len(set(map(str, links))) < 2 or any(not isinstance(x, str) or x not in ids for x in links):
                 errors.append(f"{p}: must link at least two distinct known observations")
-            if d["status"] not in DISAGREEMENT:
+            if not is_choice(d["status"], DISAGREEMENT):
                 errors.append(f"{p}: bad status")
             ev = d["resolution_evidence"]
             if not isinstance(ev, list):
@@ -154,7 +158,7 @@ def validate(record: Any) -> list[str]:
                     valid_evidence(source, sha, errors, f"{p}.resolution_evidence[{j}]")
     human = record["human_learning"]
     if require_keys(human, {"status", "teach_back", "evidence", "human_confirmed"}, "human_learning", errors):
-        if human["status"] not in UNDERSTANDING:
+        if not is_choice(human["status"], UNDERSTANDING):
             errors.append("human_learning: invalid status")
         if human["status"] == "DEMONSTRATED" and (not human["human_confirmed"] or not human["teach_back"] or not human["evidence"]):
             errors.append("human_learning: demonstrated requires human confirmation, teach-back and pinned evidence")
@@ -172,7 +176,7 @@ def validate(record: Any) -> list[str]:
         for i, x in enumerate(machine):
             if not require_keys(x, {"proposal", "state", "outcome_verified"}, f"machine_adaptation[{i}]", errors):
                 continue
-            if x["state"] not in ADAPT or not isinstance(x["proposal"], str):
+            if not is_choice(x["state"], ADAPT) or not isinstance(x["proposal"], str):
                 errors.append(f"machine_adaptation[{i}]: invalid proposal/state")
             if x["outcome_verified"] is not False:
                 errors.append(f"machine_adaptation[{i}]: E0 cannot verify adaptive improvement")
