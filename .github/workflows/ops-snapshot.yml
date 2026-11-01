@@ -1,0 +1,55 @@
+name: ops-snapshot
+
+# Deterministic operations snapshot: open PRs, check runs, rule-based blockers
+# -> one JSON artifact. Read-only. No model, no writes to the repository.
+# Manual dispatch only until a verified live snapshot and policy-classified schedule.
+# AUTHORITY_EFFECT: NONE — a snapshot is observation, not approval.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+  issues: read
+
+concurrency:
+  group: ops-snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Smoke test
+        run: python3 tools/ops_snapshot_v0_1.py --smoke-test
+
+      - name: Build snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          status=0
+          python3 tools/ops_snapshot_v0_1.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --out ops_snapshot.json \
+            --summary ops_snapshot.md || status=$?
+          if [ -f ops_snapshot.md ]; then cat ops_snapshot.md >> "$GITHUB_STEP_SUMMARY"; fi
+          exit "$status"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          if-no-files-found: error
+          name: ops-snapshot-${{ github.run_id }}
+          path: |
+            ops_snapshot.json
+            ops_snapshot.md
+          retention-days: 30
