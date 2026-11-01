@@ -51,6 +51,25 @@ class BridgeTest(unittest.TestCase):
         d["imports"][0]["data"] = copy.deepcopy(w)
         self.assertTrue(propose_sync(d, w)["requires_human_approval"])
 
+    def test_mapped_project_origin_blocks_older_workspace_without_import(self):
+        d, w = inputs()
+        self.assertEqual(d["imports"], [])
+        d["projects"].append({"id": "desk-existing", "name": "Contract pilot",
+                              "origin": "INTENT-OS snapshot · OPP-1 · revision 3"})
+        with self.assertRaisesRegex(BridgeInputError, "stale workspace revision"):
+            propose_sync(d, w)
+        w["revision"] = 3
+        self.assertTrue(propose_sync(d, w)["requires_human_approval"])
+
+    def test_malformed_project_origin_revision_rejected(self):
+        for origin_revision in ("garbage", "-1", "02", "2 · injected", ""):
+            with self.subTest(origin_revision=origin_revision):
+                d, w = inputs()
+                d["projects"].append({"id": "P", "name": "Contract pilot",
+                                      "origin": "INTENT-OS snapshot · OPP-1 · revision " + origin_revision})
+                with self.assertRaises(BridgeInputError):
+                    propose_sync(d, w)
+
     def test_duplicate_identity_rejected(self):
         d, w = inputs()
         w["records"].append(copy.deepcopy(w["records"][0]))
