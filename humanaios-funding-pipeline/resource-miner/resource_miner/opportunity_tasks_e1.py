@@ -32,7 +32,7 @@ def utc(value):
         raise ValueError("invalid timestamp") from exc
     if d.utcoffset().total_seconds() != 0:
         raise ValueError("non UTC timestamp")
-    return d.isoformat(timespec="seconds").replace("+00:00", "Z")
+    return d.isoformat(timespec="auto").replace("+00:00", "Z")
 
 def project_task_milestones(payload):
     if not isinstance(payload, dict) or set(payload) != {"schema", "opportunity_id", "events"}:
@@ -40,6 +40,8 @@ def project_task_milestones(payload):
     if payload["schema"] != SCHEMA:
         raise ValueError("unsupported schema")
     opportunity = token(payload["opportunity_id"])
+    if opportunity != "OPP-MERCOR-ODIN":
+        raise ValueError("opportunity does not match the ODIN pilot")
     events = payload["events"]
     if not isinstance(events, list) or len(events) > 64:
         raise ValueError("invalid event count")
