@@ -1,7 +1,7 @@
 """Contract tests for the v3.1 audit checker (HAIOS-PROC-007).
 
 Fixtures are synthetic. They do NOT create verified witnesses, and a clean
-result is only ELIGIBLE_FOR_REVIEW, never a certified audit.
+result is only ELIGIBLE_FOR_REVIEW, not a certified audit.
 """
 import copy
 import importlib.util

@@ -6,7 +6,7 @@ Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
 (HAIOS-PROC-007). It encodes that spec's mechanical rules and the eight
 decisions the operator kept on 2026-10-31. It verifies no claim, authenticates
 no witness, scores no cross-cutting risk and grants no admission:
-authority_effect is always NONE and a clean result is only
+authority_effect is NONE and a clean result is only
 ELIGIBLE_FOR_REVIEW. Whether a B5/B6 NOT_CLAIMED feature is really unused
 cannot be checked here; the spec scores it FAIL if contrary evidence appears.
 
@@ -25,7 +25,7 @@ TOOL_VERSION = "3.1.1"
 TOOL_CATEGORY = "validation_tool"
 TOOL_ZONE = 1
 
-DEFAULT_TOLERANCE = 0.20   # spec section 8: vendors may tighten, never loosen
+DEFAULT_TOLERANCE = 0.20   # spec section 8: vendors may tighten, not loosen
 DRAWDOWN_LIMIT = 0.02      # B3, absolute
 MAPPING_MIN = 0.70         # B2
 WAIT_MARGIN = 1.5          # A1: verified p95 plus 50%
