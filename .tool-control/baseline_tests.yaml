@@ -8,6 +8,10 @@
 #            [gh_cli] = GitHub CLI must be available and authenticated
 
 baseline_tests:
+  - path: tests/test_mutual_learning_e0.py
+    requires: []
+    description: Source-pinned two-loop RNOLA mutual learning E0 and non-authority falsifiers
+
   - path: tests/test_opportunity_surface.py
     requires: []
     description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
