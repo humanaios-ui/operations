@@ -1,0 +1,56 @@
+{
+  "schema_version": "humanaios.mutual_learning.e0.v1",
+  "record_id": "ML-E0-PR1089-BASE",
+  "artifact": {
+    "repository": "humanaios-ui/operations",
+    "kind": "PR",
+    "number": 1089,
+    "url": "https://github.com/humanaios-ui/operations/pull/1089",
+    "head_sha": "281c63d930661bf5036e1dc8a1b1a4839b79d32e",
+    "head_observed_at": null
+  },
+  "human_intent": {
+    "issue_url": "https://github.com/humanaios-ui/operations/issues/1104",
+    "objective": "Compare independently sourced machine interpretations of a real PR; support human teach-back without changing authority or writing cross-model memory."
+  },
+  "observations": [
+    {
+      "id": "O-CHATGPT001",
+      "actor": "CHATGPT",
+      "claim": "Public GitHub metadata reports PR #1089 as open and unmerged at the pinned head. This observation is not an admission judgment.",
+      "epistemic_status": "OBSERVED_SOURCE",
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/operations/pull/1089",
+          "commit_sha": "281c63d930661bf5036e1dc8a1b1a4839b79d32e",
+          "description": "PR metadata read through GitHub connector. Scope limited to reported state and commit ref."
+        }
+      ],
+      "review_state": "NOT_REVIEWED"
+    }
+  ],
+  "disagreements": [],
+  "human_learning": {
+    "status": "NOT_TESTED",
+    "teach_back": null,
+    "evidence": [],
+    "human_confirmed": false
+  },
+  "machine_adaptation": [
+    {
+      "proposal": "Use source/CI/authority distinctions in explanations, and retest comprehension on a separate artifact.",
+      "state": "PROPOSED",
+      "outcome_verified": false
+    }
+  ],
+  "governance": {
+    "zone": "Z1",
+    "advisory_only": true,
+    "can_authorize": false,
+    "authority_effect": "NONE",
+    "execution": "DISABLED",
+    "memory_write": "DISABLED",
+    "project_desk_sync": "DISABLED",
+    "intentos_sync": "DISABLED"
+  }
+}
