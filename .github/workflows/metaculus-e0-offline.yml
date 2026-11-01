@@ -1,0 +1,24 @@
+name: Metaculus E0 offline safety
+
+on:
+  pull_request:
+    paths:
+      - "tools/Metaculus/**"
+      - ".github/workflows/metaculus-e0-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Run offline/no-CP tests without secrets or external services
+        run: python -m unittest discover -s tools/Metaculus/tests -p "test_*.py" -v
+      - name: Synthetic-only proof of life
+        run: python tools/Metaculus/offline_fixture.py
