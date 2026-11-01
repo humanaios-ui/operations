@@ -1,0 +1,256 @@
+{
+  "P1": {
+    "cases": 8,
+    "nonconformances": [],
+    "output_sha256": "228f1380c7300e878b62c7c707968de253c8cd20bbb03310ff51fdf8e2d104a7",
+    "stderr_bytes": 0
+  },
+  "P2": {
+    "cases": 30,
+    "nonconformances": [
+      {
+        "evidence_class": "PROPOSED_POLICY",
+        "expected": "CONFLICT",
+        "id": "type_canonical_bool_id",
+        "observed": {
+          "authority": "NONE",
+          "error": null,
+          "execution": "DISABLED",
+          "reason": "authenticated GitHub run agrees",
+          "state": "CANONICAL_VERIFIED"
+        }
+      },
+      {
+        "evidence_class": "PROPOSED_POLICY",
+        "expected": "ABSTAIN",
+        "id": "type_lead_bool_id",
+        "observed": {
+          "authority": "NONE",
+          "error": null,
+          "execution": "DISABLED",
+          "reason": "authenticated GitHub run agrees",
+          "state": "CANONICAL_VERIFIED"
+        }
+      },
+      {
+        "evidence_class": "PROPOSED_POLICY",
+        "expected": "ABSTAIN",
+        "id": "type_boolean_pr_in_canonical",
+        "observed": {
+          "authority": "NONE",
+          "error": null,
+          "execution": "DISABLED",
+          "reason": "authenticated GitHub run agrees",
+          "state": "CANONICAL_VERIFIED"
+        }
+      },
+      {
+        "evidence_class": "PROPOSED_POLICY",
+        "expected": "ABSTAIN",
+        "id": "type_lead_bool_pr",
+        "observed": {
+          "authority": "NONE",
+          "error": null,
+          "execution": "DISABLED",
+          "reason": "authenticated GitHub run agrees",
+          "state": "CANONICAL_VERIFIED"
+        }
+      }
+    ],
+    "output_sha256": "2b70d6cf7aa0fe7fd8ca2094d60e368ba16bfd362301c070922eb21fe8c79596",
+    "record_hashes": [
+      "efa8266fb9baccbb4bd59a7166013573a70fdfe755dc64c5a51695c9dd99b40c",
+      "fdd56e554a18d4d1b6f8adf84ae4e781acc497729d655b1f078af433c756231c",
+      "349a39c8864e42264d377defb4a3d8c9e464dadc23b6daa0681b1c7eec270da8",
+      "6e8c534db15c07fc7fbabd646c484f17ced2c462711d7c7cf0d5080e1ca0063a",
+      "7802d8e733a65b09014c11f844691ccfbd00c174d0ccb41c3bd24102634a8657",
+      "0e804882d9d71e53f7071a7d88ac9823d59a05d6842199e3e5825dcc4a00ea00",
+      "2215ecb9b8746dd70e3104efda0e5aeba105416fe0cc47904716e8fe0e9f4913",
+      "3c0ffc7f20f2449eafe9e8b9f0a801475e5565e754a97e2c40cd9374f6131806",
+      "fd63b89c1d96598bee241310aa3e4f92e893b240b113bb3b74d9c3983db379b6",
+      "ebcdd9a409e3974955df731f1ab00015bf8147a2fdffc73b6b36887b14387c22",
+      "e8f0c53ddc9f517eb95a51073ce2738680abbea338f9869ef5b209bb0839c48b",
+      "0e4e3ec849b3bd2ae3ad651d3703e3a73a90eefba5c5110e50d046cdc4c320ed",
+      "f5c0a895b4b64acca680bdfea501f45f54991a40576e214e0bcaa2fe079b9435",
+      "9ce4d6a616b13213e295c196ef3c37d4693cb3284a435694949ad42fc2564f4f",
+      "d9b430d1c6e0d642d508bdc5f4a80e984b628ac4c53954d54ab36166e89b9636",
+      "aecf91ad14e3831292e1552df21fab4307eccad46388085cde6ad76cba5da67d",
+      "99643277131e86c2fd4b4daeee222a4d18ea7c7389e4b3c365704896bf421e9c",
+      "6c6fe98c1e3ed3eee0b2707ef6796c8aba3beb4e61f2b429ee369b9b272b8c59",
+      "560073be330992103a380a13ab52ac80d656e5ddd5736b3b443e0d3d7f4cc282",
+      "41271b096241a5896c6c9c75b61106533f34e2cba59b2e910808b81fbce28a7e",
+      "38ce250f5c25c58d4e2d59f3b2e94a285c4cc853a8aae29d40b349272b39e2e7",
+      "283baf58d28d15af9e57f0def1ddf927ecc623109510a71fa3ebd5d3958d71c0",
+      "f47f92d56b16fd2d51a7dc40e9d07c08216ecc5036347dba09b6863f2c222c81",
+      "a9d355d5e8c8f797c54369b2e71adce8de8158e2be284c4dd823df440f8f9d62",
+      "b498080e1c7926b6e90221723ecbe859bfcbc8d2a7fcc1fd23a7c42778a707e6",
+      "d6fe6a29eef4c184231d5e45d58905863e3fedaf708d1869551dcdcc414703ea",
+      "f9ca9b321b6f34aa73f41dad1a213be1ab1d29ba4e1ce5714b04442a88265f97",
+      "517bbd3febc2b2b4eb90fbe7a83b7baa8dd870ea6ca0c9cecbb995fe9dfb65dc",
+      "355a5decf59e6f8d1dfaedfcb50fb43fd46da29aea2a2b3dae1de4d9da2fc100",
+      "599a00d19b251d74f5b61c3f9a64c300ebf0a5b360c1e7b3da8743fa1bf37724"
+    ],
+    "stderr_bytes": 0
+  },
+  "P3": {
+    "byte_identical": true,
+    "cases": 30,
+    "id_order_identical": true,
+    "output_sha256": "2b70d6cf7aa0fe7fd8ca2094d60e368ba16bfd362301c070922eb21fe8c79596",
+    "record_count": 30,
+    "record_hashes_identical": true
+  },
+  "acatr_detection_advantage_on_equal_inputs": 0,
+  "acatr_equal": {
+    "cases": 30,
+    "detected": [
+      "type_boolean_pr_in_canonical",
+      "type_canonical_bool_id",
+      "type_lead_bool_id",
+      "type_lead_bool_pr"
+    ]
+  },
+  "acceptance_enforcement": "SELF_ASSERTED_RECORD: fields are read from rubric_registry.json in the checked-out revision; no branch protection or second-reviewer requirement enforces who set them (CodeRabbit r4429247096)",
+  "adjudication_sha256": "140781f063c8477b231751c13222600f215eefdba8b1aeab2a0a3bae8ed8d276",
+  "adjudication_summary": {
+    "accept_agent_only": [],
+    "accept_human": [
+      "failure_claim_vs_success",
+      "invalid_canonical_repo",
+      "invalid_canonical_sha",
+      "invalid_lead_repo",
+      "invalid_lead_state",
+      "invalid_missing_run",
+      "invalid_negative_run",
+      "invalid_status",
+      "invalid_zero_run",
+      "missing_prs",
+      "missing_workflow",
+      "neutral_terminal",
+      "nonterminal",
+      "other_pr",
+      "skip_terminal",
+      "type_boolean_pr_in_canonical",
+      "type_canonical_bool_id",
+      "type_lead_bool_id",
+      "type_lead_bool_pr",
+      "unknown_pr",
+      "unknown_run_id_as_str",
+      "unsupported_conclusion",
+      "unsupported_event",
+      "valid_failure",
+      "valid_review",
+      "valid_success",
+      "wrong_repo",
+      "wrong_run",
+      "wrong_sha",
+      "wrong_workflow"
+    ],
+    "confirmed_defects": [
+      "type_boolean_pr_in_canonical",
+      "type_canonical_bool_id",
+      "type_lead_bool_id",
+      "type_lead_bool_pr"
+    ],
+    "decided": 30,
+    "disagreements_pending": [],
+    "pending": 0,
+    "reject": [],
+    "revise": []
+  },
+  "admission": "HOLD",
+  "auth_path_note": "verify_lead() is exercised separately by live_probe.py under a human-held read-only credential; its receipts are not part of this offline run",
+  "auth_path_tested": false,
+  "authority_effect": "NONE",
+  "can_authorize": false,
+  "captures_real_github_data": false,
+  "confirmed_defects": 4,
+  "confirmed_defects_basis": "disagreements whose label a HUMAN reviewer ACCEPTed in oracle/ADJUDICATION.json; agent-only acceptances are listed but never counted",
+  "contract_derived_disagreements": [],
+  "conventional_baseline": {
+    "log_sha256": "711496ea6514640604e940dd4448ea12c57fa43b0dd1208bd04d9dbe9c5a214e",
+    "passed": true,
+    "preexisting_cases": 10,
+    "ran_before_P1": true,
+    "returncode": 0
+  },
+  "conventional_blob": "8517a93f346e31a392ed7c7234434f37b3e15237",
+  "conventional_equal": {
+    "cases": 30,
+    "detected": [
+      "type_boolean_pr_in_canonical",
+      "type_canonical_bool_id",
+      "type_lead_bool_id",
+      "type_lead_bool_pr"
+    ]
+  },
+  "disagreements_by_evidence_class": {
+    "CONTRACT_EXPLICIT": [],
+    "IMPLEMENTATION_DERIVED": [],
+    "PROPOSED_POLICY": [
+      "type_boolean_pr_in_canonical",
+      "type_canonical_bool_id",
+      "type_lead_bool_id",
+      "type_lead_bool_pr"
+    ]
+  },
+  "evidence_class_counts": {
+    "CONTRACT_EXPLICIT": 11,
+    "IMPLEMENTATION_DERIVED": 15,
+    "PROPOSED_POLICY": 4
+  },
+  "evidence_classes_sha256": "366340b845ed8949f7c4338a9e8666615a263dd4a06b6b7e40b9e0d402e894e8",
+  "execution_order": [
+    "pin_check",
+    "rubric_enforcement",
+    "conventional_existing_10",
+    "P1_commit",
+    "P1",
+    "P2",
+    "P3",
+    "equal_workload_comparison",
+    "oracle_packet"
+  ],
+  "imported_module_blob": "e8f893a3d433f900b10c101828d1cbb013413fa6",
+  "imported_module_sha256": "ed59e44de765d4ba9eac44f490ee89b9c3d043423a40b3d0c0b9346ec5fe9a45",
+  "limitations": [
+    "Constructed canonical metadata; the authenticated verify_lead entry point was not tested in this run.",
+    "Boolean-ID cases are proposed stricter schema checks, not proven GitHub API inputs.",
+    "Reference labels written by investigator; require independent adjudication before publishing bug counts.",
+    "Both methods share the same source, observations and expected labels; added detection is zero.",
+    "P3 is repeated input with unchanged code, not correction, recovery or learning.",
+    "The predeclared revision-0 rubric digest cannot be reproduced; revision 1 is enforced (human_accepted=True, accepted_by='Carly R. Anderson (operator; GitHub humanaios-ui)').",
+    "Acceptance and adjudication provenance are self-asserted records in the checked-out files, not controls enforced by branch protection or a second reviewer."
+  ],
+  "measured_false_alarm_rate": "UNDETERMINED: oracle labels not independently approved",
+  "pinned_git_blobs": {
+    "tests/test_gner_verify_e1.py": "8517a93f346e31a392ed7c7234434f37b3e15237",
+    "tools/gner_notification_e0.py": "e8f893a3d433f900b10c101828d1cbb013413fa6",
+    "tools/gner_verify_e1.py": "8290c51cd75c7de78a226770936a8f48766c24f0"
+  },
+  "predeclared_digest_matches": false,
+  "predeclared_rubric_sha256": "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a",
+  "proposed_policy_disagreements": [
+    "type_boolean_pr_in_canonical",
+    "type_canonical_bool_id",
+    "type_lead_bool_id",
+    "type_lead_bool_pr"
+  ],
+  "rubric_accepted_at": "2026-11-01T11:04:18Z",
+  "rubric_accepted_by": "Carly R. Anderson (operator; GitHub humanaios-ui)",
+  "rubric_human_accepted": true,
+  "rubric_revision": 1,
+  "rubric_revision_status": "ACCEPTED_BY_OPERATOR_ON_SESSION_INSTRUCTION",
+  "rubric_sha256": "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7",
+  "schema": "humanaios.acat-r.equal-workload.v0.2",
+  "source_git_blob": "8290c51cd75c7de78a226770936a8f48766c24f0",
+  "source_sha256": "78e0e0236583c4280f658de972b2f4b9acca52b40425d34e8ccb28efedfde764",
+  "status": "PROVISIONAL_REFERENCE_LABELS_NEED_INDEPENDENT_REVIEW",
+  "suspected_type_schema_false_promotions": [
+    "type_canonical_bool_id",
+    "type_lead_bool_id",
+    "type_boolean_pr_in_canonical",
+    "type_lead_bool_pr"
+  ],
+  "target": "Unmodified GNER-E1 reconcile (offline pure function)"
+}

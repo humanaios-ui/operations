@@ -1,0 +1,24 @@
+{
+  "schema": "humanaios.acat-r.held-out-manifest.v0.2",
+  "status": "TEMPLATE_ONLY_NOT_A_HELD_OUT_SET",
+  "note": "This file is what gets hashed and sealed. It must not reference its own seal: the seal comment URL and timestamp live in held_out/SEAL_RECORD.json (unhashed sidecar) and in the issue #1081 comment that carries the digest.",
+  "author": "<identity of the independent held-out author; must not be the implementer>",
+  "authored_at": "<RFC3339 UTC>",
+  "runtime": {
+    "tools/gner_verify_e1.py": "8290c51cd75c7de78a226770936a8f48766c24f0",
+    "tools/gner_notification_e0.py": "e8f893a3d433f900b10c101828d1cbb013413fa6",
+    "tests/test_gner_verify_e1.py": "8517a93f346e31a392ed7c7234434f37b3e15237"
+  },
+  "forbidden_case_ids": "the 30 ids in experiments/acat_r_comparison/oracle/oracle_packet.json",
+  "cases": [
+    {
+      "id": "<unique id not among the 30>",
+      "lead": {"state": "EMAIL_OBSERVED_UNVERIFIED", "repository": "humanaios-ui/operations", "run_id": 0, "sha_prefix": null, "workflow": null, "kind": "NOTIFICATION_LEAD", "pr": null},
+      "canonical": {"id": 0, "repository": {"full_name": "humanaios-ui/operations"}, "head_sha": "<40 hex>", "name": null, "event": "pull_request", "status": "completed", "conclusion": null, "pull_requests": []},
+      "expected": "<CANONICAL_VERIFIED | CONFLICT | ABSTAIN | EXCEPTION>",
+      "evidence_class": "<CONTRACT_EXPLICIT | IMPLEMENTATION_DERIVED | PROPOSED_POLICY>",
+      "contract_ref": "<docs/GNER_E1.md line, test, or null>",
+      "rationale": "<why this expected state follows from the cited contract>"
+    }
+  ]
+}

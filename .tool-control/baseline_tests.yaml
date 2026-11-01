@@ -212,6 +212,10 @@ baseline_tests:
     requires: []
     description: GNER-E2 failure signature analyzer tests
 
+  - path: tests/test_acat_r_gner_e1_study.py
+    requires: []
+    description: ACAT-R GNER-E1 equal-workload study harness regressions (issue #1081; rubric digest, replay, evidence classes)
+
   - path: tests/test_state_continuity_verification_v0_1.py
     requires: []
     description: SCVC mathematical continuity and read-only HLKS/Session Graph boundary regressions
