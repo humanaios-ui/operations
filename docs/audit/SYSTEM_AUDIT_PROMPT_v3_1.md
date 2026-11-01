@@ -405,6 +405,6 @@ These choices are mine as proposer and are easy to change in review:
 2. **20% default failure-rate bound.** It needs `n ≥ 14` with zero failures. A tighter bound needs larger samples.
 3. **Any break-glass use blocks a C1 PASS** (A5 capped at 2), even when logged and pre-authorized.
 4. **B7 is mandatory when C2 is claimed.** Only B5 and B6, which v3 marked as conditional, may be recorded as NOT_CLAIMED. v3's general "unless declared not used" clause no longer applies to B1–B4, B7 or B8.
-5. **`docs/audit/` location and no `doc_id`.** This file declares no `doc_id`, so `document-registry.yaml` is untouched. Registering it as a controlled document is a separate act.
+5. **`docs/audit/` location and registration.** As merged in PR #981 this file declared no `doc_id` and `document-registry.yaml` was untouched. It is now registered as draft `HAIOS-PROC-007` (this PR). Registration is an identity record, not approval; ratification is still a separate Z2 act.
 6. **A1 wait defaults.** The wait is the auditor-verified p95 runtime (the lower of declared and recomputed) plus a 50% margin, capped at 24 hours. A task that has not resumed by then scores 0. The cap and margin are my defaults.
 7. **An empty risky-action population does not block C1.** A5 then rests on the live test alone, capped at 3, and the verdict must say so.
