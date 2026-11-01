@@ -250,7 +250,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 | HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
 | HAIOS-TOOL-229 | system_graph_render | `tools/system_graph_render_v1_0.py` | 1.0.0 | 1 | draft | — | Renders system_graph.json to Markdown with a provenance header (source sha256, source generated_at, rendering commit) so prose copies of the system graph, including the Google Drive mirror, point back at the file they came from; --check detects drift of a rendered copy. |
-| HAIOS-TOOL-231 | ops_snapshot | `tools/ops_snapshot_v0_1.py` | 0.1.0 | 1 | draft | — | ops_snapshot_v0_1 — deterministic operations snapshot (PRs, CI, blockers) as one JSON file |
+| HAIOS-TOOL-241 | ops_snapshot | `tools/ops_snapshot_v0_1.py` | 0.1.0 | 1 | draft | — | ops_snapshot_v0_1 — deterministic operations snapshot (PRs, CI, blockers) as one JSON file |
 
 ## Research — `research_tool` (10)
 
