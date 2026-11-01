@@ -112,8 +112,8 @@ class BuildCanvasTest(unittest.TestCase):
         )
         statuses = [r["status"] for r in real["repo_map"]]
         self.assertEqual(statuses.count("ACTIVE"), 9)
-        self.assertEqual(statuses.count("LIMITED"), 3)
-        self.assertEqual(statuses.count("READ-ONLY"), 1)
+        self.assertEqual(statuses.count("LIMITED"), 4)  # Z-011 research, Q-ZONE-Z011-RESEARCH-CAP-01
+        self.assertEqual(statuses.count("READ-ONLY"), 0)
 
 
 CLEAN = dict(ATLAS_FIXTURE, snapshot="HEAD_WORKTREE", worktree_clean=True)
