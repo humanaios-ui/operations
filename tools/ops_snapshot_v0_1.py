@@ -91,8 +91,9 @@ class GitHub:
         except urllib.error.HTTPError as e:
             self.errors.append({"path": path, "status": e.code})
             return None
-        except urllib.error.URLError as e:
-            self.errors.append({"path": path, "status": "network", "reason": str(e.reason)})
+        except (urllib.error.URLError, TimeoutError) as e:
+            self.errors.append({"path": path, "status": "network",
+                                "reason": str(getattr(e, "reason", e))})
             return None
 
 
@@ -371,7 +372,8 @@ def main() -> int:
     ap.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", ""))
     ap.add_argument("--out", default="ops_snapshot.json")
     ap.add_argument("--summary", help="also write a short markdown summary to this path")
-    ap.add_argument("--from-raw", help="build from a saved raw JSON instead of the API")
+    ap.add_argument("--from-raw", "--input", dest="from_raw",
+                    help="build from a saved raw JSON instead of the API")
     ap.add_argument("--save-raw", help="save raw API responses here (for replay)")
     ap.add_argument("--blocker-label", action="append",
                     help=f"issue label treated as blocker (default: {', '.join(DEFAULT_BLOCKER_LABELS)})")
