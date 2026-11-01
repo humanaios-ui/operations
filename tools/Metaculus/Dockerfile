@@ -12,10 +12,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt constraints.txt ./
+# constraints.txt denies known-compromised releases (litellm==1.107.0, incident 2026-10-21).
+RUN pip install --no-cache-dir -c constraints.txt -r requirements.txt
 
 COPY main.py mode_gate.py ./
+COPY safety.py ./
 
 # Verified from this file's own code: SUPABASE_URL, SUPABASE_KEY (os.getenv calls in
 # main.py). NOT verified here — main.py imports GeneralLlm/MetaculusClient from the

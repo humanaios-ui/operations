@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 226
+  tools: 227
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 177
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 1
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2860,17 +2861,29 @@ tools:
   builder_markers: true
   purpose: Pure-stdlib, offline Metaculus forecast validation harness.
 - tool_id: HAIOS-TOOL-239
-  name: audit_protocol_gate_v3_1
-  path: tools/audit_protocol_gate_v3_1.py
-  version: 3.1.1
-  category: validation_tool
+  name: safety
+  path: tools/Metaculus/safety.py
+  version: 1.2.0
+  category: security_gate_tool
   zone: 1
   status: draft
   interface: module
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
+  purpose: 'Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no'
+- tool_id: HAIOS-TOOL-240
+  name: mutual_learning_e0
+  path: tools/mutual_learning_e0.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
