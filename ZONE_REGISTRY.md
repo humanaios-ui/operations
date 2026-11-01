@@ -30,6 +30,7 @@
 | Z-008 | lasting-light-ai | Research repo | RQ1/RQ2/RQ3 only | TBD | 30 units/cycle | ⚠️ LIMITED |
 | Z-009 | docs | Documentation | Content only | TBD | 20 units/cycle | ⚠️ LIMITED |
 | Z-010 | findlocaltattooartists | Service catalog | Content only | TBD | 25 units/cycle | ⚠️ LIMITED |
+| Z-011 | research | Frozen papers archive + publishing infrastructure | Publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record | TBD | 20 units/cycle | ⚠️ LIMITED |
 
 ---
 
@@ -37,7 +38,7 @@
 
 | Zone ID | Repo Name | Purpose | Status |
 |:--------|:----------|:--------|:-------|
-| Z-011 | research | Frozen papers archive | 🔒 READ-ONLY |
+| — | None | — | — |
 
 ---
 
@@ -47,7 +48,7 @@
 |:--------|:----------|:--------|:-------------|:------|
 | Z-013+ | See PLANNED_REPOS.md | PLANNED | Phases 2–3 | 12 planned + 6 unaccounted (see roadmap) |
 
-**Total active:** 13 zones (9 full-cap + 3 limited-cap + 1 read-only)  
+**Total active:** 13 zones (9 full-cap + 4 limited-cap + 0 read-only)  
 **Total planned:** 12 zones (per PLANNED_REPOS.md; 6 unaccounted pending audit)  
 **Total ecosystem:** 25 zones (active + planned; see PLANNED_REPOS.md §Overview for full roadmap)
 
