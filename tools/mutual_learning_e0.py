@@ -88,8 +88,8 @@ def validate(record: Any) -> list[str]:
         errors.append("artifact: unsupported repo/kind or invalid SHA")
     if type(art["number"]) is not int or art["number"] < 1 or not is_public_source(art["url"], art["number"], art["kind"]):
         errors.append("artifact: invalid number or canonical PR URL")
-    if not isinstance(art["head_observed_at"], str) or not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", art["head_observed_at"]):
-        errors.append("artifact: timestamp must be UTC ISO8601")
+    if art["head_observed_at"] is not None and (not isinstance(art["head_observed_at"], str) or not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", art["head_observed_at"])):
+        errors.append("artifact: timestamp must be UTC ISO8601 or null (not recorded)")
     if not isinstance(record["human_intent"], dict) or set(record["human_intent"]) != {"issue_url", "objective"}:
         errors.append("human_intent: missing/extraneous fields")
     else:
