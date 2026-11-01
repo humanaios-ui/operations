@@ -29,6 +29,31 @@ class TestTaskMilestones(unittest.TestCase):
         x["events"].append(duplicate)
         with self.assertRaises(ValueError):
             project_task_milestones(x)
+    def test_conflicting_fractional_seconds_same_event_id_fails(self):
+        x = self.specimen()
+        original = x["events"][0]
+        original["observed_at"] = "2026-10-29T18:55:41.100Z"
+        duplicate = copy.deepcopy(original)
+        duplicate["observed_at"] = "2026-10-29T18:55:41.900Z"
+        x["events"].append(duplicate)
+        with self.assertRaisesRegex(ValueError, "conflicting event identity"):
+            project_task_milestones(x)
+
+    def test_equivalent_fractional_seconds_are_idempotent(self):
+        x = self.specimen()
+        x["events"][0]["observed_at"] = "2026-10-29T18:55:41.100Z"
+        duplicate = copy.deepcopy(x["events"][0])
+        duplicate["observed_at"] = "2026-10-29T18:55:41.100000Z"
+        x["events"].append(duplicate)
+        self.assertEqual(project_task_milestones(x),
+                         project_task_milestones({**x, "events": x["events"][:-1]}))
+
+    def test_other_opportunity_cannot_inherit_odin_approvals(self):
+        x = self.specimen()
+        x["opportunity_id"] = "OPP-APART-SPRINT"
+        with self.assertRaisesRegex(ValueError, "opportunity does not match"):
+            project_task_milestones(x)
+
     def test_human_approval_fails(self):
         x = self.specimen()
         x["events"][0]["source_kind"] = "HUMAN_REPORT"
