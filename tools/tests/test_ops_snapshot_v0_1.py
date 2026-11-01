@@ -222,6 +222,39 @@ def test_explicit_utc_clock_override(tmp_path, monkeypatch):
     assert json.loads(dest.read_text())["generated_at"] == "2026-10-25T00:00:00Z"
 
 
+def test_socket_timeout_while_reading_body_produces_network_error(monkeypatch):
+    class Socket:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            raise TimeoutError("body read timed out")
+
+    monkeypatch.setattr(ops.urllib.request, "urlopen",
+                        lambda request, timeout: Socket())
+    gh = ops.GitHub("dummy-token")
+    assert gh.get("/repos/o/r") is None
+    assert gh.errors == [{"path": "/repos/o/r", "status": "network",
+                          "reason": "body read timed out"}]
+
+
+def test_documented_input_alias_matches_saved_raw_replay(tmp_path, monkeypatch):
+    raw = ops._fixture()
+    source = tmp_path / "raw.json"
+    source.write_text(json.dumps(raw), encoding="utf-8")
+    output_a = tmp_path / "alias.json"
+    output_b = tmp_path / "legacy.json"
+
+    for flag, destination in (("--input", output_a), ("--from-raw", output_b)):
+        monkeypatch.setattr(sys, "argv", ["ops-snapshot", flag, str(source),
+                                        "--out", str(destination)])
+        assert ops.main() == 0
+    assert json.loads(output_a.read_text()) == json.loads(output_b.read_text())
+
+
 if __name__ == "__main__":
     import pytest
     sys.exit(pytest.main([__file__, "-q"]))
