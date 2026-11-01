@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
