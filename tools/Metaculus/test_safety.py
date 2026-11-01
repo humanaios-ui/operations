@@ -143,7 +143,7 @@ class TestEntryPoint(unittest.TestCase):
 
     def run_main(self, *a, env=None):
         e = {k: v for k, v in os.environ.items() if not k.endswith(("_KEY", "_TOKEN"))}
-        # Explicit non-approved value: dotenv never overrides a variable that is set, so a
+        # Explicit non-approved value: dotenv does not override a variable that is already set, so a
         # local .env cannot re-enable publishing in these tests.
         e[s.APPROVAL_ENV] = "0"; e.update(env or {})
         return subprocess.run([sys.executable, str(HERE / "main.py"), *a],

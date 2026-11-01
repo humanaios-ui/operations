@@ -161,7 +161,7 @@ def backoff_seconds(attempt: int, retry_after: Optional[float] = None,
     """Exponential backoff; honors a 429 Retry-After if larger."""
     delay = min(cap, base * (2 ** max(attempt, 0)))  # cap only our own delay
     if retry_after is not None and retry_after > delay:
-        delay = retry_after  # never retry before the server's requested wait
+        delay = retry_after  # do not retry before the server's requested wait
     return delay
 
 
@@ -195,7 +195,7 @@ RECEIPT_EXTRA_FIELDS = frozenset({
 
 def build_receipt(mode: str, outcome: str, budget: Budget, **extra) -> dict:
     """Versioned run receipt. No secrets: only explicitly named extra fields, scalar
-    values only, and extras can never replace the base evidence fields."""
+    values only, and extras cannot replace the base evidence fields."""
     receipt = {
         "receipt_version": 1,
         "mode": mode,
