@@ -15,7 +15,7 @@ WORKDIR /app
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py ./main.py
+COPY main.py mode_gate.py ./
 
 # Verified from this file's own code: SUPABASE_URL, SUPABASE_KEY (os.getenv calls in
 # main.py). NOT verified here — main.py imports GeneralLlm/MetaculusClient from the
