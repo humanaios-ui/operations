@@ -1,5 +1,4 @@
 {
-  "adjudication_file": "experiments/acat_r_comparison/oracle/ADJUDICATION.json",
   "cases": [
     {
       "classification_rationale": "Run metadata agrees on every compared field; documented CANONICAL_VERIFIED meaning; pinned by test_matching_canonical_metadata.",
@@ -582,19 +581,19 @@
   },
   "rubric": {
     "acceptance_enforcement": "SELF_ASSERTED_RECORD: fields are read from rubric_registry.json in the checked-out revision; no branch protection or second-reviewer requirement enforces who set them (CodeRabbit r4429247096)",
-    "active_accepted_at": null,
-    "active_accepted_by": null,
+    "active_accepted_at": "2026-11-01T11:04:18Z",
+    "active_accepted_by": "Carly R. Anderson (operator; GitHub humanaios-ui)",
     "active_digest_matches": true,
-    "active_human_accepted": false,
+    "active_human_accepted": true,
     "active_revision": 1,
-    "active_revision_status": "PROPOSED_PENDING_HUMAN_ACCEPTANCE",
+    "active_revision_status": "ACCEPTED_BY_OPERATOR_ON_SESSION_INSTRUCTION",
     "active_rubric_sha256": "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7",
-    "block_reason": "BLOCKED_RUBRIC_NOT_HUMAN_ACCEPTED",
+    "block_reason": null,
     "computed_rubric_sha256": "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7",
     "predeclared_digest_matches": false,
     "predeclared_revision": 0,
     "predeclared_rubric_sha256": "19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a",
-    "runtime_permitted": false
+    "runtime_permitted": true
   },
   "schema": "humanaios.acat-r.oracle-decision-packet.v0.1"
 }

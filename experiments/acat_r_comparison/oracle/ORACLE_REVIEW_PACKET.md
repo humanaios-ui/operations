@@ -7,7 +7,7 @@ template by every run. A label that is not ACCEPTed by a HUMAN reviewer is never
 defect. Changing any label requires a new revision in `rubric_registry.json`; this packet pins the
 revision it was built from.
 
-- Rubric revision: 1 (`6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7`), status PROPOSED_PENDING_HUMAN_ACCEPTANCE, human_accepted=False
+- Rubric revision: 1 (`6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7`), status ACCEPTED_BY_OPERATOR_ON_SESSION_INSTRUCTION, human_accepted=True
 - Predeclared digest (revision 0): `19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a`; matches computed rubric: False
 - Pinned sources: `tests/test_gner_verify_e1.py`@`8517a93f346e`, `tools/gner_notification_e0.py`@`e8f893a3d433`, `tools/gner_verify_e1.py`@`8290c51cd75c`
 - Evidence classes: CONTRACT_EXPLICIT = documented or pinned by an unchanged test; IMPLEMENTATION_DERIVED = read from unchanged source only; PROPOSED_POLICY = stricter than source, not documented.
@@ -88,4 +88,4 @@ confirmed_defects = disagreements whose label a HUMAN reviewer ACCEPTed in `orac
 with a file:line contract citation. Agent-only acceptances are listed but never counted.
 Proposed-policy disagreements are reported separately and are never added to contract-derived counts.
 
-At generation time: confirmed_defects = 0 (none); decisions pending = 30; agent-only acceptances = 0.
+At generation time: confirmed_defects = 4 (type_boolean_pr_in_canonical, type_canonical_bool_id, type_lead_bool_id, type_lead_bool_pr); decisions pending = 0; agent-only acceptances = 0.

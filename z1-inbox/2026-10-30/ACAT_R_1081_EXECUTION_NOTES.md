@@ -162,3 +162,14 @@ Copilot marked the three single-snapshot findings resolved and raised three more
 | r4430488475 the held-out protocol asked for TP/FP/FN counts, but the manifest holds expected states only, so the counts would be defined by the labels | The protocol reports state agreement only and says confusion counts need a separately sealed, independently authored detection label |
 
 No probe code changed, so no live re-run. 48 harness tests pass.
+
+## Addendum 9: operator acceptance of rubric revision 1 and the 30 oracle rows (2026-11-01)
+
+The operator instructed, in session: "Accept rubric and the 30 rows". Claude Code recorded it.
+
+- `rubric_registry.json` revision 1: `human_accepted: true`, `accepted_by` the operator, `accepted_at` the instruction time, with an `acceptance_record` that says the entry was made by Claude Code on that instruction and not edited by the operator. The registry's note that agents may not set these fields was amended to "on their own initiative", with the requirement that the record say so.
+- `oracle/ADJUDICATION.json`: 30 of 30 ACCEPT, `reviewer_kind: HUMAN`, each with a rationale and `path:line` citations taken from `evidence_classes.json`. For the 4 PROPOSED_POLICY rows the rationale states that no document or test requires the label and that the citations point at the code, not a contract.
+- First full run on the committed, accepted files: exit 0; P1 8/8, P2 30/30 cases run, P3 byte-identical; detection advantage 0; contract-derived disagreements 0; proposed-policy disagreements 4; `confirmed_defects` 4, all from the operator-accepted policy rows. `receipts/report_accepted_run.json`. The workflow verify step, run locally against that output, passes.
+- Snapshot files `oracle/oracle_packet.json` and `oracle/ORACLE_REVIEW_PACKET.md` regenerated from that run (the committed copy carried a field the generator no longer emits). Evidence packet section 8 and the digest rows updated.
+
+Consequences recorded, not decided here: the head changes, so the operator's `/coordinator admit` bound to `5628270` no longer matches the head; the report status stays `PROVISIONAL_REFERENCE_LABELS_NEED_INDEPENDENT_REVIEW`; the 11 and 15 contract and implementation rows are accepted as labels without independent review; held-out, credential, provenance enforcement and #1070 are unchanged.

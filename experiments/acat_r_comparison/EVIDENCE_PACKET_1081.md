@@ -3,13 +3,19 @@
 **Admission: HOLD.** This packet is for a human decision. It confers no authority, admits nothing,
 and does not change any expected label.
 
+**Update 2026-11-01: rubric revision 1 and all 30 oracle rows were ACCEPTED by the operator** on their
+explicit session instruction ("Accept rubric and the 30 rows"), recorded in `rubric_registry.json` and
+`oracle/ADJUDICATION.json` by Claude Code (section 8). The study has now run in full under the
+committed, accepted registry: `receipts/report_accepted_run.json`. The consequence for the four
+boolean-boundary rows is stated in section 8.
+
 ## 1. What was done, in one paragraph
 
 The unchanged GNER-E1 runtime (`tools/gner_verify_e1.py::reconcile`) was run on the same 30
 constructed cases two ways, by plain unit assertions and by ACAT-R, using the same expected labels.
 Both flag the same four boolean-boundary cases and nothing else. Those four labels are stricter
 than the code and are not in any document or existing test, so they are classed PROPOSED_POLICY and
-count as zero confirmed defects until a referee accepts them. The six reviewer findings on PR #1082
+counted as zero confirmed defects until a referee accepted them; they are now four (section 8). The six reviewer findings on PR #1082
 were each reproduced and repaired with regression tests. The real authenticated entry point
 `verify_lead()` was probed read-only against real run ids and behaved exactly as the code reads. No
 held-out set exists, so that gate is HOLD.
@@ -27,8 +33,11 @@ held-out set exists, so that gate is HOLD.
 | Rubric sha256 (rev 1, enforced) | `6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7` |
 | Rubric sha256 (rev 0, predeclared, unrecoverable) | `19a182607ccfabb32b679d7d764652f4de4a90556faeb880419af0103ac6cc9a` |
 | P2 = P3 stdout sha256 (rev 2 harness, full responses) | `2b70d6cf7aa0fe7fd8ca2094d60e368ba16bfd362301c070922eb21fe8c79596` |
-| sha256 of `experiments/acat_r_comparison/oracle/oracle_packet.json` | `1fff1b55f9292c8f7f54f7376d4f0d2df8deee66350c2eb197c3929f23cde7e5` |
-| sha256 of `experiments/acat_r_comparison/oracle/ORACLE_REVIEW_PACKET.md` | `5ad8bd2590655ee6b02b623befbbe086aff7fa90e4da09bf35c7f0ad23136a63` |
+| sha256 of `experiments/acat_r_comparison/oracle/oracle_packet.json` | `03f3a3a820c7abbc6365c3e3c5a895fed6bf42be03a9d92037e0c0641abff825` |
+| sha256 of `experiments/acat_r_comparison/oracle/ORACLE_REVIEW_PACKET.md` | `36c1b87b5fa32a1f0b5c228c1f64db674306bc9d4604660db28845de02607d02` |
+| sha256 of `experiments/acat_r_comparison/rubric_registry.json` | `8bdf758d0f307bba46e6d2b8d589cfbcaa29de27ce03e616d513587daa98dca8` |
+| sha256 of `experiments/acat_r_comparison/oracle/ADJUDICATION.json` | `140781f063c8477b231751c13222600f215eefdba8b1aeab2a0a3bae8ed8d276` |
+| sha256 of `experiments/acat_r_comparison/receipts/report_accepted_run.json` | `7420c013bfadad4a5235f985c8cb677cb9eb29fc735ea48de019e55b44bdb98e` |
 | sha256 of `experiments/acat_r_comparison/receipts/live_probe_receipts.json` (re-run 6, schema v0.3, 14 probes) | `5b5abb65674e469dfa402604b7425a414bfad84dff63e148a2c6e54e0f635f4b` |
 | sha256 of `experiments/acat_r_comparison/receipts/report_local_reproduction.json` | `0fa0011d1f0afd887c1681fde26039471d1490e5403725129215e84039799b36` |
 
@@ -39,15 +48,15 @@ held-out set exists, so that gate is HOLD.
 | Reproduce reviewer findings | DONE | `z1-inbox/2026-10-30/ACAT_R_1081_EXECUTION_NOTES.md` table; all six reproduced at `8481574` |
 | Repair confirmed harness defects | DONE | `study.py` rev 2; workflow; `rubric_registry.json`; `evidence_classes.json`; four further Copilot findings on PR #1083 repaired (seal sidecar, consumed-bytes hash, probe pin check, hard acceptance gate) |
 | Regression tests | DONE | `tests/test_acat_r_gner_e1_study.py`, 24 tests, listed in `.tool-control/baseline_tests.yaml` |
-| Independent oracle review packet | PREPARED, decisions PENDING | `oracle/ORACLE_REVIEW_PACKET.md`: 30 rows, all `PENDING` |
-| Conventional vs ACAT-R comparison | DONE (executed before the acceptance gate; re-execution now BLOCKED) | run 41132149131 at `8481574` and `receipts/report_local_reproduction.json`: identical detections, advantage 0, confirmed defects 0. `study.py` now exits 2 with `RUBRIC_BLOCKED.json` until a human accepts rubric revision 1 |
+| Independent oracle review packet | DECIDED: 30 of 30 ACCEPT by the operator (HUMAN), 2026-11-01 | `oracle/ADJUDICATION.json`; `oracle/ORACLE_REVIEW_PACKET.md` stays a generated template. Recorded by Claude Code on the operator's instruction; provenance self-asserted (section 6b) |
+| Conventional vs ACAT-R comparison | DONE, and re-executed under the accepted rubric (2026-11-01) | `receipts/report_accepted_run.json`: identical detections, advantage 0, contract-derived disagreements 0, proposed-policy disagreements 4, confirmed defects 4 (the four policy rows the operator ACCEPTed). Earlier: run 41132149131 at `8481574`, confirmed defects 0 |
 | Held-out testing | HOLD | `HELD_OUT_PROTOCOL.md`; no set exists; none invented |
 | Authenticated `verify_lead()` | EXECUTED; credential requirement **OPEN FINDING** | `receipts/live_probe_receipts.json` (re-run 6, 14 probes): runtime modules loaded from pin-verified bytes (measured from the loaded modules); hash is of the bytes `verify_lead` consumed; GET-only guard active (exact runs-endpoint URL shape, redirects refused). Credential was the session's GitHub App grant, scope not verified read-only; the #1081 requirement for a dedicated read-only PAT is NOT closed by these receipts |
 | Copilot + CodeRabbit review of corrected head | REQUESTED | on the stacked draft PR |
 | Separate CI repair (#1070) | NOT IN THIS BRANCH | kept distinct as the plan requires; `workflow-path-validation` and enumeration guard still red on `main` |
-| Admission | HOLD | human decision pending |
+| Admission | HOLD (this packet); routing admit exists separately | the operator's `/coordinator admit` was bound to head `5628270`; later commits void that binding; admission remains the operator's call |
 
-## 4. Offline results (executed under rubric revision 1 before the acceptance gate existed)
+## 4. Offline results (first executed under rubric revision 1 before the acceptance gate existed; re-executed after acceptance)
 
 These numbers come from GitHub Actions run 41132149131 at `8481574` and the local reproduction committed under `receipts/`. Since Copilot finding r4428945870, `study.py` refuses to re-run them until the active revision is human-accepted; CI at the current head verifies the BLOCKED record instead. The numbers stand as what the unchanged code did; they are not admissible as confirmed defects.
 
@@ -141,10 +150,10 @@ reviewer other than the author for those paths (CodeRabbit r4429247096).
 
 ## 7. Decisions requested from the human referee
 
-1. Accept, reject or supersede rubric revision 1 (`rubric_registry.json`): set `human_accepted: true`
+1. **DONE 2026-11-01 (operator, ACCEPT).** Accept, reject or supersede rubric revision 1 (`rubric_registry.json`): set `human_accepted: true`
    with `accepted_by` and `accepted_at` to unblock, or append a new revision with justification.
    Never edit revision 1's digest or labels. Until then `study.py` exits 2 and runs nothing.
-2. Record ACCEPT / REJECT / REVISE with a contract citation for each of the 30 rows **in
+2. **DONE 2026-11-01 (operator, 30 of 30 ACCEPT; see section 8 for the four policy rows).** Record ACCEPT / REJECT / REVISE with a contract citation for each of the 30 rows **in
    `oracle/ADJUDICATION.json`** (the generated packet is a PENDING template and is overwritten), at
    minimum the five individually listed (four PROPOSED_POLICY and `unsupported_conclusion`). Note the
    consistency question between rows 27 and 29. `study.py` validates the file and computes
@@ -164,3 +173,32 @@ reviewer other than the author for those paths (CodeRabbit r4429247096).
 Constructed inputs; investigator-proposed labels; agent reviewers (Copilot, CodeRabbit) are
 critique, not independent ground truth; no held-out data; repository CI inherits #1070 failures;
 no claim that ACAT-R detects more than equal-workload tests on identical inputs, because it did not.
+
+## 8. Acceptance record (2026-11-01)
+
+**Who and how.** The operator instructed, in session, "Accept rubric and the 30 rows". Claude Code
+recorded it: `human_accepted: true`, `accepted_by` and `accepted_at` on revision 1 of
+`rubric_registry.json`, and ACCEPT with `reviewer_kind: HUMAN` on each of the 30 entries of
+`oracle/ADJUDICATION.json`, each with a rationale and a `path:line` citation. The operator did not edit
+either file. This is a self-asserted record (section 6b), not an authenticated one.
+
+**What the 30 ACCEPTs mean, by evidence class.**
+
+| Class | Rows | What acceptance records |
+|---|---|---|
+| CONTRACT_EXPLICIT | 11 | The label is stated in the contract or pinned by an unchanged test, and implemented at the cited lines |
+| IMPLEMENTATION_DERIVED | 15 | The label was read from the unchanged code; acceptance records a regression pin, not an independent requirement |
+| PROPOSED_POLICY | 4 | Operator policy that a bool is not an id or PR number. **No document or test requires it.** The citations point at the code that does not enforce it, not at a contract |
+
+**Result of the run under the accepted rubric.** Both methods flag the same four rows and nothing
+else; ACAT-R additional detections 0; replay byte-identical. Contract-derived disagreements: 0.
+Proposed-policy disagreements: 4. `confirmed_defects` is now **4** only because the operator ACCEPTed
+those four policy rows and the scoring rule counts a HUMAN ACCEPT of a disagreement. Read it as "four
+disagreements with operator-accepted policy labels", not as four defects shown by a contract. One of
+the four, `type_lead_bool_id`, is unreachable on the live path because `verify_lead` rejects a bool run
+id (line 106). The report status stays `PROVISIONAL_REFERENCE_LABELS_NEED_INDEPENDENT_REVIEW`: the
+labels were accepted by the operator, not reviewed by someone independent of the study.
+
+**Not decided by this acceptance.** The held-out set, the probe credential, provenance enforcement, the
+#1070 repair, the consistency question between rows 27 and 29 (accepted as written, not analysed), and
+admission.

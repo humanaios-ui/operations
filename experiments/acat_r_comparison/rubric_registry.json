@@ -1,7 +1,7 @@
 {
   "schema": "humanaios.acat-r.rubric-registry.v0.2",
   "purpose": "Immutable record of every reference-rubric digest ever declared for the GNER-E1 equal-workload study (issue #1081). study.py computes the rubric digest, compares it with the ACTIVE revision, and refuses to send any case to the runtime unless (a) the digests match and (b) the active revision carries human_accepted: true with a named acceptor. Otherwise it records the mismatch and exits BLOCKED. Changing labels requires appending a revision with a justification; editing an existing revision's digest or labels is not allowed.",
-  "acceptance_instructions": "To unblock, the human referee (Z2 or a designated independent reviewer) sets human_accepted to true on the active revision and fills accepted_by and accepted_at. That edit is the explicit protocol/version revision the issue #1081 plan requires. Agents may not set these fields.",
+  "acceptance_instructions": "To unblock, the human referee (Z2 or a designated independent reviewer) sets human_accepted to true on the active revision and fills accepted_by and accepted_at. That edit is the explicit protocol/version revision the issue #1081 plan requires. Agents may not set these fields on their own initiative; an agent may record them only on the human referee's explicit instruction, and the record must say so (see acceptance_record on the accepted revision).",
   "active_revision": 1,
   "revisions": [
     {
@@ -18,14 +18,15 @@
     {
       "revision": 1,
       "rubric_sha256": "6971fd8d2045f301cf31d79a99d5e04bdf101ed7db968d9ee15cacde9043cbf7",
-      "status": "PROPOSED_PENDING_HUMAN_ACCEPTANCE",
+      "status": "ACCEPTED_BY_OPERATOR_ON_SESSION_INSTRUCTION",
       "first_observed": "PR #1082 head 8481574af8adffee83fdb89250847822485e4c86; GitHub Actions run 41132149131; reproduced locally 2026-10-30 by the issue #1081 implementer",
       "registered_by": "Z1 implementer (Claude Code, delegated plan in issue #1081)",
-      "human_accepted": false,
-      "accepted_by": null,
-      "accepted_at": null,
+      "human_accepted": true,
+      "accepted_by": "Carly R. Anderson (operator; GitHub humanaios-ui)",
+      "accepted_at": "2026-11-01T11:04:18Z",
       "label_changes_from_previous": "NONE. Same 30 case ids, same expected labels, same lead/canonical inputs as PR #1082 head. Only the digest record is new.",
-      "justification": "These are the only rubric bytes that were ever executed (P1/P2/P3 in run 41132149131 and in the local reproduction). Registering them records, rather than hides, that they differ from the predeclared revision-0 digest. Because no human has accepted this revision, study.py BLOCKS before any runtime call (Copilot finding r4428945870 on PR #1083). Acceptance of the labels themselves remains with the human/domain referee; every case is PENDING in the oracle packet."
+      "justification": "These are the only rubric bytes that were ever executed (P1/P2/P3 in run 41132149131 and in the local reproduction). Registering them records, rather than hides, that they differ from the predeclared revision-0 digest. Because no human has accepted this revision, study.py BLOCKS before any runtime call (Copilot finding r4428945870 on PR #1083). Acceptance of the labels themselves remains with the human/domain referee; every case is PENDING in the oracle packet.",
+      "acceptance_record": "Recorded by Claude Code on the operator's explicit instruction in session (\"Accept rubric and the 30 rows\"), not edited by the operator in the file. Provenance is a self-asserted record (open finding). Labels unchanged from the proposed reference; acceptance of the rubric bytes does not by itself accept any label (see oracle/ADJUDICATION.json)."
     }
   ]
 }
