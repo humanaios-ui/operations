@@ -131,3 +131,64 @@ test("missing creation timestamp does not produce misleading created totals", ()
   assert.equal(p.touched_issues,0);
   assert.equal(p.rejected,1);
 });
+
+test("timestamps need an explicit timezone and a real calendar date", () => {
+  assert.equal(api.dateMs("2026-10-31T10:00:00Z"), Date.parse("2026-10-31T10:00:00Z"));
+  assert.equal(api.dateMs("2026-10-31T10:00:00.123Z"), Date.parse("2026-10-31T10:00:00.123Z"));
+  assert.equal(api.dateMs("2026-10-31T10:00:00+02:00"), Date.parse("2026-10-31T08:00:00Z"));
+  assert.equal(api.dateMs("2026-10-31T10:00:00"), null, "no timezone");
+  assert.equal(api.dateMs("2026-10-31T10:00"), null, "no seconds or timezone");
+  assert.equal(api.dateMs("2026-02-31T00:00:00Z"), null, "date the engine would roll over");
+  assert.equal(api.dateMs("2026-13-01T00:00:00Z"), null);
+  assert.equal(api.dateMs(20261031), null);
+});
+
+test("a stalled response body is aborted by the timeout", async () => {
+  const result = await api.fetchRepository(REPO, NOW, async (url, options) => ({
+    ok: true,
+    json: () => new Promise((_, reject) => options.signal.addEventListener("abort", () => {
+      reject(Object.assign(new Error("aborted"), {name: "AbortError"}));
+    }))
+  }), {timeoutMs: 20});
+  assert.equal(result.coverage, "UNAVAILABLE");
+  assert.match(result.reason, /timed out/);
+});
+
+test("duplicate source records are reported, not hidden", () => {
+  const p = api.project(REPO, [record(30), record(30), record(31)], NOW, "COMPLETE_WINDOW");
+  assert.equal(p.touched_issues, 2);
+  assert.equal(p.duplicates, 1);
+  assert.equal(api.project(REPO, [record(32)], NOW, "COMPLETE_WINDOW").duplicates, 0);
+});
+
+test("browser boot reads the page without a Node-only global", async () => {
+  const vm = require("node:vm");
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(path.join(__dirname, "../../ui/operations-observatory-e0.js"), "utf8");
+  const nodes = {};
+  const makeNode = () => ({
+    textContent: "", className: "", disabled: false, style: {}, children: [], listeners: {},
+    setAttribute() {}, appendChild(c) { this.children.push(c); }, replaceChildren() { this.children = []; },
+    addEventListener(name, fn) { this.listeners[name] = fn; },
+    click() { return this.listeners.click && this.listeners.click(); }
+  });
+  const document = {
+    getElementById(id) { return nodes[id] || (nodes[id] = makeNode()); },
+    createElement() { return makeNode(); }
+  };
+  const urls = [];
+  const sandbox = {
+    document, console, Date, Promise, Math, Number, String, Array, Object, Set, Map, Error, JSON,
+    Infinity, setTimeout, clearTimeout, AbortController,
+    fetch: async url => { urls.push(url); return {ok: true, json: async () => []}; }
+  };
+  vm.createContext(sandbox);
+  assert.equal(typeof sandbox.global, "undefined", "sandbox must look like a browser");
+  vm.runInContext(source, sandbox);
+  for (let i = 0; i < 20; i++) await new Promise(resolve => setImmediate(resolve));
+  assert.equal(urls.length, api.REPOS.length, "one GET per allowlisted repository");
+  assert.ok(urls.every(u => u.startsWith("https://api.github.com/repos/humanaios-ui/")));
+  assert.doesNotMatch(nodes.status.textContent, /UNAVAILABLE: .*global/);
+  assert.match(nodes.status.textContent, /SOURCE WINDOW COMPLETE/);
+});

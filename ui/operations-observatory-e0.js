@@ -21,8 +21,16 @@
     "humanaios-ui/lasting-light-ai": "Lasting Light AI"
   };
 
+  // Require an explicit timezone (Z or numeric offset) so a bare local-time string is not
+  // read in the viewer's timezone, and reject dates the engine would roll over (Feb 31).
+  const TIMESTAMP = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?(Z|[+-]\d\d:\d\d)$/;
   function dateMs(s) {
-    if (typeof s !== "string" || !/^\d{4}-\d\d-\d\dT/.test(s)) return null;
+    if (typeof s !== "string") return null;
+    const m = TIMESTAMP.exec(s);
+    if (!m) return null;
+    const [year, month, day, hour, minute, second] = m.slice(1, 7).map(Number);
+    if (month < 1 || month > 12 || hour > 23 || minute > 59 || second > 59) return null;
+    if (day < 1 || day > new Date(Date.UTC(year, month, 0)).getUTCDate()) return null;
     const t = Date.parse(s);
     return Number.isFinite(t) ? t : null;
   }
@@ -68,11 +76,12 @@
     const seen = new Set();
     const records = [];
     let rejected = 0;
+    let duplicates = 0;
     for (const raw of rawItems) {
       const item = safeRecord(raw, repo, nowMs);
       if (!item) { rejected++; continue; }
       if (item.updated_ms < cutoff || item.updated_ms > nowMs) continue;
-      if (seen.has(item.key)) continue;
+      if (seen.has(item.key)) { duplicates++; continue; }
       seen.add(item.key);
       records.push(item);
     }
@@ -106,6 +115,7 @@
       window_start: new Date(cutoff).toISOString(),
       coverage: coverage,
       rejected: rejected,
+      duplicates: duplicates,
       fetched_records: rawItems.length,
       touched_prs: prs.length,
       touched_issues: issues.length,
@@ -123,7 +133,8 @@
     };
   }
 
-  async function fetchRepository(repo, nowMs, fetchFn) {
+  async function fetchRepository(repo, nowMs, fetchFn, options) {
+    const timeoutMs = options && Number.isFinite(options.timeoutMs) ? options.timeoutMs : 12000;
     if (!REPOS.includes(repo)) throw Error("Repository not allowed");
     const cutoff = nowMs - DAYS * DAY_MS;
     const items = [];
@@ -135,30 +146,31 @@
       const url = "https://api.github.com/repos/" + repo +
         "/issues?state=all&sort=updated&direction=desc&per_page=" + PAGE_SIZE + "&page=" + p;
       const controller = typeof AbortController === "function" ? new AbortController() : null;
-      const timeout = controller ? setTimeout(() => controller.abort(), 12000) : null;
-      let response;
+      const timeout = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+      // The timer stays active until the body is parsed, so a stalled body read is aborted too.
+      let page;
       try {
-        response = await fetchFn(url, {
+        const response = await fetchFn(url, {
           method: "GET", cache: "no-store",
           headers: { "Accept": "application/vnd.github+json" },
           ...(controller ? {signal: controller.signal} : {})
         });
+        if (!response || !response.ok) {
+          const status = response && response.status ? response.status : "unknown";
+          return {items, coverage: items.length ? "PARTIAL_HTTP_ERROR" : "UNAVAILABLE",
+            reason: "GitHub HTTP " + status + " (rate limit or connectivity possible)", pages};
+        }
+        try { page = await response.json(); }
+        catch (err) {
+          const aborted = controller && controller.signal.aborted;
+          return {items, coverage: items.length ? "PARTIAL_INVALID_JSON" : "UNAVAILABLE",
+            reason: aborted ? "GitHub response body timed out" : "GitHub response is not valid JSON", pages};
+        }
       } catch (err) {
         return {items, coverage: items.length ? "PARTIAL_FETCH_ERROR" : "UNAVAILABLE",
           reason: "GitHub request failed: " + String(err && err.name || "network"), pages};
       } finally {
         if (timeout) clearTimeout(timeout);
-      }
-      if (!response || !response.ok) {
-        const status = response && response.status ? response.status : "unknown";
-        return {items, coverage: items.length ? "PARTIAL_HTTP_ERROR" : "UNAVAILABLE",
-          reason: "GitHub HTTP " + status + " (rate limit or connectivity possible)", pages};
-      }
-      let page;
-      try { page = await response.json(); }
-      catch (_) {
-        return {items, coverage: items.length ? "PARTIAL_INVALID_JSON" : "UNAVAILABLE",
-          reason: "GitHub response is not valid JSON", pages};
       }
       if (!Array.isArray(page) || page.length > PAGE_SIZE) {
         return {items, coverage: items.length ? "PARTIAL_INVALID_RESPONSE" : "UNAVAILABLE",
@@ -232,13 +244,18 @@
       node.appendChild(element("p", "warn-text", "No public GitHub data available. No counts shown."));
       return;
     }
+    if (projected.coverage === "STALE_LAST_SUCCESS") {
+      node.appendChild(element("p", "warn-text", "Cached data from the last successful read, not current. Observed " +
+        fmtTime(projected.observed_at) + " for the window " + fmtTime(projected.window_start) + " to " +
+        fmtTime(projected.observed_at) + ". Refresh failed: " + (projected.stale_reason || "unknown reason") + "."));
+    }
     const metrics = element("div", "metrics");
     [["PRs last updated",projected.touched_prs],["Issues last updated",projected.touched_issues],
       ["PRs created",projected.newly_created_prs],["Issues created",projected.newly_created_issues],
       ["Open PRs in window",projected.open_touched_prs],["Open issues in window",projected.open_touched_issues]]
       .forEach(([label,n]) => {
         const metric = element("div", "metric");
-        metric.appendChild(element("strong", "", (projected.coverage === "COMPLETE_WINDOW" && projected.rejected === 0 ? "" : "≥") + n));
+        metric.appendChild(element("strong", "", (projected.coverage === "COMPLETE_WINDOW" && projected.rejected === 0 && !projected.duplicates ? "" : "≥") + n));
         metric.appendChild(element("span", "", label));
         metrics.appendChild(metric);
       });
@@ -263,12 +280,14 @@
     node.appendChild(recent);
     if (projected.rejected) node.appendChild(element("p", "warn-text", projected.rejected +
       " malformed/foreign records rejected; displayed sample is incomplete."));
+    if (projected.duplicates) node.appendChild(element("p", "warn-text", projected.duplicates +
+      " duplicate record(s) in the source pages; paging may have shifted, so counts are lower bounds."));
   }
 
   function renderAttention(snapshots, box) {
     clear(box);
     const items = snapshots.flatMap(s => s.attention.map(x => ({
-      repository: s.repository, coverage: s.coverage, item: x
+      repository: s.repository, coverage: s.coverage, observed_at: s.observed_at, item: x
     }))).sort((a, b) => {
       const aRank = a.item.basis === "SOURCE_LABEL_MATCH" ? 0 : 1;
       const bRank = b.item.basis === "SOURCE_LABEL_MATCH" ? 0 : 1;
@@ -283,7 +302,7 @@
       const item = element("div", "attention-row");
       item.appendChild(link(r.url, r.kind + " #" + r.number + " · " + r.title));
       item.appendChild(element("p", "hint", r.repository + " · " + r.note +
-        " · last touched " + r.age_days + "d ago · " + entry.coverage));
+        " · last touched " + r.age_days + "d before " + fmtTime(entry.observed_at) + " · " + entry.coverage));
       box.appendChild(item);
     });
   }
@@ -304,7 +323,7 @@
       text(status, "READING public GitHub API · no credentials or writes");
       const nowMs = Date.now();
       const result = await Promise.all(REPOS.map(async r => {
-        const fetched = await fetchRepository(r, nowMs, fetch.bind(global));
+        const fetched = await fetchRepository(r, nowMs, fetch.bind(root));
         if (fetched.coverage === "UNAVAILABLE") {
           const old = previous.get(r);
           if (old) return Object.assign({}, old, {
@@ -319,7 +338,7 @@
       }));
       result.forEach(x => populateCard(cards[x.repository], x));
       renderAttention(result.filter(x => x.coverage !== "UNAVAILABLE"), attention);
-      const allComplete = result.every(x => x.coverage === "COMPLETE_WINDOW" && x.rejected === 0);
+      const allComplete = result.every(x => x.coverage === "COMPLETE_WINDOW" && x.rejected === 0 && !x.duplicates);
       text(status, (allComplete ? "SOURCE WINDOW COMPLETE" : "PARTIAL / STALE / UNAVAILABLE — SEE REPOSITORIES") +
         " · checked " + new Date(nowMs).toLocaleString() +
         " · window since " + new Date(nowMs - DAYS*DAY_MS).toLocaleString() +

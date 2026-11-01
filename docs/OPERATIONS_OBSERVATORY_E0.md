@@ -69,7 +69,9 @@ node --test tools/tests/operations_observatory_e0.test.cjs
 node --check ui/operations-observatory-e0.js
 \`\`\`
 
-Tests cover exact allowlist, canonical URL, 28-day boundary, duplicate records, issue/PR distinction, closed≠merged, label-based advisory classification, rate-limit failure and page-cap coverage, no write paths, no browser storage, and preservation of the original Living Canvas.
+Source timestamps must carry an explicit timezone and be real calendar dates; a bare local-time string is rejected. Duplicate source records are counted and the repository's numbers become lower bounds (`≥`). The request timeout covers reading the response body, not only the response headers. A stale cached card shows the time and window it was observed and why the refresh failed.
+
+Tests cover exact allowlist, canonical URL, strict timestamps, 28-day boundary, duplicate records, a stalled response body, a browser-style boot with no Node-only global, issue/PR distinction, closed≠merged, label-based advisory classification, rate-limit failure and page-cap coverage, no write paths, no browser storage, and preservation of the original Living Canvas.
 
 **Evidence not yet established by offline checks:** independent browser acceptance, successful live GitHub readback at a pinned revision, repository-wide CI success, actual human task outcomes and deployed-host security. Request these before approval.
 
