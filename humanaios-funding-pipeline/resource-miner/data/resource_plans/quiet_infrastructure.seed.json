@@ -1,0 +1,428 @@
+{
+  "plan_id": "RP-QUIET-INFRA-001",
+  "title": "Quiet Infrastructure: evidence-layer market pilot",
+  "status": "Z1_PROPOSAL_NOT_ADMITTED",
+  "version": "1.0.0",
+  "authority_effect": "NONE",
+  "execution": "DISABLED",
+  "decision": "PREFER_EVIDENCE_LAYER_PILOT_NOT_AIR_GAPPED_PLATFORM",
+  "source_refs": [
+    "https://www.ycombinator.com/rfs",
+    "https://github.com/humanaios-ui/operations/issues/780",
+    "https://github.com/humanaios-ui/operations/issues/499",
+    "https://github.com/humanaios-ui/operations/issues/611"
+  ],
+  "thesis_tokens": [
+    {
+      "token_id": "QI-T01",
+      "kind": "MARKET_SIGNAL",
+      "label": "Air-gapped data residency demand",
+      "evidence_state": "SUPPORTED",
+      "source_refs": [
+        "https://www.ycombinator.com/rfs"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-LOCALITY"
+      ],
+      "limitation": "YC interest does not establish paid demand for HumanAIOS."
+    },
+    {
+      "token_id": "QI-T02",
+      "kind": "PRODUCT_HYPOTHESIS",
+      "label": "Behavioral evidence layer for institutions",
+      "evidence_state": "HYPOTHESIZED",
+      "source_refs": [
+        "https://github.com/humanaios-ui/operations/issues/780"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-ASSURANCE"
+      ],
+      "limitation": "Audit receipts do not by themselves prove correctness or legal compliance."
+    },
+    {
+      "token_id": "QI-T03",
+      "kind": "MARKET_SIGNAL",
+      "label": "Worker augmentation rather than replacement",
+      "evidence_state": "SUPPORTED",
+      "source_refs": [
+        "https://www.ycombinator.com/rfs"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-HUMAN"
+      ],
+      "limitation": "No 10x benefit has been measured."
+    },
+    {
+      "token_id": "QI-T04",
+      "kind": "COMMERCIAL_HYPOTHESIS",
+      "label": "Narrow paid institutional pilot",
+      "evidence_state": "HYPOTHESIZED",
+      "source_refs": [
+        "https://github.com/humanaios-ui/operations/issues/499"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-MARKET"
+      ],
+      "limitation": "No customer, signed contract, or revenue is established."
+    },
+    {
+      "token_id": "QI-T05",
+      "kind": "ALTERNATIVE",
+      "label": "Physical data-center supply chain",
+      "evidence_state": "SUPPORTED",
+      "source_refs": [
+        "https://www.ycombinator.com/rfs"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-MARKET"
+      ],
+      "limitation": "YC sector signal only; HumanAIOS physical supply capability not established. Defer."
+    },
+    {
+      "token_id": "QI-T06",
+      "kind": "GOVERNANCE_BOUNDARY",
+      "label": "Privacy, non-surveillance, and honest communication",
+      "evidence_state": "INFERRED",
+      "source_refs": [
+        "https://github.com/humanaios-ui/operations/issues/780"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-HUMAN",
+        "NEED-QI-ASSURANCE"
+      ],
+      "limitation": "Public hostility has not been measured. Low-profile does not mean hidden accountability."
+    },
+    {
+      "token_id": "QI-T07",
+      "kind": "UNVERIFIED_CLAIM",
+      "label": "Regulatory certification and commercial moat",
+      "evidence_state": "UNVERIFIED",
+      "source_refs": [
+        "https://www.fedramp.gov/2026/scope/"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-MARKET"
+      ],
+      "limitation": "FedRAMP scope is deployment-specific. No certification or moat established."
+    },
+    {
+      "token_id": "QI-T08",
+      "kind": "MARKET_SIGNAL",
+      "label": "Customer-owned local intelligence",
+      "evidence_state": "SUPPORTED",
+      "source_refs": [
+        "https://www.ycombinator.com/rfs"
+      ],
+      "maps_to_need_ids": [
+        "NEED-QI-LOCALITY"
+      ],
+      "limitation": "Local model health checks do not prove zero egress."
+    }
+  ],
+  "needs": [
+    {
+      "need_id": "NEED-QI-LOCALITY",
+      "label": "Keep sensitive data under operator control",
+      "statement": "Show zero-egress on a bounded local synthetic workflow."
+    },
+    {
+      "need_id": "NEED-QI-ASSURANCE",
+      "label": "Reconstruct and challenge machine decisions",
+      "statement": "Keep P1 original, P2 challenge, P3 correction, human decision and source receipt distinct."
+    },
+    {
+      "need_id": "NEED-QI-HUMAN",
+      "label": "Reduce worker burden without surveillance",
+      "statement": "Make machine proposals understandable, contestable and revocable."
+    },
+    {
+      "need_id": "NEED-QI-MARKET",
+      "label": "Prove institutional demand before expansion",
+      "statement": "Seek independent review and paid pilot evidence; do not infer sales from listings."
+    }
+  ],
+  "capabilities": [
+    {
+      "capability_id": "CAP-QI-LOCAL",
+      "label": "Measured offline runtime boundary",
+      "satisfies_need_ids": [
+        "NEED-QI-LOCALITY"
+      ]
+    },
+    {
+      "capability_id": "CAP-QI-TRACE",
+      "label": "Source-bound Witness chain and retained P1",
+      "satisfies_need_ids": [
+        "NEED-QI-ASSURANCE"
+      ]
+    },
+    {
+      "capability_id": "CAP-QI-ACATR",
+      "label": "Independent runtime reference calibration",
+      "satisfies_need_ids": [
+        "NEED-QI-ASSURANCE",
+        "NEED-QI-LOCALITY"
+      ]
+    },
+    {
+      "capability_id": "CAP-QI-GATE",
+      "label": "Human authorization and denial",
+      "satisfies_need_ids": [
+        "NEED-QI-HUMAN",
+        "NEED-QI-ASSURANCE"
+      ]
+    },
+    {
+      "capability_id": "CAP-QI-PILOT",
+      "label": "Measured human utility and commercial proof",
+      "satisfies_need_ids": [
+        "NEED-QI-MARKET",
+        "NEED-QI-HUMAN"
+      ]
+    }
+  ],
+  "work_packages": [
+    {
+      "work_package_id": "WP-QI-OFFLINE",
+      "label": "One synthetic offline data-egress rehearsal",
+      "enables_capability_ids": [
+        "CAP-QI-LOCAL",
+        "CAP-QI-ACATR"
+      ]
+    },
+    {
+      "work_package_id": "WP-QI-EVIDENCE",
+      "label": "INTENT-OS/Resource Miner/Witness round-trip",
+      "enables_capability_ids": [
+        "CAP-QI-TRACE",
+        "CAP-QI-GATE"
+      ]
+    },
+    {
+      "work_package_id": "WP-QI-VALIDATION",
+      "label": "Independent operator and buyer review",
+      "enables_capability_ids": [
+        "CAP-QI-PILOT"
+      ]
+    }
+  ],
+  "controlled_resources": [
+    {
+      "resource_id": "CR-QI-MINER",
+      "label": "Existing Resource Miner planning and discovery",
+      "state": "OBSERVED_REPOSITORY_CODE_NOT_DEPLOYMENT",
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/blob/main/humanaios-funding-pipeline/resource-miner/resource_miner/planning.py"
+      ]
+    },
+    {
+      "resource_id": "CR-QI-INTENT",
+      "label": "Typed INTENT-OS contract in open draft",
+      "state": "OPEN_DRAFT_NOT_ADMITTED",
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/pull/1064"
+      ]
+    },
+    {
+      "resource_id": "CR-QI-WITNESS",
+      "label": "Independent assurance design",
+      "state": "DESIGN_NOT_RUNTIME_PROOF",
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/issues/780"
+      ]
+    },
+    {
+      "resource_id": "CR-QI-LOCAL",
+      "label": "Previously reported local-model pilot",
+      "state": "HUMAN_REPORTED_NOT_ZERO_EGRESS_VERIFIED",
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/issues/611"
+      ]
+    }
+  ],
+  "resource_requirements": [
+    {
+      "requirement_id": "RR-QI-OFFLINE",
+      "label": "Independent local zero-egress observation",
+      "objective": "Pin a synthetic workload and record allowed and blocked egress; do not infer isolation from local inference.",
+      "work_package_ids": [
+        "WP-QI-OFFLINE"
+      ],
+      "capability_ids": [
+        "CAP-QI-LOCAL",
+        "CAP-QI-ACATR"
+      ],
+      "resource_types": [
+        "software_asset",
+        "security_control"
+      ],
+      "affordances": [],
+      "signals": [
+        "offline",
+        "network egress",
+        "local inference"
+      ],
+      "resolution_mode": "COMPOSE_INTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": false,
+      "satisfied_when": "Observer independently verifies no outbound payload and test negative control."
+    },
+    {
+      "requirement_id": "RR-QI-TRACE",
+      "label": "Immutable proposal, challenge, correction and human decision",
+      "objective": "Reject forged receipts or unauthorized actors while retaining original P1.",
+      "work_package_ids": [
+        "WP-QI-EVIDENCE"
+      ],
+      "capability_ids": [
+        "CAP-QI-TRACE",
+        "CAP-QI-GATE"
+      ],
+      "resource_types": [
+        "software_asset",
+        "evidence"
+      ],
+      "affordances": [],
+      "signals": [
+        "provenance",
+        "audit log",
+        "P1 P2 P3"
+      ],
+      "resolution_mode": "COMPOSE_INTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": false,
+      "satisfied_when": "Independent reference checks demonstrate reconstruction and fail-closed authorization."
+    },
+    {
+      "requirement_id": "RR-QI-HUMAN",
+      "label": "Independent human outcome evaluation",
+      "objective": "Compare matched synthetic admin case versus manual checklist, human comprehension and errors.",
+      "work_package_ids": [
+        "WP-QI-VALIDATION"
+      ],
+      "capability_ids": [
+        "CAP-QI-PILOT"
+      ],
+      "resource_types": [
+        "research_access",
+        "grant",
+        "competition"
+      ],
+      "affordances": [
+        "research_access",
+        "project_funding",
+        "competition_access"
+      ],
+      "signals": [
+        "independent",
+        "evaluation",
+        "human factors",
+        "research",
+        "pilot"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": true,
+      "satisfied_when": "Independent reviewer documents error, time, corrections and burden against baseline."
+    },
+    {
+      "requirement_id": "RR-QI-BUYER",
+      "label": "Institutional buyer or paid pilot discovery",
+      "objective": "Locate consented authorized operator or procurement channel. Listing is not an acquired customer.",
+      "work_package_ids": [
+        "WP-QI-VALIDATION"
+      ],
+      "capability_ids": [
+        "CAP-QI-PILOT"
+      ],
+      "resource_types": [
+        "procurement",
+        "research_access",
+        "fellowship"
+      ],
+      "affordances": [
+        "research_access"
+      ],
+      "signals": [
+        "procurement",
+        "pilot",
+        "vendor",
+        "research partner"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": true,
+      "satisfied_when": "Document authorized buyer feedback, agreement, or rejection."
+    },
+    {
+      "requirement_id": "RR-QI-HARDWARE",
+      "label": "Dedicated air-gap hardware, only if non-substitutable",
+      "objective": "Do not buy hardware unless existing tools fail the isolated experiment.",
+      "work_package_ids": [
+        "WP-QI-OFFLINE"
+      ],
+      "capability_ids": [
+        "CAP-QI-LOCAL"
+      ],
+      "resource_types": [
+        "hardware_access",
+        "compute_credit"
+      ],
+      "affordances": [
+        "compute_capacity"
+      ],
+      "signals": [
+        "offline workstation",
+        "local compute"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "CONDITIONAL",
+      "mine_external": false,
+      "satisfied_when": "Measure non-substitutable compute capacity gap."
+    },
+    {
+      "requirement_id": "RR-QI-COMPLIANCE",
+      "label": "Qualified deployment-specific regulatory review",
+      "objective": "Determine exact data types, deployment, scope and competent authorizer; no certification claim.",
+      "work_package_ids": [
+        "WP-QI-VALIDATION"
+      ],
+      "capability_ids": [
+        "CAP-QI-PILOT"
+      ],
+      "resource_types": [
+        "legal_review",
+        "security_control"
+      ],
+      "affordances": [],
+      "signals": [
+        "FedRAMP scope",
+        "HIPAA applicability"
+      ],
+      "resolution_mode": "COMPOSE_INTERNAL",
+      "activation_state": "CONDITIONAL",
+      "mine_external": false,
+      "satisfied_when": "Qualified reviewer records scoped obligation and required evidence."
+    }
+  ],
+  "substitution_assessments": [
+    {
+      "requirement_id": "RR-QI-OFFLINE",
+      "controlled_resource_id": "CR-QI-LOCAL",
+      "status": "PARTIAL",
+      "rationale": "Local-model pilot is not independent zero-egress proof."
+    },
+    {
+      "requirement_id": "RR-QI-TRACE",
+      "controlled_resource_id": "CR-QI-WITNESS",
+      "status": "PARTIAL",
+      "rationale": "Design controls are not an independently tested institutional runtime."
+    },
+    {
+      "requirement_id": "RR-QI-HUMAN",
+      "controlled_resource_id": "CR-QI-WITNESS",
+      "status": "INADEQUATE",
+      "rationale": "Internal design does not replace independent human study."
+    }
+  ]
+}

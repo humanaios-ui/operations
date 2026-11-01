@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'none'; object-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'self'; manifest-src 'self'; object-src 'none'">
 <title>INTENT-OS · What Moved Our Goal?</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf2fc;background:#0b1423;color-scheme:dark}
@@ -35,7 +35,19 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #reviewList{padding-left:20px}
 #reviewList li{margin:12px 0}
 #reviewList button{margin-left:10px}
+
+@media(max-width:719px){
+main{padding:20px 14px calc(116px + env(safe-area-inset-bottom,0px))}
+button,select,input[type=file]{min-height:44px}
+table{min-width:0}
+.mobile-tabs{position:fixed;bottom:0;left:0;right:0;display:flex;z-index:50;background:#091625;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));gap:8px;border-top:1px solid #6b94b7}
+.mobile-tabs a,.mobile-tabs span{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid #47617c;border-radius:10px;padding:8px 4px;font-size:.85rem;font-weight:650;text-decoration:none}
+.mobile-tabs a[aria-current=page]{background:#285c81;color:#fff}
+.mobile-tabs span{color:#bac9d9}
+}
+@media(min-width:720px){.mobile-tabs{display:none}}
 </style>
+<meta name="theme-color" content="#0b1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="INTENT-OS"><link rel="manifest" href="/app.webmanifest">
 </head>
 <body>
 <main>
@@ -70,6 +82,23 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <h2>Next measured milestone</h2>
 <p id="next">Prove a real public deployment and an independently witnessed human objective → Miner result → source review. Do not treat local test success as that outcome.</p>
 <p class="muted">Limits: a recorded HTTP test is not a signed witness. Listed work comes only from explicitly declared mappings. The reflex cannot authorize code, claims, deployments, or decisions.</p>
+</section>
+<section id="ats-research-pilot" aria-labelledby="ats-title">
+<h2 id="ats-title">ATS application readiness (research pilot)</h2>
+<p class="muted">Historical Convergent Research example. The Lever listing is reported unavailable. This is not an open job or application invitation.</p>
+<button id="ats-show" type="button">View redacted readiness report</button>
+<div id="ats-result" role="status" aria-live="polite" class="meta" hidden></div>
+</section>
+<section id="humanaiosResourceLoop" aria-labelledby="humanaiosResourceLoopTitle">
+<h2 id="humanaiosResourceLoopTitle">Personal HumanAIOS resource loop</h2>
+<p>INTENT-OS discovery → Source review → Witness conversation → Your decision → Local resource status → Mission outcome evidence. This page reads browser-local feedback only; no private notes are sent to Unit Zero. A working link is not an acquired resource, and an acquired resource is not a verified recovery benefit.</p>
+<div class="cards">
+<div>Distinct sources reported<br><span class="stat" id="loopTotal">0</span></div>
+<div>Reported already in use<br><span class="stat" id="loopInUse">0</span></div>
+<div>Reported working links<br><span class="stat" id="loopWorking">0</span></div>
+<div>Reported source failures<br><span class="stat" id="loopHeld">0</span></div>
+</div>
+<p class="muted" id="loopDisclosure" role="status">Counts are user-reported source feedback, not entitlement, account, application, or mission-outcome attestations.</p>
 </section>
 <section id="witnessMethod" aria-labelledby="witnessTitle">
 <h2 id="witnessTitle">Witness · Evidence, challenge and correction</h2>
@@ -107,7 +136,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </select>
 <div class="witness-buttons">
 <button type="button" id="witnessDecision" disabled>Record my local decision</button>
-<button type="button" id="exportWitness">Export Witness review packet</button>
+<button type="button" id="exportWitness">Export redacted Witness review</button>
 </div>
 <p class="muted" id="witnessNotice" role="status">The Witness recommends; only you choose a local dismissal. A 404 is not proof of employer closure. Corrections retain the source report.</p>
 </div>
@@ -115,7 +144,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <ul id="reviewList"><li>No source report imported or saved in this browser.</li></ul>
 <p class="muted">Nothing here updates production rankings, changes an account, deletes evidence, or issues a provider-status determination. An independent source verification and separate authorization are required before a global archive action.</p>
 </section>
-</main>
+<nav class="mobile-tabs" aria-label="Phone navigation"><a href="/intent-os">Resources</a><a href="/on-track" aria-current="page">On-Track</a><span>Private locked</span></nav></main>
 <!--@@EMBED_SNAPSHOT@@-->
 <script>
 "use strict";
@@ -149,7 +178,7 @@ function show(value){
  if(technical.state==="TESTED_LOCAL_HTTP"){
    if(technical.environment!=="LOCAL_LOOPBACK_HTTP"
        ||!Number.isInteger(technical.candidate_count)||technical.candidate_count<1
-       ||technical.candidate_count>10
+       ||technical.candidate_count>500 // API examination bound, independent of browser pagination.
        ||!/^[0-9a-f]{64}$/.test(String(technical.receipt_digest))
        ||technical.provenance!=="UNSIGNED_WORKFLOW_ARTIFACT_NOT_INDEPENDENT_ATTESTATION")
      throw new Error("Invalid local test receipt prerequisites.");
@@ -229,14 +258,37 @@ function readLocalReports(){
   return v.records;
  }catch(e){witnessText("reviewSummary","Browser report unavailable: "+e.message);return [];}
 }
+function renderHumanAIOSResourceLoop(){
+ const records=readLocalReports();
+ const latest=new Map();
+ for(const r of records){
+  const prior=latest.get(r.source_url);
+  if(!prior||r.observed_at>prior.observed_at||
+    (r.observed_at===prior.observed_at&&r.id>prior.id))latest.set(r.source_url,r);
+ }
+ const values=[...latest.values()];
+ text("loopTotal",values.length);
+ text("loopInUse",values.filter(r=>r.status==="ALREADY_IN_USE").length);
+ text("loopWorking",values.filter(r=>r.status==="SOURCE_WORKING").length);
+ text("loopHeld",values.filter(r=>["LINK_FAILED_404","PAGE_UNAVAILABLE_OTHER","POSSIBLY_CLOSED"].includes(r.status)).length);
+ text("loopDisclosure",values.length?
+  "Latest local report per source. These are personal observations, not independent source, entitlement, acquisition, or recovery-program verification. Imported notes may conflict with selected statuses; review individually.":
+  "No feedback saved in this browser. On INTENT-OS, import your resource review packet to display personal source-feedback counts here.");
+}
+
 function loadWitness(){
+ renderHumanAIOSResourceLoop();
  witnessReports=readLocalReports();
  witnessReview=null;find("witnessDecision").disabled=true;
  const sel=find("witnessCandidate");sel.replaceChildren();
  const empty=document.createElement("option");empty.value="";
  empty.textContent="Select a source from the local feedback queue";sel.append(empty);
  const latest=new Map();
- for(const r of witnessReports)latest.set(r.source_url,r);
+ for(const r of witnessReports){
+  const prior=latest.get(r.source_url);
+  if(!prior||r.observed_at>prior.observed_at||
+    (r.observed_at===prior.observed_at&&r.id>prior.id))latest.set(r.source_url,r);
+ }
  for(const r of latest.values()){
   const o=document.createElement("option");o.value=r.source_url;
   o.textContent=r.resource_title.slice(0,100)+" · "+r.status;sel.append(o);
@@ -326,14 +378,55 @@ find("witnessDecision").addEventListener("click",()=>{
 find("exportWitness").addEventListener("click",()=>{
  if(!witnessReview){witnessText("witnessNotice","Call the Witness first to export its review.");return;}
  const decision=readLocalDispositions()[witnessReview.source_url]||null;
+ // Deliberately do not export source_url, raw title, free-text falsifier,
+ // private evidence or account-identifying URL paths from a personal packet.
+ // report_id permits offline alignment with a *separately redacted* review.
+ const safeReview={
+  report_id:witnessReview.report_id,p1:witnessReview.p1,
+  p2_status:witnessReview.p2_status,p2_provenance:witnessReview.p2_provenance,
+  conflict:witnessReview.conflict===true,
+  falsifier_supplied:!!witnessReview.falsifier,authority_effect:"NONE"
+ };
+ const safeDecision=decision?{
+  state:decision.state,observed_status:decision.observed_status,
+  decided_at:decision.decided_at,authority_effect:"NONE"
+ }:null;
  const payload={schema:"humanaios.witness_source_feedback.v0.1",
-  review:witnessReview,p3_decision:decision,
-  note:"UNSIGNED_LOCAL_REVIEW_NOT_PROVIDER_VERIFICATION"};
+  review:safeReview,p3_decision:safeDecision,
+  note:"UNSIGNED_REDACTED_LOCAL_REVIEW_NOT_PROVIDER_VERIFICATION"};
  const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
  const a=document.createElement("a");a.href=url;a.download="intent-os-witness-feedback.json";
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
- witnessText("witnessNotice","Exported unsigned local Witness feedback; no source changed.");
+ witnessText("witnessNotice","Exported REDACTED local Witness review (no private notes, source URLs or falsifier text); no source changed.");
 });
+const atsShow=document.getElementById("ats-show"),atsResult=document.getElementById("ats-result");
+atsShow.addEventListener("click",async()=>{
+ atsShow.disabled=true;atsResult.hidden=false;atsResult.replaceChildren();
+ text(atsResult,"Loading read-only public specimen…");
+ try{
+   const response=await fetch("/api/ats/readiness",{cache:"no-store"});
+   if(!response.ok)throw new Error("Readiness endpoint returned "+response.status);
+   const data=await response.json();
+   if(!data||data.specimen_id!=="CONVERGENT-PROGRAM-LAUNCH-MANAGER-20261022"||data.actionable!==false)
+     throw new Error("Readiness response not safe to present.");
+   atsResult.replaceChildren();
+   for(const value of [
+     "Source: "+data.source_status,
+     "Availability: NOT VERIFIED; role closure not established",
+     "Application decision: "+data.decision,
+     "Private resume: "+data.private_resume_evidence,
+     "ATS parser: "+data.ats_resume_parser,
+     "Human authority: "+data.authority,
+   ]){
+     const row=document.createElement("p");text(row,value);atsResult.append(row);
+   }
+   const a=document.createElement("a");a.href="https://github.com/humanaios-ui/operations/issues/992";
+   a.target="_blank";a.rel="noopener noreferrer";text(a,"Review public source-failure record ↗");
+   atsResult.append(a);
+ }catch(error){text(atsResult,"Readiness report unavailable: "+error.message);}
+ finally{atsShow.disabled=false;}
+});
+
 loadWitness();
 
 </script>
