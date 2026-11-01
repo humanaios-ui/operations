@@ -2863,7 +2863,7 @@ tools:
 - tool_id: HAIOS-TOOL-239
   name: safety
   path: tools/Metaculus/safety.py
-  version: 1.1.0
+  version: 1.2.0
   category: security_gate_tool
   zone: 1
   status: draft

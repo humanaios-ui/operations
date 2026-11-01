@@ -1234,12 +1234,12 @@ if __name__ == "__main__":
         llms={
             "default": GeneralLlm(
                 model=FORECAST_MODEL,  # cost: cheap Claude for forecast reasoning (was sonnet-4-6)
-                temperature=0.3, timeout=60, allowed_tries=2,
+                temperature=0.3, timeout=60, allowed_tries=budget.allowed_tries,
             ),
             "parser": "openai/gpt-4o-mini",
             "researcher": GeneralLlm(
                 model="groq/openai/gpt-oss-120b",  # Active free tier
-                temperature=0.3, timeout=60, allowed_tries=2,
+                temperature=0.3, timeout=60, allowed_tries=budget.allowed_tries,
             ),
             "summarizer": "openai/gpt-4o-mini",
         },
