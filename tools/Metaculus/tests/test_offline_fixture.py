@@ -64,16 +64,33 @@ class OfflineFixtureTests(unittest.TestCase):
 class EntryPointWiringTests(unittest.TestCase):
     def test_live_guard_runs_before_metaculus_client_creation(self):
         tree = ast.parse((ROOT / "main.py").read_text(encoding="utf-8"))
-        calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)]
-        gated = [n.lineno for n in calls if isinstance(n.func, ast.Name)
-                 and n.func.id == "require_explicit_live_approval"]
-        client = [n.lineno for n in calls if isinstance(n.func, ast.Name)
-                  and n.func.id == "MetaculusClient"]
+        # The class __init__ defines a MetaculusClient call before the CLI
+        # block in source order, but it executes only upon HumanAIOSBotV2().
+        # Assert entrypoint invocation order, not global line order.
+        entrypoints = [
+            node for node in tree.body if isinstance(node, ast.If)
+            and isinstance(node.test, ast.Compare)
+            and isinstance(node.test.left, ast.Name)
+            and node.test.left.id == "__name__"
+        ]
+        self.assertEqual(len(entrypoints), 1)
+        calls = [n for n in ast.walk(entrypoints[0]) if isinstance(n, ast.Call)]
+        def calls_to(name):
+            return [n.lineno for n in calls if isinstance(n.func, ast.Name)
+                    and n.func.id == name]
+        gated = calls_to("require_explicit_live_approval")
+        first_bot = calls_to("HumanAIOSBotV2")
+        explicit_clients = calls_to("MetaculusClient")
         self.assertEqual(len(gated), 1)
-        # HumanAIOSBotV2 constructs a client in __init__ and main creates one.
-        # Both must remain after the gate (not just the explicit main client).
-        self.assertEqual(len(client), 2)
-        self.assertTrue(all(gated[0] < line for line in client))
+        self.assertEqual(len(first_bot), 1)
+        self.assertEqual(len(explicit_clients), 1)
+        self.assertLess(gated[0], first_bot[0])
+        self.assertLess(gated[0], explicit_clients[0])
+        all_client_calls = [
+            n for n in ast.walk(tree) if isinstance(n, ast.Call)
+            and isinstance(n.func, ast.Name) and n.func.id == "MetaculusClient"
+        ]
+        self.assertEqual(len(all_client_calls), 2)
 
     def test_docker_image_includes_write_gate(self):
         text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
