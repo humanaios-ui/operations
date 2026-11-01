@@ -13,7 +13,7 @@ Changes from v2.2:
   - return value handled as None, not dict           [.get('id') crashed]
   - sync method wrapped in asyncio.to_thread(...)    [was incorrectly awaited]
   - comment target uses question.id_of_post          [regex missed /c/ URLs]
-  - is_private=False, included_forecast=False explicit
+  - included_forecast=False explicit (comments PRIVATE per FutureEval, #1101)
 - p3_comment_posted is now honest: TRUE when post_question_comment returns
   without raising; the Metaculus API returns no comment id, so we store a
   synthesized marker (post_id + timestamp) in p3_comment_id.
@@ -66,10 +66,23 @@ import asyncio
 import logging
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from typing import Literal, Optional
 
 import dotenv
+# mode_gate.py and safety.py sit next to this file. Add that directory so the imports also
+# work when this module is loaded by path from elsewhere (e.g. the smoke workflow).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mode_gate import ExternalWritesNotApproved, require_explicit_live_approval
+from safety import (
+    DUPLICATE_REASON,
+    BudgetTracker,
+    RefusedError,
+    budget_from_env,
+    comment_is_private,
+    kill_switch_engaged,
+)
 from forecasting_tools import (
     AskNewsSearcher,
     BinaryPrediction,
@@ -484,7 +497,7 @@ async def _post_metaculus_comment(
     comment_text: str,
 ) -> Optional[str]:
     """
-    Post a public comment on a Metaculus question.
+    Post a PRIVATE (default) comment on a Metaculus question.
 
     forecasting_tools exposes `post_question_comment(post_id, comment_text,
     is_private=True, included_forecast=True) -> None`. It is SYNCHRONOUS and
@@ -504,7 +517,7 @@ async def _post_metaculus_comment(
             metaculus_client.post_question_comment,
             post_id=post_id,
             comment_text=comment_text,
-            is_private=False,        # public ACAT calibration record
+            is_private=comment_is_private(),  # FutureEval: comments are PRIVATE (#1101)
             included_forecast=False, # metadata comment, not a forecast rationale
         )
 
@@ -1177,13 +1190,33 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mode", type=str,
         choices=["tournament", "metaculus_cup", "test_questions"],
-        default="tournament",
+        default="test_questions",
     )
     parser.add_argument(
         "--run-id", type=str, default=None,
         help="Override BOT_RUN_ID (default: BOT_RUN_ID env var or S-bot-MMDDYY-auto)",
     )
+    parser.add_argument(
+        "--publish", action="store_true",
+        help="Allow external Metaculus writes only with operator-approved environment gates.",
+    )
     args = parser.parse_args()
+
+    # Every existing mode (including test_questions) can post to Metaculus.
+    # Fail before constructing clients or calling a model unless BOTH explicit
+    # CLI and deployment gates are set. Coordinator admission alone is not consent.
+    try:
+        require_explicit_live_approval(mode=args.mode, publish=args.publish)
+    except ExternalWritesNotApproved as exc:
+        parser.error(str(exc))
+
+    # Run budgets and kill switch (safety.py). Evaluated before any client or model call.
+    try:
+        if kill_switch_engaged(os.environ):
+            raise RefusedError("kill-switch engaged; live run refused")
+        budget = budget_from_env(os.environ)
+    except RefusedError as refusal:
+        parser.error(str(refusal))
 
     if args.run_id:
         BOT_RUN_ID = args.run_id
@@ -1192,7 +1225,7 @@ if __name__ == "__main__":
 
     humanaios_bot = HumanAIOSBotV2(
         research_reports_per_question=1,
-        predictions_per_research_report=5,
+        predictions_per_research_report=min(5, budget.max_samples_per_question),
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=True,
         folder_to_save_reports_to=None,
@@ -1213,26 +1246,46 @@ if __name__ == "__main__":
     )
 
     client = MetaculusClient()
+    tracker = BudgetTracker(budget)
+
+    def _capped(questions):
+        """Apply dedupe / max_questions / USD pre-dispatch bound before dispatch.
+        Already-forecasted questions are filtered first so they do not use budget."""
+        out = []
+        for q in questions:
+            if humanaios_bot.skip_previously_forecasted_questions and getattr(
+                q, "already_forecasted", False
+            ):
+                continue
+            key = f"{run_mode}:{getattr(q, 'id_of_post', q)}"
+            ok, why = tracker.may_dispatch(key)
+            if not ok:
+                if why == DUPLICATE_REASON:
+                    logger.info(f"Skipping duplicate question {key}")
+                    continue
+                logger.warning(f"Not dispatching further questions: {why}")
+                break
+            tracker.record_dispatch(key)
+            out.append(q)
+        return out
 
     if run_mode == "tournament":
-        seasonal = asyncio.run(
-            humanaios_bot.forecast_on_tournament(
-                client.CURRENT_AI_COMPETITION_ID, return_exceptions=True
-            )
+        # One event loop for both tournaments: the bot's class-level semaphore binds to
+        # the first loop that contends it, so a second asyncio.run could fail.
+        qs = []
+        for tid in (client.CURRENT_AI_COMPETITION_ID, client.CURRENT_MINIBENCH_ID):
+            qs += _capped(client.get_all_open_questions_from_tournament(tid))
+        forecast_reports = asyncio.run(
+            humanaios_bot.forecast_questions(qs, return_exceptions=True)
         )
-        minibench = asyncio.run(
-            humanaios_bot.forecast_on_tournament(
-                client.CURRENT_MINIBENCH_ID, return_exceptions=True
-            )
-        )
-        forecast_reports = seasonal + minibench
 
     elif run_mode == "metaculus_cup":
         humanaios_bot.skip_previously_forecasted_questions = False
+        qs = _capped(
+            client.get_all_open_questions_from_tournament(client.CURRENT_METACULUS_CUP_ID)
+        )
         forecast_reports = asyncio.run(
-            humanaios_bot.forecast_on_tournament(
-                client.CURRENT_METACULUS_CUP_ID, return_exceptions=True
-            )
+            humanaios_bot.forecast_questions(qs, return_exceptions=True)
         )
 
     elif run_mode == "test_questions":
@@ -1243,7 +1296,7 @@ if __name__ == "__main__":
             "https://www.metaculus.com/c/diffusion-community/38880/how-many-us-labor-strikes-due-to-ai-in-2029/",
         ]
         humanaios_bot.skip_previously_forecasted_questions = False
-        questions = [client.get_question_by_url(q) for q in EXAMPLE_QUESTIONS]
+        questions = _capped([client.get_question_by_url(q) for q in EXAMPLE_QUESTIONS])
         forecast_reports = asyncio.run(
             humanaios_bot.forecast_questions(questions, return_exceptions=True)
         )

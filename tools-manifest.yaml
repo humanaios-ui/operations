@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 218
+  tools: 227
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 169
+  builder_markers_present: 177
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 1
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2379,6 +2380,7 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Workflow Path Validator
+  session: PHASE-2B-SALVAGE
 - tool_id: HAIOS-TOOL-200
   name: workflow_telemetry_collector
   path: tools/workflow_telemetry_collector.py
@@ -2774,6 +2776,114 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: 'B4 controlled-operation admission: verify a GitHub-authenticated approval envelope.'
+- tool_id: HAIOS-TOOL-232
+  name: governance_invariant_evaluator
+  path: tools/governance_invariant_evaluator.py
+  version: 1.0.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Advisory governance invariant evaluator. No admission or ratification capability.
+- tool_id: HAIOS-TOOL-233
+  name: hiae_assurance
+  path: tools/hiae_assurance.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: HIAE-001 assurance transaction core — v0.1 (proposal stage)
+- tool_id: HAIOS-TOOL-234
+  name: iew_witness_fixture
+  path: tools/iew/fixtures/witness_fixture.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic stdin/stdout smoke-test fixture for IEW-003.
+- tool_id: HAIOS-TOOL-235
+  name: iew_runner
+  path: tools/iew/iew_runner.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'IEW-003: runner captures subprocess output in place of author-reported outcomes.'
+- tool_id: HAIOS-TOOL-236
+  name: iew_witness_gate
+  path: tools/iew/witness_gate.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'IEW-002: distinguish self-reported receipts from trusted execution observations.'
+- tool_id: HAIOS-TOOL-237
+  name: metaculus_mode_gate
+  path: tools/Metaculus/mode_gate.py
+  version: 0.1.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Fail-closed approval guard for Metaculus actions with external side effects.
+- tool_id: HAIOS-TOOL-238
+  name: metaculus_offline_fixture
+  path: tools/Metaculus/offline_fixture.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Pure-stdlib, offline Metaculus forecast validation harness.
+- tool_id: HAIOS-TOOL-239
+  name: safety
+  path: tools/Metaculus/safety.py
+  version: 1.1.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no'
+- tool_id: HAIOS-TOOL-240
+  name: mutual_learning_e0
+  path: tools/mutual_learning_e0.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

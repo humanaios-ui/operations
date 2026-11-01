@@ -27,3 +27,7 @@ For an **authorized, explicitly assigned** issue, PR, or research task tied to o
 The read-only `acat_loop.py learn --subject issue:NUMBER` groups sessions and may propose **human-reviewed experiments only** after minimum comparison samples. It cannot modify prompts, code, policy, access rights, or scoring. An ACAT Learning Index from P1/P3 is **self-report revision, not demonstrated improvement**; evidence remains unverified until independently checked.
 
 Full contract, CLI examples, original ACAT sources and falsifiers: `docs/AGENT_COORDINATION_REFLEX_PILOT.md`. Continue to obey coordinator admission, existing issue/PR ownership and Z2 review first.
+
+## Presenting decisions
+
+When you present the user with a decision, include an ROI for each option, with the recommended option first. For each option, give the cost, the benefit, and a rough ROI rating (for example high, moderate or low), and say briefly why. If there is no decision to present, skip the ROI.

@@ -8,6 +8,10 @@
 #            [gh_cli] = GitHub CLI must be available and authenticated
 
 baseline_tests:
+  - path: tests/test_mutual_learning_e0.py
+    requires: []
+    description: Source-pinned two-loop RNOLA mutual learning E0 and non-authority falsifiers
+
   - path: tests/test_opportunity_surface.py
     requires: []
     description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
@@ -188,6 +192,10 @@ baseline_tests:
     requires: []
     description: Graph capture lint tests
 
+  - path: tools/tests/test_operations_observatory_e0.py
+    requires: []
+    description: Read-only three-repository observatory and offline projection regressions
+
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
@@ -238,3 +246,15 @@ baseline_tests:
   - path: tests/test_smag_meta_feedback_observed_accuracy.py
     requires: []
     description: Meta-SMAG observed outcome versus predicted confidence isolation regressions
+
+  - path: tools/tests/test_b4_admission.py
+    requires: []
+    description: B4 controlled admission contract regressions
+
+  - path: tools/tests/test_living_operations_canvas.py
+    requires: []
+    description: Living operations canvas read-only UI contract checks
+
+  - path: tools/tests/test_workflow_path_validator.py
+    requires: []
+    description: Workflow path filter validator glob semantics (paths and paths-ignore)
