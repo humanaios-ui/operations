@@ -24,6 +24,8 @@ import os
 from dataclasses import dataclass, field
 from typing import Mapping, Optional
 
+DUPLICATE_REASON = "duplicate submission"
+
 OFFLINE_MODES = frozenset({"offline_fixture"})
 LIVE_MODES = frozenset({"tournament", "metaculus_cup", "test_questions"})
 ALL_MODES = tuple(sorted(OFFLINE_MODES | LIVE_MODES))
@@ -83,11 +85,12 @@ class Budget:
     def validate(self) -> None:
         for name in ("max_questions", "max_samples_per_question",
                      "max_requests_per_question", "max_total_retries"):
-            if getattr(self, name) < 0:
+            if not getattr(self, name) >= 0:
                 raise RefusedError(f"budget {name} must be >= 0")
         for name in ("max_usd_per_run", "max_usd_per_question",
                      "est_usd_upper_per_question"):
-            if getattr(self, name) < 0:
+            # `not x >= 0` also rejects NaN, which would silently disable USD checks.
+            if not getattr(self, name) >= 0:
                 raise RefusedError(f"budget {name} must be >= 0")
 
 
@@ -126,7 +129,7 @@ class BudgetTracker:
         """Pre-dispatch check; does not mutate state. key = question+bot+competition."""
         b = self.budget
         if key in self.seen:
-            return False, "duplicate submission"
+            return False, DUPLICATE_REASON
         if self.questions_dispatched >= b.max_questions:
             return False, "max_questions reached"
         if b.est_usd_upper_per_question > b.max_usd_per_question:
@@ -135,10 +138,13 @@ class BudgetTracker:
             return False, "next upper bound exceeds remaining USD budget"
         return True, "ok"
 
-    def record_dispatch(self, key: str, billed_usd: float = 0.0) -> None:
+    def record_dispatch(self, key: str, billed_usd: Optional[float] = None) -> None:
+        """Reserve spend. With no actual amount, charge the per-question upper bound
+        so the run cap is enforced at runtime."""
         self.seen.add(key)
         self.questions_dispatched += 1
-        self.spent_usd += max(billed_usd, 0.0)
+        charge = self.budget.est_usd_upper_per_question if billed_usd is None else billed_usd
+        self.spent_usd += max(charge, 0.0)
 
     def allow_retry(self) -> bool:
         if self.retries_used >= self.budget.max_total_retries:

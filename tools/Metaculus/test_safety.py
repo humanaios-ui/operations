@@ -64,6 +64,28 @@ class TestBudget(unittest.TestCase):
         self.assertEqual(s.backoff_seconds(0, retry_after=30), 30)
         self.assertEqual(s.backoff_seconds(10), 60.0)
 
+    def test_nan_budget_rejected(self):
+        with self.assertRaises(s.RefusedError):
+            s.budget_from_env({"BOT_MAX_USD_RUN": "nan"})
+        with self.assertRaises(s.RefusedError):
+            s.budget_from_env({"BOT_MAX_USD_QUESTION": "nan"})
+
+    def test_default_charge_enforces_run_cap(self):
+        t = s.BudgetTracker(s.Budget(max_questions=50, max_usd_per_run=0.50,
+                                     est_usd_upper_per_question=0.20))
+        n = 0
+        for i in range(50):
+            ok, _ = t.may_dispatch(str(i))
+            if not ok:
+                break
+            t.record_dispatch(str(i))  # no billed_usd: must reserve the upper bound
+            n += 1
+        self.assertEqual(n, 2)
+
+    def test_duplicate_reason_code(self):
+        t = s.BudgetTracker(s.Budget()); t.record_dispatch("a")
+        self.assertEqual(t.may_dispatch("a"), (False, s.DUPLICATE_REASON))
+
     def test_env_budget(self):
         self.assertEqual(s.budget_from_env({"BOT_MAX_QUESTIONS": "3"}).max_questions, 3)
         with self.assertRaises(s.RefusedError):

@@ -98,6 +98,7 @@ from supabase import create_client, Client
 
 from safety import (
     DEFAULT_MODE,
+    DUPLICATE_REASON,
     ALL_MODES,
     OFFLINE_MODES,
     BudgetTracker,
@@ -1246,24 +1247,35 @@ if __name__ == "__main__":
     client = MetaculusClient()
 
     def _capped(questions):
-        """Apply max_questions / USD pre-dispatch bound / dedupe before dispatch."""
+        """Apply dedupe / max_questions / USD pre-dispatch bound before dispatch.
+        Already-forecasted questions are filtered first so they do not use budget."""
         out = []
         for q in questions:
-            ok, why = tracker.may_dispatch(f"{run_mode}:{getattr(q, 'id_of_post', q)}")
+            if humanaios_bot.skip_previously_forecasted_questions and getattr(
+                q, "already_forecasted", False
+            ):
+                continue
+            key = f"{run_mode}:{getattr(q, 'id_of_post', q)}"
+            ok, why = tracker.may_dispatch(key)
             if not ok:
+                if why == DUPLICATE_REASON:
+                    logger.info(f"Skipping duplicate question {key}")
+                    continue
                 logger.warning(f"Not dispatching further questions: {why}")
                 break
-            tracker.record_dispatch(f"{run_mode}:{getattr(q, 'id_of_post', q)}")
+            tracker.record_dispatch(key)
             out.append(q)
         return out
 
     if run_mode == "tournament":
-        forecast_reports = []
+        # One event loop for both tournaments: the bot's class-level semaphore binds to
+        # the first loop that contends it, so a second asyncio.run could fail.
+        qs = []
         for tid in (client.CURRENT_AI_COMPETITION_ID, client.CURRENT_MINIBENCH_ID):
-            qs = _capped(client.get_all_open_questions_from_tournament(tid))
-            forecast_reports += asyncio.run(
-                humanaios_bot.forecast_questions(qs, return_exceptions=True)
-            )
+            qs += _capped(client.get_all_open_questions_from_tournament(tid))
+        forecast_reports = asyncio.run(
+            humanaios_bot.forecast_questions(qs, return_exceptions=True)
+        )
 
     elif run_mode == "metaculus_cup":
         humanaios_bot.skip_previously_forecasted_questions = False
