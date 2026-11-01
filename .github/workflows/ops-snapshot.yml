@@ -2,12 +2,10 @@ name: ops-snapshot
 
 # Deterministic operations snapshot: open PRs, check runs, rule-based blockers
 # -> one JSON artifact. Read-only. No model, no writes to the repository.
-# Runs at 11:40 UTC (06:40 US Central during CDT), before the 07:00 digest.
-# AUTHORITY_EFFECT: NONE — a snapshot is observation, never approval.
+# Manual dispatch only until a verified live snapshot and policy-classified schedule.
+# AUTHORITY_EFFECT: NONE — a snapshot is observation, not approval.
 
 on:
-  schedule:
-    - cron: "40 11 * * *"
   workflow_dispatch:
 
 permissions:
@@ -38,14 +36,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          status=0
           python3 tools/ops_snapshot_v0_1.py \
-            --repo "${{ github.repository }}" \
+            --repo "$GITHUB_REPOSITORY" \
             --out ops_snapshot.json \
-            --summary ops_snapshot.md
-          cat ops_snapshot.md >> "$GITHUB_STEP_SUMMARY"
+            --summary ops_snapshot.md || status=$?
+          if [ -f ops_snapshot.md ]; then cat ops_snapshot.md >> "$GITHUB_STEP_SUMMARY"; fi
+          exit "$status"
 
       - uses: actions/upload-artifact@v7
+        if: always()
         with:
+          if-no-files-found: error
           name: ops-snapshot-${{ github.run_id }}
           path: |
             ops_snapshot.json
