@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.
+Builder v1.7 compliant · validation_tool
+HumanAIOS · S-103126-MUTUAL-LEARNING-E0
 
 No network, inference, state mutations, user profiling, learning scores, or authority.
 Records encode separately attributed observations and unresolved disagreement.
