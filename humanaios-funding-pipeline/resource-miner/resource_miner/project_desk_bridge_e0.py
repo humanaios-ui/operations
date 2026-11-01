@@ -40,13 +40,18 @@ def _unique(items: list[dict], label: str) -> None:
         seen.add(key)
 
 
-def _source_link(origin: Any) -> str | None:
+def _source_link(origin: Any) -> tuple[str, int] | None:
     if not isinstance(origin, str) or not origin.startswith(ORIGIN_PREFIX):
         return None
     parts = origin[len(ORIGIN_PREFIX):].split(" · ", 1)
     if len(parts) != 2 or not parts[1].startswith("revision "):
         raise BridgeInputError("ambiguous Project Desk origin")
-    return _id(parts[0], "source opportunity ID")
+    source_revision = parts[1][len("revision "):]
+    if (not source_revision.isascii() or not source_revision.isdecimal()
+            or (len(source_revision) > 1 and source_revision[0] == "0")
+            or len(source_revision) > 12):
+        raise BridgeInputError("malformed Project Desk origin revision")
+    return _id(parts[0], "source opportunity ID"), int(source_revision)
 
 
 def propose_sync(desk: dict, workspace: dict) -> dict:
@@ -80,8 +85,11 @@ def propose_sync(desk: dict, workspace: dict) -> dict:
 
     project_by_source: dict[str, dict] = {}
     for project in projects:
-        key = _source_link(project.get("origin"))
-        if key is not None:
+        source_link = _source_link(project.get("origin"))
+        if source_link is not None:
+            key, mapped_revision = source_link
+            if mapped_revision > revision:
+                raise BridgeInputError(f"stale workspace revision for mapped project {key}")
             if key in project_by_source:
                 raise BridgeInputError(f"duplicate Desk mapping for {key}")
             project_by_source[key] = project
