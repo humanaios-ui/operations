@@ -2762,7 +2762,7 @@ tools:
   builder_markers: true
   purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
   session: '#595'
-- tool_id: HAIOS-TOOL-231
+- tool_id: HAIOS-TOOL-241
   name: ops_snapshot
   path: tools/ops_snapshot_v0_1.py
   version: 0.1.0
