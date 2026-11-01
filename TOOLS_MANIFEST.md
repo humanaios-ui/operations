@@ -256,7 +256,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-229 | system_graph_render | `tools/system_graph_render_v1_0.py` | 1.0.0 | 1 | draft | — | Renders system_graph.json to Markdown with a provenance header (source sha256, source generated_at, rendering commit) so prose copies of the system graph, including the Google Drive mirror, point back at the file they came from; --check detects drift of a rendered copy. |
 | HAIOS-TOOL-241 | ops_snapshot | `tools/ops_snapshot_v0_1.py` | 0.1.0 | 1 | draft | — | ops_snapshot_v0_1 — deterministic operations snapshot (PRs, CI, blockers) as one JSON file |
 
-
 ## Research — `research_tool` (10)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
