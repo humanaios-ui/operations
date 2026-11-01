@@ -66,11 +66,7 @@ class MetaculusAzureConfigTests(unittest.TestCase):
         )
 
     def test_default_mode_discloses_external_writes(self):
-        # Default is the offline mode (issue #1101, E0): no network, provider or
-        # database calls. Live modes stay selectable but must be disclosed and also
-        # need --publish plus operator approval in main.py.
-        self.assertIn("param mode string = 'offline_fixture'", self.text)
-        self.assertIn("'offline_fixture', 'tournament', 'metaculus_cup', 'test_questions'", self.text)
+        self.assertIn("param mode string = 'test_questions'", self.text)
         self.assertIn("test_questions also makes provider calls and publishes forecasts", self.text)
         self.assertIn("external writes and provider charges", self.text)
 

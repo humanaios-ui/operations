@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 224
+  tools: 227
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 175
+  builder_markers_present: 177
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 1
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2836,9 +2837,9 @@ tools:
   builder_markers: true
   purpose: 'IEW-002: distinguish self-reported receipts from trusted execution observations.'
 - tool_id: HAIOS-TOOL-237
-  name: safety
-  path: tools/Metaculus/safety.py
-  version: 1.0.0
+  name: metaculus_mode_gate
+  path: tools/Metaculus/mode_gate.py
+  version: 0.1.0
   category: security_gate_tool
   zone: 1
   status: draft
@@ -2846,7 +2847,43 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'Metaculus bot E0 safety layer (issue #1101).  Pure stdlib: importable with no'
+  purpose: Fail-closed approval guard for Metaculus actions with external side effects.
+- tool_id: HAIOS-TOOL-238
+  name: metaculus_offline_fixture
+  path: tools/Metaculus/offline_fixture.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Pure-stdlib, offline Metaculus forecast validation harness.
+- tool_id: HAIOS-TOOL-239
+  name: safety
+  path: tools/Metaculus/safety.py
+  version: 1.1.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no'
+- tool_id: HAIOS-TOOL-240
+  name: mutual_learning_e0
+  path: tools/mutual_learning_e0.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

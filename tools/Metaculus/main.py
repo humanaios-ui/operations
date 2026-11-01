@@ -13,7 +13,7 @@ Changes from v2.2:
   - return value handled as None, not dict           [.get('id') crashed]
   - sync method wrapped in asyncio.to_thread(...)    [was incorrectly awaited]
   - comment target uses question.id_of_post          [regex missed /c/ URLs]
-  - included_forecast=False explicit (v2.4: comments PRIVATE per FutureEval, #1101)
+  - included_forecast=False explicit (comments PRIVATE per FutureEval, #1101)
 - p3_comment_posted is now honest: TRUE when post_question_comment returns
   without raising; the Metaculus API returns no comment id, so we store a
   synthesized marker (post_id + timestamp) in p3_comment_id.
@@ -71,6 +71,18 @@ from datetime import datetime, timezone
 from typing import Literal, Optional
 
 import dotenv
+# mode_gate.py and safety.py sit next to this file. Add that directory so the imports also
+# work when this module is loaded by path from elsewhere (e.g. the smoke workflow).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mode_gate import ExternalWritesNotApproved, require_explicit_live_approval
+from safety import (
+    DUPLICATE_REASON,
+    BudgetTracker,
+    RefusedError,
+    budget_from_env,
+    comment_is_private,
+    kill_switch_engaged,
+)
 from forecasting_tools import (
     AskNewsSearcher,
     BinaryPrediction,
@@ -96,22 +108,6 @@ from forecasting_tools import (
     structure_output,
 )
 from supabase import create_client, Client
-
-# safety.py sits next to this file. Add that directory so the import also works when this
-# module is loaded by path from elsewhere (e.g. the forecasting-tools smoke workflow).
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from safety import (
-    DEFAULT_MODE,
-    DUPLICATE_REASON,
-    ALL_MODES,
-    OFFLINE_MODES,
-    BudgetTracker,
-    RefusedError,
-    budget_from_env,
-    build_receipt,
-    comment_is_private,
-    require_live_allowed,
-)
 
 dotenv.load_dotenv()
 logger = logging.getLogger(__name__)
@@ -521,7 +517,7 @@ async def _post_metaculus_comment(
             metaculus_client.post_question_comment,
             post_id=post_id,
             comment_text=comment_text,
-            is_private=comment_is_private(),  # FutureEval: comments are PRIVATE (E0, #1101)
+            is_private=comment_is_private(),  # FutureEval: comments are PRIVATE (#1101)
             included_forecast=False, # metadata comment, not a forecast rationale
         )
 
@@ -1192,39 +1188,40 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="HumanAIOS forecasting bot v2.3")
     parser.add_argument(
-        "--mode", type=str, choices=list(ALL_MODES), default=DEFAULT_MODE,
-        help="Default offline_fixture: NO Metaculus/LLM/Supabase I/O, no credentials. "
-             "Live modes also need --publish AND operator-set approval env.",
-    )
-    parser.add_argument(
-        "--publish", action="store_true",
-        help="Explicitly allow a live mode (still needs HUMANAIOS_METACULUS_PUBLISH_APPROVED=1).",
+        "--mode", type=str,
+        choices=["tournament", "metaculus_cup", "test_questions"],
+        default="test_questions",
     )
     parser.add_argument(
         "--run-id", type=str, default=None,
         help="Override BOT_RUN_ID (default: BOT_RUN_ID env var or S-bot-MMDDYY-auto)",
     )
+    parser.add_argument(
+        "--publish", action="store_true",
+        help="Allow external Metaculus writes only with operator-approved environment gates.",
+    )
     args = parser.parse_args()
+
+    # Every existing mode (including test_questions) can post to Metaculus.
+    # Fail before constructing clients or calling a model unless BOTH explicit
+    # CLI and deployment gates are set. Coordinator admission alone is not consent.
+    try:
+        require_explicit_live_approval(mode=args.mode, publish=args.publish)
+    except ExternalWritesNotApproved as exc:
+        parser.error(str(exc))
+
+    # Run budgets and kill switch (safety.py). Evaluated before any client or model call.
+    try:
+        if kill_switch_engaged(os.environ):
+            raise RefusedError("kill-switch engaged; live run refused")
+        budget = budget_from_env(os.environ)
+    except RefusedError as refusal:
+        parser.error(str(refusal))
 
     if args.run_id:
         BOT_RUN_ID = args.run_id
 
-    # E0 (#1101): fail closed BEFORE any client/bot is constructed.
-    try:
-        require_live_allowed(args.mode, args.publish, os.environ)
-        budget = budget_from_env(os.environ)
-    except RefusedError as refusal:
-        logger.error(f"REFUSED: {refusal}")
-        raise SystemExit(2)
-
-    if args.mode in OFFLINE_MODES:
-        # Genuine offline path: nothing below this branch runs.
-        import json
-        print(json.dumps(build_receipt(args.mode, "offline_ok", budget), sort_keys=True))
-        raise SystemExit(0)
-
     run_mode: Literal["tournament", "metaculus_cup", "test_questions"] = args.mode
-    tracker = BudgetTracker(budget)
 
     humanaios_bot = HumanAIOSBotV2(
         research_reports_per_question=1,
@@ -1249,6 +1246,7 @@ if __name__ == "__main__":
     )
 
     client = MetaculusClient()
+    tracker = BudgetTracker(budget)
 
     def _capped(questions):
         """Apply dedupe / max_questions / USD pre-dispatch bound before dispatch.

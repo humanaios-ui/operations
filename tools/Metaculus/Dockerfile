@@ -16,7 +16,8 @@ COPY requirements.txt constraints.txt ./
 # constraints.txt denies known-compromised releases (litellm==1.107.0, incident 2026-10-21).
 RUN pip install --no-cache-dir -c constraints.txt -r requirements.txt
 
-COPY main.py safety.py ./
+COPY main.py mode_gate.py ./
+COPY safety.py ./
 
 # Verified from this file's own code: SUPABASE_URL, SUPABASE_KEY (os.getenv calls in
 # main.py). NOT verified here — main.py imports GeneralLlm/MetaculusClient from the
@@ -32,5 +33,4 @@ RUN useradd --no-create-home --shell /usr/sbin/nologin appuser
 USER appuser
 
 ENTRYPOINT ["python3", "main.py"]
-# E0 (#1101): offline by default. Live runs need --publish + operator-set approval env.
-CMD ["--mode", "offline_fixture"]
+CMD ["--mode", "test_questions"]

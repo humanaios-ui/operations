@@ -1,23 +1,23 @@
 """
 Builder v1.7 compliant
-Metaculus bot E0 safety layer (issue #1101).  Pure stdlib: importable with no
+Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no
 network, no credentials and no forecasting-tools installed.
 
-Checks (each is unit-tested in test_safety.py):
-  * Default run mode is OFFLINE (no Metaculus / LLM / Supabase I/O).
-  * Any live mode fails closed unless BOTH an explicit --publish flag AND the
-    operator-set env HUMANAIOS_METACULUS_PUBLISH_APPROVED=1 are present, and the
-    kill-switch is not engaged.
-  * Run budgets are enforced BEFORE dispatch from known upper bounds.
-  * Comments are private by default.
+Scope: this module does NOT decide whether a live run is allowed. That is `mode_gate.py`
+(`--publish` plus deployment approval). This module adds what that gate lacks:
 
-This module authorizes nothing by itself: the env approval is an operator (Z3)
-deployment setting, not a Z2 ratification, and is not evidence of permission.
+  * kill switch (env var or file) checked before any client is built
+  * run budgets enforced BEFORE dispatch from known upper bounds (questions, USD, retries)
+  * duplicate-submission guard
+  * private-by-default comments (FutureEval requires private comments)
+  * denial of known-compromised package versions
+
+The checks here authorize nothing by themselves.
 """
 from __future__ import annotations
 
 TOOL_NAME = "safety"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TOOL_CATEGORY = "security_gate_tool"
 
 import os
@@ -26,18 +26,8 @@ from typing import Mapping, Optional
 
 DUPLICATE_REASON = "duplicate submission"
 
-OFFLINE_MODES = frozenset({"offline_fixture"})
-LIVE_MODES = frozenset({"tournament", "metaculus_cup", "test_questions"})
-ALL_MODES = tuple(sorted(OFFLINE_MODES | LIVE_MODES))
-DEFAULT_MODE = "offline_fixture"
-
-APPROVAL_ENV = "HUMANAIOS_METACULUS_PUBLISH_APPROVED"
 KILL_SWITCH_ENV = "HUMANAIOS_METACULUS_KILL_SWITCH"
 KILL_SWITCH_FILE_ENV = "HUMANAIOS_METACULUS_KILL_SWITCH_FILE"
-
-# Permission states recorded in receipts (issue E0 item 2). Default is unverified.
-PERMISSION_UNVERIFIED = "PERMISSION_UNVERIFIED"
-NO_CP = "NO_CP"
 
 # Releases known compromised (LiteLLM incident, 2026-10-21).
 DENIED_PACKAGE_VERSIONS = {"litellm": {"1.107.0"}}
@@ -52,23 +42,6 @@ def kill_switch_engaged(env: Mapping[str, str]) -> bool:
         return True
     path = env.get(KILL_SWITCH_FILE_ENV)
     return bool(path) and os.path.exists(path)
-
-
-def require_live_allowed(mode: str, publish: bool, env: Mapping[str, str]) -> None:
-    """Return None for allowed runs; raise RefusedError otherwise."""
-    if mode not in ALL_MODES:
-        raise RefusedError(f"unknown mode {mode!r}")
-    if mode in OFFLINE_MODES:
-        return
-    if kill_switch_engaged(env):
-        raise RefusedError("kill-switch engaged; live run refused")
-    if not publish:
-        raise RefusedError(f"mode {mode!r} is live; pass explicit --publish")
-    if env.get(APPROVAL_ENV) != "1":
-        raise RefusedError(
-            f"mode {mode!r} needs operator-approved deployment config "
-            f"({APPROVAL_ENV}=1); refusing"
-        )
 
 
 @dataclass(frozen=True)
@@ -99,6 +72,7 @@ class Budget:
 
 def budget_from_env(env: Mapping[str, str]) -> Budget:
     d = Budget()
+
     def num(key, default, cast):
         raw = env.get(key)
         if raw is None or raw == "":
@@ -107,6 +81,7 @@ def budget_from_env(env: Mapping[str, str]) -> Budget:
             return cast(raw)
         except ValueError as e:
             raise RefusedError(f"bad value for {key}: {raw!r}") from e
+
     b = Budget(
         max_questions=num("BOT_MAX_QUESTIONS", d.max_questions, int),
         max_samples_per_question=num("BOT_MAX_SAMPLES", d.max_samples_per_question, int),
@@ -129,7 +104,7 @@ class BudgetTracker:
     seen: set = field(default_factory=set)
 
     def may_dispatch(self, key: str) -> tuple[bool, str]:
-        """Pre-dispatch check; does not mutate state. key = question+bot+competition."""
+        """Pre-dispatch check; does not mutate state. key = mode + question."""
         b = self.budget
         if key in self.seen:
             return False, DUPLICATE_REASON
@@ -165,13 +140,8 @@ def backoff_seconds(attempt: int, retry_after: Optional[float] = None,
     return delay
 
 
-def dedupe_key(question_id: object, bot: str, competition: str) -> str:
-    return f"{competition}:{bot}:{question_id}"
-
-
 def comment_is_private(requested_private: Optional[bool] = None) -> bool:
-    """FutureEval requires private comments. Only an explicit False is ever honored by
-    callers that opt in; the default (and None) is private."""
+    """FutureEval requires private comments. The default (and None) is private."""
     return True if requested_private is None else bool(requested_private)
 
 
@@ -187,43 +157,15 @@ def denied_pins(requirement_lines: list[str]) -> list[str]:
     return bad
 
 
-RECEIPT_EXTRA_FIELDS = frozenset({
-    "question_id", "post_id", "skip_reason", "n_questions", "n_forecasts",
-    "model_version", "http_status",
-})
-
-
-def build_receipt(mode: str, outcome: str, budget: Budget, **extra) -> dict:
-    """Versioned run receipt. No secrets: only explicitly named extra fields, scalar
-    values only, and extras cannot replace the base evidence fields."""
-    receipt = {
-        "receipt_version": 1,
-        "mode": mode,
-        "outcome": outcome,
-        "permission_state": PERMISSION_UNVERIFIED,
-        "access_tier": NO_CP,
-        "network_io": mode in LIVE_MODES and outcome == "dispatched",
-        "budget": budget.__dict__.copy(),
-    }
-    for k, v in extra.items():
-        if k in RECEIPT_EXTRA_FIELDS and k not in receipt and isinstance(
-            v, (str, int, float, bool, type(None))
-        ):
-            receipt[k] = v
-    return receipt
-
-
 def run_smoke_test() -> bool:
-    """--smoke-test: offline checks of the fail-closed gate. No I/O."""
-    require_live_allowed(DEFAULT_MODE, False, {})
-    for m in LIVE_MODES:
-        try:
-            require_live_allowed(m, True, {})
-        except RefusedError:
-            continue
-        return False
-    return comment_is_private() and not denied_pins(["litellm==1.106.0"]) \
-        and bool(denied_pins(["litellm==1.107.0"]))
+    """--smoke-test: offline checks of caps and privacy. No I/O."""
+    t = BudgetTracker(Budget(max_questions=1))
+    ok, _ = t.may_dispatch("a")
+    t.record_dispatch("a")
+    again, why = t.may_dispatch("a")
+    return (ok and not again and why == DUPLICATE_REASON and comment_is_private()
+            and not denied_pins(["litellm==1.106.0"])
+            and bool(denied_pins(["litellm==1.107.0"])))
 
 
 if __name__ == "__main__":

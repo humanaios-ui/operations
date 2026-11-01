@@ -59,9 +59,9 @@ param registryUsername string = ''
 @description('Registry password or token. Leave empty for a public image.')
 param registryPassword string = ''
 
-@description('main.py --mode. Default offline_fixture makes no network, provider or database calls. Live modes also need --publish and HUMANAIOS_METACULUS_PUBLISH_APPROVED=1, which this job does not set, so they exit 2 until an operator configures them. tournament targets seasonal + minibench; metaculus_cup targets the cup. test_questions also makes provider calls and publishes forecasts for four example questions, with skipping off. Running any mode can cause external writes and provider charges; test_questions is not a read-only smoke test.')
-@allowed(['offline_fixture', 'tournament', 'metaculus_cup', 'test_questions'])
-param mode string = 'offline_fixture'
+@description('main.py --mode. tournament targets seasonal + minibench; metaculus_cup targets the cup. test_questions also makes provider calls and publishes forecasts for four example questions, with skipping off. Running any mode can cause external writes and provider charges; test_questions is not a read-only smoke test.')
+@allowed(['tournament', 'metaculus_cup', 'test_questions'])
+param mode string = 'test_questions'
 
 @description('Overrides BOT_RUN_ID (main.py --run-id). Leave empty to use main.py\'s own default (BOT_RUN_ID env var, or an auto-generated S-bot-MMDDYY id).')
 param botRunId string = ''
