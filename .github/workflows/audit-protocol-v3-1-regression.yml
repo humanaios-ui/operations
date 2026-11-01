@@ -1,0 +1,21 @@
+name: Audit Protocol v3.1 Synthetic Gates
+on:
+  pull_request:
+    paths:
+      - 'docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md'
+      - 'tools/audit_protocol_gate_v3_1.py'
+      - 'tests/test_audit_protocol_gate_v3_1.py'
+      - '.github/workflows/audit-protocol-v3-1-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Run falsification suite
+        run: python3 -m unittest discover -s tests -p 'test_audit_protocol_gate_v3_1.py' -v
