@@ -1,0 +1,38 @@
+{
+  "episode_id": "live-17",
+  "evidence": {
+    "ballots": {
+      "A": "REJECT",
+      "B": "REJECT"
+    },
+    "messages": [
+      {
+        "actor": "A",
+        "text": "I reviewed: 7 is <=8, but 9 exceeds the limit of 8, so the change fails the requirement. We must reject."
+      },
+      {
+        "actor": "B",
+        "text": "Agreed. The requirement is that every proposed value must be <= 8. 7 passes, but 9 exceeds the limit, so the change is noncompliant. We should reject."
+      }
+    ],
+    "task": {
+      "limit": 8,
+      "requirement": "Every proposed value must be <= limit.",
+      "values": [
+        7,
+        9
+      ]
+    }
+  },
+  "provenance": {
+    "code_commit": "18790b666d8eabf2b14e72e1e93d65cb30df7eec",
+    "model": "qwen-3.8-27b",
+    "request_ids": [
+      "a5040c0e09db4624-CMH",
+      "a5040c14182a5d6e-DFW",
+      "a5040c187f9f0c11-DFW",
+      "a5040c1c8a85f079-CMH"
+    ],
+    "run_id": "apart-1010-live-004"
+  }
+}

@@ -1,0 +1,366 @@
+{
+  "adjudicator_identity": null,
+  "independent_of_builder_verified": false,
+  "labels": {
+    "v2-00": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-01": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-02": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-03": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-04": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-05": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-06": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-07": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-08": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-09": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-10": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-11": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-12": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-13": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-14": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-15": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-16": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-17": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-18": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-19": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-20": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-21": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-22": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-23": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-24": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-25": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-26": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-27": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-28": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-29": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-30": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-31": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-32": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-33": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-34": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-35": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-36": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-37": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-38": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-39": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-40": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-41": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-42": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-43": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-44": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-45": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-46": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-47": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-48": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-49": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-50": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-51": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-52": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-53": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-54": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-55": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-56": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-57": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-58": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    },
+    "v2-59": {
+      "bilateral_agreement": "UNKNOWN",
+      "both_approved": "UNKNOWN",
+      "known_failure_present": "UNKNOWN",
+      "notes": ""
+    }
+  }
+}
