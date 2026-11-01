@@ -17,6 +17,24 @@ class PhonePilotUITest(unittest.TestCase):
                 self.assertIn("safe-area-inset-bottom", html)
                 self.assertIn("min-height:48px", html)
 
+    def test_on_track_meta_csp_allows_manifest(self):
+        html = (ROOT / "on-track.html").read_text(encoding="utf-8")
+        from html.parser import HTMLParser
+
+        class MetaCSP(HTMLParser):
+            policies = []
+            def handle_starttag(self, tag, attrs):
+                values = dict(attrs)
+                if tag == "meta" and values.get("http-equiv") == "Content-Security-Policy":
+                    self.policies.append(values.get("content", ""))
+
+        parser = MetaCSP()
+        parser.feed(html)
+        self.assertEqual(len(parser.policies), 1)
+        directives = [x.strip() for x in parser.policies[0].split(";")]
+        self.assertIn("manifest-src 'self'", directives)
+        self.assertIn("default-src 'none'", directives)
+
     def test_public_phone_ui_does_not_offer_private_data_route(self):
         for name in ("intent-os.html", "on-track.html"):
             with self.subTest(name=name):
