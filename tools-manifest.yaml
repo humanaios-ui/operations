@@ -35,7 +35,7 @@ counts:
   excluded: 4
   builder_markers_present: 178
   missing_from_tree: 0
-  unclassified: 1
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -2876,7 +2876,7 @@ tools:
   name: mutual_learning_e0
   path: tools/mutual_learning_e0.py
   version: unversioned
-  category: unclassified
+  category: validation_tool
   zone: 1
   status: draft
   interface: cli
