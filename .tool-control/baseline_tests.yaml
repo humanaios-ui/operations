@@ -192,6 +192,10 @@ baseline_tests:
     requires: []
     description: Graph capture lint tests
 
+  - path: tools/tests/test_operations_observatory_e0.py
+    requires: []
+    description: Read-only three-repository observatory and offline projection regressions
+
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
