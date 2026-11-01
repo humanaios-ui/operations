@@ -1,0 +1,81 @@
+name: INTENT-OS Opportunity Journey E0
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/opportunity_journey.py'
+      - 'humanaios-funding-pipeline/resource-miner/fixtures/opportunity_journey_apart_synthetic.json'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_journey_e0.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_my_opportunities_http.py'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/source_review.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review_ui.py'
+      - 'humanaios-funding-pipeline/resource-miner/my-opportunities.html'
+      - 'humanaios-funding-pipeline/resource-miner/on-track.html'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_on_track_witness_ui.py'
+      - 'humanaios-funding-pipeline/resource-miner/intent-os.html'
+      - 'humanaios-funding-pipeline/resource-miner/app.py'
+      - 'humanaios-funding-pipeline/resource-miner/README.md'
+      - '.github/workflows/intent-os-opportunity-journey-e0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-projection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: humanaios-funding-pipeline/resource-miner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test proof-scoped journey projection
+        run: python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+      - name: Verify real local HTTP endpoints and legacy bridge
+        run: |
+          python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
+          python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+      - name: "Qualify candidate-source feedback - 404 is not closure"
+        run: |
+          python3 -m unittest discover -s tests -p 'test_source_review.py' -v
+          python3 -m unittest discover -s tests -p 'test_source_review_ui.py' -v
+      - name: Verify Witness feedback and reversible local view
+        run: python3 -m unittest discover -s tests -p 'test_on_track_witness_ui.py' -v
+      - name: Check inline browser scripts (no external scripts)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for source, target in [("my-opportunities.html", "/tmp/opportunities-inline.js"),
+                                 ("intent-os.html", "/tmp/intent-os-inline.js"),
+                                 ("on-track.html", "/tmp/on-track-inline.js")]:
+              text = Path(source).read_text(encoding="utf-8")
+              assert text.count("<script>") == 1 and text.count("</script>") == 1
+              Path(target).write_text(text.split("<script>", 1)[1].split("</script>", 1)[0],
+                                      encoding="utf-8")
+          PY
+          node --check /tmp/opportunities-inline.js
+          node --check /tmp/intent-os-inline.js
+          node --check /tmp/on-track-inline.js
+      - name: Verify synthetic case and absence of delegated authority
+        run: |
+          python3 -m resource_miner.opportunity_journey \
+            --input fixtures/opportunity_journey_apart_synthetic.json > "$RUNNER_TEMP/journey.json"
+          python3 - "$RUNNER_TEMP/journey.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as f:
+              x = json.load(f)
+          assert x["event_count"] == 6
+          assert x["survey_standing"] == "SUBMITTED_HUMAN_REPORTED"
+          assert x["signup_standing"] == "WELCOME_EMAIL_OBSERVED"
+          assert x["participant_standing"] == "NOT_CONFIRMED_BY_PROVIDER"
+          assert x["research_submission"] == "UNVERIFIED"
+          assert x["authority_effect"] == "NONE"
+          assert not x["can_read_discord"]
+          assert not x["can_write_calendar"]
+          PY

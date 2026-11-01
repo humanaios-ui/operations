@@ -2,11 +2,50 @@ version: 1
 generated: '2026-10-14'
 decision_window_days: 2
 counts:
-  candidates: 110
-  records: 62
+  candidates: 116
+  records: 65
 ratifiers:
 - Night
 candidates:
+- q_id: Q-ZONE-Z011-RESEARCH-CAP-01
+  title: Proposal — change Z-011 (research) from READ-ONLY to LIMITED cap (publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record)
+  path: z1-inbox/2026-10-24/Q-ZONE-Z011-RESEARCH-CAP-01.md
+  submitted: '2026-10-24'
+  status: ratified
+  tier: 1
+  note: Regularizes or reverses the in-chat "Night unlocks research" instruction behind draft research PR #6. Exact ZONE_REGISTRY.md edit is in the candidate for Z2 to apply on ACCEPT; no registry row changed here. Falsifier stated under "## Falsifier". No publish authority granted.
+  ratified_by: Night
+  ratified_at: "2026-10-31"
+  z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
+  z2_hash: "a33a0e63d9f7a3709ba96e2cea0e69a143bf9103732840a26cfd8b6d4d6a2b57"
+- q_id: Q-PRINCIPLES-CROSSWALK-01
+  title: Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4
+  path: z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md
+  submitted: '2026-10-24'
+  status: awaiting_z2
+  tier: 0
+  note: Z1 proposal only. No change to seed text or REGISTERED.md. Four locked tests come from an external review and are not in repo; Z2 must confirm. Not ratified.
+- q_id: Q-EXTERNAL-ADVISORY-INTAKE-01
+  title: Finding — no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded)
+  path: z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 0
+  note: Draft from read-only PHP exposure audit. Proposes an EXTERNAL-ADVISORY callout (Z2, urgent 24h) and per-advisory applicability records. Falsifier stated. Not ratified.
+- q_id: Q-HOST-INVENTORY-01
+  title: Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked
+  path: z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 0
+  note: Draft from read-only PHP exposure audit. Proposes HOST_INVENTORY.yaml and a CI guard against tracked .php files. Live hosts unverified (egress blocked). Falsifier stated. Not ratified.
+- q_id: Q-WITNESS-DATA-PLANE-01
+  title: Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only
+  path: z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md
+  submitted: '2026-10-22'
+  status: awaiting_z2
+  tier: 2
+  note: Proposal for the Witness data plane. Self-scan only, user-only visibility, key derived in browser, server never logs or persists scan identifiers. Falsifier stated. Not ratified. Tier 2 because it proposes a scan-route gate change.
 - q_id: Q-REPO-GRAPH-LOOKUP-01
   title: Read-only, citation-bearing lookup over the PR 630 repository graph for the section A session-open step
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01.md
@@ -15,9 +54,9 @@ candidates:
   tier: 0
   note: 'PR #843. Adds tools/graph_lookup_v0_1.py (HAIOS-TOOL-224): stdlib, read-only, refuses graphs whose integrity digest fails, reports FRESH/STALE/DIRTY against HEAD. Ratified by Night 2026-10-15 (tool only; §A wiring and graph commit remain open).'
   ratified_by: Night
-  ratified_at: '2026-10-15'
-  z2_ruling: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
-  z2_hash: d80d38e5fa2041f3c6a3e79ad7706dee3bcf6f3879987e63ee1c4b4ba832ff6c
+  ratified_at: '2026-10-22'
+  z2_ruling: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+  z2_hash: 3d9fd60e45ad381233420f6086dcfee37da3b44d657c6ba6986ea9286d63e800
 - q_id: Q-MULTI-AGENT-QUEUE-PLAN-01
   title: Multi-agent plan to work the intentionally backed-up PR queue as a governed experiment
   path: z1-inbox/2026-10-14/Q-MULTI-AGENT-QUEUE-PLAN-01.md
@@ -765,11 +804,15 @@ candidates:
   title: Phase 2 CI/CD consolidation roadmap — Options A-D prioritization
   path: z1-inbox/2026-09-25/PHASE-2-CI-CONSOLIDATION-ROADMAP.md
   submitted: '2026-09-25'
-  status: awaiting_z2
+  status: ratified
   falsifier_waiver: 'As filed, this candidate presents four strategic options (A-D) for Z2 to prioritize rather than a single falsifiable prediction, and contains no explicit ''## Falsifier'' heading or falsifier: field. Recorded as the gap, not as an accepted exemption: Z2 accepts or refuses the waiver, or requires a falsifier scoped to whichever option(s) it selects.'
   note: 'Self-declares this q_id in its own closing line ("Ready for: Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01 governance candidate"). Proposes four Phase 2 options after Phase 1 (path-filter deployment-frequency reduction, PRs #541/#542): A (monitoring), B (path-filter validator + telemetry, molt_tier 1+2), C (expand path filters to more workflows), D (Vercel account-level rate-limit review). Options A and B were actioned same-day per z1-inbox/2026-09-25/PHASE-2-EXECUTIVE-START.md ("user approval received") rather than through a REGISTERED.md Z2 hash; B has since shipped (tools/workflow_path_validator.py, tools/workflow_telemetry_collector.py both exist in tree; commits 9085233/45bfdaf), though the doc-referenced .github/workflows/workflow-validation.yml CI gate and .github/TELEMETRY.md spec were never created. Options C and D were never picked up — no matching commits found. Live governance question: was A/B properly ratified (informal in-session approval, not a REGISTERED.md entry — Q-Z2-CI-CONSOLIDATION-PHASE-1,
     which z1-inbox/2026-09-25/SESSION-CLOSURE-HANDOFF.md claims was added to REGISTERED.md, does not in fact exist there), and should C/D be picked up, deferred, or formally closed as not pursued.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-10-31"
+  z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
+  z2_hash: "ce40510fa97b6df060aa5cdc4fc12809dd80dfe282a2a17f93d2169513788c83"
 - q_id: Q-LEDGER-GROUNDING-STUB-01
   title: p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification
   path: z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md
@@ -841,11 +884,33 @@ candidates:
   ratified_at: '2026-10-14'
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
+- q_id: Q-HIAE-001-ASSIGNMENT-RECEIPTS-01
+  title: HIAE-001 neutral reviewer assignment, versioned receipts, synthetic transaction
+  path: z1-inbox/2026-10-10/HIAE-001-PROPOSAL.md
+  submitted: '2026-10-10'
+  status: ratified
+  tier: 0
+  note: 'PR #785 (draft). Adds tools/hiae_assurance.py (stdlib only), tests/test_hiae_assurance.py
+    (39 cases), and docs/HIAE_EXTERNAL_CLAIMS_VERIFICATION.md. No governance file or constant
+    changed. Signatures are HMAC stand-ins; the overclaim filter is lexical. Z2 decides the
+    assignment rule, the signature scheme, and the overclaim vocabulary.'
+  ratified_by: Night
+  ratified_at: "2026-10-31"
+  z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
+  z2_hash: "462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0"
 records:
+- path: z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md
+  title: "Z2 rulings — 2026-10-31 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
     \ signature appends a section carrying its own sha256."
+- title: Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record)
+  path: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+  submitted: '2026-10-22'
+  note: 'Re-signs the current candidate bytes after the 2026-10-15 signature stopped verifying. The earlier record is kept as superseded. Scope unchanged.'
 - title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
   path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
   submitted: '2026-10-15'
@@ -856,6 +921,9 @@ records:
 - path: z1-inbox/2026-10-14/HANDOFF.md
   title: Session Handoff — Multi-agent queue plan (Q-MULTI-AGENT-QUEUE-PLAN-01)
   note: §B handoff for the session that filed Q-MULTI-AGENT-QUEUE-PLAN-01. Claim-vs-tree table, what was deliberately not done, findings scan, next blockers (Decision Sheet 1; D1 decides who merges; index collision with PR
+- path: z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md
+  title: "Z2 rulings — 2026-10-15 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   title: Z2 rulings — 2026-10-14 (signed via .z1-control/ratify.py)
   note: Written by ratify.py --apply. One file per decision date; each signature appends a section carrying its own sha256.
