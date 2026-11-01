@@ -7,19 +7,28 @@ Scope: this module does NOT decide whether a live run is allowed. That is `mode_
 (`--publish` plus deployment approval). This module adds what that gate lacks:
 
   * kill switch (env var or file) checked before any client is built
-  * run budgets enforced BEFORE dispatch from known upper bounds (questions, USD, retries)
+  * run budgets enforced BEFORE dispatch from known upper bounds (questions, USD)
   * duplicate-submission guard
+  * a per-call attempt setting (BOT_ALLOWED_TRIES) for the two explicit model clients
   * private-by-default comments (FutureEval requires private comments)
   * denial of known-compromised package versions
+
+NOT enforced here, so do not read them as protections:
+  * a cap on model or API requests per question (it needs hooks inside forecasting-tools)
+  * a run-wide retry budget: BOT_ALLOWED_TRIES is total attempts per call, including the
+    first, and applies only to the explicit forecast and researcher clients. The parser and
+    summarizer (set by model-name string) and any provider-level retries are not controlled.
+  * the backoff_seconds helper is tested but is not called by the bot.
 
 The checks here authorize nothing by themselves.
 """
 from __future__ import annotations
 
 TOOL_NAME = "safety"
-TOOL_VERSION = "1.1.0"
+TOOL_VERSION = "1.2.0"
 TOOL_CATEGORY = "security_gate_tool"
 
+import math
 import os
 from dataclasses import dataclass, field
 from typing import Mapping, Optional
@@ -48,10 +57,10 @@ def kill_switch_engaged(env: Mapping[str, str]) -> bool:
 class Budget:
     max_questions: int = 5
     max_samples_per_question: int = 5
-    max_requests_per_question: int = 20
     max_usd_per_run: float = 1.00
     max_usd_per_question: float = 0.25
-    max_total_retries: int = 10
+    # Total attempts per model call, including the first. Allowed values: 1 or 2.
+    allowed_tries: int = 2
     # Known upper bound for one question at max samples; used for pre-dispatch stop.
     est_usd_upper_per_question: float = 0.20
 
@@ -59,14 +68,17 @@ class Budget:
         # forecasting-tools requires at least one prediction per research report.
         if self.max_samples_per_question < 1:
             raise RefusedError("budget max_samples_per_question must be >= 1")
-        for name in ("max_questions", "max_samples_per_question",
-                     "max_requests_per_question", "max_total_retries"):
-            if not getattr(self, name) >= 0:
-                raise RefusedError(f"budget {name} must be >= 0")
+        if self.allowed_tries not in (1, 2):
+            raise RefusedError("budget allowed_tries must be 1 or 2")
+        if not self.max_questions >= 0:
+            raise RefusedError("budget max_questions must be >= 0")
         for name in ("max_usd_per_run", "max_usd_per_question",
                      "est_usd_upper_per_question"):
-            # `not x >= 0` also rejects NaN, which would silently disable USD checks.
-            if not getattr(self, name) >= 0:
+            value = getattr(self, name)
+            # NaN and +/-infinity would silently disable the USD checks.
+            if not math.isfinite(value):
+                raise RefusedError(f"budget {name} must be finite")
+            if not value >= 0:
                 raise RefusedError(f"budget {name} must be >= 0")
 
 
@@ -85,10 +97,9 @@ def budget_from_env(env: Mapping[str, str]) -> Budget:
     b = Budget(
         max_questions=num("BOT_MAX_QUESTIONS", d.max_questions, int),
         max_samples_per_question=num("BOT_MAX_SAMPLES", d.max_samples_per_question, int),
-        max_requests_per_question=num("BOT_MAX_REQUESTS_PER_Q", d.max_requests_per_question, int),
         max_usd_per_run=num("BOT_MAX_USD_RUN", d.max_usd_per_run, float),
         max_usd_per_question=num("BOT_MAX_USD_QUESTION", d.max_usd_per_question, float),
-        max_total_retries=num("BOT_MAX_RETRIES", d.max_total_retries, int),
+        allowed_tries=num("BOT_ALLOWED_TRIES", d.allowed_tries, int),
         est_usd_upper_per_question=num("BOT_EST_USD_UPPER_Q", d.est_usd_upper_per_question, float),
     )
     b.validate()
@@ -100,7 +111,6 @@ class BudgetTracker:
     budget: Budget
     spent_usd: float = 0.0
     questions_dispatched: int = 0
-    retries_used: int = 0
     seen: set = field(default_factory=set)
 
     def may_dispatch(self, key: str) -> tuple[bool, str]:
@@ -123,13 +133,6 @@ class BudgetTracker:
         self.questions_dispatched += 1
         charge = self.budget.est_usd_upper_per_question if billed_usd is None else billed_usd
         self.spent_usd += max(charge, 0.0)
-
-    def allow_retry(self) -> bool:
-        if self.retries_used >= self.budget.max_total_retries:
-            return False
-        self.retries_used += 1
-        return True
-
 
 def backoff_seconds(attempt: int, retry_after: Optional[float] = None,
                     base: float = 2.0, cap: float = 60.0) -> float:

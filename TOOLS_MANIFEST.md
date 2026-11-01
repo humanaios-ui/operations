@@ -287,7 +287,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-185 | smag_gate_enforcer | `tools/smag_gate_enforcer_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up) |
 | HAIOS-TOOL-231 | b4_admission | `tools/b4_admission.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | B4 controlled-operation admission: verify a GitHub-authenticated approval envelope. |
 | HAIOS-TOOL-237 | metaculus_mode_gate | `tools/Metaculus/mode_gate.py` | 0.1.0 | 1 | draft | — | Fail-closed approval guard for Metaculus actions with external side effects. |
-| HAIOS-TOOL-239 | safety | `tools/Metaculus/safety.py` | 1.1.0 | 1 | draft | — | Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no |
+| HAIOS-TOOL-239 | safety | `tools/Metaculus/safety.py` | 1.2.0 | 1 | draft | — | Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no |
 
 ## Templates — `template_tool` (3)
 
