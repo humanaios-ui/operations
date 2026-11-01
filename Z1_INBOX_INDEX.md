@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**116 candidates** — ⏳ awaiting Z2 98 · ✅ ratified 18 · **65 records**
+**116 candidates** — ⏳ awaiting Z2 97 · ✅ ratified 19 · **65 records**
 
-## Awaiting Z2 (98)
+## Awaiting Z2 (97)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -109,9 +109,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-24 | **Q-HOST-INVENTORY-01** | Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked | `z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md` |
 | 2026-10-24 | **Q-WITNESS-DATA-PLANE-01** | Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only | `z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md` |
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
-| 2026-10-26 | **Q-ZONE-Z011-RESEARCH-CAP-01** | Proposal — change Z-011 (research) from READ-ONLY to LIMITED cap (publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record) | `z1-inbox/2026-10-24/Q-ZONE-Z011-RESEARCH-CAP-01.md` |
 
-## Decided (18)
+## Decided (19)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -133,6 +132,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md`<br>`3d9fd60e45ad381233420f6086dcfee37da3b44d657c6ba6986ea9286d63e800` |
 | ✅ ratified | **Q-HIAE-001-ASSIGNMENT-RECEIPTS-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0` |
 | ✅ ratified | **Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`ce40510fa97b6df060aa5cdc4fc12809dd80dfe282a2a17f93d2169513788c83` |
+| ✅ ratified | **Q-ZONE-Z011-RESEARCH-CAP-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`a33a0e63d9f7a3709ba96e2cea0e69a143bf9103732840a26cfd8b6d4d6a2b57` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
