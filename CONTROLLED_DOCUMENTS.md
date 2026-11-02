@@ -3,7 +3,7 @@
 > Rendered from `document-registry.yaml` (SSOT) by `.doc-control/render.py`.
 > **Do not hand-edit — edit the registry.** CI blocks when the two disagree.
 
-**49 controlled documents** · 37 excluded · 5 content-accuracy holds
+**50 controlled documents** · 37 excluded · 5 content-accuracy holds
 
 **Status:** `draft` = Z1 draft, not yet submitted · `review` = seeded, pending owner verification · `approved` = owner-verified (human gate) · `superseded`/`retired` = obsolete (retained).
 
@@ -13,8 +13,8 @@ Approval is the owner's act and is never automated — no self-grant.
 
 | metric | value |
 |---|---|
-| Controlled documents | 49 |
-| — status `draft` | 9 |
+| Controlled documents | 50 |
+| — status `draft` | 10 |
 | — status `review` | 34 |
 | — status `approved` | 6 |
 | Needing reconciliation | 5 |
@@ -81,7 +81,7 @@ Approval is the owner's act and is never automated — no self-grant.
 | HAIOS-COLLAB-008 | RAH_OPERATIONAL_RECORD_S-051426-02.html | humanaios-internal | `collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html` | review | — |
 | HAIOS-COLLAB-009 | SYDAN_JOINT_REPORT_S-051426-02.html | humanaios-internal | `collaborators/SYDAN_JOINT_REPORT_S-051426-02.html` | review | — |
 
-## Process / Runbooks — `PROC` (6)
+## Process / Runbooks — `PROC` (7)
 
 | doc_id | title | repo | canonical path | status | flags |
 |---|---|---|---|---|---|
@@ -91,6 +91,7 @@ Approval is the owner's act and is never automated — no self-grant.
 | HAIOS-PROC-004 | SESSION_RITUALS.md | operations | `SESSION_RITUALS.md` | review | — |
 | HAIOS-PROC-005 | A4 Intake Pipeline Specification | operations | `A4_INTAKE_PIPELINE_SPEC.md` | approved | — |
 | HAIOS-PROC-006 | Founder's Ultimate Users Manual and Troubleshooting Guide for HumanAIOS | operations | `docs/FOUNDERS_MANUAL.md` | draft | — |
+| HAIOS-PROC-007 | System Audit Prompt v3.1 — Offline Agent Execution & Recursive Improvement | operations | `docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md` | draft | — |
 
 ## Governance — `GOV` (3)
 

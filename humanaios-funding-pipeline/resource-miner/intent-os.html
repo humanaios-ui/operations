@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>INTENT-OS · Find Resources</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf2fc;background:#0b1423;color-scheme:dark}
@@ -32,7 +32,19 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 .status-line{font-size:.82rem;color:#f0d09a}
 #localFilter{font-size:.84rem}
 #results[hidden]{display:none}footer{font-size:.84rem;line-height:1.6;color:#a3b3c6;margin-top:26px}
+
+@media(max-width:719px){
+main{padding:20px 14px calc(116px + env(safe-area-inset-bottom,0px))}
+button,select,input[type=file]{min-height:44px}
+.examples button,.source-review button{min-height:44px}
+.mobile-tabs{position:fixed;bottom:0;left:0;right:0;display:flex;z-index:50;background:#091625;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));gap:8px;border-top:1px solid #6b94b7}
+.mobile-tabs a,.mobile-tabs span{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid #47617c;border-radius:10px;padding:8px 4px;font-size:.85rem;font-weight:650;text-decoration:none}
+.mobile-tabs a[aria-current=page]{background:#285c81;color:#fff}
+.mobile-tabs span{color:#bac9d9}
+}
+@media(min-width:720px){.mobile-tabs{display:none}}
 </style>
+<meta name="theme-color" content="#0b1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="INTENT-OS"><link rel="manifest" href="/app.webmanifest">
 </head>
 <body>
 <main>
@@ -85,7 +97,7 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 <p class="muted" id="verificationMessage" role="status" aria-live="polite"></p>
 </section>
 <footer><strong>What this does:</strong> public discovery, basic relevance matching, and links to source material. <strong>What it does not do:</strong> verify eligibility, guarantee availability, access accounts, apply, purchase, contact anyone, or grant authorization. Your objective is sent only to this service for this request; the application does not save it. Avoid entering sensitive personal details. Live public discovery depends on source availability and is not an eligibility assessment. Source-review reports are browser-local and do not change published source status or rankings.</footer>
-</main>
+<nav class="mobile-tabs" aria-label="Phone navigation"><a href="/intent-os" aria-current="page">Resources</a><a href="/on-track">On-Track</a><span>Private locked</span></nav></main>
 <script>
 "use strict";
 const form=document.getElementById("form"),field=document.getElementById("objective"),

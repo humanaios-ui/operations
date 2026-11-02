@@ -11,7 +11,7 @@ generated: "2026-07-02"
 seed_source: "humanaios/_audit_S070126 reconciliation (71 diverged pairs)"
 id_scheme: "HAIOS-<AREA>-<nnn>"
 areas: {GOV: governance, PROC: process/runbooks, OPS: operations/state, RES: research, COLLAB: collaborator-reports, ENG: engagement/external, WEB: site-pages, DOC: uncategorized}
-counts: {documents: 49, excluded: 37, needs_reconcile: 5}
+counts: {documents: 50, excluded: 37, needs_reconcile: 5}
 
 # Days between reviews, by status. A document may override with its own
 # `review_interval_days`. `superseded` and `retired` are off the cadence.
@@ -582,6 +582,14 @@ documents:
     canonical: true
     status: draft
     recommendation: "Z1 draft pending source reconciliation and independently verified end-to-end acceptance; human approval not granted."
+  - doc_id: HAIOS-PROC-007
+    title: "System Audit Prompt v3.1 — Offline Agent Execution & Recursive Improvement"
+    area: PROC
+    canonical_repo: "operations"
+    canonical_path: "docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md"
+    canonical: true
+    status: draft
+    recommendation: "Z1-proposed audit method (merged via PR #981, issue #974); authority_effect NONE. The eight decisions in its Decisions-for-Z2 list were kept by the operator in session 2026-10-31, which is not a ratification. Human approval not granted."
   - doc_id: HAIOS-RES-007
     title: "Specimen Intake Design & Implementation"
     area: RES
