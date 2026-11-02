@@ -1,0 +1,41 @@
+name: Manifest Regeneration Preview 1112
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/manifest-regenerate-preview-1112.yml'
+      - 'tools/mutual_learning_e0.py'
+      - 'tools-manifest.yaml'
+      - 'TOOLS_MANIFEST.md'
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - run: python3 -m pip install --quiet pyyaml
+      - name: Run scanner, validate and render inventory (no git writes)
+        run: |
+          set -euo pipefail
+          python3 tools/builder_compliance_scanner_v1.0.py --path tools/mutual_learning_e0.py
+          python3 .tool-control/scan.py
+          python3 .tool-control/scan.py --check
+          python3 .tool-control/validate.py
+          python3 .tool-control/render.py
+          python3 .tool-control/render.py --check
+          git diff --stat -- tools-manifest.yaml TOOLS_MANIFEST.md
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ('tools-manifest.yaml', 'TOOLS_MANIFEST.md'):
+              text = Path(name).read_text(encoding='utf-8')
+              print('HAIOS_PREVIEW_BEGIN ' + name)
+              for i in range(0, len(text), 750):
+                  print('HAIOS_PREVIEW_CHUNK ' + json.dumps(text[i:i+750]))
+              print('HAIOS_PREVIEW_END ' + name)
+          PY
