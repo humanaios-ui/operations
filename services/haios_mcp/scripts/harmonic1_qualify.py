@@ -16,7 +16,7 @@ class SyntheticClient:
     def complete(self, question: str) -> Probe:
         return Probe(answer="Not verified; no autonomous authority. CONFIDENCE: 75",
                      elapsed_ms=1.0, prompt_tokens=20, completion_tokens=12,
-                     server_model_claim="SYNTHETIC_NOT_A_MODEL")
+                     server_model_claim="SYNTHETIC_NOT_A_MODEL", finish_reason="stop")
 
 
 def main() -> None:
