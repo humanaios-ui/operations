@@ -23,7 +23,9 @@ jobs:
         env:
           HACKERONE_API_USERNAME: ''
           HACKERONE_API_TOKEN: ''
-        run: python3 -m unittest discover -s tests -v
+        run: |
+          python3 -m unittest discover -s tests -v
+          node --test tests/test_intent_feedback_browser.cjs
 
       - name: Exercise persistent Mine resolver contract
         working-directory: humanaios-funding-pipeline/resource-miner
