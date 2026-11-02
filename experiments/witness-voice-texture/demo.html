@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Witness Voice Texture — Synthetic Research Study | HumanAIOS</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{--color-primary-source:#a0c8c0;--color-primary-luminarium:#88a7d8;--color-primary-communal:#9A8AC0;--color-text-primary:#1a1a1a;--color-background:#ffffff;--color-background-alt:#f8f8f8;--color-border:#666666;--font-family-sans:Inter,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+body{font-family:var(--font-family-sans);line-height:1.6;margin:0;background:var(--color-background);color:var(--color-text-primary)}
+main{max-width:1050px;margin:auto;padding:24px 20px 60px}
+h1{font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.2}
+header{border-bottom:2px solid var(--color-text-primary);padding-bottom:14px}
+.status{display:inline-block;border:2px solid #333;padding:5px 10px;font-weight:bold;font-size:.9rem}
+.notice{border-left:5px solid #333;background:var(--color-background-alt);padding:12px 16px;margin:20px 0}
+fieldset{border:2px solid #444;margin:20px 0;padding:16px}
+legend{font-weight:bold;padding:0 8px}
+button{background:#fff;color:#111;border:2px solid #333;border-radius:5px;font:inherit;padding:10px 14px;min-height:44px;margin:3px;cursor:pointer}
+button[aria-pressed="true"]{background:#20252b;color:#fff}
+button:focus-visible{outline:4px solid #000;outline-offset:3px}
+button:disabled{color:#555;border-color:#555;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(290px,1fr);gap:20px}
+.surface{position:relative;border:2px solid #444;border-radius:8px;min-height:300px;background:#fff}
+canvas{display:block;width:100%;height:320px;touch-action:pan-y pinch-zoom}
+.panel{border:2px solid #444;border-radius:8px;padding:16px;background:var(--color-background-alt)}
+.panel h2{margin-top:0}.panel li{overflow-wrap:anywhere}
+small,.detail{font-size:.9rem}
+.controls{margin:14px 0}
+.sr-only{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden;white-space:nowrap}
+@media(max-width:750px){.grid{grid-template-columns:1fr}canvas{height:270px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<header><strong>HumanAIOS / Witness Research</strong> <span class="status">SYNTHETIC DEMO · NO AUTHORITY</span></header>
+<h1>Witness Voice Texture</h1>
+<p>This is a non-deployed, read-only experiment in representing recorded evidence relationships with touch-responsive geometry. Every example below is invented. Movement changes only the view, never a record.</p>
+<div class="notice" role="note"><strong>Evidence and governance boundary:</strong> Agreement is not truth; omission is not deception; texture is not confidence; no interface action is a ratification. No actual Evidence Graph records are loaded.</div>
+<fieldset id="state-buttons"><legend>Explore a synthetic Witness channel</legend></fieldset>
+<div class="controls">
+<button id="motion" type="button" aria-pressed="false">Enable touch motion</button>
+<span id="motion-help">Static by default. No audio, vibration or telemetry.</span>
+</div>
+<div class="grid">
+  <div class="surface"><canvas id="field" aria-hidden="true"></canvas></div>
+  <section class="panel" aria-labelledby="state-name">
+  <h2 id="state-name">Convergence</h2>
+  <p id="summary">Synthetic evidence relationship.</p>
+  <p class="detail"><strong>Source event:</strong> <span id="source-event"></span></p>
+  <h3>Text equivalent · evidence paths</h3>
+  <ul id="paths"></ul>
+  <p><strong>Authority effect:</strong> NONE. <strong>Fixture:</strong> synthetic only.</p>
+  </section>
+</div>
+<p><small id="status" role="status" aria-live="polite">Synthetic static rendering. Select a channel to inspect its definition.</small></p>
+<p><small>Experimental contract: WITNESS_TEXTURE_FRAME_V0_1. Semantic parents: Witness Arena Protocol v0.1 and Harmonic Channel v0.1.1 (both unratified Z1 design candidates). Visual treatment follows ratified Unified Design System tokens; live-site design reconciliation and human usability validation remain open.</small></p>
+</main>
+<script type="module">
+import { STATES, encodeTextureFrame } from "./texture-encoder.mjs";
+const $ = (id) => document.getElementById(id);
+const summaries = {
+ CONVERGENCE: "Two invented supporting paths converge geometrically. Agreement does not establish the proposition.",
+ DIVERGENCE: "Two invented paths present incompatible positions. Neither is selected as true.",
+ OMISSION: "An explicitly declared missing relation produces a visible gap. A failed download would not.",
+ ANOMALY: "One invented path has an explicit anomaly flag. This is not an accusation or safety verdict.",
+ UNRESOLVED: "Two invented alternatives remain distinct, with no selected result.",
+ CORRECTION: "A previously recorded synthetic relation is superseded; the old trace remains visible."
+};
+const relations = {
+ CONVERGENCE: ["supports","supports"],
+ DIVERGENCE: ["supports","contradicts"],
+ OMISSION: ["supports","missing"],
+ ANOMALY: ["supports","anomaly"],
+ UNRESOLVED: ["supports","unresolved"],
+ CORRECTION: ["supports","supersedes"]
+};
+const canvas = $("field"), ctx = canvas.getContext("2d");
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+let state = STATES[0], view, dots = [], pointer = null, motion = false, raf = 0, cooling = 0;
+function makeFrame(next) {
+ return {
+  schema_version:"witness-texture-demo/0.1", frame_id:"DEMO-FRAME-"+next,
+  source_event_id:"DEMO-EVENT-"+next, source_kind:"synthetic_fixture", state:next,
+  is_synthetic:true, authority_effect:"NONE", can_ratify:false,
+  summary:summaries[next], visual_seed:12076,
+  paths: relations[next].map((relation,i)=>({
+    id:"DEMO-PATH-"+i, relation, source_group:"DEMO-SOURCE-"+i,
+    evidence_refs:["DEMO-EVIDENCE-"+i]
+  }))
+ };
+}
+function dimensions() {
+ const box=canvas.getBoundingClientRect();
+ const dpr=Math.min(window.devicePixelRatio||1,2);
+ const w=Math.max(1,Math.round(box.width*dpr));
+ const h=Math.max(1,Math.round(box.height*dpr));
+ if (canvas.width!==w || canvas.height!==h) {canvas.width=w;canvas.height=h;}
+ return {width:w,height:h};
+}
+function draw() {
+ if (!ctx) return;
+ const {width,height}=dimensions();
+ ctx.clearRect(0,0,width,height);
+ ctx.fillStyle="#1a1a1a";
+ for (const p of dots) {
+  if (p.previous) {
+    ctx.strokeStyle="#222";
+    ctx.lineWidth=1.5*Math.min(window.devicePixelRatio||1,2);
+    ctx.strokeRect(p.x*width-1.9,p.y*height-1.9,3.8,3.8);
+  } else {
+    ctx.beginPath();
+    ctx.arc(p.x*width,p.y*height,1.7*Math.min(window.devicePixelRatio||1,2),0,Math.PI*2);
+    ctx.fill();
+  }
+ }
+}
+function animate() {
+ raf=0;
+ if (!motion || reduced.matches) {draw();return;}
+ let moving=false;
+ for (const dot of dots) {
+  let fx=(dot.ax-dot.x)*0.095, fy=(dot.ay-dot.y)*0.095;
+  if (pointer) {
+   const dx=dot.x-pointer.x, dy=dot.y-pointer.y, dist=Math.hypot(dx,dy);
+   if (dist>0.0001 && dist<0.15) {
+    const t=Math.pow(1-dist/0.15,2)*0.005;
+    fx+=(dx/dist)*t;fy+=(dy/dist)*t;
+   }
+  }
+  dot.vx=(dot.vx+fx)*0.80; dot.vy=(dot.vy+fy)*0.80;
+  dot.x+=dot.vx;dot.y+=dot.vy;
+  if (Math.abs(dot.vx)+Math.abs(dot.vy)+Math.abs(dot.ax-dot.x)+Math.abs(dot.ay-dot.y)>0.0006) moving=true;
+ }
+ draw();
+ if (pointer || moving || cooling>0) {
+  if (!pointer) cooling--;
+  raf=requestAnimationFrame(animate);
+ }
+}
+function schedule() {if (!raf) raf=requestAnimationFrame(animate);}
+function display(next) {
+ state=next;
+ view=encodeTextureFrame(makeFrame(next));
+ dots=view.points.map((p)=>({...p,ax:p.x,ay:p.y,vx:0,vy:0}));
+ $("state-name").textContent=next[0]+next.slice(1).toLowerCase();
+ $("summary").textContent=view.description;
+ $("source-event").textContent=view.sourceEventId;
+ $("paths").replaceChildren(...view.paths.map((p)=>{
+  const li=document.createElement("li");
+  li.textContent=p.id+": "+p.relation+"; "+p.sourceGroup+"; evidence "+p.evidenceRefs.join(", ");
+  return li;
+ }));
+ for (const button of $("state-buttons").querySelectorAll("button")) {
+  button.setAttribute("aria-pressed",String(button.dataset.state===next));
+ }
+ pointer=null;cooling=0;cancelAnimationFrame(raf);raf=0;draw();
+ $("status").textContent=next+" selected. This is a synthetic text-equivalent display, not graph evidence.";
+}
+for (const s of STATES) {
+ const button=document.createElement("button");
+ button.type="button";button.dataset.state=s;
+ button.textContent=s[0]+s.slice(1).toLowerCase();
+ button.addEventListener("click",()=>display(s));
+ $("state-buttons").appendChild(button);
+}
+function motionStatus() {
+ if (reduced.matches) {motion=false;$("motion").disabled=true;$("motion-help").textContent="Reduced motion preference detected; static mode enforced.";}
+ else {$("motion").disabled=false;$("motion-help").textContent="Optional finger or pointer disturbance. No evidence changes.";}
+ $("motion").setAttribute("aria-pressed",String(motion));
+ $("motion").textContent=motion?"Disable touch motion":"Enable touch motion";
+ if (!motion) {pointer=null;cancelAnimationFrame(raf);raf=0;dots=view.points.map(p=>({...p,ax:p.x,ay:p.y,vx:0,vy:0}));draw();}
+}
+$("motion").addEventListener("click",()=>{motion=!motion;motionStatus();});
+reduced.addEventListener("change",motionStatus);
+function locationOf(event) {
+ const r=canvas.getBoundingClientRect();
+ return {x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};
+}
+canvas.addEventListener("pointerdown",(event)=>{
+ if (!motion || reduced.matches) return;
+ canvas.setPointerCapture(event.pointerId);
+ pointer=locationOf(event);cooling=40;schedule();
+});
+canvas.addEventListener("pointermove",(event)=>{
+ if (!motion || !pointer) return;
+ pointer=locationOf(event);schedule();
+});
+function release() {if (pointer) {pointer=null;cooling=40;schedule();}}
+canvas.addEventListener("pointerup",release);
+canvas.addEventListener("pointercancel",release);
+canvas.addEventListener("lostpointercapture",release);
+window.addEventListener("resize",draw);
+document.addEventListener("visibilitychange",()=>{if(document.hidden){release();cancelAnimationFrame(raf);raf=0;}});
+display(STATES[0]);motionStatus();
+</script>
+</body>
+</html>

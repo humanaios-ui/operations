@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**213 registered tools** · 2 MCP servers · 4 excluded · 165 carrying Builder v1.7 markers
+**229 registered tools** · 2 MCP servers · 4 excluded · 179 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 213 |
-| — status `draft` | 212 |
+| Registered tools | 229 |
+| — status `draft` | 228 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 165 |
-| Uncategorized | 0 |
+| Builder v1.7 markers present | 179 |
+| Uncategorized | 1 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -36,7 +36,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-176 | grant_matching_engine_v1_0 | `tools/grant_matching_engine_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Matching Engine v1.0 |
 | HAIOS-TOOL-200 | workflow_telemetry_collector | `tools/workflow_telemetry_collector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Telemetry Collector |
 
-## Audit — `audit_tool` (24)
+## Audit — `audit_tool` (25)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -63,9 +63,10 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-192 | scan_rnola_misuse | `scripts/scan_rnola_misuse.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox patterns, authorization misuse, undefined artifacts, and stale evidence. |
 | HAIOS-TOOL-202 | control_plane_custody_observer | `tools/control_plane_custody_observer_v0_1.py` | 0.1.0 | 1 | draft | — | Read-only control-plane observation and execution/decision/information custody classification. |
 | HAIOS-TOOL-205 | graph_capture_lint | `tools/graph_capture_lint_v1_0.py` | 1.0.0 | 1 | draft | — | Scores a graph file against the nine properties of a graph that cannot be wrong from the inside; blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting baseline (crb/graph_capture_baseline.json). |
-| HAIOS-TOOL-222 | coderabbit_coverage_inventory | `tools/coderabbit_coverage_inventory.py` | 0.1.0 | 1 | draft | — | Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806) |
+| HAIOS-TOOL-222 | coderabbit_coverage_inventory | `tools/coderabbit_coverage_inventory.py` | 0.2.0 | 1 | draft | — | Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806) |
+| HAIOS-TOOL-232 | governance_invariant_evaluator | `tools/governance_invariant_evaluator.py` | 1.0.0 | 1 | draft | — | Advisory governance invariant evaluator. No admission or ratification capability. |
 
-## Calibration — `calibration_tool` (17)
+## Calibration — `calibration_tool` (18)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -86,6 +87,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-123 | smag_resolve | `tools/smag_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve. |
 | HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
 | HAIOS-TOOL-224 | ci_predict_rollup | `tools/ci_predict_rollup_v0_1.py` | 0.1.0 | 1 | draft | — | ci_predict_rollup_v0_1.py |
+| HAIOS-TOOL-238 | metaculus_offline_fixture | `tools/Metaculus/offline_fixture.py` | 0.1.0 | 1 | draft | — | Pure-stdlib, offline Metaculus forecast validation harness. |
 
 ## Connectors — `connector_tool` (13)
 
@@ -116,7 +118,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-152 | strict_yaml | `.doc-control/strict_yaml.py` | unversioned | 1 | draft | no-builder-markers | A YAML loader that refuses duplicate mapping keys, for registry consumers. |
 
-## Diagnostics — `diagnostic_tool` (21)
+## Diagnostics — `diagnostic_tool` (24)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -140,9 +142,12 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-212 | gner_failure_signatures_e2 | `tools/gner_failure_signatures_e2.py` | 0.1.0 | 1 | draft | — | GNER-E2: conservative cross-run failure signature candidates (no authority). |
 | HAIOS-TOOL-213 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0: offline GitHub notification lead interpreter. |
 | HAIOS-TOOL-225 | graph_lookup | `tools/graph_lookup_v0_1.py` | 0.1.0 | 1 | draft | — | graph_lookup_v0_1.py — read-only, citation-bearing lookup over a repository graph. |
-| HAIOS-TOOL-226 | repository_knowledge_graph | `tools/repository_knowledge_graph_v0_1.py` | 0.2.0 | 1 | draft | — | repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler. |
+| HAIOS-TOOL-227 | azure_readiness | `tools/azure_readiness.py` | 0.1.0 | 1 | draft | — | — |
+| HAIOS-TOOL-234 | iew_witness_fixture | `tools/iew/fixtures/witness_fixture.py` | 0.1.0 | 1 | draft | — | Deterministic stdin/stdout smoke-test fixture for IEW-003. |
+| HAIOS-TOOL-235 | iew_runner | `tools/iew/iew_runner.py` | 0.1.0 | 1 | draft | — | IEW-003: runner captures subprocess output in place of author-reported outcomes. |
+| HAIOS-TOOL-242 | repository_knowledge_graph | `tools/repository_knowledge_graph_v0_1.py` | 0.2.0 | 1 | draft | — | repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler. |
 
-## Governance — `governance_tool` (25)
+## Governance — `governance_tool` (26)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -171,6 +176,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-218 | candidate_bundle | `.z1-control/candidate_bundle.py` | 1.0.0 | 1 | draft | — | candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle. |
 | HAIOS-TOOL-219 | leak_guard | `.z1-control/leak_guard.py` | 1.0.0 | 1 | draft | — | leak_guard.py — B6: bound the two Empirica session leaks. |
 | HAIOS-TOOL-220 | ratify_eco | `.z1-control/ratify_eco.py` | 1.0.0 | 1 | draft | — | ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact. |
+| HAIOS-TOOL-228 | coordinator_admission_sweep_dryrun | `tools/coordinator_admission_sweep_dryrun.py` | 1.0.0 | 1 | draft | — | coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -238,7 +244,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-203 | control_plane_github_adapter | `tools/control_plane_github_adapter_v0_1.py` | 0.1.0 | 1 | draft | — | Transform exported GitHub evidence into authority-neutral raw custody observations. |
 | HAIOS-TOOL-208 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.1 | 1 | draft | — | Metadata-first and local-only by design. It does not read user document contents. |
 
-## Reporting — `reporting_tool` (6)
+## Reporting — `reporting_tool` (7)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -248,6 +254,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-078 | haios_report_writer | `tools/haios_report_writer_v1_0.py` | 1.0.0 | 1 | draft | — | HAIOS Report Writer — v1.0 |
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 | HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
+| HAIOS-TOOL-229 | system_graph_render | `tools/system_graph_render_v1_0.py` | 1.0.0 | 1 | draft | — | Renders system_graph.json to Markdown with a provenance header (source sha256, source generated_at, rendering commit) so prose copies of the system graph, including the Google Drive mirror, point back at the file they came from; --check detects drift of a rendered copy. |
 
 ## Research — `research_tool` (10)
 
@@ -264,7 +271,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
 
-## Security gates — `security_gate_tool` (11)
+## Security gates — `security_gate_tool` (14)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -279,6 +286,9 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-129 | system_audit | `tools/system_audit_v1_1.py` | 1.1.0 | 1 | draft | — | System Audit — v1.1 |
 | HAIOS-TOOL-134 | tier_b_activation_gate | `tools/tier_b_activation_gate.py` | 1.0.0 | 1 | draft | — | tier_b_activation_gate.py |
 | HAIOS-TOOL-185 | smag_gate_enforcer | `tools/smag_gate_enforcer_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up) |
+| HAIOS-TOOL-231 | b4_admission | `tools/b4_admission.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | B4 controlled-operation admission: verify a GitHub-authenticated approval envelope. |
+| HAIOS-TOOL-237 | metaculus_mode_gate | `tools/Metaculus/mode_gate.py` | 0.1.0 | 1 | draft | — | Fail-closed approval guard for Metaculus actions with external side effects. |
+| HAIOS-TOOL-239 | safety | `tools/Metaculus/safety.py` | 1.2.0 | 1 | draft | — | Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no |
 
 ## Templates — `template_tool` (3)
 
@@ -288,7 +298,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (28)
+## Validation — `validation_tool` (33)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -320,6 +330,17 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-209 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies. |
 | HAIOS-TOOL-221 | state_continuity_verification | `tools/state_continuity_verification_v0_1.py` | 0.1.0 | 1 | draft | — | Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS / |
 | HAIOS-TOOL-223 | humanaios_core_machine | `tools/humanaios_core_machine_v0_1.py` | 0.1.0 | 1 | draft | — | Deterministic HumanAIOS governance bytecode compiler and non-authoritative replay validator. |
+| HAIOS-TOOL-226 | kg_map_check | `tools/kg_map_check_v0_1.py` | 0.1.0 | 1 | draft | — | kg_map_check_v0_1.py — check the repo snapshot of the HumanAIOS knowledge graph. |
+| HAIOS-TOOL-230 | calibration_graph_validate | `tools/calibration_graph/validate_graph.py` | 0.1.0 | 1 | draft | — | Validate HumanAIOS calibration evidence-graph reference fixtures. |
+| HAIOS-TOOL-233 | hiae_assurance | `tools/hiae_assurance.py` | 0.1.0 | 1 | draft | — | HIAE-001 assurance transaction core — v0.1 (proposal stage) |
+| HAIOS-TOOL-236 | iew_witness_gate | `tools/iew/witness_gate.py` | 0.1.0 | 1 | draft | — | IEW-002: distinguish self-reported receipts from trusted execution observations. |
+| HAIOS-TOOL-241 | audit_protocol_gate_v3_1 | `tools/audit_protocol_gate_v3_1.py` | 3.1.1 | 1 | draft | — | Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md |
+
+## Unclassified — blocks the gate — `unclassified` (1)
+
+| tool_id | tool | path | ver | zone | status | flags | purpose |
+|---|---|---|---|---|---|---|---|
+| HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
 
 ## MCP servers (2)
 
@@ -350,21 +371,21 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 24 |
-| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 17 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 25 |
+| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 18 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
-| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 21 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 25 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 24 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 26 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
-| `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
+| `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 7 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
-| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
+| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 14 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 28 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 33 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 

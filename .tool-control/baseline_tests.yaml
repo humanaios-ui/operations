@@ -8,6 +8,10 @@
 #            [gh_cli] = GitHub CLI must be available and authenticated
 
 baseline_tests:
+  - path: tests/test_mutual_learning_e0.py
+    requires: []
+    description: Source-pinned two-loop RNOLA mutual learning E0 and non-authority falsifiers
+
   - path: tests/test_opportunity_surface.py
     requires: []
     description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
@@ -63,6 +67,9 @@ baseline_tests:
   - path: tools/tests/test_repository_knowledge_graph_v0_1.py
     requires: []
     description: Repository knowledge graph compiler, validation, and metadata-bridge regression tests (#629)
+  - path: tools/tests/test_kg_map_check_v0_1.py
+    requires: []
+    description: Repo snapshot checker for the HumanAIOS knowledge graph map
 
   - path: tools/tests/test_humanaios_core_machine_v0_1.py
     requires: []
@@ -188,6 +195,10 @@ baseline_tests:
     requires: []
     description: Graph capture lint tests
 
+  - path: tools/tests/test_operations_observatory_e0.py
+    requires: []
+    description: Read-only three-repository observatory and offline projection regressions
+
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
@@ -227,3 +238,26 @@ baseline_tests:
   - path: tests/coderabbit_audit/test_coverage_inventory.py
     requires: []
     description: CodeRabbit exact-commit inventory fail-closed and classification regressions (#806)
+  - path: tests/test_ai_risk_map_crosswalk.py
+    requires: []
+    description: AIRM v1.3 scoped source index, evidence links, and no-authority regression
+
+  - path: tests/test_oracle_forecast_replay_v0_1.py
+    requires: []
+    description: Oracle prospective replay, independent resolution, calibration, and authority-boundary regressions
+
+  - path: tests/test_smag_meta_feedback_observed_accuracy.py
+    requires: []
+    description: Meta-SMAG observed outcome versus predicted confidence isolation regressions
+
+  - path: tools/tests/test_b4_admission.py
+    requires: []
+    description: B4 controlled admission contract regressions
+
+  - path: tools/tests/test_living_operations_canvas.py
+    requires: []
+    description: Living operations canvas read-only UI contract checks
+
+  - path: tools/tests/test_workflow_path_validator.py
+    requires: []
+    description: Workflow path filter validator glob semantics (paths and paths-ignore)

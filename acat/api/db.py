@@ -22,6 +22,49 @@ except ImportError:
 _pool = None
 
 
+def check_database_readiness():
+    """Probe the configured PostgreSQL backend without changing application state.
+
+    Usage: ``from acat.api.db import check_database_readiness`` then call
+    ``check_database_readiness()`` to receive backend, ready, and reason fields.
+    Results contain no URL, credentials, or exception text. A fresh connection
+    bounds both connection and statement time and avoids changing pooled sessions.
+    This is opt-in; the runtime's existing mock fallback remains unchanged.
+    """
+    if isinstance(_pool, _MockConnectionPool) or not PSYCOPG2_AVAILABLE:
+        return {"backend": "MOCK", "ready": False, "reason": "MOCK_BACKEND"}
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        return {"backend": "UNAVAILABLE", "ready": False, "reason": "DATABASE_URL_MISSING"}
+
+    connection = None
+    cursor = None
+    result = {"backend": "UNAVAILABLE", "ready": False, "reason": "PROBE_FAILED"}
+    try:
+        connection = psycopg2.connect(
+            db_url,
+            connect_timeout=5,
+            options="-c statement_timeout=5000 -c default_transaction_read_only=on",
+        )
+        cursor = connection.cursor()
+        cursor.execute("SELECT 1")
+        if cursor.fetchone() == (1,):
+            result = {"backend": "REAL", "ready": True, "reason": "SELECT_1_PASSED"}
+        else:
+            result = {"backend": "REAL", "ready": False, "reason": "UNEXPECTED_PROBE_RESULT"}
+    except Exception:
+        # Database exception strings may contain credentials or host details.
+        pass
+    finally:
+        for resource in (cursor, connection):
+            if resource is not None:
+                try:
+                    resource.close()
+                except Exception:
+                    result = {"backend": "UNAVAILABLE", "ready": False, "reason": "CLEANUP_FAILED"}
+    return result
+
+
 class _MockConnectionPool:
     """Mock connection pool for testing without psycopg2."""
 

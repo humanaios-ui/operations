@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/humanaios-ui/operations/blob/main/schemas/on_track_reflex_v0_1.schema.json",
+  "title": "On-Track Reflex observer output (non-authoritative)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "goal_id",
+    "goal_description",
+    "scope",
+    "counts",
+    "items",
+    "overall",
+    "authority_effect",
+    "merge_authority",
+    "deployment_authority",
+    "limitations",
+    "snapshot_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.on_track_reflex/v0.1"
+    },
+    "goal_id": {
+      "const": "INTENT_OS_RESOURCE_MINER_USABLE"
+    },
+    "goal_description": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "repository",
+        "source",
+        "items_examined",
+        "complete_open_work_inventory",
+        "may_omit_closed_work",
+        "sampling_truncated",
+        "cross_repository_coverage",
+        "execution_event",
+        "execution_sha",
+        "candidate_code"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "const": "humanaios-ui/operations"
+        },
+        "source": {
+          "enum": [
+            "GITHUB_API_OPEN_PLUS_ANCHOR",
+            "OFFLINE_FIXTURE"
+          ]
+        },
+        "items_examined": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "complete_open_work_inventory": {
+          "type": "boolean"
+        },
+        "may_omit_closed_work": {
+          "const": true
+        },
+        "sampling_truncated": {
+          "type": "boolean"
+        },
+        "cross_repository_coverage": {
+          "const": false
+        },
+        "execution_event": {
+          "enum": [
+            "OFFLINE_FIXTURE",
+            "pull_request",
+            "issues",
+            "workflow_dispatch"
+          ]
+        },
+        "execution_sha": {
+          "type": "string",
+          "pattern": "^(UNVERIFIED|[0-9a-f]{40})$"
+        },
+        "candidate_code": {
+          "type": "boolean"
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "mapped_declarations",
+        "unmapped",
+        "at_risk_mapped",
+        "verified_user_outcomes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "mapped_declarations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unmapped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "at_risk_mapped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "verified_user_outcomes": {
+          "const": 0
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "maxItems": 501,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "url",
+          "title",
+          "kind",
+          "github_state",
+          "goal_id",
+          "goal_mapping",
+          "mapping_basis",
+          "implementation",
+          "exact_head_ci",
+          "operator_outcome",
+          "landing_state",
+          "blocker_labels",
+          "next_action",
+          "authority_effect"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://github.com/humanaios-ui/operations/(issues|pull)/[0-9]+$"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "kind": {
+            "enum": [
+              "ISSUE",
+              "PULL_REQUEST"
+            ]
+          },
+          "github_state": {
+            "enum": [
+              "open",
+              "closed",
+              "unknown"
+            ]
+          },
+          "goal_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "goal_mapping": {
+            "enum": [
+              "DECLARED_ANCHOR",
+              "DECLARED_BY_AUTHOR",
+              "UNMAPPED"
+            ]
+          },
+          "mapping_basis": {
+            "type": "string"
+          },
+          "implementation": {
+            "enum": [
+              "PR_EXISTS_NOT_VERIFIED",
+              "ISSUE_EXISTS_NOT_VERIFIED"
+            ]
+          },
+          "exact_head_ci": {
+            "const": "UNVERIFIED"
+          },
+          "operator_outcome": {
+            "const": "UNVERIFIED"
+          },
+          "landing_state": {
+            "enum": [
+              "AT_RISK",
+              "UNVERIFIED"
+            ]
+          },
+          "blocker_labels": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "blocked",
+                "needs-human",
+                "needs_human",
+                "on-hold"
+              ]
+            }
+          },
+          "next_action": {
+            "type": "string"
+          },
+          "authority_effect": {
+            "const": "NONE"
+          }
+        }
+      }
+    },
+    "overall": {
+      "const": "UNVERIFIED"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "merge_authority": {
+      "const": false
+    },
+    "deployment_authority": {
+      "const": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
