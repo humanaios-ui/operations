@@ -14,9 +14,9 @@ Approval is the owner's act and is never automated — no self-grant.
 | metric | value |
 |---|---|
 | Controlled documents | 50 |
-| — status `draft` | 10 |
+| — status `draft` | 9 |
 | — status `review` | 34 |
-| — status `approved` | 6 |
+| — status `approved` | 7 |
 | Needing reconciliation | 5 |
 | Content-accuracy holds | 5 |
 | Excluded | 37 |
@@ -91,7 +91,7 @@ Approval is the owner's act and is never automated — no self-grant.
 | HAIOS-PROC-004 | SESSION_RITUALS.md | operations | `SESSION_RITUALS.md` | review | — |
 | HAIOS-PROC-005 | A4 Intake Pipeline Specification | operations | `A4_INTAKE_PIPELINE_SPEC.md` | approved | — |
 | HAIOS-PROC-006 | Founder's Ultimate Users Manual and Troubleshooting Guide for HumanAIOS | operations | `docs/FOUNDERS_MANUAL.md` | draft | — |
-| HAIOS-PROC-007 | System Audit Prompt v3.1 — Offline Agent Execution & Recursive Improvement | operations | `docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md` | draft | — |
+| HAIOS-PROC-007 | System Audit Prompt v3.1 — Offline Agent Execution & Recursive Improvement | operations | `docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md` | approved | — |
 
 ## Governance — `GOV` (3)
 

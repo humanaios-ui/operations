@@ -588,8 +588,10 @@ documents:
     canonical_repo: "operations"
     canonical_path: "docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md"
     canonical: true
-    status: draft
-    recommendation: "Z1-proposed audit method (merged via PR #981, issue #974); authority_effect NONE. The eight decisions in its Decisions-for-Z2 list were kept by the operator in session 2026-10-31, which is not a ratification. Human approval not granted."
+    status: approved
+    approved_by: "carly"
+    approved_date: "2026-11-02"
+    recommendation: "Z1-proposed audit method (merged via PR #981, issue #974); authority_effect NONE. Approved by the operator in session 2026-11-02 (stated in session; no REGISTERED.md ratification hash is recorded by this change). Approval covers the method only; no audit has run and no C1 or C2 verdict exists. No review is recorded and no review_due is set, so the next review date is not scheduled."
   - doc_id: HAIOS-RES-007
     title: "Specimen Intake Design & Implementation"
     area: RES
