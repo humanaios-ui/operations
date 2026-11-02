@@ -83,26 +83,6 @@ jobs:
       - name: Adversarial self-test — every rule must be able to fail (ERROR)
         run: python3 .tool-control/selftest.py
 
-      # TEMPORARY read-only preview for issue #1112. This does not bypass
-      # any blocking check; restore working files before running normal gates.
-      - name: Preview scanner output for #1112 (no persistence)
-        run: |
-          set -euo pipefail
-          python3 .tool-control/scan.py
-          python3 .tool-control/render.py
-          git diff --stat -- tools-manifest.yaml TOOLS_MANIFEST.md
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          for name in ("tools-manifest.yaml", "TOOLS_MANIFEST.md"):
-              value = Path(name).read_text(encoding="utf-8")
-              print("HAIOS_PREVIEW_BEGIN " + name)
-              for i in range(0, len(value), 750):
-                  print("HAIOS_PREVIEW_CHUNK " + json.dumps(value[i:i + 750]))
-              print("HAIOS_PREVIEW_END " + name)
-          PY
-          git restore -- tools-manifest.yaml TOOLS_MANIFEST.md
-
       - name: Manifest matches the working tree (ERROR — blocks merge)
         run: python3 .tool-control/scan.py --check
 
