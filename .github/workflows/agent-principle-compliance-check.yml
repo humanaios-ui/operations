@@ -67,15 +67,28 @@ jobs:
             exit 1
           fi
 
-          COMMIT_MSG=$(git log --format=%B -n 1)
-          CHANGED_FILES=$(git diff --name-only "$BASE"...HEAD | paste -sd, -)
+          # Iterate through each commit individually to prevent authorization bypass.
+          # CWE-863: A later commit with Z2-SIGN must not authorize earlier unsigned changes.
+          # Each commit is evaluated with its own message and changed files only.
+          EXIT_CODE=0
+          for COMMIT_SHA in $(git log --format=%H "$BASE"...HEAD); do
+            COMMIT_MSG=$(git log --format=%B -n 1 "$COMMIT_SHA")
+            # Get files changed by THIS COMMIT ONLY, not the range
+            CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r "$COMMIT_SHA" | paste -sd, -)
 
-          echo "Base:  $BASE"
-          echo "Files: $CHANGED_FILES"
+            echo "Checking commit: $COMMIT_SHA"
+            echo "Message: ${COMMIT_MSG:0:60}..."
+            echo "Files: $CHANGED_FILES"
 
-          python3 tools/agents/principle_compliance_bot_v1.py \
-            --check-commit "$COMMIT_MSG" \
-            --base "$BASE" \
-            --files "$CHANGED_FILES" || EXIT_CODE=$?
+            python3 tools/agents/principle_compliance_bot_v1.py \
+              --check-commit "$COMMIT_MSG" \
+              --base "$COMMIT_SHA~1" \
+              --files "$CHANGED_FILES" || EXIT_CODE=$?
 
-          exit ${EXIT_CODE:-0}
+            if [ $EXIT_CODE -ne 0 ]; then
+              echo "::error::Principle compliance check failed for commit $COMMIT_SHA"
+              break
+            fi
+          done
+
+          exit $EXIT_CODE
