@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 227
+  tools: 228
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 177
+  builder_markers_present: 178
   missing_from_tree: 0
-  unclassified: 1
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2876,7 +2875,7 @@ tools:
   name: mutual_learning_e0
   path: tools/mutual_learning_e0.py
   version: unversioned
-  category: unclassified
+  category: validation_tool
   zone: 1
   status: draft
   interface: cli
@@ -2884,6 +2883,18 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
+- tool_id: HAIOS-TOOL-241
+  name: audit_protocol_gate_v3_1
+  path: tools/audit_protocol_gate_v3_1.py
+  version: 3.1.1
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
