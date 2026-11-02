@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "validator": {
+    "engine": "pyshacl",
+    "version": "0.40.1",
+    "shapes": "docs/design/calibration-evidence-graph.shacl.ttl",
+    "ontology": "docs/design/calibration-evidence-graph.ttl"
+  },
+  "cases": [
+    {
+      "id": "reference-valid",
+      "data": "tests/calibration_graph/fixtures/reference-valid.ttl",
+      "expected_conforms": true,
+      "covers": [
+        "CONVERGENCE",
+        "DIVERGENCE",
+        "UNRESOLVED",
+        "DELAYED",
+        "CONTEXT_EVENT",
+        "WITHDRAWN_DELTA",
+        "REPLICATED_DELTA",
+        "LANDING_CHECK",
+        "DEPENDENCY_FLAG",
+        "EPISTEMIC_ATTRACTOR",
+        "EXTERNAL_CANDIDATE",
+        "ABSORPTION_ASSESSMENT",
+        "OMISSION_SIGNAL",
+        "COMPRESSION_RESIDUE"
+      ]
+    },
+    {
+      "id": "reference-invalid",
+      "data": "tests/calibration_graph/fixtures/reference-invalid.ttl",
+      "expected_conforms": false,
+      "expected_violations": [
+        "missing HumanTrace",
+        "participantConfidence > 1.0",
+        "DesignDelta missing falsifier",
+        "LandingCheck missing landingState",
+        "DependencyFlag missing requiredFor",
+        "DependencyFlag blocksStage wrong datatype",
+        "DependencyFlag missing plainLanguageNote",
+        "EpistemicAttractor missing queryText",
+        "ExternalCandidate missing sourceURI",
+        "OmissionSignal missing expectedBy",
+        "CompressionResidue missing omittedAspect"
+      ]
+    }
+  ]
+}
