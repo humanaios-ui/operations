@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**219 registered tools** · 2 MCP servers · 4 excluded · 171 carrying Builder v1.7 markers
+**220 registered tools** · 2 MCP servers · 4 excluded · 172 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 219 |
-| — status `draft` | 218 |
+| Registered tools | 220 |
+| — status `draft` | 219 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 171 |
+| Builder v1.7 markers present | 172 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -37,7 +37,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-200 | workflow_telemetry_collector | `tools/workflow_telemetry_collector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Telemetry Collector |
 | HAIOS-TOOL-231 | attractor_observatory | `tools/attractor_observatory_e0.py` | 0.1.0 | 1 | draft | — | Read-only HumanAIOS convergence and conversion observatory (E0). |
 
-## Audit — `audit_tool` (24)
+## Audit — `audit_tool` (25)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -65,6 +65,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-202 | control_plane_custody_observer | `tools/control_plane_custody_observer_v0_1.py` | 0.1.0 | 1 | draft | — | Read-only control-plane observation and execution/decision/information custody classification. |
 | HAIOS-TOOL-205 | graph_capture_lint | `tools/graph_capture_lint_v1_0.py` | 1.0.0 | 1 | draft | — | Scores a graph file against the nine properties of a graph that cannot be wrong from the inside; blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting baseline (crb/graph_capture_baseline.json). |
 | HAIOS-TOOL-222 | coderabbit_coverage_inventory | `tools/coderabbit_coverage_inventory.py` | 0.2.0 | 1 | draft | — | Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806) |
+| HAIOS-TOOL-233 | attractor_evidence_bridge | `tools/attractor_evidence_bridge_e1.py` | 0.1.0 | 1 | draft | — | Read-only, source-pinned GitHub activity and independently attested outcome-review bridge. |
 
 ## Calibration — `calibration_tool` (17)
 
@@ -356,7 +357,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 4 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 24 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 25 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 17 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
