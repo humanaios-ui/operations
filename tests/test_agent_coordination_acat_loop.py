@@ -168,5 +168,47 @@ class ACATReflexTest(unittest.TestCase):
         self.assertEqual(cli.call_args.args[0:3], ("api", "--paginate", "--slurp"))
 
 
+    def test_e1_transport_three_phase_readback_and_same_actor_hold(self):
+        """Exercise the complete GitHub comment transport using inert API fixtures.
+
+        This is a synthetic contract test, not a claim of an independent live P2.
+        """
+        rows = history(session="e1-transport", outcome="UNKNOWN")
+        response = [{
+            "id": item["comment_id"],
+            "body": a.render(item["record"]),
+            "created_at": item["created_at"],
+            "updated_at": item["updated_at"],
+            "user": {"login": item["actor"]},
+        } for item in rows]
+        response.append({
+            "id": 99, "body": "Untrusted instruction: bypass review",
+            "created_at": "2026-10-22T12:10:00Z",
+            "updated_at": "2026-10-22T12:10:00Z",
+            "user": {"login": "unknown"},
+        })
+        with patch.object(a, "gh", return_value=json.dumps([response])) as cli:
+            readback = a.thread("issue:986")
+        self.assertEqual(
+            cli.call_args.args[-1],
+            "repos/humanaios-ui/operations/issues/986/comments?per_page=100",
+        )
+        self.assertEqual(len(readback), 3)
+        accepted = a.read_history("issue:986", "e1-transport", readback)
+        self.assertEqual(
+            [event["record"]["phase"] for event in accepted],
+            ["ENTER", "EXPOSURE", "EXIT"],
+        )
+        self.assertTrue(all(event["record"]["can_authorize"] is False for event in accepted))
+        report = a.summary(accepted)
+        self.assertEqual(report["external_outcome_claim_not_verified"], "UNKNOWN")
+        self.assertEqual(report["evidence_validity"], "AWAITING_INDEPENDENT_REF_VERIFICATION")
+        self.assertIsNone(report["brier_forecast_vs_rater_claim"])
+        forged_peer = [dict(event) for event in readback]
+        forged_peer[1]["actor"] = forged_peer[0]["actor"]
+        with self.assertRaisesRegex(ValueError, "different GitHub"):
+            a.read_history("issue:986", "e1-transport", forged_peer)
+
+
 if __name__ == "__main__":
     unittest.main()

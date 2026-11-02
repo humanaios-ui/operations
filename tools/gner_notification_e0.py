@@ -4,10 +4,16 @@ Email is untrusted discovery only; GitHub receipts are verified *outside* this
 module. No Gmail/GitHub API calls, I/O, authority, or execution.
 
 Builder v1.7 compliant · diagnostic_tool
+
+TOOL_NAME = "gner_notification_e0"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "diagnostic_tool"
+TOOL_ZONE = 1
 """
 from __future__ import annotations
 import re
 import sys
+import argparse
 import json
 from collections import defaultdict
 from urllib.parse import urlsplit
@@ -90,41 +96,80 @@ def redact_github_url(url: str) -> str | None:
     return None
 
 
-def run_smoke_test() -> bool:
+def run_smoke_test() -> dict:
     """Smoke test for Builder v1.7 compliance."""
     tests = []
+
+    # Test parse_notification with valid input
     try:
         result = parse_notification(
-            "[humanaios-ui/operations] Workflow failed on operations#123",
-            "https://github.com/humanaios-ui/operations/actions/runs/456789"
+            "[humanaios-ui/operations] PR #123 failed: quality-baseline",
+            "View workflow run https://github.com/humanaios-ui/operations/actions/runs/37992199793"
         )
-        tests.append(("parse_valid_notification", result["state"] == "EMAIL_OBSERVED_UNVERIFIED"))
-    except Exception:
-        tests.append(("parse_valid_notification", False))
+        tests.append({
+            "test": "parse_notification_valid",
+            "passed": result["state"] == "EMAIL_OBSERVED_UNVERIFIED" and result["pr"] == 123
+        })
+    except Exception as e:
+        tests.append({"test": "parse_notification_valid", "passed": False, "error": str(e)})
 
+    # Test parse_notification rejects oversized input
     try:
-        result = correlate(
-            [{"state": "EMAIL_OBSERVED_UNVERIFIED", "repository": REPO, "run_id": 123, "pr": 456, "workflow": "quality-baseline", "kind": "WORKFLOW_FAILURE_LEAD", "sha_prefix": "abc123", "authority": "NONE", "execution": "DISABLED"}],
-            []
-        )
-        tests.append(("correlate_valid_leads", "results" in result and len(result["results"]) == 1))
-    except Exception:
-        tests.append(("correlate_valid_leads", False))
+        parse_notification("x" * 501, "body")
+        tests.append({"test": "parse_notification_oversized", "passed": False})
+    except ValueError:
+        tests.append({"test": "parse_notification_oversized", "passed": True})
 
+    # Test correlate with valid leads
     try:
-        url = redact_github_url("https://github.com/humanaios-ui/operations/pull/123")
-        tests.append(("redact_valid_url", url is not None))
-    except Exception:
-        tests.append(("redact_valid_url", False))
+        leads = [parse_notification(
+            "[humanaios-ui/operations] PR #123 failed",
+            "https://github.com/humanaios-ui/operations/actions/runs/37992199793"
+        )]
+        result = correlate(leads, [])
+        tests.append({
+            "test": "correlate_valid",
+            "passed": result["authority"] == "NONE" and result["canonical_verified_count"] == 0
+        })
+    except Exception as e:
+        tests.append({"test": "correlate_valid", "passed": False, "error": str(e)})
 
-    passed = sum(1 for _, p in tests if p)
-    print(f"{TOOL_NAME} smoke test: {passed}/{len(tests)} checks")
-    return passed == len(tests)
+    # Test redact_github_url with canonical URL
+    try:
+        url = "https://github.com/humanaios-ui/operations/pull/123"
+        result = redact_github_url(url)
+        tests.append({"test": "redact_canonical_url", "passed": result == url})
+    except Exception as e:
+        tests.append({"test": "redact_canonical_url", "passed": False, "error": str(e)})
+
+    # Test redact_github_url rejects private IPs
+    try:
+        result = redact_github_url("https://10.0.0.1/operations/pull/123")
+        tests.append({"test": "redact_private_ip", "passed": result is None})
+    except Exception as e:
+        tests.append({"test": "redact_private_ip", "passed": False, "error": str(e)})
+
+    passed = sum(1 for t in tests if t.get("passed"))
+    return {
+        "tool": TOOL_NAME,
+        "version": TOOL_VERSION,
+        "tests": tests,
+        "summary": f"{passed}/{len(tests)} tests passed"
+    }
+
+
+def main(argv=None, smoke_test_runner=run_smoke_test) -> int:
+    parser = argparse.ArgumentParser(description="GNER-E0 notification lead interpreter")
+    parser.add_argument("--smoke-test", action="store_true", help="Run smoke tests and exit")
+    args = parser.parse_args(argv)
+
+    if args.smoke_test:
+        result = smoke_test_runner()
+        print(json.dumps(result, indent=2))
+        return 0 if all(t.get("passed") for t in result["tests"]) else 1
+    else:
+        parser.error("--smoke-test is required")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "--smoke-test":
-        sys.exit(0 if run_smoke_test() else 1)
-    else:
-        print("Usage: python3 gner_notification_e0.py [--smoke-test]")
-        sys.exit(0)
+    sys.exit(main())
