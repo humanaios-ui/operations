@@ -14,7 +14,11 @@ from urllib.parse import parse_qs, urlparse
 
 from resource_miner.ats_readiness import public_specimen_readiness
 from resource_miner.miner import enrich
+from resource_miner.mines import load_mines
+from resource_miner.pathways_view import project_pathways
 from resource_miner.intent_os import evaluate_objective
+from resource_miner.verified_intent import project_verified_intent
+from datetime import datetime, timezone
 from resource_miner.opportunity_journey import project_journey
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
@@ -24,6 +28,8 @@ from resource_miner.snapshot_status import reconcile_snapshot_source_holds
 from resource_miner.witness_bridge import ask_resource, enabled as witness_enabled, WitnessBridgeUnavailable
 
 ROOT = Path(__file__).resolve().parent
+DEFAULT_MINES = ROOT / "data" / "mines.seed.json"
+DEFAULT_RECEIPTS = ROOT / "data" / "resource_state.receipts.jsonl"
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
 DEFAULT_REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
 DEFAULT_OUT = ROOT / "data" / "resources.jsonl"
@@ -155,7 +161,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header(
                 "Content-Security-Policy",
                 "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
-                "connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+                "connect-src 'self'; manifest-src 'self'; base-uri 'none'; "
+                "form-action 'self'; frame-ancestors 'none'",
             )
         self.end_headers()
 
@@ -168,6 +175,12 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path == "/app.webmanifest":
+                # Only public app identity. No service worker or private caching.
+                body = (ROOT / "app.webmanifest").read_bytes()
+                self._headers(200, "application/manifest+json; charset=utf-8", len(body))
+                self.wfile.write(body)
+                return
             if parsed.path == "/my-opportunities":
                 if not self._local_opportunities_allowed():
                     return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
@@ -187,6 +200,42 @@ class Handler(BaseHTTPRequestHandler):
                     "journeys": [project_journey(source)],
                     "authority": "NONE",
                 })
+            if parsed.path == "/pathways":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                page = (ROOT / "pathways.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
+            if parsed.path == "/api/pathways":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                mode = (params.get("mode") or ["stored"])[0]
+                if mode not in {"stored", "public"}:
+                    return self._send_json({"error": "mode must be stored or public."}, HTTPStatus.BAD_REQUEST)
+                if mode == "public":
+                    rows, source_status, warning = _intent_scan()
+                    origin = "PUBLIC_REFRESH"
+                    if warning:
+                        source_status += " · " + warning
+                else:
+                    source_file = DEFAULT_OUT if DEFAULT_OUT.is_file() else SNAPSHOT_OUT
+                    if not source_file.is_file():
+                        return self._send_json({"error": "No stored Resource Miner data available."},
+                                               HTTPStatus.SERVICE_UNAVAILABLE)
+                    rows = _read_jsonl(source_file)
+                    origin = "PERSISTED_RUNTIME" if source_file == DEFAULT_OUT else "STORED_SNAPSHOT"
+                    source_status = "LOCAL_FILE_READ_ONLY_NO_EXTERNAL_PROVIDER_REFRESH"
+                projection = project_pathways(
+                    [m.to_dict() for m in load_mines(DEFAULT_MINES)],
+                    load_needs(DEFAULT_NEEDS),
+                    load_requirements(DEFAULT_REQUIREMENTS),
+                    rows,
+                    _read_jsonl(DEFAULT_RECEIPTS) if mode == "stored" else [],
+                    origin=origin,
+                    source_status=source_status,
+                )
+                return self._send_json(projection)
             if parsed.path in ("/", "/intent-os"):
                 page = (ROOT / "intent-os.html").read_bytes()
                 self._headers(200, "text/html; charset=utf-8", len(page))
@@ -323,6 +372,36 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send_json({"error": "Invalid or unauthorized journey data."}, HTTPStatus.BAD_REQUEST)
             except Exception:
                 return self._send_json({"error": "Journey projection unavailable."}, HTTPStatus.SERVICE_UNAVAILABLE)
+        if urlparse(self.path).path == "/api/intent/verified":
+            # Z1 shadow endpoint. Snapshot-only; never scans, persists, or acts.
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("JSON request required")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 4096:
+                    raise ValueError("Bounded JSON request required")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                from resource_miner.verified_intent import validate_intent
+                validate_intent(body)  # Reject before any snapshot read.
+                if not SNAPSHOT_OUT.is_file():
+                    return self._send_json({"error": "Stored snapshot unavailable"},
+                                           HTTPStatus.SERVICE_UNAVAILABLE)
+                rows, held = reconcile_snapshot_source_holds(
+                    _read_jsonl(SNAPSHOT_OUT), DEFAULT_FUNDING)
+                warning = "Historical discovery snapshot; no live independent official readback."
+                if held:
+                    warning += f" {held} source(s) withheld for recheck."
+                return self._send_json(project_verified_intent(
+                    body, rows, now=datetime.now(timezone.utc), source_warning=warning))
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request body deadline exceeded"},
+                                       HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                return self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Verified-intent shadow route unavailable"},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path == "/api/intent":
             try:
                 content_type = self.headers.get("Content-Type", "").lower()
