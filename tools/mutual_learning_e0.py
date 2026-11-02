@@ -17,6 +17,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 VERSION = "humanaios.mutual_learning.e0.v1"
+TOOL_CATEGORY = "validation_tool"  # E0 checks read-only records; grants no authority.
 REPOSITORY = "humanaios-ui/operations"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 ISSUE_URL = re.compile(r"^https://github\.com/humanaios-ui/operations/(?:issues|pull)/[1-9][0-9]*$")
