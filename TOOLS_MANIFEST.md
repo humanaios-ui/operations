@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**228 registered tools** · 2 MCP servers · 4 excluded · 178 carrying Builder v1.7 markers
+**228 registered tools** · 2 MCP servers · 4 excluded · 179 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -16,7 +16,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | Registered tools | 228 |
 | — status `draft` | 227 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 178 |
+| Builder v1.7 markers present | 179 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -333,7 +333,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-230 | calibration_graph_validate | `tools/calibration_graph/validate_graph.py` | 0.1.0 | 1 | draft | — | Validate HumanAIOS calibration evidence-graph reference fixtures. |
 | HAIOS-TOOL-233 | hiae_assurance | `tools/hiae_assurance.py` | 0.1.0 | 1 | draft | — | HIAE-001 assurance transaction core — v0.1 (proposal stage) |
 | HAIOS-TOOL-236 | iew_witness_gate | `tools/iew/witness_gate.py` | 0.1.0 | 1 | draft | — | IEW-002: distinguish self-reported receipts from trusted execution observations. |
-| HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
+| HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | 1.0.0 | 1 | draft | — | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
 | HAIOS-TOOL-241 | audit_protocol_gate_v3_1 | `tools/audit_protocol_gate_v3_1.py` | 3.1.1 | 1 | draft | — | Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md |
 
 ## MCP servers (2)
