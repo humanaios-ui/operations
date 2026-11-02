@@ -1,0 +1,20 @@
+{
+  "command": "python3 -I /work/phase0_trial.py --lock /work/PHASE0_LOCK.json --output /out",
+  "container_python": "3.13.16 (GCC 14.2.0), glibc 2.41, linux x86_64",
+  "container_runtime": "docker 29.9.1, --network none, phase0 mounted read-only, output mounted to run_002",
+  "formal_status_in_receipt": "BLOCKED_NO_PINNED_SANDBOX_IMAGE_DIGEST",
+  "formal_status_note": "This record pins an image digest and an isolated run. It does not qualify Phase 0. Formal qualification needs an authenticated, human-signed append-only record. The runner's receipt status is unchanged.",
+  "historical_run_001_raw_ledger_sha256": "d1f8c2cbf135631ebea3fcbc969730c156d0bdf7ac101841cbaad82722bd72c5",
+  "image_digest": "sha256:cf50a4f6ac4f026458b08d5222023d700ac806410dff5e9ca8728fa44f2b850f",
+  "image_reference": "python@sha256:cf50a4f6ac4f026458b08d5222023d700ac806410dff5e9ca8728fa44f2b850f",
+  "image_source_tag": "python:3.13-slim",
+  "ledger_differs_from_historical": true,
+  "local_gates_pass": true,
+  "lock_container_image_digest": "null (lock is pre-run and unmodified; not edited)",
+  "lock_sha256": "161d5c573c556d3008ddf182e57343e5a674d0ddbb2cfb5dda2c77466c8d7358",
+  "raw_ledger_sha256_this_run": "6047de69954f2d5d4c0350972e0cfa5260e794ae8dd7e5e8001b9a5141c127d5",
+  "reason_ledger_differs": "Ledger rows carry run timestamps from the clock, so a fresh run is a new ledger, not a byte-reproduction of run_001.",
+  "receipt_sha256_this_run": "b95ef27baeea290b17a133cdd9e3890eaaf3e77847146b39f432a262c5d7c61a",
+  "record": "ACAT silent-tool-failure Phase 0 isolated rerun (container)",
+  "runner_sha256": "1060baec2aa7540e1b6c7375b3279ac5eeb572cfa483d3e418015b8036501be8"
+}

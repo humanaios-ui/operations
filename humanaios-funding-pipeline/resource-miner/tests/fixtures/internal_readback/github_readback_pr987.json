@@ -1,0 +1,146 @@
+{
+  "blob": {
+    "at_head_url": "https://github.com/humanaios-ui/operations/blob/476d7aec1d937a93710779b2a5cc3efc68c6aada/agent_coordination/reflex.py",
+    "git_blob_sha": "c89cc380d2fc8f861a6a4c414538999d6e0123fe",
+    "path": "agent_coordination/reflex.py"
+  },
+  "checks": [
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "molt-tier-check",
+      "run_id": 39891223819,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39891223819"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "on-track-reflex-observe",
+      "run_id": 39891223811,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39891223811"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "smag-capture",
+      "run_id": 39891223850,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39891223850"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "molt-tier-check",
+      "run_id": 39890446075,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446075"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "workflow-path-validation",
+      "run_id": 39890446014,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446014"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "ci-predict-pin",
+      "run_id": 39890446121,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446121"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "repository-coordinator",
+      "run_id": 39890446189,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446189"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "quality-baseline",
+      "run_id": 39890446112,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446112"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "security-gates",
+      "run_id": 39890446074,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446074"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "semgrep-review",
+      "run_id": 39890446251,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446251"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "document-control",
+      "run_id": 39890446194,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446194"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "workflow-lint",
+      "run_id": 39890446337,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446337"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "No-op PR guard",
+      "run_id": 39890446141,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446141"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "Agent coordination reflex pilot",
+      "run_id": 39890446259,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446259"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "temporal-dissolution-gate",
+      "run_id": 39890446248,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446248"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "on-track-reflex-observe",
+      "run_id": 39890446117,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446117"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "name": "SonarCloud Baseline Auto-Capture",
+      "run_id": 39890446250,
+      "run_url": "https://github.com/humanaios-ui/operations/actions/runs/39890446250"
+    }
+  ],
+  "observed_at": "2026-10-23T18:46:00-05:00",
+  "pr": {
+    "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+    "merge_commit_sha": "17fe60d4cb574e9e4ec1bc64b900b107b74a00be",
+    "merged": true,
+    "number": 987,
+    "repository": "humanaios-ui/operations",
+    "source_url": "https://github.com/humanaios-ui/operations/pull/987",
+    "state": "closed",
+    "title": "[WORKBENCH] Bounded agent entry/exit reflex using existing issue/PR comments"
+  },
+  "reader": "GITHUB_CONNECTOR_INDEPENDENT_READ",
+  "review_threads": {
+    "source_url": "https://github.com/humanaios-ui/operations/pull/987/files",
+    "total": 6,
+    "unresolved": 6
+  },
+  "schema": "humanaios.github-pr-source-observation.v0.1"
+}
