@@ -16,6 +16,7 @@ from typing import Mapping, Any
 
 TOOL_NAME = "iew_witness_gate"
 TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "validation_tool"
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
