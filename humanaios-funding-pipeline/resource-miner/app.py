@@ -15,6 +15,8 @@ from urllib.parse import parse_qs, urlparse
 from resource_miner.ats_readiness import public_specimen_readiness
 from resource_miner.miner import enrich
 from resource_miner.intent_os import evaluate_objective
+from resource_miner.verified_intent import project_verified_intent
+from datetime import datetime, timezone
 from resource_miner.opportunity_journey import project_journey
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
@@ -155,7 +157,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header(
                 "Content-Security-Policy",
                 "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
-                "connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+                "connect-src 'self'; manifest-src 'self'; base-uri 'none'; "
+                "form-action 'self'; frame-ancestors 'none'",
             )
         self.end_headers()
 
@@ -168,6 +171,12 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path == "/app.webmanifest":
+                # Only public app identity. No service worker or private caching.
+                body = (ROOT / "app.webmanifest").read_bytes()
+                self._headers(200, "application/manifest+json; charset=utf-8", len(body))
+                self.wfile.write(body)
+                return
             if parsed.path == "/my-opportunities":
                 if not self._local_opportunities_allowed():
                     return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
@@ -323,6 +332,36 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send_json({"error": "Invalid or unauthorized journey data."}, HTTPStatus.BAD_REQUEST)
             except Exception:
                 return self._send_json({"error": "Journey projection unavailable."}, HTTPStatus.SERVICE_UNAVAILABLE)
+        if urlparse(self.path).path == "/api/intent/verified":
+            # Z1 shadow endpoint. Snapshot-only; never scans, persists, or acts.
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("JSON request required")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 4096:
+                    raise ValueError("Bounded JSON request required")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                from resource_miner.verified_intent import validate_intent
+                validate_intent(body)  # Reject before any snapshot read.
+                if not SNAPSHOT_OUT.is_file():
+                    return self._send_json({"error": "Stored snapshot unavailable"},
+                                           HTTPStatus.SERVICE_UNAVAILABLE)
+                rows, held = reconcile_snapshot_source_holds(
+                    _read_jsonl(SNAPSHOT_OUT), DEFAULT_FUNDING)
+                warning = "Historical discovery snapshot; no live independent official readback."
+                if held:
+                    warning += f" {held} source(s) withheld for recheck."
+                return self._send_json(project_verified_intent(
+                    body, rows, now=datetime.now(timezone.utc), source_warning=warning))
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request body deadline exceeded"},
+                                       HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                return self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Verified-intent shadow route unavailable"},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path == "/api/intent":
             try:
                 content_type = self.headers.get("Content-Type", "").lower()

@@ -6,6 +6,7 @@ from typing import Any
 
 HELD_SOURCE_STATUSES = frozenset({
     "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE", "RECHECK_REQUIRED",
+    "SOURCE_CONFLICT",
 })
 
 

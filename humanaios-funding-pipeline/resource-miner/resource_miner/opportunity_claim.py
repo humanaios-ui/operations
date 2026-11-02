@@ -498,7 +498,12 @@ def add_claim_evidence(
         target.state = "CONTRADICTED"
     elif relation == "FALSIFIES":
         target.state = "FALSIFIED"
-    elif relation == "SUPPORTS" and facet not in {"ELIGIBILITY", "ATTAINABILITY"}:
+    elif (relation == "SUPPORTS"
+          and facet not in {"ELIGIBILITY", "ATTAINABILITY"}
+          and target.state not in {"CONTRADICTED", "FALSIFIED"}):
+        # A raw positive observation must not silently clear an existing
+        # contradiction or falsifier (including via a replayed stale cache).
+        # Explicit FACET_RESOLVED adjudication remains the audited recovery path.
         target.state = "SUPPORTED"
 
     updated.overall_state = derive_overall_state(updated.facets, updated.proposition_type)
