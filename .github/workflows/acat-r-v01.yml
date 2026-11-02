@@ -1,0 +1,43 @@
+name: ACAT-R v0.1 Offline Contract Tests
+on:
+  pull_request:
+    paths:
+      - 'experiments/acat_r_v01/**'
+      - 'tests/test_acat_r_v01.py'
+      - 'tests/test_acat_r_live.py'
+      - '.github/workflows/acat-r-v01.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acat-r-synthetic-and-owned-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Offline unit tests (no runtime launch)
+        run: python -m unittest discover -s tests -p test_acat_r_v01.py -v
+      - name: Verify synthetic example against checked-in expected output
+        run: |
+          python experiments/acat_r_v01/calibrate.py evaluate \
+            --protocol experiments/acat_r_v01/examples/protocol.json \
+            --p1 experiments/acat_r_v01/examples/p1.json \
+            --p2 experiments/acat_r_v01/examples/p2.json \
+            --p3 experiments/acat_r_v01/examples/p3.json \
+            --commit experiments/acat_r_v01/examples/p1.commit.json \
+            --output /tmp/acat-r-ci-report.json
+          python -c "import json; got=json.load(open('/tmp/acat-r-ci-report.json')); expected=json.load(open('experiments/acat_r_v01/examples/report.synthetic.json')); assert got==expected; assert got['can_authorize'] is False and got['authority_effect']=='NONE' and got['admission']=='HOLD_FOR_INDEPENDENT_REVIEW'"
+      - name: Real owned CPython and native SQLite child-process regression tests
+        run: python -m unittest discover -s tests -p test_acat_r_live.py -v
+      - name: Fresh real runtime capture and 12-process same-operator replay (not a third-party witness)
+        run: |
+          python experiments/acat_r_v01/live_pilot/collect_live.py \
+            --run-owned --output-dir "$RUNNER_TEMP/acat-r-owned-evidence"
+          python experiments/acat_r_v01/live_pilot/verify_live.py \
+            --replay-owned --evidence-dir "$RUNNER_TEMP/acat-r-owned-evidence"
+          python -c "import json,os,pathlib; p=pathlib.Path(os.environ['RUNNER_TEMP'])/'acat-r-owned-evidence'/'report.json'; d=json.loads(p.read_text()); assert d['passes']=={'P1':4,'P2':1,'P3':4} and d['recovered_cases']==3 and d['regressed_cases']==0 and d['evidence_state']=='UNVERIFIED_RUNTIME_OBSERVATIONS' and d['admission']=='HOLD_FOR_INDEPENDENT_REVIEW'"
