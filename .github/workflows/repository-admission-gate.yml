@@ -252,7 +252,7 @@ jobs:
         id: collect
         uses: actions/github-script@v9
         env:
-          TARGET_PR: ${{ github.event.pull_request.number }}
+          TARGET_PR: ${{ github.event.pull_request.number || github.event.issue.number }}
         with:
           script: |
             const fs = require("fs");
@@ -360,8 +360,10 @@ jobs:
                 const isMaintenance = maintenanceAuthors.has(author);
                 const needFiles = brief.number === target || (!isDraft && !isMaintenance);
                 const needReviews = brief.number === target || (!isDraft && !isMaintenance);
+                const needComments = brief.number === target;
                 let files = [];
                 let reviews = [];
+                let comments = [];
                 let filesComplete = false;
 
                 if (needFiles) {
@@ -400,8 +402,15 @@ jobs:
                       login: r.user && r.user.login ? r.user.login : "unknown"
                     },
                     state: r.state,
+                    body: r.body || "",
                     submitted_at: r.submitted_at,
                     commit_id: r.commit_id || null
+                  })),
+                  comments: comments.map(c => ({
+                    user: { login: c.user && c.user.login ? c.user.login : "unknown" },
+                    body: c.body || "",
+                    created_at: c.created_at,
+                    id: c.id
                   }))
                 };
               }));
@@ -486,7 +495,7 @@ jobs:
 
       - name: Enforce admission standing (fail closed)
         env:
-          TARGET_PR: ${{ github.event.pull_request.number }}
+          TARGET_PR: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
           set -euo pipefail
           test -f .repo-coordinator/gate-snapshot.json || {
