@@ -3,6 +3,8 @@ doc_id: HAIOS-PROC-007
 title: "System Audit Prompt v3.1 — Offline Agent Execution & Recursive Improvement"
 revision: 0
 status: approved
+approved_by: "carly"
+approved_date: "2026-11-02"
 canonical: true
 ---
 
