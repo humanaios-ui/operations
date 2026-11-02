@@ -67,18 +67,20 @@ jobs:
             normalized_req="${req#./}"
             echo "Auditing ${req}"
             if [ "${normalized_req}" = "tools/Metaculus/requirements.txt" ]; then
+              # Exception, Z2-approved 2026-10-31 (ratifier): tools/Metaculus pins
+              # forecasting-tools<0.4.0, which requires pillow<13 and does not allow
+              # filelock fixes. The fixed pillow 13.0.0 cannot resolve with the bot's
+              # current dependency, so these CVEs are ignored for this file only.
+              # Owner: humanaios-ui. Review by 2026-12-31 or when forecasting-tools
+              # releases a pillow-13-compatible version, whichever is first.
+              # Keep comments above the command: an inline shell comment after a
+              # line-continuation would drop the final -r requirements argument.
               python3 -m pip_audit \
                 --ignore-vuln PYSEC-2026-36 \
                 --ignore-vuln PYSEC-2026-3552 \
                 --ignore-vuln PYSEC-2026-3553 \
                 --ignore-vuln PYSEC-2026-3554 \
                 --ignore-vuln GHSA-537c-gmf6-5ccf \
-                # Exception, Z2-approved 2026-10-31 (ratifier): tools/Metaculus pins
-                # forecasting-tools<0.4.0, which requires pillow<13 and does not allow
-                # filelock fixes. The fixed pillow 13.0.0 cannot resolve with the bot's
-                # current dependency, so these CVEs are ignored for this file only.
-                # Owner: humanaios-ui. Review by 2026-12-31 or when forecasting-tools
-                # releases a pillow-13-compatible version, whichever is first.
                 --ignore-vuln PYSEC-2026-4327 \
                 --ignore-vuln PYSEC-2026-4328 \
                 --ignore-vuln PYSEC-2026-4326 \
