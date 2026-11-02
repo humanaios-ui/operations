@@ -1,0 +1,11 @@
+{
+  "schema": "humanaios.acat-r.held-out-seal-record.v0.1",
+  "status": "TEMPLATE_ONLY",
+  "note": "Unhashed sidecar. Written AFTER the manifest digest is posted. Records where the seal was published so a reader can verify the manifest bytes against it. Never included in the manifest digest.",
+  "manifest_path": "experiments/acat_r_comparison/held_out/held_out_manifest.json",
+  "manifest_sha256": "<sha256 of the manifest bytes, exactly as posted>",
+  "seal_comment_url": "<issue #1081 comment URL that carries manifest_sha256, case count and author>",
+  "seal_posted_at": "<RFC3339 UTC>",
+  "revealed_at": "<RFC3339 UTC, after seal_posted_at>",
+  "revealed_in": "<commit SHA or attachment that first exposed the manifest bytes>"
+}

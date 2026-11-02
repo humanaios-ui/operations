@@ -1,0 +1,884 @@
+{
+  "authority_effect": "NONE",
+  "credential_logged": false,
+  "credential_note": "GITHUB_TOKEN environment variable as provided by the Claude Code cloud session; outbound HTTPS traverses the session agent proxy, which manages GitHub authentication for humanaios-ui/operations. The variable's value was not inspected, printed or stored. This is NOT the dedicated fine-grained read-only PAT the issue #1081 plan specified; the credential's upper scope is the session's GitHub App grant, which may include write. Read-only behaviour was enforced only by the pinned verify_lead source (single GET) and by the probe's urlopen guard, which refuses any non-GET method or any URL that is not the runs endpoint plus an integer run id, and refuses redirects on both request paths. These receipts do not close the #1081 credential requirement; that gate is an open finding. Re-run 6 (schema v0.3): pins verified and modules loaded from the verified bytes (measured); consumed response bytes hashed pass-through; one-sided body hash reported as a divergence; guard narrowed to the exact URL shape; redirects refused; second fetch uses the effective lead run id; spec read once.",
+  "credential_requirement_status": "OPEN: issue #1081 asked for a dedicated fine-grained read-only PAT; these receipts do not close that requirement",
+  "entry_point": "tools/gner_verify_e1.py::verify_lead",
+  "entry_point_loaded_from_verified_bytes": true,
+  "entry_point_verified_unmodified": true,
+  "finished_at_utc": "2026-10-31T04:20:40.426507+00:00",
+  "probes": [
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:33 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "failure",
+          "created_at": "2026-10-30T20:06:36Z",
+          "event": "pull_request",
+          "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9",
+          "id": 41120652951,
+          "name": "quality-baseline",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T20:06:36Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T20:12:25Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1077
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14919",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "effective_run_id": 41120652951,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:33.906100+00:00",
+        "http_status": 200,
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "run_id": 41120652951
+      },
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": 1077,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41120652951,
+        "sha_prefix": "7ea76aa",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": true,
+      "probe_id": "qb_failure_valid_with_pr",
+      "purpose": "Positive control: real quality-baseline failure run on PR #1077; lead agrees on run, SHA prefix, workflow, PR.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "claim_scope": "run metadata only; no job-level root cause or admission authority",
+          "conclusion": "failure",
+          "evidence_url": "https://github.com/humanaios-ui/operations/actions/runs/41120652951",
+          "execution": "DISABLED",
+          "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9",
+          "reason": "authenticated GitHub run agrees",
+          "repository": "humanaios-ui/operations",
+          "run_id": 41120652951,
+          "schema": "GNER-E1-v0.1",
+          "state": "CANONICAL_VERIFIED",
+          "workflow": "quality-baseline"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:34 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "failure",
+          "created_at": "2026-10-30T20:06:36Z",
+          "event": "pull_request",
+          "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9",
+          "id": 41120652951,
+          "name": "quality-baseline",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T20:06:36Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T20:12:25Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1077
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14917",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "effective_run_id": 41120652951,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:34.529369+00:00",
+        "http_status": 200,
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "run_id": 41120652951
+      },
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": null,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41120652951,
+        "sha_prefix": "7ea76aa",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": true,
+      "probe_id": "qb_failure_valid_no_pr",
+      "purpose": "Positive control without PR hint; PR association branch skipped.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "claim_scope": "run metadata only; no job-level root cause or admission authority",
+          "conclusion": "failure",
+          "evidence_url": "https://github.com/humanaios-ui/operations/actions/runs/41120652951",
+          "execution": "DISABLED",
+          "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9",
+          "reason": "authenticated GitHub run agrees",
+          "repository": "humanaios-ui/operations",
+          "run_id": 41120652951,
+          "schema": "GNER-E1-v0.1",
+          "state": "CANONICAL_VERIFIED",
+          "workflow": "quality-baseline"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:35 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "failure",
+          "created_at": "2026-10-30T20:06:36Z",
+          "event": "pull_request",
+          "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9",
+          "id": 41120652951,
+          "name": "quality-baseline",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T20:06:36Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T20:12:25Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1077
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14915",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "effective_run_id": 41120652951,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:35.161986+00:00",
+        "http_status": 200,
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "run_id": 41120652951
+      },
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": null,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41120652951,
+        "sha_prefix": "deadbee",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": true,
+      "probe_id": "qb_wrong_sha_prefix",
+      "purpose": "Negative control: email SHA hint contradicts GitHub head SHA; expect CONFLICT.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "head SHA conflict",
+          "schema": "GNER-E1-v0.1",
+          "state": "CONFLICT"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:35 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "failure",
+          "created_at": "2026-10-30T20:06:36Z",
+          "event": "pull_request",
+          "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9",
+          "id": 41120652951,
+          "name": "quality-baseline",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T20:06:36Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T20:12:25Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1077
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14913",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "effective_run_id": 41120652951,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:35.831977+00:00",
+        "http_status": 200,
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "run_id": 41120652951
+      },
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": 1075,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41120652951,
+        "sha_prefix": "7ea76aa",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": true,
+      "probe_id": "qb_other_pr",
+      "purpose": "Negative control: PR hint not in GitHub pull_requests; expect ABSTAIN.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "PR association not confirmed",
+          "schema": "GNER-E1-v0.1",
+          "state": "ABSTAIN"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:36 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "success",
+          "created_at": "2026-10-30T21:35:14Z",
+          "event": "pull_request",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "id": 41132149057,
+          "name": "security-gates",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T21:35:14Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T21:35:30Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1082
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14911",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057",
+        "response_bytes": 13608,
+        "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057"
+      },
+      "effective_run_id": 41132149057,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:36.390502+00:00",
+        "http_status": 200,
+        "response_bytes": 13608,
+        "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
+        "run_id": 41132149057
+      },
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": 1082,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41132149057,
+        "sha_prefix": "8481574",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "security-gates"
+      },
+      "network_call_made": true,
+      "probe_id": "sg_success_claimed_failure",
+      "purpose": "Negative control: failure claim against a real success run; expect CONFLICT.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "email failure claim contradicted",
+          "schema": "GNER-E1-v0.1",
+          "state": "CONFLICT"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:36 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "success",
+          "created_at": "2026-10-30T21:35:14Z",
+          "event": "pull_request",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "id": 41132149057,
+          "name": "security-gates",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T21:35:14Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T21:35:30Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1082
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14909",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057",
+        "response_bytes": 13608,
+        "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149057"
+      },
+      "effective_run_id": 41132149057,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:36.948474+00:00",
+        "http_status": 200,
+        "response_bytes": 13608,
+        "response_sha256": "9f9395fdc414911a74d8476d839c1129aa7916b3159ceaaad58989c483cb5a01",
+        "run_id": 41132149057
+      },
+      "lead": {
+        "kind": "NOTIFICATION_LEAD",
+        "pr": 1082,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41132149057,
+        "sha_prefix": "8481574",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "security-gates"
+      },
+      "network_call_made": true,
+      "probe_id": "sg_success_notification",
+      "purpose": "Positive control on a second allowed workflow with success conclusion.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "claim_scope": "run metadata only; no job-level root cause or admission authority",
+          "conclusion": "success",
+          "evidence_url": "https://github.com/humanaios-ui/operations/actions/runs/41132149057",
+          "execution": "DISABLED",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "reason": "authenticated GitHub run agrees",
+          "repository": "humanaios-ui/operations",
+          "run_id": 41132149057,
+          "schema": "GNER-E1-v0.1",
+          "state": "CANONICAL_VERIFIED",
+          "workflow": "security-gates"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:37 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "success",
+          "created_at": "2026-10-30T21:43:47Z",
+          "event": "pull_request_review",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "id": 41133165536,
+          "name": "repository-admission-gate",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T21:43:47Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T21:44:39Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1082
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14907",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41133165536",
+        "response_bytes": 13778,
+        "response_sha256": "3e628220bbe5dc93ce1aeb7417413295ab11c18b9adfd1b99ef6929dbc4a01b9",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41133165536"
+      },
+      "effective_run_id": 41133165536,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:37.524875+00:00",
+        "http_status": 200,
+        "response_bytes": 13778,
+        "response_sha256": "3e628220bbe5dc93ce1aeb7417413295ab11c18b9adfd1b99ef6929dbc4a01b9",
+        "run_id": 41133165536
+      },
+      "lead": {
+        "kind": "NOTIFICATION_LEAD",
+        "pr": 1082,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41133165536,
+        "sha_prefix": "8481574",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "repository-admission-gate"
+      },
+      "network_call_made": true,
+      "probe_id": "admission_gate_review_event",
+      "purpose": "Real-path boundary: repository-admission-gate runs fire on pull_request_review; reconcile accepts only pull_request/push/workflow_dispatch.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "unsupported workflow event",
+          "schema": "GNER-E1-v0.1",
+          "state": "CONFLICT"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:38 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "action_required",
+          "created_at": "2026-10-30T21:39:23Z",
+          "event": "pull_request_review",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "id": 41132641562,
+          "name": "repository-admission-gate",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T21:39:23Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T21:39:23Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1082
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14905",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132641562",
+        "response_bytes": 13578,
+        "response_sha256": "e60bb092a77854055cb260cd223983a04bd60a80a820fd43f7d70a57c05e0d65",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132641562"
+      },
+      "effective_run_id": 41132641562,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:38.168735+00:00",
+        "http_status": 200,
+        "response_bytes": 13578,
+        "response_sha256": "e60bb092a77854055cb260cd223983a04bd60a80a820fd43f7d70a57c05e0d65",
+        "run_id": 41132641562
+      },
+      "lead": {
+        "kind": "NOTIFICATION_LEAD",
+        "pr": 1082,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41132641562,
+        "sha_prefix": "8481574",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "repository-admission-gate"
+      },
+      "network_call_made": true,
+      "probe_id": "admission_gate_action_required",
+      "purpose": "Real-path evidence that conclusion=action_required occurs in authenticated GitHub data (relevant to offline case unsupported_conclusion).",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "unsupported workflow event",
+          "schema": "GNER-E1-v0.1",
+          "state": "CONFLICT"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:38 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "success",
+          "created_at": "2026-10-30T21:35:14Z",
+          "event": "pull_request",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "id": 41132149131,
+          "name": "ACAT-R Second Runtime Fair Comparison",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T21:35:14Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T21:35:24Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1082
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14903",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131",
+        "response_bytes": 13646,
+        "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131"
+      },
+      "effective_run_id": 41132149131,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:38.694169+00:00",
+        "http_status": 200,
+        "response_bytes": 13646,
+        "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
+        "run_id": 41132149131
+      },
+      "lead": {
+        "kind": "NOTIFICATION_LEAD",
+        "pr": 1082,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41132149131,
+        "sha_prefix": "8481574",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": true,
+      "probe_id": "name_mismatch_unlisted_run",
+      "purpose": "Name-mismatch control: lead claims quality-baseline, the real run is named 'ACAT-R Second Runtime Fair Comparison'; expect CONFLICT. NOT evidence about ALLOWED_WORKFLOWS because the lead never names the unlisted workflow (CodeRabbit r4429247051).",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "workflow mismatch or unsupported",
+          "schema": "GNER-E1-v0.1",
+          "state": "CONFLICT"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:39 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "success",
+          "created_at": "2026-10-30T21:35:14Z",
+          "event": "pull_request",
+          "head_sha": "8481574af8adffee83fdb89250847822485e4c86",
+          "id": 41132149131,
+          "name": "ACAT-R Second Runtime Fair Comparison",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T21:35:14Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T21:35:24Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1082
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14901",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131",
+        "response_bytes": 13646,
+        "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41132149131"
+      },
+      "effective_run_id": 41132149131,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:39.194754+00:00",
+        "http_status": 200,
+        "response_bytes": 13646,
+        "response_sha256": "6f9c63df825cab3088b376c33e744b95437b2a534a1bd645e3586cbe60b71511",
+        "run_id": 41132149131
+      },
+      "lead": {
+        "kind": "NOTIFICATION_LEAD",
+        "pr": 1082,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41132149131,
+        "sha_prefix": "8481574",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "ACAT-R Second Runtime Fair Comparison"
+      },
+      "network_call_made": true,
+      "probe_id": "unlisted_workflow_in_lead",
+      "purpose": "Allowlist control: lead names the real but unlisted workflow 'ACAT-R Second Runtime Fair Comparison', so canonical name matches the lead and only the ALLOWED_WORKFLOWS check can reject; expect CONFLICT.",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "workflow mismatch or unsupported",
+          "schema": "GNER-E1-v0.1",
+          "state": "CONFLICT"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_response": {
+        "redirects": "refused"
+      },
+      "effective_run_id": true,
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": null,
+        "repository": "humanaios-ui/operations",
+        "run_id": true,
+        "sha_prefix": "7ea76aa",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": false,
+      "probe_id": "bool_lead_run_id_reachability",
+      "purpose": "Reachability of offline case type_lead_bool_id through verify_lead: run_id=True.",
+      "verify_lead": {
+        "cause": null,
+        "message": "run ID required",
+        "outcome": "DENIED"
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_response": {
+        "redirects": "refused"
+      },
+      "effective_run_id": "41120652951",
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": null,
+        "repository": "humanaios-ui/operations",
+        "run_id": "41120652951",
+        "sha_prefix": "7ea76aa",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": false,
+      "probe_id": "str_lead_run_id_reachability",
+      "purpose": "Reachability of offline case unknown_run_id_as_str through verify_lead: run_id as string.",
+      "verify_lead": {
+        "cause": null,
+        "message": "run ID required",
+        "outcome": "DENIED"
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": true,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "date_header": "Sat, 31 Oct 2026 04:20:39 GMT",
+        "http_status": 200,
+        "id_json_type": "int",
+        "public_fields": {
+          "conclusion": "failure",
+          "created_at": "2026-10-30T20:06:36Z",
+          "event": "pull_request",
+          "head_sha": "7ea76aa43aa94b46a8b571723fd8a30f03904cc9",
+          "id": 41120652951,
+          "name": "quality-baseline",
+          "run_attempt": 1,
+          "run_started_at": "2026-10-30T20:06:36Z",
+          "status": "completed",
+          "updated_at": "2026-10-30T20:12:25Z"
+        },
+        "pull_request_number_json_types": [
+          "int"
+        ],
+        "pull_request_numbers": [
+          1077
+        ],
+        "pull_requests_present": true,
+        "ratelimit_remaining": "14899",
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "repository_full_name": "humanaios-ui/operations",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951",
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/41120652951"
+      },
+      "effective_run_id": 41120652951,
+      "independent_fetch": {
+        "fetched_at_utc": "2026-10-31T04:20:39.822694+00:00",
+        "http_status": 200,
+        "response_bytes": 13613,
+        "response_sha256": "40d530d023d191c4f9b4cca67c1a7e495bce77ee9cdc7ddd86db4f2f8ebb091f",
+        "run_id": 41120652951
+      },
+      "lead": {
+        "kind": "WORKFLOW_FAILURE_LEAD",
+        "pr": true,
+        "repository": "humanaios-ui/operations",
+        "run_id": 41120652951,
+        "sha_prefix": "7ea76aa",
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": true,
+      "probe_id": "bool_lead_pr_reachability",
+      "purpose": "Reachability of offline case type_lead_bool_pr through verify_lead: pr=True against a real run whose PR list is [1077].",
+      "verify_lead": {
+        "outcome": "RETURNED",
+        "result": {
+          "authority": "NONE",
+          "execution": "DISABLED",
+          "reason": "PR association not confirmed",
+          "schema": "GNER-E1-v0.1",
+          "state": "ABSTAIN"
+        }
+      }
+    },
+    {
+      "canonical_source": "fetched inside verify_lead over authenticated HTTPS; observed pass-through; not caller-supplied",
+      "consumed_matches_independent_fetch": null,
+      "consumed_response": {
+        "authorization_header_present": true,
+        "error": "HTTPError",
+        "http_status": 404,
+        "read_only_guard": "GET to runs endpoint enforced",
+        "redirects": "refused",
+        "request_method": "GET",
+        "request_url": "https://api.github.com/repos/humanaios-ui/operations/actions/runs/1"
+      },
+      "effective_run_id": 1,
+      "independent_fetch": {
+        "error": "HTTPError",
+        "fetched_at_utc": "2026-10-31T04:20:40.235878+00:00",
+        "http_status": 404,
+        "run_id": 1
+      },
+      "lead": {
+        "kind": "NOTIFICATION_LEAD",
+        "pr": null,
+        "repository": "humanaios-ui/operations",
+        "run_id": 1,
+        "sha_prefix": null,
+        "state": "EMAIL_OBSERVED_UNVERIFIED",
+        "workflow": "quality-baseline"
+      },
+      "network_call_made": true,
+      "probe_id": "nonexistent_run_expiry_behaviour",
+      "purpose": "Absent/expired run: GitHub returns 404; verify_lead must fail closed, not ABSTAIN or VERIFIED.",
+      "verify_lead": {
+        "cause": "HTTPError",
+        "message": "GitHub canonical verification unavailable",
+        "outcome": "DENIED"
+      }
+    }
+  ],
+  "read_only_enforcement": "pinned verify_lead source (single GET) plus urlopen observer refusing non-GET or off-endpoint requests, with redirects refused on both request paths; credential scope itself is NOT verified by this probe",
+  "schema": "humanaios.acat-r.live-verify-lead-probe.v0.3",
+  "source_pins": {
+    "tools/gner_notification_e0.py": {
+      "expected_git_blob": "e8f893a3d433f900b10c101828d1cbb013413fa6",
+      "observed_git_blob": "e8f893a3d433f900b10c101828d1cbb013413fa6",
+      "sha256": "ed59e44de765d4ba9eac44f490ee89b9c3d043423a40b3d0c0b9346ec5fe9a45",
+      "verified": true
+    },
+    "tools/gner_verify_e1.py": {
+      "expected_git_blob": "8290c51cd75c7de78a226770936a8f48766c24f0",
+      "observed_git_blob": "8290c51cd75c7de78a226770936a8f48766c24f0",
+      "sha256": "78e0e0236583c4280f658de972b2f4b9acca52b40425d34e8ccb28efedfde764",
+      "verified": true
+    }
+  },
+  "spec_sha256": "6b708cb0d13374fab2767ae886ad88d6a140281d5ffc3e52e067ee9e395cdfb9",
+  "started_at_utc": "2026-10-31T04:20:33.457291+00:00"
+}
