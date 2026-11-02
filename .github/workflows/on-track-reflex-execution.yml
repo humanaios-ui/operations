@@ -55,7 +55,7 @@ jobs:
         run: |
           python3 -m resource_miner.on_track_reflex --repo humanaios-ui/operations \
             --execution-event "$REFLEX_EVENT" --execution-sha "$REFLEX_SHA" \
-            --max-pages 3 --json-out ../../outputs/on_track_reflex.json \
+            --max-pages 1 --json-out ../../outputs/on_track_reflex.json \
             --markdown-out ../../outputs/on_track_reflex.md
 
       - name: Start actual local Miner and witness the HTTP path

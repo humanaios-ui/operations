@@ -1052,9 +1052,31 @@
     "native_eligible": true,
     "ai_safety_relevant": true,
     "trl_fit": "any",
-    "status": "active",
-    "last_checked": "2026-10-02",
-    "url_ok": true,
+    "status": "unverified",
+    "source_verification_status": "LINK_FAILED_404",
+    "source_verification_history": [
+      {
+        "kind": "USER_REPORTED",
+        "observed_on": "2026-10-22",
+        "source_url": "https://jobs.lever.co/convergentresearch",
+        "evidence_url": "https://github.com/humanaios-ui/operations/issues/992",
+        "claim": "Role reported absent from employer index; employer closure not independently established."
+      }
+    ],
+    "source_verification_observation": {
+      "kind": "INDEPENDENT_HTTP_READBACK",
+      "observed_on": "2026-10-30",
+      "observed_at": "2026-10-30T20:02:34.479535+00:00",
+      "method": "HTTPS_GET_NO_REDIRECT",
+      "http_status": 404,
+      "source_url": "https://jobs.lever.co/convergentresearch/7b0506c1-caf2-4e92-9a44-d062c7a9b988",
+      "evidence_url": "https://github.com/humanaios-ui/operations/actions/runs/41120112081/job/124284382569",
+      "artifact_url": "https://github.com/humanaios-ui/operations/actions/runs/41120112081/artifacts/13008626282",
+      "claim": "Exact official listing URL returned HTTP 404 during read-only probing; this does not prove permanent employer closure.",
+      "authority_effect": "NONE"
+    },
+    "last_checked": "2026-10-30",
+    "url_ok": false,
     "notes": "Full-time remote Program Launch Manager. Lead scientific-organization launches, founder programs, launch plans, ownership/dependency/risk tracking, handoffs, playbooks, vendor/partner coordination, and AI-enabled operational systems. East Coast hours preferred.",
     "source": "jobs.lever.co"
   },
@@ -1082,6 +1104,14 @@
     "last_checked": "2026-10-02",
     "url_ok": true,
     "notes": "USA-remote full-time Senior Program Manager, Data Operations. Own end-to-end AI data workflows, labeling specs, tooling/automation, provenance/evaluation, QA, vendor management, throughput/quality/cost metrics, and cross-functional Research/Engineering/Product execution.",
-    "source": "jobs.ashbyhq.com"
+    "source": "jobs.ashbyhq.com",
+    "source_verification_status": "RECHECK_REQUIRED",
+    "source_verification_observation": {
+      "kind": "USER_REPORTED",
+      "observed_on": "2026-10-23",
+      "source": "OPERATOR_BROWSER_SOURCE_REVIEW",
+      "claim": "OFFICIAL_JOB_LISTING_NOT_FOUND_USER_REPORT_NOT_PROVIDER_CONFIRMED",
+      "authority_effect": "NONE"
+    }
   }
 ]
