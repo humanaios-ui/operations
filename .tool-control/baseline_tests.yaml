@@ -16,6 +16,10 @@ baseline_tests:
     requires: []
     description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
 
+  - path: tests/test_research_assistant_contract_v0_1.py
+    requires: []
+    description: Read-only research job contract, evidence receipt reuse, and authority-boundary regressions
+
   - path: test_humanaios_core_tier1.py
     requires: []
     description: Non-authoritative HumanAIOS governance conformance and HCM translation regressions
