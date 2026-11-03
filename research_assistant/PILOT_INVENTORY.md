@@ -1,6 +1,7 @@
 # Research Assistant pilot inventory
 
-**Inventory pinned to main:** `7ce11cfa0e5b074bbe0db34d3c28242734403b18` (2026-11-02).  
+**Inventory pinned to main:** `7ce11cfa0e5b074bbe0db34d3c28242734403b18` (2026-11-02).
+
 **Scope:** Z1 / WORKBENCH; authority effect NONE; issue #1116 says admission `NOT_REQUESTED`; production writes and merge/release remain on HOLD.
 
 ## Reused surfaces and findings
