@@ -200,7 +200,7 @@ def run_smoke_test() -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Validate and inspect an offline mutual-learning E0 record")
-    p.add_argument("record", type=Path, nargs="?", help="Local JSON record (never uploaded)")
+    p.add_argument("record", type=Path, nargs="?", help="Local JSON record (read locally; not uploaded)")
     p.add_argument("--smoke-test", action="store_true", help="Run the offline fail-closed self-check and exit")
     args = p.parse_args(argv)
     if args.smoke_test:
