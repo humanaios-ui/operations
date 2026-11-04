@@ -146,7 +146,8 @@ def project_apart_sprints(claims: dict | None = None) -> dict:
         slug = url.rsplit("/", 1)[1]
         base = project_journey({
             "schema": LEGACY_SCHEMA,
-            "opportunity": {"id": "OPP-APART-" + slug, "parent_resource_id": "RES-APART-SPRINTS"},
+            # Temporary view keys only; canonical event URLs are the source identity.
+            "opportunity": {"id": "VIEW-APART-" + slug, "parent_resource_id": "VIEW-APART-PROVIDER"},
             "events": legacy,
         })
         kinds = {e["kind"] for e in observations}
@@ -167,6 +168,7 @@ def project_apart_sprints(claims: dict | None = None) -> dict:
         cards.append({
             **public,
             "opportunity_id": base["opportunity_id"],
+            "identity_kind": "URL_DERIVED_VIEW_KEY_NOT_REGISTERED_ID",
             "parent_resource_id": base["parent_resource_id"],
             "source_checked_on": "2026-11-04",
             "stage": stage, "next_action_code": action,
