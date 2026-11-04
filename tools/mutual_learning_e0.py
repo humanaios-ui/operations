@@ -17,6 +17,9 @@ from typing import Any
 from urllib.parse import urlsplit
 
 VERSION = "humanaios.mutual_learning.e0.v1"
+TOOL_NAME = "mutual_learning_e0"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "validation_tool"  # E0 checks read-only records; grants no authority.
 REPOSITORY = "humanaios-ui/operations"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 ISSUE_URL = re.compile(r"^https://github\.com/humanaios-ui/operations/(?:issues|pull)/[1-9][0-9]*$")
@@ -185,10 +188,27 @@ def validate(record: Any) -> list[str]:
     return errors
 
 
+def run_smoke_test() -> bool:
+    """Prove absent and incomplete records fail closed without network or writes."""
+    absent = validate(None)
+    incomplete = validate({})
+    return (
+        "record: expected object" in absent
+        and any("missing=" in reason for reason in incomplete)
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Validate and inspect an offline mutual-learning E0 record")
-    p.add_argument("record", type=Path, help="Local JSON record (never uploaded)")
+    p.add_argument("record", type=Path, nargs="?", help="Local JSON record (read locally; not uploaded)")
+    p.add_argument("--smoke-test", action="store_true", help="Run the offline fail-closed self-check and exit")
     args = p.parse_args(argv)
+    if args.smoke_test:
+        ok = run_smoke_test()
+        print("PASS" if ok else "FAIL")
+        return 0 if ok else 1
+    if args.record is None:
+        p.error("the following arguments are required: record")
     try:
         payload = json.loads(args.record.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
