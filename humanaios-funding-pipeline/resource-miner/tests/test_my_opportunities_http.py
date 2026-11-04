@@ -120,6 +120,24 @@ class MyOpportunitiesHttpTests(unittest.TestCase):
         _, _, raw = self.get("/api/my-opportunities")
         self.assertEqual(json.loads(raw)["journeys"][0]["event_count"], 6)
 
+    def test_preparation_projection_roundtrip_and_fail_closed(self):
+        payload = self.starter()
+        payload["preparation"] = {
+            "required_files": ["INPUT"],
+            "required_checks": [{"check_id": "MATCH", "file_ids": ["INPUT"]}],
+            "files": [{"file_id": "INPUT", "version": 1, "sha256": "a" * 64, "role": "INPUT"}],
+            "checks": [],
+        }
+        _, result = self.post(payload)
+        self.assertEqual(result["journeys"][0]["preparation"]["checks"][0]["standing"], "MISSING")
+        self.assertEqual(result["journeys"][0]["preparation"]["standing"], "NEEDS_PREPARATION")
+        payload["preparation"]["files"][0]["content"] = "private"
+        with self.assertRaises(HTTPError) as caught:
+            self.post(payload)
+        self.assertEqual(caught.exception.code, 400)
+        _, _, raw = self.get("/api/my-opportunities")
+        self.assertNotIn("preparation", json.loads(raw)["journeys"][0])
+
     def test_http_rejects_secret_fields_and_fake_qualification(self):
         payload = self.starter()
         payload["events"][0]["private_email"] = "secret"

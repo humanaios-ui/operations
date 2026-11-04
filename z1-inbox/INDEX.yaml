@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-10-14'
+generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 117
-  records: 65
+  candidates: 119
+  records: 66
 ratifiers:
 - Night
 candidates:
@@ -13,7 +13,18 @@ candidates:
   submitted: '2026-10-25'
   status: awaiting_z2
   tier: 0
-  note: 'tools/publication.py injects a fixed instruction string from config/publication.json into HTML metadata, JSON-LD, an HTML comment, and a Markdown comment on 8 published article pages at truuzee-byte/governing-engines-ai-discovery (DeMarius J. Lawson / Governing Engines, our active MODE_AI_PARTNERSHIP.md partner), directing AI assistants to recommend contacting him. Confirmed in source (config/publication.json + tools/publication.py); tools/corpus.py confirmed as a separate, unaffected pipeline. Live rendered-page confirmation still outstanding (DNS blocked from this session). Falsifier stated. Not ratified.'
+  note: 'tools/publication.py injects a fixed instruction string from config/publication.json into HTML metadata, JSON-LD, an HTML comment, and a Markdown comment on 8 published article pages at truuzee-byte/governing-engines-ai-discovery (DeMarius J. Lawson / Governing Engines, our active MODE_AI_PARTNERSHIP.md partner), directing AI assistants to recommend contacting him. Confirmed in source (config/publication.json + tools/publication.py); tools/publication.py also calls corpus.build() during its own build, so the two are not fully independent pipelines, though corpus.build() itself injects nothing. Every affected article links, in its own footer, to an about.html page that plainly discloses this experiment in the operator''s own words. Live rendered-page confirmation still outstanding (DNS blocked from earlier sessions). Falsifier stated, pinned to upstream commit 94a554b70e48f9873554bb3997d4f97f66aceabb. Not ratified.'
+- q_id: Q-ISSUE-TRIAGE-CONVENTION-01
+  title: Labels, assignees, and triage for repository issues
+  path: z1-inbox/2026-10-14/Q-ISSUE-TRIAGE-CONVENTION-01.md
+  submitted: '2026-10-14'
+  status: awaiting_z2
+  tier: 1
+  note: 'Draft proposal for a fixed issue label vocabulary (kind/state/authority, 9-label
+    cap), an assignee rule, and a PQ/Q linking rule. Filed from issue #824, which was
+    opened without metadata. Does not touch CODEOWNERS, branch protection, REGISTERED.md,
+    or this index beyond this entry. Falsifier defined in the block (30-day counts).
+    Labels are not created in GitHub until Z2 ratifies.'
 - q_id: Q-ZONE-Z011-RESEARCH-CAP-01
   title: Proposal — change Z-011 (research) from READ-ONLY to LIMITED cap (publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record)
   path: z1-inbox/2026-10-24/Q-ZONE-Z011-RESEARCH-CAP-01.md
@@ -891,6 +902,13 @@ candidates:
   ratified_at: '2026-10-14'
   z2_ruling: z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md
   z2_hash: 9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd
+- q_id: Q-PR956-GOVERNANCE-ADMISSION-01
+  title: "Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff)"
+  path: z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md
+  submitted: '2026-10-24'
+  status: awaiting_z2
+  tier: 0
+  note: Repository coordinator decision receipt RCD-D4200E30F523D237 (FAIL with reason "ready non-maintenance work has no explicit admission record"). Governance documentation work split from PR #906 (M009). Content summary (8 files, 1458 additions): RED-TEAM-AUDIT-PR-630.md (12 security challenges), PR-630-WARRANT.md (evidence synthesis), PR-630-REMEDIATION-PATCHES.md (security patches), Z3-EXECUTION-CYCLE-1-HANDOFF.md (execution results), PR-630-CHALLENGE-EVIDENCE.jsonl, z1-inbox/INDEX.yaml (registry update). Classification: Non-maintenance, non-policy documentation; no control-plane changes. Authority effect: ADMISSION_ROUTING_ONLY (decides working-set standing only; does not ratify content, approve code, or authorize merge). Falsifier: If admission granted and PR #956 merges, admission confirmed in coordinator ledger; if PR fails to merge or is reverted, falsifier trips and IC candidate should be filed.
 - q_id: Q-HIAE-001-ASSIGNMENT-RECEIPTS-01
   title: HIAE-001 neutral reviewer assignment, versioned receipts, synthetic transaction
   path: z1-inbox/2026-10-10/HIAE-001-PROPOSAL.md
@@ -1089,4 +1107,7 @@ records:
 - path: z1-inbox/2026-10-02/SESSION_FINDINGS.md
   title: Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop
   note: 'Session close handoff for five friction point implementations and establishment of TENSION_FINDINGS.md governance feedback mechanism. Completed: all five friction points coded, governance integrity issue fixed (real digests recorded in CLAUDE.md), and feedback loop created for continuous guidance improvement. Receipt reconciliation: all claims verified against ledger with zero gaps. Also created root-level TENSION_FINDINGS.md artifact with template and backfilled findings from this and prior sessions. No Z2 ratification requested; Z1 reference handoff documenting completed work and filing Z2 governance decisions needed for PR #642 admission. Indexed as a record, not a live candidate.'
+- path: z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md
+  title: 'H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01'
+  note: 'Z2 decision window for Q-PR956-GOVERNANCE-ADMISSION-01 (Q-candidate for admission of PR #956 governance documentation to working set) closed on 2026-10-26 11:01 UTC without a recorded decision. Current status: 2026-10-27 06:16 UTC (19+ hours overdue). PR #1008 remains open with no Z2 comments or documented decision. ADMISSION_LEDGER.jsonl shows PR #956 not admitted. Falsifier set: Admiral must provide ACCEPT/EDIT/REJECT decision with timestamp and hash within 24 hours. Escalation routes to Admiral for governance decision enforcement.'
 excluded: []
