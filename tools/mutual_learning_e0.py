@@ -17,6 +17,9 @@ from typing import Any
 from urllib.parse import urlsplit
 
 VERSION = "humanaios.mutual_learning.e0.v1"
+TOOL_NAME = "mutual_learning_e0"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "validation_tool"  # E0 checks read-only records; grants no authority.
 REPOSITORY = "humanaios-ui/operations"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 ISSUE_URL = re.compile(r"^https://github\.com/humanaios-ui/operations/(?:issues|pull)/[1-9][0-9]*$")
@@ -183,6 +186,16 @@ def validate(record: Any) -> list[str]:
     if record["governance"] != GOV:
         errors.append("governance: non-authorizing Z1 constants required")
     return errors
+
+
+def run_smoke_test() -> bool:
+    """Prove absent and incomplete records fail closed without network or writes."""
+    absent = validate(None)
+    incomplete = validate({})
+    return (
+        "record: expected object" in absent
+        and any("missing=" in reason for reason in incomplete)
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
