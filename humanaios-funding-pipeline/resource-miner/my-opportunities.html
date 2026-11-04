@@ -509,8 +509,8 @@ byId("clear").addEventListener("click",()=>{
   await showDemo();
  }catch(e){showError(e.message);}
 })();
-</script>
-<script>
+
+
 /* Read-only sprint cards. This does NOT alter the legacy single-journey UI. */
 (function(){
 "use strict";
@@ -590,6 +590,8 @@ document.getElementById("apartSprintImport").addEventListener("change",async eve
 });
 load(get).catch(e=>{status.textContent=e.message;});
 })();
+
 </script>
+
 </body>
 </html>
