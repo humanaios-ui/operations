@@ -33,9 +33,9 @@ counts:
   tools: 229
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 179
+  builder_markers_present: 180
   missing_from_tree: 0
-  unclassified: 1
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2393,6 +2392,19 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-201
+  name: repository_knowledge_graph
+  path: tools/repository_knowledge_graph_v0_1.py
+  version: 0.2.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler.
+  session: REPOSITORY-KNOWLEDGE-GRAPH-01
 - tool_id: HAIOS-TOOL-202
   name: control_plane_custody_observer
   path: tools/control_plane_custody_observer_v0_1.py
@@ -2875,14 +2887,14 @@ tools:
 - tool_id: HAIOS-TOOL-240
   name: mutual_learning_e0
   path: tools/mutual_learning_e0.py
-  version: unversioned
-  category: unclassified
+  version: 1.0.0
+  category: validation_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
 - tool_id: HAIOS-TOOL-241
   name: audit_protocol_gate_v3_1
@@ -2896,19 +2908,6 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
-- tool_id: HAIOS-TOOL-242
-  name: repository_knowledge_graph
-  path: tools/repository_knowledge_graph_v0_1.py
-  version: 0.2.0
-  category: diagnostic_tool
-  zone: 1
-  status: draft
-  interface: cli
-  lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler.
-  session: REPOSITORY-KNOWLEDGE-GRAPH-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

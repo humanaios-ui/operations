@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**229 registered tools** · 2 MCP servers · 4 excluded · 179 carrying Builder v1.7 markers
+**229 registered tools** · 2 MCP servers · 4 excluded · 180 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -16,8 +16,8 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | Registered tools | 229 |
 | — status `draft` | 228 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 179 |
-| Uncategorized | 1 |
+| Builder v1.7 markers present | 180 |
+| Uncategorized | 0 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -138,6 +138,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 | HAIOS-TOOL-180 | workflow_dependency_analyzer | `tools/workflow_dependency_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines |
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.3.0 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
+| HAIOS-TOOL-201 | repository_knowledge_graph | `tools/repository_knowledge_graph_v0_1.py` | 0.2.0 | 1 | draft | — | repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler. |
 | HAIOS-TOOL-206 | ai_context_generator | `tools/ai_context_generator_v0_1.py` | 0.1.0 | 1 | draft | — | Generates queryable, machine-readable context from canonical repository sources. |
 | HAIOS-TOOL-212 | gner_failure_signatures_e2 | `tools/gner_failure_signatures_e2.py` | 0.1.0 | 1 | draft | — | GNER-E2: conservative cross-run failure signature candidates (no authority). |
 | HAIOS-TOOL-213 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0: offline GitHub notification lead interpreter. |
@@ -145,7 +146,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-227 | azure_readiness | `tools/azure_readiness.py` | 0.1.0 | 1 | draft | — | — |
 | HAIOS-TOOL-234 | iew_witness_fixture | `tools/iew/fixtures/witness_fixture.py` | 0.1.0 | 1 | draft | — | Deterministic stdin/stdout smoke-test fixture for IEW-003. |
 | HAIOS-TOOL-235 | iew_runner | `tools/iew/iew_runner.py` | 0.1.0 | 1 | draft | — | IEW-003: runner captures subprocess output in place of author-reported outcomes. |
-| HAIOS-TOOL-242 | repository_knowledge_graph | `tools/repository_knowledge_graph_v0_1.py` | 0.2.0 | 1 | draft | — | repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler. |
 
 ## Governance — `governance_tool` (26)
 
@@ -298,7 +298,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (33)
+## Validation — `validation_tool` (34)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -334,13 +334,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-230 | calibration_graph_validate | `tools/calibration_graph/validate_graph.py` | 0.1.0 | 1 | draft | — | Validate HumanAIOS calibration evidence-graph reference fixtures. |
 | HAIOS-TOOL-233 | hiae_assurance | `tools/hiae_assurance.py` | 0.1.0 | 1 | draft | — | HIAE-001 assurance transaction core — v0.1 (proposal stage) |
 | HAIOS-TOOL-236 | iew_witness_gate | `tools/iew/witness_gate.py` | 0.1.0 | 1 | draft | — | IEW-002: distinguish self-reported receipts from trusted execution observations. |
+| HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | 1.0.0 | 1 | draft | — | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
 | HAIOS-TOOL-241 | audit_protocol_gate_v3_1 | `tools/audit_protocol_gate_v3_1.py` | 3.1.1 | 1 | draft | — | Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md |
-
-## Unclassified — blocks the gate — `unclassified` (1)
-
-| tool_id | tool | path | ver | zone | status | flags | purpose |
-|---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
 
 ## MCP servers (2)
 
@@ -385,7 +380,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 14 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 33 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 34 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 
