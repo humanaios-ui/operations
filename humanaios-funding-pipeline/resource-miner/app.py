@@ -20,6 +20,7 @@ from resource_miner.intent_os import evaluate_objective
 from resource_miner.verified_intent import project_verified_intent
 from datetime import datetime, timezone
 from resource_miner.opportunity_journey import project_journey
+from resource_miner.apart_sprints import project_apart_sprints
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
 from resource_miner.sources import devto, funding_pipeline, github, rss
@@ -188,6 +189,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._headers(200, "text/html; charset=utf-8", len(page))
                 self.wfile.write(page)
                 return
+            if parsed.path == "/api/my-opportunities/apart-sprints":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                return self._send_json(project_apart_sprints())
             if parsed.path in ("/api/my-opportunities", "/api/my-opportunities/starter"):
                 if not self._local_opportunities_allowed():
                     return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
@@ -348,6 +353,25 @@ class Handler(BaseHTTPRequestHandler):
                                        HTTPStatus.SERVICE_UNAVAILABLE)
             except Exception:
                 return self._send_json({"error": "Local Witness bridge failed."},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
+        if urlparse(self.path).path == "/api/my-opportunities/apart-sprints/project":
+            if not self._local_opportunities_allowed():
+                return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("Expected JSON")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 12288:
+                    raise ValueError("Invalid sprint claim size")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                return self._send_json(project_apart_sprints(body))
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request deadline exceeded."}, HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+                return self._send_json({"error": "Invalid multi-sprint claims."}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Multi-sprint projection unavailable."},
                                        HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path == "/api/my-opportunities/project":
             if not self._local_opportunities_allowed():
