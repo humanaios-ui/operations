@@ -190,5 +190,64 @@ class MyOpportunitiesHttpTests(unittest.TestCase):
         self.assertFalse(handler._local_opportunities_allowed())
 
 
+    def test_apart_multi_sprint_public_cards_are_local_only(self):
+        status, mime, body = self.get("/api/my-opportunities/apart-sprints")
+        self.assertEqual(status, 200)
+        self.assertIn("application/json", mime)
+        data = json.loads(body)
+        self.assertEqual(len(data["cards"]), 5)
+        self.assertEqual(len({c["url"] for c in data["cards"]}), 5)
+        self.assertEqual(data["legacy_local_case"], "UNCHANGED_NOT_IMPORTED")
+        self.assertTrue(all(c["benefit_realized"] == "UNVERIFIED" for c in data["cards"]))
+        _, _, page = self.get("/my-opportunities")
+        self.assertIn(b'id="apartSprintCards"', page)
+        self.assertIn(b"/api/my-opportunities/apart-sprints", page)
+        self.assertEqual(page.count(b"<script>"), 1)
+        with self.assertRaises(HTTPError) as ex:
+            self.get("/api/my-opportunities/apart-sprints", {"Host": "evil.example"})
+        self.assertEqual(ex.exception.code, 404)
+
+    def test_apart_multi_sprint_accepts_only_sanitized_claim_preview(self):
+        url = "https://apartresearch.com/sprints/swarm-alignment-2026"
+        claims = {"schema": "humanaios.apart_sprints.claims.e0.v1", "records": [{
+            "sprint_url": url, "events": [{
+                "event_id": "SYN-APPLIED", "sprint_url": url,
+                "kind": "APPLICATION_SUBMITTED_HUMAN", "source_kind": "HUMAN_REPORT",
+                "evidence_ref": "SYNTHETIC-APPLICATION",
+                "observed_at": "2026-11-04T20:00:00Z",
+            }]
+        }]}
+        req = Request(self.base + "/api/my-opportunities/apart-sprints/project",
+                      data=json.dumps(claims).encode("utf-8"),
+                      headers={"Content-Type": "application/json"}, method="POST")
+        with urlopen(req, timeout=5) as response:
+            self.assertEqual(response.status, 200)
+            result = json.load(response)
+        self.assertEqual(next(c["stage"] for c in result["cards"] if c["url"] == url),
+                         "APPLIED_HUMAN_REPORTED")
+        self.assertEqual(next(c["award"] for c in result["cards"] if c["url"] == url),
+                         "UNVERIFIED")
+        # The GET endpoint never stores or replays private reports.
+        _, _, body = self.get("/api/my-opportunities/apart-sprints")
+        self.assertTrue(all(c["stage"] == "DISCOVERED_PUBLIC_SOURCE"
+                            for c in json.loads(body)["cards"]))
+        claims["records"][0]["events"][0]["sprint_url"] = (
+            "https://apartresearch.com/sprints/agent-attribution-2026")
+        bad = Request(self.base + "/api/my-opportunities/apart-sprints/project",
+                      data=json.dumps(claims).encode("utf-8"),
+                      headers={"Content-Type": "application/json"}, method="POST")
+        with self.assertRaises(HTTPError) as ex:
+            urlopen(bad, timeout=5)
+        self.assertEqual(ex.exception.code, 400)
+
+    def test_apart_multi_sprint_rejects_external_origin(self):
+        req = Request(self.base + "/api/my-opportunities/apart-sprints/project",
+                      data=b"{}", headers={"Content-Type": "application/json",
+                                          "Origin": "https://evil.example"}, method="POST")
+        with self.assertRaises(HTTPError) as ex:
+            urlopen(req, timeout=5)
+        self.assertEqual(ex.exception.code, 404)
+
+
 if __name__ == "__main__":
     unittest.main()
