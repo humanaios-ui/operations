@@ -54,6 +54,16 @@ button,select,input[type=file]{min-height:44px}
 <nav><a href="/intent-os">← Find resources</a><a href="/pathways">Resource pathways · live local view</a><a href="/on-track">On-track review</a></nav>
 <header><div class="brand">HUMANAIOS / INTENT-OS</div><h1>My Opportunities</h1>
 <p class="muted">See what happened after a resource was discovered, distinguish human reports from provider evidence, and choose a next action.</p></header>
+<section class="panel" id="apartSprintPanel">
+<h2>Apart Research · recurring sprints</h2>
+<p class="subtle">Five separate official events, last checked on November 4, 2026. This is a dated public-source snapshot, not a live eligibility check. No personal application or prize state is loaded by default.</p>
+<p class="notice">Import only a sanitized multi-sprint claim JSON file. The preview stays in this tab, is sent to this computer's loopback projector, and is not saved. Your older Apart opportunity and its history stay untouched.</p>
+<label for="apartSprintImport">Optional sanitized sprint claims (JSON)</label>
+<input id="apartSprintImport" type="file" accept=".json,application/json">
+<div class="actions"><button type="button" id="apartSprintReset" class="secondary">Show public sprint snapshot</button></div>
+<p id="apartSprintStatus" role="status" class="subtle">Loading public sprint snapshot.</p>
+<div id="apartSprintCards" class="layout" aria-live="polite"></div>
+</section>
 <section class="panel">
 <h2>Opportunity record</h2>
 <p class="notice" id="standing">Loading a synthetic example. This is not connected to your Gmail, Calendar or Discord accounts.</p>
@@ -498,6 +508,87 @@ byId("clear").addEventListener("click",()=>{
   }
   await showDemo();
  }catch(e){showError(e.message);}
+})();
+</script>
+<script>
+/* Read-only sprint cards. This does NOT alter the legacy single-journey UI. */
+(function(){
+"use strict";
+const cards=document.getElementById("apartSprintCards");
+const status=document.getElementById("apartSprintStatus");
+const label={
+ DISCOVERED_PUBLIC_SOURCE:"Discovered from public source",
+ SELECTED_HUMAN_REPORTED:"Selected · human report",
+ APPLIED_HUMAN_REPORTED:"Applied · human report only",
+ WELCOME_EMAIL_OBSERVED:"Signup email observed · qualification unknown",
+ PROJECT_RECEIPT_MESSAGE_OBSERVED:"Research receipt message observed",
+ REVIEW_PENDING_PROVIDER_MESSAGE_OBSERVED:"Judging update observed · result pending",
+ RESULT_MESSAGE_OBSERVED_NOT_VERIFIED:"Result message observed · review required"
+};
+const steps={
+ REVIEW_FIT_AND_SOURCE:"Review fit and current registration details",
+ REVIEW_APPLICATION:"Review application requirements",
+ VERIFY_SIGNUP_WITH_PROVIDER:"Check signup with the provider; do not apply twice",
+ CHECK_EVENT_PREPARATION:"Review event schedule and research preparation",
+ FOLLOW_JUDGING_UPDATE:"Follow official judging updates",
+ REVIEW_PROVIDER_RESULT:"Read the exact provider result and record the outcome"
+};
+function para(parent,txt,klass){
+ const p=document.createElement("p");p.textContent=txt;p.className=klass||"";parent.append(p);
+}
+function link(parent,url,title){
+ const a=document.createElement("a");a.href=url;a.textContent=title;a.target="_blank";a.rel="noopener noreferrer";parent.append(a);
+}
+function render(data){
+ if(!data||data.authority_effect!=="NONE"||!Array.isArray(data.cards)||data.cards.length!==5)
+  throw new Error("Multi-sprint projection rejected.");
+ cards.replaceChildren();
+ for(const sprint of data.cards){
+  const article=document.createElement("article");article.className="fact";
+  const heading=document.createElement("h3");heading.textContent=sprint.title;article.append(heading);
+  para(article,label[sprint.stage]||"Status requires review","pending");
+  para(article,"Dates: "+sprint.starts_on+" to "+sprint.ends_on);
+  para(article,"Deadline: "+sprint.deadline);
+  para(article,"Last source check: "+sprint.source_checked_on);
+  para(article,"Next: "+(steps[sprint.next_action_code]||"Review source"),"subtle");
+  para(article,"Receipts in this preview: "+sprint.evidence_summary.length+
+   "; qualification, awards and realized benefit: unverified.","subtle");
+  link(article,sprint.url,"Official sprint");
+  for(const url of sprint.linked_research){
+   para(article,"Related research (may predate this sprint):","subtle");
+   link(article,url,"View research");
+  }
+  cards.append(article);
+ }
+ status.textContent="Five distinct sprint cards. No records saved or merged.";
+}
+async function load(url,claims){
+ const options={cache:"no-store"};
+ if(claims){
+  options.method="POST";
+  options.headers={"Content-Type":"application/json"};
+  options.body=JSON.stringify(claims);
+ }
+ const response=await fetch(url,options);
+ if(!response.ok)throw new Error("Sprint projection rejected (HTTP "+response.status+").");
+ render(await response.json());
+}
+const get="/api/my-opportunities/apart-sprints";
+document.getElementById("apartSprintReset").addEventListener("click",()=>{
+ load(get).catch(e=>{status.textContent=e.message;});
+});
+document.getElementById("apartSprintImport").addEventListener("change",async event=>{
+ const file=event.target.files&&event.target.files[0];
+ if(!file)return;
+ try{
+  if(file.size>12288)throw new Error("Sanitized claims must be 12 KB or smaller.");
+  const claims=JSON.parse(await file.text());
+  await load(get+"/project",claims);
+  status.textContent="Local claim preview. Provider identity is not authenticated. Nothing saved.";
+ }catch(e){status.textContent="Import rejected: "+e.message;}
+ finally{event.target.value="";}
+});
+load(get).catch(e=>{status.textContent=e.message;});
 })();
 </script>
 </body>
