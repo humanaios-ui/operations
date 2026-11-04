@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 227
+  tools: 228
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 177
+  builder_markers_present: 178
   missing_from_tree: 0
-  unclassified: 1
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2876,7 +2875,7 @@ tools:
   name: mutual_learning_e0
   path: tools/mutual_learning_e0.py
   version: unversioned
-  category: unclassified
+  category: validation_tool
   zone: 1
   status: draft
   interface: cli
@@ -2884,6 +2883,18 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
+- tool_id: HAIOS-TOOL-241
+  name: ops_snapshot
+  path: tools/ops_snapshot_v0_1.py
+  version: 0.1.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: ops_snapshot_v0_1 — deterministic operations snapshot (PRs, CI, blockers) as one JSON file
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
