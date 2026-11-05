@@ -181,6 +181,12 @@ def main() -> None:
             "proposal_count": len(report["proposals"]),
             "conflict_count": len(report["conflicts"]),
             "authority_effect": "NONE",
+            # Windows inherits NTFS ACLs from its parent. Python's 0o600
+            # creation mask does not demonstrate owner-only access there.
+            "local_file_access_check": (
+                "WINDOWS_ACL_REVIEW_REQUIRED" if os.name == "nt"
+                else "POSIX_0600_FILE_MODE"
+            ),
         }, sort_keys=True))
         return
 
