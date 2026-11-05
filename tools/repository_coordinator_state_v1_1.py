@@ -656,7 +656,9 @@ def apply_pr_comment_command(
             "authority_effect": AUTHORITY_EFFECT, "merge_authority": False,
         }
 
-    command = str(comment_payload.get("body") or "")
+    # GitHub returns comment bodies verbatim; tolerate the trailing newline or
+    # CRLF a posting client may add so the exact command still matches.
+    command = str(comment_payload.get("body") or "").strip()
     matcher = re.fullmatch(r"/coordinator (admit|revoke) ([0-9a-f]{40})", command)
     if not matcher:
         return {

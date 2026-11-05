@@ -1865,6 +1865,16 @@ def test_pr_comment_route_accepts_only_authenticated_exact_head(tmp_path):
     assert apply_pr_comment_v11(**args)["reason"] == "DUPLICATE_COMMAND"
 
 
+@pytest.mark.parametrize("suffix", ["\n", "\r\n", "  "])
+def test_pr_comment_route_tolerates_trailing_whitespace_from_posting_client(tmp_path, suffix):
+    args, ledger, state_file = _pr_comment_fixture(
+        tmp_path, comment_body="/coordinator admit " + "a" * 40 + suffix)
+    result = apply_pr_comment_v11(**args)
+    assert result["should_mutate"] is True
+    assert result["decision"] == "ADMIT"
+    assert result["merge_authority"] is False
+
+
 def test_pr_comment_route_bare_command_produces_explicit_noop(tmp_path):
     args, ledger, _ = _pr_comment_fixture(tmp_path, comment_body="/coordinator admit")
     previous = ledger.read_bytes()
