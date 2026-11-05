@@ -54,7 +54,7 @@ python3 -m resource_miner.cli review-handshake-profile \
 - Missing work, school, skills and summary fields become **HUMAN_REVIEW_REQUIRED proposals**, not a save action. Existing data conflicts trigger review, not overwrite.
 - A Handshake GitHub/LinkedIn URL matching a master URL means `LINK_MATCH_NOT_OWNERSHIP_PROOF`; there is **no authentication, identity-unification, or permission inheritance** from a URL.
 - The same pinned source revision and observation give identical output (idempotent read/replay). The report contains SHA-256 of canonical input for local difference checks but no account update authority.
-- Job tracker state is **out of scope** for this profile adapter. An external UI label `Applied` is not an employer application receipt; the user's Guidehealth case remains human-reported **NOT SUBMITTED**.
+- Job tracker state is **out of scope** for this profile adapter. An external UI label `Applied` is not an employer receipt. The owner has separately reported that the Guidehealth application was submitted; preserve that human report in the existing opportunity journey, without claiming employer acknowledgment. No Guidehealth resume or application work belongs in this profile build.
 
 ## Windows: verify the real output file's NTFS ACL
 
