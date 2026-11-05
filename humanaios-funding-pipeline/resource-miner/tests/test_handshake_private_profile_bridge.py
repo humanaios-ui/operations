@@ -258,7 +258,16 @@ class HandshakePrivateBridgeE0(unittest.TestCase):
         self.assertEqual(receipt["status"], "PRIVATE_REPORT_CREATED")
         self.assertEqual(receipt["proposal_count"], len(report["proposals"]))
         self.assertNotIn("secret@example.invalid", stdout.getvalue())
-        self.assertEqual(os.stat(output_path).st_mode & 0o777, 0o600)
+        if os.name == "nt":
+            # Windows st_mode reports DOS attributes, not the NTFS access
+            # control list (ACL). 438 (0o666) is not an ACL verdict.
+            self.assertEqual(receipt["local_file_access_check"],
+                             "WINDOWS_ACL_REVIEW_REQUIRED")
+            self.assertGreater(output_path.stat().st_size, 0)
+        else:
+            self.assertEqual(os.stat(output_path).st_mode & 0o777, 0o600)
+            self.assertEqual(receipt["local_file_access_check"],
+                             "POSIX_0600_FILE_MODE")
         self.assertEqual(report["profile_write"], "DISABLED")
 
     def test_cli_refuses_overwriting_private_report(self):
