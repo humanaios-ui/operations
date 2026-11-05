@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 119
-  records: 66
+  records: 67
 ratifiers:
 - Night
 candidates:
@@ -924,6 +924,11 @@ candidates:
   z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
   z2_hash: "462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0"
 records:
+- path: z1-inbox/2026-10-21/CAPACITY_CONTROL_PLANE_REVIEW_RECORD.md
+  title: Record of the Z2-directed capacity change (4 to 9) and what is still unsigned
+  note: 'Records commit ffc95937 raising coordinator active_operator_queue from 4 to 9.
+    Shows the direction and the change; does not show a Z2 signature. No candidate or
+    ratify.py signature exists for it yet. Authority effect NONE.'
 - path: z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md
   title: "Z2 rulings — 2026-10-31 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
