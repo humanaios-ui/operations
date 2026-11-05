@@ -172,7 +172,7 @@ def main() -> None:
         fd = os.open(destination, flags, 0o600)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, sort_keys=True)
-            f.write("\\n")
+            f.write("\n")
         # Never print private claim text, applicant data, or snapshot to CI/logs.
         print(json.dumps({
             "status": "PRIVATE_REPORT_CREATED",
