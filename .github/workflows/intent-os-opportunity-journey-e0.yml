@@ -6,6 +6,8 @@ on:
       - 'humanaios-funding-pipeline/resource-miner/fixtures/opportunity_journey_apart_synthetic.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_journey_e0.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_research_application_journey_e0.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_aiaf_source_to_application_e0.py'
+      - 'humanaios-funding-pipeline/data/sources.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_my_opportunities_http.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/opportunity_preparation_ui.cjs'
       - 'humanaios-funding-pipeline/resource-miner/tests/opportunity_application_ui.cjs'
@@ -42,6 +44,8 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
       - name: Test evidence-bounded application journey
         run: python3 -m unittest discover -s tests -p 'test_research_application_journey_e0.py' -v
+      - name: Match AIAF official source to private local application case
+        run: python3 -m unittest discover -s tests -p 'test_aiaf_source_to_application_e0.py' -v
       - name: Verify real local HTTP endpoints and legacy bridge
         run: |
           python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
