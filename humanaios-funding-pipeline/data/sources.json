@@ -232,25 +232,29 @@
     "source": "manifund.org"
   },
   {
-    "name": "AI Alignment Foundation",
-    "category": "ai_safety",
-    "sponsor": "AIAF",
+    "name": "AI Alignment Foundation — Research Support",
+    "category": "research_grant",
+    "sponsor": "AI Alignment Foundation",
     "url": "https://www.aialignmentfoundation.org/approach/apply",
     "eligibility_tags": [
       "independent_researcher",
-      "ai_safety"
+      "ai_alignment",
+      "interdisciplinary_research"
     ],
-    "award_size": "varies",
+    "award_size": "Funding and dedicated engineering support; amount not specified",
     "deadline": null,
-    "deadline_cadence": "rolling",
-    "native_eligible": true,
+    "deadline_cadence": "not_stated",
+    "native_eligible": null,
     "ai_safety_relevant": true,
-    "trl_fit": "TRL2-3",
-    "status": "rolling",
-    "last_checked": null,
-    "url_ok": null,
-    "notes": "Fiscal sponsorship available for independent researchers",
-    "source": "aisafety.com"
+    "trl_fit": "Idea and ability to execute assessed; working prototype not expressly required on form",
+    "status": "active",
+    "last_checked": "2026-11-04",
+    "url_ok": true,
+    "notes": "Official funder invites alignment researchers and cross-disciplinary ideas. Application requires a brief bio, project title, one-sentence summary, proposal up to 500 words, first experiment possible in 1–2 weeks, and supporting links. Funding amount, deadline, and applicant-specific qualification were not stated on the reviewed form. Do not infer that an individual is eligible, awarded support, or automatically enrolled.",
+    "source": "aialignmentfoundation.org",
+    "affordances": [
+      "project_funding"
+    ]
   },
   {
     "name": "Foresight AI Safety Nodes",
