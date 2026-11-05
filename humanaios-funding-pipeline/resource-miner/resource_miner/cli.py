@@ -116,6 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compare a caller-supplied Handshake snapshot to the exact private master, without writes",
     )
     handshake.add_argument("--private-checkout", required=True)
+    handshake.add_argument("--operations-checkout", help="Pinned local operations Git checkout; enables PER-grounded Handshake-wide ranking")
     handshake.add_argument("--snapshot", required=True, help="Private, minimal Handshake profile JSON observation")
     handshake.add_argument("--output", required=True, help="New private JSON report path; never overwrites")
     handshake.add_argument("--owner-approved", action="store_true")
@@ -165,7 +166,10 @@ def main() -> None:
         if Path(args.snapshot).expanduser().resolve() == destination:
             raise SystemExit("snapshot and output cannot be the same file")
         observed = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
-        report = review_handshake_profile(private_root, observed, owner_approved=True)
+        report = review_handshake_profile(
+            private_root, observed, owner_approved=True,
+            operations_checkout=args.operations_checkout,
+        )
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
         if hasattr(os, "O_NOFOLLOW"):
             flags |= os.O_NOFOLLOW
@@ -180,6 +184,8 @@ def main() -> None:
             "application_submission": "NOT_INFERRED",
             "proposal_count": len(report["proposals"]),
             "conflict_count": len(report["conflicts"]),
+            "profile_objective": report.get("profile_objective", "LEGACY_UNRANKED_REVIEW"),
+            "ranked_skill_count": report.get("ranked_skill_count", 0),
             "authority_effect": "NONE",
             # Windows inherits NTFS ACLs from its parent. Python's 0o600
             # creation mask does not demonstrate owner-only access there.
