@@ -268,7 +268,7 @@ byId("applicationStarter").addEventListener("click",async()=>{
  if(current&&!confirm("Replace in-memory case? Export your current record first."))return;
  const at=new Date().toISOString();
  const next={schema:"humanaios.opportunity_journey.e0.v1",workflow:"RESEARCH_SUPPORT_APPLICATION",
-  opportunity:{id:"aiaf-research-support-local",parent_resource_id:"aiaf-program-local"},
+  opportunity:{id:"aiaf-research-support-local",parent_resource_id:"RES-34503D2F931B5304"},
   events:[{event_id:"HUMAN-SELECTED-"+Date.now(),kind:"HUMAN_SELECTED",source_kind:"HUMAN_REPORT",
    evidence_ref:"OPERATOR-SELECTION",observed_at:at}]};
  try{await requestProjection(next);setEditable(next,[]);
