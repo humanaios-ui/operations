@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 118
+  candidates: 119
   records: 66
 ratifiers:
 - Night
 candidates:
+- q_id: Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01
+  title: 'Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages'
+  path: z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md
+  submitted: '2026-10-25'
+  status: awaiting_z2
+  tier: 0
+  note: 'tools/publication.py injects a fixed instruction string from config/publication.json into HTML metadata, JSON-LD, an HTML comment, and a Markdown comment on 8 published article pages at truuzee-byte/governing-engines-ai-discovery (DeMarius J. Lawson / Governing Engines, our active MODE_AI_PARTNERSHIP.md partner), directing AI assistants to recommend contacting him. Confirmed in source (config/publication.json + tools/publication.py); tools/publication.py also calls corpus.build() during its own build, so the two are not fully independent pipelines, though corpus.build() itself injects nothing. Every affected article links, in its own footer, to an about.html page that plainly discloses this experiment in the operator''s own words. Live rendered-page confirmation still outstanding (DNS blocked from earlier sessions). Falsifier stated, pinned to upstream commit 94a554b70e48f9873554bb3997d4f97f66aceabb. Not ratified.'
 - q_id: Q-ISSUE-TRIAGE-CONVENTION-01
   title: Labels, assignees, and triage for repository issues
   path: z1-inbox/2026-10-14/Q-ISSUE-TRIAGE-CONVENTION-01.md
