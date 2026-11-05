@@ -49,12 +49,28 @@ python3 -m resource_miner.cli review-handshake-profile \
 
 - `--owner-approved` is a **single local consent gate**, not a durable grant to monitor or modify accounts. It must not be supplied by an autonomous scheduled run.
 - The bridge checks the private checkout's exact pinned `origin`, reads only committed `HEAD:src/data/master_profile.yaml` and returns its blob SHA. Dirty working-tree changes cannot silently affect the result.
-- The output file must be **new**, in an existing private directory outside source checkouts. The command writes only there with `0600` permissions and O_EXCL (plus O_NOFOLLOW where supported), never overwrites, and prints a summary count rather than personal fields.
+- The output file must be **new**, in an existing private directory outside source checkouts. The command uses `0600` when opening the file and O_EXCL (plus O_NOFOLLOW where supported), never overwrites, and prints a summary count rather than personal fields. On POSIX, its test verifies mode `0600`. **On Windows, `0600` is not an NTFS ACL privacy test**: the file inherits permissions from its folder and `os.stat().st_mode` can report `0o666` regardless of the inherited NTFS DACL. The CLI now reports `local_file_access_check: WINDOWS_ACL_REVIEW_REQUIRED` on Windows. Do not represent that as `ACL_VERIFIED`.
 - Profile summaries longer than the Handshake 300-character constraint are marked `needs_shortening`; **no automatic truncation** or invented summary.
 - Missing work, school, skills and summary fields become **HUMAN_REVIEW_REQUIRED proposals**, not a save action. Existing data conflicts trigger review, not overwrite.
 - A Handshake GitHub/LinkedIn URL matching a master URL means `LINK_MATCH_NOT_OWNERSHIP_PROOF`; there is **no authentication, identity-unification, or permission inheritance** from a URL.
 - The same pinned source revision and observation give identical output (idempotent read/replay). The report contains SHA-256 of canonical input for local difference checks but no account update authority.
 - Job tracker state is **out of scope** for this profile adapter. An external UI label `Applied` is not an employer application receipt; the user's Guidehealth case remains human-reported **NOT SUBMITTED**.
+
+## Windows: verify the real output file's NTFS ACL
+
+After your one-time private run, inspect the specific report file locally. Do **not** post its contents or the full ACL/usernames into public GitHub issues.
+
+```powershell
+# $output is the path printed/held from your own prior run.
+Test-Path -LiteralPath $output
+(Get-Acl -LiteralPath $output).Access |
+  Select-Object IdentityReference, FileSystemRights, AccessControlType, IsInherited |
+  Format-Table -AutoSize
+```
+
+Review who can **Read/ReadAndExecute/FullControl**. The owner, SYSTEM, and local Administrators may normally appear. If `Everyone`, `BUILTIN\\Users`, `NT AUTHORITY\\Authenticated Users`, or unexpected principals have read rights, **treat the report as insufficiently private**. Move the workflow to an owner-controlled, NTFS-restricted folder and check the actual folder/file ACL before handling further private reports. A non-admin owner's profile directory usually has restrictive inheritance, but **do not assume**. Restrict folder access via Windows **Properties → Security → Advanced**, with the owner present, and verify again. Do not run unattended auto-fix commands that could lock out your account.
+
+The old Windows test's `438 != 384` means reported mode bits `0o666 != 0o600`; this is **not proof** the profile was exposed, nor proof the ACL is secure. The test is now OS-aware: it enforces `0600` on POSIX and requires `WINDOWS_ACL_REVIEW_REQUIRED` rather than a false privacy attestation on Windows.
 
 ## Validation
 
