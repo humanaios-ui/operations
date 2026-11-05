@@ -236,10 +236,21 @@ def compare_handshake_profile(
 
 def review_handshake_profile(
     private_checkout: str, snapshot: dict[str, Any],
-    *, owner_approved: bool = False,
+    *, owner_approved: bool = False, operations_checkout: str | None = None,
 ) -> dict[str, Any]:
-    """Actual PR #1029 exact-path git bridge; no alternate master or new store."""
+    """Actual PR #1029 exact-path git bridge and optional PER-grounded review."""
     if not owner_approved:
         raise PermissionError("explicit owner consent required")
     master, revision = load_private_master(private_checkout)
-    return compare_handshake_profile(master, revision, snapshot, owner_approved=True)
+    result = compare_handshake_profile(master, revision, snapshot, owner_approved=True)
+    if operations_checkout is None:
+        result["profile_objective"] = "LEGACY_UNRANKED_REVIEW"
+        result["per_evidence_scope"] = "NOT_REQUESTED"
+        return result
+    from .handshake_profile_objective import (
+        enrich_profile_proposals, load_project_evidence,
+    )
+    pers, per_revision = load_project_evidence(operations_checkout)
+    return enrich_profile_proposals(
+        result, master, pers, per_revision, _snapshot(snapshot)["fields"],
+    )
