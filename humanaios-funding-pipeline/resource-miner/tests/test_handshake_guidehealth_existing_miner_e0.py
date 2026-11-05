@@ -1,7 +1,7 @@
 """Read-only E0 diagnostic: existing Miner vs one human-supplied Handshake listing.
 
 Scope: instrument existing production modules, not implement the Handshake adapter.
-All browser input is a redacted public posting specimen. No account tokens,
+All browser input is a redacted public posting specimen. An independent\nGuidehealth employer listing supports role/pay but its provider ID is not linked\nto the Handshake ID without a confirmed crosswalk. No account tokens,
 personal identity, application requests, network I/O, or production writes.
 Known gaps are asserted as CURRENT behavior; they are not acceptance passes.
 """
@@ -23,10 +23,6 @@ REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
 HANDSHAKE = "https://app.joinhandshake.com/jobs/11737348"
 SEARCH_VIEW = "https://app.joinhandshake.com/job-search/11737348?page=1&per_page=25"
 SEARCH_ALIAS = "https://app.joinhandshake.com/jobs/11737348?searchId=synthetic-session"
-EMPLOYER = (
-    "https://jobs.smartrecruiters.com/Guidehealth/"
-    "3743990014119834-remote-clinical-quality-improvement-coordinator"
-)
 TITLE = "Remote Clinical Quality Improvement Coordinator"
 # Public job fields visible in an operator-approved browsing observation,
 # timestamp not represented as an authenticated employer attestation.
@@ -48,7 +44,7 @@ def candidate(url=HANDSHAKE, *, category="paid_work"):
         sponsor="Guidehealth",
         tags=["healthcare", "remote", "full_time"],
         source_category=category,
-        primary_source_url=EMPLOYER,
+        primary_source_url=None,  # Provider cross-post equivalence has not been proven.
         observed_at=OBSERVED_AT,
     )
 
@@ -71,6 +67,7 @@ class HandshakeGuidehealthExistingMinerE0(unittest.TestCase):
         self.assertEqual(row.resource_affordances, ["earned_income"])
         self.assertEqual(row.deadline, "2026-11-21")
         self.assertEqual(row.source_name, "Handshake")
+        self.assertIsNone(row.primary_source_url)
         self.assertFalse(row.eligibility_assessed)
         self.assertEqual(row.user_disposition, "UNSET")
 
