@@ -19,4 +19,4 @@
 
 ## Where the gate evaluates
 
-The admission gate reads the policy from the default branch. With the limit at 9, a re-evaluation of PR #864 should no longer report CAPACITY_CONTENTION.
+The admission gate reads the policy from the default branch. With the limit at 9, a re-evaluation of PR #864 reports CAPACITY_CONTENTION only if the evaluated snapshot holds more than nine ready, non-zero-diff PRs with an ACTIVE base lane. This record does not include that snapshot, so the prediction is not established by this record alone. The snapshot evidence must be attached to close this point.
