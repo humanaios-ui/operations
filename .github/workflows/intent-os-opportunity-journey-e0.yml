@@ -5,8 +5,12 @@ on:
       - 'humanaios-funding-pipeline/resource-miner/resource_miner/opportunity_journey.py'
       - 'humanaios-funding-pipeline/resource-miner/fixtures/opportunity_journey_apart_synthetic.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_journey_e0.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_research_application_journey_e0.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_aiaf_source_to_application_e0.py'
+      - 'humanaios-funding-pipeline/data/sources.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_my_opportunities_http.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/opportunity_preparation_ui.cjs'
+      - 'humanaios-funding-pipeline/resource-miner/tests/opportunity_application_ui.cjs'
       - 'humanaios-funding-pipeline/resource-miner/resource_miner/source_review.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_source_review_ui.py'
@@ -38,12 +42,18 @@ jobs:
           python-version: '3.11'
       - name: Test proof-scoped journey projection
         run: python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+      - name: Test evidence-bounded application journey
+        run: python3 -m unittest discover -s tests -p 'test_research_application_journey_e0.py' -v
+      - name: Match AIAF official source to private local application case
+        run: python3 -m unittest discover -s tests -p 'test_aiaf_source_to_application_e0.py' -v
       - name: Verify real local HTTP endpoints and legacy bridge
         run: |
           python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
           python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
       - name: Exercise file version and preparation UI with real reducer
         run: node tests/opportunity_preparation_ui.cjs
+      - name: Exercise application controls with real reducer
+        run: node tests/opportunity_application_ui.cjs
       - name: "Qualify candidate-source feedback - 404 is not closure"
         run: |
           python3 -m unittest discover -s tests -p 'test_source_review.py' -v
