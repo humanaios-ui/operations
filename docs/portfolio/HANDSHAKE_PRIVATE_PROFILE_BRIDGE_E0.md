@@ -83,6 +83,40 @@ python3 -m unittest discover -s tests -p 'test_handshake_private_profile_bridge.
 
 These tests exercise **actual PR #1029 code**, including local synthetic committed Git checkouts, strict origin checks, private projection, no contact leakage, 7-section document-builder dependency, and the Handshake diff and CLI boundaries. They do **not** establish production browser integration or secure authenticated Handshake import. Inspect whole Resource Miner CI and triage any inherited red gates separately.
 
+
+## E0.1: Handshake-wide profile summary and PER-grounded skill selection
+
+**Scope:** This is for the **Handshake profile itself**, not for tailoring any employer application. Existing submitted applications are outside this work. The review remains private and does not log full profile content or change Handshake. No new master store or public personal facts are created.
+
+Run from the `resource-miner` folder on the updated PR branch; reuse the **same already authenticated** local checkouts and the previously saved Handshake snapshot. Use a **new** output name.
+
+```powershell
+$workspace = Join-Path $HOME "Documents\HumanAIOS-Local-Test"
+$ops = Join-Path $workspace "operations-handshake-e0"
+$private = Join-Path $workspace "humanaios-internal"
+$snapshot = Join-Path $HOME "Downloads\handshake-private-observation-for-pr1136-20261104.json"
+$folder = Join-Path $HOME "Documents\HumanAIOS-Private"
+Set-Location "$ops\humanaios-funding-pipeline\resource-miner"
+py -3 -m unittest discover -s tests -p "test_handshake_profile_objective.py" -v
+$output = Join-Path $folder ("handshake-per-profile-review-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".json")
+py -3 -m resource_miner.cli review-handshake-profile `
+  --private-checkout "$private" `
+  --operations-checkout "$ops" `
+  --snapshot "$snapshot" `
+  --output "$output" `
+  --owner-approved
+```
+
+**Evidence-source gate:** `--operations-checkout` enables the new source-aware mode by reading the **committed exact-path** Resource Miner `data/project_evidence_records.seed.json` from Git using the same pinned-origin `_git_file()` gate as PR #1029. Only PER claims tagged `SOURCE_SUPPORTED` and linked by exact employer organization to the committed private master can support ranking or summary phrase inclusion. The underlying resume may be owner-authored; `SOURCE_SUPPORTED` is *not* third-party verification. Jobs and eligibility signals are never substituted for career proof.
+
+**Candidate summary:** A fixed, plain-language phrase builder chooses at most four recognized experience domains with PER claim support, checks the whole sentence fits within 300 characters, and returns `HUMAN_REVIEW_REQUIRED`. If fewer than two source-grounded domains exist, the draft is `null` with a review flag. Existing nonempty Handshake summary is never overwritten.
+
+**Skill proposals:** Candidate labels come **only from master competencies**. The algorithm now compares them with evidence-supported PER claims, ranks by matched terms, and diversifies across competency areas. It offers up to 10 **proposals**; it cannot certify fluency or quantify experience. Previously observed Handshake skills are excluded. No inferred skill is added, no new external-platform privilege is acquired, and no profile changes occur.
+
+**Compatibility:** Without `--operations-checkout`, the old review remains available but now identifies itself as `LEGACY_UNRANKED_REVIEW`; do not mistake its first-10 skill list for scored recommendations. With that option, output bears `profile_objective: HANDSHAKE_GENERAL_PROFILE`, `per_revision`, and `per_evidence_scope`. The CLI console prints only counts and mode.
+
+**Security hold:** On Windows, inspect the private output folder and report NTFS ACL before handling or sharing more private data. The owner machine previously showed an inherited read-capable sandbox group; neither its name nor membership count proves malicious access, but the privacy boundary still needs independent owner verification. Do not disable system-managed groups globally. No automatic approval, update, merge, Z2 label, or external submission.
+
 ## Before admission
 
 1. Independent review against PR #1029's latest head (the feature is a **stacked draft**, not merged main).
