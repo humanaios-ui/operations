@@ -235,6 +235,62 @@ class HandshakePrivateBridgeE0(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.run_review()
 
+    def test_cli_runs_real_private_bridge_and_writes_mode_0600(self):
+        import contextlib
+        import io
+        import os
+        import sys
+        from unittest.mock import patch
+        from resource_miner.cli import main
+        temp_dir = self.private.parent
+        snapshot_path = temp_dir / "observation.json"
+        output_path = temp_dir / "private-report.json"
+        snapshot_path.write_text(json.dumps(observed()), encoding="utf-8")
+        argv = ["resource-miner", "review-handshake-profile",
+                "--private-checkout", str(self.private),
+                "--snapshot", str(snapshot_path),
+                "--output", str(output_path), "--owner-approved"]
+        stdout = io.StringIO()
+        with patch.object(sys, "argv", argv), contextlib.redirect_stdout(stdout):
+            main()
+        receipt = json.loads(stdout.getvalue())
+        report = json.loads(output_path.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["status"], "PRIVATE_REPORT_CREATED")
+        self.assertEqual(receipt["proposal_count"], len(report["proposals"]))
+        self.assertNotIn("secret@example.invalid", stdout.getvalue())
+        self.assertEqual(os.stat(output_path).st_mode & 0o777, 0o600)
+        self.assertEqual(report["profile_write"], "DISABLED")
+
+    def test_cli_refuses_overwriting_private_report(self):
+        import contextlib
+        import io
+        import sys
+        from unittest.mock import patch
+        from resource_miner.cli import main
+        base = self.private.parent
+        snapshot_path, output_path = base / "snapshot.json", base / "report.json"
+        snapshot_path.write_text(json.dumps(observed()), encoding="utf-8")
+        output_path.write_text("original", encoding="utf-8")
+        argv = ["resource-miner", "review-handshake-profile",
+                "--private-checkout", str(self.private),
+                "--snapshot", str(snapshot_path),
+                "--output", str(output_path), "--owner-approved"]
+        with patch.object(sys, "argv", argv), self.assertRaises(SystemExit):
+            main()
+        self.assertEqual(output_path.read_text(encoding="utf-8"), "original")
+
+    def test_cli_fails_closed_without_owner_approval(self):
+        import sys
+        from unittest.mock import patch
+        from resource_miner.cli import main
+        argv = ["resource-miner", "review-handshake-profile",
+                "--private-checkout", str(self.private),
+                "--snapshot", str(self.private.parent / "absent.json"),
+                "--output", str(self.private.parent / "unwritten.json")]
+        with patch.object(sys, "argv", argv), self.assertRaises(SystemExit):
+            main()
+        self.assertFalse((self.private.parent / "unwritten.json").exists())
+
     def test_no_job_status_or_submission_authority_in_snapshot(self):
         s = observed()
         s["fields"]["application_status"] = "Applied"
