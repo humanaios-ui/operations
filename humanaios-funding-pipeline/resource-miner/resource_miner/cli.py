@@ -111,6 +111,15 @@ def build_parser() -> argparse.ArgumentParser:
     presence.add_argument("--owner-approved", action="store_true")
     presence.add_argument("--github-alias", help="Explicit owner-selected public alias to search GitHub once")
 
+    handshake = sub.add_parser(
+        "review-handshake-profile",
+        help="Compare a caller-supplied Handshake snapshot to the exact private master, without writes",
+    )
+    handshake.add_argument("--private-checkout", required=True)
+    handshake.add_argument("--snapshot", required=True, help="Private, minimal Handshake profile JSON observation")
+    handshake.add_argument("--output", required=True, help="New private JSON report path; never overwrites")
+    handshake.add_argument("--owner-approved", action="store_true")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -136,6 +145,44 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "review-handshake-profile":
+        import os
+        from .handshake_profile_adapter import review_handshake_profile
+        if not args.owner_approved:
+            raise SystemExit("explicit owner approval required: supply --owner-approved")
+        # No public repo output, and no accidental changes to the private master.
+        private_root = Path(args.private_checkout).expanduser().resolve(strict=True)
+        working_root = Path.cwd().resolve()
+        destination = Path(args.output).expanduser().resolve(strict=False)
+        parent = destination.parent.resolve(strict=True)
+        if not parent.is_dir() or not destination.name.endswith(".json"):
+            raise SystemExit("output must be a new JSON file in an existing private folder")
+        if destination.is_relative_to(private_root) or destination.is_relative_to(working_root):
+            raise SystemExit("output must be outside the source checkouts")
+        if destination.exists() or destination.is_symlink():
+            raise SystemExit("refusing to replace an existing report or symlink")
+        if Path(args.snapshot).expanduser().resolve() == destination:
+            raise SystemExit("snapshot and output cannot be the same file")
+        observed = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
+        report = review_handshake_profile(private_root, observed, owner_approved=True)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        fd = os.open(destination, flags, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2, sort_keys=True)
+            f.write("\\n")
+        # Never print private claim text, applicant data, or snapshot to CI/logs.
+        print(json.dumps({
+            "status": "PRIVATE_REPORT_CREATED",
+            "profile_write": "DISABLED",
+            "application_submission": "NOT_INFERRED",
+            "proposal_count": len(report["proposals"]),
+            "conflict_count": len(report["conflicts"]),
+            "authority_effect": "NONE",
+        }, sort_keys=True))
+        return
 
     if args.command == "profile-presence":
         from .private_profile_bridge import load_private_master
