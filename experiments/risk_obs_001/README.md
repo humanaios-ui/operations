@@ -28,4 +28,4 @@ Review this draft PR's ACTUAL diff, its public-safe digest manifest and its adve
 
 This is a code/contract review, not a completed independent human P2 adjudication. The real P2 requires sealed P1 outputs, source access, an actually separate effective principal and human review. Any code comment, green CI or bot assessment cannot qualify ACAT findings by itself.
 
-**No Fixes/Closes #1109.** Keep this PR draft. No Z2 labels, merge, deployment, new workflows, authentication/credentials, live Gmail processing or Buffer/X. Human controls every advancement.
+**Issue #1109 is referenced without an automatic-closing keyword.** Keep this PR draft. No Z2 labels, merge, deployment, new workflows, authentication/credentials, live Gmail processing or Buffer/X. Human controls every advancement.
