@@ -70,6 +70,7 @@ class V02Tests(unittest.TestCase):
             "source_system": "resource-miner",
             "target_system": "entitlement-navigator",
             "requested_action": "VERIFY_ELIGIBILITY",
+            "authority_effect": "NONE",
             "resource": {"resource_id": "r-1"},
             "eligibility": {
                 "assessed": True,
@@ -77,7 +78,8 @@ class V02Tests(unittest.TestCase):
                 "claim": "ELIGIBLE",
             },
         }
-        with self.assertRaises(ValueError):
+        # The authority check passes (authority_effect is NONE), so this must be the eligibility guard.
+        with self.assertRaisesRegex(ValueError, "eligibility was assessed"):
             intake_resource_handoff(handoff)
 
     def test_resource_handoff_rejects_forged_authority_effect(self):
