@@ -80,6 +80,28 @@ class V02Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             intake_resource_handoff(handoff)
 
+    def test_resource_handoff_rejects_forged_authority_effect(self):
+        handoff = {
+            "schema": "humanaios.resource-entitlement-handoff.v1",
+            "handoff_id": "rm:r-forged",
+            "source_system": "resource-miner",
+            "target_system": "entitlement-navigator",
+            "requested_action": "VERIFY_ELIGIBILITY",
+            "authority_effect": "AUTHORIZE",
+            "resource": {"resource_id": "r-1"},
+            "eligibility": {
+                "assessed": False,
+                "status": "UNASSESSED",
+                "claim": "NO_ELIGIBILITY_CLAIM",
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "Unauthorized authority effect"):
+            intake_resource_handoff(handoff)
+        # Missing field is also rejected (fail closed).
+        del handoff["authority_effect"]
+        with self.assertRaisesRegex(ValueError, "Unauthorized authority effect"):
+            intake_resource_handoff(handoff)
+
     def test_genealogy_goal_activates_genealogy_interrogation(self):
         profile = {
             "intake_statement": "I want to investigate an inherited ancestral land claim.",
