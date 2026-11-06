@@ -20,7 +20,7 @@ Run the following read-only command after separately obtaining the *exact privat
       --prompt /PRIVATE/PATH/P1_prompt_from_packet_v0.1.txt \
       --rubric /PRIVATE/PATH/scoring_rubric_PROPOSED_v0.1.md
 
-A DIGEST_MATCH_ONLY result is not authorization. Missing bytes and mismatched hashes return HOLD. Optional --receipt checks the shape of an untrusted P1 claim and always returns CANDIDATE_UNVERIFIED, never authenticated execution or admission.
+A DIGEST_MATCH_ONLY result is not authorization. Missing bytes and mismatched hashes return HOLD. Optional --receipt checks the shape of an untrusted P1 claim and returns CANDIDATE_UNVERIFIED at best (HOLD if anything is wrong), never authenticated execution or admission. Repeat --receipt to also compare receipts with each other: a repeated leg, a shared provider run reference or a shared output digest returns HOLD. JSON is read with the strict loader in experiments/acat_r_v01/calibrate.py (duplicate keys, NaN/Infinity and non-object roots are refused); unreadable input returns HOLD with exit code 2.
 
 ## Receipt fields: peer_exposure + isolation_claim (hardened)
 

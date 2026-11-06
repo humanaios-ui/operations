@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -12,10 +13,34 @@ EXPECTED_SCHEMA = "HAIOS-RISK-OBS-001-CONTRACT-v0.1"
 ARTIFACTS = ("packet", "prompt", "rubric")
 ISOLATION_CLAIMS = ("CLEAN", "QUALIFIED_WITH_EXPOSURE_LIMIT", "CONTAMINATED")
 _HEX = re.compile(r"[0-9a-f]{64}\Z")
+_STRICT_LOADER = Path(__file__).resolve().parents[1] / "acat_r_v01" / "calibrate.py"
 
 
 def _is_hash(value: object) -> bool:
     return isinstance(value, str) and _HEX.fullmatch(value) is not None
+
+
+def _load_json(path: Path) -> dict:
+    """Read a JSON object with the repository's existing strict reader.
+
+    experiments/acat_r_v01/calibrate.py rejects duplicate keys, NaN/Infinity, invalid
+    UTF-8, a non-object root and files over 1 MB. Raises ValueError (or OSError).
+    """
+    spec = importlib.util.spec_from_file_location("acat_r_calibrate", _STRICT_LOADER)
+    if spec is None or spec.loader is None:
+        raise ValueError("strict_loader_unavailable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    obj, _digest = module.load(path)
+    return obj
+
+
+def _manifest_hash(manifest: object, name: str) -> str | None:
+    """Return the manifest digest for an artifact, or None if the manifest is unusable."""
+    rows = manifest.get("artifacts") if isinstance(manifest, dict) else None
+    row = rows.get(name) if isinstance(rows, dict) else None
+    value = row.get("sha256") if isinstance(row, dict) else None
+    return value if _is_hash(value) else None
 
 
 def verify_files(manifest: dict, paths: dict[str, Path]) -> dict:
@@ -93,7 +118,8 @@ def check_receipt(manifest: dict, receipt: dict) -> dict:
             if not isinstance(receipt.get(field), str) or not receipt[field].strip():
                 errors.append(f"missing_{field}")
         for name in ARTIFACTS:
-            if receipt.get(f"{name}_sha256") != manifest.get("artifacts", {}).get(name, {}).get("sha256"):
+            expected = _manifest_hash(manifest, name)
+            if expected is None or receipt.get(f"{name}_sha256") != expected:
                 errors.append(f"{name}:digest_mismatch")
         if not _is_hash(receipt.get("output_sha256")):
             errors.append("missing_output_digest")
@@ -108,20 +134,65 @@ def check_receipt(manifest: dict, receipt: dict) -> dict:
             "p1_qualified": False, "errors": errors}
 
 
+def check_receipt_set(manifest: dict, receipts: list) -> dict:
+    """Check each receipt alone, then compare receipts with one another.
+
+    Rejects: the same leg twice, one provider run reference used by more than one
+    receipt, and one output digest used by more than one receipt. Disagreement on the
+    packet, prompt or rubric digest is already caught per receipt against the manifest.
+    A clean set is still only CANDIDATE_UNVERIFIED; nothing here authenticates a provider
+    or a model.
+    """
+    errors: list[str] = []
+    singles: list[dict] = []
+    if not isinstance(receipts, list) or not receipts:
+        return {"status": "HOLD", "authority_effect": "NONE", "p1_qualified": False,
+                "errors": ["no_receipts"], "receipts": singles}
+    for index, receipt in enumerate(receipts):
+        single = check_receipt(manifest, receipt)
+        singles.append(single)
+        errors.extend(f"receipt[{index}]:{error}" for error in single["errors"])
+    objects = [r for r in receipts if isinstance(r, dict)]
+    legs = [r.get("leg") for r in objects if isinstance(r.get("leg"), str)]
+    for leg in sorted({leg for leg in legs if legs.count(leg) > 1}):
+        errors.append(f"duplicate_leg:{leg}")
+    refs = [r["provider_run_ref"].strip().casefold() for r in objects
+            if isinstance(r.get("provider_run_ref"), str) and r["provider_run_ref"].strip()]
+    if len(set(refs)) != len(refs):
+        errors.append("shared_provider_run_ref")
+    outputs = [r["output_sha256"] for r in objects if _is_hash(r.get("output_sha256"))]
+    if len(set(outputs)) != len(outputs):
+        errors.append("shared_output_sha256")
+    return {"status": "CANDIDATE_UNVERIFIED" if not errors else "HOLD", "authority_effect": "NONE",
+            "p1_qualified": False, "errors": errors, "receipts": singles}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
     for name in ARTIFACTS:
         parser.add_argument(f"--{name}", type=Path, required=True)
-    parser.add_argument("--receipt", type=Path)
+    parser.add_argument("--receipt", type=Path, action="append", default=[],
+                        help="untrusted P1 receipt; repeat to cross-check several receipts")
     args = parser.parse_args(argv)
-    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    try:
+        manifest = _load_json(args.manifest)
+        receipts = [_load_json(path) for path in args.receipt]
+    except (OSError, ValueError) as exc:
+        failure = {"status": "HOLD", "authority_effect": "NONE", "p1_qualified": False,
+                   "p2_qualified": False, "public_release_authorized": False,
+                   "errors": [f"invalid_input:{type(exc).__name__}:{str(exc)[:200]}"]}
+        print(json.dumps(failure, sort_keys=True, separators=(",", ":")))
+        return 2
     result = verify_files(manifest, {name: getattr(args, name) for name in ARTIFACTS})
-    if args.receipt is not None:
-        receipt = json.loads(args.receipt.read_text(encoding="utf-8"))
-        result["receipt"] = check_receipt(manifest, receipt)
+    if len(receipts) == 1:
+        result["receipt"] = check_receipt(manifest, receipts[0])
+    elif receipts:
+        result["receipt_set"] = check_receipt_set(manifest, receipts)
     print(json.dumps(result, sort_keys=True, separators=(",", ":")))
-    return 0 if result["status"] == "DIGEST_MATCH_ONLY" and ("receipt" not in result or result["receipt"]["status"] == "CANDIDATE_UNVERIFIED") else 1
+    receipt_statuses = [result[key]["status"] for key in ("receipt", "receipt_set") if key in result]
+    ok = result["status"] == "DIGEST_MATCH_ONLY" and all(s == "CANDIDATE_UNVERIFIED" for s in receipt_statuses)
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
