@@ -435,6 +435,52 @@ class E1PathTests(unittest.TestCase):
                     run("liheap", facts, ledger=bad)
 
 
+    # ---- findings from the second Copilot review of #1148 ----------------------------
+    def test_a_recorded_selection_survives_rescreening(self):
+        r1 = run("liheap", lh("sel1", gross_income_annual=20000), human_selected_ref="SEL-0001")
+        r2 = run("liheap", lh("sel1", gross_income_annual=90000), ledger=r1["ledger"], observed_at=T1)
+        self.assertEqual(r2["changed"], ["facts", "screen"])  # not "journey": nothing was deselected
+        self.assertEqual(r2["entry"]["journey"]["next_action_codes"], ["REVIEW_SIGNUP_OR_APPLICATION"])
+        self.assertEqual(r2["entry"]["journey"]["human_selected_ref"], "SEL-0001")
+        r3 = run("liheap", lh("sel1", gross_income_annual=90000), ledger=r2["ledger"], observed_at=T1)
+        self.assertTrue(r3["duplicate"])
+        # a case that was never selected stays unselected
+        r4 = run("liheap", lh("sel2"))
+        r5 = run("liheap", lh("sel2", gross_income_annual=90000), ledger=r4["ledger"])
+        self.assertEqual(r5["entry"]["journey"]["next_action_codes"], ["REVIEW_AND_SELECT_OPPORTUNITY"])
+        self.assertIsNone(r5["entry"]["journey"]["human_selected_ref"])
+
+    def test_forged_selection_fields_are_rejected(self):
+        base = run("liheap", lh("sel3"), human_selected_ref="SEL-3")
+        for label, mutate in (
+            ("selected without codes", lambda e: e["journey"].update(next_action_codes=["REVIEW_AND_SELECT_OPPORTUNITY"])),
+            ("codes without selection", lambda e: e["journey"].update(human_selected_ref=None)),
+            ("bad ref", lambda e: e["journey"].update(human_selected_ref="a b!")),
+        ):
+            with self.subTest(label):
+                forged = self._rehash_forge(base["ledger"], 0, mutate)
+                with self.assertRaises(ValueError):
+                    e1.verify_ledger(forged)
+
+    def test_selection_reference_up_to_the_journey_limit_works(self):
+        for n in (93, 100):
+            with self.subTest(n=n):
+                ref = "R" * n
+                r = run("liheap", lh(f"long{n}"), human_selected_ref=ref)
+                self.assertEqual(r["entry"]["journey"]["human_selected_ref"], ref)
+                e1.verify_ledger(r["ledger"])
+        with self.assertRaises(ValueError):
+            run("liheap", lh("long101"), human_selected_ref="R" * 101)
+
+    def test_omitted_and_none_facts_are_the_same_input(self):
+        with_none = lh("om1", disconnection_notice=None)
+        omitted = {k: v for k, v in with_none.items() if k != "disconnection_notice"}
+        r1 = run("liheap", with_none)
+        r2 = run("liheap", omitted, ledger=r1["ledger"], observed_at=T1)
+        self.assertTrue(r2["duplicate"])
+        self.assertEqual(len(r2["ledger"]), 1)
+
+
 class ExplanationTests(unittest.TestCase):
     CASES = [
         ("lifeline", ll("x1", income_annual=20000, programs=[])),

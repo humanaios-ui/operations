@@ -158,7 +158,10 @@ def _strict_date(value: Any, label: str) -> date:
 
 
 def _canonical_facts(facts: dict[str, Any]) -> dict[str, Any]:
-    """Equal facts digest equally: 1000 == 1000.0 == -0.0 style noise, program order and case."""
+    """Equal facts digest equally: 1000 == 1000.0, program order and case, omitted == None.
+
+    Expects the evaluator's validated output (every pack fact present, None when unknown).
+    """
     out = {}
     for key, value in facts.items():
         if key == "case":
@@ -274,8 +277,12 @@ def _check_entry(entry: Any, seq: int, prev: str, cache: dict[str, dict[str, Any
         raise ValueError("ledger entry source identity is invalid")
     if not isinstance(journey, dict) or set(journey) != {
             "opportunity_id", "digest_sha256", "next_action_codes", "signup_standing",
-            "participant_standing", "warnings"}:
+            "participant_standing", "warnings", "human_selected_ref"}:
         raise ValueError("ledger entry journey is malformed")
+    ref = journey["human_selected_ref"]
+    if not (ref is None or (isinstance(ref, str) and TOKEN.fullmatch(ref))) \
+            or (ref is not None) != (journey["next_action_codes"] == ["REVIEW_SIGNUP_OR_APPLICATION"]):
+        raise ValueError("ledger entry selection does not match its journey")
     expected_opp = "OPP-" + hashlib.sha256(f"{src['resource_id']}|{entry['case']}".encode()).hexdigest()[:16]
     # This path only ever reports a discovery and an optional human selection, so the journey
     # can only be in one of two states and can carry no warnings or signup standing.
@@ -371,22 +378,31 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
     screen = _evaluator.evaluate(pack, facts, as_of=as_of, pinned_digest=pinned)
 
     # 4. Opportunity Journey projection from receipts this path can honestly claim.
+    #    A recorded human selection is kept when a case is rescreened: omitting the
+    #    argument is not a withdrawal (this path has no deselect event).
+    history = case_history(ledger, program, screen["case"])
+    prior = history[-1] if history else None
+    selected_ref = human_selected_ref if human_selected_ref is not None else (
+        prior["journey"]["human_selected_ref"] if prior else None)
     opp = "OPP-" + hashlib.sha256(f"{resource_id}|{screen['case']}".encode()).hexdigest()[:16]
     events = [{"event_id": "EVT-" + handoff_digest[:16], "kind": "DISCOVERED",
                "source_kind": "RESOURCE_MINER_OBSERVATION",
                "evidence_ref": "HND-" + handoff_digest[:16], "observed_at": observed_at}]
-    if human_selected_ref is not None:
-        if not isinstance(human_selected_ref, str) or not TOKEN.fullmatch(human_selected_ref):
+    if selected_ref is not None:
+        if not isinstance(selected_ref, str) or not TOKEN.fullmatch(selected_ref):
             raise ValueError("human_selected_ref must be an opaque token")
-        events.append({"event_id": "EVT-SEL-" + human_selected_ref, "kind": "HUMAN_SELECTED",
-                       "source_kind": "HUMAN_REPORT", "evidence_ref": human_selected_ref,
-                       "observed_at": observed_at})
+        # Hash the reference into the event id so a 100-character reference stays within
+        # the journey's 100-character token limit; the original stays as the evidence ref.
+        events.append({"event_id": "EVT-SEL-" + hashlib.sha256(selected_ref.encode()).hexdigest()[:16],
+                       "kind": "HUMAN_SELECTED", "source_kind": "HUMAN_REPORT",
+                       "evidence_ref": selected_ref, "observed_at": observed_at})
     projection = _journey.project_journey({
         "schema": _journey.SCHEMA,
         "opportunity": {"id": opp, "parent_resource_id": resource_id},
         "events": events})
 
-    clean_facts = _canonical_facts(facts)
+    checked_facts = _evaluator._check_facts(pack, copy.deepcopy(facts))
+    clean_facts = _canonical_facts(checked_facts)
     body = {
         "schema": ENTRY_SCHEMA,
         "program": program,
@@ -413,7 +429,7 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
         "screen": {"state": screen["state"], "income_cap_usd": screen["income_cap_usd"],
                    "next_step": screen["next_step"]},
         "path_status": "SOURCE_CONFLICT_HOLD" if conflict else "OK",
-        "missing_facts": _missing_facts(pack, _evaluator._check_facts(pack, copy.deepcopy(facts))),
+        "missing_facts": _missing_facts(pack, checked_facts),
         "journey": {
             "opportunity_id": projection["opportunity_id"],
             "digest_sha256": projection["digest_sha256"],
@@ -421,14 +437,13 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
             "signup_standing": projection["signup_standing"],
             "participant_standing": projection["participant_standing"],
             "warnings": projection["warnings"],
+            "human_selected_ref": selected_ref,
         },
         "authority_effect": "NONE",
         "eligibility_status": "UNASSESSED",
         "determination": "ADVISORY_SCREEN_ONLY",
     }
 
-    history = case_history(ledger, program, body["case"])
-    prior = history[-1] if history else None
     changed: list[str] = []
     if prior is not None:
         if prior["input_digest"] != body["input_digest"]:
