@@ -54,6 +54,11 @@ LIFELINE_CASES = [
      "POSSIBLE_ROUTE_UNVERIFIED"),
     (ll("nine_person_over", household_size=9, income_annual=82891, programs=[]), "NO_ROUTE_SHOWN"),
     (ll("other_state", state="TX", income_annual=1000, programs=[]), "SCOPE_REVIEW"),
+    (ll("size_unknown_income_no_programs", household_size=None, income_annual=1000, programs=[]), "UNKNOWN_ROUTE_FACTS"),
+    (ll("size_unmodeled_income_no_programs", household_size=21, income_annual=1000, programs=[]), "UNKNOWN_ROUTE_FACTS"),
+    (ll("tribal_unknown_above_cap", income_annual=50000, programs=["FDPIR"], qualifying_tribal_lands=None), "FACT_UNKNOWN"),
+    (ll("tribal_unknown_no_income", programs=["FDPIR"], qualifying_tribal_lands=None), "FACT_UNKNOWN"),
+    (ll("tribal_false_income_unknown", programs=["FDPIR"], qualifying_tribal_lands=False), "UNKNOWN_ROUTE_FACTS"),
 ]
 
 LIHEAP_CASES = [
