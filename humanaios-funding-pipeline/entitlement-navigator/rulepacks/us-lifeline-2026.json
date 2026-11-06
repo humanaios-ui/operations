@@ -15,7 +15,8 @@
       "type": "money"
     },
     "programs": {
-      "type": "str_list"
+      "type": "str_list",
+      "upper": true
     },
     "qualifying_tribal_lands": {
       "type": "bool"
@@ -75,12 +76,26 @@
     "WORKSHEET_REQUIRED": "Separate household at same address: complete the household worksheet"
   },
   "note": "Frozen from USAC pages as observed on rule_observed_at. National Verifier decides; benefit amounts are not modeled.",
-  "pack_digest": "2378892acfbfc6ba15ed5f47310d65c8e157ee1f289d8bf7c41bc53571dc1a91",
+  "pack_digest": "7998ff26255205d4d9839f4369a4d7cfcea87695bd09991a7c5d0aa9da3d54c4",
   "pack_id": "us-lifeline-2026",
   "program": "FCC Lifeline (contiguous US, FL scope)",
   "rule_observed_at": "2026-11-06",
+  "rule_source_attribution": "AUTHOR_ASSERTED_NOT_REVIEWED",
   "rule_version": "USAC-2026-11-06",
   "rules": [
+    {
+      "all": [
+        {
+          "fact": "state",
+          "op": "is_null"
+        }
+      ],
+      "id": "state_unknown",
+      "sources": [
+        0
+      ],
+      "state": "FACT_UNKNOWN"
+    },
     {
       "all": [
         {
@@ -90,6 +105,9 @@
         }
       ],
       "id": "state_scope",
+      "sources": [
+        0
+      ],
       "state": "SCOPE_REVIEW"
     },
     {
@@ -101,6 +119,9 @@
         }
       ],
       "id": "existing_discount",
+      "sources": [
+        0
+      ],
       "state": "HOLD"
     },
     {
@@ -111,6 +132,9 @@
         }
       ],
       "id": "discount_status_unknown",
+      "sources": [
+        0
+      ],
       "state": "FACT_UNKNOWN"
     },
     {
@@ -127,6 +151,9 @@
         }
       ],
       "id": "household_relationship",
+      "sources": [
+        0
+      ],
       "state": "REVIEW_REQUIRED"
     },
     {
@@ -142,6 +169,9 @@
         }
       ],
       "id": "worksheet_income",
+      "sources": [
+        0
+      ],
       "state": "WORKSHEET_REQUIRED"
     },
     {
@@ -158,6 +188,10 @@
         }
       ],
       "id": "worksheet_program",
+      "sources": [
+        0,
+        1
+      ],
       "state": "WORKSHEET_REQUIRED"
     },
     {
@@ -179,6 +213,10 @@
         }
       ],
       "id": "worksheet_tribal",
+      "sources": [
+        0,
+        2
+      ],
       "state": "WORKSHEET_REQUIRED"
     },
     {
@@ -189,6 +227,9 @@
         }
       ],
       "id": "route_income",
+      "sources": [
+        0
+      ],
       "state": "POSSIBLE_ROUTE_UNVERIFIED"
     },
     {
@@ -200,6 +241,9 @@
         }
       ],
       "id": "route_program",
+      "sources": [
+        1
+      ],
       "state": "POSSIBLE_ROUTE_UNVERIFIED"
     },
     {
@@ -216,6 +260,9 @@
         }
       ],
       "id": "route_tribal",
+      "sources": [
+        2
+      ],
       "state": "POSSIBLE_ROUTE_UNVERIFIED"
     },
     {
@@ -235,6 +282,9 @@
         }
       ],
       "id": "tribal_lands_unknown",
+      "sources": [
+        2
+      ],
       "state": "FACT_UNKNOWN"
     },
     {
@@ -246,9 +296,17 @@
         {
           "fact": "programs",
           "op": "not_null"
+        },
+        {
+          "fact": "household_size",
+          "op": "cap_known"
         }
       ],
       "id": "no_route",
+      "sources": [
+        0,
+        1
+      ],
       "state": "NO_ROUTE_SHOWN"
     }
   ],

@@ -152,7 +152,8 @@ class RulesEvaluatorTests(unittest.TestCase):
 
     def test_https_only_source_check_does_not_claim_authenticity(self):
         fake = self._repinned(self.lifeline,
-                              lambda p: p.update(sources=[{"url": "https://example.org/untrusted"}]))
+                              lambda p: p.update(sources=[{"url": f"https://example.org/untrusted{i}"}
+                                                                   for i in range(len(p["sources"]))]))
         validate_pack(fake)  # self-consistent and https, so accepted: digest is not authenticity
         out = evaluate(fake, LIFELINE_CASES[0][0])
         self.assertEqual(out["source_authenticity"], "NOT_VERIFIED")
@@ -205,6 +206,43 @@ class RulesEvaluatorTests(unittest.TestCase):
         out = evaluate(dated, facts, as_of="2027-01-01")
         self.assertEqual(out["state"], "STALE_RULES")
         self.assertEqual(out["rule_id"], "stale")
+
+    def test_result_names_the_sources_for_the_matched_rule(self):
+        out = evaluate(self.lifeline, ll("tribal", income_annual=50000, programs=["FDPIR"],
+                                         qualifying_tribal_lands=True))
+        self.assertEqual(out["rule_id"], "route_tribal")
+        self.assertEqual(out["rule_sources"], ["https://www.usac.org/lifeline/consumer-eligibility/tribal-eligibility/"])
+        self.assertEqual(out["rule_source_attribution"], "AUTHOR_ASSERTED_NOT_REVIEWED")
+        # default / stale outcomes fall back to every pack source
+        unknown = evaluate(self.lifeline, ll("unknown"))
+        self.assertEqual(unknown["rule_sources"], unknown["sources"])
+
+    def test_rule_source_index_must_exist(self):
+        bad = self._repinned(self.lifeline, lambda p: p["rules"][0].update(sources=[99]))
+        with self.assertRaisesRegex(ValueError, "source index"):
+            validate_pack(bad)
+
+    def test_case_label_is_matched_in_full_and_never_none(self):
+        for bad in ("x\n", "x\r\n", None, "", "a b"):
+            with self.subTest(bad=bad):
+                with self.assertRaisesRegex(ValueError, "opaque token"):
+                    evaluate(self.lifeline, {**LIFELINE_CASES[0][0], "case": bad})
+
+    def test_unusable_household_size_never_yields_a_negative_route(self):
+        for size in (0, -1, 21, 10 ** 30, None, 1.0, True):
+            with self.subTest(size=size):
+                facts = ll("sz", household_size=size, income_annual=10000, programs=["SNAP2"])
+                try:
+                    out = evaluate(self.lifeline, facts)
+                except ValueError:
+                    continue  # rejected outright is also fail-closed
+                self.assertEqual(out["state"], "UNKNOWN_ROUTE_FACTS")
+
+    def test_null_scope_facts_are_unknown_and_program_names_normalize(self):
+        self.assertEqual(evaluate(self.lifeline, ll("n1", state=None))["state"], "FACT_UNKNOWN")
+        self.assertEqual(evaluate(self.liheap, lh("n2", county=None))["state"], "FACT_UNKNOWN")
+        self.assertEqual(evaluate(self.lifeline, ll("n3", income_annual=99999, programs=[" snap "]))["state"],
+                         "POSSIBLE_ROUTE_UNVERIFIED")
 
     def test_pack_file_is_plain_json(self):
         json.dumps(self.liheap)
