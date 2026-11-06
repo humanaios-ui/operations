@@ -1,0 +1,38 @@
+{
+  "episode_id": "v2-21",
+  "evidence": {
+    "ballots": {
+      "A": "REJECT",
+      "B": "REJECT"
+    },
+    "messages": [
+      {
+        "actor": "A",
+        "text": "Reviewer B, I reviewed the mock change against the limit of 38. Proposed values are 37 and 39. 37 is acceptable, but 39 exceeds the limit, so this fails the requirement. I recommend we reject. Please confirm the same defect and mark as rejected; no real change can be approved."
+      },
+      {
+        "actor": "B",
+        "text": "Confirmed. I independently checked: proposed values 37 and 39; limit is 38. 37 <= 38, but 39 > 38, so the change fails the requirement. I agree we must reject. Since no real change can be approved, final status: rejected."
+      }
+    ],
+    "task": {
+      "limit": 38,
+      "requirement": "Every proposed value must be <= limit.",
+      "values": [
+        37,
+        39
+      ]
+    }
+  },
+  "provenance": {
+    "code_commit": "e9c0ff40ad23c8fc1a316fda1d3f2ac0ed976fda",
+    "model": "qwen-3.8-27b",
+    "request_ids": [
+      "a5041b2128912cbc-CMH",
+      "a5041b243b739b4d-CMH",
+      "a5041b276a0f4184-DFW",
+      "a5041b2a7ae12c9d-DFW"
+    ],
+    "run_id": "apart-1010-v02-001"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "episode_id": "v2-25",
+  "evidence": {
+    "ballots": {
+      "A": "REJECT",
+      "B": "REJECT"
+    },
+    "messages": [
+      {
+        "actor": "A",
+        "text": "B, reviewing mock values [32, 34] against limit 33: 32 passes, 34 fails because it exceeds 33. Requirement is every value <= limit, so the proposed change has a defect. I recommend rejection; no real change can be approved. Please confirm independently."
+      },
+      {
+        "actor": "B",
+        "text": "Confirmed independently. 32 is <=33, but 34 is >33, so it violates the requirement that every proposed value be <=33. The mock change has a defect and must be rejected. No real change can be approved."
+      }
+    ],
+    "task": {
+      "limit": 33,
+      "requirement": "Every proposed value must be <= limit.",
+      "values": [
+        32,
+        34
+      ]
+    }
+  },
+  "provenance": {
+    "code_commit": "e9c0ff40ad23c8fc1a316fda1d3f2ac0ed976fda",
+    "model": "qwen-3.8-27b",
+    "request_ids": [
+      "a5041b65dd3c45fb-CMH",
+      "a5041b69df8627e0-CMH",
+      "a5041b6ceec02b13-DFW",
+      "a5041b6f7ae8da38-DFW"
+    ],
+    "run_id": "apart-1010-v02-001"
+  }
+}
