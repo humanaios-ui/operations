@@ -36,15 +36,37 @@ _journey = load_handoff_module("resource-miner/resource_miner/opportunity_journe
 ENTRY_SCHEMA = "humanaios.e1.decision-entry.v1"
 GENESIS = "0" * 64
 TOKEN = re.compile(r"[A-Za-z0-9_-]{1,100}")
-ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
-UTC_STAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+ISO_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+UTC_STAMP = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
 HEX64 = re.compile(r"[0-9a-f]{64}")
-SOURCE_NAME = re.compile(r"[A-Za-z0-9 ().,&/-]{1,80}")
+SOURCE_NAME = re.compile(r"[\w ().,&/-]{1,80}")
 HANDOFF_ID = re.compile(r"rm:[A-Za-z0-9_.:-]{1,100}")
 # Candidate keys that would smuggle a benefit/approval claim into the path.
 BENEFIT_KEYS = re.compile(r"(benefit|award|payment|approved|granted|discount_usd|amount|enroll)", re.I)
-# Words that must never appear in free-ish values we store or print (case, source name).
-CLAIM_WORDS = re.compile(r"(approv|eligib|award|grant|enroll|qualif|benefit|payment|\$|usd|month)", re.I)
+# Whole words that must not appear in values we store or print. `case` is an opaque test
+# label, so it gets the broader list; `source_name` is a real organisation name, so it only
+# loses status claims and amounts ("Benefits.gov" and "Medicaid Eligibility Office" are fine).
+CASE_CLAIM_WORDS = frozenset({"approved", "approval", "eligible", "awarded", "granted", "enrolled",
+                              "qualified", "benefit", "benefits", "payment", "payments"})
+NAME_CLAIM_WORDS = frozenset({"approved", "awarded", "granted", "enrolled", "qualified"})
+AMOUNT = re.compile(r"\$|[0-9]\s*(/|per|a)\s*mo(nth)?\b", re.I)
+
+
+def _words(text: str) -> list[str]:
+    return [w for w in re.split(r"[^A-Za-z0-9]+", text.lower()) if w]
+
+
+def case_has_claim(case: str) -> bool:
+    words = _words(case)
+    per_month = any(a == "per" and b in ("month", "mo") for a, b in zip(words, words[1:]))
+    return bool(set(words) & CASE_CLAIM_WORDS) or per_month or bool(AMOUNT.search(case))
+
+
+def name_has_claim(name: str) -> bool:
+    return bool(set(_words(name)) & NAME_CLAIM_WORDS) or bool(AMOUNT.search(name)) \
+        or "you qualify" in name.lower()
+
+
 JOURNEY_CODES = frozenset({
     "REVIEW_AND_SELECT_OPPORTUNITY", "REVIEW_SIGNUP_OR_APPLICATION", "COMPLETE_REQUIRED_SURVEY",
     "VERIFY_PARTICIPANT_STANDING_WITH_PROVIDER", "REVIEW_CALENDAR_SCHEDULE",
@@ -174,7 +196,7 @@ def _check_entry(entry: Any, seq: int, prev: str, cache: dict[str, dict[str, Any
     if entry["program"] not in PINS:
         raise ValueError("ledger entry names an unknown program")
     if not (isinstance(entry["case"], str) and re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", entry["case"])
-            and not CLAIM_WORDS.search(entry["case"])):
+            and not case_has_claim(entry["case"])):
         raise ValueError("ledger entry has an invalid case label")
     for key in ("input_digest", "prev_hash"):
         if not (isinstance(entry[key], str) and HEX64.fullmatch(entry[key])):
@@ -222,8 +244,20 @@ def _check_entry(entry: Any, seq: int, prev: str, cache: dict[str, dict[str, Any
             or rule["rule_sources"] != want_urls:
         raise ValueError("ledger entry screen or sources do not match its rule")
     cap = screen["income_cap_usd"]
-    if cap is not None and not (type(cap) is int and cap > 0):
-        raise ValueError("ledger entry has an invalid income limit")
+    spec = pack.get("income_cap") or {}
+    table = [v for v in spec.get("table", {}).values()]
+    allowed_caps = set(table)
+    if table and spec.get("extra_person") is not None:
+        top = spec["table"][str(max(int(k) for k in spec["table"]))]
+        allowed_caps |= {top + spec["extra_person"] * k
+                         for k in range(1, spec.get("max_size", 8) - max(int(k) for k in spec["table"]) + 1)}
+    if cap is not None and not (type(cap) is int and cap in allowed_caps):
+        raise ValueError("ledger entry income limit is not a limit the pack publishes")
+    if entry["as_of"] < pack["rule_observed_at"]:
+        raise ValueError("ledger entry as_of is earlier than the rules observed date")
+    if (entry["supersedes"] is None) != (entry["event"] == "SCREENED") \
+            or (entry["event"] == "SCREENED") != (entry["changed"] == []):
+        raise ValueError("ledger entry event does not match its history")
     facts_read = set(pack["facts"])
     if not (isinstance(entry["missing_facts"], list) and set(entry["missing_facts"]) <= facts_read
             and entry["missing_facts"] == sorted(set(entry["missing_facts"]))):
@@ -236,19 +270,25 @@ def _check_entry(entry: Any, seq: int, prev: str, cache: dict[str, dict[str, Any
     if not (TOKEN.fullmatch(str(src["resource_id"])) and HANDOFF_ID.fullmatch(str(src["handoff_id"]))
             and HEX64.fullmatch(str(src["handoff_digest"]))
             and (src["primary_source_url"] is None or strict_https_host(src["primary_source_url"]))
-            and SOURCE_NAME.fullmatch(str(src["source_name"])) and not CLAIM_WORDS.search(str(src["source_name"]))):
+            and SOURCE_NAME.fullmatch(str(src["source_name"])) and not name_has_claim(str(src["source_name"]))):
         raise ValueError("ledger entry source identity is invalid")
     if not isinstance(journey, dict) or set(journey) != {
             "opportunity_id", "digest_sha256", "next_action_codes", "signup_standing",
             "participant_standing", "warnings"}:
         raise ValueError("ledger entry journey is malformed")
-    if not (re.fullmatch(r"OPP-[0-9a-f]{16}", str(journey["opportunity_id"]))
+    expected_opp = "OPP-" + hashlib.sha256(f"{src['resource_id']}|{entry['case']}".encode()).hexdigest()[:16]
+    # This path only ever reports a discovery and an optional human selection, so the journey
+    # can only be in one of two states and can carry no warnings or signup standing.
+    if not (journey["opportunity_id"] == expected_opp
             and HEX64.fullmatch(str(journey["digest_sha256"]))
-            and isinstance(journey["next_action_codes"], list) and set(journey["next_action_codes"]) <= JOURNEY_CODES
-            and isinstance(journey["warnings"], list) and set(journey["warnings"]) <= JOURNEY_WARNINGS
-            and journey["signup_standing"] in ("WELCOME_EMAIL_OBSERVED", "UNVERIFIED")
+            and journey["next_action_codes"] in (["REVIEW_AND_SELECT_OPPORTUNITY"], ["REVIEW_SIGNUP_OR_APPLICATION"])
+            and journey["warnings"] == []
+            and journey["signup_standing"] == "UNVERIFIED"
             and journey["participant_standing"] == "NOT_CONFIRMED_BY_PROVIDER"):
         raise ValueError("ledger entry journey is invalid")
+    if entry["path_status"] == "OK" and strict_https_host(src["primary_source_url"]) not in \
+            {strict_https_host(u["url"]) for u in pack["sources"]}:
+        raise ValueError("ledger entry says sources match but its source URL is not on a cited host")
     return pack
 
 
@@ -264,7 +304,10 @@ def verify_ledger(ledger: Any, expected_head: str | None = None) -> None:
     prev = GENESIS
     cache: dict[str, dict[str, Any]] = {}
     for seq, entry in enumerate(ledger):
-        _check_entry(entry, seq, prev, cache)
+        try:
+            _check_entry(entry, seq, prev, cache)
+        except (TypeError, KeyError, AttributeError, IndexError) as exc:
+            raise ValueError("ledger contains a malformed entry") from exc
         key = (entry["program"], entry["case"])
         if entry["supersedes"] != prior_by_case.get(key):
             raise ValueError("ledger supersedes pointer does not match case history")
@@ -290,6 +333,7 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
         raise ValueError("unknown program")
     if not isinstance(candidate, dict) or not isinstance(facts, dict):
         raise ValueError("candidate and facts must be objects")
+    candidate, facts = dict(candidate), dict(facts)  # plain dicts: no subclass can answer .items() and .get() differently
     pack = registry[program]["pack"]
     pinned = registry[program]["pinned_digest"]
     as_of_date = _strict_date(as_of, "as_of")
@@ -300,9 +344,9 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
     if any(BENEFIT_KEYS.search(str(k)) for k in candidate):
         raise ValueError("candidate carries an unsupported benefit claim")
     source_name = candidate.get("source_name")
-    if not (isinstance(source_name, str) and SOURCE_NAME.fullmatch(source_name)) or CLAIM_WORDS.search(source_name):
+    if not (isinstance(source_name, str) and SOURCE_NAME.fullmatch(source_name)) or name_has_claim(source_name):
         raise ValueError("candidate source_name is missing or carries a claim")
-    if "case" in facts and CLAIM_WORDS.search(str(facts["case"])):
+    if "case" in facts and case_has_claim(str(facts["case"])):
         raise ValueError("case label carries a claim")
 
     # 1. Resource Miner handoff, then Navigator intake. Defence in depth: this path

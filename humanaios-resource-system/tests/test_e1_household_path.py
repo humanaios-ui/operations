@@ -288,12 +288,24 @@ class E1PathTests(unittest.TestCase):
             ("bad cap", lambda e: e["screen"].update(income_cap_usd=-5)),
             ("float cap", lambda e: e["screen"].update(income_cap_usd=32155.0)),
             ("extra field", lambda e: e.update(note="you qualify")),
+            ("income limit not published", lambda e: e["screen"].update(income_cap_usd=999999)),
+            ("sources match but url is not cited", lambda e: e["source_identity"].update(primary_source_url="https://evil.example/")),
+            ("journey codes", lambda e: e["journey"].update(next_action_codes=["COMPLETE_REQUIRED_SURVEY"])),
+            ("journey warnings", lambda e: e["journey"].update(warnings=["SURVEY_REPORT_WITHOUT_SIGNUP_RECEIPT"])),
+            ("journey standing", lambda e: e["journey"].update(signup_standing="WELCOME_EMAIL_OBSERVED")),
+            ("journey opportunity id", lambda e: e["journey"].update(opportunity_id="OPP-" + "0" * 16)),
+            ("event vs history", lambda e: e.update(event="RESCREENED", changed=["facts"])),
+            ("changed on first entry", lambda e: e.update(changed=["facts"])),
+            ("as_of before rules", lambda e: e.update(as_of="1999-01-01")),
+            ("unicode digits in time", lambda e: e.update(observed_at="\u0662\u0660\u0662\u0666-11-06T12:00:00Z")),
+            ("unhashable item", lambda e: e.update(missing_facts=[["x"]])),
+            ("wrong type", lambda e: e.update(changed="facts")),
         ):
             with self.subTest(label):
                 forged = self._rehash_forge(base["ledger"], 0, mutate)
-                with self.assertRaises((ValueError, KeyError)):
+                with self.assertRaises(ValueError):  # always ValueError, never TypeError/KeyError
                     e1.verify_ledger(forged)
-                with self.assertRaises((ValueError, KeyError)):
+                with self.assertRaises(ValueError):
                     explain(forged[0], forged)
 
     def test_non_finite_numbers_cannot_even_be_hashed(self):
@@ -368,16 +380,43 @@ class E1PathTests(unittest.TestCase):
                          "POSSIBLE_ROUTE_UNVERIFIED")  # program names are case-insensitive
 
     def test_claim_words_in_values_are_rejected(self):
-        for value in ("APPROVED $500 per month", "Qualified Provider", "x" * 81, "Bénéfit"):
+        for value in ("APPROVED $500 per month", "Qualified Provider", "x" * 81, "Awarded Org", "you qualify", "Pays $9"):
             with self.subTest(source_name=value):
                 cand = copy.deepcopy(LIFELINE_CANDIDATE)
                 cand["source_name"] = value
                 with self.assertRaises(ValueError):
                     e1.run_household("lifeline", cand, ll("v1", income_annual=1, programs=[]), as_of=AS_OF, observed_at=T0)
-        for case in ("approved", "ELIGIBLE_500_per_month", "x\n", "", None, "a b", "grant-1", "month-1"):
+        cand = copy.deepcopy(LIFELINE_CANDIDATE)
+        cand.pop("source_name")
+        with self.assertRaises(ValueError):
+            e1.run_household("lifeline", cand, ll("v1b", income_annual=1, programs=[]), as_of=AS_OF, observed_at=T0)
+        for case in ("approved", "ELIGIBLE_500_per_month", "x\n", "", None, "a b", "paid_per_month_500",
+                     "Benefit-1", "payment.2"):
             with self.subTest(case=case):
                 with self.assertRaises(ValueError):
                     run("lifeline", {**ll("v2", income_annual=1, programs=[]), "case": case})
+
+    def test_real_names_and_labels_are_not_falsely_rejected(self):
+        for name in ("Benefits.gov", "Grants.gov", "USDA Rural Development", "Monthly Digest",
+                     "Medicaid Eligibility Office", "Grantham County", "R\u00e9sum\u00e9 Org"):
+            with self.subTest(source_name=name):
+                cand = copy.deepcopy(LIFELINE_CANDIDATE)
+                cand["source_name"] = name
+                r = e1.run_household("lifeline", cand, ll("w1", income_annual=1000, programs=[]),
+                                     as_of=AS_OF, observed_at=T0)
+                self.assertEqual(r["entry"]["source_identity"]["source_name"], name)
+                e1.verify_ledger(r["ledger"])
+        for case in ("Jan_month", "usd_case", "grantham", "prequalified", "grant-1", "month-1"):
+            with self.subTest(case=case):
+                run("lifeline", ll(case, income_annual=1000, programs=[]))
+
+    def test_input_subclasses_cannot_split_the_digest_from_the_evaluated_facts(self):
+        class Sneaky(dict):
+            def items(self):
+                return [("income_annual", 5), ("household_size", 1)]
+        plain = run("lifeline", ll("sn", income_annual=1000, programs=[]))["entry"]["input_digest"]
+        sneaky = run("lifeline", Sneaky(ll("sn", income_annual=1000, programs=[])))["entry"]["input_digest"]
+        self.assertEqual(plain, sneaky)
 
     def test_equal_facts_in_different_spelling_are_a_duplicate(self):
         r1 = run("lifeline", ll("n1", income_annual=1000, programs=["SNAP", "SSI"]))

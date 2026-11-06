@@ -59,7 +59,10 @@ def explain(entry: dict[str, Any], ledger: Any = None, expected_head: str | None
         seq = entry.get("seq")
         if type(seq) is not int or seq < 0:
             raise ValueError("entry has an invalid seq")
-        _check_entry(entry, seq, entry.get("prev_hash"), {})
+        try:
+            _check_entry(entry, seq, entry.get("prev_hash"), {})
+        except (TypeError, KeyError, AttributeError, IndexError) as exc:
+            raise ValueError("entry is malformed") from exc
         if (seq == 0) != (entry.get("prev_hash") == GENESIS):
             raise ValueError("entry position does not match its prev_hash")
         integrity = "ENTRY_ONLY_CHAIN_NOT_CHECKED"
