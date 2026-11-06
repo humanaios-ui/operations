@@ -54,10 +54,11 @@
     "WITHIN_PUBLISHED_LIMIT_ONLY": "Verify documents, local funding, intake, and agency decision"
   },
   "note": "Frozen from FloridaCommerce web page as observed on rule_observed_at. Screening reference only; the county provider decides. Funding period and rule version must be rechecked before reliance.",
-  "pack_digest": "948dbff2e0ae33a1a6f2492662561cc1b9fef4eb640b6618c49779ef4453b2a0",
+  "pack_digest": "ecab7ad2a28c5742e3cb175c4b1aea074ff1547a02b27421c6c76a888b553da3",
   "pack_id": "fl-liheap-ffy2027",
   "program": "Florida LIHEAP (Okaloosa County scope)",
   "rule_observed_at": "2026-11-06",
+  "rule_source_attribution": "AUTHOR_ASSERTED_NOT_REVIEWED",
   "rule_version": "FFY2027-web-2026-11-06",
   "rules": [
     {
@@ -69,6 +70,9 @@
         }
       ],
       "id": "county_scope",
+      "sources": [
+        1
+      ],
       "state": "SCOPE_REVIEW"
     },
     {
@@ -80,6 +84,9 @@
         }
       ],
       "id": "residency_unproven",
+      "sources": [
+        0
+      ],
       "state": "FACT_UNKNOWN"
     },
     {
@@ -91,6 +98,9 @@
         }
       ],
       "id": "status_unknown",
+      "sources": [
+        0
+      ],
       "state": "FACT_UNKNOWN"
     },
     {
@@ -102,6 +112,9 @@
         }
       ],
       "id": "bill_responsibility",
+      "sources": [
+        0
+      ],
       "state": "REVIEW_REQUIRED"
     },
     {
@@ -113,6 +126,9 @@
         }
       ],
       "id": "water_only",
+      "sources": [
+        0
+      ],
       "state": "NO_ROUTE_SHOWN"
     },
     {
@@ -123,6 +139,9 @@
         }
       ],
       "id": "over_limit",
+      "sources": [
+        0
+      ],
       "state": "OVER_PUBLISHED_LIMIT"
     },
     {
@@ -138,6 +157,9 @@
         }
       ],
       "id": "crisis_unconfirmed",
+      "sources": [
+        1
+      ],
       "state": "CRISIS_FUNDING_UNCONFIRMED"
     },
     {
@@ -148,6 +170,9 @@
         }
       ],
       "id": "within_limit",
+      "sources": [
+        0
+      ],
       "state": "WITHIN_PUBLISHED_LIMIT_ONLY"
     }
   ],

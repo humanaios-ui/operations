@@ -84,7 +84,11 @@ def validate_pack(pack: dict[str, Any], *, pinned_digest: str | None = None) -> 
     states.add(pack.get("default_state", "UNKNOWN_ROUTE_FACTS"))
     if not states <= ADVISORY_STATES:
         raise ValueError(f"rule pack uses non-advisory states: {sorted(states - ADVISORY_STATES)}")
+    n_sources = len(pack["sources"])
     for rule in pack["rules"]:
+        for idx in rule.get("sources", []):
+            if type(idx) is not int or not 0 <= idx < n_sources:
+                raise ValueError("rule references a source index outside the pack sources")
         for cond in rule.get("all", []):
             if cond.get("op") not in OPS:
                 raise ValueError(f"unsupported op {cond.get('op')!r}")
@@ -176,6 +180,9 @@ def evaluate(pack: dict[str, Any], facts: dict[str, Any], *, as_of: date | str |
                 state, rule_id = rule["state"], rule["id"]
                 break
     size_fact = (pack.get("income_cap") or {}).get("size_fact")
+    matched = next((r for r in pack["rules"] if r["id"] == rule_id), None)
+    idxs = matched.get("sources") if matched else None
+    rule_sources = [pack["sources"][i]["url"] for i in idxs] if idxs else [x["url"] for x in pack["sources"]]
     return {
         "case": facts.get("case", "unnamed"),
         "program": pack["program"],
@@ -189,6 +196,8 @@ def evaluate(pack: dict[str, Any], facts: dict[str, Any], *, as_of: date | str |
         "rule_observed_at": pack["rule_observed_at"],
         "effective_through": through,
         "sources": [s["url"] for s in pack["sources"]],
+        "rule_sources": rule_sources,
+        "rule_source_attribution": pack.get("rule_source_attribution", "NOT_STATED"),
         "source_authenticity": "NOT_VERIFIED",
         "eligibility_status": "UNASSESSED",
         "determination": "ADVISORY_SCREEN_ONLY",
