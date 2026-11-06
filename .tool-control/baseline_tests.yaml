@@ -64,6 +64,9 @@ baseline_tests:
     requires: []
     description: Read-only graph lookup for the section A session-open step (Q-REPO-GRAPH-LOOKUP-01)
 
+  - path: tools/tests/test_repository_knowledge_graph_v0_1.py
+    requires: []
+    description: Repository knowledge graph compiler, validation, and metadata-bridge regression tests (#629)
   - path: tools/tests/test_kg_map_check_v0_1.py
     requires: []
     description: Repo snapshot checker for the HumanAIOS knowledge graph map
