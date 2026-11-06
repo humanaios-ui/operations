@@ -174,5 +174,30 @@
       "authority_effect": "NONE",
       "execution": "DISABLED"
     }
+  },
+  {
+    "name": "Owner-Controlled Portfolio Profile",
+    "mine_kind": "USER_CONTROLLED_DATASET",
+    "canonical_url": "portfolio-profile://local/owner",
+    "resolver": "portfolio_profile_local",
+    "enabled": true,
+    "cadence": "on_demand",
+    "roles": [
+      "EVIDENCE_SOURCE",
+      "CONTROLLED_RESOURCE_SOURCE"
+    ],
+    "config": {
+      "source_mode": "OWNER_CONTROLLED_PROJECTION_ONLY",
+      "private_personal_anchor": "PRIVATE_LOCAL_MASTER_PROFILE",
+      "business_anchor": "https://github.com/humanaios-ui/operations/blob/main/SEED.md",
+      "consumer": "opportunity-aggregator:grant-matching-profile",
+      "raw_storage": "PRIVATE_ONLY",
+      "public_projection": "NONE",
+      "opportunity_status": "NOT_AN_EXTERNAL_OPPORTUNITY",
+      "profile_change_authority": "HUMAN_REVIEW_REQUIRED",
+      "authority_effect": "NONE",
+      "network_access": "NONE",
+      "execution": "READ_ONLY_PROPOSALS"
+    }
   }
 ]

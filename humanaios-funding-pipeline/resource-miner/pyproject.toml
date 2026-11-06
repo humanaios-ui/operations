@@ -8,3 +8,6 @@ dependencies = []
 [project.scripts]
 haios-resource-miner = "resource_miner.cli:main"
 haios-privacy-footprint = "resource_miner.privacy_footprint_cli:main"
+
+[project.optional-dependencies]
+profile = ["PyYAML>=6.0,<7.0", "python-docx>=1.1,<2.0"]
