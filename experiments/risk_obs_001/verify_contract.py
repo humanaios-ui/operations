@@ -11,6 +11,7 @@ import sys
 
 EXPECTED_SCHEMA = "HAIOS-RISK-OBS-001-CONTRACT-v0.1"
 ARTIFACTS = ("packet", "prompt", "rubric")
+ISOLATION_CLAIMS = ("CLEAN", "QUALIFIED_WITH_EXPOSURE_LIMIT", "CONTAMINATED")
 _HEX = re.compile(r"[0-9a-f]{64}\Z")
 _STRICT_LOADER = Path(__file__).resolve().parents[1] / "acat_r_v01" / "calibrate.py"
 
@@ -51,8 +52,12 @@ def verify_files(manifest: dict, paths: dict[str, Path]) -> dict:
         errors.append("invalid_authority")
     if manifest.get("source_custody") != "QUALIFIED_ANALYST_PARAPHRASE":
         errors.append("invalid_source_custody")
-    if any(manifest.get(x) is not False for x in ("p1_execution_authorized", "p2_qualified", "public_release_authorized")):
-        errors.append("privilege_claim")
+    # Privilege flags must be present and exactly False (missing keys are not silent pass).
+    for key in ("p1_execution_authorized", "p2_qualified", "public_release_authorized"):
+        if key not in manifest:
+            errors.append(f"missing_{key}")
+        elif manifest.get(key) is not False:
+            errors.append("privilege_claim")
     rows = manifest.get("artifacts")
     if not isinstance(rows, dict) or set(rows) != set(ARTIFACTS):
         return {"status": "HOLD", "authority_effect": "NONE", "errors": errors + ["invalid_artifact_set"]}
@@ -73,7 +78,13 @@ def verify_files(manifest: dict, paths: dict[str, Path]) -> dict:
 
 
 def check_receipt(manifest: dict, receipt: dict) -> dict:
-    """Check syntactic source-bound receipt; output is NEVER authenticated or scored."""
+    """Check syntactic source-bound receipt; output is NEVER authenticated or scored.
+
+    peer_exposure and isolation_claim are untrusted self-declarations.
+    A truthful contaminated session must declare peer_exposure=True and an
+    isolation_claim other than CLEAN. Operators must not "fix" these fields
+    to force CANDIDATE_UNVERIFIED; cross-check against the coordination ledger.
+    """
     errors: list[str] = []
     if not isinstance(receipt, dict):
         errors.append("not_an_object")
@@ -82,8 +93,25 @@ def check_receipt(manifest: dict, receipt: dict) -> dict:
             errors.append("wrong_phase")
         if receipt.get("leg") not in ("CHATGPT", "CLAUDE", "GROK"):
             errors.append("unknown_leg")
-        if receipt.get("peer_exposure") is not False:
-            errors.append("peer_exposure_or_unknown")
+
+        # peer_exposure must be an explicit boolean (missing/null => error).
+        if "peer_exposure" not in receipt:
+            errors.append("missing_peer_exposure")
+        elif not isinstance(receipt.get("peer_exposure"), bool):
+            errors.append("peer_exposure_not_bool")
+
+        # isolation_claim is required and constrained.
+        isolation = receipt.get("isolation_claim")
+        if isolation not in ISOLATION_CLAIMS:
+            errors.append("invalid_or_missing_isolation_claim")
+        else:
+            # Consistency rules between peer_exposure and isolation_claim.
+            pe = receipt.get("peer_exposure")
+            if isolation == "CLEAN" and pe is not False:
+                errors.append("clean_requires_no_peer_exposure")
+            if isolation in ("QUALIFIED_WITH_EXPOSURE_LIMIT", "CONTAMINATED") and pe is not True:
+                errors.append("exposed_isolation_requires_peer_exposure_true")
+
         if receipt.get("authority_effect") != "NONE":
             errors.append("invalid_authority")
         for field in ("provider_run_ref", "model_version"):

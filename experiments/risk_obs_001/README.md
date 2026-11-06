@@ -22,6 +22,26 @@ Run the following read-only command after separately obtaining the *exact privat
 
 A DIGEST_MATCH_ONLY result is not authorization. Missing bytes and mismatched hashes return HOLD. Optional --receipt checks the shape of an untrusted P1 claim and returns CANDIDATE_UNVERIFIED at best (HOLD if anything is wrong), never authenticated execution or admission. Repeat --receipt to also compare receipts with each other: a repeated leg, a shared provider run reference or a shared output digest returns HOLD. JSON is read with the strict loader in experiments/acat_r_v01/calibrate.py (duplicate keys, NaN/Infinity and non-object roots are refused); unreadable input returns HOLD with exit code 2.
 
+## Receipt fields: peer_exposure + isolation_claim (hardened)
+
+Both fields are **untrusted self-declarations**. The checker enforces internal consistency only; it does not prove isolation.
+
+| isolation_claim | required peer_exposure | meaning |
+|-----------------|------------------------|--------|
+| `CLEAN` | must be `false` | No peer outputs or coordination-thread content in the P1 session |
+| `QUALIFIED_WITH_EXPOSURE_LIMIT` | must be `true` | Session had peer exposure; analysis constrained to packet text only |
+| `CONTAMINATED` | must be `true` | Peer material may have influenced ranking or wording |
+
+Rules enforced by `check_receipt`:
+- `peer_exposure` must be an explicit boolean (missing/null → error).
+- `isolation_claim` is required and must be one of the three values above.
+- `CLEAN` with `peer_exposure=true` → HOLD (`clean_requires_no_peer_exposure`).
+- `QUALIFIED_WITH_EXPOSURE_LIMIT` or `CONTAMINATED` with `peer_exposure=false` → HOLD (`exposed_isolation_requires_peer_exposure_true`).
+
+**Do not “fix” these fields to force a pass.** A truthful contaminated or exposure-limited session must declare accordingly. Cross-check receipts against the coordination Gmail/thread ledger before any comparable-run or P2 language.
+
+Privilege flags on the manifest (`p1_execution_authorized`, `p2_qualified`, `public_release_authorized`) must be present and exactly `false`; missing keys are now errors.
+
 ## Copilot review assignment
 
 Review this draft PR's ACTUAL diff, its public-safe digest manifest and its adversarial negative tests. Challenge wrong hashes, missing input, false identity, peer-exposed P1, bogus authority claims, missing provider reference, invented image, replayed source and lost classifications. Look for reusable existing ACAT-R validators. Report exact-head test results, evidence gaps and required changes.
