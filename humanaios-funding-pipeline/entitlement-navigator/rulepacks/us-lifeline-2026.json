@@ -1,0 +1,267 @@
+{
+  "default_state": "UNKNOWN_ROUTE_FACTS",
+  "effective_through": null,
+  "facts": {
+    "benefit_at_same_address": {
+      "type": "bool"
+    },
+    "existing_discount_this_household": {
+      "type": "bool"
+    },
+    "household_size": {
+      "type": "int"
+    },
+    "income_annual": {
+      "type": "money"
+    },
+    "programs": {
+      "type": "str_list"
+    },
+    "qualifying_tribal_lands": {
+      "type": "bool"
+    },
+    "service_kind": {
+      "allowed": [
+        "broadband",
+        "voice_only"
+      ],
+      "type": "str"
+    },
+    "shares_income_expenses_with_other_beneficiary": {
+      "type": "bool"
+    },
+    "state": {
+      "type": "str"
+    }
+  },
+  "income_cap": {
+    "extra_person": 7668,
+    "fact": "income_annual",
+    "max_size": 20,
+    "size_fact": "household_size",
+    "table": {
+      "1": 21546,
+      "2": 29214,
+      "3": 36882,
+      "4": 44550,
+      "5": 52218,
+      "6": 59886,
+      "7": 67554,
+      "8": 75222
+    }
+  },
+  "lists": {
+    "standard_programs": [
+      "SNAP",
+      "MEDICAID",
+      "SSI",
+      "FPHA",
+      "VETERANS_PENSION"
+    ],
+    "tribal_programs": [
+      "BIA_GENERAL_ASSISTANCE",
+      "TRIBAL_TANF",
+      "FDPIR"
+    ]
+  },
+  "next_steps": {
+    "FACT_UNKNOWN": "Verify the missing fact; do not infer",
+    "HOLD": "Household already has a Lifeline discount; one benefit per household",
+    "NO_ROUTE_SHOWN": "No standard route shown by the facts given; program or income may change this",
+    "POSSIBLE_ROUTE_UNVERIFIED": "National Verifier decides; identity, program and income are unverified here",
+    "REVIEW_REQUIRED": "Review whether the other beneficiary shares income and expenses",
+    "SCOPE_REVIEW": "Outside the frozen state scope; check that state's rules",
+    "UNKNOWN_ROUTE_FACTS": "Obtain income and program information",
+    "WORKSHEET_REQUIRED": "Separate household at same address: complete the household worksheet"
+  },
+  "note": "Frozen from USAC pages as observed on rule_observed_at. National Verifier decides; benefit amounts are not modeled.",
+  "pack_digest": "2378892acfbfc6ba15ed5f47310d65c8e157ee1f289d8bf7c41bc53571dc1a91",
+  "pack_id": "us-lifeline-2026",
+  "program": "FCC Lifeline (contiguous US, FL scope)",
+  "rule_observed_at": "2026-11-06",
+  "rule_version": "USAC-2026-11-06",
+  "rules": [
+    {
+      "all": [
+        {
+          "fact": "state",
+          "op": "ne",
+          "value": "FL"
+        }
+      ],
+      "id": "state_scope",
+      "state": "SCOPE_REVIEW"
+    },
+    {
+      "all": [
+        {
+          "fact": "existing_discount_this_household",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "id": "existing_discount",
+      "state": "HOLD"
+    },
+    {
+      "all": [
+        {
+          "fact": "existing_discount_this_household",
+          "op": "is_null"
+        }
+      ],
+      "id": "discount_status_unknown",
+      "state": "FACT_UNKNOWN"
+    },
+    {
+      "all": [
+        {
+          "fact": "benefit_at_same_address",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "fact": "shares_income_expenses_with_other_beneficiary",
+          "op": "ne",
+          "value": false
+        }
+      ],
+      "id": "household_relationship",
+      "state": "REVIEW_REQUIRED"
+    },
+    {
+      "all": [
+        {
+          "fact": "benefit_at_same_address",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "fact": "income_annual",
+          "op": "le_cap"
+        }
+      ],
+      "id": "worksheet_income",
+      "state": "WORKSHEET_REQUIRED"
+    },
+    {
+      "all": [
+        {
+          "fact": "benefit_at_same_address",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "fact": "programs",
+          "op": "any_in",
+          "value": "standard_programs"
+        }
+      ],
+      "id": "worksheet_program",
+      "state": "WORKSHEET_REQUIRED"
+    },
+    {
+      "all": [
+        {
+          "fact": "benefit_at_same_address",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "fact": "programs",
+          "op": "any_in",
+          "value": "tribal_programs"
+        },
+        {
+          "fact": "qualifying_tribal_lands",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "id": "worksheet_tribal",
+      "state": "WORKSHEET_REQUIRED"
+    },
+    {
+      "all": [
+        {
+          "fact": "income_annual",
+          "op": "le_cap"
+        }
+      ],
+      "id": "route_income",
+      "state": "POSSIBLE_ROUTE_UNVERIFIED"
+    },
+    {
+      "all": [
+        {
+          "fact": "programs",
+          "op": "any_in",
+          "value": "standard_programs"
+        }
+      ],
+      "id": "route_program",
+      "state": "POSSIBLE_ROUTE_UNVERIFIED"
+    },
+    {
+      "all": [
+        {
+          "fact": "programs",
+          "op": "any_in",
+          "value": "tribal_programs"
+        },
+        {
+          "fact": "qualifying_tribal_lands",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "id": "route_tribal",
+      "state": "POSSIBLE_ROUTE_UNVERIFIED"
+    },
+    {
+      "all": [
+        {
+          "fact": "programs",
+          "op": "any_in",
+          "value": "tribal_programs"
+        },
+        {
+          "fact": "qualifying_tribal_lands",
+          "op": "is_null"
+        },
+        {
+          "fact": "income_annual",
+          "op": "is_null"
+        }
+      ],
+      "id": "tribal_lands_unknown",
+      "state": "FACT_UNKNOWN"
+    },
+    {
+      "all": [
+        {
+          "fact": "income_annual",
+          "op": "not_null"
+        },
+        {
+          "fact": "programs",
+          "op": "not_null"
+        }
+      ],
+      "id": "no_route",
+      "state": "NO_ROUTE_SHOWN"
+    }
+  ],
+  "schema": "humanaios.entitlement-rulepack.v1",
+  "sources": [
+    {
+      "url": "https://www.usac.org/lifeline/consumer-eligibility/"
+    },
+    {
+      "url": "https://www.usac.org/lifeline/consumer-eligibility/program-eligibility/"
+    },
+    {
+      "url": "https://www.usac.org/lifeline/consumer-eligibility/tribal-eligibility/"
+    }
+  ]
+}
