@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from resource_system.e1_household_path import case_history, entry_hash, verify_ledger
+from resource_system.e1_household_path import GENESIS, _check_entry, case_history, entry_hash, verify_ledger
 
 SCHEMA = "humanaios.e1.explanation.v1"
 
@@ -33,6 +33,8 @@ STATE_TEXT = {
 }
 INVESTIGATE = frozenset({"POSSIBLE_ROUTE_UNVERIFIED", "WORKSHEET_REQUIRED",
                          "WITHIN_PUBLISHED_LIMIT_ONLY", "CRISIS_FUNDING_UNCONFIRMED"})
+SHOW_LIMIT = frozenset({"POSSIBLE_ROUTE_UNVERIFIED", "WORKSHEET_REQUIRED", "WITHIN_PUBLISHED_LIMIT_ONLY",
+                        "CRISIS_FUNDING_UNCONFIRMED", "OVER_PUBLISHED_LIMIT", "NO_ROUTE_SHOWN"})
 NOT_ESTABLISHED = (
     "An approval or an eligibility decision",
     "Identity, income or program participation",
@@ -41,19 +43,32 @@ NOT_ESTABLISHED = (
 )
 
 
-def explain(entry: dict[str, Any], ledger: Any = None) -> dict[str, Any]:
-    """Explain a recorded entry. Raises if the entry or ledger fails verification."""
+def explain(entry: dict[str, Any], ledger: Any = None, expected_head: str | None = None) -> dict[str, Any]:
+    """Explain a recorded entry. Raises if the entry or ledger fails verification.
+
+    Pass the ledger (and, if you keep one outside it, ``expected_head``) so the whole
+    history is verified. With no ledger only this one entry's hash and fields are checked.
+    """
     if not isinstance(entry, dict) or entry.get("entry_hash") != entry_hash(entry):
         raise ValueError("entry does not match its hash; refusing to explain an altered decision")
     if (entry.get("authority_effect") != "NONE" or entry.get("eligibility_status") != "UNASSESSED"
             or entry.get("determination") != "ADVISORY_SCREEN_ONLY"):
         raise ValueError("entry carries authority or an eligibility claim")
     history = [entry]
-    if ledger is not None:
-        verify_ledger(ledger)
+    if ledger is None:
+        seq = entry.get("seq")
+        if type(seq) is not int or seq < 0:
+            raise ValueError("entry has an invalid seq")
+        _check_entry(entry, seq, entry.get("prev_hash"), {})
+        if (seq == 0) != (entry.get("prev_hash") == GENESIS):
+            raise ValueError("entry position does not match its prev_hash")
+        integrity = "ENTRY_ONLY_CHAIN_NOT_CHECKED"
+    else:
+        verify_ledger(ledger, expected_head)
         if not any(e["entry_hash"] == entry["entry_hash"] for e in ledger):
             raise ValueError("entry is not part of the supplied ledger")
         history = case_history(ledger, entry["program"], entry["case"])
+        integrity = "HASH_CHAIN_ANCHORED" if expected_head is not None else "HASH_CHAIN_UNANCHORED"
     state = entry["screen"]["state"]
     if state not in STATE_TEXT:
         raise ValueError("no explanation text for this state")
@@ -89,7 +104,9 @@ def explain(entry: dict[str, Any], ledger: Any = None) -> dict[str, Any]:
         "rule_version": {"pack_id": rule["pack_id"], "rule_version": rule["rule_version"],
                          "pack_digest": rule["pack_digest"], "observed_at": rule["rule_observed_at"],
                          "effective_through": rule["effective_through"]},
-        "published_income_limit_usd": entry["screen"]["income_cap_usd"],
+        "published_income_limit_usd": (entry["screen"]["income_cap_usd"]
+                                       if state in SHOW_LIMIT and not conflict else None),
+        "history_integrity": integrity,
         "next_actions": next_actions,
         "not_established": list(NOT_ESTABLISHED),
         "history": [{"seq": e["seq"], "event": e["event"], "changed": list(e["changed"]),
@@ -116,5 +133,7 @@ def render_text(card: dict[str, Any]) -> str:
     lines.append(f"Rules {version['rule_version']} (pack {version['pack_id']}, digest {version['pack_digest'][:12]}, "
                  f"observed {version['observed_at']}).")
     lines.append("Next: " + " | ".join(card["next_actions"]))
-    lines.append(f"History: {len(card['history'])} recorded step(s); decision {card['decision_hash'][:12]}.")
+    lines.append(f"History: {len(card['history'])} recorded step(s); decision {card['decision_hash'][:12]}; "
+                 f"integrity {card['history_integrity']}"
+                 + (" (a person able to recompute hashes could rewrite it)." if card["history_integrity"] == "HASH_CHAIN_UNANCHORED" else "."))
     return "\n".join(lines)

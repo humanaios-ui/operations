@@ -222,6 +222,28 @@ class RulesEvaluatorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source index"):
             validate_pack(bad)
 
+    def test_case_label_is_matched_in_full_and_never_none(self):
+        for bad in ("x\n", "x\r\n", None, "", "a b"):
+            with self.subTest(bad=bad):
+                with self.assertRaisesRegex(ValueError, "opaque token"):
+                    evaluate(self.lifeline, {**LIFELINE_CASES[0][0], "case": bad})
+
+    def test_unusable_household_size_never_yields_a_negative_route(self):
+        for size in (0, -1, 21, 10 ** 30, None, 1.0, True):
+            with self.subTest(size=size):
+                facts = ll("sz", household_size=size, income_annual=10000, programs=["SNAP2"])
+                try:
+                    out = evaluate(self.lifeline, facts)
+                except ValueError:
+                    continue  # rejected outright is also fail-closed
+                self.assertEqual(out["state"], "UNKNOWN_ROUTE_FACTS")
+
+    def test_null_scope_facts_are_unknown_and_program_names_normalize(self):
+        self.assertEqual(evaluate(self.lifeline, ll("n1", state=None))["state"], "FACT_UNKNOWN")
+        self.assertEqual(evaluate(self.liheap, lh("n2", county=None))["state"], "FACT_UNKNOWN")
+        self.assertEqual(evaluate(self.lifeline, ll("n3", income_annual=99999, programs=[" snap "]))["state"],
+                         "POSSIBLE_ROUTE_UNVERIFIED")
+
     def test_pack_file_is_plain_json(self):
         json.dumps(self.liheap)
 

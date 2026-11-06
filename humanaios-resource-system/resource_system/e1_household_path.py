@@ -7,13 +7,22 @@ Read-only and deterministic: no network, no file writes, no clock reads (the
 caller supplies ``as_of`` and ``observed_at``). Nothing here grants authority,
 assesses eligibility or records an approval. Existing modules are loaded and
 used unchanged; this file only composes them.
+
+Integrity limit (stated, not hidden): the history is a plain SHA-256 chain.
+Anyone who can recompute SHA-256 can rewrite it unless the head hash is kept
+outside the ledger. ``verify_ledger(ledger, expected_head=...)`` checks such an
+anchor; without one, truncation or a full re-chain cannot be detected. Every
+entry field is still validated against the pinned pack, so a rewritten entry
+cannot carry free text, an unknown rule, or an unpinned rule version.
 """
 from __future__ import annotations
 
 import copy
 import hashlib
 import json
+import math
 import re
+from datetime import date
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -26,18 +35,40 @@ _journey = load_handoff_module("resource-miner/resource_miner/opportunity_journe
 
 ENTRY_SCHEMA = "humanaios.e1.decision-entry.v1"
 GENESIS = "0" * 64
-TOKEN = re.compile(r"[A-Za-z0-9_-]{1,100}\Z")
+TOKEN = re.compile(r"[A-Za-z0-9_-]{1,100}")
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+UTC_STAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+HEX64 = re.compile(r"[0-9a-f]{64}")
+SOURCE_NAME = re.compile(r"[A-Za-z0-9 ().,&/-]{1,80}")
+HANDOFF_ID = re.compile(r"rm:[A-Za-z0-9_.:-]{1,100}")
 # Candidate keys that would smuggle a benefit/approval claim into the path.
 BENEFIT_KEYS = re.compile(r"(benefit|award|payment|approved|granted|discount_usd|amount|enroll)", re.I)
+# Words that must never appear in free-ish values we store or print (case, source name).
+CLAIM_WORDS = re.compile(r"(approv|eligib|award|grant|enroll|qualif|benefit|payment|\$|usd|month)", re.I)
+JOURNEY_CODES = frozenset({
+    "REVIEW_AND_SELECT_OPPORTUNITY", "REVIEW_SIGNUP_OR_APPLICATION", "COMPLETE_REQUIRED_SURVEY",
+    "VERIFY_PARTICIPANT_STANDING_WITH_PROVIDER", "REVIEW_CALENDAR_SCHEDULE",
+    "REVIEW_EVENT_UPDATES_AND_RESEARCH_DELIVERABLE", "REVIEW_PREPARATION_PACKAGE",
+    "COMPLETE_PREPARATION_CHECKS"})
+JOURNEY_WARNINGS = frozenset({
+    "SIGNUP_RECEIPT_WITHOUT_EXPLICIT_SELECTED_INTENT", "SURVEY_REPORT_WITHOUT_SIGNUP_RECEIPT",
+    "CALENDAR_RECEIPT_WITHOUT_EXPLICIT_SELECTED_INTENT"})
+CHANGE_KINDS = frozenset({"facts", "rules", "journey", "source", "screen", "path_status"})
+ENTRY_KEYS = frozenset({
+    "schema", "program", "case", "input_digest", "observed_at", "as_of", "source_identity", "rule",
+    "screen", "path_status", "missing_facts", "journey", "authority_effect", "eligibility_status",
+    "determination", "event", "changed", "seq", "prev_hash", "supersedes", "entry_hash"})
 
 # Version binding: the E1 path only runs against these exact pack digests.
 # Changing a pack changes its digest, so the path refuses until a human re-pins.
 PINS = {
     "lifeline": {"pack_name": "us-lifeline-2026",
-                 "pinned_digest": "4e03bc7c109be2ebdec4615d10e684e13b2e375bac18446379473eb0f08eec0b"},
+                 "pinned_digest": "7998ff26255205d4d9839f4369a4d7cfcea87695bd09991a7c5d0aa9da3d54c4"},
     "liheap": {"pack_name": "fl-liheap-ffy2027",
-               "pinned_digest": "ecab7ad2a28c5742e3cb175c4b1aea074ff1547a02b27421c6c76a888b553da3"},
+               "pinned_digest": "ee4c857adaf4fb003e7e450dbd4e318d51d901bcc62706e0f80264f704316135"},
 }
+# Packs that earlier ledger entries were screened under (digest -> pack). Empty today.
+RETIRED_PACKS: dict[str, dict[str, Any]] = {}
 
 
 def default_registry() -> dict[str, dict[str, Any]]:
@@ -45,12 +76,25 @@ def default_registry() -> dict[str, dict[str, Any]]:
     registry = {}
     for program, pin in PINS.items():
         pack = _evaluator.load_pack(pin["pack_name"], pinned_digest=pin["pinned_digest"])
+        if pack["pack_id"] != pin["pack_name"]:
+            raise ValueError("pack_id does not match the pinned pack name")
         registry[program] = {"pack": pack, "pinned_digest": pin["pinned_digest"]}
     return registry
 
 
+def _packs_for(program: str) -> dict[str, dict[str, Any]]:
+    """Pinned pack plus any retired packs for this program, each digest-verified."""
+    current = default_registry()[program]
+    packs = {current["pinned_digest"]: current["pack"]}
+    for digest, pack in RETIRED_PACKS.items():
+        _evaluator.validate_pack(pack, pinned_digest=digest)
+        if pack["program"] == current["pack"]["program"]:
+            packs[digest] = pack
+    return packs
+
+
 def _canon(obj: Any) -> str:
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
 
 
 def _sha(obj: Any) -> str:
@@ -61,38 +105,173 @@ def entry_hash(entry: dict[str, Any]) -> str:
     return _sha({k: v for k, v in entry.items() if k != "entry_hash"})
 
 
-def _host(url: Any) -> str | None:
-    host = urlsplit(url).hostname if isinstance(url, str) else None
-    return host[4:] if host and host.startswith("www.") else host
+def head_hash(ledger: Any) -> str:
+    """Hash to store outside the ledger (the integrity anchor)."""
+    return ledger[-1]["entry_hash"] if ledger else GENESIS
+
+
+def strict_https_host(url: Any) -> str | None:
+    """Host of a plain https URL, or None for anything ambiguous (never raises)."""
+    if not isinstance(url, str) or not url or url != url.strip():
+        return None
+    if "\\" in url or any(ord(c) < 33 or ord(c) == 127 for c in url):
+        return None
+    try:
+        parts = urlsplit(url)
+        host, port = parts.hostname, parts.port
+    except ValueError:
+        return None
+    if parts.scheme != "https" or not host or port not in (None, 443) or parts.username or parts.password:
+        return None
+    return host[4:] if host.startswith("www.") else host
+
+
+def _strict_date(value: Any, label: str) -> date:
+    if not isinstance(value, str) or not ISO_DATE.fullmatch(value):
+        raise ValueError(f"{label} must be YYYY-MM-DD")
+    try:
+        return date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"{label} is not a real date") from exc
+
+
+def _canonical_facts(facts: dict[str, Any]) -> dict[str, Any]:
+    """Equal facts digest equally: 1000 == 1000.0 == -0.0 style noise, program order and case."""
+    out = {}
+    for key, value in facts.items():
+        if key == "case":
+            continue
+        if type(value) is float and math.isfinite(value) and value == int(value):
+            value = int(value)
+        if isinstance(value, list) and all(isinstance(v, str) for v in value):
+            value = sorted({v.strip().upper() for v in value})
+        out[key] = value
+    return out
 
 
 def _missing_facts(pack: dict[str, Any], facts: dict[str, Any]) -> list[str]:
     read = {c["fact"] for r in pack["rules"] for c in r.get("all", [])}
     size_fact = (pack.get("income_cap") or {}).get("size_fact")
+    missing = {f for f in read if facts.get(f) is None}
     if size_fact:
         read.add(size_fact)
-    return sorted(f for f in read if facts.get(f) is None)
+        if _evaluator._income_cap(pack, facts.get(size_fact)) is None:
+            missing.add(size_fact)  # absent, zero, negative or beyond the modeled sizes
+    return sorted(missing)
 
 
-def verify_ledger(ledger: Any) -> None:
-    """Fail closed on any edit, deletion, reordering or forged authority."""
+def _check_entry(entry: Any, seq: int, prev: str, cache: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Structural + semantic validation of one entry. Returns its pack. Raises ValueError."""
+    if not isinstance(entry, dict) or set(entry) != ENTRY_KEYS or entry.get("schema") != ENTRY_SCHEMA:
+        raise ValueError("ledger contains a malformed entry")
+    if entry["seq"] != seq or entry["prev_hash"] != prev:
+        raise ValueError("ledger chain broken (entry removed, reordered or inserted)")
+    if entry["entry_hash"] != entry_hash(entry):
+        raise ValueError("ledger entry content does not match its hash")
+    if (entry["authority_effect"] != "NONE" or entry["eligibility_status"] != "UNASSESSED"
+            or entry["determination"] != "ADVISORY_SCREEN_ONLY"):
+        raise ValueError("ledger entry carries authority or an eligibility claim")
+    if entry["program"] not in PINS:
+        raise ValueError("ledger entry names an unknown program")
+    if not (isinstance(entry["case"], str) and re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", entry["case"])
+            and not CLAIM_WORDS.search(entry["case"])):
+        raise ValueError("ledger entry has an invalid case label")
+    for key in ("input_digest", "prev_hash"):
+        if not (isinstance(entry[key], str) and HEX64.fullmatch(entry[key])):
+            raise ValueError(f"ledger entry has an invalid {key}")
+    if not (isinstance(entry["observed_at"], str) and UTC_STAMP.fullmatch(entry["observed_at"])):
+        raise ValueError("ledger entry has an invalid observed_at")
+    _strict_date(entry["as_of"], "as_of")
+    if entry["event"] not in ("SCREENED", "RESCREENED") or not isinstance(entry["changed"], list) \
+            or not set(entry["changed"]) <= CHANGE_KINDS or len(set(entry["changed"])) != len(entry["changed"]):
+        raise ValueError("ledger entry has an invalid event")
+    if entry["path_status"] not in ("OK", "SOURCE_CONFLICT_HOLD"):
+        raise ValueError("ledger entry has an invalid path_status")
+
+    rule, screen = entry["rule"], entry["screen"]
+    if not isinstance(rule, dict) or not isinstance(screen, dict):
+        raise ValueError("ledger entry is malformed")
+    if entry["program"] not in cache:
+        cache[entry["program"]] = _packs_for(entry["program"])
+    pack = cache[entry["program"]].get(rule.get("pack_digest"))
+    if pack is None:
+        raise ValueError("ledger entry was screened under an unknown rule pack")
+    expected_rule = {"pack_id", "rule_version", "pack_digest", "rule_observed_at", "effective_through",
+                     "rule_id", "rule_sources", "rule_source_attribution", "source_authenticity"}
+    if set(rule) != expected_rule or rule["pack_id"] != pack["pack_id"] \
+            or rule["rule_version"] != pack["rule_version"] \
+            or rule["rule_observed_at"] != pack["rule_observed_at"] \
+            or rule["effective_through"] != pack.get("effective_through") \
+            or rule["rule_source_attribution"] != pack.get("rule_source_attribution", "NOT_STATED") \
+            or rule["source_authenticity"] != "NOT_VERIFIED":
+        raise ValueError("ledger entry rule block does not match its pack")
+    by_id = {r["id"]: r for r in pack["rules"]}
+    all_urls = [s["url"] for s in pack["sources"]]
+    if rule["rule_id"] == "stale":
+        want_state, want_urls = "STALE_RULES", all_urls
+    elif rule["rule_id"] == "default":
+        want_state, want_urls = pack.get("default_state", "UNKNOWN_ROUTE_FACTS"), all_urls
+    elif rule["rule_id"] in by_id:
+        matched = by_id[rule["rule_id"]]
+        want_state = matched["state"]
+        want_urls = [pack["sources"][i]["url"] for i in matched["sources"]] if matched.get("sources") else all_urls
+    else:
+        raise ValueError("ledger entry names an unknown rule")
+    if set(screen) != {"state", "income_cap_usd", "next_step"} or screen["state"] != want_state \
+            or screen["next_step"] != pack.get("next_steps", {}).get(want_state) \
+            or rule["rule_sources"] != want_urls:
+        raise ValueError("ledger entry screen or sources do not match its rule")
+    cap = screen["income_cap_usd"]
+    if cap is not None and not (type(cap) is int and cap > 0):
+        raise ValueError("ledger entry has an invalid income limit")
+    facts_read = set(pack["facts"])
+    if not (isinstance(entry["missing_facts"], list) and set(entry["missing_facts"]) <= facts_read
+            and entry["missing_facts"] == sorted(set(entry["missing_facts"]))):
+        raise ValueError("ledger entry has invalid missing facts")
+
+    src, journey = entry["source_identity"], entry["journey"]
+    if not isinstance(src, dict) or set(src) != {"resource_id", "handoff_id", "handoff_digest",
+                                                  "primary_source_url", "source_name"}:
+        raise ValueError("ledger entry source identity is malformed")
+    if not (TOKEN.fullmatch(str(src["resource_id"])) and HANDOFF_ID.fullmatch(str(src["handoff_id"]))
+            and HEX64.fullmatch(str(src["handoff_digest"]))
+            and (src["primary_source_url"] is None or strict_https_host(src["primary_source_url"]))
+            and SOURCE_NAME.fullmatch(str(src["source_name"])) and not CLAIM_WORDS.search(str(src["source_name"]))):
+        raise ValueError("ledger entry source identity is invalid")
+    if not isinstance(journey, dict) or set(journey) != {
+            "opportunity_id", "digest_sha256", "next_action_codes", "signup_standing",
+            "participant_standing", "warnings"}:
+        raise ValueError("ledger entry journey is malformed")
+    if not (re.fullmatch(r"OPP-[0-9a-f]{16}", str(journey["opportunity_id"]))
+            and HEX64.fullmatch(str(journey["digest_sha256"]))
+            and isinstance(journey["next_action_codes"], list) and set(journey["next_action_codes"]) <= JOURNEY_CODES
+            and isinstance(journey["warnings"], list) and set(journey["warnings"]) <= JOURNEY_WARNINGS
+            and journey["signup_standing"] in ("WELCOME_EMAIL_OBSERVED", "UNVERIFIED")
+            and journey["participant_standing"] == "NOT_CONFIRMED_BY_PROVIDER"):
+        raise ValueError("ledger entry journey is invalid")
+    return pack
+
+
+def verify_ledger(ledger: Any, expected_head: str | None = None) -> None:
+    """Fail closed on a malformed, edited, reordered or authority-bearing ledger.
+
+    Pass ``expected_head`` (stored outside the ledger) to also detect truncation or a
+    wholesale re-chain; without it those cannot be detected.
+    """
+    if not isinstance(ledger, (list, tuple)):
+        raise ValueError("ledger must be a list or tuple")
     prior_by_case: dict[tuple[str, str], str] = {}
     prev = GENESIS
+    cache: dict[str, dict[str, Any]] = {}
     for seq, entry in enumerate(ledger):
-        if not isinstance(entry, dict) or entry.get("schema") != ENTRY_SCHEMA:
-            raise ValueError("ledger contains a malformed entry")
-        if entry.get("seq") != seq or entry.get("prev_hash") != prev:
-            raise ValueError("ledger chain broken (entry removed, reordered or inserted)")
-        if entry.get("entry_hash") != entry_hash(entry):
-            raise ValueError("ledger entry content does not match its hash")
-        if (entry.get("authority_effect") != "NONE" or entry.get("eligibility_status") != "UNASSESSED"
-                or entry.get("determination") != "ADVISORY_SCREEN_ONLY"):
-            raise ValueError("ledger entry carries authority or an eligibility claim")
+        _check_entry(entry, seq, prev, cache)
         key = (entry["program"], entry["case"])
-        if entry.get("supersedes") != prior_by_case.get(key):
+        if entry["supersedes"] != prior_by_case.get(key):
             raise ValueError("ledger supersedes pointer does not match case history")
         prior_by_case[key] = entry["entry_hash"]
         prev = entry["entry_hash"]
+    if expected_head is not None and expected_head != prev:
+        raise ValueError("ledger head does not match the external anchor")
 
 
 def case_history(ledger: Any, program: str, case: str) -> list[dict[str, Any]]:
@@ -101,23 +280,30 @@ def case_history(ledger: Any, program: str, case: str) -> list[dict[str, Any]]:
 
 def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any], *,
                   as_of: str, observed_at: str, ledger: Any = (),
-                  human_selected_ref: str | None = None,
-                  registry: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+                  expected_head: str | None = None,
+                  human_selected_ref: str | None = None) -> dict[str, Any]:
     """Run one synthetic household. Returns the new/unchanged ledger and the entry."""
-    verify_ledger(ledger)
-    registry = registry if registry is not None else default_registry()
+    ledger = () if ledger is None else ledger
+    verify_ledger(ledger, expected_head)
+    registry = default_registry()
     if program not in registry:
         raise ValueError("unknown program")
-    if not isinstance(as_of, str) or not as_of:
-        raise ValueError("as_of is required")
     if not isinstance(candidate, dict) or not isinstance(facts, dict):
         raise ValueError("candidate and facts must be objects")
+    pack = registry[program]["pack"]
+    pinned = registry[program]["pinned_digest"]
+    as_of_date = _strict_date(as_of, "as_of")
+    if as_of_date < date.fromisoformat(pack["rule_observed_at"]):
+        raise ValueError("as_of is earlier than the date the rules were observed")
     if candidate.get("authority_effect") not in (None, "NONE"):
         raise ValueError("candidate carries an authority effect")
     if any(BENEFIT_KEYS.search(str(k)) for k in candidate):
         raise ValueError("candidate carries an unsupported benefit claim")
-    pack = registry[program]["pack"]
-    pinned = registry[program]["pinned_digest"]
+    source_name = candidate.get("source_name")
+    if not (isinstance(source_name, str) and SOURCE_NAME.fullmatch(source_name)) or CLAIM_WORDS.search(source_name):
+        raise ValueError("candidate source_name is missing or carries a claim")
+    if "case" in facts and CLAIM_WORDS.search(str(facts["case"])):
+        raise ValueError("case label carries a claim")
 
     # 1. Resource Miner handoff, then Navigator intake. Defence in depth: this path
     #    checks the authority fields itself, so it does not depend on the intake fix.
@@ -131,10 +317,11 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
     handoff_digest = _sha(handoff)
     resource_id = investigation["resource_id"]
 
-    # 2. Source identity: every candidate source must live on a host the pack cites.
-    pack_hosts = {_host(s["url"]) for s in pack["sources"]}
-    seen = [candidate.get(k) for k in ("primary_source_url", "canonical_url", "source_url") if candidate.get(k)]
-    conflict = (not seen) or any(_host(u) not in pack_hosts for u in seen)
+    # 2. Source identity: all three candidate source URLs must be plain https on a host
+    #    the pack cites. Anything missing or ambiguous is a conflict (fail closed).
+    pack_hosts = {strict_https_host(s["url"]) for s in pack["sources"]}
+    seen = [candidate.get(k) for k in ("primary_source_url", "canonical_url", "source_url")]
+    conflict = any(strict_https_host(u) is None or strict_https_host(u) not in pack_hosts for u in seen)
 
     # 3. Rules evaluator (digest-pinned). The decision comes only from here.
     screen = _evaluator.evaluate(pack, facts, as_of=as_of, pinned_digest=pinned)
@@ -155,7 +342,7 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
         "opportunity": {"id": opp, "parent_resource_id": resource_id},
         "events": events})
 
-    clean_facts = {k: v for k, v in facts.items() if k != "case"}
+    clean_facts = _canonical_facts(facts)
     body = {
         "schema": ENTRY_SCHEMA,
         "program": program,
@@ -167,8 +354,9 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
             "resource_id": resource_id,
             "handoff_id": investigation["source_handoff_id"],
             "handoff_digest": handoff_digest,
-            "primary_source_url": candidate.get("primary_source_url"),
-            "source_name": investigation["provenance"]["source_name"],
+            "primary_source_url": (candidate["primary_source_url"]
+                                   if strict_https_host(candidate.get("primary_source_url")) else None),
+            "source_name": source_name,
         },
         "rule": {
             "pack_id": screen["pack_id"], "rule_version": screen["rule_version"],
@@ -181,7 +369,7 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
         "screen": {"state": screen["state"], "income_cap_usd": screen["income_cap_usd"],
                    "next_step": screen["next_step"]},
         "path_status": "SOURCE_CONFLICT_HOLD" if conflict else "OK",
-        "missing_facts": _missing_facts(pack, clean_facts),
+        "missing_facts": _missing_facts(pack, _evaluator._check_facts(pack, copy.deepcopy(facts))),
         "journey": {
             "opportunity_id": projection["opportunity_id"],
             "digest_sha256": projection["digest_sha256"],
@@ -217,8 +405,9 @@ def run_household(program: str, candidate: dict[str, Any], facts: dict[str, Any]
 
     entry = {**body, "event": "SCREENED" if prior is None else "RESCREENED",
              "changed": changed, "seq": len(ledger),
-             "prev_hash": ledger[-1]["entry_hash"] if ledger else GENESIS,
+             "prev_hash": head_hash(ledger),
              "supersedes": prior["entry_hash"] if prior else None}
     entry["entry_hash"] = entry_hash(entry)
     new_ledger = tuple(copy.deepcopy(list(ledger))) + (entry,)
+    verify_ledger(new_ledger)  # never hand back a ledger this module would itself reject
     return {"entry": copy.deepcopy(entry), "ledger": new_ledger, "duplicate": False, "changed": changed}

@@ -2,6 +2,7 @@
 import copy
 import re
 import unittest
+from unittest import mock
 
 from resource_system import e1_household_path as e1
 from resource_system.e1_explain import STATE_TEXT, explain
@@ -119,19 +120,34 @@ class E1PathTests(unittest.TestCase):
         self.assertIsNone(r2["entry"]["supersedes"])
         e1.verify_ledger(r2["ledger"])
 
+    def _with_pack(self, program, mutate):
+        """Simulate a human re-pin: return (registry, patch) for a modified, re-digested pack."""
+        reg = e1.default_registry()
+        pack = copy.deepcopy(reg[program]["pack"])
+        mutate(pack)
+        pack["pack_digest"] = e1._evaluator.canonical_digest(pack)
+        reg[program] = {"pack": pack, "pinned_digest": pack["pack_digest"]}
+        return reg
+
     def test_changed_rules_are_recorded_not_overwritten(self):
         r1 = run("lifeline", ll("hh-4", income_annual=20000, programs=[]))
-        reg = e1.default_registry()
-        pack = copy.deepcopy(reg["lifeline"]["pack"])
-        pack["income_cap"]["table"]["1"] = 15000  # a hypothetical new rule version
-        pack["rule_version"] = "USAC-NEXT"
-        pack["pack_digest"] = e1._evaluator.canonical_digest(pack)
-        reg["lifeline"] = {"pack": pack, "pinned_digest": pack["pack_digest"]}
-        r2 = run("lifeline", ll("hh-4", income_annual=20000, programs=[]), ledger=r1["ledger"], registry=reg)
+        old_pack = e1.default_registry()["lifeline"]["pack"]
+        reg = self._with_pack("lifeline", lambda p: (p["income_cap"]["table"].update({"1": 15000}),
+                                                     p.update(rule_version="USAC-NEXT")))
+        with mock.patch.object(e1, "default_registry", return_value=reg), \
+                mock.patch.dict(e1.RETIRED_PACKS, {old_pack["pack_digest"]: old_pack}):
+            r2 = run("lifeline", ll("hh-4", income_annual=20000, programs=[]), ledger=r1["ledger"])
         self.assertEqual(r2["changed"], ["rules", "screen"])
         self.assertEqual(r2["entry"]["screen"]["state"], "NO_ROUTE_SHOWN")
         self.assertEqual(r2["ledger"][0]["rule"]["rule_version"], "USAC-2026-11-06")
         self.assertEqual(r2["entry"]["rule"]["rule_version"], "USAC-NEXT")
+
+    def test_a_retired_pack_must_be_declared_or_history_stops_verifying(self):
+        r1 = run("lifeline", ll("hh-5", income_annual=20000, programs=[]))
+        reg = self._with_pack("lifeline", lambda p: p.update(rule_version="USAC-NEXT"))
+        with mock.patch.object(e1, "default_registry", return_value=reg):
+            with self.assertRaisesRegex(ValueError, "unknown rule pack"):
+                run("lifeline", ll("hh-5", income_annual=20000, programs=[]), ledger=r1["ledger"])
 
     def test_ledger_tampering_is_detected(self):
         r1 = run("liheap", lh("a1"))
@@ -194,31 +210,38 @@ class E1PathTests(unittest.TestCase):
 
     # ---- outdated rules / version binding ---------------------------------------
     def test_altered_or_unpinned_rules_are_refused(self):
-        reg = e1.default_registry()
-        pack = copy.deepcopy(reg["lifeline"]["pack"])
-        pack["income_cap"]["table"]["1"] = 99999999  # edited without re-digesting
-        with self.assertRaisesRegex(ValueError, "digest"):
-            run("lifeline", ll("o1", income_annual=1, programs=[]),
-                registry={**reg, "lifeline": {"pack": pack, "pinned_digest": pack["pack_digest"]}})
-        with self.assertRaisesRegex(ValueError, "pinned digest"):
-            run("lifeline", ll("o2", income_annual=1, programs=[]),
-                registry={**reg, "lifeline": {"pack": reg["lifeline"]["pack"], "pinned_digest": "0" * 64}})
+        with self.assertRaises(TypeError):  # the caller can no longer supply its own registry or pins
+            run("lifeline", ll("o0", income_annual=1, programs=[]), registry={})
+        with mock.patch.dict(e1.PINS["lifeline"], {"pinned_digest": "0" * 64}):
+            with self.assertRaisesRegex(ValueError, "pinned digest"):
+                run("lifeline", ll("o2", income_annual=1, programs=[]))
+        with mock.patch.dict(e1.PINS["lifeline"], {"pack_name": "fl-liheap-ffy2027",
+                                                    "pinned_digest": e1.PINS["liheap"]["pinned_digest"]}):
+            with self.assertRaisesRegex(ValueError, "program|pack"):
+                run("lifeline", ll("o4", income_annual=1, programs=[]))
         with self.assertRaises(ValueError):
             run("nonexistent", ll("o3"))
 
     def test_rules_past_their_source_declared_end_are_stale_not_current(self):
-        reg = e1.default_registry()
-        pack = copy.deepcopy(reg["lifeline"]["pack"])
-        pack["effective_through"] = "2026-12-31"
-        pack["pack_digest"] = e1._evaluator.canonical_digest(pack)
-        reg["lifeline"] = {"pack": pack, "pinned_digest": pack["pack_digest"]}
+        reg = self._with_pack("lifeline", lambda p: p.update(effective_through="2026-12-31"))
         facts = ll("s1", income_annual=1000, programs=[])
-        self.assertEqual(run("lifeline", facts, registry=reg, as_of="2026-12-31")["entry"]["screen"]["state"],
-                         "POSSIBLE_ROUTE_UNVERIFIED")
-        stale = run("lifeline", facts, registry=reg, as_of="2027-01-01")["entry"]
-        self.assertEqual(stale["screen"]["state"], "STALE_RULES")
-        with self.assertRaises(ValueError):  # a missing as_of cannot dodge the end date
-            run("lifeline", facts, registry=reg, as_of="")
+        with mock.patch.object(e1, "default_registry", return_value=reg):
+            self.assertEqual(run("lifeline", facts, as_of="2026-12-31")["entry"]["screen"]["state"],
+                             "POSSIBLE_ROUTE_UNVERIFIED")
+            stale = run("lifeline", facts, as_of="2027-01-01")["entry"]
+            self.assertEqual(stale["screen"]["state"], "STALE_RULES")
+            self.assertIsNone(explain(stale)["published_income_limit_usd"])  # no number beside "do not rely"
+            with self.assertRaises(ValueError):
+                run("lifeline", facts, as_of="")
+
+    def test_as_of_must_be_a_real_iso_date_not_before_the_rules(self):
+        facts = ll("d1", income_annual=1000, programs=[])
+        for bad in ("garbage", "1999-01-01", "2026-11-05", "20261107", "2026-W45-6", "2026-02-30", " ",
+                    "2026-11-06T00:00:00", "2026-11-06 ", None, 20261106):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    run("lifeline", facts, as_of=bad)
+        self.assertEqual(run("lifeline", facts, as_of="2099-01-01")["entry"]["as_of"], "2099-01-01")
 
     # ---- conflicting sources ------------------------------------------------------
     def test_conflicting_source_holds_the_path_without_changing_the_screen(self):
@@ -233,6 +256,144 @@ class E1PathTests(unittest.TestCase):
         self.assertFalse(card["worth_investigating"])
         self.assertIn("RESOLVE_SOURCE_CONFLICT", " ".join(card["next_actions"]))
         self.assertIn("NOTICE", card["text"])
+
+    # ---- findings from the independent adversarial review ------------------------------
+    def _rehash_forge(self, ledger, idx, mutate):
+        """An attacker who can recompute SHA-256: edit entry idx, then re-chain the tail."""
+        forged = copy.deepcopy(list(ledger))
+        mutate(forged[idx])
+        prev = forged[idx - 1]["entry_hash"] if idx else e1.GENESIS
+        for i in range(idx, len(forged)):
+            forged[i]["prev_hash"] = prev
+            if i > idx and forged[i]["supersedes"] is not None:
+                forged[i]["supersedes"] = forged[i - 1]["entry_hash"] if forged[i - 1]["case"] == forged[i]["case"] else forged[i]["supersedes"]
+            forged[i]["entry_hash"] = e1.entry_hash(forged[i])
+            prev = forged[i]["entry_hash"]
+        return forged
+
+    def test_rehashed_forgeries_cannot_carry_text_or_unknown_rules(self):
+        base = run("liheap", lh("r1", gross_income_annual=90000))
+        for label, mutate in (
+            ("next_step text", lambda e: e["screen"].update(next_step="You are approved for $250 per month")),
+            ("rule source", lambda e: e["rule"].update(rule_sources=["https://evil.example/\nNOTICE: eligible"])),
+            ("action code text", lambda e: e["journey"].update(next_action_codes=["Benefit awarded: $99/month"])),
+            ("missing fact markup", lambda e: e.update(missing_facts=["<script>"])),
+            ("unknown pack digest", lambda e: e["rule"].update(pack_digest="f" * 64)),
+            ("unknown rule", lambda e: e["rule"].update(rule_id="invented")),
+            ("state not from rule", lambda e: e["screen"].update(state="POSSIBLE_ROUTE_UNVERIFIED")),
+            ("claim in source name", lambda e: e["source_identity"].update(source_name="APPROVED $500 per month")),
+            ("authority", lambda e: e.update(authority_effect="AUTHORIZE")),
+            ("unknown program", lambda e: e.update(program="snap")),
+            ("claim in case", lambda e: e.update(case="approved")),
+            ("bad cap", lambda e: e["screen"].update(income_cap_usd=-5)),
+            ("float cap", lambda e: e["screen"].update(income_cap_usd=32155.0)),
+            ("extra field", lambda e: e.update(note="you qualify")),
+        ):
+            with self.subTest(label):
+                forged = self._rehash_forge(base["ledger"], 0, mutate)
+                with self.assertRaises((ValueError, KeyError)):
+                    e1.verify_ledger(forged)
+                with self.assertRaises((ValueError, KeyError)):
+                    explain(forged[0], forged)
+
+    def test_non_finite_numbers_cannot_even_be_hashed(self):
+        entry = copy.deepcopy(run("liheap", lh("nf"))["entry"])
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            entry["screen"]["income_cap_usd"] = bad
+            with self.assertRaises(ValueError):
+                e1.entry_hash(entry)
+
+    def test_rewriting_history_needs_an_external_anchor_and_the_output_says_so(self):
+        r1 = run("liheap", lh("t1", gross_income_annual=90000))
+        r2 = run("liheap", lh("t2"), ledger=r1["ledger"])
+        anchor = e1.head_hash(r2["ledger"])
+        e1.verify_ledger(r2["ledger"], anchor)
+        # Truncation is invisible to the chain alone, visible against the anchor.
+        e1.verify_ledger(r2["ledger"][:1])
+        with self.assertRaisesRegex(ValueError, "anchor"):
+            e1.verify_ledger(r2["ledger"][:1], anchor)
+        # A coherent re-chained rewrite (rule_id and state flipped together) passes unanchored
+        # verification: this is the stated limit. The anchor catches it.
+        def flip(e):
+            e["rule"].update(rule_id="within_limit", rule_sources=[e["rule"]["rule_sources"][0]])
+            e["screen"].update(state="WITHIN_PUBLISHED_LIMIT_ONLY",
+                               next_step=e1.default_registry()["liheap"]["pack"]["next_steps"]["WITHIN_PUBLISHED_LIMIT_ONLY"])
+        forged = self._rehash_forge(r2["ledger"], 0, flip)
+        e1.verify_ledger(forged)
+        with self.assertRaisesRegex(ValueError, "anchor"):
+            e1.verify_ledger(forged, anchor)
+        self.assertEqual(explain(r2["entry"], r2["ledger"])["history_integrity"], "HASH_CHAIN_UNANCHORED")
+        self.assertIn("recompute hashes", explain(r2["entry"], r2["ledger"])["text"])
+        self.assertEqual(explain(r2["entry"], r2["ledger"], anchor)["history_integrity"], "HASH_CHAIN_ANCHORED")
+
+    def test_source_urls_are_parsed_strictly(self):
+        good = "https://www.usac.org/lifeline/consumer-eligibility/"
+        bad_values = ["https://evil.example\\@www.usac.org/", "http://usac.org/", "ftp://usac.org/",
+                      "javascript://usac.org/%0aalert(1)", "//usac.org/", "https://usac.org:badport/",
+                      "https://usac.org:8443/", "https://[::1/", "https://usac.org@evil.example/",
+                      "https://evil.example#@usac.org/", "https://usac.org.evil.example/", "https://evilusac.org/",
+                      "https://usac.org./", "https://sub.usac.org/", "https://www.usac.org/a\\b", "https://usac.org/\tx", " https://usac.org/",
+                      "", None, 7, ["https://usac.org/"]]
+        for field in ("primary_source_url", "canonical_url", "source_url"):
+            for bad in bad_values:
+                with self.subTest(field=field, bad=bad):
+                    cand = copy.deepcopy(LIFELINE_CANDIDATE)
+                    cand[field] = bad
+                    r = e1.run_household("lifeline", cand, ll("u1", income_annual=1000, programs=[]),
+                                         as_of=AS_OF, observed_at=T0)
+                    self.assertEqual(r["entry"]["path_status"], "SOURCE_CONFLICT_HOLD")
+        cand = copy.deepcopy(LIFELINE_CANDIDATE)
+        cand.pop("source_url")
+        r = e1.run_household("lifeline", cand, ll("u2", income_annual=1000, programs=[]), as_of=AS_OF, observed_at=T0)
+        self.assertEqual(r["entry"]["path_status"], "SOURCE_CONFLICT_HOLD")
+        cand = copy.deepcopy(LIFELINE_CANDIDATE)
+        cand["canonical_url"] = "https://WWW.USAC.ORG/x"  # same host, any letter case
+        r = e1.run_household("lifeline", cand, ll("u3", income_annual=1000, programs=[]), as_of=AS_OF, observed_at=T0)
+        self.assertEqual(r["entry"]["path_status"], "OK")
+
+    def test_unusable_household_size_is_missing_not_a_negative_route(self):
+        for size in (0, -1, 21, 10 ** 30, None):
+            with self.subTest(size=size):
+                e = run("lifeline", ll("hs", household_size=size, income_annual=10000, programs=["x"]))["entry"]
+                self.assertEqual(e["screen"]["state"], "UNKNOWN_ROUTE_FACTS")
+                self.assertIn("household_size", e["missing_facts"])
+
+    def test_unknown_scope_facts_are_unknown_not_out_of_scope(self):
+        self.assertEqual(run("lifeline", ll("sc1", state=None, income_annual=1, programs=[]))["entry"]["screen"]["state"],
+                         "FACT_UNKNOWN")
+        self.assertEqual(run("liheap", lh("sc2", county=None))["entry"]["screen"]["state"], "FACT_UNKNOWN")
+        self.assertEqual(run("lifeline", ll("sc3", state="fl", income_annual=1, programs=[]))["entry"]["screen"]["state"],
+                         "SCOPE_REVIEW")  # fail closed, not normalized
+        self.assertEqual(run("lifeline", ll("sc4", income_annual=99999, programs=[" snap "]))["entry"]["screen"]["state"],
+                         "POSSIBLE_ROUTE_UNVERIFIED")  # program names are case-insensitive
+
+    def test_claim_words_in_values_are_rejected(self):
+        for value in ("APPROVED $500 per month", "Qualified Provider", "x" * 81, "Bénéfit"):
+            with self.subTest(source_name=value):
+                cand = copy.deepcopy(LIFELINE_CANDIDATE)
+                cand["source_name"] = value
+                with self.assertRaises(ValueError):
+                    e1.run_household("lifeline", cand, ll("v1", income_annual=1, programs=[]), as_of=AS_OF, observed_at=T0)
+        for case in ("approved", "ELIGIBLE_500_per_month", "x\n", "", None, "a b", "grant-1", "month-1"):
+            with self.subTest(case=case):
+                with self.assertRaises(ValueError):
+                    run("lifeline", {**ll("v2", income_annual=1, programs=[]), "case": case})
+
+    def test_equal_facts_in_different_spelling_are_a_duplicate(self):
+        r1 = run("lifeline", ll("n1", income_annual=1000, programs=["SNAP", "SSI"]))
+        for variant in (dict(income_annual=1000.0, programs=["SNAP", "SSI"]),
+                        dict(income_annual=1000, programs=["ssi", "SNAP"]),
+                        dict(income_annual=1000, programs=["SNAP", "SSI", "snap"])):
+            r2 = run("lifeline", ll("n1", **variant), ledger=r1["ledger"], observed_at=T1)
+            self.assertTrue(r2["duplicate"], variant)
+
+    def test_ledger_argument_must_be_a_real_list_or_tuple(self):
+        facts = lh("g1")
+        self.assertEqual(len(run("liheap", facts, ledger=None)["ledger"]), 1)
+        for bad in ("", {}, (e for e in ()), 7):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    run("liheap", facts, ledger=bad)
 
 
 class ExplanationTests(unittest.TestCase):
@@ -315,6 +476,24 @@ class ExplanationTests(unittest.TestCase):
         # explain() takes no state/override parameter at all.
         with self.assertRaises(TypeError):
             explain(entry, r["ledger"], state="POSSIBLE_ROUTE_UNVERIFIED")
+
+    def test_entry_alone_is_still_validated_and_not_called_chain_checked(self):
+        r = run("liheap", lh("e1"))
+        card = explain(r["entry"])
+        self.assertEqual(card["history_integrity"], "ENTRY_ONLY_CHAIN_NOT_CHECKED")
+        self.assertIn("ENTRY_ONLY_CHAIN_NOT_CHECKED", card["text"])
+        forged = copy.deepcopy(r["entry"])
+        forged.update(prev_hash="ab" * 32)  # first entry must chain from genesis
+        forged["entry_hash"] = e1.entry_hash(forged)
+        with self.assertRaises(ValueError):
+            explain(forged)
+
+    def test_scope_and_unknown_states_do_not_print_an_income_limit(self):
+        for facts in (lh("e2", county="Bay"), lh("e3", citizenship_qualifier=None)):
+            card = explain(run("liheap", facts)["entry"])
+            self.assertIsNone(card["published_income_limit_usd"])
+            self.assertNotIn("income limit", card["text"])
+        self.assertEqual(explain(run("liheap", lh("e4"))["entry"])["published_income_limit_usd"], 32155)
 
     def test_history_in_the_explanation_matches_the_ledger(self):
         r1 = run("liheap", lh("h1", gross_income_annual=20000))

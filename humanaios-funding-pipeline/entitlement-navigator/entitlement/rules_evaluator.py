@@ -41,9 +41,9 @@ ADVISORY_STATES = frozenset({
     "WITHIN_PUBLISHED_LIMIT_ONLY", "CRISIS_FUNDING_UNCONFIRMED",
 })
 # ``case`` is a test label only: a short opaque token, never free text.
-CASE_TOKEN = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
+CASE_TOKEN = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 OPS = frozenset({"eq", "ne", "is_null", "not_null", "in", "any_in",
-                 "le_cap", "gt_cap"})
+                 "le_cap", "gt_cap", "cap_known"})
 
 
 def canonical_digest(pack: dict[str, Any]) -> str:
@@ -126,6 +126,8 @@ def _cond(pack: dict[str, Any], facts: dict[str, Any], cond: dict[str, Any]) -> 
         return value in pack["lists"][ref]
     if op == "any_in":
         return isinstance(value, list) and any(v in pack["lists"][ref] for v in value)
+    if op == "cap_known":
+        return _income_cap(pack, facts.get(pack["income_cap"]["size_fact"])) is not None
     cap = _income_cap(pack, facts.get(pack["income_cap"]["size_fact"]))
     if cap is None or type(value) not in (int, float) or isinstance(value, bool):
         return False
@@ -138,8 +140,7 @@ def _check_facts(pack: dict[str, Any], facts: dict[str, Any]) -> dict[str, Any]:
     unexpected = set(facts) - set(pack["facts"]) - {"case"}
     if unexpected:
         raise ValueError(f"unexpected fact fields rejected: {sorted(unexpected)}")
-    case = facts.get("case")
-    if case is not None and not (isinstance(case, str) and CASE_TOKEN.match(case)):
+    if "case" in facts and not (isinstance(facts["case"], str) and CASE_TOKEN.fullmatch(facts["case"])):
         raise ValueError("case must be a short opaque token (letters, digits, _ . -)")
     clean = {name: facts.get(name) for name in pack["facts"]}
     for name, spec in pack["facts"].items():
@@ -156,6 +157,8 @@ def _check_facts(pack: dict[str, Any], facts: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(f"fact {name!r} has invalid value for type {kind}")
         if "allowed" in spec and v not in spec["allowed"]:
             raise ValueError(f"fact {name!r} value not allowed")
+        if spec.get("upper") and kind == "str_list":
+            clean[name] = [i.strip().upper() for i in v]
     return clean
 
 
