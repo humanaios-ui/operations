@@ -262,7 +262,7 @@ class RiskObservatoryContractTests(unittest.TestCase):
         bad["peer_exposure"] = True
         result = checker.check_receipt_set(self.manifest, [self._receipt_for("CLAUDE", "run-1", "a"), bad])
         self.assertEqual(result["status"], "HOLD")
-        self.assertIn("receipt[1]:peer_exposure_or_unknown", result["errors"])
+        self.assertIn("receipt[1]:clean_requires_no_peer_exposure", result["errors"])
 
     def test_empty_or_non_list_receipt_set_holds(self):
         for bad in ([], None, "x"):
