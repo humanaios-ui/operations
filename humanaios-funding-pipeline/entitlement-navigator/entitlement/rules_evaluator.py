@@ -43,7 +43,7 @@ ADVISORY_STATES = frozenset({
 # ``case`` is a test label only: a short opaque token, never free text.
 CASE_TOKEN = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 OPS = frozenset({"eq", "ne", "is_null", "not_null", "in", "any_in",
-                 "le_cap", "gt_cap", "cap_known"})
+                 "le_cap", "gt_cap"})
 
 
 def canonical_digest(pack: dict[str, Any]) -> str:
@@ -126,8 +126,6 @@ def _cond(pack: dict[str, Any], facts: dict[str, Any], cond: dict[str, Any]) -> 
         return value in pack["lists"][ref]
     if op == "any_in":
         return isinstance(value, list) and any(v in pack["lists"][ref] for v in value)
-    if op == "cap_known":
-        return _income_cap(pack, facts.get(pack["income_cap"]["size_fact"])) is not None
     cap = _income_cap(pack, facts.get(pack["income_cap"]["size_fact"]))
     if cap is None or type(value) not in (int, float) or isinstance(value, bool):
         return False

@@ -85,7 +85,7 @@ ENTRY_KEYS = frozenset({
 # Changing a pack changes its digest, so the path refuses until a human re-pins.
 PINS = {
     "lifeline": {"pack_name": "us-lifeline-2026",
-                 "pinned_digest": "7998ff26255205d4d9839f4369a4d7cfcea87695bd09991a7c5d0aa9da3d54c4"},
+                 "pinned_digest": "26b0ea253160a3971a7a9ce7cf71dfbbf10ce1a9aafd4aeb0c4cd459376c3e88"},
     "liheap": {"pack_name": "fl-liheap-ffy2027",
                "pinned_digest": "ee4c857adaf4fb003e7e450dbd4e318d51d901bcc62706e0f80264f704316135"},
 }
