@@ -150,6 +150,30 @@ class RulesEvaluatorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "https"):
             validate_pack(bad)
 
+    def test_https_only_source_check_does_not_claim_authenticity(self):
+        fake = self._repinned(self.lifeline,
+                              lambda p: p.update(sources=[{"url": "https://example.org/untrusted"}]))
+        validate_pack(fake)  # self-consistent and https, so accepted: digest is not authenticity
+        out = evaluate(fake, LIFELINE_CASES[0][0])
+        self.assertEqual(out["source_authenticity"], "NOT_VERIFIED")
+        self.assertEqual(evaluate(self.lifeline, LIFELINE_CASES[0][0])["source_authenticity"],
+                         "NOT_VERIFIED")
+
+    def test_case_label_must_be_opaque_token(self):
+        for bad in ("Jane Doe SSN 000-00-0000", "x" * 65, "", "a/b", 7):
+            with self.subTest(bad=bad):
+                with self.assertRaisesRegex(ValueError, "opaque token"):
+                    evaluate(self.lifeline, {**LIFELINE_CASES[0][0], "case": bad})
+        no_case = {k: v for k, v in LIFELINE_CASES[0][0].items() if k != "case"}
+        self.assertEqual(evaluate(self.lifeline, no_case)["case"], "unnamed")
+
+    def test_declared_expiry_requires_as_of(self):
+        expired = self._repinned(self.lifeline, lambda p: p.update(effective_through="2020-01-01"))
+        with self.assertRaisesRegex(ValueError, "as_of is required"):
+            evaluate(expired, LIFELINE_CASES[0][0])
+        self.assertEqual(evaluate(expired, LIFELINE_CASES[0][0], as_of="2026-11-06")["state"],
+                         "STALE_RULES")
+
     def test_forged_authority_and_unknown_fields_rejected(self):
         for field, value in (("authority_effect", "AUTHORIZE"), ("eligibility_status", "ELIGIBLE"),
                              ("ssn", "000-00-0000"), ("name", "Jane Doe")):

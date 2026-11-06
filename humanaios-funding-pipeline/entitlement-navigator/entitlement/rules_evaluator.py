@@ -11,7 +11,11 @@ Invariants (enforced here and in tests):
   * a pack is bound to its content digest; a caller may pin the expected
     digest and a mismatch raises.
   * a pack past its source-declared ``effective_through`` date yields
-    ``STALE_RULES``; there is no arbitrary TTL and currency is never asserted.
+    ``STALE_RULES``; a pack that declares one requires ``as_of``; there is no
+    arbitrary TTL and currency is never asserted.
+  * sources are checked to be ``https`` URLs only. The digest proves the pack
+    is self-consistent, NOT that a URL belongs to the program or that the
+    rules are authentic: results say ``source_authenticity: NOT_VERIFIED``.
   * unexpected input fields (including ``authority_effect`` or PII-shaped
     keys) are rejected; missing facts are ``None`` (unknown), never assumed.
   * standard library only; no network, no file writes.
@@ -21,6 +25,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -35,6 +40,8 @@ ADVISORY_STATES = frozenset({
     "SCOPE_REVIEW", "FACT_UNKNOWN", "OVER_PUBLISHED_LIMIT",
     "WITHIN_PUBLISHED_LIMIT_ONLY", "CRISIS_FUNDING_UNCONFIRMED",
 })
+# ``case`` is a test label only: a short opaque token, never free text.
+CASE_TOKEN = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 OPS = frozenset({"eq", "ne", "is_null", "not_null", "in", "any_in",
                  "le_cap", "gt_cap"})
 
@@ -65,7 +72,7 @@ def validate_pack(pack: dict[str, Any], *, pinned_digest: str | None = None) -> 
     if not pack["sources"] or not all(
             isinstance(s, dict) and str(s.get("url", "")).startswith("https://")
             for s in pack["sources"]):
-        raise ValueError("rule pack requires first-party https sources")
+        raise ValueError("rule pack requires https sources (authenticity is not verified here)")
     if canonical_digest(pack) != pack["pack_digest"]:
         raise ValueError("rule pack digest mismatch (content changed without re-pinning)")
     if pinned_digest is not None and pack["pack_digest"] != pinned_digest:
@@ -127,6 +134,9 @@ def _check_facts(pack: dict[str, Any], facts: dict[str, Any]) -> dict[str, Any]:
     unexpected = set(facts) - set(pack["facts"]) - {"case"}
     if unexpected:
         raise ValueError(f"unexpected fact fields rejected: {sorted(unexpected)}")
+    case = facts.get("case")
+    if case is not None and not (isinstance(case, str) and CASE_TOKEN.match(case)):
+        raise ValueError("case must be a short opaque token (letters, digits, _ . -)")
     clean = {name: facts.get(name) for name in pack["facts"]}
     for name, spec in pack["facts"].items():
         v = clean[name]
@@ -153,7 +163,9 @@ def evaluate(pack: dict[str, Any], facts: dict[str, Any], *, as_of: date | str |
     state, rule_id = pack.get("default_state", "UNKNOWN_ROUTE_FACTS"), "default"
     stale = False
     through = pack.get("effective_through")
-    if as_of is not None and through is not None:
+    if through is not None and as_of is None:
+        raise ValueError("as_of is required for a rule pack with a declared effective_through")
+    if through is not None:
         when = date.fromisoformat(as_of) if isinstance(as_of, str) else as_of
         stale = when > date.fromisoformat(through)
     if stale:
@@ -177,6 +189,7 @@ def evaluate(pack: dict[str, Any], facts: dict[str, Any], *, as_of: date | str |
         "rule_observed_at": pack["rule_observed_at"],
         "effective_through": through,
         "sources": [s["url"] for s in pack["sources"]],
+        "source_authenticity": "NOT_VERIFIED",
         "eligibility_status": "UNASSESSED",
         "determination": "ADVISORY_SCREEN_ONLY",
         "authority_effect": "NONE",
