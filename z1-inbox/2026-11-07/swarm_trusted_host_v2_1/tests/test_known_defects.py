@@ -235,10 +235,15 @@ class KD3(Base):
             verify(self.plan, self.pin, self.pub, self.root)
 
     def test_event_before_window_blocked(self):
+        # The writer now refuses an early attempt BEFORE producing any event.
         early = iso(datetime.now(timezone.utc) - timedelta(hours=5))
-        self._run_with_clock([early] * 5)
-        with self.assertRaisesRegex(EvidenceError, 'EVENT_OUTSIDE_WINDOW'):
-            verify(self.plan, self.pin, self.pub, self.root)
+        w = self.host()
+        with mock.patch('src.writer.now', return_value=early):
+            with self.assertRaisesRegex(EvidenceError, 'WRITE_OUTSIDE_WINDOW'):
+                w.write('A', 'R1', INTENT)
+        self.assertFalse(w.started)
+        self.assertEqual(list(w.events.iterdir()), [])
+        self.assertEqual(list(w.artifacts.iterdir()), [])
 
     def test_unparseable_timestamp_blocked(self):
         s = self._times()
