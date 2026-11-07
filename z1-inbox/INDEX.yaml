@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 119
+  candidates: 120
   records: 67
 ratifiers:
 - Night
@@ -923,6 +923,13 @@ candidates:
   ratified_at: "2026-10-31"
   z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
   z2_hash: "462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0"
+- q_id: Q-SWARM-TRUSTED-HOST-V2-1-PREFLIGHT-01
+  title: Admit Swarm Trusted Host v2.1 (Ed25519 writer, KD-1..KD-3 fixed offline) for independent review; non-scored two-agent preflight scope. Not an execution grant.
+  path: z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/Z1_CANDIDATE_FOR_Z2.md
+  submitted: '2026-11-07'
+  status: awaiting_z2
+  tier: 0
+  note: 'Refs #1114. Z1 recommends admitting the specification for independent review only. Z2 and Z3 grants, provider model IDs, spend cap, OS or container isolation, read-only snapshot and the real two-agent preflight are all NOT granted or NOT done. KD-1..KD-3 are fixed offline (49/49 package tests) and await independent re-review. Authority effect NONE. Not ratified.'
 records:
 - path: z1-inbox/2026-10-21/CAPACITY_CONTROL_PLANE_REVIEW_RECORD.md
   title: Record of the Z2-directed capacity change (4 to 9) and what is still unsigned
@@ -1115,4 +1122,6 @@ records:
 - path: z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md
   title: 'H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01'
   note: 'Z2 decision window for Q-PR956-GOVERNANCE-ADMISSION-01 (Q-candidate for admission of PR #956 governance documentation to working set) closed on 2026-10-26 11:01 UTC without a recorded decision. Current status: 2026-10-27 06:16 UTC (19+ hours overdue). PR #1008 remains open with no Z2 comments or documented decision. ADMISSION_LEDGER.jsonl shows PR #956 not admitted. Falsifier set: Admiral must provide ACCEPT/EDIT/REJECT decision with timestamp and hash within 24 hours. Escalation routes to Admiral for governance decision enforcement.'
-excluded: []
+excluded:
+- z1-inbox/2026-11-07/swarm_trusted_host_v2_1/README.md
+- z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/SECURITY_GAPS.md

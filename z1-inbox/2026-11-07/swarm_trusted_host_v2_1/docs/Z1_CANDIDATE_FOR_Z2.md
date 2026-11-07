@@ -60,7 +60,7 @@ Z2 is asked to admit v2.1 for review **with these defects on the record**. Each 
 | Independent reviewer and preserved review receipt | PENDING |
 | KD-1, KD-2, KD-3: fixed in v2.1 (offline tests pass); independent re-review | **FIXED OFFLINE; RE-REVIEW PENDING** |
 
-### 4. Predefined no-go falsifiers
+### 4. Falsifier: predefined no-go conditions
 
 - Agent-created artifact with no writer log **must not** classify as verified completion.
 - Replayed/mismatched run, actor, or nonce **must block**.
