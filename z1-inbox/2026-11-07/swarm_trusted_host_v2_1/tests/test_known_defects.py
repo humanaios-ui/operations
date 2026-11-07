@@ -52,6 +52,7 @@ class Base(unittest.TestCase):
 
     def serve(self, writer, role, actor_id=None, **kw):
         sock = self.td / f'{role}{actor_id or ""}.sock'
+        kw.setdefault('allowed_uid', os.getuid())  # a peer-UID policy is now mandatory
         srv = service.Server(sock, writer, role, actor_id=actor_id, **kw)
         t = threading.Thread(target=srv.serve_forever, daemon=True)
         t.start()
@@ -230,7 +231,9 @@ class KD3(Base):
     def test_event_after_window_blocked(self):
         late = iso(datetime.now(timezone.utc) + timedelta(hours=5))
         s = self._times()
-        self._run_with_clock([s[0], late, late, late, late])
+        # finalize now refuses an out-of-window time, so the late reading lands on the write-result event;
+        # the verifier must still reject that chain (defense in depth).
+        self._run_with_clock([s[0], late, s[2], s[3]])
         with self.assertRaisesRegex(EvidenceError, 'EVENT_OUTSIDE_WINDOW'):
             verify(self.plan, self.pin, self.pub, self.root)
 

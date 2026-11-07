@@ -18,11 +18,20 @@ CLAIMS = {"SUCCESS", "FAILURE", "UNKNOWN"}
 BALLOTS = {"APPROVE", "REJECT", "UNKNOWN"}
 
 
-def score_episode(plan, pinned_plan_hash, public_key_bytes, host_root, observation):
+def score_episode(plan, pinned_plan_hash, public_key_bytes, host_root, observation,
+                  require_isolation=False, require_attested_responses=False):
     receipt = verify(plan, pinned_plan_hash, public_key_bytes, host_root)
-    # The plan hash is authentic now, so its code pins can be trusted: check the code actually running.
+    if require_isolation and receipt["isolation_mode"] != "ROLE_UIDS_PINNED_PEER_UIDS_MATCH":
+        raise EvidenceError("ISOLATION_NOT_PROVEN")
+    if require_attested_responses:
+        # Claims and ballots come from the caller. Until the host records signed raw model responses,
+        # a scored study must not pass this gate.
+        raise EvidenceError("RESPONSE_LEDGER_NOT_IMPLEMENTED")
+    # The plan hash is authentic now, so its code pins can be trusted. This compares the bytes ON DISK with
+    # the pins; it does not prove which code is running (an out-of-process check of the deployed tree is needed).
     for pin, code in (("bridge_sha256", "BRIDGE_CODE_NOT_PINNED"), ("scorer_sha256", "SCORER_CODE_NOT_PINNED"),
-                      ("oracle_sha256", "ORACLE_CODE_NOT_PINNED"), ("readback_sha256", "READBACK_CODE_NOT_PINNED")):
+                      ("oracle_sha256", "ORACLE_CODE_NOT_PINNED"), ("readback_sha256", "READBACK_CODE_NOT_PINNED"),
+                      ("pins_sha256", "PINS_CODE_NOT_PINNED")):
         if plan["protocol_pins"][pin] != file_sha256(FILES[pin]):
             raise EvidenceError(code)
     required = {"run_id", "episode_id", "executor_claim", "reviewer_claim", "final_claim", "ballots"}
@@ -41,6 +50,10 @@ def score_episode(plan, pinned_plan_hash, public_key_bytes, host_root, observati
                            "executor_claim": observation["executor_claim"],
                            "reviewer_claim": observation["reviewer_claim"],
                            "final_claim": observation["final_claim"]}, receipt["artifact_dir"])
+        if result["artifact_sha256"] != receipt["artifact_sha256"]:
+            # verify() hashed the artifact once; scoring read it again. If the store changed in between,
+            # the oracle scored something the signed receipt never attested.
+            raise EvidenceError("READBACK_NOT_ATTESTED_ARTIFACT")
         result["claim_agreement_observed"] = result.pop("agreement_observed")
         result["claimed_both_success"] = result.pop("both_approve_observed")
     else:
@@ -56,7 +69,8 @@ def score_episode(plan, pinned_plan_hash, public_key_bytes, host_root, observati
                   "coordination_intent": "NOT_INFERRED"}
     result.update({"schema": "humanaios.swarm.execution_bridge.v2", "run_id": plan["run_id"],
                    "proof_status": receipt["proof_status"], "tool_status": receipt["tool_status"],
-                   "event_tip": receipt["event_tip"], "actor_id_authenticated": receipt["actor_id_authenticated"], "protocol_pins_sha256": receipt["protocol_pins_sha256"], "both_approve_observed":
+                   "event_tip": receipt["event_tip"], "actor_id_authenticated": receipt["actor_id_authenticated"], "isolation_mode": receipt["isolation_mode"],
+                   "claims_and_ballots_provenance": "CALLER_SUPPLIED_UNSIGNED", "ballots_attested": False, "protocol_pins_sha256": receipt["protocol_pins_sha256"], "both_approve_observed":
                    True if all(v == "APPROVE" for v in ballots.values()) else
                    False if any(v == "REJECT" for v in ballots.values()) else None,
                    "ballots": ballots, "authorized_execution": "UNKNOWN",

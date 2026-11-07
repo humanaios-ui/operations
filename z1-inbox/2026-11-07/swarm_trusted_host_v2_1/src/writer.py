@@ -13,6 +13,7 @@ import json
 import os
 import re
 import secrets
+import stat
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -89,6 +90,16 @@ def secure_dir(path):
     path.mkdir(parents=True, exist_ok=True, mode=0o700)
     if path.is_symlink() or not path.is_dir():
         raise EvidenceError("UNSAFE_DIRECTORY")
+    # O_NOFOLLOW protects only the last path component. Anyone who can replace an ANCESTOR entry could
+    # redirect later writes, chmods and chowns, so every ancestor must belong to root or the host user and
+    # must not be writable by others (a sticky directory such as /tmp is acceptable: others cannot rename
+    # entries they do not own). Descriptor-relative traversal would be stronger and is NOT implemented.
+    for ancestor in path.parents:
+        info = ancestor.stat()
+        if info.st_uid not in (0, os.geteuid()):
+            raise EvidenceError("ANCESTOR_NOT_HOST_OWNED")
+        if info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX:
+            raise EvidenceError("ANCESTOR_WRITABLE_BY_OTHERS")
     path.chmod(0o700)
     return path
 
@@ -154,6 +165,8 @@ def check_plan(plan, key):
         raise EvidenceError("PINS_INVALID")
     if pins["writer_sha256"] != file_sha256(FILES["writer_sha256"]):
         raise EvidenceError("WRITER_CODE_NOT_PINNED")
+    if pins["pins_sha256"] != file_sha256(FILES["pins_sha256"]):
+        raise EvidenceError("PINS_CODE_NOT_PINNED")
     task = plan["task"]
     if not isinstance(task, dict) or set(task) != {"artifact_id", "baseline", "proposed", "min_allowed", "max_allowed", "max_delta"}:
         raise EvidenceError("TASK_SCHEMA_INVALID")
@@ -196,14 +209,16 @@ class HostWriter:
         self.nonce = None
         self.actor_id = None
 
-    def _event(self, kind, status, *, artifact_sha256=None, observed_utc=None):
+    def _event(self, kind, status, *, artifact_sha256=None, observed_utc=None, peer_uid=None):
         self.seq += 1
         event = {
-            "schema": "humanaios.tool_event.v2", "sequence": self.seq,
+            "schema": "humanaios.tool_event.v3", "sequence": self.seq,
             "run_id": self.plan["run_id"], "episode_id": self.plan["episode_id"],
             "plan_sha256": self.plan_hash, "kind": kind, "status": status,
             "actor_id": self.actor_id, "request_id": self.request_id,
             "nonce": self.nonce, "artifact_sha256": artifact_sha256,
+            # Kernel-observed uid of the connection that caused this event (SO_PEERCRED), host-reported.
+            "peer_uid": peer_uid,
             "observed_utc": observed_utc if observed_utc is not None else now(), "previous_event_hash": self.tip,
         }
         raw = canonical(event)
@@ -212,13 +227,15 @@ class HostWriter:
         self.tip = event_hash
         return event
 
-    def write(self, actor_id, request_id, intent):
+    def write(self, actor_id, request_id, intent, peer_uid=None):
         with self._lock:
             if self.started or self.finished:
                 raise EvidenceError("REPLAY_OR_ALREADY_STARTED")
             if actor_id != self.plan["allowed_actor"]:
                 raise EvidenceError("ACTOR_NOT_AUTHORIZED")
             ident(request_id)
+            if peer_uid is not None and (type(peer_uid) is not int or peer_uid < 0):
+                raise EvidenceError("PEER_UID_INVALID")
             # Enforce the action window BEFORE recording any attempt or writing an artifact.
             # Reuse this observed timestamp in REQUEST_RECORDED; do not add a
             # second now() call that would shift the frozen event sequence.
@@ -239,10 +256,10 @@ class HostWriter:
                      and intent["artifact_id"] == task["artifact_id"]
                      and isinstance(intent["value"], str) and VALUE.fullmatch(intent["value"])
                      and self.plan["tool_policy"] == "ALLOW")
-            self._event("REQUEST_RECORDED", "ACCEPTED" if valid else "REJECTED", observed_utc=observed)
+            self._event("REQUEST_RECORDED", "ACCEPTED" if valid else "REJECTED", observed_utc=observed, peer_uid=peer_uid)
             if not valid:
                 self.outcome = "NO_ATTEMPT"
-                self._event("WRITE_RESULT", self.outcome)
+                self._event("WRITE_RESULT", self.outcome, peer_uid=peer_uid)
                 return {"tool_status": self.outcome, "request_id": request_id}
             artifact_path = self.artifacts / (task["artifact_id"] + ".json")
             try:
@@ -257,20 +274,29 @@ class HostWriter:
                 # An interrupted/failed write must NEVER be reported as completed.
                 self.outcome = "FAILED"
                 self.artifact_sha256 = None
-            self._event("WRITE_RESULT", self.outcome, artifact_sha256=self.artifact_sha256)
+            self._event("WRITE_RESULT", self.outcome, artifact_sha256=self.artifact_sha256, peer_uid=peer_uid)
             return {"tool_status": self.outcome, "request_id": request_id}
 
-    def finalize(self):
+    def finalize(self, control_peer_uid=None):
         with self._lock:
             if self.finished:
                 raise EvidenceError("ALREADY_FINALIZED")
+            # A receipt finalized outside the window can never verify, so refuse it BEFORE writing anything.
+            stamp = now()
+            moment = parse_utc(stamp, "FINALIZE_TIMESTAMP_INVALID")
+            if not (parse_utc(self.plan["window"]["not_before"], "WINDOW_INVALID") <= moment
+                    <= parse_utc(self.plan["window"]["not_after"], "WINDOW_INVALID")):
+                raise EvidenceError("FINALIZE_OUTSIDE_WINDOW")
             if not self.started:
                 self.outcome = "NO_ATTEMPT"
                 self.actor_id = "A"
                 self.request_id = "NO_REQUEST"
                 self.nonce = secrets.token_hex(16)
+            if control_peer_uid is not None and (type(control_peer_uid) is not int or control_peer_uid < 0):
+                raise EvidenceError("PEER_UID_INVALID")
             self._event("SNAPSHOT_FINALIZED", self.outcome,
-                        artifact_sha256=self.artifact_sha256)
+                        artifact_sha256=self.artifact_sha256, peer_uid=control_peer_uid,
+                        observed_utc=stamp)
             payload = {
                 "schema": "humanaios.tool_receipt.v2", "run_id": self.plan["run_id"],
                 "episode_id": self.plan["episode_id"], "plan_sha256": self.plan_hash,
@@ -293,6 +319,12 @@ def read_private_key(path):
     path = Path(path)
     if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
         raise EvidenceError("UNSAFE_PRIVATE_KEY_PATH_OR_PERMISSIONS")
+    # Custody: the signing key must belong to the host user, in a directory nobody else can modify.
+    # A key an agent UID owns could be read or swapped by that agent.
+    if path.stat().st_uid != os.geteuid():
+        raise EvidenceError("PRIVATE_KEY_NOT_OWNED_BY_HOST")
+    if path.parent.stat().st_mode & 0o022:
+        raise EvidenceError("PRIVATE_KEY_DIR_WRITABLE_BY_OTHERS")
     key = serialization.load_pem_private_key(open_read_no_follow(path), password=None)
     if not isinstance(key, Ed25519PrivateKey):
         raise EvidenceError("NOT_ED25519_KEY")

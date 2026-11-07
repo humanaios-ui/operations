@@ -39,6 +39,12 @@ class Handler(socketserver.StreamRequestHandler):
         creds = self.request.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i"))
         return struct.unpack("3i", creds)[1]
 
+    def _observed_peer_uid(self):
+        try:
+            return self._peer_uid()
+        except (OSError, AttributeError):  # SO_PEERCRED is Linux-only
+            return None
+
     def _send(self, obj):
         try:
             self.wfile.write(canonical(obj) + b"\n")
@@ -61,9 +67,11 @@ class Handler(socketserver.StreamRequestHandler):
                 raise EvidenceError("REQUEST_NOT_OBJECT")
             if (srv.role == "agent" and set(request) == {"op", "request_id", "intent"}
                     and request["op"] == "write"):
-                reply = srv.writer.write(srv.actor_id, request["request_id"], request["intent"])
+                reply = srv.writer.write(srv.actor_id, request["request_id"], request["intent"],
+                                         peer_uid=self._observed_peer_uid())
             elif srv.role == "control" and request == {"op": "finalize"}:
-                reply = {"snapshot": srv.writer.finalize(), "status": "FINALIZED"}
+                reply = {"snapshot": srv.writer.finalize(control_peer_uid=self._observed_peer_uid()),
+                         "status": "FINALIZED"}
             else:
                 raise EvidenceError("NARROW_METHODS_ONLY")
             self._send({"ok": True, "reply": reply})
@@ -73,7 +81,8 @@ class Handler(socketserver.StreamRequestHandler):
 
 class Server(socketserver.UnixStreamServer):
     def __init__(self, socket_path, writer, role, actor_id=None, allowed_uid=None,
-                 timeout=DEFAULT_TIMEOUT, enforce_isolation=False):
+                 timeout=DEFAULT_TIMEOUT, enforce_isolation=False,
+                 allow_unchecked_peer=False):
         if role not in ROLES:
             raise EvidenceError("UNKNOWN_ROLE")
         # A pinned identity policy cannot be silently downgraded to the legacy
@@ -108,6 +117,11 @@ class Server(socketserver.UnixStreamServer):
             # Host-owned search-only directory. Named 0600 sockets are exclusively
             # owned by their individual recipient UIDs. No shared group permissions.
             os.chmod(parent, 0o711)
+        # No silent open mode: without a peer-UID policy only file modes protect the socket.
+        if allowed_uid is None and not allow_unchecked_peer:
+            raise EvidenceError("PEER_UID_POLICY_REQUIRED")
+        if allowed_uid is not None and not hasattr(socket, "SO_PEERCRED"):
+            raise EvidenceError("LINUX_PEER_CREDENTIALS_REQUIRED")
         self.writer, self.role, self.actor_id = writer, role, actor_id
         self.allowed_uid, self.conn_timeout = allowed_uid, timeout
         super().__init__(str(socket_path), Handler)

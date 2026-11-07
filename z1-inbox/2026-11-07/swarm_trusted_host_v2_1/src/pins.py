@@ -11,6 +11,7 @@ FILES = {
     "readback_sha256": ROOT / "integration" / "readback.py",
     "service_sha256": ROOT / "src" / "service.py",
     "verifier_sha256": ROOT / "src" / "verifier.py",
+    "pins_sha256": ROOT / "src" / "pins.py",
 }
 
 

@@ -172,7 +172,6 @@ class ProofTests(unittest.TestCase):
         with self.assertRaisesRegex(EvidenceError,'ATTESTED_ARTIFACT_MISSING_OR_EXTRA'):
             verify(self.plan,self.pin,self.pub,self.root)
 
-if __name__=='__main__': unittest.main()
 
 class ProcessSmoke(unittest.TestCase):
     def test_real_separate_process_socket_synthetic_agents(self):
@@ -183,3 +182,6 @@ class ProcessSmoke(unittest.TestCase):
         self.assertEqual(result['classification'],'VERIFIED_SUCCESS')
         self.assertEqual(result['os_principal_isolation'],'NOT_TESTED')
         self.assertTrue(result['arbitrary_path_rpc_blocked'])
+
+
+if __name__=='__main__': unittest.main()

@@ -97,7 +97,7 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     events_reverse = []
     visited = set()
     keys = {"schema", "sequence", "run_id", "episode_id", "plan_sha256", "kind", "status", "actor_id",
-            "request_id", "nonce", "artifact_sha256", "observed_utc", "previous_event_hash"}
+            "request_id", "nonce", "artifact_sha256", "peer_uid", "observed_utc", "previous_event_hash"}
     for expected_seq in range(payload["event_count"], 0, -1):
         filename = cursor + ".json"
         if filename not in names or filename in visited:
@@ -107,7 +107,7 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
             raise EvidenceError("CONTENT_ADDRESS_HASH_MISMATCH")
         if not isinstance(item, dict) or set(item) != keys:
             raise EvidenceError("EVENT_SCHEMA_INVALID")
-        if item["schema"] != "humanaios.tool_event.v2" or item["sequence"] != expected_seq:
+        if item["schema"] != "humanaios.tool_event.v3" or item["sequence"] != expected_seq:
             raise EvidenceError("EVENT_SEQUENCE_INVALID")
         if (item["run_id"], item["episode_id"], item["plan_sha256"]) != (
             plan["run_id"], plan["episode_id"], pinned_plan_sha256):
@@ -166,7 +166,27 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     else:
         if artifact_names or payload["artifact_sha256"] is not None:
             raise EvidenceError("UNATTESTED_ARTIFACT_EXISTS")
+    # Kernel-observed peer UIDs (host-reported) must match the role policy frozen into the plan.
+    roles = plan.get("role_uids")
+    agent_uid = control_uid = None
+    for item in events:
+        if item["kind"] in ("REQUEST_RECORDED", "WRITE_RESULT"):
+            agent_uid = item["peer_uid"]
+            expect = roles["agent_a"] if roles else None
+        elif item["kind"] == "SNAPSHOT_FINALIZED":
+            control_uid = item["peer_uid"]
+            expect = roles["control"] if roles else None
+        else:
+            continue
+        if roles:
+            if item["peer_uid"] is None:
+                raise EvidenceError("PEER_UID_NOT_RECORDED")
+            if item["peer_uid"] != expect:
+                raise EvidenceError("PEER_UID_MISMATCH")
+    pinned = bool(roles)
     return {
+        "isolation_mode": "ROLE_UIDS_PINNED_PEER_UIDS_MATCH" if pinned else "NOT_ISOLATED_NO_ROLE_UIDS",
+        "peer_uid": agent_uid, "control_peer_uid": control_uid,
         "proof_status": "VERIFIED_HOST_RECEIPT", "tool_status": payload["tool_status"],
         "run_id": plan["run_id"], "episode_id": plan["episode_id"],
         "artifact_sha256": payload["artifact_sha256"], "event_count": payload["event_count"],
@@ -175,5 +195,5 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
         "protocol_pins_sha256": payload["protocol_pins_sha256"],
         "authority": "NOT_ASSESSED", "os_isolation": "NOT_ASSESSED",
         # Route binding only. Same-UID peers are not distinguished; needs an OS-principal access test.
-        "actor_id_authenticated": "UNKNOWN",
+        "actor_id_authenticated": ("HOST_OBSERVED_PEER_UID_MATCHES_PLAN" if pinned else "UNKNOWN"),
     }
