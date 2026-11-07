@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 import json
 import re
+import sys
 from zoneinfo import ZoneInfo
 
 SCHEMA = "humanaios.progress_sensor.e0.v1"
@@ -19,6 +20,7 @@ JOURNEY_SCHEMA = "humanaios.opportunity_journey.projection.e0.v1"
 TOKEN = re.compile(r"[A-Za-z0-9_-]{1,100}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 OFFICIAL_PREFIX = "https://"
+ASCII_URL = re.compile(r"[\x21-\x7e]+")
 SOURCE_FIELDS = {"opportunity_id", "canonical_url", "checked_at", "deadline_at", "source_revision"}
 SIGNAL_FIELDS = {"observation_id", "opportunity_id", "kind", "source_kind", "observed_at", "evidence_ref"}
 SIGNAL_SOURCES = {
@@ -54,6 +56,15 @@ def _token(value: object, label: str) -> str:
     return value
 
 
+MIN_YEAR, MAX_YEAR = 2000, 2100  # bounded so conversions can never overflow; real sprint dates are far inside
+
+
+def _bounded(result: datetime) -> datetime:
+    if not MIN_YEAR <= result.year <= MAX_YEAR:
+        raise ValueError("Timestamp outside the supported years")
+    return result
+
+
 def _utc(value: object) -> datetime:
     if not isinstance(value, str) or not value.endswith("Z"):
         raise ValueError("Expected UTC timestamp with Z")
@@ -63,7 +74,7 @@ def _utc(value: object) -> datetime:
         raise ValueError("Invalid UTC timestamp") from err
     if result.utcoffset().total_seconds() != 0:
         raise ValueError("Not UTC")
-    return result
+    return _bounded(result)
 
 
 def _deadline(value: object) -> datetime:
@@ -75,16 +86,28 @@ def _deadline(value: object) -> datetime:
         raise ValueError("Invalid ISO deadline") from err
     if result.utcoffset() is None or result.utcoffset().total_seconds() % 60:
         raise ValueError("Deadline needs explicit timezone offset")
-    return result.astimezone(timezone.utc)
+    try:
+        converted = result.astimezone(timezone.utc)
+    except OverflowError as err:
+        raise ValueError("Deadline outside the supported years") from err
+    return _bounded(converted)
 
 
 def _public_url(value: object) -> str:
     if not isinstance(value, str) or not value.startswith(OFFICIAL_PREFIX) or len(value) > 2048:
         raise ValueError("Expected bounded HTTPS source URL")
-    if ("@" in value or "?" in value or "#" in value or any(c.isspace() for c in value)
+    # The URL is echoed into the private digest: printable ASCII only, so no hidden or look-alike characters.
+    if (not ASCII_URL.fullmatch(value) or "\\" in value or "@" in value or "?" in value or "#" in value
             or len(value.split("/")) < 4):
         raise ValueError("Private or unstable source URL")
     return value.rstrip("/")
+
+
+def _no_duplicate_keys(pairs: list) -> dict:
+    keys = [k for k, _ in pairs]
+    if len(keys) != len(set(keys)):
+        raise ValueError("Duplicate key in input JSON")
+    return dict(pairs)
 
 
 def _stable_sha(obj: object) -> str:
@@ -202,10 +225,13 @@ def evaluate_progress(payload: dict) -> dict:
     if latest_checked is None:
         trigger("SOURCE_UNAVAILABLE_HOLD")
     elif conflict:
-        trigger("SOURCE_CONFLICT_HOLD")
+        # A different set of conflicting observations is a different conflict and must not be muted by the first.
+        trigger("SOURCE_CONFLICT_HOLD", _stable_sha(sorted(
+            (due.isoformat(), rev) for observations in parsed_sources.values() for due, rev in observations)))
     else:
         if stale:
-            trigger("SOURCE_STALE_RECHECK")
+            # A new check followed by a new stale spell is a new episode; days inside one spell keep one key.
+            trigger("SOURCE_STALE_RECHECK", latest_checked.isoformat())
         if deadline_state == "PASSED" and not provider_seen:
             trigger("DEADLINE_PASSED_WITH_UNKNOWN_OUTCOME")
         elif deadline_state == "NEAR" and not provider_seen:
@@ -251,8 +277,13 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--input", type=Path, required=True,
                         help="Sanitized local JSON snapshot, never raw email")
     args = parser.parse_args(argv)
-    payload = json.loads(args.input.read_text(encoding="utf-8"))
-    print(json.dumps(evaluate_progress(payload), indent=2, sort_keys=True))
+    try:
+        payload = json.loads(args.input.read_text(encoding="utf-8"), object_pairs_hook=_no_duplicate_keys)
+        result = evaluate_progress(payload)
+    except (ValueError, OSError, RecursionError) as err:  # fail closed, no traceback, no partial output
+        print("REFUSED: " + str(err), file=sys.stderr)
+        raise SystemExit(2) from None
+    print(json.dumps(result, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

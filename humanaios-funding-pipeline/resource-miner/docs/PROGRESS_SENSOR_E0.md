@@ -30,6 +30,19 @@ Official paper requirements: template PDF; max eight pages excluding references/
 4. Independent code/privacy review plus exact-commit CI must pass. Prior full Resource Miner CI on #1154 had unrelated reds; do not hide them or call a partial suite full-pass.
 5. Before any real Z1 dispatch, prove authenticated controller identity, least-privilege action allowlist, private persistent dedupe, replay protection, cooldown and human ratification. **No dispatcher or live Z1 activation exists in this patch.**
 
+### Red-team round 1 (author-run, synthetic; see `tests/test_progress_sensor_e0_redteam.py`)
+
+Found and fixed, test first:
+
+- **Time bounds.** A deadline such as `0001-01-01T00:00:00+14:00` raised `OverflowError` instead of the documented `ValueError`. All timestamps are now limited to the years 2000 to 2100 and every rejection is a `ValueError`.
+- **Hidden characters in the URL.** The canonical URL is echoed into the private digest, but only whitespace, `@`, `?` and `#` were refused. Right-to-left overrides, zero-width characters, NUL, backslash and look-alike hosts passed. The URL must now be printable ASCII.
+- **Recurring conditions muted forever.** The dedupe key for `SOURCE_STALE_RECHECK` and `SOURCE_CONFLICT_HOLD` carried no episode, so a second stale spell, or a different conflict, was suppressed as a replay of the first. The stale key now includes the latest check time and the conflict key a hash of the conflicting observations. Days inside one spell still share one key.
+- **CLI.** Duplicate JSON keys were silently resolved by last-wins, and a bad input printed a traceback. Duplicates are refused, and refusals exit 2 with one line on stderr and no output.
+
+Checked and held: the projection never echoes `evidence_ref` or `observation_id`, and the keys do not change when only those opaque values change.
+
+**Still open (not fixed here):** `SOURCE_UNAVAILABLE_HOLD` has nothing to key an episode on, so a second unavailable spell is suppressed while the first key is in the store; the 256-key cap on `prior_dedupe_keys` makes the sensor refuse to run once a store grows past it, so a pruning rule is needed before any dispatcher; the canonical URL has no host allowlist, so source identity is still the caller's job; a changed `source_revision` with an unchanged deadline re-alerts. Tests are author-run only. The same six inherited failures remain in the full suite and are identical on clean `main`.
+
 ### Authority
 
 `AUTHORITY_EFFECT=NONE`. No email sends, message labeling, calendar writes, URL crawls, provider submissions, credentials, spending, Z2/Z3, merge, publication, agent initiation or live external tool actions.
