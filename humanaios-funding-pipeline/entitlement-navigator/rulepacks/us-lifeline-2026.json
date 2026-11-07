@@ -76,7 +76,7 @@
     "WORKSHEET_REQUIRED": "Separate household at same address: complete the household worksheet"
   },
   "note": "Frozen from USAC pages as observed on rule_observed_at. National Verifier decides; benefit amounts are not modeled.",
-  "pack_digest": "26b0ea253160a3971a7a9ce7cf71dfbbf10ce1a9aafd4aeb0c4cd459376c3e88",
+  "pack_digest": "0da72f7670877d241aff4158b4977a56e9ea3e365b48354bdd6f4e288612f7d1",
   "pack_id": "us-lifeline-2026",
   "program": "FCC Lifeline (contiguous US, FL scope)",
   "rule_observed_at": "2026-11-06",
@@ -132,6 +132,19 @@
         }
       ],
       "id": "discount_status_unknown",
+      "sources": [
+        0
+      ],
+      "state": "FACT_UNKNOWN"
+    },
+    {
+      "all": [
+        {
+          "fact": "benefit_at_same_address",
+          "op": "is_null"
+        }
+      ],
+      "id": "same_address_unknown",
       "sources": [
         0
       ],

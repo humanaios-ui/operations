@@ -85,10 +85,13 @@ ENTRY_KEYS = frozenset({
 # Changing a pack changes its digest, so the path refuses until a human re-pins.
 PINS = {
     "lifeline": {"pack_name": "us-lifeline-2026",
-                 "pinned_digest": "26b0ea253160a3971a7a9ce7cf71dfbbf10ce1a9aafd4aeb0c4cd459376c3e88"},
+                 "pinned_digest": "0da72f7670877d241aff4158b4977a56e9ea3e365b48354bdd6f4e288612f7d1"},
     "liheap": {"pack_name": "fl-liheap-ffy2027",
                "pinned_digest": "ee4c857adaf4fb003e7e450dbd4e318d51d901bcc62706e0f80264f704316135"},
 }
+# A pack must belong to the program key it is loaded under (a LIHEAP pack under "lifeline"
+# would otherwise be accepted by name and digest alone).
+EXPECTED_PACK_PREFIX = {"lifeline": "us-lifeline-", "liheap": "fl-liheap-"}
 # Packs that earlier ledger entries were screened under (digest -> pack). Empty today.
 RETIRED_PACKS: dict[str, dict[str, Any]] = {}
 
@@ -100,6 +103,8 @@ def default_registry() -> dict[str, dict[str, Any]]:
         pack = _evaluator.load_pack(pin["pack_name"], pinned_digest=pin["pinned_digest"])
         if pack["pack_id"] != pin["pack_name"]:
             raise ValueError("pack_id does not match the pinned pack name")
+        if not pack["pack_id"].startswith(EXPECTED_PACK_PREFIX[program]):
+            raise ValueError("pack does not belong to this program")
         registry[program] = {"pack": pack, "pinned_digest": pin["pinned_digest"]}
     return registry
 

@@ -26,9 +26,10 @@ import copy
 import hashlib
 import json
 import re
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 RULEPACK_DIR = Path(__file__).resolve().parent.parent / "rulepacks"
 SCHEMA = "humanaios.entitlement-rulepack.v1"
@@ -62,6 +63,17 @@ def load_pack(name_or_path: str | Path, *, pinned_digest: str | None = None) -> 
     return pack
 
 
+def _is_plain_https(url: Any) -> bool:
+    """https URL with a host, no userinfo, no whitespace/control characters or backslashes."""
+    if not isinstance(url, str) or not url or "\\" in url or any(ord(c) < 33 or ord(c) == 127 for c in url):
+        return False
+    try:
+        parts = urlsplit(url)
+        return parts.scheme == "https" and bool(parts.hostname) and not parts.username and not parts.password
+    except ValueError:
+        return False
+
+
 def validate_pack(pack: dict[str, Any], *, pinned_digest: str | None = None) -> None:
     if not isinstance(pack, dict) or pack.get("schema") != SCHEMA:
         raise ValueError("unsupported rule pack schema")
@@ -69,10 +81,16 @@ def validate_pack(pack: dict[str, Any], *, pinned_digest: str | None = None) -> 
                 "sources", "facts", "rules", "pack_digest"):
         if key not in pack:
             raise ValueError(f"rule pack missing {key}")
-    if not pack["sources"] or not all(
-            isinstance(s, dict) and str(s.get("url", "")).startswith("https://")
-            for s in pack["sources"]):
-        raise ValueError("rule pack requires https sources (authenticity is not verified here)")
+    if not isinstance(pack["sources"], list) or not pack["sources"] or not all(
+            isinstance(s, dict) and _is_plain_https(s.get("url")) for s in pack["sources"]):
+        raise ValueError("rule pack requires https sources with a host (authenticity is not verified here)")
+    if not isinstance(pack["rules"], list) or not pack["rules"] or not isinstance(pack["facts"], dict):
+        raise ValueError("rule pack requires a non-empty rules list and a facts object")
+    if pack.get("effective_through") is not None:
+        try:
+            date.fromisoformat(pack["effective_through"])
+        except (TypeError, ValueError) as exc:
+            raise ValueError("effective_through must be an ISO date (YYYY-MM-DD)") from exc
     if canonical_digest(pack) != pack["pack_digest"]:
         raise ValueError("rule pack digest mismatch (content changed without re-pinning)")
     if pinned_digest is not None and pack["pack_digest"] != pinned_digest:
@@ -80,6 +98,14 @@ def validate_pack(pack: dict[str, Any], *, pinned_digest: str | None = None) -> 
     declared = set(pack["facts"])
     if declared & {"authority_effect", "eligibility_status", "authorization_state"}:
         raise ValueError("rule pack may not declare authority-bearing facts")
+    for rule in pack["rules"]:
+        if (not isinstance(rule, dict) or not isinstance(rule.get("id"), str) or not rule["id"]
+                or not isinstance(rule.get("state"), str) or not isinstance(rule.get("all"), list)
+                or not rule["all"]):
+            raise ValueError("every rule needs an id, a state and a non-empty 'all' list")
+    ids = [r["id"] for r in pack["rules"]]
+    if len(set(ids)) != len(ids) or {"default", "stale"} & set(ids):
+        raise ValueError("rule ids must be unique and may not be 'default' or 'stale'")
     states = set(pack.get("states", [])) | {r["state"] for r in pack["rules"]}
     states.add(pack.get("default_state", "UNKNOWN_ROUTE_FACTS"))
     if not states <= ADVISORY_STATES:
@@ -89,11 +115,15 @@ def validate_pack(pack: dict[str, Any], *, pinned_digest: str | None = None) -> 
         for idx in rule.get("sources", []):
             if type(idx) is not int or not 0 <= idx < n_sources:
                 raise ValueError("rule references a source index outside the pack sources")
-        for cond in rule.get("all", []):
-            if cond.get("op") not in OPS:
-                raise ValueError(f"unsupported op {cond.get('op')!r}")
+        for cond in rule["all"]:
+            if not isinstance(cond, dict) or cond.get("op") not in OPS:
+                raise ValueError(f"unsupported op {cond.get('op') if isinstance(cond, dict) else cond!r}")
             if cond.get("fact") not in declared:
                 raise ValueError(f"rule references undeclared fact {cond.get('fact')!r}")
+            if cond["op"] in ("in", "any_in") and cond.get("value") not in (pack.get("lists") or {}):
+                raise ValueError(f"rule references undeclared list {cond.get('value')!r}")
+            if cond["op"] in ("le_cap", "gt_cap") and cond["fact"] != (pack.get("income_cap") or {}).get("fact"):
+                raise ValueError("a cap comparison must use the pack's income_cap fact")
 
 
 def _income_cap(pack: dict[str, Any], size: Any) -> int | None:
@@ -109,6 +139,14 @@ def _income_cap(pack: dict[str, Any], size: Any) -> int | None:
         return table[size]
     extra = spec.get("extra_person")
     return None if extra is None else table[top] + extra * (size - top)
+
+
+def _income_cap_basis(pack: dict[str, Any], size: Any) -> str | None:
+    """'published_table' for sizes in the source table, 'extrapolated' for larger sizes."""
+    if _income_cap(pack, size) is None:
+        return None
+    top = max(int(k) for k in pack["income_cap"]["table"])
+    return "published_table" if size <= top else "extrapolated"
 
 
 def _cond(pack: dict[str, Any], facts: dict[str, Any], cond: dict[str, Any]) -> bool:
@@ -137,7 +175,7 @@ def _check_facts(pack: dict[str, Any], facts: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("facts must be an object")
     unexpected = set(facts) - set(pack["facts"]) - {"case"}
     if unexpected:
-        raise ValueError(f"unexpected fact fields rejected: {sorted(unexpected)}")
+        raise ValueError(f"unexpected fact fields rejected: {len(unexpected)} field(s)")
     if "case" in facts and not (isinstance(facts["case"], str) and CASE_TOKEN.fullmatch(facts["case"])):
         raise ValueError("case must be a short opaque token (letters, digits, _ . -)")
     clean = {name: facts.get(name) for name in pack["facts"]}
@@ -168,16 +206,28 @@ def evaluate(pack: dict[str, Any], facts: dict[str, Any], *, as_of: date | str |
     state, rule_id = pack.get("default_state", "UNKNOWN_ROUTE_FACTS"), "default"
     stale = False
     through = pack.get("effective_through")
-    if through is not None and as_of is None:
+    when: date | None = None
+    if as_of is not None:
+        if isinstance(as_of, datetime):
+            when = as_of.date()
+        elif isinstance(as_of, date):
+            when = as_of
+        elif isinstance(as_of, str):
+            try:
+                when = date.fromisoformat(as_of)
+            except ValueError as exc:
+                raise ValueError("as_of must be an ISO date (YYYY-MM-DD)") from exc
+        else:
+            raise ValueError("as_of must be a date or an ISO date string")
+    if through is not None and when is None:
         raise ValueError("as_of is required for a rule pack with a declared effective_through")
     if through is not None:
-        when = date.fromisoformat(as_of) if isinstance(as_of, str) else as_of
         stale = when > date.fromisoformat(through)
     if stale:
         state, rule_id = "STALE_RULES", "stale"
     else:
         for rule in pack["rules"]:
-            if all(_cond(pack, clean, c) for c in rule.get("all", [])):
+            if all(_cond(pack, clean, c) for c in rule["all"]):
                 state, rule_id = rule["state"], rule["id"]
                 break
     size_fact = (pack.get("income_cap") or {}).get("size_fact")
@@ -189,7 +239,10 @@ def evaluate(pack: dict[str, Any], facts: dict[str, Any], *, as_of: date | str |
         "program": pack["program"],
         "state": state,
         "rule_id": rule_id,
-        "income_cap_usd": _income_cap(pack, clean.get(size_fact)) if size_fact else None,
+        # No published limit is shown beside a "do not rely" result.
+        "income_cap_usd": None if stale or not size_fact else _income_cap(pack, clean.get(size_fact)),
+        "income_cap_basis": None if stale or not size_fact else _income_cap_basis(pack, clean.get(size_fact)),
+        "as_of": when.isoformat() if when else None,
         "next_step": pack.get("next_steps", {}).get(state),
         "pack_id": pack["pack_id"],
         "rule_version": pack["rule_version"],

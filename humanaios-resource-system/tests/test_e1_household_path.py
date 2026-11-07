@@ -217,7 +217,7 @@ class E1PathTests(unittest.TestCase):
                 run("lifeline", ll("o2", income_annual=1, programs=[]))
         with mock.patch.dict(e1.PINS["lifeline"], {"pack_name": "fl-liheap-ffy2027",
                                                     "pinned_digest": e1.PINS["liheap"]["pinned_digest"]}):
-            with self.assertRaisesRegex(ValueError, "program|pack"):
+            with self.assertRaisesRegex(ValueError, "does not belong to this program"):
                 run("lifeline", ll("o4", income_annual=1, programs=[]))
         with self.assertRaises(ValueError):
             run("nonexistent", ll("o3"))
