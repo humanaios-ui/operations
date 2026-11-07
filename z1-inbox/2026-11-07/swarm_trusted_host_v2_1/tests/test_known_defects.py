@@ -322,15 +322,15 @@ class Review1153(Base):
         self.assertEqual(score_episode(self.plan, self.pin, self.pub, self.root, obs)['actor_id_authenticated'],
                          'UNKNOWN')
 
-    def test_cli_requires_allowed_uid(self):
+    def test_cli_shared_uid_requires_explicit_synthetic_flag(self):
         import subprocess, sys as _sys
         code = ("import sys; sys.path.insert(0, %r); from src import service; "
                 "sys.argv=['service','--serve-offline','--scope-json','x','--frozen-hash','y',"
                 "'--private-key','z','--root','r','--agent-socket-a','a','--agent-socket-b','b',"
-                "'--control-socket','c']; service.main()" % str(ROOT))
+                "'--control-socket','c','--allowed-uid','0']; service.main()" % str(ROOT))
         r = subprocess.run([_sys.executable, '-c', code], capture_output=True, text=True, timeout=20)
         self.assertEqual(r.returncode, 2)
-        self.assertIn('--allowed-uid', r.stderr)
+        self.assertIn('SHARED_UID_DEMO_FLAG_REQUIRED', r.stderr)
 
 
 class PeerRefusalRace(Base):
