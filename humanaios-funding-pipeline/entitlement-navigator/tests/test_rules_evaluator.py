@@ -1,7 +1,7 @@
 import copy
 import json
 import unittest
-from datetime import date
+from datetime import date, datetime
 
 from entitlement.rules_evaluator import (
     ADVISORY_STATES, canonical_digest, evaluate, load_pack, validate_pack,
@@ -150,14 +150,15 @@ class RulesEvaluatorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "authority-bearing"):
             validate_pack(bad)
 
-    def test_pack_requires_first_party_https_sources(self):
+    def test_pack_requires_https_sources_only(self):
         bad = self._repinned(self.lifeline, lambda p: p.update(sources=[{"url": "http://example.com"}]))
         with self.assertRaisesRegex(ValueError, "https"):
             validate_pack(bad)
 
     def test_https_only_source_check_does_not_claim_authenticity(self):
         fake = self._repinned(self.lifeline,
-                              lambda p: p.update(sources=[{"url": "https://example.org/untrusted"}]))
+                              lambda p: p.update(sources=[{"url": f"https://example.org/untrusted{i}"}
+                                                                   for i in range(len(p["sources"]))]))
         validate_pack(fake)  # self-consistent and https, so accepted: digest is not authenticity
         out = evaluate(fake, LIFELINE_CASES[0][0])
         self.assertEqual(out["source_authenticity"], "NOT_VERIFIED")
@@ -210,6 +211,138 @@ class RulesEvaluatorTests(unittest.TestCase):
         out = evaluate(dated, facts, as_of="2027-01-01")
         self.assertEqual(out["state"], "STALE_RULES")
         self.assertEqual(out["rule_id"], "stale")
+
+    def test_result_names_the_sources_for_the_matched_rule(self):
+        out = evaluate(self.lifeline, ll("tribal", income_annual=50000, programs=["FDPIR"],
+                                         qualifying_tribal_lands=True))
+        self.assertEqual(out["rule_id"], "route_tribal")
+        self.assertEqual(out["rule_sources"], ["https://www.usac.org/lifeline/consumer-eligibility/tribal-eligibility/"])
+        self.assertEqual(out["rule_source_attribution"], "AUTHOR_ASSERTED_NOT_REVIEWED")
+        # default / stale outcomes fall back to every pack source
+        unknown = evaluate(self.lifeline, ll("unknown"))
+        self.assertEqual(unknown["rule_sources"], unknown["sources"])
+
+    def test_rule_source_index_must_exist(self):
+        bad = self._repinned(self.lifeline, lambda p: p["rules"][0].update(sources=[99]))
+        with self.assertRaisesRegex(ValueError, "source index"):
+            validate_pack(bad)
+
+    def test_case_label_is_matched_in_full_and_never_none(self):
+        for bad in ("x\n", "x\r\n", None, "", "a b"):
+            with self.subTest(bad=bad):
+                with self.assertRaisesRegex(ValueError, "opaque token"):
+                    evaluate(self.lifeline, {**LIFELINE_CASES[0][0], "case": bad})
+
+    def test_unusable_household_size_never_yields_a_negative_route(self):
+        for size in (0, -1, 21, 10 ** 30, None, 1.0, True):
+            with self.subTest(size=size):
+                facts = ll("sz", household_size=size, income_annual=10000, programs=["SNAP2"])
+                try:
+                    out = evaluate(self.lifeline, facts)
+                except ValueError:
+                    continue  # rejected outright is also fail-closed
+                self.assertEqual(out["state"], "UNKNOWN_ROUTE_FACTS")
+
+    def test_null_scope_facts_are_unknown_and_program_names_normalize(self):
+        self.assertEqual(evaluate(self.lifeline, ll("n1", state=None))["state"], "FACT_UNKNOWN")
+        self.assertEqual(evaluate(self.liheap, lh("n2", county=None))["state"], "FACT_UNKNOWN")
+        self.assertEqual(evaluate(self.lifeline, ll("n3", income_annual=99999, programs=[" snap "]))["state"],
+                         "POSSIBLE_ROUTE_UNVERIFIED")
+
+
+    # ---- findings from the CodeRabbit review of #1147 -------------------------------
+    def test_malformed_rules_are_rejected_at_load_not_at_evaluation(self):
+        cases = {
+            "empty all matches everyone": lambda p: p["rules"][0].update({"all": []}),
+            "all key missing": lambda p: p["rules"][0].pop("all"),
+            "all not a list": lambda p: p["rules"][0].update({"all": "x"}),
+            "rule without id": lambda p: p["rules"][0].pop("id"),
+            "rule without state": lambda p: p["rules"][0].pop("state"),
+            "duplicate rule ids": lambda p: p["rules"][1].update({"id": p["rules"][0]["id"]}),
+            "reserved rule id": lambda p: p["rules"][0].update({"id": "default"}),
+            "condition not an object": lambda p: p["rules"][0]["all"].append("x"),
+            "undeclared list": lambda p: p["rules"][-1].update({"all": [{"fact": "programs", "op": "any_in", "value": "nope"}]}),
+            "cap op on the wrong fact": lambda p: p["rules"][-1].update({"all": [{"fact": "household_size", "op": "le_cap"}]}),
+            "empty rules list": lambda p: p.update({"rules": []}),
+        }
+        for label, mutate in cases.items():
+            with self.subTest(label):
+                bad = self._repinned(self.lifeline, mutate)
+                with self.assertRaises(ValueError):
+                    validate_pack(bad)
+                with self.assertRaises(ValueError):
+                    evaluate(bad, LIFELINE_CASES[0][0])
+
+    def test_source_urls_need_a_host_and_no_userinfo(self):
+        for url in ("https://", "https:///path", "https://user@usac.org/", "https://u:p@usac.org/",
+                    "https://usac.org/a b", "https://usac.org/\\x", "http://usac.org/", "", None, 7):
+            with self.subTest(url=url):
+                bad = self._repinned(self.lifeline, lambda p: p["sources"][0].update(url=url))
+                with self.assertRaisesRegex(ValueError, "https"):
+                    validate_pack(bad)
+
+    def test_effective_through_must_be_an_iso_date_at_load(self):
+        for value in ("soon", "2026-13-01", 20261231, "2026-12-31T00:00:00"):
+            with self.subTest(value=value):
+                bad = self._repinned(self.lifeline, lambda p: p.update(effective_through=value))
+                with self.assertRaisesRegex(ValueError, "ISO date"):
+                    validate_pack(bad)
+
+    def test_as_of_accepts_dates_and_datetimes_and_rejects_everything_else(self):
+        dated = self._repinned(self.lifeline, lambda p: p.update(effective_through="2026-12-31"))
+        facts = LIFELINE_CASES[0][0]
+        self.assertEqual(evaluate(dated, facts, as_of=datetime(2026, 12, 31, 23, 59))["state"],
+                         "POSSIBLE_ROUTE_UNVERIFIED")
+        self.assertEqual(evaluate(dated, facts, as_of=datetime(2027, 1, 1, 0, 1))["state"], "STALE_RULES")
+        for bad in (20261231, 1.5, [], "garbage", "2026-02-30"):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):  # never TypeError
+                    evaluate(dated, facts, as_of=bad)
+        # also checked for packs with no end date: a malformed as_of is not silently ignored
+        with self.assertRaises(ValueError):
+            evaluate(self.lifeline, facts, as_of="garbage")
+
+    def test_stale_result_shows_no_income_limit_and_records_as_of(self):
+        dated = self._repinned(self.lifeline, lambda p: p.update(effective_through="2026-12-31"))
+        facts = LIFELINE_CASES[0][0]
+        stale = evaluate(dated, facts, as_of="2027-01-01")
+        self.assertEqual((stale["state"], stale["income_cap_usd"], stale["income_cap_basis"]),
+                         ("STALE_RULES", None, None))
+        self.assertEqual(stale["as_of"], "2027-01-01")
+        live = evaluate(dated, facts, as_of="2026-12-31")
+        self.assertEqual((live["income_cap_usd"], live["income_cap_basis"]), (21546, "published_table"))
+        self.assertEqual(live["as_of"], "2026-12-31")
+        self.assertIsNone(evaluate(self.lifeline, facts)["as_of"])
+
+    def test_extrapolated_limits_are_labeled_as_such(self):
+        nine = evaluate(self.lifeline, ll("big", household_size=9, income_annual=1000, programs=[]))
+        self.assertEqual((nine["income_cap_usd"], nine["income_cap_basis"]), (82890, "extrapolated"))
+        eight = evaluate(self.lifeline, ll("eight", household_size=8, income_annual=1000, programs=[]))
+        self.assertEqual(eight["income_cap_basis"], "published_table")
+        none = evaluate(self.lifeline, ll("zero", household_size=None))
+        self.assertIsNone(none["income_cap_basis"])
+
+    def test_rejected_field_names_are_not_echoed_and_mixed_keys_do_not_crash(self):
+        for facts in ({**LIFELINE_CASES[0][0], "Jane Doe": 1, "ssn": "000"},
+                      {**LIFELINE_CASES[0][0], 7: 1, "x": 2}):
+            with self.subTest(keys=len(facts)):
+                with self.assertRaises(ValueError) as ctx:
+                    evaluate(self.lifeline, facts)
+                self.assertIn("2 field(s)", str(ctx.exception))
+                self.assertNotIn("Jane", str(ctx.exception))
+                self.assertNotIn("ssn", str(ctx.exception))
+
+    def test_unknown_same_address_is_a_missing_fact_not_a_no(self):
+        for extra in ({"benefit_at_same_address": None},):
+            out = evaluate(self.lifeline, ll("sa", income_annual=1000, programs=[], **extra))
+            self.assertEqual((out["state"], out["rule_id"]), ("FACT_UNKNOWN", "same_address_unknown"))
+        # known answers are unchanged
+        self.assertEqual(evaluate(self.lifeline, ll("sa2", income_annual=1000, programs=[]))["state"],
+                         "POSSIBLE_ROUTE_UNVERIFIED")
+        # a reported existing discount still wins over an unknown address
+        self.assertEqual(evaluate(self.lifeline, ll("sa3", income_annual=1000, programs=[],
+                                                    existing_discount_this_household=True,
+                                                    benefit_at_same_address=None))["state"], "HOLD")
 
     def test_pack_file_is_plain_json(self):
         json.dumps(self.liheap)
