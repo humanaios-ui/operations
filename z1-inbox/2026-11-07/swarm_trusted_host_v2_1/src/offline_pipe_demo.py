@@ -61,7 +61,8 @@ def demo():
         argv = [sys.executable, "-m", "src.service", "--serve-offline", "--scope-json", str(scope_path),
                 "--frozen-hash", digest(plan), "--private-key", str(key_path),
                 "--root", str(root / "host"), "--agent-socket-a", str(agent_a), "--agent-socket-b", str(agent_b),
-                "--control-socket", str(control), "--allowed-uid", str(os.getuid()), "--timeout", "2"]
+                "--control-socket", str(control), "--allowed-uid", str(os.getuid()),
+                "--allow-shared-uid-demo", "--timeout", "2"]
         process = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         try:
             for _ in range(150):
