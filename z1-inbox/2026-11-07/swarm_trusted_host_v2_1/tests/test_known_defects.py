@@ -261,9 +261,16 @@ class KD3(Base):
             verify(self.plan, self.pin, self.pub, self.root)
 
     def test_finalized_utc_before_last_event_blocked(self):
+        # An honest writer now uses ONE clock reading for the snapshot event and finalized_utc, so it can no
+        # longer produce this. The verifier must still reject it: forge the receipt time and re-sign.
+        import base64
         s = self._times()
-        # events 0..3 (request, result, snapshot event), receipt stamp goes backwards
-        self._run_with_clock([s[1], s[2], s[3], s[0]])
+        self._run_with_clock([s[1], s[2], s[3], s[4]])
+        snap = self.root / self.plan['run_id'] / self.plan['episode_id'] / 'snapshot.json'
+        seal = json.loads(snap.read_bytes())
+        seal['payload']['finalized_utc'] = s[0]
+        seal['signature_ed25519_b64'] = base64.b64encode(self.key.sign(canonical(seal['payload']))).decode('ascii')
+        snap.write_bytes(canonical(seal))
         with self.assertRaisesRegex(EvidenceError, 'EVENT_TIMESTAMP_ORDER'):
             verify(self.plan, self.pin, self.pub, self.root)
 

@@ -101,6 +101,14 @@ class AncestorsOfSecuredPaths(Base):  # finding: writer.py 84-106 (Major)
         with self.assertRaisesRegex(EvidenceError, "ANCESTOR_NOT_HOST_OWNED"):
             secure_dir(foreign / "evidence")
 
+    @unittest.skipUnless(os.geteuid() == 0, "needs root to chown")
+    def test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod(self):
+        leaf = self.td / "leaf"
+        leaf.mkdir(); os.chown(leaf, 61501, 61501); leaf.chmod(0o755)
+        with self.assertRaisesRegex(EvidenceError, "DIRECTORY_NOT_HOST_OWNED"):
+            secure_dir(leaf)
+        self.assertEqual(stat.S_IMODE(leaf.stat().st_mode), 0o755)  # refused BEFORE touching it
+
     def test_private_tree_accepted(self):
         self.assertTrue(secure_dir(self.td / "a" / "b").is_dir())
 
@@ -139,6 +147,23 @@ class FinalizeWindow(Base):  # finding: writer.py 263-289
             with self.assertRaises(EvidenceError):
                 w.finalize()
         self.assertEqual(w.finalize()["payload"]["tool_status"], "COMPLETED")
+
+
+class FinalizeSingleReading(Base):  # CodeRabbit follow-up on 5526006: finalized_utc must not take a second reading
+    def test_event_and_receipt_share_one_clock_reading(self):
+        plan = make_plan(self.key)
+        w = HostWriter(self.td / "h", self.key, plan, digest(plan))
+        not_after = datetime.fromisoformat(plan["window"]["not_after"])
+        now0 = datetime.now(timezone.utc)
+        readings = iter([iso(now0), iso(now0),                      # request, write result
+                         iso(not_after - timedelta(seconds=1)),     # the single finalize reading, inside
+                         iso(not_after + timedelta(seconds=1))])    # a second reading would land here, outside
+        with mock.patch("src.writer.now", lambda: next(readings)):
+            w.write("A", "R1", INTENT)
+            seal = w.finalize()
+        self.assertEqual(seal["payload"]["finalized_utc"], iso(not_after - timedelta(seconds=1)))
+        from src.verifier import verify
+        verify(plan, digest(plan), self.pub, self.td / "h")  # raises EVENT_OUTSIDE_WINDOW if a 2nd reading was used
 
 
 class DirectRunKeepsProcessSmoke(unittest.TestCase):  # finding: tests/test_writer.py 175-185

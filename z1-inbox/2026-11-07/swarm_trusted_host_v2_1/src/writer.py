@@ -100,6 +100,10 @@ def secure_dir(path):
             raise EvidenceError("ANCESTOR_NOT_HOST_OWNED")
         if info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX:
             raise EvidenceError("ANCESTOR_WRITABLE_BY_OTHERS")
+    # The directory itself must be ours before we chmod or use it: a pre-existing directory an agent owns
+    # would stay renameable and writable by that agent no matter what mode we set.
+    if path.stat().st_uid != os.geteuid():
+        raise EvidenceError("DIRECTORY_NOT_HOST_OWNED")
     path.chmod(0o700)
     return path
 
@@ -305,7 +309,7 @@ class HostWriter:
                 "event_count": self.seq, "tip_sha256": self.tip,
                 "tool_status": self.outcome, "artifact_sha256": self.artifact_sha256,
                 "actor_id": self.actor_id, "request_id": self.request_id,
-                "nonce": self.nonce, "finalized_utc": now(),
+                "nonce": self.nonce, "finalized_utc": stamp,  # same reading as the event: one clock read
             }
             seal = {"payload": payload,
                     "signature_ed25519_b64": base64.b64encode(self.key.sign(canonical(payload))).decode("ascii")}
