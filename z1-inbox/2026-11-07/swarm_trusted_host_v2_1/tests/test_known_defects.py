@@ -188,6 +188,26 @@ class KD2(Base):
 
 
 class KD3(Base):
+    def test_expired_window_rejects_write_before_state_changes(self):
+        late = iso(datetime.now(timezone.utc) + timedelta(hours=6))
+        w = self.host()
+        with mock.patch('src.writer.now', return_value=late):
+            with self.assertRaisesRegex(EvidenceError, 'WRITE_OUTSIDE_WINDOW'):
+                w.write('A', 'R1', INTENT)
+        self.assertFalse(w.started)
+        self.assertEqual(list(w.events.iterdir()), [])
+        self.assertEqual(list(w.artifacts.iterdir()), [])
+
+    def test_future_window_rejects_write_before_state_changes(self):
+        early = iso(datetime.now(timezone.utc) - timedelta(hours=6))
+        w = self.host()
+        with mock.patch('src.writer.now', return_value=early):
+            with self.assertRaisesRegex(EvidenceError, 'WRITE_OUTSIDE_WINDOW'):
+                w.write('A', 'R1', INTENT)
+        self.assertFalse(w.started)
+        self.assertEqual(list(w.events.iterdir()), [])
+        self.assertEqual(list(w.artifacts.iterdir()), [])
+
     def _run_with_clock(self, stamps):
         it = iter(stamps)
         with mock.patch('src.writer.now', lambda: next(it)):
