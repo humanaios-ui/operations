@@ -113,10 +113,21 @@ def open_read_no_follow(path):
 
 
 def check_plan(plan, key):
-    if not isinstance(plan, dict) or set(plan) != {
+    required_fields = {
         "task", "run_id", "episode_id", "writer_pubkey_sha256", "allowed_actor",
-        "action", "protocol", "non_scored", "tool_policy", "window", "protocol_pins"}:
+        "action", "protocol", "non_scored", "tool_policy", "window", "protocol_pins"}
+    if not isinstance(plan, dict) or set(plan) not in (required_fields, required_fields | {"role_uids"}):
         raise EvidenceError("PLAN_SCHEMA_INVALID")
+    # Optional for historic offline fixtures. Mandatory for any isolated host deployment.
+    # These UID bindings are included in the plan hash and signed receipt.
+    if "role_uids" in plan:
+        roles = plan["role_uids"]
+        if (not isinstance(roles, dict) or set(roles) != {"host", "agent_a", "agent_b", "control"}
+            or any(type(v) is not int or v < 0 for v in roles.values())
+            or any(roles[k] == 0 for k in ("agent_a", "agent_b", "control"))):
+            raise EvidenceError("ROLE_UID_POLICY_INVALID")
+        if len(set(roles.values())) != 4:
+            raise EvidenceError("ROLE_UIDS_NOT_DISTINCT")
     if plan["protocol"] != "SWARM_HOST_V2" or plan["non_scored"] is not True:
         raise EvidenceError("WRONG_PROTOCOL")
     if plan["action"] != "WRITE_NUMERIC_ARTIFACT" or plan["allowed_actor"] != "A" or plan["tool_policy"] not in ("ALLOW", "DENY"):
