@@ -1,0 +1,14 @@
+{
+ "arbitrary_path_rpc_blocked": true,
+ "authorized_execution": "UNKNOWN",
+ "classification": "VERIFIED_SUCCESS",
+ "host_event_count": 3,
+ "independent_blind_review": "NOT_PERFORMED",
+ "model_calls": 0,
+ "oracle_verdict": "PASS",
+ "os_principal_isolation": "NOT_TESTED",
+ "proof_status": "VERIFIED_HOST_RECEIPT",
+ "separate_writer_process": 402,
+ "sprint_empirical_result": false,
+ "status": "OFFLINE_SYNTHETIC_ONLY"
+}

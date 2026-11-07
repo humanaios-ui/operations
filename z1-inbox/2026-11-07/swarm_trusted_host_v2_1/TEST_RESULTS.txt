@@ -1,0 +1,54 @@
+test_actor_id_in_request_body_is_rejected (tests.test_known_defects.KD1.test_actor_id_in_request_body_is_rejected) ... ok
+test_agent_channel_refuses_finalize (tests.test_known_defects.KD1.test_agent_channel_refuses_finalize) ... ok
+test_agent_role_requires_actor (tests.test_known_defects.KD1.test_agent_role_requires_actor) ... ok
+test_channel_bound_to_A_writes_and_event_actor_is_channel_actor (tests.test_known_defects.KD1.test_channel_bound_to_A_writes_and_event_actor_is_channel_actor) ... ok
+test_channel_bound_to_B_cannot_write_as_A (tests.test_known_defects.KD1.test_channel_bound_to_B_cannot_write_as_A) ... ok
+test_control_channel_finalizes (tests.test_known_defects.KD1.test_control_channel_finalizes) ... ok
+test_control_channel_refuses_write (tests.test_known_defects.KD1.test_control_channel_refuses_write) ... ok
+test_peer_uid_match_allowed (tests.test_known_defects.KD1.test_peer_uid_match_allowed) ... ok
+test_peer_uid_mismatch_refused (tests.test_known_defects.KD1.test_peer_uid_mismatch_refused) ... ok
+test_changing_any_pinned_field_changes_plan_hash_and_blocks (tests.test_known_defects.KD2.test_changing_any_pinned_field_changes_plan_hash_and_blocks) ... ok
+test_empty_model_id_rejected (tests.test_known_defects.KD2.test_empty_model_id_rejected) ... ok
+test_malformed_pin_hash_rejected (tests.test_known_defects.KD2.test_malformed_pin_hash_rejected) ... ok
+test_plan_without_pins_rejected (tests.test_known_defects.KD2.test_plan_without_pins_rejected) ... ok
+test_signed_receipt_carries_pins_hash (tests.test_known_defects.KD2.test_signed_receipt_carries_pins_hash) ... ok
+test_wrong_bridge_pin_rejected_at_scoring (tests.test_known_defects.KD2.test_wrong_bridge_pin_rejected_at_scoring) ... ok
+test_wrong_scorer_pin_rejected_at_scoring (tests.test_known_defects.KD2.test_wrong_scorer_pin_rejected_at_scoring) ... ok
+test_wrong_writer_code_pin_rejected (tests.test_known_defects.KD2.test_wrong_writer_code_pin_rejected) ... ok
+test_bad_window_rejected (tests.test_known_defects.KD3.test_bad_window_rejected) ... ok
+test_decreasing_timestamps_blocked (tests.test_known_defects.KD3.test_decreasing_timestamps_blocked) ... ok
+test_event_after_window_blocked (tests.test_known_defects.KD3.test_event_after_window_blocked) ... ok
+test_event_before_window_blocked (tests.test_known_defects.KD3.test_event_before_window_blocked) ... ok
+test_finalized_utc_before_last_event_blocked (tests.test_known_defects.KD3.test_finalized_utc_before_last_event_blocked) ... ok
+test_idle_client_does_not_stall_writer (tests.test_known_defects.KD3.test_idle_client_does_not_stall_writer) ... ok
+test_in_order_in_window_passes (tests.test_known_defects.KD3.test_in_order_in_window_passes) ... ok
+test_naive_timestamp_blocked (tests.test_known_defects.KD3.test_naive_timestamp_blocked) ... ok
+test_unparseable_timestamp_blocked (tests.test_known_defects.KD3.test_unparseable_timestamp_blocked) ... ok
+test_real_separate_process_socket_synthetic_agents (tests.test_writer.ProcessSmoke.test_real_separate_process_socket_synthetic_agents) ... ok
+test_altered_artifact_rejected (tests.test_writer.ProofTests.test_altered_artifact_rejected) ... ok
+test_altered_event_rejected (tests.test_writer.ProofTests.test_altered_event_rejected) ... ok
+test_appended_event_rejected (tests.test_writer.ProofTests.test_appended_event_rejected) ... ok
+test_bad_requested_value_rejected (tests.test_writer.ProofTests.test_bad_requested_value_rejected) ... ok
+test_cross_episode_payload_rejected (tests.test_writer.ProofTests.test_cross_episode_payload_rejected) ... ok
+test_deleted_event_rejected (tests.test_writer.ProofTests.test_deleted_event_rejected) ... ok
+test_existing_state_reuse_blocked (tests.test_writer.ProofTests.test_existing_state_reuse_blocked) ... ok
+test_forged_artifact_with_no_event_blocked (tests.test_writer.ProofTests.test_forged_artifact_with_no_event_blocked) ... ok
+test_forged_snapshot_signature_rejected (tests.test_writer.ProofTests.test_forged_snapshot_signature_rejected) ... ok
+test_host_policy_denial_blocks_valid_request (tests.test_writer.ProofTests.test_host_policy_denial_blocks_valid_request) ... ok
+test_immutable_plan_binding (tests.test_writer.ProofTests.test_immutable_plan_binding) ... ok
+test_invalid_tool_is_no_attempt (tests.test_writer.ProofTests.test_invalid_tool_is_no_attempt) ... ok
+test_missing_artifact_after_write_blocked (tests.test_writer.ProofTests.test_missing_artifact_after_write_blocked) ... ok
+test_observation_ballots_not_inferred_from_claims (tests.test_writer.ProofTests.test_observation_ballots_not_inferred_from_claims) ... ok
+test_replay_write_blocked (tests.test_writer.ProofTests.test_replay_write_blocked) ... ok
+test_request_id_traversal (tests.test_writer.ProofTests.test_request_id_traversal) ... ok
+test_success_claim_without_write_stays_unknown (tests.test_writer.ProofTests.test_success_claim_without_write_stays_unknown) ... ok
+test_symlink_artifact_rejected (tests.test_writer.ProofTests.test_symlink_artifact_rejected) ... ok
+test_valid_signed_snapshot (tests.test_writer.ProofTests.test_valid_signed_snapshot) ... ok
+test_verified_scoring_preserves_ballot_separation (tests.test_writer.ProofTests.test_verified_scoring_preserves_ballot_separation) ... ok
+test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_actor_refused_without_write) ... ok
+test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 49 tests in 5.216s
+
+OK
