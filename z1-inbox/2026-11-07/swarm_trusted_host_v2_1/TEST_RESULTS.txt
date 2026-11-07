@@ -1,16 +1,18 @@
 AUTHOR-RUN TEST LOG (Claude Code, Z1). NOT an independent reproduction. Authority: NONE.
-Built on branch base 690f9cf plus the uncommitted changes of the commit that adds this file.
-Date: 2026-11-07T20:56:52Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
+Built on branch base 5526006 plus the uncommitted changes of the commit that adds this file.
+Date: 2026-11-07T21:01:27Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
 Command: python -I -m unittest discover -s tests -t . -v      (run from this directory)
 
 ===== Python 3.13.18 / cryptography 50.0.1 =====
 test_ancestor_owned_by_another_user_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_ancestor_owned_by_another_user_refused) ... ok
+test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod) ... ok
 test_private_tree_accepted (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_private_tree_accepted) ... ok
 test_sticky_world_writable_ancestor_like_tmp_is_allowed (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_sticky_world_writable_ancestor_like_tmp_is_allowed) ... ok
 test_world_writable_non_sticky_ancestor_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_world_writable_non_sticky_ancestor_refused) ... ok
 test_artifact_swapped_between_verify_and_readback_fails_closed (tests.test_codereview_findings.BridgeBindsReadbackToAttestedArtifact.test_artifact_swapped_between_verify_and_readback_fails_closed) ... ok
 test_unmodified_artifact_still_scores (tests.test_codereview_findings.BridgeBindsReadbackToAttestedArtifact.test_unmodified_artifact_still_scores) ... ok
 test_main_guard_is_the_last_statement_of_test_writer (tests.test_codereview_findings.DirectRunKeepsProcessSmoke.test_main_guard_is_the_last_statement_of_test_writer) ... ok
+test_event_and_receipt_share_one_clock_reading (tests.test_codereview_findings.FinalizeSingleReading.test_event_and_receipt_share_one_clock_reading) ... ok
 test_early_finalize_with_no_attempt_is_refused_too (tests.test_codereview_findings.FinalizeWindow.test_early_finalize_with_no_attempt_is_refused_too) ... ok
 test_in_window_finalize_after_a_refusal_still_works (tests.test_codereview_findings.FinalizeWindow.test_in_window_finalize_after_a_refusal_still_works) ... ok
 test_late_finalize_is_refused_before_any_state_change (tests.test_codereview_findings.FinalizeWindow.test_late_finalize_is_refused_before_any_state_change) ... ok
@@ -95,18 +97,20 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 89 tests in 8.365s
+Ran 91 tests in 8.326s
 
 OK
 
 ===== Python 3.11.18 / cryptography 50.0.1 =====
 test_ancestor_owned_by_another_user_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_ancestor_owned_by_another_user_refused) ... ok
+test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod) ... ok
 test_private_tree_accepted (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_private_tree_accepted) ... ok
 test_sticky_world_writable_ancestor_like_tmp_is_allowed (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_sticky_world_writable_ancestor_like_tmp_is_allowed) ... ok
 test_world_writable_non_sticky_ancestor_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_world_writable_non_sticky_ancestor_refused) ... ok
 test_artifact_swapped_between_verify_and_readback_fails_closed (tests.test_codereview_findings.BridgeBindsReadbackToAttestedArtifact.test_artifact_swapped_between_verify_and_readback_fails_closed) ... ok
 test_unmodified_artifact_still_scores (tests.test_codereview_findings.BridgeBindsReadbackToAttestedArtifact.test_unmodified_artifact_still_scores) ... ok
 test_main_guard_is_the_last_statement_of_test_writer (tests.test_codereview_findings.DirectRunKeepsProcessSmoke.test_main_guard_is_the_last_statement_of_test_writer) ... ok
+test_event_and_receipt_share_one_clock_reading (tests.test_codereview_findings.FinalizeSingleReading.test_event_and_receipt_share_one_clock_reading) ... ok
 test_early_finalize_with_no_attempt_is_refused_too (tests.test_codereview_findings.FinalizeWindow.test_early_finalize_with_no_attempt_is_refused_too) ... ok
 test_in_window_finalize_after_a_refusal_still_works (tests.test_codereview_findings.FinalizeWindow.test_in_window_finalize_after_a_refusal_still_works) ... ok
 test_late_finalize_is_refused_before_any_state_change (tests.test_codereview_findings.FinalizeWindow.test_late_finalize_is_refused_before_any_state_change) ... ok
@@ -191,6 +195,6 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 89 tests in 7.262s
+Ran 91 tests in 8.175s
 
 OK
