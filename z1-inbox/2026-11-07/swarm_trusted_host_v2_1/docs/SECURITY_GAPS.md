@@ -22,3 +22,11 @@
 **Known limits:** `HostWriter` uses Python `fcntl.flock` to prevent accidental concurrent writers. A hostile same-UID process remains able to reach paths or the socket. File and socket modes 0600/0700 do not themselves prove isolation. The verifier follows only SHA-256-addressed event files from the signed head but cannot prove the writer process or host kernel was honest. There is no independence certification, no live agent outcome data, no human sign-off and no research effect.
 
 **Deployment posture:** `NO_GO_LIVE` until an independent operational security review and signed human execution grants.
+
+### Finding DMR-UID-01 — premature `finalize` by same-UID caller
+
+- **Observed by independent reviewer:** 57/57 prior offline tests, plus five targeted checks, including a same-UID client obtaining `FINALIZED` and a valid signed `NO_ATTEMPT` receipt. Signed receipt and plan edits were correctly rejected. Source head reported `e02805b`; original evidence package SHA-256 `91741950a6d06566df5aeecf2fe5c1964c1fdfe1cc9ec4d6f5d3a2aa6e682ef8`.
+- **Cause:** One permitted UID and 0600 sockets on that UID still let an untrusted peer reach the control endpoint. These credentials authenticate the OS account, not the orchestrator's distinct role.
+- **Repair staged, not independently cleared:** frozen `role_uids` for four distinct Linux identities; per-role 0600 socket ownership; kernel `SO_PEERCRED`; fail-closed strict mode; explicit unsafe shared-UID demo flag; root-only cross-UID regression test. A malicious process under the trusted control UID remains out of scope; a compromised host/root can bypass OS access controls.
+- **Falsifier:** two independent agent UIDs must each fail to connect to the control socket and read the host signer/store, while the distinct control UID can finalize following a valid A write. Assert the writer is not finalized by either attack, capture kernel UID/permission evidence and final signed state. Demonstrate again on the exact changed PR head under an independently prepared deployment, not only a synthetic local reference.
+- **Residual blockers:** protected host/signer runtime, immutable off-host snapshot, response/ballot provenance, full code and dependency freeze, external model cap, Z2/Z3 grants. Passing unit tests alone is not approval to run real agents.
