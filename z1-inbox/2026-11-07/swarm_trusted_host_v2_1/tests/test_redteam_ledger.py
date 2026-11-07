@@ -100,6 +100,7 @@ class LargestLegalReplyFitsTheControlChannel(Base):
                "transport_status": "OK", "provider_request_id": "req_big", "model_id": "SYNTHETIC_A", "attempt": 1}
         c = socket.socket(socket.AF_UNIX)
         c.settimeout(10)
+        self.addCleanup(c.close)
         c.connect(str(sock))
         c.sendall((json.dumps(req) + "\n").encode())
         data = b""
