@@ -18,6 +18,9 @@ def intake_resource_handoff(handoff: dict[str, Any]) -> dict[str, Any]:
     if handoff.get("requested_action") != "VERIFY_ELIGIBILITY":
         raise ValueError("handoff requested_action must be VERIFY_ELIGIBILITY")
 
+    if handoff.get("authority_effect") != "NONE":
+        raise ValueError("Unauthorized authority effect")
+
     eligibility = handoff.get("eligibility") or {}
     if eligibility.get("assessed") is not False:
         raise ValueError("upstream handoff cannot claim eligibility was assessed")
