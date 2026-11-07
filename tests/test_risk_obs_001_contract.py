@@ -49,7 +49,11 @@ class RiskObservatoryContractTests(unittest.TestCase):
         self.assertIn("- path: tests/test_risk_obs_001_contract.py", baseline)
         # Both pull_request and push must include the experiment source path.
         self.assertEqual(workflow.count("- 'experiments/risk_obs_001/**'"), 2)
-        self.assertIn("python3 -m pytest", workflow)
+        # Workflow may invoke pytest as a shell string or as a subprocess argv list.
+        self.assertTrue(
+            "python3 -m pytest" in workflow or ("'-m', 'pytest'" in workflow or '"-m", "pytest"' in workflow),
+            msg="quality-baseline workflow must invoke pytest (shell or subprocess list form)",
+        )
 
     def test_matching_bytes_only_not_admission(self):
         report = checker.verify_files(self.manifest, self.paths)
@@ -256,7 +260,7 @@ class RiskObservatoryContractTests(unittest.TestCase):
         self.assertIn("shared_provider_run_ref", result["errors"])
 
     def test_run_ref_reused_with_case_and_space_changes_is_rejected(self):
-        receipts = [self._receipt_for("CLAUDE", "Run-1", "a"), self._receipt_for("GROK", "  run-1 ", "b")]
+        receipts = [self._receipt_for("CLAUDE", "run-1", "a"), self._receipt_for("GROK", "  run-1 ", "b")]
         self.assertIn("shared_provider_run_ref", checker.check_receipt_set(self.manifest, receipts)["errors"])
 
     def test_identical_output_digest_across_legs_is_rejected(self):
