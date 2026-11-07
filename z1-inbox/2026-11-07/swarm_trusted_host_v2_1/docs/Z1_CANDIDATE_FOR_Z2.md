@@ -79,6 +79,14 @@ Two real model identities and provider request IDs; complete raw prompt/response
 
 **Z1 recommendation:** APPROVE THE SPECIFICATION FOR INDEPENDENT REVIEW ONLY. **Do not approve model spending or live execution until all physical and authority gates above pass.**
 
+### Independent reviewer escalation — DMR-UID-01 (Nov 7, 2026)
+
+Demarius reproduced an unauthorized same-UID control-socket `finalize` against commit `e02805b`. Result: signed `NO_ATTEMPT`, no required write. All 57 offline tests passed in that independent review. This confirmed weakness overrides any earlier inference that separate sockets and one common UID authenticate the orchestrator.
+
+A **candidate** fail-closed role-UID patch is staged on the same draft PR. It pins `role_uids` for host, A, B and control; enforces kernel peer identity and owner-only permissions; refuses downgrade to shared-UID mode for pinned plans; and adds root-only hostile-access tests. A shared-UID demo must be explicitly flagged and remains untrusted evidence. A code fix does not prove deployment isolation: require an exact-head unit-test rerun and independent host access challenge before Z2 considers a live grant. Details in `docs/SECURITY_GAPS.md`.
+
+**Authority effect: NONE.** This text requests review, not permission for model calls, provider spending, merge, or scientific scoring.
+
 
 ### 6. v2.1 fix summary for KD-1..KD-3 (offline, test-first)
 
