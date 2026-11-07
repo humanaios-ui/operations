@@ -15,6 +15,7 @@ import unittest
 from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives import serialization
 
 from tests.fixtures import make_plan
 from src.writer import HostWriter, EvidenceError, digest, canonical
@@ -27,7 +28,7 @@ CHILD = r"""
 import json, os, socket, pathlib, sys
 path, verb = sys.argv[1:3]
 try:
-    if verb == "key":
+    if verb in ("key", "proc_mem"):
         pathlib.Path(path).read_bytes()
         result = {"outcome": "UNEXPECTED_READ"}
     else:
@@ -109,7 +110,12 @@ class IdentityBoundary(unittest.TestCase):
                              "agent_b": AGENT_B_UID, "control": CONTROL_UID}
         host = HostWriter(self.base / "host", self.key, plan, digest(plan))
         key_file = host.root / "private_signer_key"
-        key_file.write_bytes(b"synthetic-key-custody-canary")
+        # Persist the actual ephemeral test signer, not a dummy placeholder.
+        # Client probes must never return or print the key bytes.
+        key_file.write_bytes(self.key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()))
         key_file.chmod(0o600)
         ipc = self.base / "ipc"
         ipc.mkdir(mode=0o700)
@@ -135,6 +141,9 @@ class IdentityBoundary(unittest.TestCase):
             private = call_as(uid, key_file, "key")
             self.assertEqual(private["outcome"], "DENIED")
             self.assertEqual(private["errno"], 13)
+            process_memory = call_as(uid, "/proc/%s/mem" % os.getpid(), "proc_mem")
+            self.assertEqual(process_memory["outcome"], "DENIED")
+            self.assertIn(process_memory["errno"], (1, 13))
         self.assertFalse(host.finished)
         self.assertEqual(call_as(AGENT_B_UID, a, "write")["outcome"], "DENIED")
         valid = call_as(AGENT_A_UID, a, "write")
