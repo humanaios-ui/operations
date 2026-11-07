@@ -73,13 +73,16 @@ class LegacyPeerCredentialsFailClosed(Base):  # finding: service.py 38-40
     def test_allowed_uid_without_so_peercred_refused_at_start(self):
         plan = make_plan(self.key)
         w = HostWriter(self.td / "h", self.key, plan, digest(plan))
-        saved = socket.SO_PEERCRED
-        delattr(socket, "SO_PEERCRED")
+        existed = hasattr(socket, "SO_PEERCRED")
+        saved = getattr(socket, "SO_PEERCRED", None)
+        if existed:
+            delattr(socket, "SO_PEERCRED")
         try:
             with self.assertRaisesRegex(EvidenceError, "LINUX_PEER_CREDENTIALS_REQUIRED"):
                 service.Server(self.td / "s.sock", w, "control", allowed_uid=os.getuid())
         finally:
-            socket.SO_PEERCRED = saved
+            if existed:
+                socket.SO_PEERCRED = saved
 
 
 class AncestorsOfSecuredPaths(Base):  # finding: writer.py 84-106 (Major)
