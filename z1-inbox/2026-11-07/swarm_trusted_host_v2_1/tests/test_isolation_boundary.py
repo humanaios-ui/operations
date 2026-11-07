@@ -48,12 +48,11 @@ print(json.dumps(result))
 
 
 def call_as(uid, path, verb):
-    def drop():
-        os.setgroups([])
-        os.setgid(uid)
-        os.setuid(uid)
+    # Do not use preexec_fn in a multi-threaded server test.
+    # subprocess performs credential change without a Python child hook.
     out = subprocess.run([sys.executable, "-c", CHILD, str(path), verb],
-                         capture_output=True, text=True, timeout=7, preexec_fn=drop)
+                         capture_output=True, text=True, timeout=7,
+                         user=uid, group=uid, extra_groups=[])
     if out.returncode:
         raise AssertionError(out.stderr)
     return json.loads(out.stdout)
@@ -79,6 +78,18 @@ class IdentityBoundary(unittest.TestCase):
         with self.assertRaisesRegex(EvidenceError, "ROLE_UID_POLICY_NOT_PINNED"):
             Server(self.base / "agent.sock", host, "agent", actor_id="A",
                    allowed_uid=61501, enforce_isolation=True)
+
+    def test_pinned_policy_cannot_run_in_demo_mode(self):
+        plan = make_plan(self.key)
+        plan["role_uids"] = {"host": os.getuid(), "agent_a": 61501,
+                             "agent_b": 61502, "control": 61503}
+        # Only valid on Linux root (otherwise host UID may equal test UID).
+        if os.getuid() in (61501, 61502, 61503):
+            self.skipTest("test UID collision")
+        host = HostWriter(self.base / "host", self.key, plan, digest(plan))
+        with self.assertRaisesRegex(EvidenceError, "ISOLATION_REQUIRED_BY_PLAN"):
+            Server(self.base / "control.sock", host, "control",
+                   allowed_uid=os.getuid(), enforce_isolation=False)
 
     def test_mismatched_control_uid_rejected(self):
         plan = make_plan(self.key)
