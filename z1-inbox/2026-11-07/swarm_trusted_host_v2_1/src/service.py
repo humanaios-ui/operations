@@ -5,11 +5,14 @@ Two kinds of channel (KD-1):
                       reached, never read from the request body. Only `write` is served.
   * control channel - orchestrator only. Only `finalize` is served. Never hand it to an agent.
 
-Each connection has a deadline (KD-3), so one idle client cannot stall the writer. An optional
-SO_PEERCRED uid check refuses peers that are not the expected OS user.
+Each connection has a deadline (KD-3), so one idle client cannot stall the writer.
+Demarius's same-UID access finding is reproduced in the legacy demo. The isolated
+offline mode requires frozen, distinct Linux UIDs for host/A/B/control, a per-socket
+kernel peer UID check and 0600 socket ownership restricted to that role.
 
-Not production-ready: requires a dedicated OS principal, operator-approved scope, a read-only
-snapshot and an external hard spend control. The request surface cannot supply a path or command.
+Not production-ready: requires a separately audited OS/container deployment,
+independent immutable evidence, provenance of raw agent responses, a human grant,
+and an external hard spend control. The request surface provides no shell or path.
 """
 import argparse
 import json
@@ -69,7 +72,8 @@ class Handler(socketserver.StreamRequestHandler):
 
 
 class Server(socketserver.UnixStreamServer):
-    def __init__(self, socket_path, writer, role, actor_id=None, allowed_uid=None, timeout=DEFAULT_TIMEOUT):
+    def __init__(self, socket_path, writer, role, actor_id=None, allowed_uid=None,
+                 timeout=DEFAULT_TIMEOUT, enforce_isolation=False):
         if role not in ROLES:
             raise EvidenceError("UNKNOWN_ROLE")
         # The channel roles are enforced by THIS file: refuse to serve if it is not the pinned one.
@@ -81,10 +85,42 @@ class Server(socketserver.UnixStreamServer):
             raise EvidenceError("CONTROL_CHANNEL_HAS_NO_ACTOR")
         if not isinstance(timeout, (int, float)) or timeout <= 0:
             raise EvidenceError("TIMEOUT_INVALID")
+        # A socket's name alone is NOT an actor identity. In strict offline mode,
+        # each channel has a distinct OS UID frozen into the signed plan.
+        if enforce_isolation:
+            roles = writer.plan.get("role_uids")
+            if not isinstance(roles, dict):
+                raise EvidenceError("ROLE_UID_POLICY_NOT_PINNED")
+            role_name = "control" if role == "control" else ("agent_a" if actor_id == "A" else "agent_b")
+            if type(allowed_uid) is not int or allowed_uid != roles[role_name]:
+                raise EvidenceError("ROLE_UID_NOT_AUTHORIZED")
+            if os.geteuid() != roles["host"]:
+                raise EvidenceError("HOST_UID_NOT_AUTHORIZED")
+            if not hasattr(socket, "SO_PEERCRED"):
+                raise EvidenceError("LINUX_PEER_CREDENTIALS_REQUIRED")
+            parent = secure_dir(Path(socket_path).parent)
+            if parent.stat().st_uid != os.geteuid():
+                raise EvidenceError("SOCKET_PARENT_NOT_HOST_OWNED")
+            # Host-owned search-only directory. Named 0600 sockets are exclusively
+            # owned by their individual recipient UIDs. No shared group permissions.
+            os.chmod(parent, 0o711)
         self.writer, self.role, self.actor_id = writer, role, actor_id
         self.allowed_uid, self.conn_timeout = allowed_uid, timeout
         super().__init__(str(socket_path), Handler)
+        if enforce_isolation:
+            try:
+                # Needs a trusted pre-provisioner with CAP_CHOWN. Missing privileges
+                # fail closed; there is no fallback to host/shared ownership.
+                os.chown(socket_path, allowed_uid, allowed_uid)
+            except OSError as exc:
+                self.server_close()
+                raise EvidenceError("SOCKET_ROLE_OWNER_NOT_ENFORCED") from exc
         os.chmod(socket_path, 0o600)
+        if enforce_isolation:
+            info = os.stat(socket_path)
+            if info.st_uid != allowed_uid or (info.st_mode & 0o777) != 0o600:
+                self.server_close()
+                raise EvidenceError("SOCKET_ROLE_PERMISSIONS_INVALID")
 
 
 def main():
@@ -97,26 +133,43 @@ def main():
     parser.add_argument("--agent-socket-a", required=True)
     parser.add_argument("--agent-socket-b", required=True)
     parser.add_argument("--control-socket", required=True)
-    parser.add_argument("--allowed-uid", type=int, required=True,
-                        help="OS uid permitted to connect (SO_PEERCRED, Linux). Required: fail closed.")
+    parser.add_argument("--allowed-uid", type=int, default=None,
+                        help="Legacy same-UID synthetic demonstration only; requires --allow-shared-uid-demo.")
+    parser.add_argument("--allow-shared-uid-demo", action="store_true",
+                        help="INSECURE synthetic-only mode, never evidence of actor identity separation.")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT)
     a = parser.parse_args()
     if not a.serve_offline:
         raise SystemExit("REFUSED: offline prototype only; no live grant or model execution")
+    if a.allowed_uid is not None and not a.allow_shared_uid_demo:
+        parser.error("SHARED_UID_DEMO_FLAG_REQUIRED")
     scope = json.loads(Path(a.scope_json).read_text())
+    if a.allow_shared_uid_demo:
+        if a.allowed_uid is None or "role_uids" in scope:
+            parser.error("LEGACY_DEMO_REQUIRES_UNPINNED_SHARED_UID")
+        allowed = {"agent_a": a.allowed_uid, "agent_b": a.allowed_uid, "control": a.allowed_uid}
+    else:
+        frozen = scope.get("role_uids")
+        if not isinstance(frozen, dict):
+            parser.error("ROLE_UID_POLICY_NOT_FROZEN")
+        if os.geteuid() != frozen.get("host"):
+            parser.error("HOST_UID_NOT_AUTHORIZED")
+        allowed = {k: frozen[k] for k in ("agent_a", "agent_b", "control")}
     writer = HostWriter(Path(a.root), read_private_key(a.private_key), scope, a.frozen_hash)
-    layout = [(a.agent_socket_a, "agent", "A"), (a.agent_socket_b, "agent", "B"),
-              (a.control_socket, "control", None)]
-    paths = [Path(p) for p, _, _ in layout]
+    layout = [(a.agent_socket_a, "agent", "A", allowed["agent_a"]),
+              (a.agent_socket_b, "agent", "B", allowed["agent_b"]),
+              (a.control_socket, "control", None, allowed["control"])]
+    paths = [Path(p) for p, _, _, _ in layout]
     if len(set(paths)) != len(paths):
         raise SystemExit("SOCKETS_MUST_BE_DISTINCT")
     servers = []
-    for path, role, actor in layout:
+    for path, role, actor, uid in layout:
         path = Path(path)
         secure_dir(path.parent)
         if path.exists() or path.is_symlink():
             raise SystemExit("SOCKET_ALREADY_EXISTS")
-        servers.append(Server(path, writer, role, actor_id=actor, allowed_uid=a.allowed_uid, timeout=a.timeout))
+        servers.append(Server(path, writer, role, actor_id=actor, allowed_uid=uid,
+                              timeout=a.timeout, enforce_isolation=not a.allow_shared_uid_demo))
     for srv in servers[:-1]:
         threading.Thread(target=srv.serve_forever, daemon=True).start()
     servers[-1].serve_forever()
