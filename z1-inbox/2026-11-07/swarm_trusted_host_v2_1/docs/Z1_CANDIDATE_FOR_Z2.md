@@ -124,3 +124,5 @@ Fixed, each test first: signing key must be host-owned in a private directory; k
 - It does not prove the two agents were independent, or that B never saw A's output; that is an orchestrator and deployment property.
 - It does not enforce a retry policy: `attempt` is recorded, not limited.
 - Verified offline with synthetic replies only. No model was called.
+
+**Red-team round 2 (see `docs/SECURITY_GAPS.md`):** a deeply nested model reply crashed `record_response` (now `UNPARSEABLE`); `model_id` is now required to equal the plan's pinned `model_a` / `model_b` for that actor, and a `provider_request_id` may not repeat, in the host and again in the verifier. These are reported values, so they do not stop a lying orchestrator. 140 tests, author-run, Python 3.13 and 3.11.

@@ -99,7 +99,7 @@ def demo():
                                         ("A","BALLOT",'{"ballot":"APPROVE"}',"synthetic_4"),
                                         ("B","BALLOT",'{"ballot":"APPROVE"}',"synthetic_5")):
                 rec = request(control, {"op":"record_response","actor_id":who,"kind":kind,"transport_status":"OK",
-                                        "provider_request_id":rid,"model_id":"SYNTHETIC_NONE","attempt":1,
+                                        "provider_request_id":rid,"model_id":"SYNTHETIC_A" if who=="A" else "SYNTHETIC_B","attempt":1,
                                         "raw_response":raw})
                 if not rec.get("ok"): raise RuntimeError(str(rec))
             # An agent channel must never be able to record a response.

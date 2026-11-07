@@ -34,3 +34,15 @@
 ### Red-team and CodeRabbit round (see Z1_CANDIDATE_FOR_Z2.md section 7)
 
 Real-UID probes (A, B, control as separate users) confirmed: agents could not reach each other's or the control socket, list host storage, or finalize on their own socket. Gaps found and fixed: agent-owned key file accepted, no kernel peer UID in evidence, isolated and shared-UID receipts indistinguishable, open server API, unattested readback between verify and score, unpinned `pins.py`, unbounded late `finalize`, unchecked ancestors of secured paths. **Built since, offline:** the signed response ledger (section 8 of the Z1 candidate): the host hashes and parses relayed replies, the verifier re-derives them, and the bridge refuses contradicting caller observations. It trusts the orchestrator to relay faithfully. **Open:** descriptor-relative traversal; out-of-process deployed-tree check; off-host snapshot; orchestrator trust.
+
+### Red-team round 2: response ledger (author-run, offline)
+
+Probed the newest code, the signed response ledger. Found and fixed, test first (`tests/test_redteam_ledger.py`):
+
+- **Hostile model text crashed the host.** A reply made of tens of thousands of `[` raised `RecursionError`, which the parser and the socket handler did not catch. A model, or a prompt injection into one, could make a slot impossible to record. Now recorded as `UNPARSEABLE`.
+- **Ledger named any model.** `model_id` was only format-checked. The host and the verifier now require the model the frozen plan pinned for that actor (`model_a` / `model_b`).
+- **One reply could fill two slots.** `provider_request_id` could repeat. Reuse is now refused by the host and by the verifier.
+
+Probed and held: largest legal reply (32768 control characters, JSON-escaped) fits the control channel; deeply nested objects and huge number literals are `UNPARSEABLE`; lone surrogates are refused.
+
+**Still true:** the model id and request id are what the orchestrator *reports*. A provider cannot sign its replies, so a lying or compromised orchestrator can still report a pinned model and a fresh id. These checks catch mistakes and lazy forgery, not a determined orchestrator. Run-level model verification stays open. Evidence: 140 tests, author-run, Python 3.13 and 3.11. Not independently rerun.

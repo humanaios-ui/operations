@@ -12,7 +12,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .pins import file_sha256
-from .responses import KINDS, MAX_RAW, TRANSPORT, derive_observation, parse_response, slot
+from .responses import KINDS, MAX_RAW, TRANSPORT, derive_observation, parse_response, pinned_model, slot
 from .writer import GENESIS, canonical, digest, ident, sha_bytes, parse_utc, EvidenceError
 
 
@@ -45,9 +45,9 @@ DETAIL_KEYS = {"kind", "value", "parse_status", "transport_status", "provider_re
 HEX64 = __import__("re").compile(r"^[a-f0-9]{64}$")
 
 
-def _check_responses(ep, events):
+def _check_responses(ep, events, plan):
     """Re-derive every ledger entry from the stored raw bytes. Nothing recorded is trusted on its own."""
-    ledger, seen, expected_files = [], set(), set()
+    ledger, seen, expected_files, provider_ids = [], set(), set(), set()
     for item in events:
         if item["kind"] != "RESPONSE_RECORDED":
             continue
@@ -62,6 +62,11 @@ def _check_responses(ep, events):
         if slot(kind, actor) in seen:
             raise EvidenceError("RESPONSE_ALREADY_RECORDED")
         seen.add(slot(kind, actor))
+        if d["model_id"] != pinned_model(plan, actor):
+            raise EvidenceError("RESPONSE_MODEL_NOT_PINNED")
+        if d["provider_request_id"] in provider_ids:
+            raise EvidenceError("RESPONSE_PROVIDER_ID_REUSED")
+        provider_ids.add(d["provider_request_id"])
         sha, size = d["response_sha256"], d["response_bytes"]
         if (d["transport_status"] not in TRANSPORT or not isinstance(sha, str) or not HEX64.fullmatch(sha)
                 or type(size) is not int or not 0 <= size <= MAX_RAW):
@@ -202,7 +207,7 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     if [e["kind"] for e in core] not in (["SNAPSHOT_FINALIZED"],
                                          ["REQUEST_RECORDED", "WRITE_RESULT", "SNAPSHOT_FINALIZED"]):
         raise EvidenceError("EVENT_STRUCTURE_INVALID")
-    ledger = _check_responses(ep, events)
+    ledger = _check_responses(ep, events, plan)
     if payload["response_count"] != len(ledger) or payload["response_ledger_sha256"] != digest(ledger):
         raise EvidenceError("RECEIPT_LEDGER_MISMATCH")
     if len(core) == 1:

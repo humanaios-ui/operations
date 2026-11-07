@@ -39,7 +39,7 @@ def parse_response(kind, raw, transport_status):
     key, allowed, _ = KINDS[kind]
     try:
         doc = json.loads(raw.decode("utf-8"), object_pairs_hook=_no_duplicate_keys)
-    except (ValueError, UnicodeDecodeError):
+    except (ValueError, UnicodeDecodeError, RecursionError):  # model text is hostile: deep nesting must not crash
         return "UNKNOWN", "UNPARSEABLE"
     if not isinstance(doc, dict) or set(doc) != {key}:
         return "UNKNOWN", "UNPARSEABLE"
@@ -47,6 +47,11 @@ def parse_response(kind, raw, transport_status):
     if not isinstance(value, str) or value not in allowed:
         return "UNKNOWN", "UNPARSEABLE"
     return value, "OK"
+
+
+def pinned_model(plan, actor_id):
+    """The one model the frozen plan pins for this actor. The ledger may name no other."""
+    return plan["protocol_pins"]["model_a" if actor_id == "A" else "model_b"]
 
 
 def derive_observation(entries):

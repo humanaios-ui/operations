@@ -1,9 +1,9 @@
 AUTHOR-RUN TEST LOG (Claude Code, Z1). NOT an independent reproduction. Authority: NONE.
-Built on branch base 115271d plus the uncommitted changes of the commit that adds this file.
-Date: 2026-11-07T21:11:44Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
+Built on branch head 2e3cf1f plus the uncommitted changes of the commit that adds this file.
+Date: 2026-11-07T21:29:59Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
+Python: Python 3.13.18 (the same suite also passed, 140/140, on Python 3.11 in a separate venv)
 Command: python -I -m unittest discover -s tests -t . -v      (run from this directory)
 
-===== Python 3.13.18 / cryptography 50.0.1 =====
 test_ancestor_owned_by_another_user_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_ancestor_owned_by_another_user_refused) ... ok
 test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod) ... ok
 test_private_tree_accepted (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_private_tree_accepted) ... ok
@@ -72,6 +72,23 @@ test_missing_peer_uid_rejected_when_roles_pinned (tests.test_redteam_gaps.PeerUi
 test_verify_reports_pinned_isolation_when_peer_uids_match (tests.test_redteam_gaps.PeerUidEvidence.test_verify_reports_pinned_isolation_when_peer_uids_match) ... ok
 test_ballots_are_labelled_caller_supplied (tests.test_redteam_gaps.UnattestedResponses.test_ballots_are_labelled_caller_supplied) ... ok
 test_scored_study_gate_fails_closed_without_a_complete_response_ledger (tests.test_redteam_gaps.UnattestedResponses.test_scored_study_gate_fails_closed_without_a_complete_response_ledger) ... ok
+test_deeply_nested_json_is_unparseable_not_a_crash (tests.test_redteam_ledger.HostileModelText.test_deeply_nested_json_is_unparseable_not_a_crash) ... ok
+test_deeply_nested_object_is_unparseable (tests.test_redteam_ledger.HostileModelText.test_deeply_nested_object_is_unparseable) ... ok
+test_deeply_nested_reply_is_recorded_as_unparseable (tests.test_redteam_ledger.HostileModelText.test_deeply_nested_reply_is_recorded_as_unparseable) ... ok
+test_huge_number_literal_is_unparseable_not_a_crash (tests.test_redteam_ledger.HostileModelText.test_huge_number_literal_is_unparseable_not_a_crash) ... ok
+test_max_raw_of_control_characters_round_trips_over_the_socket (tests.test_redteam_ledger.LargestLegalReplyFitsTheControlChannel.test_max_raw_of_control_characters_round_trips_over_the_socket) ... /usr/local/lib/python3.13/unittest/case.py:606: ResourceWarning: unclosed <socket.socket fd=59, family=1, type=1, proto=0, raddr=/tmp/tmpdrrfuca2/c.sock>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_actor_a_must_use_the_pinned_model_a (tests.test_redteam_ledger.ModelIdentityBinding.test_actor_a_must_use_the_pinned_model_a) ... ok
+test_actor_b_must_use_the_pinned_model_b (tests.test_redteam_ledger.ModelIdentityBinding.test_actor_b_must_use_the_pinned_model_b) ... ok
+test_off_pin_model_in_a_signed_ledger_is_rejected_by_the_verifier (tests.test_redteam_ledger.ModelIdentityBinding.test_off_pin_model_in_a_signed_ledger_is_rejected_by_the_verifier) ... ok
+test_pinned_models_are_accepted (tests.test_redteam_ledger.ModelIdentityBinding.test_pinned_models_are_accepted) ... ok
+test_refusal_changes_no_state (tests.test_redteam_ledger.ModelIdentityBinding.test_refusal_changes_no_state) ... ok
+test_distinct_ids_are_fine (tests.test_redteam_ledger.ProviderIdReuse.test_distinct_ids_are_fine) ... ok
+test_refused_reuse_leaves_the_slot_free (tests.test_redteam_ledger.ProviderIdReuse.test_refused_reuse_leaves_the_slot_free) ... ok
+test_reused_id_in_a_signed_ledger_is_rejected_by_the_verifier (tests.test_redteam_ledger.ProviderIdReuse.test_reused_id_in_a_signed_ledger_is_rejected_by_the_verifier) ... ok
+test_same_provider_request_id_refused_for_a_second_slot (tests.test_redteam_ledger.ProviderIdReuse.test_same_provider_request_id_refused_for_a_second_slot) ... ok
 test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded) ... ok
 test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate) ... ok
 test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour (tests.test_response_ledger.BridgeUsesTheLedger.test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour) ... ok
@@ -132,139 +149,6 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 126 tests in 12.512s
-
-OK
-
-===== Python 3.11.18 / cryptography 50.0.1 =====
-test_ancestor_owned_by_another_user_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_ancestor_owned_by_another_user_refused) ... ok
-test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_existing_leaf_directory_owned_by_another_user_refused_before_any_chmod) ... ok
-test_private_tree_accepted (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_private_tree_accepted) ... ok
-test_sticky_world_writable_ancestor_like_tmp_is_allowed (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_sticky_world_writable_ancestor_like_tmp_is_allowed) ... ok
-test_world_writable_non_sticky_ancestor_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_world_writable_non_sticky_ancestor_refused) ... ok
-test_artifact_swapped_between_verify_and_readback_fails_closed (tests.test_codereview_findings.BridgeBindsReadbackToAttestedArtifact.test_artifact_swapped_between_verify_and_readback_fails_closed) ... ok
-test_unmodified_artifact_still_scores (tests.test_codereview_findings.BridgeBindsReadbackToAttestedArtifact.test_unmodified_artifact_still_scores) ... ok
-test_main_guard_is_the_last_statement_of_test_writer (tests.test_codereview_findings.DirectRunKeepsProcessSmoke.test_main_guard_is_the_last_statement_of_test_writer) ... ok
-test_event_and_receipt_share_one_clock_reading (tests.test_codereview_findings.FinalizeSingleReading.test_event_and_receipt_share_one_clock_reading) ... ok
-test_early_finalize_with_no_attempt_is_refused_too (tests.test_codereview_findings.FinalizeWindow.test_early_finalize_with_no_attempt_is_refused_too) ... ok
-test_in_window_finalize_after_a_refusal_still_works (tests.test_codereview_findings.FinalizeWindow.test_in_window_finalize_after_a_refusal_still_works) ... ok
-test_late_finalize_is_refused_before_any_state_change (tests.test_codereview_findings.FinalizeWindow.test_late_finalize_is_refused_before_any_state_change) ... ok
-test_allowed_uid_without_so_peercred_refused_at_start (tests.test_codereview_findings.LegacyPeerCredentialsFailClosed.test_allowed_uid_without_so_peercred_refused_at_start) ... ok
-test_plan_without_pins_py_hash_rejected (tests.test_codereview_findings.PinsFileIsPinned.test_plan_without_pins_py_hash_rejected) ... ok
-test_wrong_pins_py_hash_refused_at_writer_start (tests.test_codereview_findings.PinsFileIsPinned.test_wrong_pins_py_hash_refused_at_writer_start) ... ok
-test_agent_cannot_finalize_or_read_private_store (tests.test_isolation_boundary.IdentityBoundary.test_agent_cannot_finalize_or_read_private_store) ... ok
-test_duplicate_uid_policy_rejected (tests.test_isolation_boundary.IdentityBoundary.test_duplicate_uid_policy_rejected) ... ok
-test_mismatched_control_uid_rejected (tests.test_isolation_boundary.IdentityBoundary.test_mismatched_control_uid_rejected) ... ok
-test_pinned_policy_cannot_run_in_demo_mode (tests.test_isolation_boundary.IdentityBoundary.test_pinned_policy_cannot_run_in_demo_mode) ... ok
-test_unpinned_isolation_server_rejected (tests.test_isolation_boundary.IdentityBoundary.test_unpinned_isolation_server_rejected) ... ok
-test_actor_id_in_request_body_is_rejected (tests.test_known_defects.KD1.test_actor_id_in_request_body_is_rejected) ... ok
-test_agent_channel_refuses_finalize (tests.test_known_defects.KD1.test_agent_channel_refuses_finalize) ... ok
-test_agent_role_requires_actor (tests.test_known_defects.KD1.test_agent_role_requires_actor) ... ok
-test_channel_bound_to_A_writes_and_event_actor_is_channel_actor (tests.test_known_defects.KD1.test_channel_bound_to_A_writes_and_event_actor_is_channel_actor) ... ok
-test_channel_bound_to_B_cannot_write_as_A (tests.test_known_defects.KD1.test_channel_bound_to_B_cannot_write_as_A) ... ok
-test_control_channel_finalizes (tests.test_known_defects.KD1.test_control_channel_finalizes) ... ok
-test_control_channel_refuses_write (tests.test_known_defects.KD1.test_control_channel_refuses_write) ... ok
-test_peer_uid_match_allowed (tests.test_known_defects.KD1.test_peer_uid_match_allowed) ... ok
-test_peer_uid_mismatch_refused (tests.test_known_defects.KD1.test_peer_uid_mismatch_refused) ... ok
-test_changing_any_pinned_field_changes_plan_hash_and_blocks (tests.test_known_defects.KD2.test_changing_any_pinned_field_changes_plan_hash_and_blocks) ... ok
-test_empty_model_id_rejected (tests.test_known_defects.KD2.test_empty_model_id_rejected) ... ok
-test_malformed_pin_hash_rejected (tests.test_known_defects.KD2.test_malformed_pin_hash_rejected) ... ok
-test_plan_without_pins_rejected (tests.test_known_defects.KD2.test_plan_without_pins_rejected) ... ok
-test_signed_receipt_carries_pins_hash (tests.test_known_defects.KD2.test_signed_receipt_carries_pins_hash) ... ok
-test_wrong_bridge_pin_rejected_at_scoring (tests.test_known_defects.KD2.test_wrong_bridge_pin_rejected_at_scoring) ... ok
-test_wrong_scorer_pin_rejected_at_scoring (tests.test_known_defects.KD2.test_wrong_scorer_pin_rejected_at_scoring) ... ok
-test_wrong_writer_code_pin_rejected (tests.test_known_defects.KD2.test_wrong_writer_code_pin_rejected) ... ok
-test_bad_window_rejected (tests.test_known_defects.KD3.test_bad_window_rejected) ... ok
-test_decreasing_timestamps_blocked (tests.test_known_defects.KD3.test_decreasing_timestamps_blocked) ... ok
-test_event_after_window_blocked (tests.test_known_defects.KD3.test_event_after_window_blocked) ... ok
-test_event_before_window_blocked (tests.test_known_defects.KD3.test_event_before_window_blocked) ... ok
-test_expired_window_rejects_write_before_state_changes (tests.test_known_defects.KD3.test_expired_window_rejects_write_before_state_changes) ... ok
-test_finalized_utc_before_last_event_blocked (tests.test_known_defects.KD3.test_finalized_utc_before_last_event_blocked) ... ok
-test_future_window_rejects_write_before_state_changes (tests.test_known_defects.KD3.test_future_window_rejects_write_before_state_changes) ... ok
-test_idle_client_does_not_stall_writer (tests.test_known_defects.KD3.test_idle_client_does_not_stall_writer) ... ok
-test_in_order_in_window_passes (tests.test_known_defects.KD3.test_in_order_in_window_passes) ... ok
-test_naive_timestamp_blocked (tests.test_known_defects.KD3.test_naive_timestamp_blocked) ... ok
-test_unparseable_timestamp_blocked (tests.test_known_defects.KD3.test_unparseable_timestamp_blocked) ... ok
-test_refused_peer_always_gets_a_clean_error_reply (tests.test_known_defects.PeerRefusalRace.test_refused_peer_always_gets_a_clean_error_reply) ... ok
-test_actor_identity_reported_unauthenticated (tests.test_known_defects.Review1153.test_actor_identity_reported_unauthenticated) ... ok
-test_cli_shared_uid_requires_explicit_synthetic_flag (tests.test_known_defects.Review1153.test_cli_shared_uid_requires_explicit_synthetic_flag) ... ok
-test_plan_without_service_or_verifier_pin_rejected (tests.test_known_defects.Review1153.test_plan_without_service_or_verifier_pin_rejected) ... ok
-test_wrong_service_pin_refuses_to_serve (tests.test_known_defects.Review1153.test_wrong_service_pin_refuses_to_serve) ... ok
-test_wrong_verifier_pin_refuses_to_verify (tests.test_known_defects.Review1153.test_wrong_verifier_pin_refuses_to_verify) ... ok
-test_host_owned_key_in_private_dir_accepted (tests.test_redteam_gaps.KeyCustody.test_host_owned_key_in_private_dir_accepted) ... ok
-test_key_file_owned_by_other_uid_rejected (tests.test_redteam_gaps.KeyCustody.test_key_file_owned_by_other_uid_rejected) ... ok
-test_key_in_group_or_world_writable_dir_rejected (tests.test_redteam_gaps.KeyCustody.test_key_in_group_or_world_writable_dir_rejected) ... ok
-test_explicit_unchecked_peer_mode_is_possible_but_named (tests.test_redteam_gaps.PeerPolicy.test_explicit_unchecked_peer_mode_is_possible_but_named) ... ok
-test_server_without_uid_policy_refuses_to_start (tests.test_redteam_gaps.PeerPolicy.test_server_without_uid_policy_refuses_to_start) ... ok
-test_agent_peer_uid_mismatch_rejected (tests.test_redteam_gaps.PeerUidEvidence.test_agent_peer_uid_mismatch_rejected) ... ok
-test_bridge_exposes_isolation_mode_and_can_require_it (tests.test_redteam_gaps.PeerUidEvidence.test_bridge_exposes_isolation_mode_and_can_require_it) ... ok
-test_control_peer_uid_mismatch_rejected (tests.test_redteam_gaps.PeerUidEvidence.test_control_peer_uid_mismatch_rejected) ... ok
-test_end_to_end_kernel_peer_uids_are_recorded_and_verified (tests.test_redteam_gaps.PeerUidEvidence.test_end_to_end_kernel_peer_uids_are_recorded_and_verified) ... ok
-test_legacy_plan_is_flagged_not_isolated (tests.test_redteam_gaps.PeerUidEvidence.test_legacy_plan_is_flagged_not_isolated) ... ok
-test_missing_peer_uid_rejected_when_roles_pinned (tests.test_redteam_gaps.PeerUidEvidence.test_missing_peer_uid_rejected_when_roles_pinned) ... ok
-test_verify_reports_pinned_isolation_when_peer_uids_match (tests.test_redteam_gaps.PeerUidEvidence.test_verify_reports_pinned_isolation_when_peer_uids_match) ... ok
-test_ballots_are_labelled_caller_supplied (tests.test_redteam_gaps.UnattestedResponses.test_ballots_are_labelled_caller_supplied) ... ok
-test_scored_study_gate_fails_closed_without_a_complete_response_ledger (tests.test_redteam_gaps.UnattestedResponses.test_scored_study_gate_fails_closed_without_a_complete_response_ledger) ... ok
-test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded) ... ok
-test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate) ... ok
-test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour (tests.test_response_ledger.BridgeUsesTheLedger.test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour) ... ok
-test_no_ledger_at_all_fails_the_attested_gate (tests.test_response_ledger.BridgeUsesTheLedger.test_no_ledger_at_all_fails_the_attested_gate) ... ok
-test_observation_may_be_omitted_only_when_the_ledger_is_complete (tests.test_response_ledger.BridgeUsesTheLedger.test_observation_may_be_omitted_only_when_the_ledger_is_complete) ... ok
-test_scores_from_the_ledger_with_no_caller_observation (tests.test_response_ledger.BridgeUsesTheLedger.test_scores_from_the_ledger_with_no_caller_observation) ... ok
-test_the_forged_ballot_attack_is_closed (tests.test_response_ledger.BridgeUsesTheLedger.test_the_forged_ballot_attack_is_closed) ... ok
-test_unparseable_ballot_is_unknown_and_never_counts_as_approval (tests.test_response_ledger.BridgeUsesTheLedger.test_unparseable_ballot_is_unknown_and_never_counts_as_approval) ... ok
-test_a_real_sized_response_fits_the_control_channel_but_not_the_cap (tests.test_response_ledger.ControlChannelRecords.test_a_real_sized_response_fits_the_control_channel_but_not_the_cap) ... ok
-test_agent_channel_request_size_limit_is_unchanged (tests.test_response_ledger.ControlChannelRecords.test_agent_channel_request_size_limit_is_unchanged) ... ok
-test_an_agent_channel_can_never_record_a_response (tests.test_response_ledger.ControlChannelRecords.test_an_agent_channel_can_never_record_a_response) ... ok
-test_control_channel_records_and_stamps_the_kernel_peer_uid (tests.test_response_ledger.ControlChannelRecords.test_control_channel_records_and_stamps_the_kernel_peer_uid) ... ok
-test_extra_or_missing_fields_are_refused (tests.test_response_ledger.ControlChannelRecords.test_extra_or_missing_fields_are_refused) ... ok
-test_full_chain_with_distinct_os_users (tests.test_response_ledger.EndToEndWithRealUids.test_full_chain_with_distinct_os_users) ... ok
-test_anything_else_is_unparseable_never_guessed (tests.test_response_ledger.ParserTests.test_anything_else_is_unparseable_never_guessed) ... ok
-test_transport_failure_is_not_received (tests.test_response_ledger.ParserTests.test_transport_failure_is_not_received) ... ok
-test_valid_values (tests.test_response_ledger.ParserTests.test_valid_values) ... ok
-test_plan_without_a_responses_code_pin_is_refused (tests.test_response_ledger.ResponsesModuleIsPinned.test_plan_without_a_responses_code_pin_is_refused) ... ok
-test_wrong_responses_code_pin_is_refused_at_writer_start (tests.test_response_ledger.ResponsesModuleIsPinned.test_wrong_responses_code_pin_is_refused_at_writer_start) ... ok
-test_a_host_that_records_the_wrong_value_is_caught_by_reparsing (tests.test_response_ledger.VerifierRejectsTampering.test_a_host_that_records_the_wrong_value_is_caught_by_reparsing) ... ok
-test_edited_stored_response_bytes_detected (tests.test_response_ledger.VerifierRejectsTampering.test_edited_stored_response_bytes_detected) ... ok
-test_missing_stored_response_detected (tests.test_response_ledger.VerifierRejectsTampering.test_missing_stored_response_detected) ... ok
-test_removing_a_ledger_event_breaks_the_signed_chain (tests.test_response_ledger.VerifierRejectsTampering.test_removing_a_ledger_event_breaks_the_signed_chain) ... ok
-test_response_events_must_come_from_the_control_uid_when_roles_are_pinned (tests.test_response_ledger.VerifierRejectsTampering.test_response_events_must_come_from_the_control_uid_when_roles_are_pinned) ... ok
-test_response_recorded_by_the_control_uid_verifies_when_roles_are_pinned (tests.test_response_ledger.VerifierRejectsTampering.test_response_recorded_by_the_control_uid_verifies_when_roles_are_pinned) ... ok
-test_unattested_extra_response_file_detected (tests.test_response_ledger.VerifierRejectsTampering.test_unattested_extra_response_file_detected) ... ok
-test_each_slot_can_be_recorded_once (tests.test_response_ledger.WriterRecording.test_each_slot_can_be_recorded_once) ... ok
-test_full_ledger_verifies_and_derives_the_observation (tests.test_response_ledger.WriterRecording.test_full_ledger_verifies_and_derives_the_observation) ... ok
-test_host_hashes_stores_and_parses_the_raw_response (tests.test_response_ledger.WriterRecording.test_host_hashes_stores_and_parses_the_raw_response) ... ok
-test_ledger_may_be_recorded_before_or_after_the_write (tests.test_response_ledger.WriterRecording.test_ledger_may_be_recorded_before_or_after_the_write) ... ok
-test_ledger_without_any_write_still_verifies (tests.test_response_ledger.WriterRecording.test_ledger_without_any_write_still_verifies) ... ok
-test_outside_window_and_after_finalize_refused (tests.test_response_ledger.WriterRecording.test_outside_window_and_after_finalize_refused) ... ok
-test_refusals (tests.test_response_ledger.WriterRecording.test_refusals) ... ok
-test_timeout_is_recorded_as_unknown_with_no_file (tests.test_response_ledger.WriterRecording.test_timeout_is_recorded_as_unknown_with_no_file) ... ok
-test_unparseable_reply_is_recorded_as_unknown_not_guessed (tests.test_response_ledger.WriterRecording.test_unparseable_reply_is_recorded_as_unknown_not_guessed) ... ok
-test_real_separate_process_socket_synthetic_agents (tests.test_writer.ProcessSmoke.test_real_separate_process_socket_synthetic_agents) ... ok
-test_altered_artifact_rejected (tests.test_writer.ProofTests.test_altered_artifact_rejected) ... ok
-test_altered_event_rejected (tests.test_writer.ProofTests.test_altered_event_rejected) ... ok
-test_appended_event_rejected (tests.test_writer.ProofTests.test_appended_event_rejected) ... ok
-test_bad_requested_value_rejected (tests.test_writer.ProofTests.test_bad_requested_value_rejected) ... ok
-test_cross_episode_payload_rejected (tests.test_writer.ProofTests.test_cross_episode_payload_rejected) ... ok
-test_deleted_event_rejected (tests.test_writer.ProofTests.test_deleted_event_rejected) ... ok
-test_existing_state_reuse_blocked (tests.test_writer.ProofTests.test_existing_state_reuse_blocked) ... ok
-test_forged_artifact_with_no_event_blocked (tests.test_writer.ProofTests.test_forged_artifact_with_no_event_blocked) ... ok
-test_forged_snapshot_signature_rejected (tests.test_writer.ProofTests.test_forged_snapshot_signature_rejected) ... ok
-test_host_policy_denial_blocks_valid_request (tests.test_writer.ProofTests.test_host_policy_denial_blocks_valid_request) ... ok
-test_immutable_plan_binding (tests.test_writer.ProofTests.test_immutable_plan_binding) ... ok
-test_invalid_tool_is_no_attempt (tests.test_writer.ProofTests.test_invalid_tool_is_no_attempt) ... ok
-test_missing_artifact_after_write_blocked (tests.test_writer.ProofTests.test_missing_artifact_after_write_blocked) ... ok
-test_observation_ballots_not_inferred_from_claims (tests.test_writer.ProofTests.test_observation_ballots_not_inferred_from_claims) ... ok
-test_replay_write_blocked (tests.test_writer.ProofTests.test_replay_write_blocked) ... ok
-test_request_id_traversal (tests.test_writer.ProofTests.test_request_id_traversal) ... ok
-test_success_claim_without_write_stays_unknown (tests.test_writer.ProofTests.test_success_claim_without_write_stays_unknown) ... ok
-test_symlink_artifact_rejected (tests.test_writer.ProofTests.test_symlink_artifact_rejected) ... ok
-test_valid_signed_snapshot (tests.test_writer.ProofTests.test_valid_signed_snapshot) ... ok
-test_verified_scoring_preserves_ballot_separation (tests.test_writer.ProofTests.test_verified_scoring_preserves_ballot_separation) ... ok
-test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_actor_refused_without_write) ... ok
-test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
-
-----------------------------------------------------------------------
-Ran 126 tests in 12.559s
+Ran 140 tests in 12.843s
 
 OK

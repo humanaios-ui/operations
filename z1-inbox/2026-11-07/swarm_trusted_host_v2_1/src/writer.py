@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from .pins import FILES, file_sha256
-from .responses import KINDS, MAX_RAW, TRANSPORT, parse_response, slot
+from .responses import KINDS, MAX_RAW, TRANSPORT, parse_response, pinned_model, slot
 
 IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 VALUE = re.compile(r"^-?(0|[1-9][0-9]{0,8})(\.[0-9]{1,6})?$")
@@ -220,6 +220,7 @@ class HostWriter:
         self.actor_id = None
         self._ledger = []      # signed response ledger, in chain order: [{"actor_id", "detail"}]
         self._slots = set()
+        self._provider_ids = set()
 
     def _event(self, kind, status, *, artifact_sha256=None, observed_utc=None, peer_uid=None,
                detail=None, identity=None):
@@ -322,8 +323,12 @@ class HostWriter:
                     or not isinstance(model_id, str) or not LABEL.fullmatch(model_id)
                     or type(attempt) is not int or not 1 <= attempt <= 100):
                 raise EvidenceError("RESPONSE_METADATA_INVALID")
+            if model_id != pinned_model(self.plan, actor_id):
+                raise EvidenceError("RESPONSE_MODEL_NOT_PINNED")
             if slot(kind, actor_id) in self._slots:
                 raise EvidenceError("RESPONSE_ALREADY_RECORDED")
+            if provider_request_id in self._provider_ids:  # one provider reply must not fill two slots
+                raise EvidenceError("RESPONSE_PROVIDER_ID_REUSED")
             if peer_uid is not None and (type(peer_uid) is not int or peer_uid < 0):
                 raise EvidenceError("PEER_UID_INVALID")
             observed = now()
@@ -347,6 +352,7 @@ class HostWriter:
             self._event("RESPONSE_RECORDED", "RECORDED", observed_utc=observed, peer_uid=peer_uid,
                         detail=detail, identity=(actor_id, None, None))
             self._slots.add(slot(kind, actor_id))
+            self._provider_ids.add(provider_request_id)
             self._ledger.append({"actor_id": actor_id, "detail": detail})
             return {"recorded": True, "value": value, "parse_status": parse_status, "response_sha256": sha}
 

@@ -38,7 +38,10 @@ class Base(unittest.TestCase):
         self.pin = digest(self.plan)
         self.w = HostWriter(self.td / "h", self.key, self.plan, self.pin)
 
-    def rec(self, actor, kind, raw, transport="OK", rid="req_1", model="model-x", attempt=1, **kw):
+    def rec(self, actor, kind, raw, transport="OK", rid=None, model=None, attempt=1, **kw):
+        self._n = getattr(self, "_n", 0) + 1
+        rid = rid or f"req_auto_{self._n}"
+        model = model or ("SYNTHETIC_A" if actor == "A" else "SYNTHETIC_B")
         return self.w.record_response(actor, kind, raw, transport, rid, model, attempt, **kw)
 
     def record_all(self, ballots=("APPROVE", "APPROVE"), claims=("SUCCESS", "SUCCESS", "SUCCESS"), **kw):
@@ -208,7 +211,7 @@ class VerifierRejectsTampering(Base):
         plan = make_plan(self.key, run_id="PINNED", role_uids={"host": 0, "agent_a": A, "agent_b": B, "control": C})
         pin = digest(plan)
         w = HostWriter(self.td / "p", self.key, plan, pin)
-        w.record_response("A", "BALLOT", ballot("APPROVE"), "OK", "req_1", "m", 1, peer_uid=A)  # an agent uid
+        w.record_response("A", "BALLOT", ballot("APPROVE"), "OK", "req_1", "SYNTHETIC_A", 1, peer_uid=A)  # an agent uid
         w.write("A", "R1", INTENT, peer_uid=A); w.finalize(control_peer_uid=C)
         with self.assertRaisesRegex(EvidenceError, "PEER_UID_MISMATCH"):
             verify(plan, pin, self.pub, self.td / "p")
@@ -217,7 +220,7 @@ class VerifierRejectsTampering(Base):
         plan = make_plan(self.key, run_id="PINNED2", role_uids={"host": 0, "agent_a": A, "agent_b": B, "control": C})
         pin = digest(plan)
         w = HostWriter(self.td / "p", self.key, plan, pin)
-        w.record_response("A", "BALLOT", ballot("APPROVE"), "OK", "req_1", "m", 1, peer_uid=C)
+        w.record_response("A", "BALLOT", ballot("APPROVE"), "OK", "req_1", "SYNTHETIC_A", 1, peer_uid=C)
         w.write("A", "R1", INTENT, peer_uid=A); w.finalize(control_peer_uid=C)
         self.assertEqual(verify(plan, pin, self.pub, self.td / "p")["response_count"], 1)
 
@@ -279,11 +282,11 @@ class BridgeUsesTheLedger(Base):
         self.w = HostWriter(self.td / "h2", self.key, make_plan(self.key, episode_id="E2"), digest(make_plan(self.key, episode_id="E2"))) if False else self.w
         plan = make_plan(self.key, episode_id="E2"); pin = digest(plan)
         w = HostWriter(self.td / "h2", self.key, plan, pin)
-        w.record_response("A", "EXECUTOR_CLAIM", claim("SUCCESS"), "OK", "r1", "m", 1)
-        w.record_response("B", "REVIEWER_CLAIM", claim("SUCCESS"), "OK", "r2", "m", 1)
-        w.record_response("A", "FINAL_CLAIM", claim("SUCCESS"), "OK", "r3", "m", 1)
-        w.record_response("A", "BALLOT", ballot("APPROVE"), "OK", "r4", "m", 1)
-        w.record_response("B", "BALLOT", "Looks good to me!", "OK", "r5", "m", 1)
+        w.record_response("A", "EXECUTOR_CLAIM", claim("SUCCESS"), "OK", "r1", "SYNTHETIC_A", 1)
+        w.record_response("B", "REVIEWER_CLAIM", claim("SUCCESS"), "OK", "r2", "SYNTHETIC_B", 1)
+        w.record_response("A", "FINAL_CLAIM", claim("SUCCESS"), "OK", "r3", "SYNTHETIC_A", 1)
+        w.record_response("A", "BALLOT", ballot("APPROVE"), "OK", "r4", "SYNTHETIC_A", 1)
+        w.record_response("B", "BALLOT", "Looks good to me!", "OK", "r5", "SYNTHETIC_B", 1)
         w.write("A", "R1", INTENT); w.finalize()
         r = score_episode(plan, pin, self.pub, self.td / "h2", None, require_attested_responses=True)
         self.assertEqual(r["ballots"]["B"], "UNKNOWN")
@@ -310,7 +313,7 @@ class ControlChannelRecords(Base):
 
     def body(self, **over):
         b = {"op": "record_response", "actor_id": "B", "kind": "BALLOT", "transport_status": "OK",
-             "provider_request_id": "req_9", "model_id": "model-b", "attempt": 1, "raw_response": ballot("APPROVE")}
+             "provider_request_id": "req_9", "model_id": "SYNTHETIC_B", "attempt": 1, "raw_response": ballot("APPROVE")}
         b.update(over); return b
 
     def test_control_channel_records_and_stamps_the_kernel_peer_uid(self):
@@ -379,7 +382,7 @@ class EndToEndWithRealUids(unittest.TestCase):
 
         def record(actor, kind, raw, rid):
             return {"op": "record_response", "actor_id": actor, "kind": kind, "transport_status": "OK",
-                    "provider_request_id": rid, "model_id": "model-x", "attempt": 1, "raw_response": raw}
+                    "provider_request_id": rid, "model_id": "SYNTHETIC_A" if actor == "A" else "SYNTHETIC_B", "attempt": 1, "raw_response": raw}
 
         forged = record("B", "BALLOT", ballot("APPROVE"), "forged_1")
         # An agent UID cannot reach the control channel at all, and cannot use its own channel for this.
