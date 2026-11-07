@@ -1,6 +1,6 @@
 AUTHOR-RUN TEST LOG (Claude Code, Z1). NOT an independent reproduction. Authority: NONE.
-Built on branch base 5526006 plus the uncommitted changes of the commit that adds this file.
-Date: 2026-11-07T21:01:27Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
+Built on branch base 115271d plus the uncommitted changes of the commit that adds this file.
+Date: 2026-11-07T21:11:44Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
 Command: python -I -m unittest discover -s tests -t . -v      (run from this directory)
 
 ===== Python 3.13.18 / cryptography 50.0.1 =====
@@ -71,7 +71,42 @@ test_legacy_plan_is_flagged_not_isolated (tests.test_redteam_gaps.PeerUidEvidenc
 test_missing_peer_uid_rejected_when_roles_pinned (tests.test_redteam_gaps.PeerUidEvidence.test_missing_peer_uid_rejected_when_roles_pinned) ... ok
 test_verify_reports_pinned_isolation_when_peer_uids_match (tests.test_redteam_gaps.PeerUidEvidence.test_verify_reports_pinned_isolation_when_peer_uids_match) ... ok
 test_ballots_are_labelled_caller_supplied (tests.test_redteam_gaps.UnattestedResponses.test_ballots_are_labelled_caller_supplied) ... ok
-test_scored_study_gate_fails_closed_until_a_response_ledger_exists (tests.test_redteam_gaps.UnattestedResponses.test_scored_study_gate_fails_closed_until_a_response_ledger_exists) ... ok
+test_scored_study_gate_fails_closed_without_a_complete_response_ledger (tests.test_redteam_gaps.UnattestedResponses.test_scored_study_gate_fails_closed_without_a_complete_response_ledger) ... ok
+test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded) ... ok
+test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate) ... ok
+test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour (tests.test_response_ledger.BridgeUsesTheLedger.test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour) ... ok
+test_no_ledger_at_all_fails_the_attested_gate (tests.test_response_ledger.BridgeUsesTheLedger.test_no_ledger_at_all_fails_the_attested_gate) ... ok
+test_observation_may_be_omitted_only_when_the_ledger_is_complete (tests.test_response_ledger.BridgeUsesTheLedger.test_observation_may_be_omitted_only_when_the_ledger_is_complete) ... ok
+test_scores_from_the_ledger_with_no_caller_observation (tests.test_response_ledger.BridgeUsesTheLedger.test_scores_from_the_ledger_with_no_caller_observation) ... ok
+test_the_forged_ballot_attack_is_closed (tests.test_response_ledger.BridgeUsesTheLedger.test_the_forged_ballot_attack_is_closed) ... ok
+test_unparseable_ballot_is_unknown_and_never_counts_as_approval (tests.test_response_ledger.BridgeUsesTheLedger.test_unparseable_ballot_is_unknown_and_never_counts_as_approval) ... ok
+test_a_real_sized_response_fits_the_control_channel_but_not_the_cap (tests.test_response_ledger.ControlChannelRecords.test_a_real_sized_response_fits_the_control_channel_but_not_the_cap) ... ok
+test_agent_channel_request_size_limit_is_unchanged (tests.test_response_ledger.ControlChannelRecords.test_agent_channel_request_size_limit_is_unchanged) ... ok
+test_an_agent_channel_can_never_record_a_response (tests.test_response_ledger.ControlChannelRecords.test_an_agent_channel_can_never_record_a_response) ... ok
+test_control_channel_records_and_stamps_the_kernel_peer_uid (tests.test_response_ledger.ControlChannelRecords.test_control_channel_records_and_stamps_the_kernel_peer_uid) ... ok
+test_extra_or_missing_fields_are_refused (tests.test_response_ledger.ControlChannelRecords.test_extra_or_missing_fields_are_refused) ... ok
+test_full_chain_with_distinct_os_users (tests.test_response_ledger.EndToEndWithRealUids.test_full_chain_with_distinct_os_users) ... ok
+test_anything_else_is_unparseable_never_guessed (tests.test_response_ledger.ParserTests.test_anything_else_is_unparseable_never_guessed) ... ok
+test_transport_failure_is_not_received (tests.test_response_ledger.ParserTests.test_transport_failure_is_not_received) ... ok
+test_valid_values (tests.test_response_ledger.ParserTests.test_valid_values) ... ok
+test_plan_without_a_responses_code_pin_is_refused (tests.test_response_ledger.ResponsesModuleIsPinned.test_plan_without_a_responses_code_pin_is_refused) ... ok
+test_wrong_responses_code_pin_is_refused_at_writer_start (tests.test_response_ledger.ResponsesModuleIsPinned.test_wrong_responses_code_pin_is_refused_at_writer_start) ... ok
+test_a_host_that_records_the_wrong_value_is_caught_by_reparsing (tests.test_response_ledger.VerifierRejectsTampering.test_a_host_that_records_the_wrong_value_is_caught_by_reparsing) ... ok
+test_edited_stored_response_bytes_detected (tests.test_response_ledger.VerifierRejectsTampering.test_edited_stored_response_bytes_detected) ... ok
+test_missing_stored_response_detected (tests.test_response_ledger.VerifierRejectsTampering.test_missing_stored_response_detected) ... ok
+test_removing_a_ledger_event_breaks_the_signed_chain (tests.test_response_ledger.VerifierRejectsTampering.test_removing_a_ledger_event_breaks_the_signed_chain) ... ok
+test_response_events_must_come_from_the_control_uid_when_roles_are_pinned (tests.test_response_ledger.VerifierRejectsTampering.test_response_events_must_come_from_the_control_uid_when_roles_are_pinned) ... ok
+test_response_recorded_by_the_control_uid_verifies_when_roles_are_pinned (tests.test_response_ledger.VerifierRejectsTampering.test_response_recorded_by_the_control_uid_verifies_when_roles_are_pinned) ... ok
+test_unattested_extra_response_file_detected (tests.test_response_ledger.VerifierRejectsTampering.test_unattested_extra_response_file_detected) ... ok
+test_each_slot_can_be_recorded_once (tests.test_response_ledger.WriterRecording.test_each_slot_can_be_recorded_once) ... ok
+test_full_ledger_verifies_and_derives_the_observation (tests.test_response_ledger.WriterRecording.test_full_ledger_verifies_and_derives_the_observation) ... ok
+test_host_hashes_stores_and_parses_the_raw_response (tests.test_response_ledger.WriterRecording.test_host_hashes_stores_and_parses_the_raw_response) ... ok
+test_ledger_may_be_recorded_before_or_after_the_write (tests.test_response_ledger.WriterRecording.test_ledger_may_be_recorded_before_or_after_the_write) ... ok
+test_ledger_without_any_write_still_verifies (tests.test_response_ledger.WriterRecording.test_ledger_without_any_write_still_verifies) ... ok
+test_outside_window_and_after_finalize_refused (tests.test_response_ledger.WriterRecording.test_outside_window_and_after_finalize_refused) ... ok
+test_refusals (tests.test_response_ledger.WriterRecording.test_refusals) ... ok
+test_timeout_is_recorded_as_unknown_with_no_file (tests.test_response_ledger.WriterRecording.test_timeout_is_recorded_as_unknown_with_no_file) ... ok
+test_unparseable_reply_is_recorded_as_unknown_not_guessed (tests.test_response_ledger.WriterRecording.test_unparseable_reply_is_recorded_as_unknown_not_guessed) ... ok
 test_real_separate_process_socket_synthetic_agents (tests.test_writer.ProcessSmoke.test_real_separate_process_socket_synthetic_agents) ... ok
 test_altered_artifact_rejected (tests.test_writer.ProofTests.test_altered_artifact_rejected) ... ok
 test_altered_event_rejected (tests.test_writer.ProofTests.test_altered_event_rejected) ... ok
@@ -97,7 +132,7 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 91 tests in 8.326s
+Ran 126 tests in 12.512s
 
 OK
 
@@ -169,7 +204,42 @@ test_legacy_plan_is_flagged_not_isolated (tests.test_redteam_gaps.PeerUidEvidenc
 test_missing_peer_uid_rejected_when_roles_pinned (tests.test_redteam_gaps.PeerUidEvidence.test_missing_peer_uid_rejected_when_roles_pinned) ... ok
 test_verify_reports_pinned_isolation_when_peer_uids_match (tests.test_redteam_gaps.PeerUidEvidence.test_verify_reports_pinned_isolation_when_peer_uids_match) ... ok
 test_ballots_are_labelled_caller_supplied (tests.test_redteam_gaps.UnattestedResponses.test_ballots_are_labelled_caller_supplied) ... ok
-test_scored_study_gate_fails_closed_until_a_response_ledger_exists (tests.test_redteam_gaps.UnattestedResponses.test_scored_study_gate_fails_closed_until_a_response_ledger_exists) ... ok
+test_scored_study_gate_fails_closed_without_a_complete_response_ledger (tests.test_redteam_gaps.UnattestedResponses.test_scored_study_gate_fails_closed_without_a_complete_response_ledger) ... ok
+test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_equal_to_the_ledger_is_accepted_and_marked_host_recorded) ... ok
+test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate (tests.test_response_ledger.BridgeUsesTheLedger.test_caller_observation_that_contradicts_the_ledger_is_refused_even_without_the_gate) ... ok
+test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour (tests.test_response_ledger.BridgeUsesTheLedger.test_no_ledger_and_no_gate_keeps_the_old_labelled_behaviour) ... ok
+test_no_ledger_at_all_fails_the_attested_gate (tests.test_response_ledger.BridgeUsesTheLedger.test_no_ledger_at_all_fails_the_attested_gate) ... ok
+test_observation_may_be_omitted_only_when_the_ledger_is_complete (tests.test_response_ledger.BridgeUsesTheLedger.test_observation_may_be_omitted_only_when_the_ledger_is_complete) ... ok
+test_scores_from_the_ledger_with_no_caller_observation (tests.test_response_ledger.BridgeUsesTheLedger.test_scores_from_the_ledger_with_no_caller_observation) ... ok
+test_the_forged_ballot_attack_is_closed (tests.test_response_ledger.BridgeUsesTheLedger.test_the_forged_ballot_attack_is_closed) ... ok
+test_unparseable_ballot_is_unknown_and_never_counts_as_approval (tests.test_response_ledger.BridgeUsesTheLedger.test_unparseable_ballot_is_unknown_and_never_counts_as_approval) ... ok
+test_a_real_sized_response_fits_the_control_channel_but_not_the_cap (tests.test_response_ledger.ControlChannelRecords.test_a_real_sized_response_fits_the_control_channel_but_not_the_cap) ... ok
+test_agent_channel_request_size_limit_is_unchanged (tests.test_response_ledger.ControlChannelRecords.test_agent_channel_request_size_limit_is_unchanged) ... ok
+test_an_agent_channel_can_never_record_a_response (tests.test_response_ledger.ControlChannelRecords.test_an_agent_channel_can_never_record_a_response) ... ok
+test_control_channel_records_and_stamps_the_kernel_peer_uid (tests.test_response_ledger.ControlChannelRecords.test_control_channel_records_and_stamps_the_kernel_peer_uid) ... ok
+test_extra_or_missing_fields_are_refused (tests.test_response_ledger.ControlChannelRecords.test_extra_or_missing_fields_are_refused) ... ok
+test_full_chain_with_distinct_os_users (tests.test_response_ledger.EndToEndWithRealUids.test_full_chain_with_distinct_os_users) ... ok
+test_anything_else_is_unparseable_never_guessed (tests.test_response_ledger.ParserTests.test_anything_else_is_unparseable_never_guessed) ... ok
+test_transport_failure_is_not_received (tests.test_response_ledger.ParserTests.test_transport_failure_is_not_received) ... ok
+test_valid_values (tests.test_response_ledger.ParserTests.test_valid_values) ... ok
+test_plan_without_a_responses_code_pin_is_refused (tests.test_response_ledger.ResponsesModuleIsPinned.test_plan_without_a_responses_code_pin_is_refused) ... ok
+test_wrong_responses_code_pin_is_refused_at_writer_start (tests.test_response_ledger.ResponsesModuleIsPinned.test_wrong_responses_code_pin_is_refused_at_writer_start) ... ok
+test_a_host_that_records_the_wrong_value_is_caught_by_reparsing (tests.test_response_ledger.VerifierRejectsTampering.test_a_host_that_records_the_wrong_value_is_caught_by_reparsing) ... ok
+test_edited_stored_response_bytes_detected (tests.test_response_ledger.VerifierRejectsTampering.test_edited_stored_response_bytes_detected) ... ok
+test_missing_stored_response_detected (tests.test_response_ledger.VerifierRejectsTampering.test_missing_stored_response_detected) ... ok
+test_removing_a_ledger_event_breaks_the_signed_chain (tests.test_response_ledger.VerifierRejectsTampering.test_removing_a_ledger_event_breaks_the_signed_chain) ... ok
+test_response_events_must_come_from_the_control_uid_when_roles_are_pinned (tests.test_response_ledger.VerifierRejectsTampering.test_response_events_must_come_from_the_control_uid_when_roles_are_pinned) ... ok
+test_response_recorded_by_the_control_uid_verifies_when_roles_are_pinned (tests.test_response_ledger.VerifierRejectsTampering.test_response_recorded_by_the_control_uid_verifies_when_roles_are_pinned) ... ok
+test_unattested_extra_response_file_detected (tests.test_response_ledger.VerifierRejectsTampering.test_unattested_extra_response_file_detected) ... ok
+test_each_slot_can_be_recorded_once (tests.test_response_ledger.WriterRecording.test_each_slot_can_be_recorded_once) ... ok
+test_full_ledger_verifies_and_derives_the_observation (tests.test_response_ledger.WriterRecording.test_full_ledger_verifies_and_derives_the_observation) ... ok
+test_host_hashes_stores_and_parses_the_raw_response (tests.test_response_ledger.WriterRecording.test_host_hashes_stores_and_parses_the_raw_response) ... ok
+test_ledger_may_be_recorded_before_or_after_the_write (tests.test_response_ledger.WriterRecording.test_ledger_may_be_recorded_before_or_after_the_write) ... ok
+test_ledger_without_any_write_still_verifies (tests.test_response_ledger.WriterRecording.test_ledger_without_any_write_still_verifies) ... ok
+test_outside_window_and_after_finalize_refused (tests.test_response_ledger.WriterRecording.test_outside_window_and_after_finalize_refused) ... ok
+test_refusals (tests.test_response_ledger.WriterRecording.test_refusals) ... ok
+test_timeout_is_recorded_as_unknown_with_no_file (tests.test_response_ledger.WriterRecording.test_timeout_is_recorded_as_unknown_with_no_file) ... ok
+test_unparseable_reply_is_recorded_as_unknown_not_guessed (tests.test_response_ledger.WriterRecording.test_unparseable_reply_is_recorded_as_unknown_not_guessed) ... ok
 test_real_separate_process_socket_synthetic_agents (tests.test_writer.ProcessSmoke.test_real_separate_process_socket_synthetic_agents) ... ok
 test_altered_artifact_rejected (tests.test_writer.ProofTests.test_altered_artifact_rejected) ... ok
 test_altered_event_rejected (tests.test_writer.ProofTests.test_altered_event_rejected) ... ok
@@ -195,6 +265,6 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 91 tests in 8.175s
+Ran 126 tests in 12.559s
 
 OK

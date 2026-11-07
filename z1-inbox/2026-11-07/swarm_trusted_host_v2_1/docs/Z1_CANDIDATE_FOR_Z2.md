@@ -103,4 +103,24 @@ A **candidate** fail-closed role-UID patch is staged on the same draft PR. It pi
 
 Fixed, each test first: signing key must be host-owned in a private directory; kernel peer UID recorded in signed events and checked against `role_uids`; verifier and bridge report `isolation_mode`; a server needs an explicit peer-UID policy; `require_isolation` and `require_attested_responses` gates; the scored readback must equal the attested artifact hash; `src/pins.py` is pinned (on-disk bytes only); a late `finalize` is refused before any state change and uses ONE clock reading for both the snapshot event and `finalized_utc` (a second reading could cross the window edge and seal a receipt that never verifies); ancestors of secured paths, and the target directory itself, must be host-owned and not replaceable by others (no descriptor-relative traversal, no ACL check, no hostile concurrent-rename test); the legacy peer-UID path needs `SO_PEERCRED`.
 
-**Still open and blocking live use:** signed raw model-response ledger (claims and ballots are caller-supplied and labelled `CALLER_SUPPLIED_UNSIGNED`); descriptor-relative path traversal and an out-of-process check of the deployed tree (pins prove on-disk bytes, not the running code); off-host read-only snapshot; container and signer-custody review; spend cap, model verification, Z2 and Z3 grants; independent exact-head rerun including the privileged real-UID tests.
+**Still open and blocking live use:** (the signed response ledger is now built, see section 8, but its trust limits remain); descriptor-relative path traversal and an out-of-process check of the deployed tree (pins prove on-disk bytes, not the running code); off-host read-only snapshot; container and signer-custody review; spend cap, model verification, Z2 and Z3 grants; independent exact-head rerun including the privileged real-UID tests.
+
+### 8. Signed response ledger (built; offline; author-run tests only)
+
+**Problem it closes:** claims and ballots used to be whatever the caller said (`CALLER_SUPPLIED_UNSIGNED`); B never spoke to the host.
+
+**How it works**
+- Agents never report their own answers. The **orchestrator** (the control UID) calls the model providers and relays each raw reply to a control-only operation, `record_response`, with `actor_id`, `kind`, `transport_status` (`OK`/`TIMEOUT`/`ERROR`), `provider_request_id`, `model_id`, `attempt` and `raw_response`. Agent sockets refuse it; with `role_uids` pinned an agent UID cannot even connect to the control socket, and the signed event records the kernel-observed control UID.
+- The **host** hashes the raw bytes itself, stores them content-addressed under `responses/`, and parses the claim or ballot with one strict parser (`src/responses.py`, pinned in the plan). Nobody asserts a value. Anything that is not exactly `{"claim": ...}` or `{"ballot": ...}` with a permitted value is recorded as `UNKNOWN` / `UNPARSEABLE` and never guessed; a timeout or error is `UNKNOWN` / `NOT_RECEIVED`.
+- Each reply becomes a chained, signed `RESPONSE_RECORDED` event (event schema v4). The receipt (schema v3) commits to `response_count` and `response_ledger_sha256`. Older v2/v3 evidence is not verifiable by this code.
+- Slots: `EXECUTOR_CLAIM` (A only), `REVIEWER_CLAIM` (B only), one `FINAL_CLAIM` (either actor), `BALLOT` (A and B). One record per slot; a repeat is refused. Raw replies are capped at 32 KiB.
+- The **verifier** re-hashes every stored reply, re-parses it, requires the recorded value to match, requires the `responses/` directory to equal the ledger exactly, and (with `role_uids` pinned) requires every response event to come from the control UID.
+- The **bridge** derives claims and ballots from the ledger. A caller's observation may be omitted or must equal the ledger; one that contradicts it is refused with `OBSERVATION_CONTRADICTS_LEDGER` even without the gate. `require_attested_responses=True` needs a complete ledger (`RESPONSE_LEDGER_INCOMPLETE` otherwise). Results are labelled `HOST_RECORDED_RESPONSES` and `ballots_attested`.
+
+**Protocol requirement:** the frozen prompts (covered by `prompts_sha256`) must instruct each model to answer with exactly the JSON object for its kind, or the ledger will correctly record `UNKNOWN`.
+
+**What this does NOT prove**
+- A provider cannot sign its replies, so the host trusts the **orchestrator** to relay them faithfully. A compromised orchestrator or host can forge a ledger; the recorded `provider_request_id` only makes later audit against provider logs possible.
+- It does not prove the two agents were independent, or that B never saw A's output; that is an orchestrator and deployment property.
+- It does not enforce a retry policy: `attempt` is recorded, not limited.
+- Verified offline with synthetic replies only. No model was called.
