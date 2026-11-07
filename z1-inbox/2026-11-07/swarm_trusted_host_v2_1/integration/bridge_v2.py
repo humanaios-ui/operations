@@ -56,7 +56,7 @@ def score_episode(plan, pinned_plan_hash, public_key_bytes, host_root, observati
                   "coordination_intent": "NOT_INFERRED"}
     result.update({"schema": "humanaios.swarm.execution_bridge.v2", "run_id": plan["run_id"],
                    "proof_status": receipt["proof_status"], "tool_status": receipt["tool_status"],
-                   "event_tip": receipt["event_tip"], "protocol_pins_sha256": receipt["protocol_pins_sha256"], "both_approve_observed":
+                   "event_tip": receipt["event_tip"], "actor_id_authenticated": receipt["actor_id_authenticated"], "protocol_pins_sha256": receipt["protocol_pins_sha256"], "both_approve_observed":
                    True if all(v == "APPROVE" for v in ballots.values()) else
                    False if any(v == "REJECT" for v in ballots.values()) else None,
                    "ballots": ballots, "authorized_execution": "UNKNOWN",

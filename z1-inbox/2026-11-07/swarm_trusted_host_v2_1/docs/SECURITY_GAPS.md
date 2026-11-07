@@ -15,8 +15,8 @@
 | Spend cap | No live calls in prototype | Provider account hard cap or external kill switch, separately evidenced |
 | Model endpoint or schema changes | No live calls in prototype | First-party API check and exact model/version pin |
 
-| Agent finalizes episode early or claims another actor ID (KD-1) | Fixed offline in v2.1: per-actor sockets, separate control socket, optional peer-uid check | Independent re-review; OS-principal isolation |
-| Prompt, model or code changed after plan freeze (KD-2) | Fixed offline in v2.1: plan pins provider, models, settings/prompt hashes, code hashes; checked at writer start and scoring | Independent re-review; proof live process loaded pinned code |
+| Agent finalizes episode early or claims another actor ID (KD-1) | Fixed offline in v2.1: per-actor sockets, separate control socket, required peer-uid check in the service CLI; actor identity reported UNKNOWN | Independent re-review; OS-principal isolation |
+| Prompt, model or code changed after plan freeze (KD-2) | Fixed offline in v2.1: plan pins provider, models, settings/prompt hashes, code hashes (writer, bridge, scorer, oracle, readback, service, verifier); checked at writer start, service start, verification and scoring | Independent re-review; proof live process loaded pinned code |
 | Event timestamps forged or out of order; stalled client (KD-3) | Fixed offline in v2.1: strict UTC, monotonic, in-window checks; per-connection timeout | Trusted time source; independent re-review |
 
 **Known limits:** `HostWriter` uses Python `fcntl.flock` to prevent accidental concurrent writers. A hostile same-UID process remains able to reach paths or the socket. File and socket modes 0600/0700 do not themselves prove isolation. The verifier follows only SHA-256-addressed event files from the signed head but cannot prove the writer process or host kernel was honest. There is no independence certification, no live agent outcome data, no human sign-off and no research effect.

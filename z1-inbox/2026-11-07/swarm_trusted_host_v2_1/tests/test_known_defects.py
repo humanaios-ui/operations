@@ -260,3 +260,49 @@ class KD3(Base):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Review1153(Base):
+    """Independent review of PR #1153 (items 3 and 4). Written before the fixes."""
+
+    def test_plan_without_service_or_verifier_pin_rejected(self):
+        for field in ('service_sha256', 'verifier_sha256'):
+            plan = make_plan(self.key)
+            del plan['protocol_pins'][field]
+            with self.assertRaisesRegex(EvidenceError, 'PINS_INVALID'):
+                HostWriter(self.root / field, self.key, plan, digest(plan))
+
+    def test_wrong_service_pin_refuses_to_serve(self):
+        plan = make_plan(self.key)
+        plan['protocol_pins']['service_sha256'] = '0' * 64
+        w = HostWriter(self.root, self.key, plan, digest(plan))
+        with self.assertRaisesRegex(EvidenceError, 'SERVICE_CODE_NOT_PINNED'):
+            service.Server(self.td / 's.sock', w, 'control')
+
+    def test_wrong_verifier_pin_refuses_to_verify(self):
+        plan = make_plan(self.key)
+        plan['protocol_pins']['verifier_sha256'] = '0' * 64
+        pin = digest(plan)
+        w = HostWriter(self.root, self.key, plan, pin)
+        w.write('A', 'R1', INTENT); w.finalize()
+        with self.assertRaisesRegex(EvidenceError, 'VERIFIER_CODE_NOT_PINNED'):
+            verify(plan, pin, self.pub, self.root)
+
+    def test_actor_identity_reported_unauthenticated(self):
+        w = self.host(); w.write('A', 'R1', INTENT); w.finalize()
+        self.assertEqual(verify(self.plan, self.pin, self.pub, self.root)['actor_id_authenticated'], 'UNKNOWN')
+        obs = {'run_id': 'TEST_001', 'episode_id': 'E001', 'executor_claim': 'SUCCESS',
+               'reviewer_claim': 'SUCCESS', 'final_claim': 'SUCCESS',
+               'ballots': {'A': 'APPROVE', 'B': 'APPROVE'}}
+        self.assertEqual(score_episode(self.plan, self.pin, self.pub, self.root, obs)['actor_id_authenticated'],
+                         'UNKNOWN')
+
+    def test_cli_requires_allowed_uid(self):
+        import subprocess, sys as _sys
+        code = ("import sys; sys.path.insert(0, %r); from src import service; "
+                "sys.argv=['service','--serve-offline','--scope-json','x','--frozen-hash','y',"
+                "'--private-key','z','--root','r','--agent-socket-a','a','--agent-socket-b','b',"
+                "'--control-socket','c']; service.main()" % str(ROOT))
+        r = subprocess.run([_sys.executable, '-c', code], capture_output=True, text=True, timeout=20)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn('--allowed-uid', r.stderr)

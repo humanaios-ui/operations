@@ -24,6 +24,11 @@ test_idle_client_does_not_stall_writer (tests.test_known_defects.KD3.test_idle_c
 test_in_order_in_window_passes (tests.test_known_defects.KD3.test_in_order_in_window_passes) ... ok
 test_naive_timestamp_blocked (tests.test_known_defects.KD3.test_naive_timestamp_blocked) ... ok
 test_unparseable_timestamp_blocked (tests.test_known_defects.KD3.test_unparseable_timestamp_blocked) ... ok
+test_actor_identity_reported_unauthenticated (tests.test_known_defects.Review1153.test_actor_identity_reported_unauthenticated) ... ok
+test_cli_requires_allowed_uid (tests.test_known_defects.Review1153.test_cli_requires_allowed_uid) ... ok
+test_plan_without_service_or_verifier_pin_rejected (tests.test_known_defects.Review1153.test_plan_without_service_or_verifier_pin_rejected) ... ok
+test_wrong_service_pin_refuses_to_serve (tests.test_known_defects.Review1153.test_wrong_service_pin_refuses_to_serve) ... ok
+test_wrong_verifier_pin_refuses_to_verify (tests.test_known_defects.Review1153.test_wrong_verifier_pin_refuses_to_verify) ... ok
 test_real_separate_process_socket_synthetic_agents (tests.test_writer.ProcessSmoke.test_real_separate_process_socket_synthetic_agents) ... ok
 test_altered_artifact_rejected (tests.test_writer.ProofTests.test_altered_artifact_rejected) ... ok
 test_altered_event_rejected (tests.test_writer.ProofTests.test_altered_event_rejected) ... ok
@@ -49,6 +54,6 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 49 tests in 5.216s
+Ran 54 tests in 4.772s
 
 OK

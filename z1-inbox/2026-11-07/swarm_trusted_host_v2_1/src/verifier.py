@@ -11,6 +11,7 @@ from pathlib import Path
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
+from .pins import file_sha256
 from .writer import GENESIS, canonical, digest, ident, sha_bytes, parse_utc, EvidenceError
 
 
@@ -41,6 +42,9 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     """Return trusted host observation or raise EvidenceError; no private keys."""
     if digest(plan) != pinned_plan_sha256:
         raise EvidenceError("PLAN_HASH_CHANGED")
+    pins = plan.get("protocol_pins")
+    if not isinstance(pins, dict) or pins.get("verifier_sha256") != file_sha256(__file__):
+        raise EvidenceError("VERIFIER_CODE_NOT_PINNED")
     if not isinstance(public_key_bytes, bytes) or len(public_key_bytes) != 32:
         raise EvidenceError("PUBKEY_INVALID")
     if sha_bytes(public_key_bytes) != plan.get("writer_pubkey_sha256"):
@@ -170,4 +174,6 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
         "nonce": payload["nonce"], "artifact_dir": artifact_dir,
         "protocol_pins_sha256": payload["protocol_pins_sha256"],
         "authority": "NOT_ASSESSED", "os_isolation": "NOT_ASSESSED",
+        # Route binding only. Same-UID peers are not distinguished; needs an OS-principal access test.
+        "actor_id_authenticated": "UNKNOWN",
     }

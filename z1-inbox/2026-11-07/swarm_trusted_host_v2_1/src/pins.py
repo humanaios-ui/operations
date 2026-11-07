@@ -9,6 +9,8 @@ FILES = {
     "scorer_sha256": ROOT / "integration" / "scoring.py",
     "oracle_sha256": ROOT / "integration" / "oracle.py",
     "readback_sha256": ROOT / "integration" / "readback.py",
+    "service_sha256": ROOT / "src" / "service.py",
+    "verifier_sha256": ROOT / "src" / "verifier.py",
 }
 
 

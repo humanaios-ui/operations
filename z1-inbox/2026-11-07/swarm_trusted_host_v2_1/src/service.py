@@ -20,6 +20,7 @@ import struct
 import threading
 from pathlib import Path
 
+from .pins import file_sha256
 from .writer import HostWriter, EvidenceError, canonical, read_private_key, secure_dir
 
 DEFAULT_TIMEOUT = 5.0
@@ -68,6 +69,9 @@ class Server(socketserver.UnixStreamServer):
     def __init__(self, socket_path, writer, role, actor_id=None, allowed_uid=None, timeout=DEFAULT_TIMEOUT):
         if role not in ROLES:
             raise EvidenceError("UNKNOWN_ROLE")
+        # The channel roles are enforced by THIS file: refuse to serve if it is not the pinned one.
+        if writer.plan["protocol_pins"]["service_sha256"] != file_sha256(__file__):
+            raise EvidenceError("SERVICE_CODE_NOT_PINNED")
         if role == "agent" and actor_id not in ("A", "B"):
             raise EvidenceError("AGENT_CHANNEL_REQUIRES_ACTOR")
         if role == "control" and actor_id is not None:
@@ -90,7 +94,8 @@ def main():
     parser.add_argument("--agent-socket-a", required=True)
     parser.add_argument("--agent-socket-b", required=True)
     parser.add_argument("--control-socket", required=True)
-    parser.add_argument("--allowed-uid", type=int, default=None)
+    parser.add_argument("--allowed-uid", type=int, required=True,
+                        help="OS uid permitted to connect (SO_PEERCRED, Linux). Required: fail closed.")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT)
     a = parser.parse_args()
     if not a.serve_offline:

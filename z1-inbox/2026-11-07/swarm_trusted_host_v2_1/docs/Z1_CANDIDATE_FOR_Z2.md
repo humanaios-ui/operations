@@ -32,7 +32,7 @@ Authorize review of the **exact vetted source and host deployment**, not a blind
 
 ### 2A. Known defects in the v2 writer (found in Z1 review; FIX IMPLEMENTED OFFLINE in v2.1, NOT independently re-reviewed)
 
-Z2 is asked to admit v2.1 for review **with these defects on the record**. Each was fixed test-first in v2.1 (offline, 49/49 tests: 23 original + 26 new KD tests, each KD test shown failing before the fix). A fix is not a closure: each stays a live-execution blocker until an independent reviewer confirms it and the isolated deployment is tested. Found by reading source; not yet reproduced by an exploit test.
+Z2 is asked to admit v2.1 for review **with these defects on the record**. Each was fixed test-first in v2.1 (offline, 54/54 tests: 23 original + 31 new KD and review tests, each KD test shown failing before the fix). A fix is not a closure: each stays a live-execution blocker until an independent reviewer confirms it and the isolated deployment is tested. Found by reading source; not yet reproduced by an exploit test.
 
 | ID | Defect | Where | Why it blocks live | Required fix | Test that must fail first, then pass |
 | --- | --- | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ Two real model identities and provider request IDs; complete raw prompt/response
 
 ### 6. v2.1 fix summary for KD-1..KD-3 (offline, test-first)
 
-- **KD-1:** one socket per actor (actor fixed by channel, `actor_id` in a body is refused); `finalize` only on a separate control socket; optional `SO_PEERCRED` uid check. *Limit:* uid check and 0600 modes are not OS-principal isolation (same-UID hostile process still unaddressed).
-- **KD-2:** plan now pins `window` and `protocol_pins` (provider, model A/B IDs, settings hash, prompts hash, and SHA-256 of writer, bridge, scorer, oracle, readback). The writer refuses to start if its own source differs from the pin; the bridge refuses to score if its code or the scorer/oracle/readback differ. The signed receipt carries `protocol_pins_sha256`. *Limit:* a pin proves which file hash was configured, not that the live process loaded it, nor that prompts/settings were what the model actually received.
+- **KD-1:** one socket per actor (actor fixed by channel, `actor_id` in a body is refused); `finalize` only on a separate control socket; `SO_PEERCRED` uid check, now required by the service CLI (`--allowed-uid`, fail closed; Linux only, so pin the deployment OS). `actor_id_authenticated` is reported as `UNKNOWN`: this is route binding, not proof of peer identity. *Limit:* uid check and 0600 modes are not OS-principal isolation (same-UID hostile process still unaddressed).
+- **KD-2:** plan now pins `window` and `protocol_pins` (provider, model A/B IDs, settings hash, prompts hash, and SHA-256 of writer, bridge, scorer, oracle, readback, service and verifier). The writer refuses to start if its own source differs from the pin; the service refuses to serve and the verifier refuses to verify if their own loaded files differ; the bridge refuses to score if its code or the scorer/oracle/readback differ. The signed receipt carries `protocol_pins_sha256`. *Limit:* a pin proves which file hash was configured, not that the live process loaded it, nor that prompts/settings were what the model actually received.
 - **KD-3:** event and receipt timestamps must be explicit-UTC, non-decreasing, inside the plan window; per-connection socket timeout. *Limit:* timestamps come from the writer host clock; clock honesty and time source are not attested.
 - **Not fixed:** caller-supplied claims/ballots; OS/container isolation; read-only snapshot; spend cap; any Z2/Z3 grant.
