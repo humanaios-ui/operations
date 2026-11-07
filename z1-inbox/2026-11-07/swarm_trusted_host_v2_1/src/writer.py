@@ -185,7 +185,7 @@ class HostWriter:
         self.nonce = None
         self.actor_id = None
 
-    def _event(self, kind, status, *, artifact_sha256=None):
+    def _event(self, kind, status, *, artifact_sha256=None, observed_utc=None):
         self.seq += 1
         event = {
             "schema": "humanaios.tool_event.v2", "sequence": self.seq,
@@ -193,7 +193,7 @@ class HostWriter:
             "plan_sha256": self.plan_hash, "kind": kind, "status": status,
             "actor_id": self.actor_id, "request_id": self.request_id,
             "nonce": self.nonce, "artifact_sha256": artifact_sha256,
-            "observed_utc": now(), "previous_event_hash": self.tip,
+            "observed_utc": observed_utc if observed_utc is not None else now(), "previous_event_hash": self.tip,
         }
         raw = canonical(event)
         event_hash = sha_bytes(raw)
@@ -208,6 +208,18 @@ class HostWriter:
             if actor_id != self.plan["allowed_actor"]:
                 raise EvidenceError("ACTOR_NOT_AUTHORIZED")
             ident(request_id)
+            # Enforce the action window BEFORE recording any attempt or writing an artifact.
+            # Reuse this observed timestamp in REQUEST_RECORDED; do not add a
+            # second now() call that would shift the frozen event sequence.
+            observed = now()
+            try:
+                request_time = parse_utc(observed, "WRITE_TIMESTAMP_INVALID")
+                first = parse_utc(self.plan["window"]["not_before"], "WINDOW_INVALID")
+                last = parse_utc(self.plan["window"]["not_after"], "WINDOW_INVALID")
+            except EvidenceError:
+                raise
+            if not first <= request_time <= last:
+                raise EvidenceError("WRITE_OUTSIDE_WINDOW")
             self.started = True
             self.actor_id, self.request_id, self.nonce = actor_id, request_id, secrets.token_hex(16)
             task = self.plan["task"]
@@ -216,7 +228,7 @@ class HostWriter:
                      and intent["artifact_id"] == task["artifact_id"]
                      and isinstance(intent["value"], str) and VALUE.fullmatch(intent["value"])
                      and self.plan["tool_policy"] == "ALLOW")
-            self._event("REQUEST_RECORDED", "ACCEPTED" if valid else "REJECTED")
+            self._event("REQUEST_RECORDED", "ACCEPTED" if valid else "REJECTED", observed_utc=observed)
             if not valid:
                 self.outcome = "NO_ATTEMPT"
                 self._event("WRITE_RESULT", self.outcome)
