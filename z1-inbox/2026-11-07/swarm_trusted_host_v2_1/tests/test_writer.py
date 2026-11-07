@@ -182,6 +182,8 @@ class ProcessSmoke(unittest.TestCase):
         self.assertEqual(result['classification'],'VERIFIED_SUCCESS')
         self.assertEqual(result['os_principal_isolation'],'NOT_TESTED')
         self.assertTrue(result['arbitrary_path_rpc_blocked'])
+        self.assertEqual(result['claims_and_ballots_provenance'],'HOST_RECORDED_RESPONSES')
+        self.assertEqual(result['response_count'],5)
 
 
 if __name__=='__main__': unittest.main()

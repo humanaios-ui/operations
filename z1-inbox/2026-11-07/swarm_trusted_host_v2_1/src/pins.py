@@ -12,6 +12,7 @@ FILES = {
     "service_sha256": ROOT / "src" / "service.py",
     "verifier_sha256": ROOT / "src" / "verifier.py",
     "pins_sha256": ROOT / "src" / "pins.py",
+    "responses_sha256": ROOT / "src" / "responses.py",
 }
 
 

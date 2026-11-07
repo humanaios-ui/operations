@@ -12,6 +12,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .pins import file_sha256
+from .responses import KINDS, MAX_RAW, TRANSPORT, derive_observation, parse_response, slot
 from .writer import GENESIS, canonical, digest, ident, sha_bytes, parse_utc, EvidenceError
 
 
@@ -38,6 +39,56 @@ def _json_file(path):
     return item, raw
 
 
+EVENT_KINDS = {"REQUEST_RECORDED", "WRITE_RESULT", "SNAPSHOT_FINALIZED", "RESPONSE_RECORDED"}
+DETAIL_KEYS = {"kind", "value", "parse_status", "transport_status", "provider_request_id", "model_id",
+               "attempt", "response_sha256", "response_bytes"}
+HEX64 = __import__("re").compile(r"^[a-f0-9]{64}$")
+
+
+def _check_responses(ep, events):
+    """Re-derive every ledger entry from the stored raw bytes. Nothing recorded is trusted on its own."""
+    ledger, seen, expected_files = [], set(), set()
+    for item in events:
+        if item["kind"] != "RESPONSE_RECORDED":
+            continue
+        d, actor = item["detail"], item["actor_id"]
+        if item["status"] != "RECORDED" or not isinstance(d, dict) or set(d) != DETAIL_KEYS:
+            raise EvidenceError("RESPONSE_EVENT_INVALID")
+        kind = d["kind"]
+        if kind not in KINDS:
+            raise EvidenceError("RESPONSE_EVENT_INVALID")
+        if actor not in KINDS[kind][2]:
+            raise EvidenceError("RESPONSE_ACTOR_NOT_ALLOWED")
+        if slot(kind, actor) in seen:
+            raise EvidenceError("RESPONSE_ALREADY_RECORDED")
+        seen.add(slot(kind, actor))
+        sha, size = d["response_sha256"], d["response_bytes"]
+        if (d["transport_status"] not in TRANSPORT or not isinstance(sha, str) or not HEX64.fullmatch(sha)
+                or type(size) is not int or not 0 <= size <= MAX_RAW):
+            raise EvidenceError("RESPONSE_EVENT_INVALID")
+        if size > 0:
+            expected_files.add(sha + ".bin")
+            path = ep / "responses" / (sha + ".bin")
+            if not path.is_file() or path.is_symlink():
+                raise EvidenceError("RESPONSE_FILE_MISSING")
+            raw = _safe_bytes(path)
+            if len(raw) != size or sha_bytes(raw) != sha:
+                raise EvidenceError("RESPONSE_BYTES_TAMPERED")
+        else:
+            raw = b""
+            if sha != sha_bytes(b""):
+                raise EvidenceError("RESPONSE_BYTES_TAMPERED")
+        if parse_response(kind, raw, d["transport_status"]) != (d["value"], d["parse_status"]):
+            raise EvidenceError("RESPONSE_VALUE_MISMATCH")
+        ledger.append({"actor_id": actor, "detail": d})
+    present = {p.name for p in (ep / "responses").iterdir()}
+    if present - expected_files:
+        raise EvidenceError("UNATTESTED_RESPONSE_FILE")
+    if expected_files - present:
+        raise EvidenceError("RESPONSE_FILE_MISSING")
+    return ledger
+
+
 def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: Path):
     """Return trusted host observation or raise EvidenceError; no private keys."""
     if digest(plan) != pinned_plan_sha256:
@@ -56,7 +107,9 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     ep = Path(root).absolute() / ident(plan["run_id"]) / ident(plan["episode_id"])
     if ep.is_symlink() or not ep.is_dir() or ep.parent.is_symlink():
         raise EvidenceError("EPISODE_NOT_TRUSTED")
-    if {p.name for p in ep.iterdir()} != {"events", "artifacts", "snapshot.json"}:
+    if (ep / "responses").is_symlink():
+        raise EvidenceError("EPISODE_NOT_TRUSTED")
+    if {p.name for p in ep.iterdir()} != {"events", "artifacts", "responses", "snapshot.json"}:
         raise EvidenceError("EPISODE_CONTAINS_UNEXPECTED_FILES")
     snapshot, _ = _json_file(ep / "snapshot.json")
     if not isinstance(snapshot, dict) or set(snapshot) != {"payload", "signature_ed25519_b64"}:
@@ -64,7 +117,8 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     payload = snapshot["payload"]
     expected = {"schema", "run_id", "episode_id", "plan_sha256", "writer_pubkey_sha256",
                 "event_count", "tip_sha256", "tool_status", "artifact_sha256", "actor_id",
-                "request_id", "nonce", "finalized_utc", "protocol_pins_sha256"}
+                "request_id", "nonce", "finalized_utc", "protocol_pins_sha256", "response_count",
+                "response_ledger_sha256"}
     if not isinstance(payload, dict) or set(payload) != expected:
         raise EvidenceError("RECEIPT_PAYLOAD_INVALID")
     try:
@@ -72,13 +126,13 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
         public_key.verify(sig, canonical(payload))
     except (InvalidSignature, ValueError, TypeError) as exc:
         raise EvidenceError("UNAUTHENTICATED_SIGNATURE") from exc
-    if (payload["schema"] != "humanaios.tool_receipt.v2"
+    if (payload["schema"] != "humanaios.tool_receipt.v3"
         or (payload["run_id"], payload["episode_id"], payload["plan_sha256"], payload["writer_pubkey_sha256"])
         != (plan["run_id"], plan["episode_id"], pinned_plan_sha256, plan["writer_pubkey_sha256"])):
         raise EvidenceError("RECEIPT_SCOPE_MISMATCH")
     if payload["protocol_pins_sha256"] != digest(plan["protocol_pins"]):
         raise EvidenceError("RECEIPT_PINS_MISMATCH")
-    if not isinstance(payload["event_count"], int) or payload["event_count"] not in (1, 3):
+    if type(payload["event_count"]) is not int or payload["event_count"] < 1:
         raise EvidenceError("RECEIPT_EVENT_COUNT_INVALID")
     if not isinstance(payload["nonce"], str) or len(payload["nonce"]) != 32:
         raise EvidenceError("NONCE_INVALID")
@@ -97,7 +151,7 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     events_reverse = []
     visited = set()
     keys = {"schema", "sequence", "run_id", "episode_id", "plan_sha256", "kind", "status", "actor_id",
-            "request_id", "nonce", "artifact_sha256", "peer_uid", "observed_utc", "previous_event_hash"}
+            "request_id", "nonce", "artifact_sha256", "detail", "peer_uid", "observed_utc", "previous_event_hash"}
     for expected_seq in range(payload["event_count"], 0, -1):
         filename = cursor + ".json"
         if filename not in names or filename in visited:
@@ -107,14 +161,23 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
             raise EvidenceError("CONTENT_ADDRESS_HASH_MISMATCH")
         if not isinstance(item, dict) or set(item) != keys:
             raise EvidenceError("EVENT_SCHEMA_INVALID")
-        if item["schema"] != "humanaios.tool_event.v3" or item["sequence"] != expected_seq:
+        if item["schema"] != "humanaios.tool_event.v4" or item["sequence"] != expected_seq:
             raise EvidenceError("EVENT_SEQUENCE_INVALID")
         if (item["run_id"], item["episode_id"], item["plan_sha256"]) != (
             plan["run_id"], plan["episode_id"], pinned_plan_sha256):
             raise EvidenceError("CROSS_EPISODE_EVENT")
-        if (item["actor_id"], item["request_id"], item["nonce"]) != (
-            payload["actor_id"], payload["request_id"], payload["nonce"]):
-            raise EvidenceError("EVENT_REQUEST_ID_MISMATCH")
+        if item["kind"] not in EVENT_KINDS:
+            raise EvidenceError("EVENT_SCHEMA_INVALID")
+        if item["kind"] == "RESPONSE_RECORDED":
+            # Response events carry the responder's identity, not the tool request's; validated in _check_responses.
+            if item["actor_id"] not in ("A", "B") or item["request_id"] is not None or item["nonce"] is not None:
+                raise EvidenceError("RESPONSE_EVENT_INVALID")
+        else:
+            if item["detail"] is not None:
+                raise EvidenceError("EVENT_SCHEMA_INVALID")
+            if (item["actor_id"], item["request_id"], item["nonce"]) != (
+                    payload["actor_id"], payload["request_id"], payload["nonce"]):
+                raise EvidenceError("EVENT_REQUEST_ID_MISMATCH")
         parse_utc(item["observed_utc"], "EVENT_TIMESTAMP_INVALID")
         visited.add(filename)
         cursor = item["previous_event_hash"]
@@ -135,11 +198,18 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
         raise EvidenceError("FREEZE_EVENT_CONFLICT")
     if events[-1]["artifact_sha256"] != payload["artifact_sha256"]:
         raise EvidenceError("FREEZE_ARTIFACT_MISMATCH")
-    if payload["event_count"] == 1:
+    core = [e for e in events if e["kind"] != "RESPONSE_RECORDED"]
+    if [e["kind"] for e in core] not in (["SNAPSHOT_FINALIZED"],
+                                         ["REQUEST_RECORDED", "WRITE_RESULT", "SNAPSHOT_FINALIZED"]):
+        raise EvidenceError("EVENT_STRUCTURE_INVALID")
+    ledger = _check_responses(ep, events)
+    if payload["response_count"] != len(ledger) or payload["response_ledger_sha256"] != digest(ledger):
+        raise EvidenceError("RECEIPT_LEDGER_MISMATCH")
+    if len(core) == 1:
         if payload["tool_status"] != "NO_ATTEMPT" or payload["artifact_sha256"] is not None:
             raise EvidenceError("SPURIOUS_NO_REQUEST_SUCCESS")
     else:
-        first, second = events[:2]
+        first, second = core[0], core[1]
         if first["kind"] != "REQUEST_RECORDED" or first["status"] not in {"ACCEPTED", "REJECTED"}:
             raise EvidenceError("REQUEST_EVENT_INVALID")
         if second["kind"] != "WRITE_RESULT" or second["status"] != payload["tool_status"]:
@@ -173,7 +243,7 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
         if item["kind"] in ("REQUEST_RECORDED", "WRITE_RESULT"):
             agent_uid = item["peer_uid"]
             expect = roles["agent_a"] if roles else None
-        elif item["kind"] == "SNAPSHOT_FINALIZED":
+        elif item["kind"] in ("SNAPSHOT_FINALIZED", "RESPONSE_RECORDED"):
             control_uid = item["peer_uid"]
             expect = roles["control"] if roles else None
         else:
@@ -184,7 +254,10 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
             if item["peer_uid"] != expect:
                 raise EvidenceError("PEER_UID_MISMATCH")
     pinned = bool(roles)
+    derived, complete = derive_observation([{"actor_id": e["actor_id"], **e["detail"]} for e in ledger])
     return {
+        "responses": ledger, "response_count": len(ledger), "response_ledger_sha256": digest(ledger),
+        "derived_observation": derived, "responses_complete": complete,
         "isolation_mode": "ROLE_UIDS_PINNED_PEER_UIDS_MATCH" if pinned else "NOT_ISOLATED_NO_ROLE_UIDS",
         "peer_uid": agent_uid, "control_peer_uid": control_uid,
         "proof_status": "VERIFIED_HOST_RECEIPT", "tool_status": payload["tool_status"],

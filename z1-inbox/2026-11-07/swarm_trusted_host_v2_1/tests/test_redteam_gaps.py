@@ -158,9 +158,9 @@ class UnattestedResponses(Base):  # P10
         self.assertEqual(res["claims_and_ballots_provenance"], "CALLER_SUPPLIED_UNSIGNED")
         self.assertFalse(res["ballots_attested"])
 
-    def test_scored_study_gate_fails_closed_until_a_response_ledger_exists(self):
+    def test_scored_study_gate_fails_closed_without_a_complete_response_ledger(self):
         plan = make_plan(self.key)
-        with self.assertRaisesRegex(EvidenceError, "RESPONSE_LEDGER_NOT_IMPLEMENTED"):
+        with self.assertRaisesRegex(EvidenceError, "RESPONSE_LEDGER_INCOMPLETE"):
             score_episode(plan, digest(plan), self.pub, self.run_episode(plan), OBS, require_attested_responses=True)
 
 

@@ -27,6 +27,10 @@ from .pins import file_sha256
 from .writer import HostWriter, EvidenceError, canonical, read_private_key, secure_dir
 
 DEFAULT_TIMEOUT = 5.0
+AGENT_MAX_REQUEST = 4096
+CONTROL_MAX_REQUEST = 262144  # a relayed model response (up to 32 KiB, JSON-escaped) fits
+RECORD_KEYS = {"op", "actor_id", "kind", "transport_status", "provider_request_id", "model_id", "attempt",
+               "raw_response"}
 ROLES = ("agent", "control")
 
 
@@ -57,10 +61,11 @@ class Handler(socketserver.StreamRequestHandler):
             # Read the (bounded) request line BEFORE judging the peer, so a refusal never closes the
             # connection with unread data (which resets it and can drop the error reply). The bytes of a
             # refused peer are read and discarded; they are never parsed or acted on.
-            raw = self.rfile.readline(4097)
+            limit = srv.max_request
+            raw = self.rfile.readline(limit + 1)
             if srv.allowed_uid is not None and self._peer_uid() != srv.allowed_uid:
                 raise EvidenceError("PEER_NOT_AUTHORIZED")
-            if len(raw) >= 4097 or not raw.endswith(b"\n"):
+            if len(raw) > limit or not raw.endswith(b"\n"):
                 raise EvidenceError("REQUEST_TOO_LARGE")
             request = json.loads(raw)
             if not isinstance(request, dict):
@@ -69,6 +74,11 @@ class Handler(socketserver.StreamRequestHandler):
                     and request["op"] == "write"):
                 reply = srv.writer.write(srv.actor_id, request["request_id"], request["intent"],
                                          peer_uid=self._observed_peer_uid())
+            elif (srv.role == "control" and set(request) == RECORD_KEYS and request["op"] == "record_response"):
+                reply = srv.writer.record_response(
+                    request["actor_id"], request["kind"], request["raw_response"], request["transport_status"],
+                    request["provider_request_id"], request["model_id"], request["attempt"],
+                    peer_uid=self._observed_peer_uid())
             elif srv.role == "control" and request == {"op": "finalize"}:
                 reply = {"snapshot": srv.writer.finalize(control_peer_uid=self._observed_peer_uid()),
                          "status": "FINALIZED"}
@@ -123,6 +133,7 @@ class Server(socketserver.UnixStreamServer):
         if allowed_uid is not None and not hasattr(socket, "SO_PEERCRED"):
             raise EvidenceError("LINUX_PEER_CREDENTIALS_REQUIRED")
         self.writer, self.role, self.actor_id = writer, role, actor_id
+        self.max_request = CONTROL_MAX_REQUEST if role == "control" else AGENT_MAX_REQUEST
         self.allowed_uid, self.conn_timeout = allowed_uid, timeout
         super().__init__(str(socket_path), Handler)
         if enforce_isolation:

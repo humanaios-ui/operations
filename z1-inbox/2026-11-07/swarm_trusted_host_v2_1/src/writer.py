@@ -22,6 +22,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from .pins import FILES, file_sha256
+from .responses import KINDS, MAX_RAW, TRANSPORT, parse_response, slot
 
 IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 VALUE = re.compile(r"^-?(0|[1-9][0-9]{0,8})(\.[0-9]{1,6})?$")
@@ -59,6 +60,7 @@ def now():
 
 HEX64 = re.compile(r"^[a-f0-9]{64}$")
 LABEL = re.compile(r"^[A-Za-z0-9._:/-]{1,128}$")
+PROVIDER_ID = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 PIN_LABELS = ("provider", "model_a", "model_b")
 PIN_HASHES = ("settings_sha256", "prompts_sha256") + tuple(FILES)
 
@@ -171,6 +173,8 @@ def check_plan(plan, key):
         raise EvidenceError("WRITER_CODE_NOT_PINNED")
     if pins["pins_sha256"] != file_sha256(FILES["pins_sha256"]):
         raise EvidenceError("PINS_CODE_NOT_PINNED")
+    if pins["responses_sha256"] != file_sha256(FILES["responses_sha256"]):
+        raise EvidenceError("RESPONSES_CODE_NOT_PINNED")
     task = plan["task"]
     if not isinstance(task, dict) or set(task) != {"artifact_id", "baseline", "proposed", "min_allowed", "max_allowed", "max_delta"}:
         raise EvidenceError("TASK_SCHEMA_INVALID")
@@ -200,7 +204,9 @@ class HostWriter:
         self.ep = secure_dir(self.root / ident(plan["run_id"]) / ident(plan["episode_id"]))
         self.events = secure_dir(self.ep / "events")
         self.artifacts = secure_dir(self.ep / "artifacts")
-        if list(self.events.iterdir()) or list(self.artifacts.iterdir()) or (self.ep / "snapshot.json").exists():
+        self.responses = secure_dir(self.ep / "responses")
+        if (list(self.events.iterdir()) or list(self.artifacts.iterdir()) or list(self.responses.iterdir())
+                or (self.ep / "snapshot.json").exists()):
             raise EvidenceError("EXISTING_EVIDENCE_REJECTED")
         self._lock = threading.Lock()
         self.tip = GENESIS
@@ -212,15 +218,19 @@ class HostWriter:
         self.request_id = None
         self.nonce = None
         self.actor_id = None
+        self._ledger = []      # signed response ledger, in chain order: [{"actor_id", "detail"}]
+        self._slots = set()
 
-    def _event(self, kind, status, *, artifact_sha256=None, observed_utc=None, peer_uid=None):
+    def _event(self, kind, status, *, artifact_sha256=None, observed_utc=None, peer_uid=None,
+               detail=None, identity=None):
         self.seq += 1
+        actor_id, request_id, nonce = identity if identity is not None else (self.actor_id, self.request_id, self.nonce)
         event = {
-            "schema": "humanaios.tool_event.v3", "sequence": self.seq,
+            "schema": "humanaios.tool_event.v4", "sequence": self.seq,
             "run_id": self.plan["run_id"], "episode_id": self.plan["episode_id"],
             "plan_sha256": self.plan_hash, "kind": kind, "status": status,
-            "actor_id": self.actor_id, "request_id": self.request_id,
-            "nonce": self.nonce, "artifact_sha256": artifact_sha256,
+            "actor_id": actor_id, "request_id": request_id,
+            "nonce": nonce, "artifact_sha256": artifact_sha256, "detail": detail,
             # Kernel-observed uid of the connection that caused this event (SO_PEERCRED), host-reported.
             "peer_uid": peer_uid,
             "observed_utc": observed_utc if observed_utc is not None else now(), "previous_event_hash": self.tip,
@@ -281,6 +291,65 @@ class HostWriter:
             self._event("WRITE_RESULT", self.outcome, artifact_sha256=self.artifact_sha256, peer_uid=peer_uid)
             return {"tool_status": self.outcome, "request_id": request_id}
 
+    def record_response(self, actor_id, kind, raw_response, transport_status, provider_request_id,
+                        model_id, attempt, peer_uid=None):
+        """Record one model response relayed by the orchestrator (control channel only).
+
+        The HOST hashes the raw bytes, stores them content-addressed and parses the claim or ballot itself.
+        The caller asserts nothing but the raw bytes and metadata. Refusals change no state."""
+        with self._lock:
+            if self.finished:
+                raise EvidenceError("ALREADY_FINALIZED")
+            if actor_id not in ("A", "B"):
+                raise EvidenceError("RESPONSE_ACTOR_INVALID")
+            if kind not in KINDS:
+                raise EvidenceError("RESPONSE_KIND_INVALID")
+            if actor_id not in KINDS[kind][2]:
+                raise EvidenceError("RESPONSE_ACTOR_NOT_ALLOWED")
+            if transport_status not in TRANSPORT:
+                raise EvidenceError("RESPONSE_TRANSPORT_INVALID")
+            if not isinstance(raw_response, str):
+                raise EvidenceError("RESPONSE_RAW_NOT_TEXT")
+            try:
+                raw = raw_response.encode("utf-8")
+            except UnicodeEncodeError as exc:
+                raise EvidenceError("RESPONSE_RAW_NOT_TEXT") from exc
+            if len(raw) > MAX_RAW:
+                raise EvidenceError("RESPONSE_TOO_LARGE")
+            if transport_status != "OK" and raw:
+                raise EvidenceError("RESPONSE_BODY_WITHOUT_TRANSPORT_OK")
+            if (not isinstance(provider_request_id, str) or not PROVIDER_ID.fullmatch(provider_request_id)
+                    or not isinstance(model_id, str) or not LABEL.fullmatch(model_id)
+                    or type(attempt) is not int or not 1 <= attempt <= 100):
+                raise EvidenceError("RESPONSE_METADATA_INVALID")
+            if slot(kind, actor_id) in self._slots:
+                raise EvidenceError("RESPONSE_ALREADY_RECORDED")
+            if peer_uid is not None and (type(peer_uid) is not int or peer_uid < 0):
+                raise EvidenceError("PEER_UID_INVALID")
+            observed = now()
+            moment = parse_utc(observed, "RESPONSE_TIMESTAMP_INVALID")
+            if not (parse_utc(self.plan["window"]["not_before"], "WINDOW_INVALID") <= moment
+                    <= parse_utc(self.plan["window"]["not_after"], "WINDOW_INVALID")):
+                raise EvidenceError("RESPONSE_OUTSIDE_WINDOW")
+            sha = sha_bytes(raw)
+            if raw:
+                stored = self.responses / f"{sha}.bin"
+                if stored.exists():
+                    if open_read_no_follow(stored) != raw:  # content-addressed: same name must mean same bytes
+                        raise EvidenceError("RESPONSE_STORE_CONFLICT")
+                else:
+                    new_file(stored, raw)
+            value, parse_status = parse_response(kind, raw, transport_status)
+            detail = {"kind": kind, "value": value, "parse_status": parse_status,
+                      "transport_status": transport_status, "provider_request_id": provider_request_id,
+                      "model_id": model_id, "attempt": attempt, "response_sha256": sha,
+                      "response_bytes": len(raw)}
+            self._event("RESPONSE_RECORDED", "RECORDED", observed_utc=observed, peer_uid=peer_uid,
+                        detail=detail, identity=(actor_id, None, None))
+            self._slots.add(slot(kind, actor_id))
+            self._ledger.append({"actor_id": actor_id, "detail": detail})
+            return {"recorded": True, "value": value, "parse_status": parse_status, "response_sha256": sha}
+
     def finalize(self, control_peer_uid=None):
         with self._lock:
             if self.finished:
@@ -302,11 +371,12 @@ class HostWriter:
                         artifact_sha256=self.artifact_sha256, peer_uid=control_peer_uid,
                         observed_utc=stamp)
             payload = {
-                "schema": "humanaios.tool_receipt.v2", "run_id": self.plan["run_id"],
+                "schema": "humanaios.tool_receipt.v3", "run_id": self.plan["run_id"],
                 "episode_id": self.plan["episode_id"], "plan_sha256": self.plan_hash,
                 "writer_pubkey_sha256": public_fingerprint(self.key),
                 "protocol_pins_sha256": digest(self.plan["protocol_pins"]),
                 "event_count": self.seq, "tip_sha256": self.tip,
+                "response_count": len(self._ledger), "response_ledger_sha256": digest(self._ledger),
                 "tool_status": self.outcome, "artifact_sha256": self.artifact_sha256,
                 "actor_id": self.actor_id, "request_id": self.request_id,
                 "nonce": self.nonce, "finalized_utc": stamp,  # same reading as the event: one clock read

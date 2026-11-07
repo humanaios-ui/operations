@@ -91,20 +91,32 @@ def demo():
             a = request(agent_a, {"op":"write", "request_id":"STUB_A_01",
                          "intent":{"action":"WRITE_NUMERIC_ARTIFACT","artifact_id":"X01","value":"11"}})
             if not a.get("ok"): raise RuntimeError(str(a))
-            # SIMULATED agent B independent ballot, and A's final ballot.
-            b = {"claim":"SUCCESS", "ballot":"APPROVE"}
-            a_final = {"claim":"SUCCESS", "ballot":"APPROVE"}
+            # SIMULATED orchestrator relays five SYNTHETIC model replies to the host (control channel only). The
+            # host hashes, stores and parses them itself; nobody asserts a claim or a ballot.
+            for who, kind, raw, rid in (("A","EXECUTOR_CLAIM",'{"claim":"SUCCESS"}',"synthetic_1"),
+                                        ("B","REVIEWER_CLAIM",'{"claim":"SUCCESS"}',"synthetic_2"),
+                                        ("A","FINAL_CLAIM",'{"claim":"SUCCESS"}',"synthetic_3"),
+                                        ("A","BALLOT",'{"ballot":"APPROVE"}',"synthetic_4"),
+                                        ("B","BALLOT",'{"ballot":"APPROVE"}',"synthetic_5")):
+                rec = request(control, {"op":"record_response","actor_id":who,"kind":kind,"transport_status":"OK",
+                                        "provider_request_id":rid,"model_id":"SYNTHETIC_NONE","attempt":1,
+                                        "raw_response":raw})
+                if not rec.get("ok"): raise RuntimeError(str(rec))
+            # An agent channel must never be able to record a response.
+            if request(agent_a, {"op":"record_response","actor_id":"B","kind":"BALLOT","transport_status":"OK",
+                                 "provider_request_id":"forged","model_id":"x","attempt":1,
+                                 "raw_response":'{"ballot":"APPROVE"}'}).get("ok"):
+                raise RuntimeError("AGENT_CHANNEL_RECORDED_A_RESPONSE")
             final = request(control, {"op":"finalize"})
             if not final.get("ok"): raise RuntimeError(str(final))
-            actor = {"run_id":"PIPE_DEMO","episode_id":"E001","executor_claim":"SUCCESS",
-                     "reviewer_claim":b["claim"],"final_claim":a_final["claim"],
-                     "ballots":{"A":a_final["ballot"],"B":b["ballot"]}}
             verified = verify(plan,digest(plan),pub_bytes(key),root / "host")
-            score = score_episode(plan,digest(plan),pub_bytes(key),root / "host",actor)
+            score = score_episode(plan,digest(plan),pub_bytes(key),root / "host",None,require_attested_responses=True)
             return {"status":"OFFLINE_SYNTHETIC_ONLY", "model_calls":0,"separate_writer_process":process.pid,
                     "host_event_count":verified["event_count"], "proof_status":verified["proof_status"],
                     "arbitrary_path_rpc_blocked": True,
                     "oracle_verdict":score["oracle_verdict"], "classification":score["classification"],
+                    "claims_and_ballots_provenance":score["claims_and_ballots_provenance"],
+                    "response_count":score["response_count"],
                     "authorized_execution":"UNKNOWN", "os_principal_isolation":"NOT_TESTED",
                     "independent_blind_review":"NOT_PERFORMED", "sprint_empirical_result":False}
         finally:
