@@ -929,7 +929,7 @@ candidates:
   submitted: '2026-11-07'
   status: awaiting_z2
   tier: 0
-  note: 'Refs #1114. Z1 recommends admitting the specification for independent review only. Z2 and Z3 grants, provider model IDs, spend cap, OS or container isolation, read-only snapshot and the real two-agent preflight are all NOT granted or NOT done. KD-1..KD-3 are fixed offline (49/49 package tests) and await independent re-review. Authority effect NONE. Not ratified.'
+  note: 'Refs #1114. Z1 recommends admitting the specification for independent review only. Z2 and Z3 grants, provider model IDs, spend cap, OS or container isolation, read-only snapshot and the real two-agent preflight are all NOT granted or NOT done. KD-1..KD-3 and the later red-team and code-review findings are fixed offline; package test results are in TEST_RESULTS.txt (author-run) and an independent exact-head rerun is pending. Authority effect NONE. Not ratified.'
 records:
 - path: z1-inbox/2026-10-21/CAPACITY_CONTROL_PLANE_REVIEW_RECORD.md
   title: Record of the Z2-directed capacity change (4 to 9) and what is still unsigned
