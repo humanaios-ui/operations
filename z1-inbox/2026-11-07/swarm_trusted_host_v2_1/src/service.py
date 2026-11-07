@@ -76,6 +76,10 @@ class Server(socketserver.UnixStreamServer):
                  timeout=DEFAULT_TIMEOUT, enforce_isolation=False):
         if role not in ROLES:
             raise EvidenceError("UNKNOWN_ROLE")
+        # A pinned identity policy cannot be silently downgraded to the legacy
+        # same-UID test mode by calling Server() directly.
+        if "role_uids" in writer.plan and not enforce_isolation:
+            raise EvidenceError("ISOLATION_REQUIRED_BY_PLAN")
         # The channel roles are enforced by THIS file: refuse to serve if it is not the pinned one.
         if writer.plan["protocol_pins"]["service_sha256"] != file_sha256(__file__):
             raise EvidenceError("SERVICE_CODE_NOT_PINNED")
