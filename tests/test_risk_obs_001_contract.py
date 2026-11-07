@@ -41,6 +41,16 @@ class RiskObservatoryContractTests(unittest.TestCase):
                         "rendered_image": "NOT_PRODUCED", "image_sha256": None,
                         **{f"{name}_sha256": rows[name]["sha256"] for name in checker.ARTIFACTS}}
 
+    def test_baseline_ci_includes_verifier_and_triggers_on_source_only_changes(self):
+        """Regression: old baseline omitted the suite and ignored verifier-only edits."""
+        root = Path(__file__).resolve().parents[1]
+        baseline = (root / ".tool-control" / "baseline_tests.yaml").read_text(encoding="utf-8")
+        workflow = (root / ".github" / "workflows" / "quality-baseline.yml").read_text(encoding="utf-8")
+        self.assertIn("- path: tests/test_risk_obs_001_contract.py", baseline)
+        # Both pull_request and push must include the experiment source path.
+        self.assertEqual(workflow.count("- 'experiments/risk_obs_001/**'"), 2)
+        self.assertIn("python3 -m pytest", workflow)
+
     def test_matching_bytes_only_not_admission(self):
         report = checker.verify_files(self.manifest, self.paths)
         self.assertEqual(report["status"], "DIGEST_MATCH_ONLY")
