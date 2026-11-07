@@ -8,7 +8,7 @@
  "oracle_verdict": "PASS",
  "os_principal_isolation": "NOT_TESTED",
  "proof_status": "VERIFIED_HOST_RECEIPT",
- "separate_writer_process": 1630,
+ "separate_writer_process": 3791,
  "sprint_empirical_result": false,
  "status": "OFFLINE_SYNTHETIC_ONLY"
 }

@@ -45,9 +45,12 @@ class Handler(socketserver.StreamRequestHandler):
     def handle(self):
         srv = self.server
         try:
+            # Read the (bounded) request line BEFORE judging the peer, so a refusal never closes the
+            # connection with unread data (which resets it and can drop the error reply). The bytes of a
+            # refused peer are read and discarded; they are never parsed or acted on.
+            raw = self.rfile.readline(4097)
             if srv.allowed_uid is not None and self._peer_uid() != srv.allowed_uid:
                 raise EvidenceError("PEER_NOT_AUTHORIZED")
-            raw = self.rfile.readline(4097)
             if len(raw) >= 4097 or not raw.endswith(b"\n"):
                 raise EvidenceError("REQUEST_TOO_LARGE")
             request = json.loads(raw)

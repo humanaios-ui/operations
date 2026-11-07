@@ -331,3 +331,16 @@ class Review1153(Base):
         r = subprocess.run([_sys.executable, '-c', code], capture_output=True, text=True, timeout=20)
         self.assertEqual(r.returncode, 2)
         self.assertIn('--allowed-uid', r.stderr)
+
+
+class PeerRefusalRace(Base):
+    def test_refused_peer_always_gets_a_clean_error_reply(self):
+        # Regression: the server used to refuse an unauthorized peer and close WITHOUT reading the
+        # request, so the client intermittently saw BrokenPipe/reset instead of PEER_NOT_AUTHORIZED.
+        w = self.host()
+        sock = self.serve(w, 'agent', 'A', allowed_uid=os.getuid() + 1)
+        for _ in range(60):
+            r = ask(sock, {'op': 'write', 'request_id': 'R1', 'intent': INTENT})
+            self.assertFalse(r['ok'])
+            self.assertIn('PEER_NOT_AUTHORIZED', r['error'])
+        self.assertFalse(w.started)

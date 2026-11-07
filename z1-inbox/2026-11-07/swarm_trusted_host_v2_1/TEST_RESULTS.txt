@@ -1,5 +1,3 @@
-test_actor_id_in_request_body_is_rejected (tests.test_known_defects.KD1.test_actor_id_in_request_body_is_rejected) ... ok
-test_agent_channel_refuses_finalize (tests.test_known_defects.KD1.test_agent_channel_refuses_finalize) ... ok
 test_agent_role_requires_actor (tests.test_known_defects.KD1.test_agent_role_requires_actor) ... ok
 test_channel_bound_to_A_writes_and_event_actor_is_channel_actor (tests.test_known_defects.KD1.test_channel_bound_to_A_writes_and_event_actor_is_channel_actor) ... ok
 test_channel_bound_to_B_cannot_write_as_A (tests.test_known_defects.KD1.test_channel_bound_to_B_cannot_write_as_A) ... ok
@@ -19,11 +17,14 @@ test_bad_window_rejected (tests.test_known_defects.KD3.test_bad_window_rejected)
 test_decreasing_timestamps_blocked (tests.test_known_defects.KD3.test_decreasing_timestamps_blocked) ... ok
 test_event_after_window_blocked (tests.test_known_defects.KD3.test_event_after_window_blocked) ... ok
 test_event_before_window_blocked (tests.test_known_defects.KD3.test_event_before_window_blocked) ... ok
+test_expired_window_rejects_write_before_state_changes (tests.test_known_defects.KD3.test_expired_window_rejects_write_before_state_changes) ... ok
 test_finalized_utc_before_last_event_blocked (tests.test_known_defects.KD3.test_finalized_utc_before_last_event_blocked) ... ok
+test_future_window_rejects_write_before_state_changes (tests.test_known_defects.KD3.test_future_window_rejects_write_before_state_changes) ... ok
 test_idle_client_does_not_stall_writer (tests.test_known_defects.KD3.test_idle_client_does_not_stall_writer) ... ok
 test_in_order_in_window_passes (tests.test_known_defects.KD3.test_in_order_in_window_passes) ... ok
 test_naive_timestamp_blocked (tests.test_known_defects.KD3.test_naive_timestamp_blocked) ... ok
 test_unparseable_timestamp_blocked (tests.test_known_defects.KD3.test_unparseable_timestamp_blocked) ... ok
+test_refused_peer_always_gets_a_clean_error_reply (tests.test_known_defects.PeerRefusalRace.test_refused_peer_always_gets_a_clean_error_reply) ... ok
 test_actor_identity_reported_unauthenticated (tests.test_known_defects.Review1153.test_actor_identity_reported_unauthenticated) ... ok
 test_cli_requires_allowed_uid (tests.test_known_defects.Review1153.test_cli_requires_allowed_uid) ... ok
 test_plan_without_service_or_verifier_pin_rejected (tests.test_known_defects.Review1153.test_plan_without_service_or_verifier_pin_rejected) ... ok
@@ -54,6 +55,6 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 54 tests in 4.772s
+Ran 57 tests in 5.374s
 
 OK
