@@ -1,7 +1,7 @@
 AUTHOR-RUN TEST LOG (Claude Code, Z1). NOT an independent reproduction. Authority: NONE.
-Built on branch head a156dc6 plus the uncommitted changes of the commit that adds this file.
-Date: 2026-11-08T02:32:45Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
-Python: Python 3.13.18 (the same suite also passed, 177/177, on Python 3.11 in a separate venv)
+Built on branch head e15fa9d plus the uncommitted changes of the commit that adds this file.
+Date: 2026-11-08T02:37:45Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
+Python: Python 3.13.18 (the same suite also passed, 182/182, on Python 3.11 in a separate venv)
 Command: python -I -m unittest discover -s tests -t . -v      (run from this directory)
 
 test_ancestor_owned_by_another_user_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_ancestor_owned_by_another_user_refused) ... ok
@@ -22,6 +22,7 @@ test_wrong_pins_py_hash_refused_at_writer_start (tests.test_codereview_findings.
 test_matching_tree_passes_with_exit_0 (tests.test_deploy_check.HonestTree.test_matching_tree_passes_with_exit_0) ... ok
 test_tool_does_not_import_the_code_it_checks (tests.test_deploy_check.HonestTree.test_tool_does_not_import_the_code_it_checks) ... ok
 test_tool_file_table_matches_pins_py (tests.test_deploy_check.HonestTree.test_tool_file_table_matches_pins_py) ... ok
+test_canonical_package_root_is_accepted (tests.test_deploy_check.HostileTree.test_canonical_package_root_is_accepted) ... ok
 test_edited_plan_pin_is_caught_by_plan_hash (tests.test_deploy_check.HostileTree.test_edited_plan_pin_is_caught_by_plan_hash) ... ok
 test_extra_python_module_that_could_shadow_is_refused (tests.test_deploy_check.HostileTree.test_extra_python_module_that_could_shadow_is_refused) ... ok
 test_missing_initializers_are_refused (tests.test_deploy_check.HostileTree.test_missing_initializers_are_refused) ... ok
@@ -30,15 +31,19 @@ test_modified_integration_initializer_is_refused (tests.test_deploy_check.Hostil
 test_modified_package_initializer_is_refused (tests.test_deploy_check.HostileTree.test_modified_package_initializer_is_refused) ... ok
 test_modified_pinned_file_is_reported_by_name (tests.test_deploy_check.HostileTree.test_modified_pinned_file_is_reported_by_name) ... ok
 test_modified_pins_py_is_caught_even_though_it_defines_the_pins (tests.test_deploy_check.HostileTree.test_modified_pins_py_is_caught_even_though_it_defines_the_pins) ... ok
+test_package_root_reached_through_a_symlink_is_refused (tests.test_deploy_check.HostileTree.test_package_root_reached_through_a_symlink_is_refused) ... ok
 test_path_hook_and_sitecustomize_refused (tests.test_deploy_check.HostileTree.test_path_hook_and_sitecustomize_refused) ... ok
 test_plan_with_missing_pin_reported (tests.test_deploy_check.HostileTree.test_plan_with_missing_pin_reported) ... ok
 test_planted_bytecode_is_refused (tests.test_deploy_check.HostileTree.test_planted_bytecode_is_refused) ... ok
 test_sourceless_src_module_really_wins_without_an_initializer_and_the_tool_refuses_it (tests.test_deploy_check.HostileTree.test_sourceless_src_module_really_wins_without_an_initializer_and_the_tool_refuses_it) ... ok
 test_stray_python_file_at_the_package_root_is_refused (tests.test_deploy_check.HostileTree.test_stray_python_file_at_the_package_root_is_refused) ... ok
+test_symlinked_code_root_is_refused_even_though_every_hash_matches (tests.test_deploy_check.HostileTree.test_symlinked_code_root_is_refused_even_though_every_hash_matches) ... ok
 test_symlinked_directory_inside_the_code_tree_refused (tests.test_deploy_check.HostileTree.test_symlinked_directory_inside_the_code_tree_refused) ... ok
 test_symlinked_pinned_file_refused (tests.test_deploy_check.HostileTree.test_symlinked_pinned_file_refused) ... ok
 test_the_unpinned_demo_allowance_rests_on_nothing_importing_it (tests.test_deploy_check.HostileTree.test_the_unpinned_demo_allowance_rests_on_nothing_importing_it) ... ok
+test_the_usual_non_code_directories_and_hidden_ones_are_fine (tests.test_deploy_check.HostileTree.test_the_usual_non_code_directories_and_hidden_ones_are_fine) ... ok
 test_top_level_loadable_files_are_refused (tests.test_deploy_check.HostileTree.test_top_level_loadable_files_are_refused) ... ok
+test_unexpected_top_level_directory_that_could_shadow_a_library_is_refused (tests.test_deploy_check.HostileTree.test_unexpected_top_level_directory_that_could_shadow_a_library_is_refused) ... ok
 test_unreadable_plan_fails_closed_with_exit_2 (tests.test_deploy_check.HostileTree.test_unreadable_plan_fails_closed_with_exit_2) ... ok
 test_whitespace_only_initializer_is_still_refused (tests.test_deploy_check.HostileTree.test_whitespace_only_initializer_is_still_refused) ... ok
 test_wrong_plan_hash_refused (tests.test_deploy_check.HostileTree.test_wrong_plan_hash_refused) ... ok
@@ -183,6 +188,6 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 177 tests in 18.230s
+Ran 182 tests in 18.457s
 
 OK

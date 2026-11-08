@@ -163,6 +163,45 @@ class HostileTree(Base):
         self.assertIn("MISSING_INITIALIZER:src/__init__.py", body["problems"])
         self.assertIn("BYTECODE_PRESENT:src.pyc", body["problems"])
 
+    def test_symlinked_code_root_is_refused_even_though_every_hash_matches(self):
+        for name in ("src", "integration"):
+            real = self.td / ("real_" + name)
+            shutil.copytree(self.pkg / name, real)
+            shutil.rmtree(self.pkg / name)
+            (self.pkg / name).symlink_to(real, target_is_directory=True)
+        code, body = self.run_tool()
+        self.assertEqual(code, 2)
+        self.assertIn("SYMLINK_PRESENT:src", body["problems"])
+        self.assertIn("SYMLINK_PRESENT:integration", body["problems"])
+        self.assertFalse(any(p.startswith("HASH_MISMATCH") for p in body["problems"]))  # refused on the link alone
+
+    def test_package_root_reached_through_a_symlink_is_refused(self):
+        link = self.td / "linked_pkg"; link.symlink_to(self.pkg, target_is_directory=True)
+        code, body = self.run_tool(pkg=link)
+        self.assertEqual(code, 2)
+        self.assertIn("PACKAGE_ROOT_NOT_CANONICAL", body["problems"])
+
+    def test_unexpected_top_level_directory_that_could_shadow_a_library_is_refused(self):
+        for name in ("json", "cryptography"):
+            (self.pkg / name).mkdir()
+            (self.pkg / name / "__init__.py").write_text("raise SystemExit('shadow')\n")
+        outside = self.td / "elsewhere"; outside.mkdir()
+        (self.pkg / "hashlib").symlink_to(outside, target_is_directory=True)
+        code, body = self.run_tool()
+        self.assertEqual(code, 2)
+        for name in ("json", "cryptography", "hashlib"):
+            self.assertIn("UNEXPECTED_TOP_LEVEL_DIR:" + name, body["problems"])
+
+    def test_the_usual_non_code_directories_and_hidden_ones_are_fine(self):
+        for name in ("tests", "tools", "docs", "evidence", ".git"):
+            (self.pkg / name).mkdir()
+        code, body = self.run_tool()
+        self.assertEqual((code, body["problems"]), (0, []))
+
+    def test_canonical_package_root_is_accepted(self):
+        code, body = self.run_tool(pkg=self.pkg.resolve())
+        self.assertEqual((code, body["ok"]), (0, True))
+
     def test_stray_python_file_at_the_package_root_is_refused(self):
         (self.pkg / "conftest.py").write_text("x = 1\n")
         code, body = self.run_tool()

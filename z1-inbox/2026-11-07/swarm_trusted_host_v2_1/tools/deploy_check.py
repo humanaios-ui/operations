@@ -34,6 +34,9 @@ INITIALIZERS = {"src/__init__.py", "integration/__init__.py"}
 UNPINNED_PYTHON_OK = {"src/offline_pipe_demo.py"}
 CODE_DIRS = ("src", "integration")
 BAD_SUFFIXES = (".pyc", ".pyo", ".pth", ".so", ".pyd")
+# Top-level directories that may exist next to the code. Anything else (json/, cryptography/ ...) could shadow a
+# library whenever the package root is on sys.path. Names starting with "." cannot be imported.
+ALLOWED_TOP_DIRS = {"src", "integration", "tests", "tools", "docs", "evidence"}
 BAD_TOP_LEVEL = {"sitecustomize.py", "usercustomize.py"}
 
 
@@ -83,6 +86,13 @@ def check(package_root, plan_path, plan_sha256):
             continue
         if got != want:
             problems.append("HASH_MISMATCH:" + name)
+    # lstat does not follow the LAST component only, so a symlinked src/ or integration/ would let every file under it
+    # hash correctly while living somewhere else. The code roots, and the path we were given, must be real directories.
+    if os.path.realpath(package_root) != os.path.abspath(package_root):
+        problems.append("PACKAGE_ROOT_NOT_CANONICAL")
+    for code_dir in CODE_DIRS:
+        if os.path.islink(os.path.join(package_root, code_dir)):
+            problems.append("SYMLINK_PRESENT:" + code_dir)
     pinned_paths = set(EXPECTED_FILES.values())
     for top in sorted(os.listdir(package_root)) if os.path.isdir(package_root) else []:
         if top in BAD_TOP_LEVEL or top.endswith(".py"):
@@ -91,12 +101,17 @@ def check(package_root, plan_path, plan_sha256):
             problems.append("BYTECODE_PRESENT:" + top)  # a top-level src.pyc can win the import of "src"
         elif top.endswith((".so", ".pyd", ".pth")):
             problems.append("LOADABLE_FILE_PRESENT:" + top)
+        elif (os.path.isdir(os.path.join(package_root, top)) or os.path.islink(os.path.join(package_root, top))) \
+                and top not in ALLOWED_TOP_DIRS and not top.startswith("."):
+            problems.append("UNEXPECTED_TOP_LEVEL_DIR:" + top)
     for rel in sorted(INITIALIZERS):
         # Without src/__init__.py the name "src" can resolve to a sibling module or a namespace package instead.
         if not os.path.lexists(os.path.join(package_root, rel)):
             problems.append("MISSING_INITIALIZER:" + rel)
     for code_dir in CODE_DIRS:
         base = os.path.join(package_root, code_dir)
+        if os.path.islink(base):
+            continue  # already reported; os.walk would follow a symlink given as its starting point
         for current, dirs, files in os.walk(base, followlinks=False):
             for entry in list(dirs) + files:
                 full = os.path.join(current, entry)
