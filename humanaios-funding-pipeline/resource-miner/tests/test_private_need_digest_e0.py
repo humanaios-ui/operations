@@ -90,8 +90,10 @@ class NeedDigestTests(unittest.TestCase):
             with self.subTest(rows=bad),self.assertRaises(ValueError): project(bad,NEEDS,KEY)
 
 
-class CopilotPrivacyAndConflictRegressionTests(NeedDigestTests):
+class CopilotPrivacyAndConflictRegressionTests(unittest.TestCase):
     """Independent-review regressions; synthetic inputs only."""
+    case = NeedDigestTests.case
+    run_it = NeedDigestTests.run_it
 
     def test_private_id_in_mail_supplied_url_path_must_fail(self):
         for path in (
