@@ -1,31 +1,16 @@
 {
-  "pr": 1005,
-  "actor_origin_claim": "Codex Work session; owner-requested exact-head admission reconciliation; control-plane repair only",
+  "pr": 1158,
+  "actor_origin_claim": "Claude Code session; regenerate system_graph.json, fix generator cycle validation, add freshness automation",
   "checks": {
-    "quality": {
-      "conclusion": "success",
-      "p": 0.93
-    },
-    "guard": {
-      "conclusion": "success",
-      "p": 0.95
-    },
-    "Secret scanning (gitleaks)": {
-      "conclusion": "success",
-      "p": 0.98
-    },
-    "Python dependency vulnerability scan": {
-      "conclusion": "success",
-      "p": 0.96
-    },
-    "Verify Z2 Ratification Requirements": {
-      "conclusion": "success",
-      "p": 0.85
-    },
-    "Repository admission/backpressure gate": {
-      "conclusion": "success",
-      "p": 0.85
-    }
+    "quality": {"conclusion": "success", "p": 0.9},
+    "guard": {"conclusion": "success", "p": 0.95},
+    "Check principles (P19)": {"conclusion": "success", "p": 0.9},
+    "Reject unauthorized internal deadline semantics": {"conclusion": "success", "p": 0.93},
+    "freshness": {"conclusion": "success", "p": 0.92},
+    "Secret scanning (gitleaks)": {"conclusion": "success", "p": 0.97},
+    "Python dependency vulnerability scan": {"conclusion": "success", "p": 0.95},
+    "Repository admission/backpressure gate": {"conclusion": "success", "p": 0.85},
+    "Build repository coordination index (ADVISORY)": {"conclusion": "success", "p": 0.75}
   },
-  "note": "Declared before protected CI for the exact-head reconciliation change. Focused tests and local readiness checks passed before publication. The workflow change is intentionally fail-closed; admission and Z2 outcomes still depend on repository state outside this branch."
+  "note": "Not a blind prediction. The previous head (09fb7846) already passed all of these; this commit changes only this file. Probabilities are held below 0.95 where a check failed on an earlier head of this PR (quality, P19, temporal gate, coordination index) or where CI is outside this change. Z2 ratification is not predicted here."
 }
