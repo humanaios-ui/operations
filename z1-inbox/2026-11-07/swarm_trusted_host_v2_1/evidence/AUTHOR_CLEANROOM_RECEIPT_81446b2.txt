@@ -1,0 +1,27 @@
+AUTHOR-RUN CLEAN-CHECKOUT RECEIPT (Claude Code, Z1). NOT independent. NOT DeMarius's run. Authority: NONE.
+Written: 2026-11-07T21:44:27Z
+
+What was run
+  Commit (exact):        81446b274f9f4fba1c887bacfc62d4867bb12e8e   (verified with git rev-parse HEAD after checkout)
+  Tree:                  9c79a5910b1447c9a0e8443df8205a516295bd27
+  Source:                fresh clone of origin into an empty scratch directory, detached checkout, clean status
+  Package MANIFEST.sha256:   28 entries, 0 failures under sha256sum -c
+  MANIFEST.sha256 sha256:    f34e4341af71408543fc2d21a793db47410f68f7e684dc85320bd1fdc46f1a2e
+  Command:               python -I -m unittest discover -s tests -t . -v   (from the package directory)
+  User:                  uid 0 (root), so the real-UID tests ran; 0 skipped
+
+Results
+  Python 3.13.18, cryptography 50.0.1:  Ran 140 tests, OK.  log sha256 cef960106e9d0e6c5fbe9695d9d6953ec7bcda091118b3f7e650ff4292203475  (author-cleanroom-81446b2-py3.13.18.txt)
+  Python 3.11.18, cryptography 50.0.1:  Ran 140 tests, OK.  log sha256 0b5e43b303d829fff1d9f978faebbc37b86a4bc5ce0652fdeb8f32f3fe642dfc  (author-cleanroom-81446b2-py3.11.18.txt)
+
+Comparison with the independent 89-test log (evidence/independent-89-test-2026-11-07.txt, sha256 2baec88589050fe6f939e36ecd4cf82137ac6b9e7a34f391bfd656f7994a2ba4)
+  88 of its 89 test names appear unchanged in this run. The 89th, test_scored_study_gate_fails_closed_until_a_response_ledger_exists,
+  was renamed in commit 9ae3cbd to test_scored_study_gate_fails_closed_without_a_complete_response_ledger; it asserts
+  RESPONSE_LEDGER_INCOMPLETE in both. 51 tests in this run are not in that log (the response ledger and later fixes).
+  The independent log names no commit and no manifest, so it is NOT ascribed to this commit.
+
+What this does and does not show
+  - Shows: the committed bytes at 81446b2 verify against their manifest and pass the suite on two Python versions in a clean checkout.
+  - Does not show: independence (same author, same machine, same kernel), a hostile or production deployment, provider-authenticated
+    replies, off-host storage, a spend cap, or any Z2/Z3 grant. Keep PR #1153 draft.
+  - Still needed for an independent exact-head record: the reviewer's own run, naming the commit SHA and the MANIFEST.sha256 digest above.
