@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-09-13T15:12:28.926529",
+  "generated_at": "2026-11-08T20:51:06.532374",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -251,378 +251,429 @@
       "target": "PRS",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "AG",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "OM",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "ADV",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "PRS",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "CYCLE / VERDICT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "AG",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "CYCLE / VERDICT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ADV",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "ATTACK / VERDICT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "TC",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "score events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "PRS",
       "target": "NF",
       "edge_type": "data_flow",
       "label": "p_expected resolved",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "OM",
       "target": "NF",
       "edge_type": "data_flow",
       "label": "D10 predictions resolved",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "EV",
       "target": "FS",
       "edge_type": "data_flow",
       "label": "events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "FS",
       "target": "Z2",
       "edge_type": "control_flow",
       "label": "candidate block",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "OM",
       "target": "Z2",
       "edge_type": "control_flow",
       "label": "candidate block",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "PRS",
       "target": "Z2",
       "edge_type": "data_flow",
       "label": "prereg sha",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Z2",
       "target": "CIG",
       "edge_type": "control_flow",
       "label": "RATIFY event",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "CIG",
       "target": "REG",
       "edge_type": "control_flow",
       "label": "merge",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "REG",
       "target": "PRS",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "FS",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "RC",
       "target": "Q",
       "edge_type": "callout",
       "label": "RECEIPT-GAP callouts",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ST",
       "target": "OM",
       "edge_type": "callout",
       "label": "STALE gaps",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ST",
       "target": "Q",
       "edge_type": "callout",
       "label": "STALE gaps",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "NF",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "Brier trend",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "TC",
       "target": "Q",
       "edge_type": "callout",
       "label": "DRIFT",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "NF",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "Brier per predictor / constant",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "EV",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "verdict, catch, drift rates",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "pin vs re-score gaps",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ST",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "STALE constants",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MOLT",
       "target": "Z2",
       "edge_type": "control_flow",
       "label": "MOLT_CANDIDATE: change, prediction, falsifier",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Z2",
       "target": "MOLT",
       "edge_type": "control_flow",
       "label": "RATIFY hash",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MOLT",
       "target": "CONST",
       "edge_type": "control_flow",
       "label": "apply (ratified) / revert (mechanical)",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MOLT",
       "target": "ML",
       "edge_type": "data_flow",
       "label": "MOLT / MEASURE / KEEP / REVERT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "CONST",
       "target": "TC",
       "edge_type": "data_flow",
       "label": "dials",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "CONST",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "weights",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "CONST",
       "target": "PRS",
       "edge_type": "data_flow",
       "label": "rubrics",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "CONST",
       "target": "AG",
       "edge_type": "data_flow",
       "label": "caps",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "ML",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "chained",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MOLT",
       "target": "NF",
       "edge_type": "data_flow",
       "label": "molt prediction resolved",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MOLT",
       "target": "FS",
       "edge_type": "callout",
       "label": "REVERT \u2192 F/IC candidate",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MOLT",
       "target": "ADV",
       "edge_type": "control_flow",
       "label": "gate changed \u2192 re-run",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "MK",
       "edge_type": "data_flow",
       "label": "every merge",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MK",
       "target": "CIG",
       "edge_type": "control_flow",
       "label": "consistency FAIL blocks merge",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MK",
       "target": "OTS",
       "edge_type": "data_flow",
       "label": "root",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RU",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "registered units; unknown unit refused",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RU",
       "target": "RCEN",
       "edge_type": "data_flow",
       "label": "demand priors, constraint designation",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RCEN",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "obligation counts priced in the constraint unit",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RCEN",
       "target": "Q",
       "edge_type": "callout",
       "label": "constraint backlog / oversubscription",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RL",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "cost vectors, measured prices, yield density",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "CLAIM per work order",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "Z2",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "RAT-min SPEND; capacity declaration (hashed)",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "RL",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "density trend vs constraint constants",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RCEN",
       "target": "FS",
       "edge_type": "callout",
       "label": "F-RBE candidates",
-      "description": ""
+      "description": "",
+      "feedback": false
     }
   ],
   "validation_status": {
-    "valid": false,
-    "errors": [
-      "Cycle detected: Cycle detected in graph"
-    ],
+    "valid": true,
+    "errors": [],
     "warnings": []
   },
   "zone_distribution": {

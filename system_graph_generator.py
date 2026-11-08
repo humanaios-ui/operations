@@ -81,6 +81,7 @@ class Edge:
     edge_type: str             # data_flow, control_flow, causality, callout
     label: str
     description: str = ""
+    feedback: bool = False     # loop-closing edge; excluded from the acyclicity check
 
 
 @dataclass
@@ -174,6 +175,8 @@ class SystemGraphGenerator:
         in_degree = {node_id: 0 for node_id in self.nodes.keys()}
 
         for edge in self.edges:
+            if edge.feedback:
+                continue
             if edge.source in graph and edge.target in graph:
                 graph[edge.source].append(edge.target)
                 in_degree[edge.target] += 1
@@ -530,6 +533,20 @@ class SystemGraphGenerator:
             phase='Q-RBE-01 (candidate)',
         ))
 
+        # Loop-closing edges. The governance machinery is a deliberate feedback
+        # loop (measure -> propose -> ratify -> apply -> measure), so a strict
+        # DAG check over every edge always fails. These edges are the ones that
+        # return state to an earlier stage; the forward edges must stay acyclic
+        # (validate_graph), so a NEW cycle among forward edges is still an error.
+        # Keep this set minimal: tests/test_system_graph_generator.py asserts
+        # that removing any one entry reintroduces a cycle.
+        feedback_edges = {
+            ('REG', 'PRS'), ('REG', 'FS'), ('REG', 'Q'), ('REG', 'MOLT'),
+            ('NF', 'Q'), ('Z2', 'MOLT'), ('ML', 'EV'), ('Q', 'RL'), ('Z2', 'RL'),
+            ('MK', 'CIG'), ('CONST', 'TC'), ('CONST', 'Q'), ('CONST', 'PRS'),
+            ('CONST', 'AG'), ('MOLT', 'NF'), ('MOLT', 'ADV'),
+        }
+
         # EDGES: Data and Control Flow
         edges = [
             # Intake → Runs
@@ -637,6 +654,7 @@ class SystemGraphGenerator:
                 edge_type=edge_type,
                 label=label,
                 description=desc,
+                feedback=(source, target) in feedback_edges,
             ))
 
         return {
@@ -644,3 +662,85 @@ class SystemGraphGenerator:
             'edges': len(self.edges),
             'status': 'GRAPH_BUILT',
         }
+
+
+# --------------------------------------------------------------------------
+# CLI — regenerate / check. Added so the graph can be kept fresh mechanically.
+#   python3 system_graph_generator.py --write            regenerate system_graph.json
+#   python3 system_graph_generator.py --check            exit 1 if invalid, or the
+#                                                         committed JSON differs from
+#                                                         what this generator emits
+#                                                         (generated_at ignored)
+#   python3 system_graph_generator.py --check --max-age-days 45
+#                                                         also exit 1 if generated_at
+#                                                         is older than N days
+# --------------------------------------------------------------------------
+import argparse
+import os
+import sys
+
+DEFAULT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'system_graph.json')
+
+
+def build_graph_dict() -> Dict[str, Any]:
+    gen = SystemGraphGenerator()
+    gen.build_phase2_graph()
+    return json.loads(gen.to_json())
+
+
+def _comparable(d: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: v for k, v in d.items() if k != 'generated_at'}
+
+
+def check(path: str, max_age_days: Optional[int] = None) -> List[str]:
+    """Return a list of problems (empty = fresh and valid)."""
+    problems: List[str] = []
+    fresh = build_graph_dict()
+    if not fresh['validation_status']['valid']:
+        problems.append('generator output is invalid: %s' % fresh['validation_status']['errors'])
+    try:
+        with open(path) as f:
+            committed = json.load(f)
+    except (OSError, ValueError) as e:
+        return problems + ['cannot read %s: %s' % (path, e)]
+    if _comparable(committed) != _comparable(fresh):
+        problems.append('%s differs from generator output: run `python3 system_graph_generator.py --write`'
+                        % os.path.basename(path))
+    if max_age_days is not None:
+        try:
+            age = (datetime.now() - datetime.fromisoformat(committed['generated_at'])).days
+            if age > max_age_days:
+                problems.append('generated_at is %d days old (limit %d)' % (age, max_age_days))
+        except (KeyError, ValueError):
+            problems.append('generated_at missing or unparseable')
+    return problems
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description='Regenerate or check system_graph.json')
+    ap.add_argument('--path', default=DEFAULT_PATH)
+    ap.add_argument('--write', action='store_true', help='regenerate the JSON file')
+    ap.add_argument('--check', action='store_true', help='exit 1 if stale or invalid')
+    ap.add_argument('--max-age-days', type=int, default=None)
+    args = ap.parse_args(argv)
+    if not (args.write or args.check):
+        ap.error('pass --write or --check')
+    if args.write:
+        fresh = build_graph_dict()
+        if not fresh['validation_status']['valid']:
+            print('REFUSING to write invalid graph: %s' % fresh['validation_status']['errors'], file=sys.stderr)
+            return 1
+        with open(args.path, 'w') as f:
+            f.write(json.dumps(fresh, indent=2) + '\n')
+        print('wrote %s: %d nodes, %d edges' % (args.path, len(fresh['nodes']), len(fresh['edges'])))
+        return 0
+    problems = check(args.path, args.max_age_days)
+    for p in problems:
+        print('STALE/INVALID: ' + p, file=sys.stderr)
+    if not problems:
+        print('system_graph.json fresh and valid')
+    return 1 if problems else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
