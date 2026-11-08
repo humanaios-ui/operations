@@ -28,7 +28,10 @@ def _public_url(url: str) -> bool:
         p = urlsplit(url)
         if p.scheme != "https" or not p.hostname or not p.hostname.count("."):
             return False
-        if p.query or p.fragment or p.username or p.password or p.port not in (None, 443):
+        # Mail-supplied URLs are untrusted. E0 permits *origin-only* citations;
+        # path segments may hold tracking tokens or private message IDs.
+        if (p.path not in ("", "/") or p.query or p.fragment or p.username
+                or p.password or p.port not in (None, 443)):
             return False
         if any(c in url for c in ("\\", "\n", "\r", "@")) or ".." in p.path:
             return False
@@ -53,13 +56,19 @@ def _timestamp(ts: str) -> bool:
 
 
 def project(records: list[dict], needs_graph: list[dict], hmac_key: bytes) -> dict:
-    """Build a private-safe digest proposal, never an instruction or execution grant."""
+    """Read-only, order-independent private proposal projection.
+
+    Identical observations deduplicate. Differing observations for one
+    message+need are not silently dropped: they become a SOURCE_CONFLICT hold.
+    The projection never includes raw Gmail IDs, bodies or mail URL paths.
+    """
     if not isinstance(records, list) or not 0 < len(records) <= 100:
         raise ValueError("bounded nonempty observations required")
     if not isinstance(needs_graph, list) or not all(isinstance(x, dict) for x in needs_graph):
         raise ValueError("invalid needs graph")
     if not isinstance(hmac_key, bytes) or len(hmac_key) < 32:
         raise ValueError("private HMAC key must be >=32 bytes")
+
     graph: dict[str, str] = {}
     for item in needs_graph:
         need_id, label = item.get("need_id"), item.get("label")
@@ -68,9 +77,11 @@ def project(records: list[dict], needs_graph: list[dict], hmac_key: bytes) -> di
         if need_id in graph:
             raise ValueError("duplicated need graph identifier")
         graph[need_id] = label
-    seen = set()
-    rows = []
-    dupes = 0
+
+    # Keys contain only a keyed digest and an allowlisted need ID. The key is
+    # supplied by the private runtime; never ship or persist it in public CI.
+    groups: dict[tuple[str, str], set[tuple[str, str, str, str, str]]] = {}
+    duplicate_count = 0
     for r in records:
         if not isinstance(r, dict) or set(r) != FIELDS:
             raise ValueError("private source contains missing or unapproved fields")
@@ -81,35 +92,76 @@ def project(records: list[dict], needs_graph: list[dict], hmac_key: bytes) -> di
             raise ValueError("invalid need identifier")
         if not _timestamp(r["observed_at"]):
             raise ValueError("invalid observed time")
-        if r["priority"] not in PRIORITIES or r["source_status"] not in SOURCE_STATES or r["next_action"] not in ACTIONS:
+        if (r["priority"] not in PRIORITIES or r["source_status"] not in SOURCE_STATES
+                or r["next_action"] not in ACTIONS):
             raise ValueError("unsupported state, priority, or action")
         url = r["public_url"]
-        if url and not _public_url(url):
+        if not isinstance(url, str) or (url and not _public_url(url)):
             raise ValueError("private, unsafe or tracking URL")
         token = hmac.new(hmac_key, message_id.encode("ascii"), hashlib.sha256).hexdigest()[:24]
         key = (token, need_id)
-        if key in seen:
-            dupes += 1
-            continue
-        seen.add(key)
+        value = (r["observed_at"], r["priority"], r["source_status"], r["next_action"], url)
+        observations = groups.setdefault(key, set())
+        if value in observations:
+            duplicate_count += 1
+        observations.add(value)
+
+    def chronological(ts: str) -> tuple[datetime, str]:
+        # Normalise offset-aware timestamps to avoid lexicographic date errors.
+        from datetime import timezone
+        return (datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc), ts)
+
+    rows = []
+    conflicting_groups = 0
+    for (token, need_id), observations in groups.items():
+        disputed = len(observations) > 1
+        if disputed:
+            conflicting_groups += 1
         mapped = need_id in graph
-        state = ("NEED_GRAPH_REVIEW" if not mapped else
-                 "HOLD_CONFLICT" if r["source_status"] == "SOURCE_CONFLICT" else
-                 "REVIEW_NOW" if r["priority"] == "HIGH" else "WATCH")
+        status = "SOURCE_CONFLICT" if disputed else next(iter(observations))[2]
+        priority = min((o[1] for o in observations), key={"HIGH": 0, "MEDIUM": 1, "WATCH": 2}.__getitem__)
+        observed_at = max((o[0] for o in observations), key=chronological)
+        urls = {o[4] for o in observations}
+        # Disagreement about a public source URL must not choose one arbitrarily.
+        public_url = urls.pop() if len(urls) == 1 else ""
+        if status == "SOURCE_CONFLICT":
+            route, action = "HOLD_CONFLICT", "VERIFY_SOURCE"
+        elif not mapped:
+            route, action = "NEED_GRAPH_REVIEW", "REVIEW_NEED_GRAPH"
+        else:
+            route, action = ("REVIEW_NOW" if priority == "HIGH" else "WATCH"), next(iter(observations))[3]
+
         rows.append({
-            "source_token": token, "need_id": need_id,
+            "source_token": token,
+            "need_id": need_id,
             "need_label": graph[need_id] if mapped else "Unmapped candidate need",
-            "priority": r["priority"], "source_status": r["source_status"],
-            "observed_at": r["observed_at"], "public_source_url": url or None,
-            "next_action": "REVIEW_NEED_GRAPH" if not mapped else r["next_action"],
-            "route": state, "origin": "PRIVATE_GMAIL_REVIEWED_PROPOSAL",
-            "human_intent_verified": False, "provider_eligibility_verified": False,
-            "application_submitted_inferred": False, "benefit_verified": False,
+            "need_graph_gap": not mapped,
+            "priority": priority,
+            "source_status": status,
+            "source_conflict": status == "SOURCE_CONFLICT",
+            "observed_at": observed_at,
+            "public_source_url": public_url or None,
+            "next_action": action,
+            "route": route,
+            "origin": "PRIVATE_GMAIL_REVIEWED_PROPOSAL",
+            "human_intent_verified": False,
+            "provider_eligibility_verified": False,
+            "application_submitted_inferred": False,
+            "benefit_verified": False,
             "authority_effect": "NONE",
         })
-    rows.sort(key=lambda r: ({"HIGH": 0, "MEDIUM": 1, "WATCH": 2}[r["priority"]],r["need_id"],r["source_token"]))
-    return {"schema": "humanaios.private-need-digest-e0.v0.1", "source_rows": len(records),
-            "unique_proposals": len(rows), "duplicate_suppressed": dupes,
-            "need_graph_gaps": sum(r["route"] == "NEED_GRAPH_REVIEW" for r in rows),
-            "source_conflicts": sum(r["route"] == "HOLD_CONFLICT" for r in rows),
-            "authority_effect": "NONE", "records": rows}
+    rows.sort(key=lambda r: (
+        {"HIGH": 0, "MEDIUM": 1, "WATCH": 2}[r["priority"]],
+        r["need_id"], r["source_token"],
+    ))
+    return {
+        "schema": "humanaios.private-need-digest-e0.v0.1",
+        "source_rows": len(records),
+        "unique_proposals": len(rows),
+        "duplicate_suppressed": duplicate_count,
+        "conflicting_observation_groups": conflicting_groups,
+        "need_graph_gaps": sum(r["need_graph_gap"] for r in rows),
+        "source_conflicts": sum(r["source_conflict"] for r in rows),
+        "authority_effect": "NONE",
+        "records": rows,
+    }
