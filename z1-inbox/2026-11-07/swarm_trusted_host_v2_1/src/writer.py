@@ -10,6 +10,7 @@ import base64
 import fcntl
 import hashlib
 import json
+import errno
 import os
 import re
 import secrets
@@ -84,29 +85,75 @@ def ident(value):
     return value
 
 
+def _has_acl(fd):
+    """True if the directory carries a POSIX ACL (access or default). ACLs can grant another account access that the
+    mode bits do not show, so any ACL on a secured path is refused rather than interpreted."""
+    try:
+        names = os.listxattr(fd)
+    except OSError as exc:
+        if exc.errno in (errno.ENOTSUP, errno.ENODATA):  # filesystem without xattrs cannot carry an ACL
+            return False
+        raise EvidenceError("UNSAFE_DIRECTORY") from exc
+    return any(name.startswith("system.posix_acl") for name in names)
+
+
 def secure_dir(path):
+    """Create or validate a private directory by walking from "/" with directory descriptors.
+
+    Every component is opened with O_NOFOLLOW|O_DIRECTORY relative to its already-open parent, and ownership, mode and
+    ACL are read from the descriptor that is then used (fstat/fchmod), so a rename or symlink swap after the check
+    cannot redirect the check or the chmod. Ancestors must belong to root or the host user and not be writable by
+    others (a sticky directory such as /tmp is acceptable). The leaf must be ours and is set to 0700."""
     path = Path(path).absolute()
-    for segment in (path, *path.parents):
-        if segment.is_symlink():
-            raise EvidenceError("SYMLINK_PATH")
-    path.mkdir(parents=True, exist_ok=True, mode=0o700)
-    if path.is_symlink() or not path.is_dir():
-        raise EvidenceError("UNSAFE_DIRECTORY")
-    # O_NOFOLLOW protects only the last path component. Anyone who can replace an ANCESTOR entry could
-    # redirect later writes, chmods and chowns, so every ancestor must belong to root or the host user and
-    # must not be writable by others (a sticky directory such as /tmp is acceptable: others cannot rename
-    # entries they do not own). Descriptor-relative traversal would be stronger and is NOT implemented.
-    for ancestor in path.parents:
-        info = ancestor.stat()
-        if info.st_uid not in (0, os.geteuid()):
-            raise EvidenceError("ANCESTOR_NOT_HOST_OWNED")
-        if info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX:
-            raise EvidenceError("ANCESTOR_WRITABLE_BY_OTHERS")
-    # The directory itself must be ours before we chmod or use it: a pre-existing directory an agent owns
-    # would stay renameable and writable by that agent no matter what mode we set.
-    if path.stat().st_uid != os.geteuid():
-        raise EvidenceError("DIRECTORY_NOT_HOST_OWNED")
-    path.chmod(0o700)
+    parts = path.parts
+    if any(part in (".", "..") for part in parts[1:]):
+        raise EvidenceError("PATH_NOT_NORMALIZED")
+    flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+    euid = os.geteuid()
+    fd = os.open(parts[0], flags)
+    try:
+        for index, name in enumerate(parts[1:], start=1):
+            leaf = index == len(parts) - 1
+            try:
+                try:
+                    child = os.open(name, flags, dir_fd=fd)
+                except FileNotFoundError:
+                    os.mkdir(name, 0o700, dir_fd=fd)  # created by us, so ours and private
+                    child = os.open(name, flags, dir_fd=fd)
+            except OSError as exc:
+                if exc.errno == errno.ELOOP:
+                    raise EvidenceError("SYMLINK_PATH") from exc
+                if exc.errno == errno.ENOTDIR:  # O_DIRECTORY reports a symlink as ENOTDIR; look without following
+                    try:
+                        is_link = stat.S_ISLNK(os.stat(name, dir_fd=fd, follow_symlinks=False).st_mode)
+                    except OSError:
+                        is_link = False
+                    raise EvidenceError("SYMLINK_PATH" if is_link else "UNSAFE_DIRECTORY") from exc
+                raise EvidenceError("UNSAFE_DIRECTORY") from exc
+            os.close(fd)
+            fd = child
+            info = os.fstat(fd)
+            if leaf:
+                if info.st_uid != euid:
+                    # A pre-existing directory an agent owns would stay renameable and writable by that agent.
+                    raise EvidenceError("DIRECTORY_NOT_HOST_OWNED")
+            else:
+                if info.st_uid not in (0, euid):
+                    raise EvidenceError("ANCESTOR_NOT_HOST_OWNED")
+                if info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX:
+                    raise EvidenceError("ANCESTOR_WRITABLE_BY_OTHERS")
+            if _has_acl(fd):
+                raise EvidenceError("ACL_PRESENT")
+        os.fchmod(fd, 0o700)
+        checked = os.fstat(fd)
+        try:
+            now_there = os.stat(path)  # detects the path having been re-pointed since the walk
+        except OSError as exc:
+            raise EvidenceError("PATH_CHANGED_DURING_CHECK") from exc
+        if (now_there.st_dev, now_there.st_ino) != (checked.st_dev, checked.st_ino):
+            raise EvidenceError("PATH_CHANGED_DURING_CHECK")
+    finally:
+        os.close(fd)
     return path
 
 

@@ -43,3 +43,14 @@ The repair **requires a pinned four-role `role_uids` map** in the frozen plan fo
 The old same-UID example works only with explicit `--allow-shared-uid-demo --allowed-uid UID`; that demonstration **is not evidence of actor authentication**. Isolated mode may require a trusted socket provisioner with permission to chown endpoints, or fails closed. Do not expose signing keys to agents or infer live readiness.
 
 For an independent **root-operated, Linux-only, zero-model-call** probe, run `python -m unittest tests.test_isolation_boundary -v` in a disposable test environment with sufficient privilege for temporary numeric-UID child processes. Non-root runs skip the real-UID probe. Collect exact-head suite logs, manifest checks and access-denial output. Until independent OS/container review, off-host read-only evidence, signed raw-response provenance, spending controls and Z2/Z3 grants: **NO GO LIVE**.
+
+## Deployed-tree check (run before the writer starts)
+
+`tools/deploy_check.py` is stdlib-only and loads no module of this package, so the code it checks cannot vouch for itself. Run it in a **separate process**, with the plan hash you were given out of band, against a clean copy of the tree (no `__pycache__`, so start Python with `-B` or `PYTHONDONTWRITEBYTECODE=1`):
+
+```
+python -I tools/deploy_check.py --package-root PKG_DIR --plan plan.json --plan-sha256 HEX
+```
+
+Exit 0 means the pinned files match the plan and no extra `.py`, bytecode, `.pth`, `sitecustomize` or symlink is present in `src/` or `integration/`. Exit 2 lists the problems as JSON. Start nothing on exit 2. It proves bytes on disk, not what a running process executes, and you must pin the hash of `tools/deploy_check.py` yourself. Nothing in this package forces a deployer to run it.
+

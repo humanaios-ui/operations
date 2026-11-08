@@ -46,3 +46,11 @@ Probed the newest code, the signed response ledger. Found and fixed, test first 
 Probed and held: largest legal reply (32768 control characters, JSON-escaped) fits the control channel; deeply nested objects and huge number literals are `UNPARSEABLE`; lone surrogates are refused.
 
 **Still true:** the model id and request id are what the orchestrator *reports*. A provider cannot sign its replies, so a lying or compromised orchestrator can still report a pinned model and a fresh id. These checks catch mistakes and lazy forgery, not a determined orchestrator. Run-level model verification stays open. Evidence: 140 tests, author-run, Python 3.13 and 3.11. Not independently rerun.
+
+### Round 3: the two threads left open on purpose (author-run, offline)
+
+- **`secure_dir` (writer.py).** Now walks from `/` with directory descriptors and `O_NOFOLLOW`, reading ownership, mode and ACL from the descriptor it then uses (`fstat`, `fchmod`), and refuses a path that resolves elsewhere after the walk (`PATH_CHANGED_DURING_CHECK`). Any POSIX ACL (access or default) on a secured directory is refused (`ACL_PRESENT`), as is a `..` component. Tests: `tests/test_secure_dir_round3.py` (real ACL xattrs; a root-only attacker under another UID racing in a sticky directory, where a returned path must always be host-owned 0700 and a canary directory is never chmod-ed).
+- **Deployed tree (pins.py).** `tools/deploy_check.py` is an out-of-process, stdlib-only check of the on-disk tree against the plan's pins: modified or missing pinned files, a modified `pins.py`, extra `.py` files that could shadow a module, planted bytecode, `.pth` files, `sitecustomize`, and symlinks. Tests: `tests/test_deploy_check.py`.
+
+**Limits, stated plainly:** the live race test is probabilistic and would pass against some unsafe variants; the deterministic tests (descriptor `fchmod`, re-pointed path) carry that guarantee. Later reads and writes under the secured directory are still path-based; they rely on the checked ancestors staying unwritable by others. NFS, FUSE and filesystems without xattrs are untested. Only POSIX ACLs are looked for, not LSM policy or capabilities. The deploy check does not prove what a running process executes, its own hash must be pinned separately, and nothing forces a deployer to run it. 169 tests, author-run, Python 3.13 and 3.11.
+

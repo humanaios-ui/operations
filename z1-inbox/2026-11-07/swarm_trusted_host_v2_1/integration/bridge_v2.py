@@ -27,7 +27,7 @@ def score_episode(plan, pinned_plan_hash, public_key_bytes, host_root, observati
         # A scored study may only use claims and ballots the HOST recorded from relayed raw responses.
         raise EvidenceError("RESPONSE_LEDGER_INCOMPLETE")
     # The plan hash is authentic now, so its code pins can be trusted. This compares the bytes ON DISK with
-    # the pins; it does not prove which code is running (an out-of-process check of the deployed tree is needed).
+    # the pins; it does not prove which code is running (run tools/deploy_check.py in a separate process before starting the writer; it is the independent half).
     for pin, code in (("bridge_sha256", "BRIDGE_CODE_NOT_PINNED"), ("scorer_sha256", "SCORER_CODE_NOT_PINNED"),
                       ("oracle_sha256", "ORACLE_CODE_NOT_PINNED"), ("readback_sha256", "READBACK_CODE_NOT_PINNED"),
                       ("pins_sha256", "PINS_CODE_NOT_PINNED"), ("responses_sha256", "RESPONSES_CODE_NOT_PINNED")):
