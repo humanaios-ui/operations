@@ -157,23 +157,80 @@ def secure_dir(path):
     return path
 
 
-def new_file(path, contents):
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+def _open_parent_fd(path):
+    """Pin the full parent chain before an evidence read/write.
+
+    The leaf operation must be relative to this open directory handle; a rename
+    after validation cannot redirect it through a substituted pathname.
+    This is a host-side offline defense, not a deployment identity attestation.
+    """
+    path = Path(path).absolute()
+    if any(part in (".", "..") for part in path.parts[1:]) or len(path.parts) < 2:
+        raise EvidenceError("PATH_NOT_NORMALIZED")
+    flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+    euid = os.geteuid()
+    fd = os.open(path.parts[0], flags)
     try:
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(contents)
-            handle.flush()
-            os.fsync(handle.fileno())
+        for index, component in enumerate(path.parts[1:-1], start=1):
+            newfd = os.open(component, flags, dir_fd=fd)
+            os.close(fd)
+            fd = newfd
+            info = os.fstat(fd)
+            is_parent = index == len(path.parts) - 2
+            if is_parent:
+                if info.st_uid != euid:
+                    raise EvidenceError("DIRECTORY_NOT_HOST_OWNED")
+            elif info.st_uid not in (0, euid):
+                raise EvidenceError("ANCESTOR_NOT_HOST_OWNED")
+            if info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX:
+                raise EvidenceError("ANCESTOR_WRITABLE_BY_OTHERS")
+            if _has_acl(fd):
+                raise EvidenceError("ACL_PRESENT")
+        return fd, path.name
     except BaseException:
-        try: Path(path).unlink()
-        except OSError: pass
+        os.close(fd)
         raise
 
 
+def _new_file_fd(path, contents, *, flags=os.O_WRONLY | os.O_CREAT | os.O_EXCL):
+    parent, name = _open_parent_fd(path)
+    created = False
+    try:
+        fd = os.open(name, flags | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0),
+                     0o600, dir_fd=parent)
+        created = True
+        try:
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(contents)
+                handle.flush()
+                os.fsync(handle.fileno())
+        except BaseException:
+            if created:
+                try:
+                    os.unlink(name, dir_fd=parent)
+                except OSError:
+                    pass
+            raise
+    finally:
+        os.close(parent)
+
+
+def new_file(path, contents):
+    """Create only under a pinned, checked parent; never follow the leaf."""
+    _new_file_fd(path, contents)
+
+
 def open_read_no_follow(path):
-    fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
-    with os.fdopen(fd, "rb") as handle:
-        return handle.read()
+    parent, name = _open_parent_fd(path)
+    try:
+        fd = os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) |
+                     getattr(os, "O_CLOEXEC", 0), dir_fd=parent)
+        with os.fdopen(fd, "rb") as handle:
+            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+                raise EvidenceError("NOT_A_REGULAR_FILE")
+            return handle.read()
+    finally:
+        os.close(parent)
 
 
 def check_plan(plan, key):
