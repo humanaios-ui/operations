@@ -299,7 +299,12 @@ class HostWriter:
         self.plan_hash = pinned_plan_hash
         self.root = secure_dir(root)
         # Only ONE writer instance per host root; a long-lived lock FD prevents concurrent writers.
-        self.lock_fd = os.open(self.root / ".writer_lock", os.O_CREAT | os.O_RDWR | getattr(os,"O_NOFOLLOW",0), 0o600)
+        lock_parent, lock_name = _open_parent_fd(self.root / ".writer_lock")
+        try:
+            self.lock_fd = os.open(lock_name, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0),
+                                   0o600, dir_fd=lock_parent)
+        finally:
+            os.close(lock_parent)
         try:
             fcntl.flock(self.lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
