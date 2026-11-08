@@ -52,5 +52,5 @@ For an independent **root-operated, Linux-only, zero-model-call** probe, run `py
 python -I tools/deploy_check.py --package-root PKG_DIR --plan plan.json --plan-sha256 HEX
 ```
 
-Exit 0 means the pinned files match the plan, both package initializers are empty, and no extra `.py`, bytecode, `.pth`, `sitecustomize` or symlink is present in `src/` or `integration/`. `src/offline_pipe_demo.py` is tolerated because nothing imports it; do not execute it in a deployment. Exit 2 lists the problems as JSON. Start nothing on exit 2. It proves bytes on disk, not what a running process executes, and you must pin the hash of `tools/deploy_check.py` yourself. Nothing in this package forces a deployer to run it.
+Exit 0 means the pinned files match the plan, both package initializers exist and are empty, no loadable file sits at the package root, and no extra `.py`, bytecode, `.pth`, `sitecustomize` or symlink is present in `src/` or `integration/`. `src/offline_pipe_demo.py` is tolerated because nothing imports it; do not execute it in a deployment. Exit 2 lists the problems as JSON. Start nothing on exit 2. It proves bytes on disk, not what a running process executes, and you must pin the hash of `tools/deploy_check.py` yourself. Nothing in this package forces a deployer to run it.
 

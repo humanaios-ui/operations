@@ -87,6 +87,14 @@ def check(package_root, plan_path, plan_sha256):
     for top in sorted(os.listdir(package_root)) if os.path.isdir(package_root) else []:
         if top in BAD_TOP_LEVEL or top.endswith(".py"):
             problems.append("UNEXPECTED_PYTHON_FILE:" + top)
+        elif top == "__pycache__" or top.endswith((".pyc", ".pyo")):
+            problems.append("BYTECODE_PRESENT:" + top)  # a top-level src.pyc can win the import of "src"
+        elif top.endswith((".so", ".pyd", ".pth")):
+            problems.append("LOADABLE_FILE_PRESENT:" + top)
+    for rel in sorted(INITIALIZERS):
+        # Without src/__init__.py the name "src" can resolve to a sibling module or a namespace package instead.
+        if not os.path.lexists(os.path.join(package_root, rel)):
+            problems.append("MISSING_INITIALIZER:" + rel)
     for code_dir in CODE_DIRS:
         base = os.path.join(package_root, code_dir)
         for current, dirs, files in os.walk(base, followlinks=False):

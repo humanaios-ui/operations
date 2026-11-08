@@ -130,6 +130,39 @@ class HostileTree(Base):
         code, body = self.run_tool()
         self.assertIn("INITIALIZER_NOT_EMPTY:src/__init__.py", body["problems"])
 
+    def test_missing_initializers_are_refused(self):
+        (self.pkg / "src" / "__init__.py").unlink()
+        (self.pkg / "integration" / "__init__.py").unlink()
+        code, body = self.run_tool()
+        self.assertEqual(code, 2)
+        self.assertIn("MISSING_INITIALIZER:src/__init__.py", body["problems"])
+        self.assertIn("MISSING_INITIALIZER:integration/__init__.py", body["problems"])
+
+    def test_top_level_loadable_files_are_refused(self):
+        for name in ("src.pyc", "src.pyo", "src.so", "src.pyd", "extra.pth"):
+            (self.pkg / name).write_bytes(b"\x00")
+        (self.pkg / "__pycache__").mkdir()
+        code, body = self.run_tool()
+        for name in ("src.pyc", "src.pyo", "__pycache__"):
+            self.assertIn("BYTECODE_PRESENT:" + name, body["problems"])
+        for name in ("src.so", "src.pyd", "extra.pth"):
+            self.assertIn("LOADABLE_FILE_PRESENT:" + name, body["problems"])
+
+    def test_sourceless_src_module_really_wins_without_an_initializer_and_the_tool_refuses_it(self):
+        import py_compile
+        (self.pkg / "src" / "__init__.py").unlink()
+        marker = self.td / "marker.py"; marker.write_text("MARKER = 1\n")
+        py_compile.compile(str(marker), cfile=str(self.pkg / "src.pyc"), doraise=True)
+        probe = subprocess.run(
+            [sys.executable, "-I", "-c",
+             "import importlib.util, sys; sys.path.insert(0, sys.argv[1]); print(importlib.util.find_spec('src').origin)",
+             str(self.pkg)], capture_output=True, text=True, timeout=30)
+        self.assertTrue(probe.stdout.strip().endswith("src.pyc"), probe.stdout + probe.stderr)  # the premise
+        code, body = self.run_tool()
+        self.assertEqual(code, 2)
+        self.assertIn("MISSING_INITIALIZER:src/__init__.py", body["problems"])
+        self.assertIn("BYTECODE_PRESENT:src.pyc", body["problems"])
+
     def test_stray_python_file_at_the_package_root_is_refused(self):
         (self.pkg / "conftest.py").write_text("x = 1\n")
         code, body = self.run_tool()
