@@ -100,5 +100,20 @@ class SourceHoldProjectionRegressionTests(unittest.TestCase):
         self.assertEqual(result["authority"], "NONE")
 
 
+
+    def test_conflict_outranks_later_recheck_regardless_of_input_order(self):
+        conflict = dict(BASE, source_verification_status="SOURCE_CONFLICT")
+        recheck = dict(BASE, source_verification_status="RECHECK_REQUIRED")
+        cases = []
+        for rows in ([conflict, recheck], [recheck, conflict]):
+            result = evaluate(rows)
+            self.assertEqual(result["candidates"], [])
+            self.assertEqual(result["verification_case_count"], 1)
+            self.assertEqual(result["verification_cases"][0]["verification_state"], "CONFLICTING")
+            self.assertEqual(result["verification_cases"][0]["reason_code"], "SOURCE_CONFLICT")
+            cases.append(result)
+        self.assertEqual(cases[0], cases[1])
+
+
 if __name__ == "__main__":
     unittest.main()
