@@ -553,7 +553,7 @@ class SystemGraphGenerator:
             type=NodeType.GATE.value,
             status=NodeStatus.OPERATED.value,
             zone='CI',
-            description="Advisory: measures a PR's molt tier (0/1/2) from the paths its diff touches and compares it with the author's claim; never blocks merge",
+            description="Advisory: measures a PR's molt tier (0/1/2) from the paths its diff touches and compares it with the author's claim; advisory only, does not block merge",
             implementation='tools/molting_protocol_diff_v1_0.py, .github/workflows/molt-tier-check.yml',
             tests=0,
             phase='post-M15 (added 2026-11-08)',
