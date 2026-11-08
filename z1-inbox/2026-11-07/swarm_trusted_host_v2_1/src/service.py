@@ -24,7 +24,7 @@ import threading
 from pathlib import Path
 
 from .pins import file_sha256
-from .writer import HostWriter, EvidenceError, canonical, read_private_key, secure_dir
+from .writer import HostWriter, EvidenceError, canonical, read_private_key, secure_dir, _open_parent_fd
 
 DEFAULT_TIMEOUT = 5.0
 AGENT_MAX_REQUEST = 4096
@@ -121,12 +121,15 @@ class Server(socketserver.UnixStreamServer):
                 raise EvidenceError("HOST_UID_NOT_AUTHORIZED")
             if not hasattr(socket, "SO_PEERCRED"):
                 raise EvidenceError("LINUX_PEER_CREDENTIALS_REQUIRED")
-            parent = secure_dir(Path(socket_path).parent)
-            if parent.stat().st_uid != os.geteuid():
-                raise EvidenceError("SOCKET_PARENT_NOT_HOST_OWNED")
-            # Host-owned search-only directory. Named 0600 sockets are exclusively
-            # owned by their individual recipient UIDs. No shared group permissions.
-            os.chmod(parent, 0o711)
+            secure_dir(Path(socket_path).parent)
+            parent_fd, _ = _open_parent_fd(socket_path)
+            try:
+                if os.fstat(parent_fd).st_uid != os.geteuid():
+                    raise EvidenceError("SOCKET_PARENT_NOT_HOST_OWNED")
+                # Apply search-only mode to the checked parent inode, never a re-resolved path.
+                os.fchmod(parent_fd, 0o711)
+            finally:
+                os.close(parent_fd)
         # No silent open mode: without a peer-UID policy only file modes protect the socket.
         if allowed_uid is None and not allow_unchecked_peer:
             raise EvidenceError("PEER_UID_POLICY_REQUIRED")
@@ -135,21 +138,26 @@ class Server(socketserver.UnixStreamServer):
         self.writer, self.role, self.actor_id = writer, role, actor_id
         self.max_request = CONTROL_MAX_REQUEST if role == "control" else AGENT_MAX_REQUEST
         self.allowed_uid, self.conn_timeout = allowed_uid, timeout
-        super().__init__(str(socket_path), Handler)
-        if enforce_isolation:
-            try:
-                # Needs a trusted pre-provisioner with CAP_CHOWN. Missing privileges
-                # fail closed; there is no fallback to host/shared ownership.
-                os.chown(socket_path, allowed_uid, allowed_uid)
-            except OSError as exc:
-                self.server_close()
-                raise EvidenceError("SOCKET_ROLE_OWNER_NOT_ENFORCED") from exc
-        os.chmod(socket_path, 0o600)
-        if enforce_isolation:
-            info = os.stat(socket_path)
-            if info.st_uid != allowed_uid or (info.st_mode & 0o777) != 0o600:
-                self.server_close()
-                raise EvidenceError("SOCKET_ROLE_PERMISSIONS_INVALID")
+        # Keep the checked socket parent pinned throughout bind, chown, chmod and readback.
+        # The UnixStreamServer bind itself takes a path, but later permission changes
+        # cannot be redirected through a swapped ancestor. A mismatch fails closed.
+        parent_fd, leaf = _open_parent_fd(socket_path)
+        try:
+            super().__init__(str(socket_path), Handler)
+            if enforce_isolation:
+                try:
+                    os.chown(leaf, allowed_uid, allowed_uid, dir_fd=parent_fd, follow_symlinks=False)
+                except OSError as exc:
+                    self.server_close()
+                    raise EvidenceError("SOCKET_ROLE_OWNER_NOT_ENFORCED") from exc
+            os.chmod(leaf, 0o600, dir_fd=parent_fd, follow_symlinks=False)
+            if enforce_isolation:
+                info = os.stat(leaf, dir_fd=parent_fd, follow_symlinks=False)
+                if info.st_uid != allowed_uid or (info.st_mode & 0o777) != 0o600:
+                    self.server_close()
+                    raise EvidenceError("SOCKET_ROLE_PERMISSIONS_INVALID")
+        finally:
+            os.close(parent_fd)
 
 
 def main():
