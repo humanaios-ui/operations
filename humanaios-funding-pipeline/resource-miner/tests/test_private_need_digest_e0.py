@@ -89,4 +89,47 @@ class NeedDigestTests(unittest.TestCase):
         for bad in ([],["not a dict"],None):
             with self.subTest(rows=bad),self.assertRaises(ValueError): project(bad,NEEDS,KEY)
 
+
+class CopilotPrivacyAndConflictRegressionTests(NeedDigestTests):
+    """Independent-review regressions; synthetic inputs only."""
+
+    def test_private_id_in_mail_supplied_url_path_must_fail(self):
+        for path in (
+            "/unsubscribe/aaaaaaaaaaaaaaaa",
+            "/track/message/aaaaaaaaaaaaaaaa",
+            "/public/program",
+            "/%61%61%61%61",
+        ):
+            with self.subTest(path=path), self.assertRaises(ValueError):
+                self.run_it([self.case(public_url="https://example.org" + path)])
+
+    def test_same_message_same_need_disagreement_held_in_both_orders(self):
+        baseline = self.case(priority="HIGH", source_status="EMAIL_REPORTED")
+        disputed = self.case(priority="MEDIUM", source_status="SOURCE_CONFLICT")
+        outcomes = []
+        for incoming in ([baseline, disputed], [disputed, baseline]):
+            result = self.run_it(incoming)
+            self.assertEqual(result["source_conflicts"], 1)
+            self.assertEqual(result["unique_proposals"], 1)
+            self.assertEqual(result["records"][0]["route"], "HOLD_CONFLICT")
+            self.assertEqual(result["records"][0]["source_status"], "SOURCE_CONFLICT")
+            self.assertFalse(result["records"][0]["benefit_verified"])
+            outcomes.append(result)
+        self.assertEqual(outcomes[0], outcomes[1])
+
+    def test_unmapped_need_conflict_counted_separately_from_route(self):
+        result = self.run_it([self.case(
+            need_id="subscription-oversight", source_status="SOURCE_CONFLICT"
+        )])
+        self.assertEqual(result["source_conflicts"], 1)
+        self.assertEqual(result["need_graph_gaps"], 1)
+        self.assertEqual(result["records"][0]["route"], "HOLD_CONFLICT")
+
+    def test_identical_duplicates_do_not_create_source_conflict(self):
+        x = self.case()
+        result = self.run_it([x, dict(x)])
+        self.assertEqual(result["duplicate_suppressed"], 1)
+        self.assertEqual(result["source_conflicts"], 0)
+
+
 if __name__=="__main__": unittest.main()
