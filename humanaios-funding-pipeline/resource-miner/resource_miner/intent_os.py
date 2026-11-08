@@ -217,9 +217,19 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
     matches = fuse_rankings(
         [r for r in unique_matches.values() if r["resource_id"] not in held_ids]
     )
-    verification_cases = list({
-        r["resource_id"]: r for r in verification_cases
-    }.values())
+    # Preserve the strongest adverse source signal for each identity.
+    # A later RECHECK_REQUIRED observation cannot erase SOURCE_CONFLICT.
+    # Ties use bounded reason codes, never input order or private notes.
+    case_priority = {"CONFLICTING": 0, "UNAVAILABLE": 1, "STALE": 2, "UNKNOWN": 3}
+    case_by_resource: dict[str, dict] = {}
+    for case in verification_cases:
+        rid = case["resource_id"]
+        previous = case_by_resource.get(rid)
+        def key(item: dict) -> tuple[int, str]:
+            return (case_priority.get(item["verification_state"], 4), item["reason_code"])
+        if previous is None or key(case) < key(previous):
+            case_by_resource[rid] = case
+    verification_cases = list(case_by_resource.values())
     verification_cases.sort(key=lambda r: (r["resource_id"], r["reason_code"]))
     shown = matches  # Bounded by MAX_ROWS; browser reveals ten at a time.
     receipt_input = json.dumps({
