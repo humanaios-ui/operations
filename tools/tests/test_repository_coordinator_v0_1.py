@@ -1773,7 +1773,11 @@ def test_oracle_global_reconciles_identity_and_retains_both_values():
         if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
         and a["predicate"] == "node_count"
     }
-    assert node_values == {19, 22}
+    # 19 and 22 are the two values the Drive snapshot carries (prose claim and
+    # its stale JSON export); the repository value is read from the committed
+    # graph so regenerating it does not require editing this test.
+    committed = json.loads((root / "system_graph.json").read_text())
+    assert node_values == {19, 22, len(committed["nodes"])}
     assert len(graph["conflicts"]) >= 2
 
 

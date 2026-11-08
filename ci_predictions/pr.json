@@ -2,15 +2,42 @@
   "pr": 1158,
   "actor_origin_claim": "Claude Code session; regenerate system_graph.json, fix generator cycle validation, add freshness automation",
   "checks": {
-    "quality": {"conclusion": "success", "p": 0.9},
-    "guard": {"conclusion": "success", "p": 0.95},
-    "Check principles (P19)": {"conclusion": "success", "p": 0.9},
-    "Reject unauthorized internal deadline semantics": {"conclusion": "success", "p": 0.93},
-    "freshness": {"conclusion": "success", "p": 0.92},
-    "Secret scanning (gitleaks)": {"conclusion": "success", "p": 0.97},
-    "Python dependency vulnerability scan": {"conclusion": "success", "p": 0.95},
-    "Repository admission/backpressure gate": {"conclusion": "success", "p": 0.85},
-    "Build repository coordination index (ADVISORY)": {"conclusion": "success", "p": 0.75}
+    "quality": {
+      "conclusion": "success",
+      "p": 0.8
+    },
+    "guard": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "Check principles (P19)": {
+      "conclusion": "success",
+      "p": 0.85
+    },
+    "Reject unauthorized internal deadline semantics": {
+      "conclusion": "success",
+      "p": 0.93
+    },
+    "freshness": {
+      "conclusion": "success",
+      "p": 0.92
+    },
+    "Secret scanning (gitleaks)": {
+      "conclusion": "success",
+      "p": 0.97
+    },
+    "Python dependency vulnerability scan": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "Repository admission/backpressure gate": {
+      "conclusion": "success",
+      "p": 0.85
+    },
+    "Build repository coordination index (ADVISORY)": {
+      "conclusion": "success",
+      "p": 0.75
+    }
   },
-  "note": "Not a blind prediction. The previous head (09fb7846) already passed all of these; this commit changes only this file. Probabilities are held below 0.95 where a check failed on an earlier head of this PR (quality, P19, temporal gate, coordination index) or where CI is outside this change. Z2 ratification is not predicted here."
+  "note": "Not a blind prediction. An earlier head (9fa234b2) passed all of these. This head adds 17 nodes and 14 edges to system_graph.json, so quality (tests that read the graph) and P19 (new description text) carry more risk than before; other checks are unchanged by this diff. Z2 ratification is not predicted here."
 }

@@ -533,6 +533,212 @@ class SystemGraphGenerator:
             phase='Q-RBE-01 (candidate)',
         ))
 
+        # ADDITIONS SINCE 2026-09-13 (regenerated 2026-11-08). Each node cites files
+        # that exist in the tree; each edge below is backed by a reference in those files.
+        self.add_node(Node(
+            id='TDG',
+            name='Temporal Dissolution Gate',
+            type=NodeType.GATE.value,
+            status=NodeStatus.OPERATED.value,
+            zone='CI',
+            description='Blocks PRs that add an unclassified internal time-based control (deadline, window, schedule); allowed classes OBSERVATIONAL, TECHNICAL_SAFETY, REGULATORY_EXTERNAL, HISTORICAL_RECORD',
+            implementation='tests/test_temporal_dissolution_gate.py, .github/workflows/temporal-dissolution-gate.yml',
+            tests=10,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='MTC',
+            name='Molt Tier Check',
+            type=NodeType.GATE.value,
+            status=NodeStatus.OPERATED.value,
+            zone='CI',
+            description="Advisory: measures a PR's molt tier (0/1/2) from the paths its diff touches and compares it with the author's claim; never blocks merge",
+            implementation='tools/molting_protocol_diff_v1_0.py, .github/workflows/molt-tier-check.yml',
+            tests=0,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='CIP',
+            name='CI Prediction',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='CI',
+            description="PIN a PR author's per-check predictions before checks resolve, RESOLVE against actual conclusions, CONSOLIDATE into a hash-chained ledger; inherited declarations are refused",
+            implementation='tools/ci_predict_pin_v1_0.py, tools/ci_predict_resolve_v1_0.py, tools/ci_predict_consolidate_v1_0.py',
+            tests=57,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='SMAG',
+            name='SMAG Calibration Loop',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='code',
+            description="Author-confidence capture on PRs, consolidation, gap analysis and feedback; Meta-SMAG reviews the loop's own accuracy",
+            implementation='tools/smag_consolidate_v1_0.py, tools/smag_gap_analysis_v1_0.py, .github/workflows/smag-capture.yml, .github/workflows/smag-consolidate.yml',
+            tests=26,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='EMP',
+            name='Empirica Connector',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Connects SMAG calibration output to Empirica and records on-track reflex checkpoints',
+            implementation='tools/smag_to_empirica_connector.py, .github/workflows/on-track-reflex-observe.yml, .empirica_reflex_logs/',
+            tests=0,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='IOS',
+            name='Intent-OS',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='Z1',
+            description='Intent board, form and collaboration surfaces; reconcile relays awaiting_z2 candidates to Z2 (merge is the Z2 act); test harness tiers T0-T7',
+            implementation='INTENT_GRAPH.yaml, tools/intent_os_reconcile_v1_0.py, tools/intent_os_test_harness_v1_0.py, .github/workflows/intent-os-reconcile.yml',
+            tests=14,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='RCO',
+            name='Repository Coordinator',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='CI',
+            description='Admission and backpressure index over open PRs (lanes, operator-queue capacity, decision receipts); admission routing only, no merge authority',
+            implementation='tools/repository_coordinator_v0_1.py, .github/workflows/repository-coordinator.yml',
+            tests=99,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='SG',
+            name='System Graph',
+            type=NodeType.LEDGER.value,
+            status=NodeStatus.OPERATED.value,
+            zone='Z2',
+            description='This graph: canonical machine form of the governance process graph, generated from the edge list, validated for dangling edges and forward cycles',
+            implementation='system_graph_generator.py, system_graph.json',
+            tests=5,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='SGF',
+            name='System Graph Freshness',
+            type=NodeType.GATE.value,
+            status=NodeStatus.LAID.value,
+            zone='CI',
+            description='Fails when the committed graph is invalid, differs from generator output, or (weekly) is older than 45 days; graph-capture-lint scores the multiplex',
+            implementation='tools/graph_capture_lint_v1_0.py, .github/workflows/system-graph-freshness.yml, .github/workflows/graph-capture-lint.yml',
+            tests=48,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='ORC',
+            name='Oracle Engine',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='code',
+            description='Projects repository and workspace state (including system_graph.json) into oracle assertions; forecast replay',
+            implementation='oracles/engine/oracle_engine_v0_1.py',
+            tests=43,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='ACAT',
+            name='ACAT API',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='code',
+            description='ACAT assessment API with async job queue and database, deployed on Railway',
+            implementation='acat/api, acat/db',
+            tests=76,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='ACATR',
+            name='ACAT-R',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='General runtime calibration research prototype built on the three-phase ACAT method; authority effect NONE',
+            implementation='experiments/acat_r_v01, .github/workflows/acat-r-v01.yml',
+            tests=40,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='RMN',
+            name='Resource Miner',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='code',
+            description='Broad discovery of externally available resource opportunities; upstream of Entitlement Navigator',
+            implementation='humanaios-funding-pipeline/resource-miner, .github/workflows/resource-miner-scan.yml',
+            tests=0,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='ENAV',
+            name='Entitlement Navigator',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='code',
+            description='Resolves candidate opportunities toward eligibility and acquisition',
+            implementation='humanaios-funding-pipeline/entitlement-navigator',
+            tests=0,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='RSYS',
+            name='Resource System',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='code',
+            description='Local prototype v0.1 (issue #588) composing Resource Miner and Entitlement Navigator through their handoff functions; caller-driven, explicit-tick only',
+            implementation='humanaios-resource-system/resource_system',
+            tests=55,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='MODE',
+            name='MODE-HumanAIOS Interop E0',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Candidate-only synthetic interoperability and publisher-influence experiments; no credentials, providers or authority',
+            implementation='experiments/mode_haios_interop_e0.py, .github/workflows/mode-haios-interop-e0.yml',
+            tests=15,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
+        self.add_node(Node(
+            id='COCK',
+            name='Cockpit v1',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.PLANNED.value,
+            zone='Z1',
+            description='Unified operator view candidate; docs only, pending Z2 ratification',
+            implementation='COCKPIT_V1_PRIORITY_QUEUE_ENTRY.md, COCKPIT_V1_IMPLEMENTATION_ROADMAP.md',
+            tests=0,
+            phase='post-M15 (added 2026-11-08)',
+        ))
+
         # Loop-closing edges. The governance machinery is a deliberate feedback
         # loop (measure -> propose -> ratify -> apply -> measure), so a strict
         # DAG check over every edge cannot pass. These edges are the ones that
@@ -645,7 +851,23 @@ class SystemGraphGenerator:
             ('Z2', 'RL', EdgeType.DATA_FLOW.value, 'RAT-min SPEND; capacity declaration (hashed)', ''),
             ('RL', 'MOLT', EdgeType.DATA_FLOW.value, 'density trend vs constraint constants', ''),
             ('RCEN', 'FS', EdgeType.CALLOUT.value, 'F-RBE candidates', ''),
+            # Added 2026-11-08 (each backed by a reference in the cited files)
+            ('TDG', 'CIG', EdgeType.CONTROL_FLOW.value, 'unclassified time control blocks PR', ''),
+            ('MTC', 'MOLT', EdgeType.DATA_FLOW.value, 'measured molt tier vs claimed (advisory)', ''),
+            ('CIP', 'NF', EdgeType.DATA_FLOW.value, 'PIN / RESOLVE events, hash-chained', ''),
+            ('SMAG', 'EMP', EdgeType.DATA_FLOW.value, 'smag_to_empirica_connector', ''),
+            ('IOS', 'Z2', EdgeType.CONTROL_FLOW.value, 'awaiting_z2 candidate relay; merge is the Z2 act', ''),
+            ('RCO', 'Z2', EdgeType.CONTROL_FLOW.value, 'ROUTE_TO_Z2; receipts are admission routing only', ''),
+            ('SGF', 'SG', EdgeType.CONTROL_FLOW.value, 'fails PR / weekly when stale or invalid', ''),
+            ('SG', 'ORC', EdgeType.DATA_FLOW.value, 'repository projection reads system_graph.json', ''),
+            ('IOS', 'ACAT', EdgeType.CONTROL_FLOW.value, 'harness tier T6 boots the ACAT API', ''),
+            ('ACAT', 'ACATR', EdgeType.CAUSALITY.value, 'ACAT-R extends the three-phase ACAT method', ''),
+            ('RMN', 'ENAV', EdgeType.DATA_FLOW.value, 'upstream discovery handoff', ''),
+            ('RMN', 'RSYS', EdgeType.DATA_FLOW.value, 'handoff function composed by Resource System', ''),
+            ('ENAV', 'RSYS', EdgeType.DATA_FLOW.value, 'handoff function composed by Resource System', ''),
+            ('COCK', 'Q', EdgeType.CONTROL_FLOW.value, 'candidate block for PRIORITY_QUEUE.md (pending Z2)', ''),
         ]
+
 
         for source, target, edge_type, label, desc in edges:
             self.add_edge(Edge(

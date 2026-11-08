@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-11-08T20:51:06.532374",
+  "generated_at": "2026-11-08T22:08:11.415583",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -243,6 +243,193 @@
       "implementation": "resource_census_v0_1.py",
       "tests": 0,
       "phase": "Q-RBE-01 (candidate)"
+    },
+    "TDG": {
+      "id": "TDG",
+      "name": "Temporal Dissolution Gate",
+      "type": "gate",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "Blocks PRs that add an unclassified internal time-based control (deadline, window, schedule); allowed classes OBSERVATIONAL, TECHNICAL_SAFETY, REGULATORY_EXTERNAL, HISTORICAL_RECORD",
+      "implementation": "tests/test_temporal_dissolution_gate.py, .github/workflows/temporal-dissolution-gate.yml",
+      "tests": 10,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "MTC": {
+      "id": "MTC",
+      "name": "Molt Tier Check",
+      "type": "gate",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "Advisory: measures a PR's molt tier (0/1/2) from the paths its diff touches and compares it with the author's claim; never blocks merge",
+      "implementation": "tools/molting_protocol_diff_v1_0.py, .github/workflows/molt-tier-check.yml",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "CIP": {
+      "id": "CIP",
+      "name": "CI Prediction",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "PIN a PR author's per-check predictions before checks resolve, RESOLVE against actual conclusions, CONSOLIDATE into a hash-chained ledger; inherited declarations are refused",
+      "implementation": "tools/ci_predict_pin_v1_0.py, tools/ci_predict_resolve_v1_0.py, tools/ci_predict_consolidate_v1_0.py",
+      "tests": 57,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "SMAG": {
+      "id": "SMAG",
+      "name": "SMAG Calibration Loop",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "Author-confidence capture on PRs, consolidation, gap analysis and feedback; Meta-SMAG reviews the loop's own accuracy",
+      "implementation": "tools/smag_consolidate_v1_0.py, tools/smag_gap_analysis_v1_0.py, .github/workflows/smag-capture.yml, .github/workflows/smag-consolidate.yml",
+      "tests": 26,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "EMP": {
+      "id": "EMP",
+      "name": "Empirica Connector",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Connects SMAG calibration output to Empirica and records on-track reflex checkpoints",
+      "implementation": "tools/smag_to_empirica_connector.py, .github/workflows/on-track-reflex-observe.yml, .empirica_reflex_logs/",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "IOS": {
+      "id": "IOS",
+      "name": "Intent-OS",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "Z1",
+      "description": "Intent board, form and collaboration surfaces; reconcile relays awaiting_z2 candidates to Z2 (merge is the Z2 act); test harness tiers T0-T7",
+      "implementation": "INTENT_GRAPH.yaml, tools/intent_os_reconcile_v1_0.py, tools/intent_os_test_harness_v1_0.py, .github/workflows/intent-os-reconcile.yml",
+      "tests": 14,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "RCO": {
+      "id": "RCO",
+      "name": "Repository Coordinator",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "Admission and backpressure index over open PRs (lanes, operator-queue capacity, decision receipts); admission routing only, no merge authority",
+      "implementation": "tools/repository_coordinator_v0_1.py, .github/workflows/repository-coordinator.yml",
+      "tests": 99,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "SG": {
+      "id": "SG",
+      "name": "System Graph",
+      "type": "ledger",
+      "status": "OPERATED",
+      "zone": "Z2",
+      "description": "This graph: canonical machine form of the governance process graph, generated from the edge list, validated for dangling edges and forward cycles",
+      "implementation": "system_graph_generator.py, system_graph.json",
+      "tests": 5,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "SGF": {
+      "id": "SGF",
+      "name": "System Graph Freshness",
+      "type": "gate",
+      "status": "LAID",
+      "zone": "CI",
+      "description": "Fails when the committed graph is invalid, differs from generator output, or (weekly) is older than 45 days; graph-capture-lint scores the multiplex",
+      "implementation": "tools/graph_capture_lint_v1_0.py, .github/workflows/system-graph-freshness.yml, .github/workflows/graph-capture-lint.yml",
+      "tests": 48,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "ORC": {
+      "id": "ORC",
+      "name": "Oracle Engine",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "Projects repository and workspace state (including system_graph.json) into oracle assertions; forecast replay",
+      "implementation": "oracles/engine/oracle_engine_v0_1.py",
+      "tests": 43,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "ACAT": {
+      "id": "ACAT",
+      "name": "ACAT API",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "ACAT assessment API with async job queue and database, deployed on Railway",
+      "implementation": "acat/api, acat/db",
+      "tests": 76,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "ACATR": {
+      "id": "ACATR",
+      "name": "ACAT-R",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "General runtime calibration research prototype built on the three-phase ACAT method; authority effect NONE",
+      "implementation": "experiments/acat_r_v01, .github/workflows/acat-r-v01.yml",
+      "tests": 40,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "RMN": {
+      "id": "RMN",
+      "name": "Resource Miner",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "Broad discovery of externally available resource opportunities; upstream of Entitlement Navigator",
+      "implementation": "humanaios-funding-pipeline/resource-miner, .github/workflows/resource-miner-scan.yml",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "ENAV": {
+      "id": "ENAV",
+      "name": "Entitlement Navigator",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Resolves candidate opportunities toward eligibility and acquisition",
+      "implementation": "humanaios-funding-pipeline/entitlement-navigator",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "RSYS": {
+      "id": "RSYS",
+      "name": "Resource System",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Local prototype v0.1 (issue #588) composing Resource Miner and Entitlement Navigator through their handoff functions; caller-driven, explicit-tick only",
+      "implementation": "humanaios-resource-system/resource_system",
+      "tests": 55,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "MODE": {
+      "id": "MODE",
+      "name": "MODE-HumanAIOS Interop E0",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Candidate-only synthetic interoperability and publisher-influence experiments; no credentials, providers or authority",
+      "implementation": "experiments/mode_haios_interop_e0.py, .github/workflows/mode-haios-interop-e0.yml",
+      "tests": 15,
+      "phase": "post-M15 (added 2026-11-08)"
+    },
+    "COCK": {
+      "id": "COCK",
+      "name": "Cockpit v1",
+      "type": "process",
+      "status": "PLANNED",
+      "zone": "Z1",
+      "description": "Unified operator view candidate; docs only, pending Z2 ratification",
+      "implementation": "COCKPIT_V1_PRIORITY_QUEUE_ENTRY.md, COCKPIT_V1_IMPLEMENTATION_ROADMAP.md",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)"
     }
   },
   "edges": [
@@ -669,17 +856,131 @@
       "label": "F-RBE candidates",
       "description": "",
       "feedback": false
+    },
+    {
+      "source": "TDG",
+      "target": "CIG",
+      "edge_type": "control_flow",
+      "label": "unclassified time control blocks PR",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "MTC",
+      "target": "MOLT",
+      "edge_type": "data_flow",
+      "label": "measured molt tier vs claimed (advisory)",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "CIP",
+      "target": "NF",
+      "edge_type": "data_flow",
+      "label": "PIN / RESOLVE events, hash-chained",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "SMAG",
+      "target": "EMP",
+      "edge_type": "data_flow",
+      "label": "smag_to_empirica_connector",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "IOS",
+      "target": "Z2",
+      "edge_type": "control_flow",
+      "label": "awaiting_z2 candidate relay; merge is the Z2 act",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "RCO",
+      "target": "Z2",
+      "edge_type": "control_flow",
+      "label": "ROUTE_TO_Z2; receipts are admission routing only",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "SGF",
+      "target": "SG",
+      "edge_type": "control_flow",
+      "label": "fails PR / weekly when stale or invalid",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "SG",
+      "target": "ORC",
+      "edge_type": "data_flow",
+      "label": "repository projection reads system_graph.json",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "IOS",
+      "target": "ACAT",
+      "edge_type": "control_flow",
+      "label": "harness tier T6 boots the ACAT API",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "ACAT",
+      "target": "ACATR",
+      "edge_type": "causality",
+      "label": "ACAT-R extends the three-phase ACAT method",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "RMN",
+      "target": "ENAV",
+      "edge_type": "data_flow",
+      "label": "upstream discovery handoff",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "RMN",
+      "target": "RSYS",
+      "edge_type": "data_flow",
+      "label": "handoff function composed by Resource System",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "ENAV",
+      "target": "RSYS",
+      "edge_type": "data_flow",
+      "label": "handoff function composed by Resource System",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "COCK",
+      "target": "Q",
+      "edge_type": "control_flow",
+      "label": "candidate block for PRIORITY_QUEUE.md (pending Z2)",
+      "description": "",
+      "feedback": false
     }
   ],
   "validation_status": {
     "valid": true,
     "errors": [],
-    "warnings": []
+    "warnings": [
+      "Orphaned nodes (no edges): {'MODE'}"
+    ]
   },
   "zone_distribution": {
-    "Z2": 4,
-    "Z1": 3,
-    "code": 14,
-    "CI": 1
+    "Z2": 5,
+    "Z1": 8,
+    "code": 20,
+    "CI": 6
   }
 }
