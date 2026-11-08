@@ -20,6 +20,9 @@ on:
     paths:
       - 'system_graph_generator.py'
       - 'system_graph.json'
+  # temporal_class: OBSERVATIONAL — the weekly tick only samples the age of
+  # system_graph.json and files a tracking issue. It grants no internal priority,
+  # deadline, authority or obligation to act (TEMPORAL_DISSOLUTION_POLICY.md).
   schedule:
     - cron: '17 6 * * 1'
   workflow_dispatch:
