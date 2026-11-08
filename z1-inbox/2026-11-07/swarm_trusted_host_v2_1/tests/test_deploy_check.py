@@ -58,6 +58,15 @@ class HonestTree(Base):
                           "import responses", "import bridge_v2", "import scoring"):
             self.assertNotIn(forbidden, text)
 
+    def test_the_tools_own_claims_are_narrow_and_name_what_it_does_not_cover(self):
+        import ast
+        doc = ast.get_docstring(ast.parse(TOOL.read_text())) or ""
+        flat = " ".join(doc.split()).lower()
+        self.assertNotIn("nothing else could be loaded", flat)   # an absolute claim the limits do not support
+        self.assertIn("import-path vectors", flat)               # says what it actually examines
+        for uncovered in ("site-packages", "pythonpath", "after the check"):
+            self.assertIn(uncovered, flat)                       # and what it does not
+
     def test_tool_file_table_matches_pins_py(self):
         ns = {}
         exec(compile(TOOL.read_text(), str(TOOL), "exec"), ns)

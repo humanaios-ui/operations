@@ -5,9 +5,13 @@ In-process pin checks are made by the code being checked: a modified module can 
 defines the table every check reads. This tool is the independent half. The deployer runs it in a SEPARATE process
 (python -I) before the writer starts, with the plan hash it was given out of band, and starts nothing on exit 2.
 
-It proves the BYTES on disk match the plan's pins and that nothing else could be loaded in their place. It does not
-prove what a running process executes, that this tool itself is genuine (pin its hash separately), or that the host
-is honest. Exit 0 = ok, 2 = problems (JSON on stdout either way)."""
+It proves the BYTES on disk match the plan's pins, and it looks for the import-path vectors it knows about inside the
+package root: extra or shadowing modules, bytecode, loadable extensions, .pth files, symlinks, non-empty or missing
+initializers and unexpected top-level directories. That list is not exhaustive. It does NOT cover the Python
+installation and site-packages, PYTHONPATH and other environment variables, .pth files outside this tree, the working
+directory a launcher chooses, or anything that changes after the check runs. It does not prove what a running process
+executes, that this tool itself is genuine (pin its hash separately), that anything forces it to run, or that the
+host is honest. Exit 0 = ok, 2 = problems (JSON on stdout either way)."""
 import argparse
 import hashlib
 import json

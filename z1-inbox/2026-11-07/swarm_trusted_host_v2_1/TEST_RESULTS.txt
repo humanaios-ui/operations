@@ -1,7 +1,7 @@
 AUTHOR-RUN TEST LOG (Claude Code, Z1). NOT an independent reproduction. Authority: NONE.
-Built on branch head e15fa9d plus the uncommitted changes of the commit that adds this file.
-Date: 2026-11-08T02:37:45Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
-Python: Python 3.13.18 (the same suite also passed, 182/182, on Python 3.11 in a separate venv)
+Built on branch head a56ec7e plus the uncommitted changes of the commit that adds this file.
+Date: 2026-11-08T02:40:39Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
+Python: Python 3.13.18 (the same suite also passed, 183/183, on Python 3.11 in a separate venv)
 Command: python -I -m unittest discover -s tests -t . -v      (run from this directory)
 
 test_ancestor_owned_by_another_user_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_ancestor_owned_by_another_user_refused) ... ok
@@ -20,6 +20,7 @@ test_allowed_uid_without_so_peercred_refused_at_start (tests.test_codereview_fin
 test_plan_without_pins_py_hash_rejected (tests.test_codereview_findings.PinsFileIsPinned.test_plan_without_pins_py_hash_rejected) ... ok
 test_wrong_pins_py_hash_refused_at_writer_start (tests.test_codereview_findings.PinsFileIsPinned.test_wrong_pins_py_hash_refused_at_writer_start) ... ok
 test_matching_tree_passes_with_exit_0 (tests.test_deploy_check.HonestTree.test_matching_tree_passes_with_exit_0) ... ok
+test_the_tools_own_claims_are_narrow_and_name_what_it_does_not_cover (tests.test_deploy_check.HonestTree.test_the_tools_own_claims_are_narrow_and_name_what_it_does_not_cover) ... ok
 test_tool_does_not_import_the_code_it_checks (tests.test_deploy_check.HonestTree.test_tool_does_not_import_the_code_it_checks) ... ok
 test_tool_file_table_matches_pins_py (tests.test_deploy_check.HonestTree.test_tool_file_table_matches_pins_py) ... ok
 test_canonical_package_root_is_accepted (tests.test_deploy_check.HostileTree.test_canonical_package_root_is_accepted) ... ok
@@ -188,6 +189,6 @@ test_wrong_actor_refused_without_write (tests.test_writer.ProofTests.test_wrong_
 test_wrong_pubkey_rejected (tests.test_writer.ProofTests.test_wrong_pubkey_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 182 tests in 18.457s
+Ran 183 tests in 18.477s
 
 OK
