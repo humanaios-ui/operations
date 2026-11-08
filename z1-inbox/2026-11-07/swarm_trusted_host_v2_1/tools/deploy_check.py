@@ -27,8 +27,11 @@ EXPECTED_FILES = {
     "pins_sha256": "src/pins.py",
     "responses_sha256": "src/responses.py",
 }
-# Modules that may exist in the deployed code directories without a pin (they only import pinned code or are inert).
-UNPINNED_PYTHON_OK = {"src/__init__.py", "integration/__init__.py", "src/offline_pipe_demo.py"}
+# Package initializers run when the package is imported, so they are code. They must be EMPTY (zero bytes).
+INITIALIZERS = {"src/__init__.py", "integration/__init__.py"}
+# A demo module no pinned module imports (a test asserts that). It is tolerated only because it never loads
+# on its own; do not execute it in a deployment.
+UNPINNED_PYTHON_OK = {"src/offline_pipe_demo.py"}
 CODE_DIRS = ("src", "integration")
 BAD_SUFFIXES = (".pyc", ".pyo", ".pth", ".so", ".pyd")
 BAD_TOP_LEVEL = {"sitecustomize.py", "usercustomize.py"}
@@ -82,7 +85,7 @@ def check(package_root, plan_path, plan_sha256):
             problems.append("HASH_MISMATCH:" + name)
     pinned_paths = set(EXPECTED_FILES.values())
     for top in sorted(os.listdir(package_root)) if os.path.isdir(package_root) else []:
-        if top in BAD_TOP_LEVEL:
+        if top in BAD_TOP_LEVEL or top.endswith(".py"):
             problems.append("UNEXPECTED_PYTHON_FILE:" + top)
     for code_dir in CODE_DIRS:
         base = os.path.join(package_root, code_dir)
@@ -95,6 +98,12 @@ def check(package_root, plan_path, plan_sha256):
                 elif entry == "__pycache__" or entry.endswith(BAD_SUFFIXES):
                     problems.append("BYTECODE_PRESENT:" + rel if entry == "__pycache__" or entry.endswith((".pyc", ".pyo"))
                                     else "LOADABLE_FILE_PRESENT:" + rel)
+                elif rel in INITIALIZERS:
+                    try:
+                        if _read_regular(full) != b"":
+                            problems.append("INITIALIZER_NOT_EMPTY:" + rel)
+                    except OSError:
+                        problems.append("INITIALIZER_NOT_EMPTY:" + rel)
                 elif entry.endswith(".py") and rel not in pinned_paths and rel not in UNPINNED_PYTHON_OK:
                     problems.append("UNEXPECTED_PYTHON_FILE:" + rel)
     return {"ok": not problems, "problems": sorted(set(problems))}

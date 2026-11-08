@@ -113,6 +113,35 @@ class HostileTree(Base):
         code, body = self.run_tool()
         self.assertIn("NOT_A_REGULAR_FILE:verifier_sha256", body["problems"])
 
+    def test_modified_package_initializer_is_refused(self):
+        # Python runs __init__.py when a package is imported, so it is code even though it is not pinned.
+        (self.pkg / "src" / "__init__.py").write_text("import os; os.system('true')\n")
+        code, body = self.run_tool()
+        self.assertEqual(code, 2)
+        self.assertIn("INITIALIZER_NOT_EMPTY:src/__init__.py", body["problems"])
+
+    def test_modified_integration_initializer_is_refused(self):
+        (self.pkg / "integration" / "__init__.py").write_text("x = 1\n")
+        code, body = self.run_tool()
+        self.assertIn("INITIALIZER_NOT_EMPTY:integration/__init__.py", body["problems"])
+
+    def test_whitespace_only_initializer_is_still_refused(self):
+        (self.pkg / "src" / "__init__.py").write_text("\n")
+        code, body = self.run_tool()
+        self.assertIn("INITIALIZER_NOT_EMPTY:src/__init__.py", body["problems"])
+
+    def test_stray_python_file_at_the_package_root_is_refused(self):
+        (self.pkg / "conftest.py").write_text("x = 1\n")
+        code, body = self.run_tool()
+        self.assertIn("UNEXPECTED_PYTHON_FILE:conftest.py", body["problems"])
+
+    def test_the_unpinned_demo_allowance_rests_on_nothing_importing_it(self):
+        for folder in ("src", "integration"):
+            for path in (PKG / folder).glob("*.py"):
+                if path.name == "offline_pipe_demo.py":
+                    continue
+                self.assertNotIn("offline_pipe_demo", path.read_text(), path.name)
+
     def test_symlinked_directory_inside_the_code_tree_refused(self):
         outside = self.td / "outside"; outside.mkdir(); (outside / "json.py").write_text("x = 1\n")
         (self.pkg / "src" / "sub").symlink_to(outside, target_is_directory=True)
