@@ -54,3 +54,10 @@ python -I tools/deploy_check.py --package-root PKG_DIR --plan plan.json --plan-s
 
 Exit 0 means the pinned files match the plan, both package initializers exist and are empty, no loadable file or unexpected directory sits at the package root, `src/` and `integration/` are real directories (not symlinks), and no extra `.py`, bytecode, `.pth`, `sitecustomize` or symlink is present in `src/` or `integration/`. `src/offline_pipe_demo.py` is tolerated because nothing imports it; do not execute it in a deployment. Exit 2 lists the problems as JSON. Start nothing on exit 2. It proves bytes on disk, not what a running process executes, and you must pin the hash of `tools/deploy_check.py` yourself. Nothing in this package forces a deployer to run it.
 
+## Round 4: independent challenge handoff
+
+**Status: security hold; candidate repair has NOT been independently validated.** After the earlier 183/183 author-run log, the draft branch added descriptor-relative, no-follow evidence reads/writes and writer-lock creation; `src/service.py` now changes socket-entry ownership and mode relative to a checked parent descriptor. Six new deterministic regression tests are in `tests/test_descriptor_io_round4.py`.
+
+The prior `TEST_RESULTS.txt` is preserved unchanged as historical **pre-round-4 author-run** evidence. It is not a passing test record for the new source. A reviewer must rerun the **exact final head** with `cryptography==50.0.1`, assert the exact suite count and all privilege-sensitive tests, replay DeMarius's original same-UID race, verify canary integrity and isolation, and separately review Unix-socket bind pathname limitations.
+
+The standalone `tools/deploy_check.py` is still **not enforced by the launcher** and checks configured on-disk code, not executed code. Do not claim deployment source identity without an externally pinned, trusted launcher, environment and code tree. Signer-key custody, off-host immutable capture, provider-origin identity and Z2/Z3 authority remain unresolved. **No live calls, spending, merge or scored execution.**
