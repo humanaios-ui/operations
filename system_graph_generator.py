@@ -535,7 +535,7 @@ class SystemGraphGenerator:
 
         # Loop-closing edges. The governance machinery is a deliberate feedback
         # loop (measure -> propose -> ratify -> apply -> measure), so a strict
-        # DAG check over every edge always fails. These edges are the ones that
+        # DAG check over every edge cannot pass. These edges are the ones that
         # return state to an earlier stage; the forward edges must stay acyclic
         # (validate_graph), so a NEW cycle among forward edges is still an error.
         # Keep this set minimal: tests/test_system_graph_generator.py asserts

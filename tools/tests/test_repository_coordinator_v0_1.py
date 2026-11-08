@@ -1746,9 +1746,13 @@ def test_oracle_repository_reads_operations_system_graph():
         for a in graph["assertions"]
         if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
     }
-    assert values["node_count"] == 22
-    assert values["edge_count"] == 53
-    assert values["generated_at"] == "2026-09-13T15:12:28.926529"
+    # Read the expected values from the committed graph so regenerating
+    # system_graph.json does not require editing a pin here; the test still
+    # checks that the oracle projection matches the file on disk.
+    committed = json.loads((root / "system_graph.json").read_text())
+    assert values["node_count"] == len(committed["nodes"])
+    assert values["edge_count"] == len(committed["edges"])
+    assert values["generated_at"] == committed["generated_at"]
     assert graph["authority"]["authority_effect"] == "NONE"
 
 
