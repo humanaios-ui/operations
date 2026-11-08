@@ -564,12 +564,13 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md` | Z2 rulings — 2026-10-31 (signed via .z1-control/ratify.py) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
-## Excluded from the conversion record (2)
+## Excluded from the conversion record (3)
 
 Neither a candidate nor a record. Listed because an exclusion the index accepts must still be visible — silence is what the coverage rule exists to prevent.
 
 - `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/README.md`
 - `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/SECURITY_GAPS.md`
+- `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/evidence/ROUND4_INDEPENDENT_HANDOFF.md`
 
 ---
 
