@@ -1125,3 +1125,4 @@ records:
 excluded:
 - z1-inbox/2026-11-07/swarm_trusted_host_v2_1/README.md
 - z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/SECURITY_GAPS.md
+- z1-inbox/2026-11-07/swarm_trusted_host_v2_1/evidence/ROUND4_INDEPENDENT_HANDOFF.md
