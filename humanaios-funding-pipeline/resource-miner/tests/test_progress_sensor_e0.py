@@ -190,5 +190,42 @@ class ProgressSensorE0Tests(unittest.TestCase):
         a=evaluate_progress(x);x["source_observations"].reverse();self.assertEqual(a,evaluate_progress(x))
 
 
+    def test_november_provider_receipt_after_deadline_is_not_award(self):
+        # Sanitized synthetic projection of observed Nov 9 provider receipt. No private Gmail data.
+        x = sample()
+        x["as_of"] = "2026-11-09T13:30:00Z"
+        x["signals"].append(dict(
+            signal("PROVIDER_RECEIPT_OBSERVED", "swarm-2026-paper-receipt"),
+            observed_at="2026-11-09T11:28:02Z",
+            evidence_ref="opaque-provider-paper-receipt",
+        ))
+        r = evaluate_progress(x)
+        self.assertEqual(r["deadline_state"], "PASSED")
+        self.assertEqual(r["submission_standing"], "PROVIDER_RECEIPT_OBSERVED_UNAUTHENTICATED")
+        self.assertFalse(r["provider_identity_verified_by_sensor"])
+        types = [i["type"] for i in r["trigger_candidates"]]
+        self.assertIn("REVIEW_REPORTED_PROVIDER_RECEIPT", types)
+        self.assertNotIn("DEADLINE_PASSED_WITH_UNKNOWN_OUTCOME", types)
+        self.assertFalse(r["can_submit"])
+        self.assertFalse(r["can_dispatch"])
+        self.assertEqual(r["authority_effect"], "NONE")
+
+    def test_followon_funding_form_must_not_impersonate_paper_receipt(self):
+        # The Notion acknowledgment is a distinct child application, unsupported by E0 schema.
+        x = sample()
+        x["as_of"] = "2026-11-09T13:30:00Z"
+        x["signals"].append({
+            "observation_id": "funding-form-2026-received",
+            "opportunity_id": ID,
+            "kind": "FUNDING_REQUEST_RECEIPT_OBSERVED",
+            "source_kind": "GMAIL_CONNECTOR_OBSERVATION",
+            "observed_at": "2026-11-09T13:22:41Z",
+            "evidence_ref": "opaque-funding-form-ack",
+        })
+        with self.assertRaises(ValueError):
+            evaluate_progress(x)
+
+
+
 if __name__ == "__main__":
     unittest.main()
