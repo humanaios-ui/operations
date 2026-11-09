@@ -46,3 +46,7 @@ Checked and held: the projection never echoes `evidence_ref` or `observation_id`
 ### Authority
 
 `AUTHORITY_EFFECT=NONE`. No email sends, message labeling, calendar writes, URL crawls, provider submissions, credentials, spending, Z2/Z3, merge, publication, agent initiation or live external tool actions.
+
+## Later verified source receipt observation (November 9, 2026)
+
+The November 7 bounded demonstration above is historical. **Subsequent first-party receipt evidence changed the observation.** Apart confirmed the research PDF was submitted by the deadline, while the follow-on funding Notion form issued a *separate* received acknowledgment. Neither proves judging, award or funding receipt. See [APART_SWARM_RECEIPTS_20261109.md](./APART_SWARM_RECEIPTS_20261109.md) for the redacted source hierarchy, PDF attachment digest, independent application states, and regression gates. The E0 sensor can project the paper receipt as an unattested provider observation; it must reject funding-form signals until a separate typed child-case implementation and source verification is reviewed. No activation or authority change.
