@@ -46,3 +46,14 @@ def test_check_flags_age(tmp_path):
     p = tmp_path / 'g.json'
     p.write_text(json.dumps(d))
     assert any('days old' in x for x in sgg.check(str(p), max_age_days=30))
+
+
+def test_every_orphan_has_a_note():
+    """A node with no edges is allowed only when it says why."""
+    gen = _built()
+    touched = set()
+    for e in gen.edges:
+        touched.add(e.source)
+        touched.add(e.target)
+    bare = [i for i, n in gen.nodes.items() if i not in touched and not n.notes.strip()]
+    assert bare == [], 'orphan nodes without notes: %s' % bare

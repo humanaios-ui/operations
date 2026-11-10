@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-11-10T13:15:26.081033",
+  "generated_at": "2026-11-10T14:27:46.207189",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -11,7 +11,8 @@
       "description": "Work order queue with scoring: score = impact + \u03a3 impact(unblocks); READY gate controls start",
       "implementation": "priority_queue_engine.py",
       "tests": 15,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "FS": {
       "id": "FS",
@@ -22,7 +23,8 @@
       "description": "Extract F/IC/H candidates from events, molt ledger, transcripts; emit candidate blocks",
       "implementation": "findings_scan.py (skill)",
       "tests": 12,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "OM": {
       "id": "OM",
@@ -33,7 +35,8 @@
       "description": "Z1 read of Z2 rules, contestable; D10 predictions on Z2 decisions",
       "implementation": "operator_model_v0_2.py",
       "tests": 10,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "PRS": {
       "id": "PRS",
@@ -44,7 +47,8 @@
       "description": "Locked preregistered experiment execution; no parameter overrides",
       "implementation": "prs_run.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "AG": {
       "id": "AG",
@@ -55,7 +59,8 @@
       "description": "Task execution with capacity enforcement; investor/business caps",
       "implementation": "agent_core.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "ADV": {
       "id": "ADV",
@@ -66,7 +71,8 @@
       "description": "Gate robustness testing; attack execution and catch-rate tracking",
       "implementation": "adv_eval_v1.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "TC": {
       "id": "TC",
@@ -77,7 +83,8 @@
       "description": "Z1 reply tuning against behavior_spec.json dials; DRIFT detection",
       "implementation": "tune_check.py",
       "tests": 8,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "EV": {
       "id": "EV",
@@ -88,7 +95,8 @@
       "description": "Append-only hash-chained event logs (*.jsonl)",
       "implementation": "event logs",
       "tests": 20,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "NF": {
       "id": "NF",
@@ -99,7 +107,8 @@
       "description": "Brier scores, calibration metrics per predictor/constant",
       "implementation": "NF_LEDGER.jsonl",
       "tests": 12,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "REG": {
       "id": "REG",
@@ -110,7 +119,8 @@
       "description": "Public record of all ratified decisions, hypotheses, measurements",
       "implementation": "REGISTERED.md",
       "tests": 15,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "CONST": {
       "id": "CONST",
@@ -121,7 +131,8 @@
       "description": "behavior_spec.json, integrity_modes.json, rubrics, weights; each carries molt_id",
       "implementation": "constants/*.json",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "MOLT": {
       "id": "MOLT",
@@ -132,7 +143,8 @@
       "description": "READ \u2192 PROPOSE \u2192 PREDICT \u2192 RATIFY \u2192 APPLY \u2192 MEASURE \u2192 KEEP/REVERT",
       "implementation": "molt_cycle.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "ML": {
       "id": "ML",
@@ -143,7 +155,8 @@
       "description": "molt_events.jsonl: chain of molt decisions and outcomes",
       "implementation": "molt_events.jsonl",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "Z2": {
       "id": "Z2",
@@ -154,7 +167,8 @@
       "description": "Hash-based ratification; no prose decisions",
       "implementation": "CLAUDE.md authority spec",
       "tests": 20,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "CIG": {
       "id": "CIG",
@@ -165,7 +179,8 @@
       "description": "5-gate sequence: falsifier_lint, z2_hash_verify, anti_cascade, merkle_root, full_ci",
       "implementation": "ci_gates.py, z2_ratification_gate.yml",
       "tests": 141,
-      "phase": "M11-M15"
+      "phase": "M11-M15",
+      "notes": ""
     },
     "MK": {
       "id": "MK",
@@ -176,7 +191,8 @@
       "description": "Ledger inclusion and append-only proofs",
       "implementation": "registry_merkle_v1.py",
       "tests": 30,
-      "phase": "M14"
+      "phase": "M14",
+      "notes": ""
     },
     "OTS": {
       "id": "OTS",
@@ -187,7 +203,8 @@
       "description": "OpenTimestamps \u2192 Bitcoin anchor for root hash",
       "implementation": "anchor_root.sh",
       "tests": 0,
-      "phase": "Phase 3 planned"
+      "phase": "Phase 3 planned",
+      "notes": ""
     },
     "RC": {
       "id": "RC",
@@ -198,7 +215,8 @@
       "description": "B.6 ritual: claim vs tree walk-back; RECEIPT-GAP detection",
       "implementation": "receipt_reconciliation.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "ST": {
       "id": "ST",
@@ -209,7 +227,8 @@
       "description": "Nightly constant decay detection; emit STALE gaps for Z2 review",
       "implementation": "stale_sweep.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "RU": {
       "id": "RU",
@@ -220,7 +239,8 @@
       "description": "Canonical unit registry: dimension, kind, sign, conservation, instrument, substitutes, falsifier per unit. No numeraire; cross-dimension conversion only via a measured PRICE event",
       "implementation": "RESOURCE_UNITS.yaml",
       "tests": 0,
-      "phase": "Q-RBE-01 (candidate)"
+      "phase": "Q-RBE-01 (candidate)",
+      "notes": ""
     },
     "RL": {
       "id": "RL",
@@ -231,7 +251,8 @@
       "description": "Append-only, hash-chained CLAIM / SPEND / YIELD / CAP / PRICE / WASTE / CLOSE events; yield density per constraint unit",
       "implementation": "resource_ledger_v0_1.py, ledgers/RESOURCE_LEDGER.jsonl",
       "tests": 0,
-      "phase": "Q-RBE-01 (candidate)"
+      "phase": "Q-RBE-01 (candidate)",
+      "notes": ""
     },
     "RCEN": {
       "id": "RCEN",
@@ -242,7 +263,8 @@
       "description": "Mechanical count of open obligations, stocks and liabilities against the binding constraint; writes outputs/resource_census.json",
       "implementation": "resource_census_v0_1.py",
       "tests": 0,
-      "phase": "Q-RBE-01 (candidate)"
+      "phase": "Q-RBE-01 (candidate)",
+      "notes": ""
     },
     "TDG": {
       "id": "TDG",
@@ -253,7 +275,8 @@
       "description": "Blocks PRs that add an unclassified internal time-based control (deadline, window, schedule); allowed classes OBSERVATIONAL, TECHNICAL_SAFETY, REGULATORY_EXTERNAL, HISTORICAL_RECORD",
       "implementation": "tests/test_temporal_dissolution_gate.py, .github/workflows/temporal-dissolution-gate.yml",
       "tests": 10,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "MTC": {
       "id": "MTC",
@@ -264,7 +287,8 @@
       "description": "Advisory: measures a PR's molt tier (0/1/2) from the paths its diff touches and compares it with the author's claim; advisory only, does not block merge",
       "implementation": "tools/molting_protocol_diff_v1_0.py, .github/workflows/molt-tier-check.yml",
       "tests": 0,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "CIP": {
       "id": "CIP",
@@ -275,7 +299,8 @@
       "description": "PIN a PR author's per-check predictions before checks resolve, RESOLVE against actual conclusions, CONSOLIDATE into a hash-chained ledger; inherited declarations are refused",
       "implementation": "tools/ci_predict_pin_v1_0.py, tools/ci_predict_resolve_v1_0.py, tools/ci_predict_consolidate_v1_0.py",
       "tests": 57,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "SMAG": {
       "id": "SMAG",
@@ -286,7 +311,8 @@
       "description": "Author-confidence capture on PRs, consolidation, gap analysis and feedback; Meta-SMAG reviews the loop's own accuracy",
       "implementation": "tools/smag_consolidate_v1_0.py, tools/smag_gap_analysis_v1_0.py, .github/workflows/smag-capture.yml, .github/workflows/smag-consolidate.yml",
       "tests": 26,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "EMP": {
       "id": "EMP",
@@ -297,7 +323,8 @@
       "description": "Connects SMAG calibration output to Empirica and records on-track reflex checkpoints",
       "implementation": "tools/smag_to_empirica_connector.py, .github/workflows/on-track-reflex-observe.yml, .empirica_reflex_logs/",
       "tests": 0,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "IOS": {
       "id": "IOS",
@@ -308,7 +335,8 @@
       "description": "Intent board, form and collaboration surfaces; reconcile relays awaiting_z2 candidates to Z2 (merge is the Z2 act); test harness tiers T0-T7",
       "implementation": "INTENT_GRAPH.yaml, tools/intent_os_reconcile_v1_0.py, tools/intent_os_test_harness_v1_0.py, .github/workflows/intent-os-reconcile.yml",
       "tests": 14,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "RCO": {
       "id": "RCO",
@@ -319,7 +347,8 @@
       "description": "Admission and backpressure index over open PRs (lanes, operator-queue capacity, decision receipts); admission routing only, no merge authority",
       "implementation": "tools/repository_coordinator_v0_1.py, .github/workflows/repository-coordinator.yml",
       "tests": 99,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "SG": {
       "id": "SG",
@@ -330,7 +359,8 @@
       "description": "This graph: canonical machine form of the governance process graph, generated from the edge list, validated for dangling edges and forward cycles",
       "implementation": "system_graph_generator.py, system_graph.json",
       "tests": 5,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "SGF": {
       "id": "SGF",
@@ -341,7 +371,8 @@
       "description": "Fails when the committed graph is invalid, differs from generator output, or (weekly) is older than 45 days; graph-capture-lint scores the multiplex",
       "implementation": "tools/graph_capture_lint_v1_0.py, .github/workflows/system-graph-freshness.yml, .github/workflows/graph-capture-lint.yml",
       "tests": 48,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "ORC": {
       "id": "ORC",
@@ -352,7 +383,8 @@
       "description": "Projects repository and workspace state (including system_graph.json) into oracle assertions; forecast replay",
       "implementation": "oracles/engine/oracle_engine_v0_1.py",
       "tests": 43,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "ACAT": {
       "id": "ACAT",
@@ -363,7 +395,8 @@
       "description": "ACAT assessment API with async job queue and database, deployed on Railway",
       "implementation": "acat/api, acat/db",
       "tests": 76,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "ACATR": {
       "id": "ACATR",
@@ -374,7 +407,8 @@
       "description": "General runtime calibration research prototype built on the three-phase ACAT method; authority effect NONE",
       "implementation": "experiments/acat_r_v01, .github/workflows/acat-r-v01.yml",
       "tests": 40,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "RMN": {
       "id": "RMN",
@@ -385,7 +419,8 @@
       "description": "Broad discovery of externally available resource opportunities; upstream of Entitlement Navigator",
       "implementation": "humanaios-funding-pipeline/resource-miner, .github/workflows/resource-miner-scan.yml",
       "tests": 0,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "ENAV": {
       "id": "ENAV",
@@ -396,7 +431,8 @@
       "description": "Resolves candidate opportunities toward eligibility and acquisition",
       "implementation": "humanaios-funding-pipeline/entitlement-navigator",
       "tests": 0,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "RSYS": {
       "id": "RSYS",
@@ -407,7 +443,8 @@
       "description": "Local prototype v0.1 (issue #588) composing Resource Miner and Entitlement Navigator through their handoff functions; caller-driven, explicit-tick only",
       "implementation": "humanaios-resource-system/resource_system",
       "tests": 55,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "MODE": {
       "id": "MODE",
@@ -418,7 +455,8 @@
       "description": "Candidate-only synthetic interoperability and publisher-influence experiments; no credentials, providers or authority",
       "implementation": "experiments/mode_haios_interop_e0.py, .github/workflows/mode-haios-interop-e0.yml",
       "tests": 15,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "COCK": {
       "id": "COCK",
@@ -429,7 +467,8 @@
       "description": "Unified operator view candidate; docs only, pending Z2 ratification",
       "implementation": "COCKPIT_V1_PRIORITY_QUEUE_ENTRY.md, COCKPIT_V1_IMPLEMENTATION_ROADMAP.md",
       "tests": 0,
-      "phase": "post-M15 (added 2026-11-08)"
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
     },
     "VER": {
       "id": "VER",
@@ -440,7 +479,8 @@
       "description": "Shared verifier for receipts that name an observed action and outcome; consumed by GNER, the collaboration-harmony prototype, the Core Machine and the MODE E0 workflow",
       "implementation": "tools/verified_receipts.py, tests/test_verified_receipts.py",
       "tests": 17,
-      "phase": "post-M15 (second pass 2026-11-10)"
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
     },
     "GNER": {
       "id": "GNER",
@@ -451,7 +491,8 @@
       "description": "Read-only relay: treats email as untrusted discovery only and verifies GitHub receipts outside the module (E0 interpret, E1 verify, E2 failure-signature correlation); no authority",
       "implementation": "tools/gner_notification_e0.py, tools/gner_verify_e1.py, tools/gner_failure_signatures_e2.py",
       "tests": 32,
-      "phase": "post-M15 (second pass 2026-11-10)"
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
     },
     "HCOLLAB": {
       "id": "HCOLLAB",
@@ -462,7 +503,8 @@
       "description": "Executable stress prototype for H-COLLAB-HARMONY-01 that consumes pinned verified receipts",
       "implementation": "experiments/collab_harmony_01",
       "tests": 8,
-      "phase": "post-M15 (second pass 2026-11-10)"
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
     },
     "HCM": {
       "id": "HCM",
@@ -473,7 +515,8 @@
       "description": "Bytecode compiler, integrity-checking decoder and pure replay VM for the Operations contract; no external-action handler; authority effect NONE; ratified as Q-HCM-CORE-MACHINE-01",
       "implementation": "tools/humanaios_core_machine_v0_1.py, humanaios_core.py",
       "tests": 47,
-      "phase": "post-M15 (second pass 2026-11-10)"
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
     },
     "CONV": {
       "id": "CONV",
@@ -484,7 +527,8 @@
       "description": "Grades convergence between two agent-authored graphs by source disjointness and access record; corroboration weight is zero when both read the same source",
       "implementation": "tools/graph_convergence_v1_0.py, GRAPH_CONVERGENCE.md",
       "tests": 0,
-      "phase": "post-M15 (second pass 2026-11-10)"
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
     },
     "WIT": {
       "id": "WIT",
@@ -495,7 +539,8 @@
       "description": "Witness framework and experiments (arena, live proof, voice texture, SCVC milestone witness) plus the REGISTERED.md fix-citation check; read-only and evidence-first",
       "implementation": "tools/witness_framework.py, WITNESS_SERVICE_CONTRACT.md, experiments/witness-arena, .github/workflows/scvc-milestone-witness.yml",
       "tests": 15,
-      "phase": "post-M15 (second pass 2026-11-10)"
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
     },
     "HIAE": {
       "id": "HIAE",
@@ -506,7 +551,140 @@
       "description": "Z1 proposal, not ratified: neutral rotation-based reviewer assignment with conflict exclusion and versioned assessment receipts",
       "implementation": "tools/hiae_assurance.py",
       "tests": 39,
-      "phase": "post-M15 (second pass 2026-11-10)"
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
+    },
+    "CUST": {
+      "id": "CUST",
+      "name": "Control-Plane Custody Observer",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Normalizes replayable control-plane observations and derives custody state; read-only, observation is not authority (CPC-001)",
+      "implementation": "tools/control_plane_custody_observer_v0_1.py, schemas/control_plane_custody_event_v0_1.schema.json",
+      "tests": 5,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. PR titles say it adapts GitHub evidence into custody observations (#621, #623), but no file in the tree names the producer or consumer of that data. Add an edge when one does."
+    },
+    "WEB": {
+      "id": "WEB",
+      "name": "Workspace Evidence Bus",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Connects Google Workspace evidence custody to GitHub validation (issue #681) without making Gmail, Drive or GitHub the single source of truth; round-trip CI workflow",
+      "implementation": "workspace_evidence_bus/, .github/workflows/workspace-evidence-bus-roundtrip.yml",
+      "tests": 10,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Its README names external systems (Gmail, Drive, Apps Script, GitHub), none of which are graph nodes. The link to HMBM continuity (#685) is by PR title only."
+    },
+    "ATLAS": {
+      "id": "ATLAS",
+      "name": "Codebase Atlas",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Internal evidence-linked atlas of the codebase (issue #834) with component map and bridges; has its own CI workflow",
+      "implementation": "architecture/codebase_atlas.py, architecture/codebase_atlas_bridges.py, .github/workflows/codebase-atlas.yml",
+      "tests": 18,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. It describes the codebase and may read many nodes' files, but no single reference was checked. Status not verified by a run."
+    },
+    "ITEL": {
+      "id": "ITEL",
+      "name": "Industry Telemetry",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Bounded Q4 industry telemetry and human triage pilot: fetches fixed public indexes and proposes human review of new links; no forecast resolution, no governance change",
+      "implementation": "tools/industry_telemetry_v0_1.py, .github/workflows/industry-telemetry.yml",
+      "tests": 8,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Observational only by design (temporal class OBSERVATIONAL): its output goes to human triage, not to a graph node."
+    },
+    "OBS": {
+      "id": "OBS",
+      "name": "Operations Observatory E0",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Living Operations Observatory: read-only three-repo GitHub kinetics view (issue #1088), browser UI plus tests",
+      "implementation": "ui/operations-observatory-e0.js, ui/operations-observatory-e0.html, tools/tests/test_operations_observatory_e0.py",
+      "tests": 5,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Reads GitHub activity, which is outside the graph. Risk-observation tests (RISK-OBS-001) mention it, but the direction of any data flow was not checked."
+    },
+    "HOBJ": {
+      "id": "HOBJ",
+      "name": "Human Objective E0/E1",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Offline human-objective to evidence-backed synthetic recommendation (E0), and URA-format recommendation (E1); synthetic fixtures only",
+      "implementation": "experiments/human_objective_e0.py, experiments/human_objective_e1.py",
+      "tests": 17,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. The MODE E0 workflow lists human_objective_e1.py among its trigger paths, but a trigger path does not show a data flow, so no edge was added."
+    },
+    "GPCS": {
+      "id": "GPCS",
+      "name": "GPCS Translation Contract",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "GPCS-001: advisory cross-session memory translation contract with its own CI workflow",
+      "implementation": "gpcs/translation.py, .github/workflows/gpcs-contract.yml",
+      "tests": 9,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Advisory by its own description. No file shows which node consumes the translation."
+    },
+    "DIGEST": {
+      "id": "DIGEST",
+      "name": "Daily Topic Digest",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Scheduled platform signal collection, topic-to-mitigation mapping and gap detection; inbound email command processor for digest replies",
+      "implementation": "scripts/platform-monitor.py, scripts/map-to-mitigation.py, scripts/gap-detector.py, entry_protocol/gmail_push_adapter.py, .github/workflows/daily-topic-digest.yml",
+      "tests": 0,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. It runs on a schedule, so it carries a temporal class that was not reviewed here. Test count 0 because no matching test file was identified."
+    },
+    "GL": {
+      "id": "GL",
+      "name": "Guiding Light",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "General evidence-to-target gradient engine (v0.2) with adapters and a career-gradient example",
+      "implementation": "services/guiding_light.py, services/guiding_light_adapters.py, data/GUIDING_LIGHT_GRADIENT.schema.json",
+      "tests": 10,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Its docs describe user-facing gradients; none of the graph's nodes is named as input or output."
+    },
+    "ORCID": {
+      "id": "ORCID",
+      "name": "ORCID Publications Reconcile",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Read-only ORCID reconciliation (milestone B) for the publications manager, with tests run in CI",
+      "implementation": "orcid-publications-manager/orcid_works.py, orcid-publications-manager/fetch_orcid.py, .github/workflows/orcid-reconcile-tests.yml",
+      "tests": 33,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Talks to an external service (ORCID) only."
+    },
+    "EXPS": {
+      "id": "EXPS",
+      "name": "Z1 Research Experiments",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Grouped research tree: arena, automata lineage lab, constitutional tuning, PIER-001, OSF OAuth audit, wardens, risk-obs-001, SCVC and others; each has its own protocol and tests",
+      "implementation": "experiments/",
+      "tests": 0,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "Grouped node, not one process. No proven edge as a whole; some members are covered by their own nodes (ACAT-R, MODE, Witness, Collaboration Harmony). Test count 0 because the tree has many suites that were not totalled."
     }
   },
   "edges": [
@@ -1114,12 +1292,14 @@
   "validation_status": {
     "valid": true,
     "errors": [],
-    "warnings": []
+    "warnings": [
+      "Orphaned nodes (no edges): {'ITEL', 'EXPS', 'DIGEST', 'ATLAS', 'WEB', 'GPCS', 'OBS', 'CUST', 'ORCID', 'HOBJ', 'GL'}"
+    ]
   },
   "zone_distribution": {
     "Z2": 5,
-    "Z1": 13,
-    "code": 22,
+    "Z1": 23,
+    "code": 23,
     "CI": 6
   }
 }

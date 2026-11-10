@@ -117,6 +117,9 @@ def render(graph: dict, *, source_path: str, source_sha256: str, commit: str) ->
             tests = str(n.get('tests', '')).replace("|", "\\|")
             phase = str(n.get('phase', '')).replace("|", "\\|")
             desc = str(n.get("description", "")).replace("|", "\\|")
+            note = str(n.get("notes", "")).replace("|", "\\|")
+            if note:
+                desc = f"{desc} **Note:** {note}"
             out.append(f"| `{nid}` | {name} | {ntype} | {zone} | `{impl}` | {tests} | {phase} | {desc} |")
         out.append("")
 

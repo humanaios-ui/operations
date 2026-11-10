@@ -71,6 +71,7 @@ class Node:
     implementation: Optional[str] = None  # Python file, yml, etc.
     tests: int = 0
     phase: str = ""            # M1-M15 phase
+    notes: str = ""            # caveats, e.g. why a node has no proven edge
 
 
 @dataclass
@@ -822,6 +823,151 @@ class SystemGraphGenerator:
             implementation='tools/hiae_assurance.py',
             tests=39,
             phase='post-M15 (second pass 2026-11-10)',
+        ))
+
+        # DOCUMENTED ORPHANS (2026-11-10): real, present in the tree, but no edge could be proven from files.
+        # Each carries a note saying why. They are kept visible so a reader does not assume the graph is complete.
+        self.add_node(Node(
+            id='CUST',
+            name='Control-Plane Custody Observer',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Normalizes replayable control-plane observations and derives custody state; read-only, observation is not authority (CPC-001)',
+            implementation='tools/control_plane_custody_observer_v0_1.py, schemas/control_plane_custody_event_v0_1.schema.json',
+            tests=5,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. PR titles say it adapts GitHub evidence into custody observations (#621, #623), but no file in the tree names the producer or consumer of that data. Add an edge when one does.',
+        ))
+
+        self.add_node(Node(
+            id='WEB',
+            name='Workspace Evidence Bus',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Connects Google Workspace evidence custody to GitHub validation (issue #681) without making Gmail, Drive or GitHub the single source of truth; round-trip CI workflow',
+            implementation='workspace_evidence_bus/, .github/workflows/workspace-evidence-bus-roundtrip.yml',
+            tests=10,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. Its README names external systems (Gmail, Drive, Apps Script, GitHub), none of which are graph nodes. The link to HMBM continuity (#685) is by PR title only.',
+        ))
+
+        self.add_node(Node(
+            id='ATLAS',
+            name='Codebase Atlas',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Internal evidence-linked atlas of the codebase (issue #834) with component map and bridges; has its own CI workflow',
+            implementation='architecture/codebase_atlas.py, architecture/codebase_atlas_bridges.py, .github/workflows/codebase-atlas.yml',
+            tests=18,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes="No proven edge. It describes the codebase and may read many nodes' files, but no single reference was checked. Status not verified by a run.",
+        ))
+
+        self.add_node(Node(
+            id='ITEL',
+            name='Industry Telemetry',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Bounded Q4 industry telemetry and human triage pilot: fetches fixed public indexes and proposes human review of new links; no forecast resolution, no governance change',
+            implementation='tools/industry_telemetry_v0_1.py, .github/workflows/industry-telemetry.yml',
+            tests=8,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. Observational only by design (temporal class OBSERVATIONAL): its output goes to human triage, not to a graph node.',
+        ))
+
+        self.add_node(Node(
+            id='OBS',
+            name='Operations Observatory E0',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Living Operations Observatory: read-only three-repo GitHub kinetics view (issue #1088), browser UI plus tests',
+            implementation='ui/operations-observatory-e0.js, ui/operations-observatory-e0.html, tools/tests/test_operations_observatory_e0.py',
+            tests=5,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. Reads GitHub activity, which is outside the graph. Risk-observation tests (RISK-OBS-001) mention it, but the direction of any data flow was not checked.',
+        ))
+
+        self.add_node(Node(
+            id='HOBJ',
+            name='Human Objective E0/E1',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Offline human-objective to evidence-backed synthetic recommendation (E0), and URA-format recommendation (E1); synthetic fixtures only',
+            implementation='experiments/human_objective_e0.py, experiments/human_objective_e1.py',
+            tests=17,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. The MODE E0 workflow lists human_objective_e1.py among its trigger paths, but a trigger path does not show a data flow, so no edge was added.',
+        ))
+
+        self.add_node(Node(
+            id='GPCS',
+            name='GPCS Translation Contract',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='GPCS-001: advisory cross-session memory translation contract with its own CI workflow',
+            implementation='gpcs/translation.py, .github/workflows/gpcs-contract.yml',
+            tests=9,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. Advisory by its own description. No file shows which node consumes the translation.',
+        ))
+
+        self.add_node(Node(
+            id='DIGEST',
+            name='Daily Topic Digest',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Scheduled platform signal collection, topic-to-mitigation mapping and gap detection; inbound email command processor for digest replies',
+            implementation='scripts/platform-monitor.py, scripts/map-to-mitigation.py, scripts/gap-detector.py, entry_protocol/gmail_push_adapter.py, .github/workflows/daily-topic-digest.yml',
+            tests=0,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. It runs on a schedule, so it carries a temporal class that was not reviewed here. Test count 0 because no matching test file was identified.',
+        ))
+
+        self.add_node(Node(
+            id='GL',
+            name='Guiding Light',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='General evidence-to-target gradient engine (v0.2) with adapters and a career-gradient example',
+            implementation='services/guiding_light.py, services/guiding_light_adapters.py, data/GUIDING_LIGHT_GRADIENT.schema.json',
+            tests=10,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes="No proven edge. Its docs describe user-facing gradients; none of the graph's nodes is named as input or output.",
+        ))
+
+        self.add_node(Node(
+            id='ORCID',
+            name='ORCID Publications Reconcile',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='code',
+            description='Read-only ORCID reconciliation (milestone B) for the publications manager, with tests run in CI',
+            implementation='orcid-publications-manager/orcid_works.py, orcid-publications-manager/fetch_orcid.py, .github/workflows/orcid-reconcile-tests.yml',
+            tests=33,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='No proven edge. Talks to an external service (ORCID) only.',
+        ))
+
+        self.add_node(Node(
+            id='EXPS',
+            name='Z1 Research Experiments',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Grouped research tree: arena, automata lineage lab, constitutional tuning, PIER-001, OSF OAuth audit, wardens, risk-obs-001, SCVC and others; each has its own protocol and tests',
+            implementation='experiments/',
+            tests=0,
+            phase='post-M15 (orphan, noted 2026-11-10)',
+            notes='Grouped node, not one process. No proven edge as a whole; some members are covered by their own nodes (ACAT-R, MODE, Witness, Collaboration Harmony). Test count 0 because the tree has many suites that were not totalled.',
         ))
 
         # Loop-closing edges. The governance machinery is a deliberate feedback
