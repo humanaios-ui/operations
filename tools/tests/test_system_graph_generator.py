@@ -73,3 +73,29 @@ def test_output_is_deterministic_across_hash_seeds():
         assert r.returncode == 0, r.stderr
         outs.add(r.stdout)
     assert len(outs) == 1
+
+
+def _write_variant(tmp_path, mutate):
+    d = sgg.build_graph_dict()
+    mutate(d)
+    p = tmp_path / 'g.json'
+    p.write_text(json.dumps(d))
+    return str(p)
+
+
+def test_check_rejects_missing_timestamp_without_age_limit(tmp_path):
+    """The PR gate runs without --max-age-days; a graph with no usable timestamp must still fail."""
+    path = _write_variant(tmp_path, lambda d: d.pop('generated_at'))
+    assert any('generated_at' in x for x in sgg.check(path))
+
+
+def test_check_rejects_malformed_timestamp_without_age_limit(tmp_path):
+    path = _write_variant(tmp_path, lambda d: d.update(generated_at='not-a-date'))
+    assert any('generated_at' in x for x in sgg.check(path))
+
+
+def test_removed_edges_stay_removed():
+    """Edges dropped after review because no file supports them."""
+    pairs = {(e.source, e.target) for e in _built().edges}
+    for bad in [('CIP', 'NF'), ('VER', 'GNER'), ('VER', 'MODE'), ('ACAT', 'HIAE'), ('ACAT', 'ACATR'), ('TDG', 'CIG')]:
+        assert bad not in pairs, bad

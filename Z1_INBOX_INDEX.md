@@ -112,7 +112,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PR956-GOVERNANCE-ADMISSION-01** | Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff) | `z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md` |
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
-| 2026-11-12 | **Q-SYSTEM-GRAPH-REGEN-01** | Regenerate system_graph.json (57 nodes, 75 edges), count loop-closing edges as feedback, add a freshness gate | `z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md` |
+| 2026-11-12 | **Q-SYSTEM-GRAPH-REGEN-01** | Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate | `z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md` |
 
 ## Decided (19)
 

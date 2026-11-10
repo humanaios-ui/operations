@@ -546,6 +546,7 @@ class SystemGraphGenerator:
             implementation='tests/test_temporal_dissolution_gate.py, .github/workflows/temporal-dissolution-gate.yml',
             tests=10,
             phase='post-M15 (added 2026-11-08)',
+            notes='No proven edge. It is a standalone workflow and test; ci_gates.py and z2_ratification_gate.yml do not reference it, so it was not linked to CIG. Removed after review.',
         ))
 
         self.add_node(Node(
@@ -678,6 +679,7 @@ class SystemGraphGenerator:
             implementation='experiments/acat_r_v01, .github/workflows/acat-r-v01.yml',
             tests=40,
             phase='post-M15 (added 2026-11-08)',
+            notes='No proven edge. Its README says it extends the three-phase ACAT method; that is a method, not the code in acat/api, so no edge to the ACAT API node was kept.',
         ))
 
         self.add_node(Node(
@@ -726,6 +728,7 @@ class SystemGraphGenerator:
             implementation='experiments/mode_haios_interop_e0.py, .github/workflows/mode-haios-interop-e0.yml',
             tests=15,
             phase='post-M15 (added 2026-11-08)',
+            notes='No proven edge. The E0 workflow runs tests/test_verified_receipts.py and lists tools/verified_receipts.py as a trigger path, but experiments/mode_haios_interop_e0.py imports nothing from it. A trigger path is not a data flow.',
         ))
 
         self.add_node(Node(
@@ -747,7 +750,7 @@ class SystemGraphGenerator:
             type=NodeType.PROCESS.value,
             status=NodeStatus.LAID.value,
             zone='code',
-            description='Shared verifier for receipts that name an observed action and outcome; consumed by GNER, the collaboration-harmony prototype, the Core Machine and the MODE E0 workflow',
+            description='Shared verifier for receipts that name an observed action and outcome; imported by the collaboration-harmony prototype and the Core Machine (humanaios_core_machine_v0_1.py line 649); the MODE E0 workflow runs its tests but does not import it',
             implementation='tools/verified_receipts.py, tests/test_verified_receipts.py',
             tests=17,
             phase='post-M15 (second pass 2026-11-10)',
@@ -763,6 +766,7 @@ class SystemGraphGenerator:
             implementation='tools/gner_notification_e0.py, tools/gner_verify_e1.py, tools/gner_failure_signatures_e2.py',
             tests=32,
             phase='post-M15 (second pass 2026-11-10)',
+            notes='No proven edge. gner_notification_e0.py only has a parameter named verified_receipts; it does not import tools/verified_receipts.py, and E1 verifies run metadata through the GitHub API directly. Removed after review.',
         ))
 
         self.add_node(Node(
@@ -823,6 +827,7 @@ class SystemGraphGenerator:
             implementation='tools/hiae_assurance.py',
             tests=39,
             phase='post-M15 (second pass 2026-11-10)',
+            notes='No proven edge. The receipt carries an acat_version string (example value hard-coded), which names a protocol version and does not consume output from acat/api. Removed after review.',
         ))
 
         # DOCUMENTED ORPHANS (2026-11-10): real, present in the tree, but no edge could be proven from files.
@@ -970,6 +975,19 @@ class SystemGraphGenerator:
             notes='Grouped node, not one process. No proven edge as a whole; some members are covered by their own nodes (ACAT-R, MODE, Witness, Collaboration Harmony). Test count 0 because the tree has many suites that were not totalled.',
         ))
 
+        self.add_node(Node(
+            id='CIL',
+            name='CI Prediction Ledger',
+            type=NodeType.LEDGER.value,
+            status=NodeStatus.LAID.value,
+            zone='code',
+            description='Hash-chained ledger of CI-check predictions, kept separate from NF_LEDGER.jsonl on purpose so no pending Z2 governance item is settled by side effect',
+            implementation='ledgers/CI_PREDICT_LEDGER.jsonl, .github/workflows/ci-predict-consolidate.yml',
+            tests=57,
+            phase='post-M15 (added 2026-11-10 after review)',
+            notes='Status from file presence and a consolidating workflow, not from a verified run.',
+        ))
+
         # Loop-closing edges. The governance machinery is a deliberate feedback
         # loop (measure -> propose -> ratify -> apply -> measure), so a strict
         # DAG check over every edge cannot pass. These edges are the ones that
@@ -1083,30 +1101,25 @@ class SystemGraphGenerator:
             ('RL', 'MOLT', EdgeType.DATA_FLOW.value, 'density trend vs constraint constants', ''),
             ('RCEN', 'FS', EdgeType.CALLOUT.value, 'F-RBE candidates', ''),
             # Added 2026-11-08 (each backed by a reference in the cited files)
-            ('TDG', 'CIG', EdgeType.CONTROL_FLOW.value, 'unclassified time control blocks PR', ''),
-            ('MTC', 'MOLT', EdgeType.DATA_FLOW.value, 'measured molt tier vs claimed (advisory)', ''),
-            ('CIP', 'NF', EdgeType.DATA_FLOW.value, 'PIN / RESOLVE events, hash-chained', ''),
+            ('MTC', 'MOLT', EdgeType.DATA_FLOW.value, 'classifier named in MOLT_STATE.md; measured tier vs claimed (advisory)', ''),
+            ('CIP', 'CIL', EdgeType.DATA_FLOW.value, 'PIN / RESOLVE events, hash-chained (separate from NF by design)', ''),
             ('SMAG', 'EMP', EdgeType.DATA_FLOW.value, 'smag_to_empirica_connector', ''),
             ('IOS', 'Z2', EdgeType.CONTROL_FLOW.value, 'awaiting_z2 candidate relay; merge is the Z2 act', ''),
             ('RCO', 'Z2', EdgeType.CONTROL_FLOW.value, 'ROUTE_TO_Z2; receipts are admission routing only', ''),
             ('SGF', 'SG', EdgeType.CONTROL_FLOW.value, 'fails PR / weekly when stale or invalid', ''),
             ('SG', 'ORC', EdgeType.DATA_FLOW.value, 'repository projection reads system_graph.json', ''),
             ('IOS', 'ACAT', EdgeType.CONTROL_FLOW.value, 'harness tier T6 boots the ACAT API', ''),
-            ('ACAT', 'ACATR', EdgeType.CAUSALITY.value, 'ACAT-R extends the three-phase ACAT method', ''),
             ('RMN', 'ENAV', EdgeType.DATA_FLOW.value, 'upstream discovery handoff', ''),
             ('RMN', 'RSYS', EdgeType.DATA_FLOW.value, 'handoff function composed by Resource System', ''),
             ('ENAV', 'RSYS', EdgeType.DATA_FLOW.value, 'handoff function composed by Resource System', ''),
             ('COCK', 'Q', EdgeType.CONTROL_FLOW.value, 'candidate block for PRIORITY_QUEUE.md (pending Z2)', ''),
 
             # Second pass (2026-11-10), each backed by a reference in the cited files
-            ('VER', 'GNER', EdgeType.DATA_FLOW.value, 'GitHub receipts verified outside the E0 module', ''),
             ('VER', 'HCOLLAB', EdgeType.DATA_FLOW.value, 'consumes pinned verified receipts', ''),
             ('VER', 'HCM', EdgeType.DATA_FLOW.value, 'verified-receipt consumption contract', ''),
-            ('VER', 'MODE', EdgeType.DATA_FLOW.value, 'receipts exercised by the E0 workflow', ''),
             ('Z2', 'HCM', EdgeType.CAUSALITY.value, 'ratified as Q-HCM-CORE-MACHINE-01', ''),
             ('IOS', 'CONV', EdgeType.DATA_FLOW.value, 'INTENT_GRAPH / EVIDENCE_GRAPH read for grading', ''),
             ('REG', 'WIT', EdgeType.DATA_FLOW.value, 'REGISTERED.md Fix-citation entries read', ''),
-            ('ACAT', 'HIAE', EdgeType.DATA_FLOW.value, 'ACAT version pinned in assessment receipts', ''),
         ]
 
 
@@ -1169,13 +1182,15 @@ def check(path: str, max_age_days: Optional[int] = None) -> List[str]:
     if _comparable(committed) != _comparable(fresh):
         problems.append('%s differs from generator output: run `python3 system_graph_generator.py --write`'
                         % os.path.basename(path))
-    if max_age_days is not None:
-        try:
-            age = (datetime.now() - datetime.fromisoformat(committed['generated_at'])).days
+    try:
+        stamp = datetime.fromisoformat(committed['generated_at'])
+    except (KeyError, TypeError, ValueError):
+        problems.append('generated_at is missing or not an ISO timestamp')
+    else:
+        if max_age_days is not None:
+            age = (datetime.now() - stamp).days
             if age > max_age_days:
                 problems.append('generated_at is %d days old (limit %d)' % (age, max_age_days))
-        except (KeyError, ValueError):
-            problems.append('generated_at missing or unparseable')
     return problems
 
 

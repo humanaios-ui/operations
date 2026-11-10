@@ -7,11 +7,11 @@
 
 ```yaml
 candidate_id: "Q-SYSTEM-GRAPH-REGEN-01"
-title: "Regenerate system_graph.json (57 nodes, 75 edges), count loop-closing edges as feedback, add a freshness gate"
+title: "Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate"
 author: "Z1 (Claude)"
 proposed_at: "2026-11-10T00:00:00Z"
 scope:
-  - "system_graph_generator.py (Edge.feedback, Node.notes, --write / --check CLI, 35 added nodes)"
+  - "system_graph_generator.py (Edge.feedback, Node.notes, --write / --check CLI, 36 added nodes)"
   - "system_graph.json (regenerated), docs/SYSTEM_GRAPH.md (re-rendered), tools/system_graph_render_v1_0.py (shows node notes)"
   - ".github/workflows/system-graph-freshness.yml (new)"
   - "tools/tests/test_system_graph_generator.py (new), tools/tests/test_repository_coordinator_v0_1.py (two oracle tests read the committed graph instead of pinning 22 nodes), .tool-control/baseline_tests.yaml (one line)"
@@ -38,17 +38,18 @@ impact_prediction:
 ## Claim
 
 - **claim:** `system_graph.json` was last generated 2026-09-13 and carried `valid=False` (cycle error). The governance system is a deliberate loop, so a strict acyclicity test over every edge cannot pass. The graph also omitted work merged since (473 PRs by GitHub search on 2026-11-08).
-- **what landed:** the 16 loop-closing edges are flagged `feedback: true` and skipped by the cycle check; forward edges stay acyclic. 24 nodes were added with at least one edge backed by a reference in the cited files, and 11 real subsystems were added as documented orphans, each with a `notes` field saying why no edge was proven. A `--write` / `--check` CLI and a PR-and-weekly freshness workflow keep the file from going stale again.
+- **what landed:** the 16 loop-closing edges are flagged `feedback: true` and skipped by the cycle check; forward edges stay acyclic. 20 nodes were added with at least one edge backed by a reference in the cited files, and 16 real subsystems are kept as documented orphans, each with a `notes` field saying why no edge was proven. A `--write` / `--check` CLI and a PR-and-weekly freshness workflow keep the file from going stale again.
 - **evidence_tier:** VERIFIED-LIVE for structure. `python3 system_graph_generator.py --check` exits 0; the baseline test list (1278 tests at the last full run) passes locally; every cited implementation path was checked to exist. CI on head `354017d3` passed all checks and all nine pinned CI predictions were right; the head that carries the orphans and this block has not yet been through CI at the time of writing.
+- **review history:** an automated review (Copilot, PR #1158) found three edges the cited files do not support (CI predictions to NF, receipts to the notification relay, ACAT API to HIAE). Z1 then audited every added edge by the same test and removed three more (temporal gate to CIG, receipts to MODE, ACAT API to ACAT-R). Six edges were removed in total; the CI-prediction edge now targets its own ledger node (`CIL`). The five nodes left without an edge each carry a note naming what was checked.
 - **not claimed:** that any added node runs in production; that the 473-PR sort is complete (98 were sorted by a second pass, #1129–#1157 were read by title only); that the freshness gate would catch a missing node.
 
 ## Z2 decisions needed (accept, edit, or reject individually)
 
-1. **Graph content.** Ratify 57 nodes and 75 edges as the canonical process graph.
+1. **Graph content.** Ratify 58 nodes and 70 edges as the canonical process graph.
 2. **Meaning of "valid".** Ratify that edges flagged `feedback` are excluded from the cycle check, and review the 16 flagged edges: REG→PRS, REG→FS, REG→Q, REG→MOLT, NF→Q, Z2→MOLT, CONST→TC, CONST→Q, CONST→PRS, CONST→AG, ML→EV, MOLT→NF, MOLT→ADV, MK→CIG, Q→RL, Z2→RL.
 3. **New gate.** Ratify `system-graph-freshness.yml`: PR and push check (valid, equals generator output, render in sync), weekly age check with a 45-day limit that opens a tracking issue. The 45 is a new constant; Z2 may set it, or require a molt record for it.
 4. **Statuses.** Review the nodes Z1 marked OPERATED from workflow and file evidence only: TDG, MTC, CIP, SMAG, IOS, RCO, SG, ORC, ACAT, RMN. Demote any to LAID if the run is unproven.
-5. **Documented orphans.** Keep the 11 orphan nodes visible with notes (CUST, WEB, ATLAS, ITEL, OBS, HOBJ, GPCS, DIGEST, GL, ORCID, EXPS), or reject any of them. Each note states what was and was not checked.
+5. **Documented orphans.** Keep the 16 orphan nodes visible with notes (ACATR, ATLAS, CUST, DIGEST, EXPS, GL, GNER, GPCS, HIAE, HOBJ, ITEL, MODE, OBS, ORCID, TDG, WEB), or reject any of them. Each note states what was and was not checked.
 6. **Tier 2 requirements not done by Z1:** a `REGISTERED.md` entry (Z2 sole write) and an ADV run. **ADV run: NOT RUN.**
 7. **Test edits.** Two oracle tests in `tools/tests/test_repository_coordinator_v0_1.py` stop pinning the old 22-node count. The Drive snapshot values (19 and 22) stay pinned because the Drive copy is genuinely stale.
 

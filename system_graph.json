@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-11-10T14:29:45.065582",
+  "generated_at": "2026-11-10T14:58:42.668206",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -276,7 +276,7 @@
       "implementation": "tests/test_temporal_dissolution_gate.py, .github/workflows/temporal-dissolution-gate.yml",
       "tests": 10,
       "phase": "post-M15 (added 2026-11-08)",
-      "notes": ""
+      "notes": "No proven edge. It is a standalone workflow and test; ci_gates.py and z2_ratification_gate.yml do not reference it, so it was not linked to CIG. Removed after review."
     },
     "MTC": {
       "id": "MTC",
@@ -408,7 +408,7 @@
       "implementation": "experiments/acat_r_v01, .github/workflows/acat-r-v01.yml",
       "tests": 40,
       "phase": "post-M15 (added 2026-11-08)",
-      "notes": ""
+      "notes": "No proven edge. Its README says it extends the three-phase ACAT method; that is a method, not the code in acat/api, so no edge to the ACAT API node was kept."
     },
     "RMN": {
       "id": "RMN",
@@ -456,7 +456,7 @@
       "implementation": "experiments/mode_haios_interop_e0.py, .github/workflows/mode-haios-interop-e0.yml",
       "tests": 15,
       "phase": "post-M15 (added 2026-11-08)",
-      "notes": ""
+      "notes": "No proven edge. The E0 workflow runs tests/test_verified_receipts.py and lists tools/verified_receipts.py as a trigger path, but experiments/mode_haios_interop_e0.py imports nothing from it. A trigger path is not a data flow."
     },
     "COCK": {
       "id": "COCK",
@@ -476,7 +476,7 @@
       "type": "process",
       "status": "LAID",
       "zone": "code",
-      "description": "Shared verifier for receipts that name an observed action and outcome; consumed by GNER, the collaboration-harmony prototype, the Core Machine and the MODE E0 workflow",
+      "description": "Shared verifier for receipts that name an observed action and outcome; imported by the collaboration-harmony prototype and the Core Machine (humanaios_core_machine_v0_1.py line 649); the MODE E0 workflow runs its tests but does not import it",
       "implementation": "tools/verified_receipts.py, tests/test_verified_receipts.py",
       "tests": 17,
       "phase": "post-M15 (second pass 2026-11-10)",
@@ -492,7 +492,7 @@
       "implementation": "tools/gner_notification_e0.py, tools/gner_verify_e1.py, tools/gner_failure_signatures_e2.py",
       "tests": 32,
       "phase": "post-M15 (second pass 2026-11-10)",
-      "notes": ""
+      "notes": "No proven edge. gner_notification_e0.py only has a parameter named verified_receipts; it does not import tools/verified_receipts.py, and E1 verifies run metadata through the GitHub API directly. Removed after review."
     },
     "HCOLLAB": {
       "id": "HCOLLAB",
@@ -552,7 +552,7 @@
       "implementation": "tools/hiae_assurance.py",
       "tests": 39,
       "phase": "post-M15 (second pass 2026-11-10)",
-      "notes": ""
+      "notes": "No proven edge. The receipt carries an acat_version string (example value hard-coded), which names a protocol version and does not consume output from acat/api. Removed after review."
     },
     "CUST": {
       "id": "CUST",
@@ -685,6 +685,18 @@
       "tests": 0,
       "phase": "post-M15 (orphan, noted 2026-11-10)",
       "notes": "Grouped node, not one process. No proven edge as a whole; some members are covered by their own nodes (ACAT-R, MODE, Witness, Collaboration Harmony). Test count 0 because the tree has many suites that were not totalled."
+    },
+    "CIL": {
+      "id": "CIL",
+      "name": "CI Prediction Ledger",
+      "type": "ledger",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Hash-chained ledger of CI-check predictions, kept separate from NF_LEDGER.jsonl on purpose so no pending Z2 governance item is settled by side effect",
+      "implementation": "ledgers/CI_PREDICT_LEDGER.jsonl, .github/workflows/ci-predict-consolidate.yml",
+      "tests": 57,
+      "phase": "post-M15 (added 2026-11-10 after review)",
+      "notes": "Status from file presence and a consolidating workflow, not from a verified run."
     }
   },
   "edges": [
@@ -1113,26 +1125,18 @@
       "feedback": false
     },
     {
-      "source": "TDG",
-      "target": "CIG",
-      "edge_type": "control_flow",
-      "label": "unclassified time control blocks PR",
-      "description": "",
-      "feedback": false
-    },
-    {
       "source": "MTC",
       "target": "MOLT",
       "edge_type": "data_flow",
-      "label": "measured molt tier vs claimed (advisory)",
+      "label": "classifier named in MOLT_STATE.md; measured tier vs claimed (advisory)",
       "description": "",
       "feedback": false
     },
     {
       "source": "CIP",
-      "target": "NF",
+      "target": "CIL",
       "edge_type": "data_flow",
-      "label": "PIN / RESOLVE events, hash-chained",
+      "label": "PIN / RESOLVE events, hash-chained (separate from NF by design)",
       "description": "",
       "feedback": false
     },
@@ -1185,14 +1189,6 @@
       "feedback": false
     },
     {
-      "source": "ACAT",
-      "target": "ACATR",
-      "edge_type": "causality",
-      "label": "ACAT-R extends the three-phase ACAT method",
-      "description": "",
-      "feedback": false
-    },
-    {
       "source": "RMN",
       "target": "ENAV",
       "edge_type": "data_flow",
@@ -1226,14 +1222,6 @@
     },
     {
       "source": "VER",
-      "target": "GNER",
-      "edge_type": "data_flow",
-      "label": "GitHub receipts verified outside the E0 module",
-      "description": "",
-      "feedback": false
-    },
-    {
-      "source": "VER",
       "target": "HCOLLAB",
       "edge_type": "data_flow",
       "label": "consumes pinned verified receipts",
@@ -1245,14 +1233,6 @@
       "target": "HCM",
       "edge_type": "data_flow",
       "label": "verified-receipt consumption contract",
-      "description": "",
-      "feedback": false
-    },
-    {
-      "source": "VER",
-      "target": "MODE",
-      "edge_type": "data_flow",
-      "label": "receipts exercised by the E0 workflow",
       "description": "",
       "feedback": false
     },
@@ -1279,27 +1259,19 @@
       "label": "REGISTERED.md Fix-citation entries read",
       "description": "",
       "feedback": false
-    },
-    {
-      "source": "ACAT",
-      "target": "HIAE",
-      "edge_type": "data_flow",
-      "label": "ACAT version pinned in assessment receipts",
-      "description": "",
-      "feedback": false
     }
   ],
   "validation_status": {
     "valid": true,
     "errors": [],
     "warnings": [
-      "Orphaned nodes (no edges): ['ATLAS', 'CUST', 'DIGEST', 'EXPS', 'GL', 'GPCS', 'HOBJ', 'ITEL', 'OBS', 'ORCID', 'WEB']"
+      "Orphaned nodes (no edges): ['ACATR', 'ATLAS', 'CUST', 'DIGEST', 'EXPS', 'GL', 'GNER', 'GPCS', 'HIAE', 'HOBJ', 'ITEL', 'MODE', 'OBS', 'ORCID', 'TDG', 'WEB']"
     ]
   },
   "zone_distribution": {
     "Z2": 5,
     "Z1": 23,
-    "code": 23,
+    "code": 24,
     "CI": 6
   }
 }

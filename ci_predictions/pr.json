@@ -39,5 +39,5 @@
       "p": 0.75
     }
   },
-  "note": "Not a blind prediction. An earlier head (354017d3) passed all of these. This head adds 11 documented orphan nodes, a notes field, a Z2 candidate block with an index entry, and a fix for set-order nondeterminism in the orphan warning; local baseline suite (1280 tests), temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) all pass. Z2 ratification is not predicted here."
+  "note": "Not a blind prediction. An earlier head (5a7ce5b1) passed all of these except one cancelled admission run that a re-run cleared. This head removes six unsupported graph edges after review, adds one ledger node, validates generated_at on every check, and updates the candidate block. Local baseline suite, temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) were run before the push. Z2 ratification is not predicted here."
 }
