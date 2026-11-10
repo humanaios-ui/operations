@@ -1,31 +1,43 @@
 {
-  "pr": 1005,
-  "actor_origin_claim": "Codex Work session; owner-requested exact-head admission reconciliation; control-plane repair only",
+  "pr": 1158,
+  "actor_origin_claim": "Claude Code session; regenerate system_graph.json, fix generator cycle validation, add freshness automation",
   "checks": {
     "quality": {
       "conclusion": "success",
-      "p": 0.93
+      "p": 0.8
     },
     "guard": {
       "conclusion": "success",
       "p": 0.95
     },
+    "Check principles (P19)": {
+      "conclusion": "success",
+      "p": 0.85
+    },
+    "Reject unauthorized internal deadline semantics": {
+      "conclusion": "success",
+      "p": 0.93
+    },
+    "freshness": {
+      "conclusion": "success",
+      "p": 0.92
+    },
     "Secret scanning (gitleaks)": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.97
     },
     "Python dependency vulnerability scan": {
       "conclusion": "success",
-      "p": 0.96
-    },
-    "Verify Z2 Ratification Requirements": {
-      "conclusion": "success",
-      "p": 0.85
+      "p": 0.95
     },
     "Repository admission/backpressure gate": {
-      "conclusion": "success",
+      "conclusion": "failure",
       "p": 0.85
+    },
+    "Build repository coordination index (ADVISORY)": {
+      "conclusion": "success",
+      "p": 0.75
     }
   },
-  "note": "Declared before protected CI for the exact-head reconciliation change. Focused tests and local readiness checks passed before publication. The workflow change is intentionally fail-closed; admission and Z2 outcomes still depend on repository state outside this branch."
+  "note": "Not a blind prediction. The previous head (8f27e805) passed everything except the admission gate, which failed because admission is bound to an exact commit and that head was never admitted. This head changes the commit again, so I predict the same failure until the operator posts a new admit. Other checks: this head adds a renderer feedback column, a causality heading, wider workflow path filters, a read-only token for PR runs with the issue job split out, and corrected candidate text; the local baseline suite, temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) were run before the push. Z2 ratification is not predicted here."
 }

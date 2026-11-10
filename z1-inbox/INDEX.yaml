@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 119
+  candidates: 120
   records: 67
 ratifiers:
 - Night
 candidates:
+- q_id: Q-SYSTEM-GRAPH-REGEN-01
+  title: Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate
+  path: z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md
+  submitted: '2026-11-10'
+  status: awaiting_z2
+  tier: 2
+  note: 'PR #1158. Regenerates the graph last built 2026-09-13 (valid=False), flags 16 loop-closing edges as feedback, adds 36 nodes (16 documented orphans with notes; six edges removed after review because no file supports them), a --write/--check CLI and a freshness workflow. Statuses of added nodes come from files in the tree, not from proven runs. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
 - q_id: Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01
   title: 'Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages'
   path: z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md
