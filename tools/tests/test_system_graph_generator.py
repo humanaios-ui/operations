@@ -57,3 +57,19 @@ def test_every_orphan_has_a_note():
         touched.add(e.target)
     bare = [i for i, n in gen.nodes.items() if i not in touched and not n.notes.strip()]
     assert bare == [], 'orphan nodes without notes: %s' % bare
+
+
+def test_output_is_deterministic_across_hash_seeds():
+    """--check compares generator output to the committed file, so output must not depend on set order."""
+    import subprocess
+    outs = set()
+    for seed in ('1', '2', '3'):
+        r = subprocess.run(
+            [sys.executable, '-c',
+             "import json,system_graph_generator as g;"
+             "d=g.build_graph_dict();d.pop('generated_at');print(json.dumps(d,sort_keys=True))"],
+            cwd=ROOT, env={**os.environ, 'PYTHONHASHSEED': seed},
+            capture_output=True, text=True, timeout=60)
+        assert r.returncode == 0, r.stderr
+        outs.add(r.stdout)
+    assert len(outs) == 1

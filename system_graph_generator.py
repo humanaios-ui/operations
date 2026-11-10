@@ -152,7 +152,7 @@ class SystemGraphGenerator:
 
         orphaned = node_ids - edges_set
         if orphaned:
-            warnings.append(f'Orphaned nodes (no edges): {orphaned}')
+            warnings.append('Orphaned nodes (no edges): %s' % sorted(orphaned))
 
         # Check for cycles in critical paths
         # (simplified: just check if we can do topological sort)

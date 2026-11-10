@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-11-10T14:27:46.207189",
+  "generated_at": "2026-11-10T14:29:45.065582",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -1293,7 +1293,7 @@
     "valid": true,
     "errors": [],
     "warnings": [
-      "Orphaned nodes (no edges): {'ITEL', 'EXPS', 'DIGEST', 'ATLAS', 'WEB', 'GPCS', 'OBS', 'CUST', 'ORCID', 'HOBJ', 'GL'}"
+      "Orphaned nodes (no edges): ['ATLAS', 'CUST', 'DIGEST', 'EXPS', 'GL', 'GPCS', 'HOBJ', 'ITEL', 'OBS', 'ORCID', 'WEB']"
     ]
   },
   "zone_distribution": {
