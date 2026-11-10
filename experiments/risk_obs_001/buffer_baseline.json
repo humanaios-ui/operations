@@ -1,0 +1,24 @@
+{
+  "baseline_at": "2026-11-10T16:24:00Z",
+  "organization_id": "6ae740c08e9f8c0a55dcbb6b",
+  "channel": {
+    "id": "6ae7440ee29c69a17127986e",
+    "name": "HumanAIOS",
+    "service": "twitter"
+  },
+  "counts": {
+    "drafts": 1,
+    "scheduled": 0,
+    "sent_page1": 20,
+    "sent_has_next_page": true
+  },
+  "drafts": [
+    {
+      "id": "6af27d6226f9e6aeeada7e79",
+      "status": "draft",
+      "created_at": "2026-11-10T02:11:46.516Z",
+      "text": "WITNESS CONNECTOR TEST — DRAFT ONLY\n\nThis is synthetic test text. No facts or findings are asserted. Do not publish.\n\nAUTHORITY_EFFECT=NONE."
+    }
+  ],
+  "note": "Machine-readable baseline for Buffer before/after deltas. Read this before any Buffer mutation; rewrite after with new counts and previous_baseline_at."
+}
