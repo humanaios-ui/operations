@@ -31,7 +31,7 @@
       "p": 0.95
     },
     "Repository admission/backpressure gate": {
-      "conclusion": "success",
+      "conclusion": "failure",
       "p": 0.85
     },
     "Build repository coordination index (ADVISORY)": {
@@ -39,5 +39,5 @@
       "p": 0.75
     }
   },
-  "note": "Not a blind prediction. An earlier head (5a7ce5b1) passed all of these except one cancelled admission run that a re-run cleared. This head removes six unsupported graph edges after review, adds one ledger node, validates generated_at on every check, and updates the candidate block. Local baseline suite, temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) were run before the push. Z2 ratification is not predicted here."
+  "note": "Not a blind prediction. The previous head (8f27e805) passed everything except the admission gate, which failed because admission is bound to an exact commit and that head was never admitted. This head changes the commit again, so I predict the same failure until the operator posts a new admit. Other checks: this head adds a renderer feedback column, a causality heading, wider workflow path filters, a read-only token for PR runs with the issue job split out, and corrected candidate text; the local baseline suite, temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) were run before the push. Z2 ratification is not predicted here."
 }

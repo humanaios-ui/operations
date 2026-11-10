@@ -99,3 +99,41 @@ def test_removed_edges_stay_removed():
     pairs = {(e.source, e.target) for e in _built().edges}
     for bad in [('CIP', 'NF'), ('VER', 'GNER'), ('VER', 'MODE'), ('ACAT', 'HIAE'), ('ACAT', 'ACATR'), ('TDG', 'CIG')]:
         assert bad not in pairs, bad
+
+
+def _load_renderer():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        'system_graph_render', os.path.join(ROOT, 'tools', 'system_graph_render_v1_0.py'))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_render_marks_feedback_edges_and_titles_causality():
+    """A reader of the rendered page must be able to tell loop-closing edges from forward edges."""
+    g = sgg.build_graph_dict()
+    text = _load_renderer().render(g, source_path='system_graph.json', source_sha256='0' * 64, commit='test')
+    assert '| from | to | label | feedback |' in text
+    rows = [ln for ln in text.splitlines() if ln.startswith('| `') and ln.rstrip().endswith('| yes |')]
+    assert len(rows) == sum(1 for e in g['edges'] if e.get('feedback'))
+    assert any(ln.rstrip().endswith('| no |') for ln in text.splitlines())
+    assert '### Causality (' in text
+
+
+def _count_tests(*relpaths):
+    import re
+    n = 0
+    for rel in relpaths:
+        with open(os.path.join(ROOT, rel)) as f:
+            n += len(re.findall(r'^def test_', f.read(), re.M))
+    return n
+
+
+def test_declared_test_counts_match_the_files():
+    """The `tests` field on SG and SGF is a claim; keep it equal to the suites it names."""
+    nodes = sgg.build_graph_dict()['nodes']
+    gen = 'tools/tests/test_system_graph_generator.py'
+    lint = 'tools/tests/test_graph_capture_lint.py'
+    assert nodes['SG']['tests'] == _count_tests(gen)
+    assert nodes['SGF']['tests'] == _count_tests(gen, lint)

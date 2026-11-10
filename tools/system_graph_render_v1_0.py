@@ -48,8 +48,8 @@ TOOL_ZONE = 1
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_INPUT = "system_graph.json"
 STATUS_ORDER = ["OPERATED", "LAID", "PLANNED"]
-EDGE_TYPE_ORDER = ["control_flow", "data_flow", "callout"]
-EDGE_TYPE_TITLES = {"control_flow": "Control flow", "data_flow": "Data flow", "callout": "Callouts"}
+EDGE_TYPE_ORDER = ["control_flow", "data_flow", "callout", "causality"]
+EDGE_TYPE_TITLES = {"control_flow": "Control flow", "data_flow": "Data flow", "callout": "Callouts", "causality": "Causality"}
 
 
 def _sha256_bytes(data: bytes) -> str:
@@ -125,18 +125,22 @@ def render(graph: dict, *, source_path: str, source_sha256: str, commit: str) ->
 
     out.append("## Edges")
     out.append("")
+    out.append("`feedback = yes` marks a loop-closing edge: it returns state to an earlier stage and is "
+               "skipped by the generator's cycle check. Forward edges (`no`) must stay acyclic.")
+    out.append("")
     for etype, es in by_type.items():
         if not es:
             continue
         out.append(f"### {EDGE_TYPE_TITLES.get(etype, etype)} ({len(es)})")
         out.append("")
-        out.append("| from | to | label |")
-        out.append("|---|---|---|")
+        out.append("| from | to | label | feedback |")
+        out.append("|---|---|---|---|")
         for e in sorted(es, key=lambda e: (str(e.get('source')), str(e.get('target')), str(e.get('label')))):
             source = str(e.get('source', '')).replace("|", "\\|")
             target = str(e.get('target', '')).replace("|", "\\|")
             label = str(e.get("label", "")).replace("|", "\\|")
-            out.append(f"| `{source}` | `{target}` | {label} |")
+            feedback = "yes" if e.get("feedback") else "no"
+            out.append(f"| `{source}` | `{target}` | {label} | {feedback} |")
         out.append("")
 
     out.append("## Provenance")

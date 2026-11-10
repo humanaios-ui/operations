@@ -47,7 +47,7 @@ impact_prediction:
 
 1. **Graph content.** Ratify 58 nodes and 70 edges as the canonical process graph.
 2. **Meaning of "valid".** Ratify that edges flagged `feedback` are excluded from the cycle check, and review the 16 flagged edges: REG→PRS, REG→FS, REG→Q, REG→MOLT, NF→Q, Z2→MOLT, CONST→TC, CONST→Q, CONST→PRS, CONST→AG, ML→EV, MOLT→NF, MOLT→ADV, MK→CIG, Q→RL, Z2→RL.
-3. **New gate.** Ratify `system-graph-freshness.yml`: PR and push check (valid, equals generator output, render in sync), weekly age check with a 45-day limit that opens a tracking issue. The 45 is a new constant; Z2 may set it, or require a molt record for it.
+3. **New gate.** Ratify `system-graph-freshness.yml`: PR and push check (valid, equals generator output, render in sync), weekly age check with a 45-day limit that opens a tracking issue from a separate scheduled-only job (`issues: write` is held only there; PR runs have a read-only token). The 45 is a new constant; Z2 may set it, or require a molt record for it.
 4. **Statuses.** Review the nodes Z1 marked OPERATED from workflow and file evidence only: TDG, MTC, CIP, SMAG, IOS, RCO, SG, ORC, ACAT, RMN. Demote any to LAID if the run is unproven.
 5. **Documented orphans.** Keep the 16 orphan nodes visible with notes (ACATR, ATLAS, CUST, DIGEST, EXPS, GL, GNER, GPCS, HIAE, HOBJ, ITEL, MODE, OBS, ORCID, TDG, WEB), or reject any of them. Each note states what was and was not checked.
 6. **Tier 2 requirements not done by Z1:** a `REGISTERED.md` entry (Z2 sole write) and an ADV run. **ADV run: NOT RUN.**
@@ -70,7 +70,17 @@ This candidate is FALSE if any of the following is observed:
 - [ ] EDIT — propose changes (reply in thread)
 - [ ] REJECT — reason (reply in thread)
 
-Ratification instrument: Z2's merge of PR #1158 (2026-09-18 ruling) or `python3 .z1-control/ratify.py` on this file. Z1 does not sign.
+Ratification instrument, in two steps. Z1 signs neither.
+
+1. **Merge PR #1158.** This lands the graph, the gate and this file. Under the 2026-09-18 ruling the merge is the Z2 act for candidates that carry an Intent-OS relay Ruling block. This candidate carries none, so `tools/intent_os_reconcile_v1_0.py` skips it: a merge alone leaves it `awaiting_z2` with no `z2_hash`.
+2. **Record the decision with the canonical signer, from a checkout of `main` after the merge:**
+
+```
+python3 .z1-control/ratify.py Q-SYSTEM-GRAPH-REGEN-01 --decision ACCEPT --by Night          # dry run
+python3 .z1-control/ratify.py Q-SYSTEM-GRAPH-REGEN-01 --decision ACCEPT --by Night --apply  # writes the ruling and index entry
+```
+
+The signer hashes the candidate's exact bytes, so edit this file only before step 2. `python3 .z1-control/ratify.py --verify` re-checks the recorded signature.
 
 ---
 

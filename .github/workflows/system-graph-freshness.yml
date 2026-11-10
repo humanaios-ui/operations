@@ -13,6 +13,7 @@ on:
       - 'system_graph_generator.py'
       - 'system_graph.json'
       - 'docs/SYSTEM_GRAPH.md'
+      - 'tools/system_graph_render_v1_0.py'
       - 'tools/tests/test_system_graph_generator.py'
       - '.github/workflows/system-graph-freshness.yml'
   push:
@@ -20,6 +21,8 @@ on:
     paths:
       - 'system_graph_generator.py'
       - 'system_graph.json'
+      - 'docs/SYSTEM_GRAPH.md'
+      - 'tools/system_graph_render_v1_0.py'
   # temporal_class: OBSERVATIONAL — the weekly tick only samples the age of
   # system_graph.json and files a tracking issue. It grants no internal priority,
   # deadline, authority or obligation to act (TEMPORAL_DISSOLUTION_POLICY.md).
@@ -27,15 +30,19 @@ on:
     - cron: '17 6 * * 1'
   workflow_dispatch:
 
+# Least privilege: every job that runs code from the PR branch (tests, generator,
+# renderer) gets a read-only token. Only the tracking-issue job below holds
+# issues: write, and it runs on the schedule alone, from the default branch.
 permissions:
   contents: read
-  issues: write
 
 jobs:
   freshness:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v7
         with:
@@ -58,8 +65,15 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python3 system_graph_generator.py --check --max-age-days 45
 
-      - name: Open tracking issue on stale graph
-        if: failure() && github.event_name == 'schedule'
+  report-stale:
+    # Scheduled runs only. Reads the freshness result; does not check out or run PR code.
+    needs: freshness
+    if: ${{ always() && github.event_name == 'schedule' && needs.freshness.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write  # create or comment on the tracking issue
+    steps:
+      - name: Open or update the tracking issue
         uses: actions/github-script@v7
         with:
           script: |

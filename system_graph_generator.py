@@ -629,7 +629,7 @@ class SystemGraphGenerator:
             zone='Z2',
             description='This graph: canonical machine form of the governance process graph, generated from the edge list, validated for dangling edges and forward cycles',
             implementation='system_graph_generator.py, system_graph.json',
-            tests=5,
+            tests=12,
             phase='post-M15 (added 2026-11-08)',
         ))
 
@@ -639,9 +639,9 @@ class SystemGraphGenerator:
             type=NodeType.GATE.value,
             status=NodeStatus.LAID.value,
             zone='CI',
-            description='Fails when the committed graph is invalid, differs from generator output, or (weekly) is older than 45 days; graph-capture-lint scores the multiplex',
+            description='Fails when the committed graph is invalid, differs from generator output, or (weekly) is older than 45 days; graph-capture-lint scores the multiplex (test count covers the generator and capture-lint suites)',
             implementation='tools/graph_capture_lint_v1_0.py, .github/workflows/system-graph-freshness.yml, .github/workflows/graph-capture-lint.yml',
-            tests=48,
+            tests=55,
             phase='post-M15 (added 2026-11-08)',
         ))
 
