@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-11-08T22:10:31.649022",
+  "generated_at": "2026-11-10T13:15:26.081033",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -430,6 +430,83 @@
       "implementation": "COCKPIT_V1_PRIORITY_QUEUE_ENTRY.md, COCKPIT_V1_IMPLEMENTATION_ROADMAP.md",
       "tests": 0,
       "phase": "post-M15 (added 2026-11-08)"
+    },
+    "VER": {
+      "id": "VER",
+      "name": "Verified Receipts",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Shared verifier for receipts that name an observed action and outcome; consumed by GNER, the collaboration-harmony prototype, the Core Machine and the MODE E0 workflow",
+      "implementation": "tools/verified_receipts.py, tests/test_verified_receipts.py",
+      "tests": 17,
+      "phase": "post-M15 (second pass 2026-11-10)"
+    },
+    "GNER": {
+      "id": "GNER",
+      "name": "GitHub Notification Evidence Relay",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Read-only relay: treats email as untrusted discovery only and verifies GitHub receipts outside the module (E0 interpret, E1 verify, E2 failure-signature correlation); no authority",
+      "implementation": "tools/gner_notification_e0.py, tools/gner_verify_e1.py, tools/gner_failure_signatures_e2.py",
+      "tests": 32,
+      "phase": "post-M15 (second pass 2026-11-10)"
+    },
+    "HCOLLAB": {
+      "id": "HCOLLAB",
+      "name": "Collaboration Harmony Prototype",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Executable stress prototype for H-COLLAB-HARMONY-01 that consumes pinned verified receipts",
+      "implementation": "experiments/collab_harmony_01",
+      "tests": 8,
+      "phase": "post-M15 (second pass 2026-11-10)"
+    },
+    "HCM": {
+      "id": "HCM",
+      "name": "HumanAIOS Core Machine v0.1",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Bytecode compiler, integrity-checking decoder and pure replay VM for the Operations contract; no external-action handler; authority effect NONE; ratified as Q-HCM-CORE-MACHINE-01",
+      "implementation": "tools/humanaios_core_machine_v0_1.py, humanaios_core.py",
+      "tests": 47,
+      "phase": "post-M15 (second pass 2026-11-10)"
+    },
+    "CONV": {
+      "id": "CONV",
+      "name": "Graph Convergence Grader",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Grades convergence between two agent-authored graphs by source disjointness and access record; corroboration weight is zero when both read the same source",
+      "implementation": "tools/graph_convergence_v1_0.py, GRAPH_CONVERGENCE.md",
+      "tests": 0,
+      "phase": "post-M15 (second pass 2026-11-10)"
+    },
+    "WIT": {
+      "id": "WIT",
+      "name": "Witness",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Witness framework and experiments (arena, live proof, voice texture, SCVC milestone witness) plus the REGISTERED.md fix-citation check; read-only and evidence-first",
+      "implementation": "tools/witness_framework.py, WITNESS_SERVICE_CONTRACT.md, experiments/witness-arena, .github/workflows/scvc-milestone-witness.yml",
+      "tests": 15,
+      "phase": "post-M15 (second pass 2026-11-10)"
+    },
+    "HIAE": {
+      "id": "HIAE",
+      "name": "HIAE Assurance",
+      "type": "process",
+      "status": "PLANNED",
+      "zone": "Z1",
+      "description": "Z1 proposal, not ratified: neutral rotation-based reviewer assignment with conflict exclusion and versioned assessment receipts",
+      "implementation": "tools/hiae_assurance.py",
+      "tests": 39,
+      "phase": "post-M15 (second pass 2026-11-10)"
     }
   },
   "edges": [
@@ -968,19 +1045,81 @@
       "label": "candidate block for PRIORITY_QUEUE.md (pending Z2)",
       "description": "",
       "feedback": false
+    },
+    {
+      "source": "VER",
+      "target": "GNER",
+      "edge_type": "data_flow",
+      "label": "GitHub receipts verified outside the E0 module",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "VER",
+      "target": "HCOLLAB",
+      "edge_type": "data_flow",
+      "label": "consumes pinned verified receipts",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "VER",
+      "target": "HCM",
+      "edge_type": "data_flow",
+      "label": "verified-receipt consumption contract",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "VER",
+      "target": "MODE",
+      "edge_type": "data_flow",
+      "label": "receipts exercised by the E0 workflow",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "Z2",
+      "target": "HCM",
+      "edge_type": "causality",
+      "label": "ratified as Q-HCM-CORE-MACHINE-01",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "IOS",
+      "target": "CONV",
+      "edge_type": "data_flow",
+      "label": "INTENT_GRAPH / EVIDENCE_GRAPH read for grading",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "REG",
+      "target": "WIT",
+      "edge_type": "data_flow",
+      "label": "REGISTERED.md Fix-citation entries read",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "ACAT",
+      "target": "HIAE",
+      "edge_type": "data_flow",
+      "label": "ACAT version pinned in assessment receipts",
+      "description": "",
+      "feedback": false
     }
   ],
   "validation_status": {
     "valid": true,
     "errors": [],
-    "warnings": [
-      "Orphaned nodes (no edges): {'MODE'}"
-    ]
+    "warnings": []
   },
   "zone_distribution": {
     "Z2": 5,
-    "Z1": 8,
-    "code": 20,
+    "Z1": 13,
+    "code": 22,
     "CI": 6
   }
 }

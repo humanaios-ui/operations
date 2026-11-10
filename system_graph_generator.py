@@ -739,6 +739,91 @@ class SystemGraphGenerator:
             phase='post-M15 (added 2026-11-08)',
         ))
 
+        # SECOND PASS (2026-11-10): nodes from the PRs the first pass left unsorted.
+        self.add_node(Node(
+            id='VER',
+            name='Verified Receipts',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='code',
+            description='Shared verifier for receipts that name an observed action and outcome; consumed by GNER, the collaboration-harmony prototype, the Core Machine and the MODE E0 workflow',
+            implementation='tools/verified_receipts.py, tests/test_verified_receipts.py',
+            tests=17,
+            phase='post-M15 (second pass 2026-11-10)',
+        ))
+
+        self.add_node(Node(
+            id='GNER',
+            name='GitHub Notification Evidence Relay',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Read-only relay: treats email as untrusted discovery only and verifies GitHub receipts outside the module (E0 interpret, E1 verify, E2 failure-signature correlation); no authority',
+            implementation='tools/gner_notification_e0.py, tools/gner_verify_e1.py, tools/gner_failure_signatures_e2.py',
+            tests=32,
+            phase='post-M15 (second pass 2026-11-10)',
+        ))
+
+        self.add_node(Node(
+            id='HCOLLAB',
+            name='Collaboration Harmony Prototype',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Executable stress prototype for H-COLLAB-HARMONY-01 that consumes pinned verified receipts',
+            implementation='experiments/collab_harmony_01',
+            tests=8,
+            phase='post-M15 (second pass 2026-11-10)',
+        ))
+
+        self.add_node(Node(
+            id='HCM',
+            name='HumanAIOS Core Machine v0.1',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='code',
+            description='Bytecode compiler, integrity-checking decoder and pure replay VM for the Operations contract; no external-action handler; authority effect NONE; ratified as Q-HCM-CORE-MACHINE-01',
+            implementation='tools/humanaios_core_machine_v0_1.py, humanaios_core.py',
+            tests=47,
+            phase='post-M15 (second pass 2026-11-10)',
+        ))
+
+        self.add_node(Node(
+            id='CONV',
+            name='Graph Convergence Grader',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Grades convergence between two agent-authored graphs by source disjointness and access record; corroboration weight is zero when both read the same source',
+            implementation='tools/graph_convergence_v1_0.py, GRAPH_CONVERGENCE.md',
+            tests=0,
+            phase='post-M15 (second pass 2026-11-10)',
+        ))
+
+        self.add_node(Node(
+            id='WIT',
+            name='Witness',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Witness framework and experiments (arena, live proof, voice texture, SCVC milestone witness) plus the REGISTERED.md fix-citation check; read-only and evidence-first',
+            implementation='tools/witness_framework.py, WITNESS_SERVICE_CONTRACT.md, experiments/witness-arena, .github/workflows/scvc-milestone-witness.yml',
+            tests=15,
+            phase='post-M15 (second pass 2026-11-10)',
+        ))
+
+        self.add_node(Node(
+            id='HIAE',
+            name='HIAE Assurance',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.PLANNED.value,
+            zone='Z1',
+            description='Z1 proposal, not ratified: neutral rotation-based reviewer assignment with conflict exclusion and versioned assessment receipts',
+            implementation='tools/hiae_assurance.py',
+            tests=39,
+            phase='post-M15 (second pass 2026-11-10)',
+        ))
+
         # Loop-closing edges. The governance machinery is a deliberate feedback
         # loop (measure -> propose -> ratify -> apply -> measure), so a strict
         # DAG check over every edge cannot pass. These edges are the ones that
@@ -866,6 +951,16 @@ class SystemGraphGenerator:
             ('RMN', 'RSYS', EdgeType.DATA_FLOW.value, 'handoff function composed by Resource System', ''),
             ('ENAV', 'RSYS', EdgeType.DATA_FLOW.value, 'handoff function composed by Resource System', ''),
             ('COCK', 'Q', EdgeType.CONTROL_FLOW.value, 'candidate block for PRIORITY_QUEUE.md (pending Z2)', ''),
+
+            # Second pass (2026-11-10), each backed by a reference in the cited files
+            ('VER', 'GNER', EdgeType.DATA_FLOW.value, 'GitHub receipts verified outside the E0 module', ''),
+            ('VER', 'HCOLLAB', EdgeType.DATA_FLOW.value, 'consumes pinned verified receipts', ''),
+            ('VER', 'HCM', EdgeType.DATA_FLOW.value, 'verified-receipt consumption contract', ''),
+            ('VER', 'MODE', EdgeType.DATA_FLOW.value, 'receipts exercised by the E0 workflow', ''),
+            ('Z2', 'HCM', EdgeType.CAUSALITY.value, 'ratified as Q-HCM-CORE-MACHINE-01', ''),
+            ('IOS', 'CONV', EdgeType.DATA_FLOW.value, 'INTENT_GRAPH / EVIDENCE_GRAPH read for grading', ''),
+            ('REG', 'WIT', EdgeType.DATA_FLOW.value, 'REGISTERED.md Fix-citation entries read', ''),
+            ('ACAT', 'HIAE', EdgeType.DATA_FLOW.value, 'ACAT version pinned in assessment receipts', ''),
         ]
 
 

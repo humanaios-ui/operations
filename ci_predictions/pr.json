@@ -39,5 +39,5 @@
       "p": 0.75
     }
   },
-  "note": "Not a blind prediction. An earlier head (9fa234b2) passed all of these. This head adds 17 nodes and 14 edges to system_graph.json, so quality (tests that read the graph) and P19 (new description text) carry more risk than before; other checks are unchanged by this diff. Z2 ratification is not predicted here."
+  "note": "Not a blind prediction. An earlier head (33cf8211) passed all of these. This head adds 7 nodes and 8 edges to system_graph.json (second pass); local baseline suite, temporal gate, doc-control and the P19 script all pass. Z2 ratification is not predicted here."
 }
