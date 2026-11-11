@@ -30,6 +30,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import subprocess
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -114,13 +116,14 @@ def upsert_meta_lessons(lessons_path: Path, new_lessons: list[dict]) -> list[str
 
 def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int) -> dict:
     """
-    Measure recent consolidation PRs' actual outcomes via GitHub API.
+    Measure recent consolidation PRs' actual outcomes via GitHub REST API.
 
-    Queries for PRs with matching title (regardless of merge status), extracts
-    immutable smag_p_meta predictions and merge/CI status, computes accuracy.
+    Uses 'gh api' to call GitHub REST API directly (avoids GraphQL which is unavailable
+    in Claude Code cloud sessions). Extracts immutable smag_p_meta predictions and merge
+    status, computes accuracy.
 
     Note: Predictions are immutable (captured at PR open/sync time). Outcomes
-    are determined by GitHub check-run state (CI passed/failed), not PR body prose.
+    are determined by GitHub merge state, not PR body prose.
 
     Returns: {
       "total_prs": int,
@@ -136,27 +139,36 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
       "error": str (if API failed),
     }
     """
-    import os
-    import subprocess
-    import re
-
     try:
-        # GitHub search uses YYYY-MM-DD format, not ISO timestamp
-        cutoff_date = (datetime.utcnow() - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
-        query = (
-            f'repo:{repo} '
-            f'title:"{prefix}" '
-            f'created:>={cutoff_date}'
-        )
+        # Parse repo into owner and repo name
+        if "/" not in repo:
+            raise ValueError(f"Repo must be in format 'owner/repo', got: {repo}")
+        owner, repo_name = repo.split("/", 1)
+
+        # Use gh api to call GitHub REST API directly (avoids GraphQL)
+        # REST API endpoint: GET /repos/{owner}/{repo}/pulls?state=all&per_page=100
+        cutoff_timestamp = (datetime.utcnow() - timedelta(days=lookback_days)).isoformat()
+
         result = subprocess.run(
-            ["gh", "pr", "list", "--repo", repo, "--state", "all", "--limit", "100", "--search", query, "--json", "number,title,state,mergedAt,body"],
+            [
+                "gh",
+                "api",
+                "-X",
+                "GET",
+                f"repos/{owner}/{repo_name}/pulls",
+                "-f",
+                "state=all",
+                "-f",
+                "per_page=100",
+            ],
             capture_output=True,
             text=True,
             check=False,
+            timeout=30,
         )
 
         if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else "GitHub API unavailable"
+            error_msg = result.stderr if result.stderr else "GitHub REST API unavailable"
             return {
                 "total_prs": 0,
                 "predicted_prs": 0,
@@ -172,7 +184,54 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
                 "error": f"GitHub API failed: {error_msg}",
             }
 
-        prs = json.loads(result.stdout) if result.stdout else []
+        if not result.stdout:
+            return {
+                "total_prs": 0,
+                "predicted_prs": 0,
+                "successful": 0,
+                "reworked": 0,
+                "reverted": 0,
+                "predicted_accuracy": None,
+                "actual_success_rate": None,
+                "calibration_gap": None,
+                "focus_areas": [],
+                "meta_signal_available": False,
+                "lookback_days": lookback_days,
+                "note": "No PRs found",
+            }
+
+        try:
+            all_prs = json.loads(result.stdout)
+            if not isinstance(all_prs, list):
+                all_prs = [all_prs] if all_prs else []
+        except json.JSONDecodeError as e:
+            return {
+                "total_prs": 0,
+                "predicted_prs": 0,
+                "successful": 0,
+                "reworked": 0,
+                "reverted": 0,
+                "predicted_accuracy": None,
+                "actual_success_rate": None,
+                "calibration_gap": None,
+                "focus_areas": [],
+                "meta_signal_available": False,
+                "lookback_days": lookback_days,
+                "error": f"Failed to parse GitHub API response: {e}",
+            }
+
+        # Filter PRs by title and creation date
+        prs_data = []
+        for pr in all_prs:
+            # Check title matches consolidation prefix
+            if prefix not in pr.get("title", ""):
+                continue
+            # Check creation date is within lookback window
+            created_at = pr.get("created_at")
+            if created_at and created_at < cutoff_timestamp:
+                continue
+            prs_data.append(pr)
+
         predictions = []
         successful = 0
         reworked = 0
@@ -184,10 +243,10 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
 
         meta_pattern = re.compile(r"(?im)^\s*smag_p_meta\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
 
-        for pr in prs:
+        for pr in prs_data:
             body = pr.get("body") or ""
             state = pr.get("state", "").lower()
-            merged = state == "merged"
+            merged = pr.get("merged_at") is not None  # Use merged_at to determine if merged
 
             # Extract immutable smag_p_meta prediction (captured before merge)
             meta_match = meta_pattern.search(body)
@@ -197,11 +256,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
             predicted = float(meta_match.group(1))
             predictions.append(predicted)
 
-            # Classify outcome by merge/CI state, not prose
-            # Rework: merged but with history suggesting follow-up (conservative: only count reverts)
-            # Success: merged and no revert found
-            # Reverted: was merged then reverted (checked via closed state + revert in recent PRs)
-            # Note: without check-run API, we use merge state as proxy; revert detection is future work
+            # Classify outcome by merge state
             if merged:
                 successful += 1
                 resolved_predictions.append(predicted)
@@ -219,7 +274,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
 
         if predicted_count == 0:
             return {
-                "total_prs": len(prs),
+                "total_prs": len(prs_data),
                 "predicted_prs": 0,
                 "successful": 0,
                 "reworked": 0,
@@ -246,7 +301,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         )
 
         return {
-            "total_prs": len(prs),
+            "total_prs": len(prs_data),
             "predicted_prs": predicted_count,
             "successful": successful,
             "reworked": reworked,
@@ -416,7 +471,7 @@ def smoke_test() -> int:
         assert len(data3["lessons"]) == 1, "dry-run must not modify lessons file"
         print(f"  ✓ dry-run does not modify filesystem")
 
-        # Test 5: Deterministic calibration gap calculation (no GitHub API)
+        # Test 5: Deterministic calibration gap calculation
         # Simulate predicted vs actual: predicted 0.85, actual 0.80, gap = +0.05
         mock_predictions = [0.85, 0.90, 0.80]
         mock_successful = 2  # Out of 3
@@ -430,7 +485,6 @@ def smoke_test() -> int:
         print(f"  ✓ calibration gap calculation: predicted={predicted_avg:.2%}, actual={actual_success_rate:.2%}, gap={calibration_gap:+.2%}")
 
         # Test 6: Confidence levels based on gap magnitude
-        # Stable: abs(gap) <= 0.05; drift: <= 0.20; low: > 0.20
         small_gap_lesson = meta_lesson_for_self_accuracy(0.80, 5, [], confidence="stable")
         assert small_gap_lesson["confidence"] == "stable"
         medium_gap_lesson = meta_lesson_for_self_accuracy(0.80, 5, [], confidence="drift_detected")
