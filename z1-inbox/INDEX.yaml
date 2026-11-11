@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 121
-  records: 71
+  records: 72
 ratifiers:
 - Night
 candidates:
@@ -18,9 +18,13 @@ candidates:
   title: Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate
   path: z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md
   submitted: '2026-11-10'
-  status: awaiting_z2
+  status: ratified
   tier: 2
   note: 'PR #1158. Regenerates the graph last built 2026-09-13 (valid=False), flags 16 loop-closing edges as feedback, adds 36 nodes (16 documented orphans with notes; six edges removed after review because no file supports them), a --write/--check CLI and a freshness workflow. Statuses of added nodes come from files in the tree, not from proven runs. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-11"
+  z2_ruling: "z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md"
+  z2_hash: "308fb698a1fb1dc569e4bf6ebe1fe8b413b2ae3d8fe32dd79601a2efd0a0cbbc"
 - q_id: Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01
   title: 'Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages'
   path: z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md
@@ -938,6 +942,10 @@ candidates:
   z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
   z2_hash: "462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0"
 records:
+- path: z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md
+  title: "Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-21/CAPACITY_CONTROL_PLANE_REVIEW_RECORD.md
   title: Record of the Z2-directed capacity change (4 to 9) and what is still unsigned
   note: 'Records commit ffc95937 raising coordinator active_operator_queue from 4 to 9.
