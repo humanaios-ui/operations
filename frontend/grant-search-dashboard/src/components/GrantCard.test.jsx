@@ -64,13 +64,16 @@ describe('GrantCard Component', () => {
     expect(saveButton).toBeInTheDocument();
   });
 
-  test('renders component scores with progress bars', () => {
-    render(
+  test('renders component scores with progress bars and percentage units', () => {
+    const { container } = render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={() => {}} onClick={() => {}} />
     );
     expect(screen.getByText('Keywords:')).toBeInTheDocument();
     expect(screen.getByText('Geography:')).toBeInTheDocument();
     expect(screen.getByText('Budget:')).toBeInTheDocument();
     expect(screen.getByText('Timeline:')).toBeInTheDocument();
+    expect(
+      Array.from(container.querySelectorAll('.score-item .value'), node => node.textContent)
+    ).toEqual(['90%', '80%', '75%', '85%']);
   });
 });

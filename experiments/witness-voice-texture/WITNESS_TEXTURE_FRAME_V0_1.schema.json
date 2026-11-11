@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/experimental/WITNESS_TEXTURE_FRAME_V0_1.schema.json",
+  "title": "Witness Texture Frame v0.1 — synthetic-only Z1 display adapter",
+  "description": "Experimental presentation-only contract. Synthetic fixtures only. This schema does not authorize access to the Evidence Graph, governance decisions, or public deployment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "frame_id",
+    "source_event_id",
+    "source_kind",
+    "state",
+    "is_synthetic",
+    "authority_effect",
+    "can_ratify",
+    "summary",
+    "visual_seed",
+    "paths"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "witness-texture-demo/0.1"
+    },
+    "frame_id": {
+      "type": "string",
+      "pattern": "^DEMO-[A-Z0-9_-]+$",
+      "maxLength": 64
+    },
+    "source_event_id": {
+      "type": "string",
+      "pattern": "^DEMO-[A-Z0-9_-]+$",
+      "maxLength": 64
+    },
+    "source_kind": {
+      "const": "synthetic_fixture"
+    },
+    "state": {
+      "enum": [
+        "CONVERGENCE",
+        "DIVERGENCE",
+        "OMISSION",
+        "ANOMALY",
+        "UNRESOLVED",
+        "CORRECTION"
+      ]
+    },
+    "is_synthetic": {
+      "const": true
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "can_ratify": {
+      "const": false
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280
+    },
+    "visual_seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "paths": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "relation",
+          "source_group",
+          "evidence_refs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^DEMO-[A-Z0-9_-]+$",
+            "maxLength": 64
+          },
+          "relation": {
+            "enum": [
+              "supports",
+              "contradicts",
+              "missing",
+              "anomaly",
+              "unresolved",
+              "supersedes"
+            ]
+          },
+          "source_group": {
+            "type": "string",
+            "pattern": "^DEMO-[A-Z0-9_-]+$",
+            "maxLength": 64
+          },
+          "evidence_refs": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^DEMO-[A-Z0-9_-]+$",
+              "maxLength": 64
+            }
+          }
+        }
+      }
+    }
+  }
+}

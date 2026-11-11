@@ -1,0 +1,51 @@
+{
+  "schema": "humanaios.opportunity_journey.e0.v1",
+  "opportunity": {
+    "id": "OPP-APART-SPRINT",
+    "parent_resource_id": "RES-APART-LAB"
+  },
+  "events": [
+    {
+      "event_id": "E1",
+      "kind": "DISCOVERED",
+      "source_kind": "RESOURCE_MINER_OBSERVATION",
+      "evidence_ref": "SYNTHETIC-SOURCE",
+      "observed_at": "2026-10-22T08:00:00Z"
+    },
+    {
+      "event_id": "E2",
+      "kind": "HUMAN_SELECTED",
+      "source_kind": "HUMAN_REPORT",
+      "evidence_ref": "SYNTHETIC-INTENT",
+      "observed_at": "2026-10-22T09:00:00Z"
+    },
+    {
+      "event_id": "E3",
+      "kind": "SIGNUP_WELCOME_EMAIL_OBSERVED",
+      "source_kind": "GMAIL_CONNECTOR_OBSERVATION",
+      "evidence_ref": "SYNTHETIC-EMAIL",
+      "observed_at": "2026-10-22T10:00:00Z"
+    },
+    {
+      "event_id": "E4",
+      "kind": "SURVEY_SUBMITTED_HUMAN",
+      "source_kind": "HUMAN_REPORT",
+      "evidence_ref": "SYNTHETIC-SURVEY",
+      "observed_at": "2026-10-22T11:00:00Z"
+    },
+    {
+      "event_id": "E5",
+      "kind": "CALENDAR_EVENT_CREATED",
+      "source_kind": "CALENDAR_CONNECTOR_RECEIPT",
+      "evidence_ref": "SYNTHETIC-CALENDAR",
+      "observed_at": "2026-10-22T11:30:00Z"
+    },
+    {
+      "event_id": "E6",
+      "kind": "DISCORD_JOINED_HUMAN",
+      "source_kind": "HUMAN_REPORT",
+      "evidence_ref": "SYNTHETIC-JOIN",
+      "observed_at": "2026-10-22T12:00:00Z"
+    }
+  ]
+}

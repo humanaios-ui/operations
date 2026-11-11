@@ -10,12 +10,13 @@ from .mines import load_mines, receipts_to_jsonl, resolve_mines
 from .opportunity_claim import claims_from_propositions, write_claims_jsonl
 from .proposition import propositions_from_candidates, write_propositions_jsonl
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .reconcile import reconcile_snapshot
 from .policy_adjudication import adjudicate_ranked_candidate
 from .security_authorization import TestingMode
 from .security_capability import profile_from_machine_graph, unknown_capability_profile
 from .security_scope import fetch_scope_graph
 from .store import write_jsonl
-from .sources import devto, funding_pipeline, github, hackerone, rss
+from .sources import devto, discounts, funding_pipeline, github, hackerone, rss
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
@@ -35,7 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     scan = sub.add_parser("scan", help="Discover, normalize, map, and route resource candidates")
-    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "hackerone", "rss"], default=[])
+    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "hackerone", "rss", "discounts"], default=[])
     scan.add_argument("--needs", default=str(DEFAULT_NEEDS))
     scan.add_argument("--requirements", default=str(DEFAULT_REQUIREMENTS))
     scan.add_argument(
@@ -75,6 +76,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Emit only externally mineable Resource Requirement Objects",
     )
+
+    reconcile = sub.add_parser("reconcile", help="Reconcile durable resource state against receipts")
+    reconcile.add_argument("--snapshot", default=str(ROOT / "data" / "resources.snapshot.jsonl"))
+    reconcile.add_argument("--receipts", default=str(ROOT / "data" / "resource_state.receipts.jsonl"))
+    reconcile.add_argument("--out", default=None, help="Defaults to rewriting --snapshot in place")
+    reconcile.add_argument("--audit-out", default=None)
     return parser
 
 
@@ -162,6 +169,9 @@ def main() -> None:
         )
     if "rss" in sources:
         discovered.extend(rss.discover(args.rss))
+
+    if "discounts" in sources:
+        discovered.extend(discounts.discover())
 
     extra_requirements = _plan_requirements(args.resource_plan)
     resources = enrich(discovered, args.needs, args.requirements, extra_requirements)
