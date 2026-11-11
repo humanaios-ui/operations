@@ -73,6 +73,8 @@ jobs:
               # current dependency, so these CVEs are ignored for this file only.
               # Owner: humanaios-ui. Review when forecasting-tools releases a
               # pillow-13-compatible version.
+              # PYSEC-2026-4363 (pillow 12.3.0, fixed in 13.0.0) is ignored for the
+              # same reason, added at Z2 direction. It is the last --ignore-vuln line.
               # Comments stay above the command: a comment line inside a
               # backslash-continued command ends it and drops the final argument.
               python3 -m pip_audit \
@@ -133,6 +135,7 @@ jobs:
                 --ignore-vuln CVE-2026-112935 \
                 --ignore-vuln CVE-2026-112912 \
                 --ignore-vuln CVE-2026-112908 \
+                --ignore-vuln PYSEC-2026-4363 \
                 -r "${req}"
             else
               python3 -m pip_audit -r "${req}"
