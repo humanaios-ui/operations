@@ -546,7 +546,7 @@ class SystemGraphGenerator:
             implementation='tests/test_temporal_dissolution_gate.py, .github/workflows/temporal-dissolution-gate.yml',
             tests=10,
             phase='post-M15 (added 2026-11-08)',
-            notes='No proven edge. It is a standalone workflow and test; ci_gates.py and z2_ratification_gate.yml do not reference it, so it was not linked to CIG. Removed after review.',
+            notes="Wired to IGV: tools/intent_graph_v1_0.py imports is_risky from tests/test_temporal_dissolution_gate.py. Not wired: external-contribution-admission-witness.yml requires this workflow's run to be green, but that workflow is not a node; ci_gates.py and z2_ratification_gate.yml do not reference it; the coordinator reads the queue state of Q-TEMPORAL-DISSOLUTION-01, not this workflow.",
         ))
 
         self.add_node(Node(
@@ -629,7 +629,7 @@ class SystemGraphGenerator:
             zone='Z2',
             description='This graph: canonical machine form of the governance process graph, generated from the edge list, validated for dangling edges and forward cycles',
             implementation='system_graph_generator.py, system_graph.json',
-            tests=12,
+            tests=13,
             phase='post-M15 (added 2026-11-08)',
         ))
 
@@ -641,7 +641,7 @@ class SystemGraphGenerator:
             zone='CI',
             description='Fails when the committed graph is invalid, differs from generator output, or (weekly) is older than 45 days; graph-capture-lint scores the multiplex (test count covers the generator and capture-lint suites)',
             implementation='tools/graph_capture_lint_v1_0.py, .github/workflows/system-graph-freshness.yml, .github/workflows/graph-capture-lint.yml',
-            tests=55,
+            tests=56,
             phase='post-M15 (added 2026-11-08)',
         ))
 
@@ -676,10 +676,10 @@ class SystemGraphGenerator:
             status=NodeStatus.LAID.value,
             zone='Z1',
             description='General runtime calibration research prototype built on the three-phase ACAT method; authority effect NONE',
-            implementation='experiments/acat_r_v01, .github/workflows/acat-r-v01.yml',
+            implementation='experiments/acat_r_v01, .github/workflows/acat-r-v01.yml, experiments/acat_r_comparison, .github/workflows/acat-r-second-runtime-comparison.yml',
             tests=40,
             phase='post-M15 (added 2026-11-08)',
-            notes='No proven edge. Its README says it extends the three-phase ACAT method; that is a method, not the code in acat/api, so no edge to the ACAT API node was kept.',
+            notes='No edge to the ACAT API node: ACAT-R extends the ACAT method, not the code in acat/api. Linked from GNER because its comparison study imports gner_verify_e1.reconcile as the runtime under test.',
         ))
 
         self.add_node(Node(
@@ -766,7 +766,7 @@ class SystemGraphGenerator:
             implementation='tools/gner_notification_e0.py, tools/gner_verify_e1.py, tools/gner_failure_signatures_e2.py',
             tests=32,
             phase='post-M15 (second pass 2026-11-10)',
-            notes='No proven edge. gner_notification_e0.py only has a parameter named verified_receipts; it does not import tools/verified_receipts.py, and E1 verifies run metadata through the GitHub API directly. Removed after review.',
+            notes="Wired to ACATR: experiments/acat_r_comparison/study.py imports reconcile from gner_verify_e1 (worker function). Not wired: gner_notification_e0.py only has a parameter named verified_receipts, and the P19 bot's exemption list names that file (an exemption, not a data flow). E0 and E2 have no proven consumer.",
         ))
 
         self.add_node(Node(
@@ -842,7 +842,7 @@ class SystemGraphGenerator:
             implementation='tools/control_plane_custody_observer_v0_1.py, schemas/control_plane_custody_event_v0_1.schema.json',
             tests=5,
             phase='post-M15 (orphan, noted 2026-11-10)',
-            notes='No proven edge. PR titles say it adapts GitHub evidence into custody observations (#621, #623), but no file in the tree names the producer or consumer of that data. Add an edge when one does.',
+            notes="Wired from CPGA: the adapter's docstring names this observer as the consumer of its output, and the adapter's tests pass adapter output into observer.normalize_observation. No consumer of the observer's receipts was found, so there is no outgoing edge.",
         ))
 
         self.add_node(Node(
@@ -988,6 +988,33 @@ class SystemGraphGenerator:
             notes='Status from file presence and a consolidating workflow, not from a verified run.',
         ))
 
+        # BATCH ONE (2026-11-11): nodes needed to carry edges proven for GNER, TDG and CUST.
+        self.add_node(Node(
+            id='CPGA',
+            name='Control-Plane GitHub Adapter',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Transforms exported GitHub event/API evidence into the raw observation shape the custody observer consumes; conservative by design: account identity does not prove human origin, custody and authority default to UNKNOWN, authority effect NONE',
+            implementation='tools/control_plane_github_adapter_v0_1.py, tools/tests/test_control_plane_github_adapter_v0_1.py',
+            tests=7,
+            phase='post-M15 (batch one, 2026-11-11)',
+            notes='Status from files and its tests, not from a workflow run. It takes exported GitHub evidence supplied by the caller; no producer node was proven.',
+        ))
+
+        self.add_node(Node(
+            id='IGV',
+            name='Intent Graph Validator',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.LAID.value,
+            zone='Z1',
+            description='Validates INTENT_GRAPH.yaml against the tree and renders INTENT_GRAPH.md; refuses a graph that has drifted from the tree and decides nothing; rule E10 reuses the temporal gate\'s own patterns',
+            implementation='tools/intent_graph_v1_0.py',
+            tests=0,
+            phase='post-M15 (batch one, 2026-11-11)',
+            notes='No test file of its own and no workflow runs it; status from the file. INTENT_GRAPH.yaml is listed under IOS.',
+        ))
+
         # Loop-closing edges. The governance machinery is a deliberate feedback
         # loop (measure -> propose -> ratify -> apply -> measure), so a strict
         # DAG check over every edge cannot pass. These edges are the ones that
@@ -1120,6 +1147,11 @@ class SystemGraphGenerator:
             ('Z2', 'HCM', EdgeType.CAUSALITY.value, 'ratified as Q-HCM-CORE-MACHINE-01', ''),
             ('IOS', 'CONV', EdgeType.DATA_FLOW.value, 'INTENT_GRAPH / EVIDENCE_GRAPH read for grading', ''),
             ('REG', 'WIT', EdgeType.DATA_FLOW.value, 'REGISTERED.md Fix-citation entries read', ''),
+
+            # Batch one (2026-11-11). Evidence for each is a code import or an executable test, cited in the PR.
+            ('GNER', 'ACATR', EdgeType.DATA_FLOW.value, 'ACAT-R comparison study imports gner_verify_e1.reconcile as the runtime under test', ''),
+            ('TDG', 'IGV', EdgeType.DATA_FLOW.value, "intent_graph_v1_0.py rule E10 imports is_risky from the gate's test module for a parity check", ''),
+            ('CPGA', 'CUST', EdgeType.DATA_FLOW.value, 'adapter emits the raw observation shape the custody observer consumes; its tests feed adapter output to observer.normalize_observation', ''),
         ]
 
 
