@@ -83,6 +83,8 @@ python3 .z1-control/ratify.py Q-GRAPH-ORPHANS-B1-01 --decision ACCEPT --by Night
 python3 .z1-control/ratify.py Q-GRAPH-ORPHANS-B1-01 --decision ACCEPT --by Night --apply  # writes the ruling and index entry
 ```
 
+**Order of signing (operator decision, 2026-11-11):** merge first, sign after. This departs from CLAUDE.md Decision Routing, which places signing (step 6) before the merge (step 7). The operator chose it on purpose, following the practice used for #1158. A `z2:ratified` label on the pull request is a note for readers; no workflow or script reads it, and it does not sign. Until step 2 is run, this candidate stays `awaiting_z2`.
+
 The signer hashes the candidate's exact bytes, so edit this file only before step 2.
 
 ---

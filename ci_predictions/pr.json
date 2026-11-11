@@ -39,5 +39,5 @@
       "p": 0.8
     }
   },
-  "note": "Not a blind prediction. The previous head (79c234e5) passed every check. This head corrects evidence text in the candidate block and hardens one test; the 1286-test baseline, temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) passed locally before the push. The PR is ready for review and this exact head has not been admitted, so I predict the admission gate fails until the operator posts a new admit; once admitted, expect a stale-state race that one re-run clears. Z2 ratification is not predicted here."
+  "note": "Not a blind prediction. The previous head (efd3600c) passed every check after one admission re-run. This head only adds two sentences to the candidate block recording the operator's decision on signing order (merge first, sign after); z1-inbox validate and render passed locally. The PR is ready for review and this exact head has not been admitted, so I predict the admission gate fails until the operator posts a new admit, then a stale-state race that one re-run clears. Z2 ratification is not predicted here."
 }
