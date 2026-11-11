@@ -15,6 +15,7 @@ COPY resource-miner/app.py ./resource-miner/app.py
 # The public intent and on-track routes read these files at request time.
 # Omitting them gives a healthy container with broken pages (500 responses).
 COPY resource-miner/intent-os.html ./resource-miner/intent-os.html
+COPY resource-miner/app.webmanifest ./resource-miner/app.webmanifest
 COPY resource-miner/on-track.html ./resource-miner/on-track.html
 COPY resource-miner/pyproject.toml ./resource-miner/pyproject.toml
 COPY resource-miner/data/needs.seed.json ./resource-miner/data/needs.seed.json

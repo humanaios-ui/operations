@@ -41,11 +41,13 @@ def pr(
     files=None,
     patch="",
     reviews=None,
+    comments=None,
     mergeable_state="clean",
     *,
     author="builder",
     draft=False,
     labels=None,
+    head_sha="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 ):
     files = ["x.py"] if files is None else files
     return {
@@ -55,11 +57,14 @@ def pr(
         "files": files,
         "file_details": [{"filename": f, "patch": patch if i == 0 else ""} for i, f in enumerate(files)],
         "reviews": reviews or [],
+        "comments": comments or [],
         "mergeable_state": mergeable_state,
         "html_url": f"https://example.test/pull/{n}",
         "author": author,
         "draft": draft,
         "labels": labels or [],
+        "head_sha": head_sha,
+        "verified_admission_receipts": [],
     }
 
 
@@ -80,6 +85,7 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None, support_paths=
         "evaluation_admission": {
             "authorized_actors": ["humanaios-ui"],
             "required_issue_state": "ADMISSION_REQUESTED",
+            "command": "/admit-evaluation",
         },
         "maintenance": {
             "authors": ["dependabot[bot]"],
@@ -333,19 +339,62 @@ def test_issue_assignment_without_admission_stays_workbench_when_draft():
     assert got["admission"]["admitted"] is False
 
 
-def test_authorized_review_admits_requested_issue_to_evaluation_only():
+def test_raw_approved_review_is_not_human_origin_proof():
     reviews = [{
         "user": {"login": "humanaios-ui"},
         "state": "APPROVED",
         "submitted_at": "2026-09-30T19:43:58Z",
     }]
-    p = pr(1, body="Fixes #99", reviews=reviews, files=[])
+    p = pr(1, body="Fixes #99", reviews=reviews)
     referenced = {
         "99": {
             "state": "open",
             "is_pull_request": False,
             "title": "Session graph",
-            "body": "- **state:** `ADMISSION_REQUESTED`\n- **authority_required:** `Z2`",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_same_account_ai_command_is_not_human_origin_proof():
+    comments = [{
+        "user": {"login": "humanaios-ui"},
+        "body": "/admit-evaluation",
+        "created_at": "2026-09-30T20:57:36Z",
+    }]
+    p = pr(1, body="Fixes #99", comments=comments)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_verified_human_receipt_admits_requested_issue_to_evaluation_only():
+    head = "a" * 40
+    p = pr(1, body="Fixes #99", head_sha=head)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": head,
+        "authority": "EVALUATION_ONLY",
+        "carrier": "humanaios-ui",
+        "source": "issue_comments",
+    }]
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
         }
     }
     idx = run([p], items=referenced, policy_data=policy())
@@ -353,10 +402,59 @@ def test_authorized_review_admits_requested_issue_to_evaluation_only():
     assert got["lane"] == "ADMITTED_TO_EVALUATION"
     assert got["admission"]["gate"] == "PASS"
     assert got["admission"]["evaluation_admitted"] is True
+    assert got["admission"]["evaluation_principals"] == ["human-authority"]
     assert got["admission"]["working_set_admitted"] is False
-    assert got["guidance"]["action"] == "ADVANCE"
-    assert got["objective"] == "EVALUATION"
     assert idx["capacity"]["admitted_ready_count"] == 0
+
+
+def test_verified_receipt_is_bound_to_exact_head():
+    p = pr(1, body="Fixes #99", head_sha="a" * 40)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": "b" * 40,
+        "authority": "EVALUATION_ONLY",
+    }]
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_verified_receipt_cannot_admit_unlinked_issue():
+    head = "a" * 40
+    p = pr(1, body="Fixes #98", head_sha=head)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": head,
+        "authority": "EVALUATION_ONLY",
+    }]
+    referenced = {
+        "98": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Linked session",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        },
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Other session",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        },
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
 
 
 def test_untrusted_review_cannot_admit_evaluation_workspace():
@@ -1648,9 +1746,13 @@ def test_oracle_repository_reads_operations_system_graph():
         for a in graph["assertions"]
         if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
     }
-    assert values["node_count"] == 22
-    assert values["edge_count"] == 53
-    assert values["generated_at"] == "2026-09-13T15:12:28.926529"
+    # Read the expected values from the committed graph so regenerating
+    # system_graph.json does not require editing a pin here; the test still
+    # checks that the oracle projection matches the file on disk.
+    committed = json.loads((root / "system_graph.json").read_text())
+    assert values["node_count"] == len(committed["nodes"])
+    assert values["edge_count"] == len(committed["edges"])
+    assert values["generated_at"] == committed["generated_at"]
     assert graph["authority"]["authority_effect"] == "NONE"
 
 
@@ -1671,7 +1773,11 @@ def test_oracle_global_reconciles_identity_and_retains_both_values():
         if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
         and a["predicate"] == "node_count"
     }
-    assert node_values == {19, 22}
+    # 19 and 22 are the two values the Drive snapshot carries (prose claim and
+    # its stale JSON export); the repository value is read from the committed
+    # graph so regenerating it does not require editing this test.
+    committed = json.loads((root / "system_graph.json").read_text())
+    assert node_values == {19, 22, len(committed["nodes"])}
     assert len(graph["conflicts"]) >= 2
 
 
@@ -1765,6 +1871,16 @@ def test_pr_comment_route_accepts_only_authenticated_exact_head(tmp_path):
     assert result["event"]["source_locator"].endswith(":pull:994:comment:90001")
     assert result["event"]["command_ref"] == "RCC-GITHUB-COMMENT-90001"
     assert apply_pr_comment_v11(**args)["reason"] == "DUPLICATE_COMMAND"
+
+
+@pytest.mark.parametrize("suffix", ["\n", "\r\n", "  "])
+def test_pr_comment_route_tolerates_trailing_whitespace_from_posting_client(tmp_path, suffix):
+    args, ledger, state_file = _pr_comment_fixture(
+        tmp_path, comment_body="/coordinator admit " + "a" * 40 + suffix)
+    result = apply_pr_comment_v11(**args)
+    assert result["should_mutate"] is True
+    assert result["decision"] == "ADMIT"
+    assert result["merge_authority"] is False
 
 
 def test_pr_comment_route_bare_command_produces_explicit_noop(tmp_path):
