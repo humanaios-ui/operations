@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import app
-from resource_miner.intent_os import evaluate_objective
+from resource_miner.intent_os import MAX_ROWS, evaluate_objective
 from resource_miner import on_track_execution as execution
 from resource_miner import on_track_progress as progress
 from resource_miner import on_track_reflex as reflex
@@ -60,6 +60,33 @@ def observed_receipt():
 
 
 class TechnicalWitnessTests(unittest.TestCase):
+    def test_all_matches_are_witnessed_beyond_first_browser_page(self):
+        for count in (18, MAX_ROWS):
+            with self.subTest(count=count):
+                rows = [candidate(resource_id=f"RES-{i}") for i in range(count)]
+                with patch.object(execution, "_request", side_effect=fake_http(rows)):
+                    receipt = execution.run_probe()
+                self.assertEqual(receipt["candidate_count"], count)
+                view = progress.projection(declared_report(), receipt)
+                self.assertEqual(view["technical_execution"]["candidate_count"], count)
+                self.assertEqual(view["human_user_outcome"], "UNVERIFIED")
+
+    def test_candidate_collection_stays_bounded(self):
+        valid = response(execution.OBJECTIVE, [candidate()])
+        for candidates in (None, {}, valid["candidates"] * (MAX_ROWS + 1)):
+            with self.subTest(collection_type=type(candidates).__name__):
+                bad = dict(valid, candidates=candidates,
+                           shown_count=len(candidates) if candidates is not None else 0)
+                with self.assertRaisesRegex(ValueError, "Bad candidate collection"):
+                    execution._check_result(bad, True)
+
+    def test_candidates_after_first_browser_page_are_validated(self):
+        rows = [candidate(resource_id=f"RES-{i}") for i in range(11)]
+        bad = response(execution.OBJECTIVE, rows)
+        bad["candidates"][-1]["source_name"] = "Private Gmail"
+        with self.assertRaisesRegex(ValueError, "Untrusted/private source included"):
+            execution._check_result(bad, True)
+
     def test_actual_http_contract_is_checked(self):
         r = observed_receipt()
         self.assertEqual(r["technical_state"], "TESTED_LOCAL_HTTP")
@@ -119,6 +146,16 @@ class TechnicalWitnessTests(unittest.TestCase):
 
 
 class ProgressProjectionTests(unittest.TestCase):
+    def test_invalid_candidate_counts_refused_even_when_rehashed(self):
+        for count in (0, -1, MAX_ROWS + 1, True, 1.5):
+            with self.subTest(count=count):
+                receipt = observed_receipt()
+                receipt["candidate_count"] = count
+                receipt["sha256"] = execution.digest(
+                    {k: v for k, v in receipt.items() if k != "sha256"})
+                with self.assertRaisesRegex(ValueError, "Invalid candidate count"):
+                    progress.projection(declared_report(), receipt)
+
     def test_observer_and_http_link_without_human_green(self):
         view = progress.projection(declared_report(), observed_receipt())
         self.assertEqual(view["technical_execution"]["state"], "TESTED_LOCAL_HTTP")

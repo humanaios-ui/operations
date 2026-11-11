@@ -1,55 +1,43 @@
 {
-  "pr": 843,
-  "actor_origin_claim": "Claude Code session, Z1 proposal and read-only lookup tool",
+  "pr": 1176,
+  "actor_origin_claim": "Claude Code session; graph orphans batch one for issue 1175",
   "checks": {
-    "agent-principle-compliance-check": {
+    "quality": {
+      "conclusion": "success",
+      "p": 0.88
+    },
+    "guard": {
       "conclusion": "success",
       "p": 0.95
     },
-    "builder-lint": {
+    "Check principles (P19)": {
+      "conclusion": "success",
+      "p": 0.92
+    },
+    "Reject unauthorized internal deadline semantics": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "freshness": {
       "conclusion": "success",
       "p": 0.93
     },
-    "document-control": {
+    "Secret scanning (gitleaks)": {
       "conclusion": "success",
-      "p": 0.96
+      "p": 0.97
     },
-    "manifest-sync-gate": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "No-op PR guard": {
-      "conclusion": "success",
-      "p": 0.99
-    },
-    "quality-baseline": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "repository-admission-gate": {
-      "conclusion": "success",
-      "p": 0.8
-    },
-    "repository-coordinator": {
-      "conclusion": "success",
-      "p": 0.9
-    },
-    "security-gates": {
+    "Python dependency vulnerability scan": {
       "conclusion": "success",
       "p": 0.95
     },
-    "tool-manifest": {
-      "conclusion": "success",
-      "p": 0.9
+    "Repository admission/backpressure gate": {
+      "conclusion": "failure",
+      "p": 0.85
     },
-    "workflow-lint": {
+    "Build repository coordination index (ADVISORY)": {
       "conclusion": "success",
-      "p": 0.97
-    },
-    "workflow-path-validation": {
-      "conclusion": "success",
-      "p": 0.97
+      "p": 0.8
     }
   },
-  "note": "Adds tools/graph_lookup_v0_1.py (stdlib, read-only) and its tests. Builder v1.7 gate fixed by adding --smoke-test. Expected risk: manifest row ID and repository-admission-gate for a Z2-queued tool path."
+  "note": "Not a blind prediction. The previous head (efd3600c) passed every check after one admission re-run. This head only adds two sentences to the candidate block recording the operator's decision on signing order (merge first, sign after); z1-inbox validate and render passed locally. The PR is ready for review and this exact head has not been admitted, so I predict the admission gate fails until the operator posts a new admit, then a stale-state race that one re-run clears. Z2 ratification is not predicted here."
 }
