@@ -1,0 +1,8 @@
+{
+  "authority_effect": "NONE",
+  "note": "Local digest only; not an independent timestamp or authenticated witness",
+  "p1_sha256": "773bf1bd5e037349b4375fd0e096c7377c456425ea79b402d4af3fb634d15baf",
+  "protocol_sha256": "8888d7863ce63815e92061a981335b2913868465505c2d881fabb63bff0c1ccd",
+  "schema": "humanaios.acat-r.commit.v0.1",
+  "system_id": "synthetic-runtime-demo"
+}

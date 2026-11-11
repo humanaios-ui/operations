@@ -59,10 +59,12 @@ description: |
 
   ## Revert posture
 
-  Ships inert: gated behind repository variable
-  `COORDINATOR_AUTOSWEEP_ENABLED` (default unset → dry-run). Z2 activates by
-  setting it `true` after ratification; reverting is setting it back to `false`
-  (no code change, no ledger rewrite).
+  Ships inert for scheduled runs: gated behind repository variable
+  `COORDINATOR_AUTOSWEEP_ENABLED` (default unset → dry-run). Z2 activates the
+  schedule by setting it `true` after ratification; setting it back to `false`
+  stops scheduled admissions (no code change, no ledger rewrite). Manual
+  `workflow_dispatch` runs with `dry_run=false` can still request admissions
+  regardless of this variable; the admission gate must authorize the request.
 
   ## Rejected alternatives
 
