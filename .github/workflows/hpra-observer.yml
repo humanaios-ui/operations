@@ -1,0 +1,46 @@
+name: HPRA observer regression
+on:
+  pull_request:
+    paths:
+      - 'tools/substack_agent/**'
+      - 'tools/agents/substack_content_agent_v1.py'
+      - 'tests/substack_agent/**'
+      - 'entry_protocol/living_newsletter.py'
+      - 'entry_protocol/newsletter_gmail_bridge.py'
+      - 'entry_protocol/gmail_push_adapter.py'
+      - '.github/workflows/hpra-observer.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/substack_agent/**'
+      - 'tools/agents/substack_content_agent_v1.py'
+      - 'tests/substack_agent/**'
+      - 'entry_protocol/living_newsletter.py'
+      - 'entry_protocol/newsletter_gmail_bridge.py'
+      - 'entry_protocol/gmail_push_adapter.py'
+      - '.github/workflows/hpra-observer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hpra-offline-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify exact-head checkout
+        env:
+          EXPECTED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - name: Run network-free HPRA regression
+        run: python -m unittest discover -s tests/substack_agent -p 'test_*.py' -v
+      - name: Preserve existing Gmail behavior
+        run: python -m unittest discover -s tests -p 'test_gmail_push_adapter.py' -v
