@@ -17,7 +17,9 @@ The selection is kept identical to the workflow's step
     headroom = max(0, capacity.active_operator_queue_limit
                       - capacity.admitted_ready_count)
     budget   = min(headroom, hard_cap)
-    selected = eligible sorted by PR number, first `budget`
+    selected = first `budget` eligible PRs sorted by number, excluding objectives
+               claimed by ACTIVE PRs or an earlier selection in this batch
+    Unknown mergeability is ineligible; incomplete live connections fail closed.
 
 Classification is NOT re-implemented here: it comes from the coordinator's own
 `repository_coordinator_v0_1.analyze()`, so a disposition drift cannot hide in a
@@ -39,10 +41,13 @@ TOOL_CATEGORY = "governance_tool"
 TOOL_ZONE = 1
 
 import argparse
+import base64
+import hashlib
 import json
 import subprocess
 import sys
 import time
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -50,6 +55,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 
 from repository_coordinator_v0_1 import analyze  # noqa: E402  (coordinator's own classifier)
+from repository_coordinator_state_v1 import verify_projection  # noqa: E402
 
 MAINT_BOT_SUFFIX = "[bot]"
 DEFAULT_HARD_CAP = 10
@@ -65,14 +71,31 @@ def plan(index: dict, hard_cap: int = DEFAULT_HARD_CAP) -> dict:
     headroom = max(0, limit - admitted_ready)
     items = index.get("items") or []
 
+    def objectives(it):
+        admission = it.get("admission") or {}
+        return set(admission.get("objectives") or []) | set(admission.get("declared_objectives") or [])
+
+    claimed = set().union(*(objectives(it) for it in items
+                            if it.get("lane") in {"ACTIVE", "CAPACITY_CONTENTION"}))
     eligible = sorted(
         (it for it in items
          if it.get("lane") == "ADMISSION_REVIEW"
          and (it.get("guidance") or {}).get("action") == "ADVANCE"
+         and ((it.get("merge_surface") or {}).get("mergeable_state") or "unknown") != "unknown"
+         and not objectives(it) & claimed
          and not any(f.get("severity") == "HIGH" for f in (it.get("findings") or []))),
         key=lambda it: it["number"],
     )
     budget = min(headroom, max(0, hard_cap))
+    selected, deferred, conflicting = [], [], []
+    for it in eligible:
+        if objectives(it) & claimed:
+            conflicting.append(it)
+        elif len(selected) < budget:
+            selected.append(it)
+            claimed.update(objectives(it))
+        else:
+            deferred.append(it)
     return {
         "limit": limit,
         "admitted_ready": admitted_ready,
@@ -80,8 +103,9 @@ def plan(index: dict, hard_cap: int = DEFAULT_HARD_CAP) -> dict:
         "hard_cap": hard_cap,
         "budget": budget,
         "eligible": eligible,
-        "selected": eligible[:budget],
-        "deferred": eligible[budget:],
+        "selected": selected,
+        "deferred": deferred,
+        "conflicting": conflicting,
         "lanes": dict(Counter(it.get("lane") for it in items)),
         "actions": dict(Counter((it.get("guidance") or {}).get("action") for it in items)),
         "open_prs": len(items),
@@ -100,8 +124,8 @@ query($owner:String!,$repo:String!,$cursor:String){
         number title body isDraft url headRefOid mergeable mergeStateStatus
         author{__typename login}
         labels(first:20){nodes{name}}
-        files(first:100){nodes{path}}
-        reviews(first:100){nodes{author{login} state submittedAt commit{oid}}}
+        files(first:100){pageInfo{hasNextPage endCursor} nodes{path}}
+        reviews(first:100){pageInfo{hasNextPage endCursor} nodes{author{login} state submittedAt commit{oid}}}
       }
     }
   }
@@ -138,6 +162,8 @@ def _gh_open_prs(owner: str, repo: str) -> list[dict]:
 
 def _main_paths(ref: str = "origin/main") -> list[str]:
     r = _sh(["git", "ls-tree", "-r", "--name-only", ref])
+    if r.returncode != 0:
+        raise SystemExit(f"git ls-tree failed for {ref}: {r.stderr.strip()[:400]}")
     return [p for p in r.stdout.splitlines() if p]
 
 
@@ -149,6 +175,13 @@ def _row(n: dict, maint_authors: set[str]) -> dict:
     is_draft = bool(n.get("isDraft"))
     need = (not is_draft) and (author not in maint_authors)
     mss = (n.get("mergeStateStatus") or "UNKNOWN").lower()
+    if n.get("mergeable") == "UNKNOWN":
+        mss = "unknown"
+    if need:
+        for connection in ("files", "reviews"):
+            page_info = (n.get(connection) or {}).get("pageInfo") or {}
+            if page_info.get("hasNextPage") is not False:
+                raise SystemExit(f"PR #{n['number']} has incomplete {connection}; refusing a partial admission plan")
     return {
         "number": n["number"], "title": n.get("title") or "", "body": n.get("body") or "",
         "author": author, "labels": [x["name"] for x in (n["labels"]["nodes"] or [])],
@@ -165,15 +198,53 @@ def _row(n: dict, maint_authors: set[str]) -> dict:
     }
 
 
+def _live_state(owner: str, repo: str, policy: dict) -> tuple[dict, dict]:
+    cfg = policy.get("state") or {}
+    branch, ledger_path, projection_path = (
+        cfg.get("branch"), cfg.get("ledger_path"), cfg.get("projection_path")
+    )
+    if not all((branch, ledger_path, projection_path)):
+        raise SystemExit("policy state-branch contract is incomplete; refusing to preview")
+
+    def api(path):
+        result = _sh(["gh", "api", path])
+        if result.returncode != 0:
+            raise SystemExit(f"gh state lookup failed: {result.stderr.strip()[:400]}")
+        return json.loads(result.stdout)
+
+    sha = api(f"repos/{owner}/{repo}/branches/{branch}")["commit"]["sha"]
+
+    def fetch_text(path):
+        data = api(f"repos/{owner}/{repo}/contents/{path}?ref={sha}")
+        if not isinstance(data, dict) or data.get("type") != "file" or data.get("encoding") != "base64":
+            raise SystemExit(f"state path {path} is not a base64-encoded file")
+        return base64.b64decode(data["content"]).decode("utf-8")
+
+    ledger_text, projection_text = fetch_text(ledger_path), fetch_text(projection_path)
+    with tempfile.TemporaryDirectory(prefix="coordinator-sweep-") as tmp:
+        ledger_file, state_file = Path(tmp) / "ledger.jsonl", Path(tmp) / "state.json"
+        ledger_file.write_text(ledger_text, encoding="utf-8")
+        state_file.write_text(projection_text, encoding="utf-8")
+        state = verify_projection(ledger_file, state_file)
+    if state.get("merge_authority") is not False:
+        raise SystemExit("coordinator state claims merge authority; refusing to preview")
+    return state, {
+        "state_mode": "v0.3", "state_branch": branch, "state_sha": sha,
+        "ledger_sha256": hashlib.sha256(ledger_text.encode("utf-8")).hexdigest(),
+        "projection_sha256": hashlib.sha256(projection_text.encode("utf-8")).hexdigest(),
+    }
+
+
 def _live_index(owner: str, repo: str) -> dict:
     policy = json.loads((ROOT / "REPOSITORY_COORDINATOR_POLICY.json").read_text())
-    state = json.loads((ROOT / "COORDINATOR_STATE.json").read_text())
+    state, state_receipt = _live_state(owner, repo, policy)
     pq = (ROOT / "PRIORITY_QUEUE.md").read_text(encoding="utf-8")
     maint = set((((policy or {}).get("maintenance") or {}).get("authors") or []))
     snapshot = {
         "schema_version": "0.3", "purpose": "admission-sweep-dryrun",
         "repository": f"{owner}/{repo}", "main_sha": "local", "policy_ref": "main",
         "policy_sha": "local", "main_paths": _main_paths(),
+        **state_receipt,
         "referenced_items": {}, "referenced_pull_requests": {},
         "pull_requests": [_row(n, maint) for n in _gh_open_prs(owner, repo)],
     }
@@ -206,6 +277,9 @@ def render(p: dict) -> str:
     if p["deferred"]:
         L.append("DEFERRED (over budget): "
                  + ", ".join("#" + str(x["number"]) for x in p["deferred"]))
+    if p["conflicting"]:
+        L.append("SKIPPED (objective selected in this batch): "
+                 + ", ".join("#" + str(x["number"]) for x in p["conflicting"]))
     return "\n".join(L) + "\n"
 
 
@@ -255,13 +329,13 @@ def _smoke() -> int:
     state_full = dict(state, admitted_pull_request_numbers=list(range(900, 909)))
     # fabricate 9 admitted-ready ACTIVE PRs so admitted_ready_count == limit
     snap_full = dict(snapshot, pull_requests=snapshot["pull_requests"] + [
-        pr(900 + i, body="closes #%d" % (900 + i)) for i in range(9)
+        pr(900 + i) for i in range(9)
     ])
-    # (admission is evidence-driven; the plan() headroom math is what we assert)
     idx2 = analyze(snap_full, "", policy=policy, state=state_full)
     p2 = plan(idx2, hard_cap=DEFAULT_HARD_CAP)
-    assert p2["budget"] <= p2["headroom"], "budget exceeds headroom"
-    assert p2["budget"] == min(p2["headroom"], DEFAULT_HARD_CAP)
+    assert idx2["capacity"]["admitted_ready_count"] == 9, idx2["capacity"]
+    assert p2["headroom"] == 0 and p2["budget"] == 0, p2
+    assert p2["selected"] == [], "full ACTIVE queue must select nothing"
 
     # hard cap clamps below headroom
     p3 = plan(index, hard_cap=0)
@@ -298,7 +372,7 @@ def main(argv=None) -> int:
 
     p = plan(index, hard_cap=args.max_admits)
     if args.json:
-        slim = {k: ([it["number"] for it in v] if k in {"eligible", "selected", "deferred"} else v)
+        slim = {k: ([it["number"] for it in v] if k in {"eligible", "selected", "deferred", "conflicting"} else v)
                 for k, v in p.items()}
         print(json.dumps(slim, indent=2, sort_keys=True))
     else:
