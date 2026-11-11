@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**121 candidates** — ⏳ awaiting Z2 102 · ✅ ratified 19 · **67 records**
+**121 candidates** — ⏳ awaiting Z2 102 · ✅ ratified 19 · **71 records**
 
 ## Awaiting Z2 (102)
 
@@ -491,7 +491,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (67)
+## Records (71)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -551,6 +551,10 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md` | IC-065 — Evidence Ledger Gap (PR #465) |
 | `z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md` | Phase 3 credential deployment guide |
 | `z1-inbox/2026-10-01/HANDOFF.md` | Z1 Session Handoff — Phase 2B Salvage Complete |
+| `z1-inbox/2026-10-01/PR-630-REMEDIATION-PATCHES.md` | PR #630 Remediation Patches — 6 Actionable Fixes |
+| `z1-inbox/2026-10-01/PR-630-WARRANT.md` | WARRANT: PR #630 Admissions Approval & Credential Deployment |
+| `z1-inbox/2026-10-01/RED-TEAM-AUDIT-PR-630.md` | Red-Team Audit Report — PR #630 Credential Deployment Findings |
+| `z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md` | Z3 Execution Cycle 1 Handoff — Results & Verification Gaps |
 | `z1-inbox/2026-10-02/SESSION_FINDINGS.md` | Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop |
 | `z1-inbox/2026-10-10/HANDOFF.md` | Session Handoff — Manifest Integrity Fix (GNER E0/E1/E2) |
 | `z1-inbox/2026-10-14/HANDOFF.md` | Session Handoff — Multi-agent queue plan (Q-MULTI-AGENT-QUEUE-PLAN-01) |
