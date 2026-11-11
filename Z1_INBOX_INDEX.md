@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**120 candidates** — ⏳ awaiting Z2 101 · ✅ ratified 19 · **67 records**
+**121 candidates** — ⏳ awaiting Z2 102 · ✅ ratified 19 · **67 records**
 
-## Awaiting Z2 (101)
+## Awaiting Z2 (102)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -113,6 +113,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 | 2026-11-12 | **Q-SYSTEM-GRAPH-REGEN-01** | Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate | `z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md` |
+| 2026-11-13 | **Q-GRAPH-ORPHANS-B1-01** | Graph orphan wiring, batch one (GNER, TDG, CUST) with edges proven by code, plus the two nodes those edges need | `z1-inbox/2026-11-11/Q-GRAPH-ORPHANS-B1-01.md` |
 
 ## Decided (19)
 
