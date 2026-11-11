@@ -1,0 +1,2438 @@
+{
+  "schema": "humanaios.ai-risk-map.scoped-crosswalk.v0.1",
+  "generated_from": "Wheeler AI Risk Map v1.3 (2026), © Evan Wheeler, CC BY-SA 4.0",
+  "source_ref": "https://github.com/wheels344i-gte/ai-risk-map/blob/v1.3/AI-Risk-Map.csv",
+  "source_blob_sha": "01a7c3ad7d5bfd52b11f6b29bd6a753b97553af5",
+  "source_license": "CC BY-SA 4.0",
+  "source_active_count": 196,
+  "source_retired_ids": [
+    "AIRM-171"
+  ],
+  "scoped_system": "humanaios-ui/operations @ main, Resource Miner/INTENT-OS read-only objective path; related governance/CI evidence where named",
+  "authority_effect": "NONE",
+  "warning": "Static code review is not protected CI, real-world assurance, production monitoring, or proof of complete risk coverage. Unreviewed is not missing control. Status scope is only the named path.",
+  "domain_counts": {
+    "1. AI Governance & Accountability": 19,
+    "2. Strategy & Value Realization": 12,
+    "3. Data & Privacy": 19,
+    "4. Model Development & Performance": 16,
+    "5. Security & Adversarial Threats": 23,
+    "6. Safety, Ethics & Responsible AI": 18,
+    "7. Operations & Resilience": 22,
+    "8. Legal, Regulatory & Compliance": 14,
+    "9. Third-Party & Model Supply Chain": 15,
+    "10. Workforce, Human & Societal": 14,
+    "11. Financial & Resource": 8,
+    "12. Autonomy & Delegated Action (Agentic AI)": 16
+  },
+  "factors": [
+    {
+      "id": "AIRM-001",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Governance & oversight",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-002",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Governance & oversight",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-003",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Governance & oversight",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-004",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Roles & accountability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-005",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Roles & accountability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-006",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Roles & accountability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-007",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Roles & accountability",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Trusted-source gate and witness checkout exist; this does not establish organization-wide separation of duties.",
+        "evidence": [
+          {
+            "path": ".github/workflows/repository-admission-gate.yml",
+            "needle": "Checkout trusted default-branch control law"
+          },
+          {
+            "path": ".github/workflows/scvc-milestone-witness.yml",
+            "needle": "Checkout trusted default-branch code only"
+          }
+        ],
+        "recommended_action": "Evaluate authenticated human approval chain separately; do not infer it from a comment or workflow label.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-008",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Policy & standards",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-009",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Policy & standards",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-010",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Policy & standards",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-011",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Policy & standards",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-012",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Risk-management integration",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-013",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Risk-management integration",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-014",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Risk-management integration",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-015",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Audit & assurance",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Repository structure map exists but is not evidence of a complete live model/agent/connector register.",
+        "evidence": [
+          {
+            "path": "REPOSITORY_STRUCTURE.md",
+            "needle": "Repository structure map"
+          }
+        ],
+        "recommended_action": "Use existing inventory and #896 observational graph paths; require asset completeness evidence before any coverage claim.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-016",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Audit & assurance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-017",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Audit & assurance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-018",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Audit & assurance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-019",
+      "domain": "1. AI Governance & Accountability",
+      "category": "Audit & assurance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-193",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Competitive position",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-194",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Competitive position",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-026",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Competitive position",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-020",
+      "domain": "2. Strategy & Value Realization",
+      "category": "AI strategy & roadmap",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-021",
+      "domain": "2. Strategy & Value Realization",
+      "category": "AI strategy & roadmap",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-022",
+      "domain": "2. Strategy & Value Realization",
+      "category": "AI strategy & roadmap",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-023",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Use-case selection & sourcing",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Miner states a bounded opportunity discovery problem. System-wide use-case value measurement not evidenced.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/README.md",
+            "needle": "broad-discovery layer"
+          }
+        ],
+        "recommended_action": "Keep the INTENT-OS→Miner usable-path success measure separate from general AI risk appetite.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-024",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Use-case selection & sourcing",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-025",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Use-case selection & sourcing",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-027",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Value measurement / ROI",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-028",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Value measurement / ROI",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-029",
+      "domain": "2. Strategy & Value Realization",
+      "category": "Value measurement / ROI",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-030",
+      "domain": "3. Data & Privacy",
+      "category": "Sourcing & provenance",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Candidate projection carries source metadata, not independent source provenance authentication.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"source_name\": row[\"source_name\"]"
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"observed_at\":"
+          }
+        ],
+        "recommended_action": "Evaluate source-label spoofing in a separate ingestion boundary test before treating metadata as proof.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-031",
+      "domain": "3. Data & Privacy",
+      "category": "Sourcing & provenance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-032",
+      "domain": "3. Data & Privacy",
+      "category": "Sourcing & provenance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-033",
+      "domain": "3. Data & Privacy",
+      "category": "Quality & labeling",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-034",
+      "domain": "3. Data & Privacy",
+      "category": "Quality & labeling",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-035",
+      "domain": "3. Data & Privacy",
+      "category": "Quality & labeling",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Past deadlines are excluded; snapshot warnings disclose possible staleness. No proof that external opportunities remain open.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "def _is_expired("
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"verification\": \"Discovery only."
+          }
+        ],
+        "recommended_action": "Require current primary-source check before any eligibility or application action.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-036",
+      "domain": "3. Data & Privacy",
+      "category": "Privacy & consent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-037",
+      "domain": "3. Data & Privacy",
+      "category": "Privacy & consent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-038",
+      "domain": "3. Data & Privacy",
+      "category": "Privacy & consent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-039",
+      "domain": "3. Data & Privacy",
+      "category": "Privacy & consent",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "The projection rejects names outside two permitted public sources; a source_name string is not a privacy or confidentiality attestation.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "PUBLIC_SOURCES ="
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "row.get(\"source_name\") not in PUBLIC_SOURCES"
+          }
+        ],
+        "recommended_action": "Do not treat this as blanket AI output-leak protection.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-040",
+      "domain": "3. Data & Privacy",
+      "category": "Privacy & consent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-041",
+      "domain": "3. Data & Privacy",
+      "category": "Privacy & consent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-042",
+      "domain": "3. Data & Privacy",
+      "category": "Training-data rights & IP",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-043",
+      "domain": "3. Data & Privacy",
+      "category": "Training-data rights & IP",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-044",
+      "domain": "3. Data & Privacy",
+      "category": "Training-data rights & IP",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-045",
+      "domain": "3. Data & Privacy",
+      "category": "Retention & disposal",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-046",
+      "domain": "3. Data & Privacy",
+      "category": "Retention & disposal",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-047",
+      "domain": "3. Data & Privacy",
+      "category": "Retention & disposal",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-048",
+      "domain": "3. Data & Privacy",
+      "category": "Retention & disposal",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-049",
+      "domain": "4. Model Development & Performance",
+      "category": "Design & training",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-050",
+      "domain": "4. Model Development & Performance",
+      "category": "Design & training",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-051",
+      "domain": "4. Model Development & Performance",
+      "category": "Design & training",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-052",
+      "domain": "4. Model Development & Performance",
+      "category": "Accuracy & validation",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Objective matches explicitly avoid eligibility conclusions; this is not a general hallucination evaluator.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"eligibility\": \"NOT_ASSESSED\""
+          }
+        ],
+        "recommended_action": "No change for discovery-only responses.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-053",
+      "domain": "4. Model Development & Performance",
+      "category": "Accuracy & validation",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-054",
+      "domain": "4. Model Development & Performance",
+      "category": "Accuracy & validation",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-055",
+      "domain": "4. Model Development & Performance",
+      "category": "Accuracy & validation",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-056",
+      "domain": "4. Model Development & Performance",
+      "category": "Robustness & drift",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-057",
+      "domain": "4. Model Development & Performance",
+      "category": "Robustness & drift",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-058",
+      "domain": "4. Model Development & Performance",
+      "category": "Robustness & drift",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-059",
+      "domain": "4. Model Development & Performance",
+      "category": "Explainability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-060",
+      "domain": "4. Model Development & Performance",
+      "category": "Explainability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-061",
+      "domain": "4. Model Development & Performance",
+      "category": "Explainability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-062",
+      "domain": "4. Model Development & Performance",
+      "category": "Reproducibility & documentation",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-063",
+      "domain": "4. Model Development & Performance",
+      "category": "Reproducibility & documentation",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-064",
+      "domain": "4. Model Development & Performance",
+      "category": "Reproducibility & documentation",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-065",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Data & pipeline attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-066",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Data & pipeline attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-067",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Data & pipeline attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-068",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Model attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-069",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Model attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-070",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Model attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-071",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Inference-time (input) attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-072",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Inference-time (input) attacks",
+      "assessment": {
+        "coverage": "NOT_APPLICABLE_SCOPED",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Reviewed objective matcher is deterministic string processing, not an LLM consuming retrieved text. Other agent paths remain UNASSESSED.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "def evaluate_objective("
+          }
+        ],
+        "recommended_action": "Do not propagate this exception to other agent/tool contexts.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-073",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Inference-time (input) attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-074",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Inference-time (input) attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-197",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Inference-time (input) attacks",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-075",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Output & integration security",
+      "assessment": {
+        "coverage": "SCOPED_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "UI sets displayed text with textContent and rejects non-public/unsafe URL forms. Effectiveness remains subject to CI and browser review.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/intent-os.html",
+            "needle": "element.textContent=String(value??\"\");"
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "def _public_https("
+          }
+        ],
+        "recommended_action": "Retain HTML/URL negative regressions before any markup renderer is introduced.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-076",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Output & integration security",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-077",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Output & integration security",
+      "assessment": {
+        "coverage": "SCOPED_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Projection returns no execution capability; read-only discovery result cannot itself authorize an action.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"authority\": \"NONE\""
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"execution\": \"DISABLED\""
+          }
+        ],
+        "recommended_action": "Preserve fail-closed no-action semantics in future integrations.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-078",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Supply-chain & artifact integrity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-079",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Supply-chain & artifact integrity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-080",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Supply-chain & artifact integrity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-081",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "Supply-chain & artifact integrity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-082",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "AI access & identity",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Legacy admin APIs use a token gate; public objective endpoint is intentionally accessible without this admin token.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/app.py",
+            "needle": "def _admin_allowed("
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/app.py",
+            "needle": "RESOURCE_MINER_ADMIN_TOKEN"
+          }
+        ],
+        "recommended_action": "Authenticate any future write or private-data route separately.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-083",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "AI access & identity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-084",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "AI access & identity",
+      "assessment": {
+        "coverage": "OBSERVED_GAP",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "The named security-gates gitleaks step is explicitly nonblocking (continue-on-error: true); this is not proof of organization-wide credential exposure.",
+        "evidence": [
+          {
+            "path": ".github/workflows/security-gates.yml",
+            "needle": "continue-on-error: true"
+          }
+        ],
+        "recommended_action": "Review why secret detection is advisory; if blocking is operationally safe, remove continue-on-error on a separately governed security PR and verify exact-head protected CI.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-085",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "AI access & identity",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Public projection rejects unrecognized source labels, but source-name allowlisting does not enforce requestor-specific document entitlements.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "PUBLIC_SOURCES ="
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "row.get(\"source_name\") not in PUBLIC_SOURCES"
+          }
+        ],
+        "recommended_action": "Do not connect private RAG or account data through this path without identity-bound authorization checks.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-196",
+      "domain": "5. Security & Adversarial Threats",
+      "category": "AI access & identity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-086",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Bias & fairness",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-087",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Bias & fairness",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-088",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Bias & fairness",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-089",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Bias & fairness",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-090",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Harmful / inaccurate output",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-091",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Harmful / inaccurate output",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-092",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Harmful / inaccurate output",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-093",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Transparency, disclosure & provenance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-094",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Transparency, disclosure & provenance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-095",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Transparency, disclosure & provenance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-192",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Transparency, disclosure & provenance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-096",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Misuse & dual-use",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-097",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Misuse & dual-use",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-098",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Misuse & dual-use",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-099",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Human agency & over-reliance",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "UI warns that results are not verified; no human-behavior evidence shows this prevents over-trust.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/intent-os.html",
+            "needle": "Not verified"
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"eligibility\": \"NOT_ASSESSED\""
+          }
+        ],
+        "recommended_action": "Test comprehension in a human usability pilot; do not claim human-risk mitigation before observation.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-100",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Human agency & over-reliance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-101",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Human agency & over-reliance",
+      "assessment": {
+        "coverage": "SCOPED_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "INTENT-OS projection does not issue execution or authority; this is a boundary check, not a guarantee for every workflow.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"authority\": \"NONE\""
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"execution\": \"DISABLED\""
+          }
+        ],
+        "recommended_action": "Maintain separate human authorization before any execution surface is introduced.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-102",
+      "domain": "6. Safety, Ethics & Responsible AI",
+      "category": "Human agency & over-reliance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-103",
+      "domain": "7. Operations & Resilience",
+      "category": "MLOps & deployment",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Quality-baseline workflow exists; this does not establish deploy availability or entire repository test coverage.",
+        "evidence": [
+          {
+            "path": ".github/workflows/quality-baseline.yml",
+            "needle": "Repository health baseline (blocking)"
+          }
+        ],
+        "recommended_action": "Verify required protected checks and resource-miner targeted test jobs at exact commit.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-104",
+      "domain": "7. Operations & Resilience",
+      "category": "MLOps & deployment",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-105",
+      "domain": "7. Operations & Resilience",
+      "category": "MLOps & deployment",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-106",
+      "domain": "7. Operations & Resilience",
+      "category": "MLOps & deployment",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-107",
+      "domain": "7. Operations & Resilience",
+      "category": "MLOps & deployment",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-108",
+      "domain": "7. Operations & Resilience",
+      "category": "Monitoring & observability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-109",
+      "domain": "7. Operations & Resilience",
+      "category": "Monitoring & observability",
+      "assessment": {
+        "coverage": "OBSERVED_GAP",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "The intent projection emits an explicitly unsigned input/selection digest and the reviewed request path has no durable, independently authenticated per-intent receipt. Read-only requests currently have no execution consequence.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "UNSIGNED_INPUT_AND_SELECTION_DIGEST_NOT_AN_ATTESTATION"
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/app.py",
+            "needle": "if urlparse(self.path).path == \"/api/intent\":"
+          }
+        ],
+        "recommended_action": "If the path gains consequential action, require an authenticated privacy-minimized decision/authorization record before enabling it; do not add sensitive prompt logging now.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-110",
+      "domain": "7. Operations & Resilience",
+      "category": "Monitoring & observability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-111",
+      "domain": "7. Operations & Resilience",
+      "category": "Monitoring & observability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-112",
+      "domain": "7. Operations & Resilience",
+      "category": "Availability & scalability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-113",
+      "domain": "7. Operations & Resilience",
+      "category": "Availability & scalability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-114",
+      "domain": "7. Operations & Resilience",
+      "category": "Availability & scalability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-115",
+      "domain": "7. Operations & Resilience",
+      "category": "Incident management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-116",
+      "domain": "7. Operations & Resilience",
+      "category": "Incident management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-117",
+      "domain": "7. Operations & Resilience",
+      "category": "Incident management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-118",
+      "domain": "7. Operations & Resilience",
+      "category": "Incident management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-119",
+      "domain": "7. Operations & Resilience",
+      "category": "Change & lifecycle management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-120",
+      "domain": "7. Operations & Resilience",
+      "category": "Change & lifecycle management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-121",
+      "domain": "7. Operations & Resilience",
+      "category": "Change & lifecycle management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-122",
+      "domain": "7. Operations & Resilience",
+      "category": "Change & lifecycle management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-123",
+      "domain": "7. Operations & Resilience",
+      "category": "Change & lifecycle management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-124",
+      "domain": "7. Operations & Resilience",
+      "category": "Change & lifecycle management",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-125",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Regulatory compliance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-126",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Regulatory compliance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-127",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Regulatory compliance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-128",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Regulatory compliance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-129",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Regulatory compliance",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-130",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "IP & liability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-131",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "IP & liability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-132",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "IP & liability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-133",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Contractual & licensing",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-134",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Contractual & licensing",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-135",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Contractual & licensing",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-136",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Cross-border",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-137",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Cross-border",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-138",
+      "domain": "8. Legal, Regulatory & Compliance",
+      "category": "Cross-border",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-139",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Foundation-model dependence",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-140",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Foundation-model dependence",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-141",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Foundation-model dependence",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-142",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Vendor due diligence",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-188",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Vendor due diligence",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-143",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Vendor due diligence",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-144",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Vendor due diligence",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-145",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Lock-in & portability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-146",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Lock-in & portability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-147",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Lock-in & portability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-148",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Open-source component risk",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-149",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Open-source component risk",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-150",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Open-source component risk",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-189",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Open-source component risk",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-191",
+      "domain": "9. Third-Party & Model Supply Chain",
+      "category": "Open-source component risk",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-151",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Skills & talent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-152",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Skills & talent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-153",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Skills & talent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-195",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Skills & talent",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-154",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Deskilling & loss of institutional knowledge",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-155",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Deskilling & loss of institutional knowledge",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-156",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Deskilling & loss of institutional knowledge",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-157",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Workforce disruption / change",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-158",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Workforce disruption / change",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-159",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Workforce disruption / change",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-160",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Societal & reputational",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-161",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Societal & reputational",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-162",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Societal & reputational",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-163",
+      "domain": "10. Workforce, Human & Societal",
+      "category": "Societal & reputational",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-164",
+      "domain": "11. Financial & Resource",
+      "category": "Cost & compute economics",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-165",
+      "domain": "11. Financial & Resource",
+      "category": "Cost & compute economics",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-166",
+      "domain": "11. Financial & Resource",
+      "category": "Cost & compute economics",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-167",
+      "domain": "11. Financial & Resource",
+      "category": "Investment / procurement",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-168",
+      "domain": "11. Financial & Resource",
+      "category": "Investment / procurement",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-169",
+      "domain": "11. Financial & Resource",
+      "category": "Investment / procurement",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-170",
+      "domain": "11. Financial & Resource",
+      "category": "Scaling & resource constraints",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-172",
+      "domain": "11. Financial & Resource",
+      "category": "Scaling & resource constraints",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-173",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Autonomy, alignment & oversight",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Objective matching is bounded and returns human-review candidates; semantic misalignment of relevance remains possible.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "def evaluate_objective("
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "PARTIAL_CANDIDATES_FOR_HUMAN_REVIEW"
+          }
+        ],
+        "recommended_action": "Compare ranking with human relevance judgments; no autonomous objective learning.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-174",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Autonomy, alignment & oversight",
+      "assessment": {
+        "coverage": "SCOPED_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "The objective result is advisory, with action disabled and authority NONE.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"execution\": \"DISABLED\""
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"authority\": \"NONE\""
+          }
+        ],
+        "recommended_action": "Never use candidate rank as authorization.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-175",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Autonomy, alignment & oversight",
+      "assessment": {
+        "coverage": "SCOPED_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Public discovery preview has no delegated execution permission.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"execution\": \"DISABLED\""
+          }
+        ],
+        "recommended_action": "Reassess scope upon adding an agent action endpoint.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-176",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Autonomy, alignment & oversight",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-177",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Tool access & authorization",
+      "assessment": {
+        "coverage": "PARTIAL_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "The public objective route is limited to existing miner adapters; this does not establish least privilege for other agents.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/app.py",
+            "needle": "def _intent_scan("
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/app.py",
+            "needle": "def _admin_allowed("
+          }
+        ],
+        "recommended_action": "Keep further provider/tool additions behind an explicit capability and human consent check.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-178",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Tool access & authorization",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-179",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Tool access & authorization",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-180",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Memory & context integrity",
+      "assessment": {
+        "coverage": "NOT_APPLICABLE_SCOPED",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "Reviewed objective computation is stateless and keeps no persistent agent memory. Other memory systems are not covered.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "def evaluate_objective("
+          }
+        ],
+        "recommended_action": "No agent-memory subsystem should be added for this crosswalk.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-181",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Memory & context integrity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-182",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Memory & context integrity",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-183",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Multi-agent orchestration",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-184",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Multi-agent orchestration",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-185",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Multi-agent orchestration",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-186",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Action integrity & traceability",
+      "assessment": {
+        "coverage": "SCOPED_CONTROL",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "The intent endpoint returns observations only; execution and eligibility remain disabled.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"execution\": \"DISABLED\""
+          },
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"eligibility\": \"NOT_ASSESSED\""
+          }
+        ],
+        "recommended_action": "Preserve separation between discovery and governed action.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-187",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Action integrity & traceability",
+      "assessment": {
+        "coverage": "UNREVIEWED",
+        "scope": "Not assessed against HumanAIOS implementation",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    },
+    {
+      "id": "AIRM-190",
+      "domain": "12. Autonomy & Delegated Action (Agentic AI)",
+      "category": "Action integrity & traceability",
+      "assessment": {
+        "coverage": "NOT_APPLICABLE_SCOPED",
+        "scope": "Resource Miner → INTENT-OS objective preview, unless evidence specifies a narrower workflow",
+        "note": "The public objective endpoint has no agent acting on third parties; external-agent action attribution must be reviewed on those specific paths.",
+        "evidence": [
+          {
+            "path": "humanaios-funding-pipeline/resource-miner/resource_miner/intent_os.py",
+            "needle": "\"execution\": \"DISABLED\""
+          }
+        ],
+        "recommended_action": "Revisit if an outward-facing agent obtains action tools.",
+        "authority_effect": "NONE",
+        "observed_effectiveness": "UNVERIFIED"
+      }
+    }
+  ]
+}

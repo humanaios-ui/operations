@@ -85,6 +85,27 @@ class HackerOneAdapterTests(unittest.TestCase):
         self.assertEqual(len(calls), 2)
         self.assertTrue(all("api.hackerone.com" in url for url in calls))
 
+    def test_list_programs_stops_pagination_once_max_results_reached(self):
+        calls = []
+
+        def transport(url, headers):
+            calls.append(url)
+            if "page%5Bnumber%5D=1" in url:
+                return {
+                    "data": [PROGRAM],
+                    "links": {
+                        "next": "https://api.hackerone.com/v1/hackers/programs?page[number]=2&page[size]=1"
+                    },
+                }
+            # Reaching a second page would mean max_results did not bound
+            # pagination; this response only exists to catch that regression.
+            return {"data": [dict(PROGRAM, id="10")], "links": {}}
+
+        client = HackerOneClient(username="token-id", token="secret", transport=transport)
+        rows = client.list_programs(page_size=1, max_results=1)
+        self.assertEqual([row["id"] for row in rows], ["9"])
+        self.assertEqual(len(calls), 1)
+
     def test_rejects_cross_host_pagination_before_sending_credentials(self):
         calls = []
 

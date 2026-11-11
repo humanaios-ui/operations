@@ -107,7 +107,7 @@ var allSecrets = [
   { name: 'qdrant-url', value: qdrantUrl }
   { name: 'originstamp-api-key', value: originstampApiKey }
 ]
-var definedSecrets = [for s in allSecrets: { name: s.name, value: s.value }]
+var definedSecrets = [for s in filter(allSecrets, s => !empty(s.value)): { name: s.name, value: s.value }]
 
 var envMap = [
   { name: 'ACAT_WRITE_TOKEN', secretRef: 'acat-write-token', has: !empty(acatWriteToken) }

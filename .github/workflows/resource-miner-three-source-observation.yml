@@ -1,0 +1,41 @@
+name: Resource Miner Three Source Observation
+# A bounded, opt-in PR experiment. No schedule, writes, applications or payouts.
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/experiments/**'
+      - '.github/workflows/resource-miner-three-source-observation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  passive-observation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline contract tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: python3 -m unittest discover -s experiments -p 'test_three_source_observation.py' -v
+      - name: Live read-only Resource Miner collection
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 -m experiments.three_source_observation \
+            --out evidence/three-source-observations.json \
+            --per-source 12 \
+            --require-three
+      - name: Preserve source receipts and selected candidates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: three-source-readonly-evidence
+          path: humanaios-funding-pipeline/resource-miner/evidence/three-source-observations.json
+          if-no-files-found: warn
+          retention-days: 14

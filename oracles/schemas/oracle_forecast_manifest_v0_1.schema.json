@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/oracle_forecast_manifest_v0_1.schema.json",
+  "title": "HumanAIOS Oracle Forecast Manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "forecast_id",
+    "question_key",
+    "question",
+    "subject_ref",
+    "mode",
+    "outcome_space",
+    "created_at",
+    "closes_at",
+    "evidence_cutoff",
+    "resolution_rule",
+    "resolution_sources",
+    "ambiguity_rule",
+    "annul_rules",
+    "owner",
+    "affected_parties",
+    "privacy_class",
+    "reflexivity",
+    "scoring",
+    "provenance",
+    "state",
+    "advisory_only",
+    "can_authorize",
+    "authority_effect",
+    "seal_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "forecast_id": {"type": "string", "minLength": 1},
+    "question_key": {"type": "string", "minLength": 1},
+    "question": {"type": "string", "minLength": 1},
+    "subject_ref": {"type": "string", "minLength": 1},
+    "mode": {
+      "type": "string",
+      "enum": ["EMPIRICAL", "CONDITIONAL", "SYMBOLIC"]
+    },
+    "outcome_space": {"const": ["NO", "YES"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "closes_at": {
+      "oneOf": [
+        {"type": "string", "format": "date-time"},
+        {"type": "null"}
+      ]
+    },
+    "evidence_cutoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sequence", "ref"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["LEDGER_EVENT", "TIMESTAMP", "COMMIT"]
+        },
+        "sequence": {"type": "integer", "minimum": 0},
+        "ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "resolution_rule": {"type": "string", "minLength": 1},
+    "resolution_sources": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "ambiguity_rule": {"type": "string", "minLength": 1},
+    "annul_rules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "owner": {"type": "string", "minLength": 1},
+    "affected_parties": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "privacy_class": {"type": "string", "minLength": 1},
+    "reflexivity": {"type": "string", "minLength": 1},
+    "scoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metrics", "only_empirical"],
+      "properties": {
+        "metrics": {"const": ["BRIER", "LOG_LOSS"]},
+        "only_empirical": {"const": true}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "source_refs"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "PROSPECTIVE",
+            "PROSPECTIVE_SOURCE_REPLAY",
+            "SYNTHETIC"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "state": {"const": "SEALED"},
+    "advisory_only": {"const": true},
+    "can_authorize": {"const": false},
+    "authority_effect": {"const": "NONE"},
+    "seal_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

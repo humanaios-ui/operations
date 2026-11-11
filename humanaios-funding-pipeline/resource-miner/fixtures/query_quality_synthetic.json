@@ -1,0 +1,119 @@
+{
+  "schema": "humanaios.resource_miner.query_quality_judgments/v1",
+  "provenance": "SYNTHETIC_CONSTRUCTED_FOR_REGRESSION_NOT_OBSERVED_SEARCH",
+  "cases": [
+    {
+      "id": "facet_priority",
+      "objective": "Find grant compute",
+      "relevant_resource_ids": [
+        "RES-FACET"
+      ],
+      "candidates": [
+        {
+          "resource_id": "RES-LEX",
+          "title": "Grant directory",
+          "description": "Generic opportunities",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/grants",
+          "resource_types": [],
+          "tags": []
+        },
+        {
+          "resource_id": "RES-FACET",
+          "title": "Opportunity",
+          "description": "Compute infrastructure",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/typed",
+          "resource_types": [
+            "grant"
+          ],
+          "tags": [
+            "compute"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spanish",
+      "objective": "Busco subvenciones de investigación con créditos de cómputo",
+      "relevant_resource_ids": [
+        "RES-GRANT"
+      ],
+      "candidates": [
+        {
+          "resource_id": "RES-GRANT",
+          "title": "Research grant compute credits",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/award"
+        },
+        {
+          "resource_id": "RES-JOB",
+          "title": "Paid contract programming",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/job"
+        }
+      ]
+    },
+    {
+      "id": "negative_mechanism",
+      "objective": "Find funding without loans",
+      "relevant_resource_ids": [
+        "RES-GRANT"
+      ],
+      "candidates": [
+        {
+          "resource_id": "RES-LOAN",
+          "title": "Funding offers",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/loan",
+          "resource_types": [
+            "financing"
+          ]
+        },
+        {
+          "resource_id": "RES-GRANT",
+          "title": "Research grant funding",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/nonrepayable",
+          "resource_types": [
+            "grant"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "identifier",
+      "objective": "Find GPU-901 compute credit",
+      "relevant_resource_ids": [
+        "RES-901"
+      ],
+      "candidates": [
+        {
+          "resource_id": "RES-900",
+          "title": "GPU-900 compute credit",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/gpu900"
+        },
+        {
+          "resource_id": "RES-901",
+          "title": "GPU-901 compute credit",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/gpu901"
+        }
+      ]
+    },
+    {
+      "id": "unknown_not_entitlement",
+      "objective": "Find orbital launcher spaceship",
+      "relevant_resource_ids": [],
+      "candidates": [
+        {
+          "resource_id": "RES-GRANT",
+          "title": "Research grant",
+          "source_name": "HumanAIOS Funding Pipeline",
+          "canonical_url": "https://example.org/research"
+        }
+      ]
+    }
+  ]
+}

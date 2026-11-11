@@ -3,8 +3,9 @@
 // serve loop, no ingress. Already deployed on Railway as a plain service running
 // `python main.py --mode test_questions` on each deploy — no committed cron config
 // there either, so this defaults to a manual trigger (safe/non-committal) rather than
-// guessing a real-world cadence; see the commented scheduleTriggerConfig below to
-// switch to a cron schedule once you've decided one.
+// guessing a real-world cadence. Set scheduleCronExpression only after a fresh
+// Railway recheck confirms the old writer/scheduler is stopped and the handover
+// has been approved. An old repository snapshot is not proof of writer shutdown.
 //
 // Scaffolding only — written without Azure access from this session, so it has not
 // been deployed or validated against a real subscription. Review before applying.
@@ -36,8 +37,11 @@
 @description('Azure region for all resources. Defaults to the resource group\'s region.')
 param location string = resourceGroup().location
 
-@description('Container Apps Environment name. Reuse an existing one (e.g. from acat-api-containerapp.bicep) by passing its name here instead of creating a second environment.')
+@description('Container Apps Environment name in this resource group. Set useExistingEnvironment=true to reference it without changing its logging configuration.')
 param environmentName string = 'humanaios-metaculus-env'
+
+@description('Reference an existing environment without deploying an environment or Log Analytics workspace. False creates/manages both resources; review deployment changes before applying.')
+param useExistingEnvironment bool = false
 
 @description('Container Apps Job name.')
 param jobName string = 'metaculus-bot'
@@ -55,7 +59,7 @@ param registryUsername string = ''
 @description('Registry password or token. Leave empty for a public image.')
 param registryPassword string = ''
 
-@description('main.py --mode. tournament forecasts on the live seasonal + minibench competitions; metaculus_cup on the cup tournament; test_questions runs 4 hardcoded example questions with previously-forecasted skipping off — a smoke test, and what Railway currently runs.')
+@description('main.py --mode. tournament targets seasonal + minibench; metaculus_cup targets the cup. test_questions also makes provider calls and publishes forecasts for four example questions, with skipping off. Running any mode can cause external writes and provider charges; test_questions is not a read-only smoke test.')
 @allowed(['tournament', 'metaculus_cup', 'test_questions'])
 param mode string = 'test_questions'
 
@@ -93,7 +97,11 @@ param memorySize string = '1Gi'
 @description('Seconds before an in-progress run is forcibly stopped. A tournament pass forecasts many questions sequentially — err high.')
 param replicaTimeoutSeconds int = 1800
 
+@description('Opt-in UTC cron schedule. Empty keeps Manual trigger. Before deploying a schedule, freshly recheck Railway and stop the old writer/scheduler, verify provider credentials, and obtain handover approval.')
+param scheduleCronExpression string = ''
+
 var hasRegistry = !empty(registryServer)
+var isScheduled = !empty(scheduleCronExpression)
 
 var allSecrets = [
   { name: 'supabase-url', value: supabaseUrl }
@@ -103,6 +111,7 @@ var allSecrets = [
   { name: 'openai-api-key', value: openaiApiKey }
   { name: 'metaculus-token', value: metaculusToken }
 ]
+var configuredSecrets = filter(allSecrets, secret => !empty(secret.value))
 
 var envMap = [
   { name: 'SUPABASE_URL', secretRef: 'supabase-url', has: !empty(supabaseUrl) }
@@ -116,7 +125,7 @@ var secretEnvVars = [for e in filter(envMap, m => m.has): { name: e.name, secret
 var runIdEnvVar = !empty(botRunId) ? [{ name: 'BOT_RUN_ID', value: botRunId }] : []
 var jobArgs = concat(['--mode', mode], !empty(botRunId) ? ['--run-id', botRunId] : [])
 
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = if (!useExistingEnvironment) {
   name: '${environmentName}-logs'
   location: location
   properties: {
@@ -127,15 +136,19 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   }
 }
 
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource existingEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' existing = if (useExistingEnvironment) {
+  name: environmentName
+}
+
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = if (!useExistingEnvironment) {
   name: environmentName
   location: location
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
-        customerId: logAnalytics.properties.customerId
-        sharedKey: logAnalytics.listKeys().primarySharedKey
+        customerId: logAnalytics!.properties.customerId
+        sharedKey: logAnalytics!.listKeys().primarySharedKey
       }
     }
   }
@@ -145,23 +158,20 @@ resource metaculusJob 'Microsoft.App/jobs@2024-03-01' = {
   name: jobName
   location: location
   properties: {
-    environmentId: containerAppEnvironment.id
+    environmentId: useExistingEnvironment ? existingEnvironment.id : containerAppEnvironment.id
     configuration: {
-      triggerType: 'Manual'
+      triggerType: isScheduled ? 'Schedule' : 'Manual'
       replicaTimeout: replicaTimeoutSeconds
       replicaRetryLimit: 0
-      manualTriggerConfig: {
+      manualTriggerConfig: !isScheduled ? {
         replicaCompletionCount: 1
         parallelism: 1
-      }
-      // To run on a cadence instead, once you've picked one, replace triggerType and
-      // manualTriggerConfig above with:
-      //   triggerType: 'Schedule'
-      //   scheduleTriggerConfig: {
-      //     cronExpression: '0 13 * * *'   // e.g. daily at 13:00 UTC
-      //     parallelism: 1
-      //     replicaCompletionCount: 1
-      //   }
+      } : null
+      scheduleTriggerConfig: isScheduled ? {
+        cronExpression: scheduleCronExpression
+        parallelism: 1
+        replicaCompletionCount: 1
+      } : null
       registries: hasRegistry ? [
         {
           server: registryServer
@@ -170,7 +180,7 @@ resource metaculusJob 'Microsoft.App/jobs@2024-03-01' = {
         }
       ] : []
       secrets: concat(
-        allSecrets,
+        configuredSecrets,
         hasRegistry ? [{ name: 'registry-password', value: registryPassword }] : []
       )
     }

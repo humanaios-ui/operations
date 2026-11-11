@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/game/genesis-witness-receipt.v0.1.json",
+  "title": "Wardens Genesis Paired Witness Receipt — Advisory Research Candidate",
+  "description": "Game-private, pseudonymous W1/W2 receipt. Not a constitutional ratification, independent evidence, governance grant, or production identity assertion.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "receipt_type",
+    "campaign_id",
+    "timeline_id",
+    "subject_player_token",
+    "witness_actor_ref",
+    "genesis_event_ref",
+    "genesis_event_digest",
+    "recorded_at",
+    "seed_ref",
+    "authority_effect",
+    "can_authorize",
+    "advisory_only"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "receipt_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "receipt_type": {
+      "enum": [
+        "W1_AI_PROJECTION",
+        "W2_HUMAN_ATTESTATION"
+      ]
+    },
+    "campaign_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "timeline_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "subject_player_token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "witness_actor_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "genesis_event_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "genesis_event_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "seed_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "git_commit_sha",
+        "content_sha256",
+        "seed_status"
+      ],
+      "properties": {
+        "path": {
+          "const": "seeds/seed-constitution-v0.1.md"
+        },
+        "git_commit_sha": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "seed_status": {
+          "const": "UNRATIFIED_RESEARCH_DRAFT"
+        }
+      }
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "can_authorize": {
+      "const": false
+    },
+    "advisory_only": {
+      "const": true
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_ref",
+        "source_event_refs",
+        "projection_digest",
+        "omission_codes"
+      ],
+      "properties": {
+        "model_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "source_event_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "projection_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "omission_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 15,
+          "items": {
+            "enum": [
+              "NOT_COLLECTED",
+              "NOT_OBSERVED",
+              "WITHHELD_BY_PARTICIPANT",
+              "REDACTED",
+              "LOST",
+              "FILTERED",
+              "OUT_OF_SCOPE",
+              "UNKNOWN",
+              "MODEL_OMISSION",
+              "INTERFACE_OMISSION"
+            ]
+          }
+        }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choice",
+        "consent_receipt_ref"
+      ],
+      "properties": {
+        "choice": {
+          "enum": [
+            "ACKNOWLEDGE",
+            "CONTEST",
+            "DECLINE"
+          ]
+        },
+        "consent_receipt_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "statement_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "receipt_type": {
+          "const": "W1_AI_PROJECTION"
+        }
+      },
+      "required": [
+        "projection"
+      ],
+      "not": {
+        "required": [
+          "attestation"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "receipt_type": {
+          "const": "W2_HUMAN_ATTESTATION"
+        }
+      },
+      "required": [
+        "attestation"
+      ],
+      "not": {
+        "required": [
+          "projection"
+        ]
+      }
+    }
+  ]
+}
