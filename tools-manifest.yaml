@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 228
+  tools: 229
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 179
+  builder_markers_present: 180
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2895,6 +2895,18 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
+- tool_id: HAIOS-TOOL-242
+  name: graph_resource_observer
+  path: tools/graph_resource_observer.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only resource measurements for *existing* HumanAIOS JSON graph views.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
