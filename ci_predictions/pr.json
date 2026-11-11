@@ -1,10 +1,10 @@
 {
-  "pr": 1158,
-  "actor_origin_claim": "Claude Code session; regenerate system_graph.json, fix generator cycle validation, add freshness automation",
+  "pr": 1176,
+  "actor_origin_claim": "Claude Code session; graph orphans batch one for issue 1175",
   "checks": {
     "quality": {
       "conclusion": "success",
-      "p": 0.8
+      "p": 0.88
     },
     "guard": {
       "conclusion": "success",
@@ -12,15 +12,15 @@
     },
     "Check principles (P19)": {
       "conclusion": "success",
-      "p": 0.85
+      "p": 0.92
     },
     "Reject unauthorized internal deadline semantics": {
       "conclusion": "success",
-      "p": 0.93
+      "p": 0.95
     },
     "freshness": {
       "conclusion": "success",
-      "p": 0.92
+      "p": 0.93
     },
     "Secret scanning (gitleaks)": {
       "conclusion": "success",
@@ -31,13 +31,13 @@
       "p": 0.95
     },
     "Repository admission/backpressure gate": {
-      "conclusion": "failure",
+      "conclusion": "success",
       "p": 0.85
     },
     "Build repository coordination index (ADVISORY)": {
       "conclusion": "success",
-      "p": 0.75
+      "p": 0.8
     }
   },
-  "note": "Not a blind prediction. The previous head (8f27e805) passed everything except the admission gate, which failed because admission is bound to an exact commit and that head was never admitted. This head changes the commit again, so I predict the same failure until the operator posts a new admit. Other checks: this head adds a renderer feedback column, a causality heading, wider workflow path filters, a read-only token for PR runs with the issue job split out, and corrected candidate text; the local baseline suite, temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) were run before the push. Z2 ratification is not predicted here."
+  "note": "Not a blind prediction. The change adds two graph nodes, three edges and one candidate block; the 1286-test baseline, the temporal gate, doc-control, z1-inbox validate and the P19 script (merge-message form) passed locally before the first push. The admission gate is predicted to pass only because this PR is a draft, which the coordinator isolates from the operator queue; once it is marked ready it will fail until the operator admits the exact head, as happened on the previous PR. Z2 ratification is not predicted here."
 }
