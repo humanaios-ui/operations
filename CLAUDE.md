@@ -1,5 +1,7 @@
 # CLAUDE.md — HumanAIOS Authority & Governance Reference
 
+> **Agent entry/exit pilot (Z1, not ratified):** For issue/PR handoffs see [AGENTS.md](AGENTS.md) and [docs/AGENT_COORDINATION_REFLEX_PILOT.md](docs/AGENT_COORDINATION_REFLEX_PILOT.md). This is an advisory pointer only; it changes no Z2/Z3 authority or the requirements below.
+
 **Location:** `operations/CLAUDE.md` (canonical source)  
 **Updated:** 2026-09-25  
 **Purpose:** Unified authority map for all 31 HumanAIOS repositories  
@@ -80,8 +82,8 @@
 
 **Caps by zone (active repos per ZONE_REGISTRY.md):**
 - Full cap: humanaios, humanaios-internal, acat-inspect, acat-x, acat-dashboard, acat-observatory, empirica-practice-mesh
-- Limited cap: lasting-light-ai (RQ1/RQ2/RQ3 only), docs (content only), findlocaltattooartists (content only)
-- Read-only: research (frozen papers, no proposals)
+- Limited cap: lasting-light-ai (RQ1/RQ2/RQ3 only), docs (content only), findlocaltattooartists (content only), research (publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record)
+- Read-only: none
 - Planned repos (per PLANNED_REPOS.md): See separate file for roadmap status
 
 **Escalation path:** Z2 (Night) → Admiral (Night) if rejected or no decision in 48h
@@ -310,6 +312,7 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
+2026-10-31 — Z2 (Night) ratified Q-ZONE-Z011-RESEARCH-CAP-01 | Z-011 research moves from READ-ONLY to LIMITED cap (publishing infrastructure only; datasets/ and corrections/ append-only; no release without per-release Z2 record) | ACCEPT conditional on candidate §2.2 P1–P3; the release pipeline stays disabled until they hold | Ratification Hash a33a0e63d9f7a3709ba96e2cea0e69a143bf9103732840a26cfd8b6d4d6a2b57 (record in z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md) | Filed by Z1 on direct Z2 instruction, this session; bound by Z2's merge
 2026-10-12 — Q-HCM-CORE-MACHINE-01 re-pinned to PR #812 head c49eabe1 (merge of main carrying Layer 0, plus two protected tests binding HCM_TRANSLATION_FIXTURE to HCM's exact non-halting opcode path and asserting the non-authority boundary on both surfaces; no implementation, schema or receipt-contract file changed) | New RATIFY event, original record untouched | Re-pin Hash c0b9cc3566c61d8b54721474c8621302bb4d386f563dd9793a351be99603c77c (record in REGISTERED.md) | Same authentication condition as the original record
 2026-10-12 — Z2 (Night) ratified Q-HCM-CORE-MACHINE-01 | HumanAIOS Core Machine v0.1 (issue #810, PR #812: deterministic bytecode compiler, integrity-checking decoder, pure replay VM, schema, design spec, verified-receipt consumption contract; HAIOS-TOOL-223) accepted as the machine-encoding layer of the Operations contract, with the preserved authority boundary (authority_effect NONE, can_authorize/can_execute/merge_authority/authenticated false, trust anchors external to the VM) as a ratified invariant | Ratified at PR #812 head 7fc8211 (published exact head caca0eac + merge of main) | Ratification Hash cb622b71c8a4b8e9b06d97b0b9e6bc1a588a423fe016349277192dbaabc6bd7f (full record in REGISTERED.md) | Authenticated APPROVED review on the exact head, admission record and merge of #812 remain separate Z2 acts | Record filed by Z1 on direct Z2 instruction, this session; the hash pins content, not identity — the record is bound by Z2's merge of PR #815 under a Z2 identity (governance convention and precedent, not a mechanical control: z2_ratification_gate's commit-author check is advisory and the active CODEOWNERS assigns every path to the authoring account) or superseded by a controlled-path ruling if Z2 runs .z1-control/ratify.py, which the validator does enforce
 2026-10-12 — Z2 (Night) ratified Q-CORE-CONCEPT-MAPPING-01 | CORE_CONCEPT_MAPPING.md + humanaios_core.py + test_humanaios_core_tier1.py accepted as Layer 0 of the concept-to-code stack, non-authoritative (AUTHORITY_EFFECT NONE; HCM in PR #812 stays the machine-encoding candidate and is not ratified by this decision) | Ratified at PR #811 head cab7712c | Ratification Hash 424abe058f7708cdd5764345fe3adce8bc55525b927da9fca4c74d7df16d78b2 (full record in REGISTERED.md) | Direct Z2 instruction, this session
