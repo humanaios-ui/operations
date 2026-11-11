@@ -140,7 +140,10 @@ def test_declared_test_counts_match_the_files():
 
 
 def test_batch_one_edges_keep_their_evidence():
-    """Each batch-one edge rests on a line in a file. If that line goes, the edge must be revisited."""
+    """Each batch-one edge rests on a line in a file. If that line goes (or is commented out), the edge must be revisited.
+
+    This reads text; it does not show that the line executes.
+    """
     pairs = {(e.source, e.target) for e in _built().edges}
     evidence = {
         ('GNER', 'ACATR'): ('experiments/acat_r_comparison/study.py', 'from gner_verify_e1 import reconcile'),
@@ -149,5 +152,7 @@ def test_batch_one_edges_keep_their_evidence():
     }
     for edge, (rel, needle) in evidence.items():
         assert edge in pairs, edge
-        with open(os.path.join(ROOT, rel)) as f:
-            assert needle in f.read(), '%s no longer contains %r; revisit edge %s' % (rel, needle, edge)
+        with open(os.path.join(ROOT, rel), encoding='utf-8') as f:
+            live = [ln for ln in f.read().splitlines() if not ln.lstrip().startswith('#')]
+        assert any(needle in ln for ln in live), (
+            '%s no longer has a non-comment line containing %r; revisit edge %s' % (rel, needle, edge))

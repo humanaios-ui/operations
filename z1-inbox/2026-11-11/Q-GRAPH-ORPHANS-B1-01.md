@@ -19,7 +19,7 @@ resource_cost:
     RAT-min: 10
     Z1-ktok: 150
     CI-min: 2
-  dependencies: ["Q-SYSTEM-GRAPH-REGEN-01 (merged; ratification recorded separately)", "issue #1175"]
+  dependencies: ["Q-SYSTEM-GRAPH-REGEN-01 (merged in #1158; its ratification is still awaiting_z2 in z1-inbox/INDEX.yaml)", "issue #1175"]
   blocking_on: []
 impact_prediction:
   resource_impact: 2
@@ -40,7 +40,7 @@ impact_prediction:
 | edge | evidence | how it was run |
 |---|---|---|
 | `GNER -> ACATR` | `experiments/acat_r_comparison/study.py:66`: `from gner_verify_e1 import reconcile`, with `SOURCE=ROOT/"tools/gner_verify_e1.py"` at line 11. The workflow `acat-r-second-runtime-comparison.yml` runs the study (line 22). | `python3 experiments/acat_r_comparison/study.py --run-owned-offline` exits 0 |
-| `TDG -> IGV` | `tools/intent_graph_v1_0.py:1056`: `from tests.test_temporal_dissolution_gate import is_risky as gate_is_risky`, with the comment at lines 1049-1052 that E10 is "checked against the gate's own patterns rather than a copy of them". | `python3 tools/intent_graph_v1_0.py check` exits 0 |
+| `TDG -> IGV` | `tools/intent_graph_v1_0.py:1056`: `from tests.test_temporal_dissolution_gate import is_risky as gate_is_risky`, with the comment at lines 1049-1052 that E10 is "checked against the gate's own patterns rather than a copy of them". | `python3 tools/intent_graph_v1_0.py --smoke-test` exits 0: 33 checks, 0 failures, including "E10 catches everything the gate catches (12 samples)", which runs the imported `is_risky`. The import is inside `run_smoke_test()`; the `check` subcommand does not reach it. |
 | `CPGA -> CUST` | `tools/control_plane_github_adapter_v0_1.py:8`: the adapter's output is "the raw observation shape consumed by control_plane_custody_observer_v0_1.py". The adapter's tests pass its output to `observer.normalize_observation(raw)` (`tools/tests/test_control_plane_github_adapter_v0_1.py:86, 109`). | the seven adapter tests pass |
 
 - **evidence_tier:** VERIFIED-LIVE for the three links as stated. `python3 system_graph_generator.py --check` exits 0 under three hash seeds.
@@ -62,7 +62,7 @@ impact_prediction:
 
 This candidate is FALSE if any of the following is observed:
 
-1. A cited line no longer exists, or says something other than what is claimed: `test_batch_one_edges_keep_their_evidence` fails.
+1. A cited line no longer exists, or says something other than what is claimed: `test_batch_one_edges_keep_their_evidence` fails. The test reads text: it requires a line that is not a comment to contain the cited import or call. It cannot show that the line executes; execution evidence is the run column of the table above.
 2. Any of the three edges points the wrong way (the provider is the importer, not the imported module).
 3. `python3 system_graph_generator.py --check` exits non-zero on the merged head.
 4. A node left with no edge has an empty `notes` field: `test_every_orphan_has_a_note` fails.
