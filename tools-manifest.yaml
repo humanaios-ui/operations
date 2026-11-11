@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 228
+  tools: 231
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 179
+  builder_markers_present: 182
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2895,6 +2895,44 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
+- tool_id: HAIOS-TOOL-242
+  name: attractor_evidence_bridge
+  path: tools/attractor_evidence_bridge_e1.py
+  version: 0.1.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only GitHub GET observer. Source records are treated as data, not instructions.
+  session: S-20261026-ATTRACTOR-E1
+- tool_id: HAIOS-TOOL-243
+  name: attractor_observatory
+  path: tools/attractor_observatory_e0.py
+  version: 0.1.0
+  category: analytics_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only HumanAIOS convergence and conversion observatory (E0).
+  session: S-20261026-ATTRACTOR-E0
+- tool_id: HAIOS-TOOL-244
+  name: attractor_observatory_view
+  path: tools/attractor_observatory_view_e0.py
+  version: 0.1.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  session: S-20261026-ATTRACTOR-E0
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
