@@ -196,6 +196,10 @@ baseline_tests:
     requires: []
     description: Graph capture lint tests
 
+  - path: tools/tests/test_system_graph_generator.py
+    requires: []
+    description: System graph generator validity and freshness tests
+
   - path: tools/tests/test_operations_observatory_e0.py
     requires: []
     description: Read-only three-repository observatory and offline projection regressions
@@ -262,3 +266,7 @@ baseline_tests:
   - path: tools/tests/test_workflow_path_validator.py
     requires: []
     description: Workflow path filter validator glob semantics (paths and paths-ignore)
+
+  - path: tests/test_risk_obs_001_contract.py
+    requires: []
+    description: Risk Observatory Z1 read-only evidence verifier and adversarial receipt regressions

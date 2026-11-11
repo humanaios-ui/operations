@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-09-13T15:12:28.926529",
+  "generated_at": "2026-11-11T18:36:35.884808",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -11,7 +11,8 @@
       "description": "Work order queue with scoring: score = impact + \u03a3 impact(unblocks); READY gate controls start",
       "implementation": "priority_queue_engine.py",
       "tests": 15,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "FS": {
       "id": "FS",
@@ -22,7 +23,8 @@
       "description": "Extract F/IC/H candidates from events, molt ledger, transcripts; emit candidate blocks",
       "implementation": "findings_scan.py (skill)",
       "tests": 12,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "OM": {
       "id": "OM",
@@ -33,7 +35,8 @@
       "description": "Z1 read of Z2 rules, contestable; D10 predictions on Z2 decisions",
       "implementation": "operator_model_v0_2.py",
       "tests": 10,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "PRS": {
       "id": "PRS",
@@ -44,7 +47,8 @@
       "description": "Locked preregistered experiment execution; no parameter overrides",
       "implementation": "prs_run.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "AG": {
       "id": "AG",
@@ -55,7 +59,8 @@
       "description": "Task execution with capacity enforcement; investor/business caps",
       "implementation": "agent_core.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "ADV": {
       "id": "ADV",
@@ -66,7 +71,8 @@
       "description": "Gate robustness testing; attack execution and catch-rate tracking",
       "implementation": "adv_eval_v1.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "TC": {
       "id": "TC",
@@ -77,7 +83,8 @@
       "description": "Z1 reply tuning against behavior_spec.json dials; DRIFT detection",
       "implementation": "tune_check.py",
       "tests": 8,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "EV": {
       "id": "EV",
@@ -88,7 +95,8 @@
       "description": "Append-only hash-chained event logs (*.jsonl)",
       "implementation": "event logs",
       "tests": 20,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "NF": {
       "id": "NF",
@@ -99,7 +107,8 @@
       "description": "Brier scores, calibration metrics per predictor/constant",
       "implementation": "NF_LEDGER.jsonl",
       "tests": 12,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "REG": {
       "id": "REG",
@@ -110,7 +119,8 @@
       "description": "Public record of all ratified decisions, hypotheses, measurements",
       "implementation": "REGISTERED.md",
       "tests": 15,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "CONST": {
       "id": "CONST",
@@ -121,7 +131,8 @@
       "description": "behavior_spec.json, integrity_modes.json, rubrics, weights; each carries molt_id",
       "implementation": "constants/*.json",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "MOLT": {
       "id": "MOLT",
@@ -132,7 +143,8 @@
       "description": "READ \u2192 PROPOSE \u2192 PREDICT \u2192 RATIFY \u2192 APPLY \u2192 MEASURE \u2192 KEEP/REVERT",
       "implementation": "molt_cycle.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "ML": {
       "id": "ML",
@@ -143,7 +155,8 @@
       "description": "molt_events.jsonl: chain of molt decisions and outcomes",
       "implementation": "molt_events.jsonl",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "Z2": {
       "id": "Z2",
@@ -154,7 +167,8 @@
       "description": "Hash-based ratification; no prose decisions",
       "implementation": "CLAUDE.md authority spec",
       "tests": 20,
-      "phase": "M1-M15"
+      "phase": "M1-M15",
+      "notes": ""
     },
     "CIG": {
       "id": "CIG",
@@ -165,7 +179,8 @@
       "description": "5-gate sequence: falsifier_lint, z2_hash_verify, anti_cascade, merkle_root, full_ci",
       "implementation": "ci_gates.py, z2_ratification_gate.yml",
       "tests": 141,
-      "phase": "M11-M15"
+      "phase": "M11-M15",
+      "notes": ""
     },
     "MK": {
       "id": "MK",
@@ -176,7 +191,8 @@
       "description": "Ledger inclusion and append-only proofs",
       "implementation": "registry_merkle_v1.py",
       "tests": 30,
-      "phase": "M14"
+      "phase": "M14",
+      "notes": ""
     },
     "OTS": {
       "id": "OTS",
@@ -187,7 +203,8 @@
       "description": "OpenTimestamps \u2192 Bitcoin anchor for root hash",
       "implementation": "anchor_root.sh",
       "tests": 0,
-      "phase": "Phase 3 planned"
+      "phase": "Phase 3 planned",
+      "notes": ""
     },
     "RC": {
       "id": "RC",
@@ -198,7 +215,8 @@
       "description": "B.6 ritual: claim vs tree walk-back; RECEIPT-GAP detection",
       "implementation": "receipt_reconciliation.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "ST": {
       "id": "ST",
@@ -209,7 +227,8 @@
       "description": "Nightly constant decay detection; emit STALE gaps for Z2 review",
       "implementation": "stale_sweep.py",
       "tests": 0,
-      "phase": "M1-M15 (Phase 3 deployment)"
+      "phase": "M1-M15 (Phase 3 deployment)",
+      "notes": ""
     },
     "RU": {
       "id": "RU",
@@ -220,7 +239,8 @@
       "description": "Canonical unit registry: dimension, kind, sign, conservation, instrument, substitutes, falsifier per unit. No numeraire; cross-dimension conversion only via a measured PRICE event",
       "implementation": "RESOURCE_UNITS.yaml",
       "tests": 0,
-      "phase": "Q-RBE-01 (candidate)"
+      "phase": "Q-RBE-01 (candidate)",
+      "notes": ""
     },
     "RL": {
       "id": "RL",
@@ -231,7 +251,8 @@
       "description": "Append-only, hash-chained CLAIM / SPEND / YIELD / CAP / PRICE / WASTE / CLOSE events; yield density per constraint unit",
       "implementation": "resource_ledger_v0_1.py, ledgers/RESOURCE_LEDGER.jsonl",
       "tests": 0,
-      "phase": "Q-RBE-01 (candidate)"
+      "phase": "Q-RBE-01 (candidate)",
+      "notes": ""
     },
     "RCEN": {
       "id": "RCEN",
@@ -242,7 +263,464 @@
       "description": "Mechanical count of open obligations, stocks and liabilities against the binding constraint; writes outputs/resource_census.json",
       "implementation": "resource_census_v0_1.py",
       "tests": 0,
-      "phase": "Q-RBE-01 (candidate)"
+      "phase": "Q-RBE-01 (candidate)",
+      "notes": ""
+    },
+    "TDG": {
+      "id": "TDG",
+      "name": "Temporal Dissolution Gate",
+      "type": "gate",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "Blocks PRs that add an unclassified internal time-based control (deadline, window, schedule); allowed classes OBSERVATIONAL, TECHNICAL_SAFETY, REGULATORY_EXTERNAL, HISTORICAL_RECORD",
+      "implementation": "tests/test_temporal_dissolution_gate.py, .github/workflows/temporal-dissolution-gate.yml",
+      "tests": 10,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": "Wired to IGV: tools/intent_graph_v1_0.py imports is_risky from tests/test_temporal_dissolution_gate.py. Not wired: external-contribution-admission-witness.yml requires this workflow's run to be green, but that workflow is not a node; ci_gates.py and z2_ratification_gate.yml do not reference it; the coordinator reads the queue state of Q-TEMPORAL-DISSOLUTION-01, not this workflow."
+    },
+    "MTC": {
+      "id": "MTC",
+      "name": "Molt Tier Check",
+      "type": "gate",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "Advisory: measures a PR's molt tier (0/1/2) from the paths its diff touches and compares it with the author's claim; advisory only, does not block merge",
+      "implementation": "tools/molting_protocol_diff_v1_0.py, .github/workflows/molt-tier-check.yml",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "CIP": {
+      "id": "CIP",
+      "name": "CI Prediction",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "PIN a PR author's per-check predictions before checks resolve, RESOLVE against actual conclusions, CONSOLIDATE into a hash-chained ledger; inherited declarations are refused",
+      "implementation": "tools/ci_predict_pin_v1_0.py, tools/ci_predict_resolve_v1_0.py, tools/ci_predict_consolidate_v1_0.py",
+      "tests": 57,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "SMAG": {
+      "id": "SMAG",
+      "name": "SMAG Calibration Loop",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "Author-confidence capture on PRs, consolidation, gap analysis and feedback; Meta-SMAG reviews the loop's own accuracy",
+      "implementation": "tools/smag_consolidate_v1_0.py, tools/smag_gap_analysis_v1_0.py, .github/workflows/smag-capture.yml, .github/workflows/smag-consolidate.yml",
+      "tests": 26,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "EMP": {
+      "id": "EMP",
+      "name": "Empirica Connector",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Connects SMAG calibration output to Empirica and records on-track reflex checkpoints",
+      "implementation": "tools/smag_to_empirica_connector.py, .github/workflows/on-track-reflex-observe.yml, .empirica_reflex_logs/",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "IOS": {
+      "id": "IOS",
+      "name": "Intent-OS",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "Z1",
+      "description": "Intent board, form and collaboration surfaces; reconcile relays awaiting_z2 candidates to Z2 (merge is the Z2 act); test harness tiers T0-T7",
+      "implementation": "INTENT_GRAPH.yaml, tools/intent_os_reconcile_v1_0.py, tools/intent_os_test_harness_v1_0.py, .github/workflows/intent-os-reconcile.yml",
+      "tests": 14,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "RCO": {
+      "id": "RCO",
+      "name": "Repository Coordinator",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "CI",
+      "description": "Admission and backpressure index over open PRs (lanes, operator-queue capacity, decision receipts); admission routing only, no merge authority",
+      "implementation": "tools/repository_coordinator_v0_1.py, .github/workflows/repository-coordinator.yml",
+      "tests": 99,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "SG": {
+      "id": "SG",
+      "name": "System Graph",
+      "type": "ledger",
+      "status": "OPERATED",
+      "zone": "Z2",
+      "description": "This graph: canonical machine form of the governance process graph, generated from the edge list, validated for dangling edges and forward cycles",
+      "implementation": "system_graph_generator.py, system_graph.json",
+      "tests": 13,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "SGF": {
+      "id": "SGF",
+      "name": "System Graph Freshness",
+      "type": "gate",
+      "status": "LAID",
+      "zone": "CI",
+      "description": "Fails when the committed graph is invalid, differs from generator output, or (weekly) is older than 45 days; graph-capture-lint scores the multiplex (test count covers the generator and capture-lint suites)",
+      "implementation": "tools/graph_capture_lint_v1_0.py, .github/workflows/system-graph-freshness.yml, .github/workflows/graph-capture-lint.yml",
+      "tests": 56,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "ORC": {
+      "id": "ORC",
+      "name": "Oracle Engine",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "Projects repository and workspace state (including system_graph.json) into oracle assertions; forecast replay",
+      "implementation": "oracles/engine/oracle_engine_v0_1.py",
+      "tests": 43,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "ACAT": {
+      "id": "ACAT",
+      "name": "ACAT API",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "ACAT assessment API with async job queue and database, deployed on Railway",
+      "implementation": "acat/api, acat/db",
+      "tests": 76,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "ACATR": {
+      "id": "ACATR",
+      "name": "ACAT-R",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "General runtime calibration research prototype built on the three-phase ACAT method; authority effect NONE",
+      "implementation": "experiments/acat_r_v01, .github/workflows/acat-r-v01.yml, experiments/acat_r_comparison, .github/workflows/acat-r-second-runtime-comparison.yml",
+      "tests": 40,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": "No edge to the ACAT API node: ACAT-R extends the ACAT method, not the code in acat/api. Linked from GNER because its comparison study imports gner_verify_e1.reconcile as the runtime under test."
+    },
+    "RMN": {
+      "id": "RMN",
+      "name": "Resource Miner",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "code",
+      "description": "Broad discovery of externally available resource opportunities; upstream of Entitlement Navigator",
+      "implementation": "humanaios-funding-pipeline/resource-miner, .github/workflows/resource-miner-scan.yml",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "ENAV": {
+      "id": "ENAV",
+      "name": "Entitlement Navigator",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Resolves candidate opportunities toward eligibility and acquisition",
+      "implementation": "humanaios-funding-pipeline/entitlement-navigator",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "RSYS": {
+      "id": "RSYS",
+      "name": "Resource System",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Local prototype v0.1 (issue #588) composing Resource Miner and Entitlement Navigator through their handoff functions; caller-driven, explicit-tick only",
+      "implementation": "humanaios-resource-system/resource_system",
+      "tests": 55,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "MODE": {
+      "id": "MODE",
+      "name": "MODE-HumanAIOS Interop E0",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Candidate-only synthetic interoperability and publisher-influence experiments; no credentials, providers or authority",
+      "implementation": "experiments/mode_haios_interop_e0.py, .github/workflows/mode-haios-interop-e0.yml",
+      "tests": 15,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": "No proven edge. The E0 workflow runs tests/test_verified_receipts.py and lists tools/verified_receipts.py as a trigger path, but experiments/mode_haios_interop_e0.py imports nothing from it. A trigger path is not a data flow."
+    },
+    "COCK": {
+      "id": "COCK",
+      "name": "Cockpit v1",
+      "type": "process",
+      "status": "PLANNED",
+      "zone": "Z1",
+      "description": "Unified operator view candidate; docs only, pending Z2 ratification",
+      "implementation": "COCKPIT_V1_PRIORITY_QUEUE_ENTRY.md, COCKPIT_V1_IMPLEMENTATION_ROADMAP.md",
+      "tests": 0,
+      "phase": "post-M15 (added 2026-11-08)",
+      "notes": ""
+    },
+    "VER": {
+      "id": "VER",
+      "name": "Verified Receipts",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Shared verifier for receipts that name an observed action and outcome; imported by the collaboration-harmony prototype and the Core Machine (humanaios_core_machine_v0_1.py line 649); the MODE E0 workflow runs its tests but does not import it",
+      "implementation": "tools/verified_receipts.py, tests/test_verified_receipts.py",
+      "tests": 17,
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
+    },
+    "GNER": {
+      "id": "GNER",
+      "name": "GitHub Notification Evidence Relay",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Read-only relay: treats email as untrusted discovery only and verifies GitHub receipts outside the module (E0 interpret, E1 verify, E2 failure-signature correlation); no authority",
+      "implementation": "tools/gner_notification_e0.py, tools/gner_verify_e1.py, tools/gner_failure_signatures_e2.py",
+      "tests": 32,
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": "Wired to ACATR: experiments/acat_r_comparison/study.py imports reconcile from gner_verify_e1 (worker function). Not wired: gner_notification_e0.py only has a parameter named verified_receipts, and the P19 bot's exemption list names that file (an exemption, not a data flow). E0 and E2 have no proven consumer."
+    },
+    "HCOLLAB": {
+      "id": "HCOLLAB",
+      "name": "Collaboration Harmony Prototype",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Executable stress prototype for H-COLLAB-HARMONY-01 that consumes pinned verified receipts",
+      "implementation": "experiments/collab_harmony_01",
+      "tests": 8,
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
+    },
+    "HCM": {
+      "id": "HCM",
+      "name": "HumanAIOS Core Machine v0.1",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Bytecode compiler, integrity-checking decoder and pure replay VM for the Operations contract; no external-action handler; authority effect NONE; ratified as Q-HCM-CORE-MACHINE-01",
+      "implementation": "tools/humanaios_core_machine_v0_1.py, humanaios_core.py",
+      "tests": 47,
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
+    },
+    "CONV": {
+      "id": "CONV",
+      "name": "Graph Convergence Grader",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Grades convergence between two agent-authored graphs by source disjointness and access record; corroboration weight is zero when both read the same source",
+      "implementation": "tools/graph_convergence_v1_0.py, GRAPH_CONVERGENCE.md",
+      "tests": 0,
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
+    },
+    "WIT": {
+      "id": "WIT",
+      "name": "Witness",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Witness framework and experiments (arena, live proof, voice texture, SCVC milestone witness) plus the REGISTERED.md fix-citation check; read-only and evidence-first",
+      "implementation": "tools/witness_framework.py, WITNESS_SERVICE_CONTRACT.md, experiments/witness-arena, .github/workflows/scvc-milestone-witness.yml",
+      "tests": 15,
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": ""
+    },
+    "HIAE": {
+      "id": "HIAE",
+      "name": "HIAE Assurance",
+      "type": "process",
+      "status": "PLANNED",
+      "zone": "Z1",
+      "description": "Z1 proposal, not ratified: neutral rotation-based reviewer assignment with conflict exclusion and versioned assessment receipts",
+      "implementation": "tools/hiae_assurance.py",
+      "tests": 39,
+      "phase": "post-M15 (second pass 2026-11-10)",
+      "notes": "No proven edge. The receipt carries an acat_version string (example value hard-coded), which names a protocol version and does not consume output from acat/api. Removed after review."
+    },
+    "CUST": {
+      "id": "CUST",
+      "name": "Control-Plane Custody Observer",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Normalizes replayable control-plane observations and derives custody state; read-only, observation is not authority (CPC-001)",
+      "implementation": "tools/control_plane_custody_observer_v0_1.py, schemas/control_plane_custody_event_v0_1.schema.json",
+      "tests": 5,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "Wired from CPGA: the adapter's docstring names this observer as the consumer of its output, and the adapter's tests pass adapter output into observer.normalize_observation. No consumer of the observer's receipts was found, so there is no outgoing edge."
+    },
+    "WEB": {
+      "id": "WEB",
+      "name": "Workspace Evidence Bus",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Connects Google Workspace evidence custody to GitHub validation (issue #681) without making Gmail, Drive or GitHub the single source of truth; round-trip CI workflow",
+      "implementation": "workspace_evidence_bus/, .github/workflows/workspace-evidence-bus-roundtrip.yml",
+      "tests": 10,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Its README names external systems (Gmail, Drive, Apps Script, GitHub), none of which are graph nodes. The link to HMBM continuity (#685) is by PR title only."
+    },
+    "ATLAS": {
+      "id": "ATLAS",
+      "name": "Codebase Atlas",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Internal evidence-linked atlas of the codebase (issue #834) with component map and bridges; has its own CI workflow",
+      "implementation": "architecture/codebase_atlas.py, architecture/codebase_atlas_bridges.py, .github/workflows/codebase-atlas.yml",
+      "tests": 18,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. It describes the codebase and may read many nodes' files, but no single reference was checked. Status not verified by a run."
+    },
+    "ITEL": {
+      "id": "ITEL",
+      "name": "Industry Telemetry",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Bounded Q4 industry telemetry and human triage pilot: fetches fixed public indexes and proposes human review of new links; no forecast resolution, no governance change",
+      "implementation": "tools/industry_telemetry_v0_1.py, .github/workflows/industry-telemetry.yml",
+      "tests": 8,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Observational only by design (temporal class OBSERVATIONAL): its output goes to human triage, not to a graph node."
+    },
+    "OBS": {
+      "id": "OBS",
+      "name": "Operations Observatory E0",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Living Operations Observatory: read-only three-repo GitHub kinetics view (issue #1088), browser UI plus tests",
+      "implementation": "ui/operations-observatory-e0.js, ui/operations-observatory-e0.html, tools/tests/test_operations_observatory_e0.py",
+      "tests": 5,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Reads GitHub activity, which is outside the graph. Risk-observation tests (RISK-OBS-001) mention it, but the direction of any data flow was not checked."
+    },
+    "HOBJ": {
+      "id": "HOBJ",
+      "name": "Human Objective E0/E1",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Offline human-objective to evidence-backed synthetic recommendation (E0), and URA-format recommendation (E1); synthetic fixtures only",
+      "implementation": "experiments/human_objective_e0.py, experiments/human_objective_e1.py",
+      "tests": 17,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. The MODE E0 workflow lists human_objective_e1.py among its trigger paths, but a trigger path does not show a data flow, so no edge was added."
+    },
+    "GPCS": {
+      "id": "GPCS",
+      "name": "GPCS Translation Contract",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "GPCS-001: advisory cross-session memory translation contract with its own CI workflow",
+      "implementation": "gpcs/translation.py, .github/workflows/gpcs-contract.yml",
+      "tests": 9,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Advisory by its own description. No file shows which node consumes the translation."
+    },
+    "DIGEST": {
+      "id": "DIGEST",
+      "name": "Daily Topic Digest",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Scheduled platform signal collection, topic-to-mitigation mapping and gap detection; inbound email command processor for digest replies",
+      "implementation": "scripts/platform-monitor.py, scripts/map-to-mitigation.py, scripts/gap-detector.py, entry_protocol/gmail_push_adapter.py, .github/workflows/daily-topic-digest.yml",
+      "tests": 0,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. It runs on a schedule, so it carries a temporal class that was not reviewed here. Test count 0 because no matching test file was identified."
+    },
+    "GL": {
+      "id": "GL",
+      "name": "Guiding Light",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "General evidence-to-target gradient engine (v0.2) with adapters and a career-gradient example",
+      "implementation": "services/guiding_light.py, services/guiding_light_adapters.py, data/GUIDING_LIGHT_GRADIENT.schema.json",
+      "tests": 10,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Its docs describe user-facing gradients; none of the graph's nodes is named as input or output."
+    },
+    "ORCID": {
+      "id": "ORCID",
+      "name": "ORCID Publications Reconcile",
+      "type": "process",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Read-only ORCID reconciliation (milestone B) for the publications manager, with tests run in CI",
+      "implementation": "orcid-publications-manager/orcid_works.py, orcid-publications-manager/fetch_orcid.py, .github/workflows/orcid-reconcile-tests.yml",
+      "tests": 33,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "No proven edge. Talks to an external service (ORCID) only."
+    },
+    "EXPS": {
+      "id": "EXPS",
+      "name": "Z1 Research Experiments",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Grouped research tree: arena, automata lineage lab, constitutional tuning, PIER-001, OSF OAuth audit, wardens, risk-obs-001, SCVC and others; each has its own protocol and tests",
+      "implementation": "experiments/",
+      "tests": 0,
+      "phase": "post-M15 (orphan, noted 2026-11-10)",
+      "notes": "Grouped node, not one process. No proven edge as a whole; some members are covered by their own nodes (ACAT-R, MODE, Witness, Collaboration Harmony). Test count 0 because the tree has many suites that were not totalled."
+    },
+    "CIL": {
+      "id": "CIL",
+      "name": "CI Prediction Ledger",
+      "type": "ledger",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Hash-chained ledger of CI-check predictions, kept separate from NF_LEDGER.jsonl on purpose so no pending Z2 governance item is settled by side effect",
+      "implementation": "ledgers/CI_PREDICT_LEDGER.jsonl, .github/workflows/ci-predict-consolidate.yml",
+      "tests": 57,
+      "phase": "post-M15 (added 2026-11-10 after review)",
+      "notes": "Status from file presence and a consolidating workflow, not from a verified run."
+    },
+    "CPGA": {
+      "id": "CPGA",
+      "name": "Control-Plane GitHub Adapter",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Transforms exported GitHub event/API evidence into the raw observation shape the custody observer consumes; conservative by design: account identity does not prove human origin, custody and authority default to UNKNOWN, authority effect NONE",
+      "implementation": "tools/control_plane_github_adapter_v0_1.py, tools/tests/test_control_plane_github_adapter_v0_1.py",
+      "tests": 7,
+      "phase": "post-M15 (batch one, 2026-11-11)",
+      "notes": "Status from files and its tests, not from a workflow run. It takes exported GitHub evidence supplied by the caller; no producer node was proven."
+    },
+    "IGV": {
+      "id": "IGV",
+      "name": "Intent Graph Validator",
+      "type": "process",
+      "status": "LAID",
+      "zone": "Z1",
+      "description": "Validates INTENT_GRAPH.yaml against the tree and renders INTENT_GRAPH.md; refuses a graph that has drifted from the tree and decides nothing; rule E10 reuses the temporal gate's own patterns",
+      "implementation": "tools/intent_graph_v1_0.py",
+      "tests": 0,
+      "phase": "post-M15 (batch one, 2026-11-11)",
+      "notes": "No test file of its own and no workflow runs it; status from the file. INTENT_GRAPH.yaml is listed under IOS."
     }
   },
   "edges": [
@@ -251,384 +729,597 @@
       "target": "PRS",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "AG",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "OM",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "ADV",
       "edge_type": "control_flow",
       "label": "work order",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "PRS",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "CYCLE / VERDICT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "AG",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "CYCLE / VERDICT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ADV",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "ATTACK / VERDICT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "TC",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "score events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "PRS",
       "target": "NF",
       "edge_type": "data_flow",
       "label": "p_expected resolved",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "OM",
       "target": "NF",
       "edge_type": "data_flow",
       "label": "D10 predictions resolved",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "EV",
       "target": "FS",
       "edge_type": "data_flow",
       "label": "events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "FS",
       "target": "Z2",
       "edge_type": "control_flow",
       "label": "candidate block",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "OM",
       "target": "Z2",
       "edge_type": "control_flow",
       "label": "candidate block",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "PRS",
       "target": "Z2",
       "edge_type": "data_flow",
       "label": "prereg sha",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Z2",
       "target": "CIG",
       "edge_type": "control_flow",
       "label": "RATIFY event",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "CIG",
       "target": "REG",
       "edge_type": "control_flow",
       "label": "merge",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "REG",
       "target": "PRS",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "FS",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "IC-030 live read",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "RC",
       "target": "Q",
       "edge_type": "callout",
       "label": "RECEIPT-GAP callouts",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ST",
       "target": "OM",
       "edge_type": "callout",
       "label": "STALE gaps",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ST",
       "target": "Q",
       "edge_type": "callout",
       "label": "STALE gaps",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "NF",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "Brier trend",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "TC",
       "target": "Q",
       "edge_type": "callout",
       "label": "DRIFT",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "NF",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "Brier per predictor / constant",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "EV",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "verdict, catch, drift rates",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "pin vs re-score gaps",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "ST",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "STALE constants",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MOLT",
       "target": "Z2",
       "edge_type": "control_flow",
       "label": "MOLT_CANDIDATE: change, prediction, falsifier",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Z2",
       "target": "MOLT",
       "edge_type": "control_flow",
       "label": "RATIFY hash",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MOLT",
       "target": "CONST",
       "edge_type": "control_flow",
       "label": "apply (ratified) / revert (mechanical)",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MOLT",
       "target": "ML",
       "edge_type": "data_flow",
       "label": "MOLT / MEASURE / KEEP / REVERT events",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "CONST",
       "target": "TC",
       "edge_type": "data_flow",
       "label": "dials",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "CONST",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "weights",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "CONST",
       "target": "PRS",
       "edge_type": "data_flow",
       "label": "rubrics",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "CONST",
       "target": "AG",
       "edge_type": "data_flow",
       "label": "caps",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "ML",
       "target": "EV",
       "edge_type": "data_flow",
       "label": "chained",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MOLT",
       "target": "NF",
       "edge_type": "data_flow",
       "label": "molt prediction resolved",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MOLT",
       "target": "FS",
       "edge_type": "callout",
       "label": "REVERT \u2192 F/IC candidate",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MOLT",
       "target": "ADV",
       "edge_type": "control_flow",
       "label": "gate changed \u2192 re-run",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "REG",
       "target": "MK",
       "edge_type": "data_flow",
       "label": "every merge",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "MK",
       "target": "CIG",
       "edge_type": "control_flow",
       "label": "consistency FAIL blocks merge",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "MK",
       "target": "OTS",
       "edge_type": "data_flow",
       "label": "root",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RU",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "registered units; unknown unit refused",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RU",
       "target": "RCEN",
       "edge_type": "data_flow",
       "label": "demand priors, constraint designation",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RCEN",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "obligation counts priced in the constraint unit",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RCEN",
       "target": "Q",
       "edge_type": "callout",
       "label": "constraint backlog / oversubscription",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RL",
       "target": "Q",
       "edge_type": "data_flow",
       "label": "cost vectors, measured prices, yield density",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "Q",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "CLAIM per work order",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "Z2",
       "target": "RL",
       "edge_type": "data_flow",
       "label": "RAT-min SPEND; capacity declaration (hashed)",
-      "description": ""
+      "description": "",
+      "feedback": true
     },
     {
       "source": "RL",
       "target": "MOLT",
       "edge_type": "data_flow",
       "label": "density trend vs constraint constants",
-      "description": ""
+      "description": "",
+      "feedback": false
     },
     {
       "source": "RCEN",
       "target": "FS",
       "edge_type": "callout",
       "label": "F-RBE candidates",
-      "description": ""
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "MTC",
+      "target": "MOLT",
+      "edge_type": "data_flow",
+      "label": "classifier named in MOLT_STATE.md; measured tier vs claimed (advisory)",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "CIP",
+      "target": "CIL",
+      "edge_type": "data_flow",
+      "label": "PIN / RESOLVE events, hash-chained (separate from NF by design)",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "SMAG",
+      "target": "EMP",
+      "edge_type": "data_flow",
+      "label": "smag_to_empirica_connector",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "IOS",
+      "target": "Z2",
+      "edge_type": "control_flow",
+      "label": "awaiting_z2 candidate relay; merge is the Z2 act",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "RCO",
+      "target": "Z2",
+      "edge_type": "control_flow",
+      "label": "ROUTE_TO_Z2; receipts are admission routing only",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "SGF",
+      "target": "SG",
+      "edge_type": "control_flow",
+      "label": "fails PR / weekly when stale or invalid",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "SG",
+      "target": "ORC",
+      "edge_type": "data_flow",
+      "label": "repository projection reads system_graph.json",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "IOS",
+      "target": "ACAT",
+      "edge_type": "control_flow",
+      "label": "harness tier T6 boots the ACAT API",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "RMN",
+      "target": "ENAV",
+      "edge_type": "data_flow",
+      "label": "upstream discovery handoff",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "RMN",
+      "target": "RSYS",
+      "edge_type": "data_flow",
+      "label": "handoff function composed by Resource System",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "ENAV",
+      "target": "RSYS",
+      "edge_type": "data_flow",
+      "label": "handoff function composed by Resource System",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "COCK",
+      "target": "Q",
+      "edge_type": "control_flow",
+      "label": "candidate block for PRIORITY_QUEUE.md (pending Z2)",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "VER",
+      "target": "HCOLLAB",
+      "edge_type": "data_flow",
+      "label": "consumes pinned verified receipts",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "VER",
+      "target": "HCM",
+      "edge_type": "data_flow",
+      "label": "verified-receipt consumption contract",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "Z2",
+      "target": "HCM",
+      "edge_type": "causality",
+      "label": "ratified as Q-HCM-CORE-MACHINE-01",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "IOS",
+      "target": "CONV",
+      "edge_type": "data_flow",
+      "label": "INTENT_GRAPH / EVIDENCE_GRAPH read for grading",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "REG",
+      "target": "WIT",
+      "edge_type": "data_flow",
+      "label": "REGISTERED.md Fix-citation entries read",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "GNER",
+      "target": "ACATR",
+      "edge_type": "data_flow",
+      "label": "ACAT-R comparison study imports gner_verify_e1.reconcile as the runtime under test",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "TDG",
+      "target": "IGV",
+      "edge_type": "data_flow",
+      "label": "intent_graph_v1_0.py rule E10 imports is_risky from the gate's test module for a parity check",
+      "description": "",
+      "feedback": false
+    },
+    {
+      "source": "CPGA",
+      "target": "CUST",
+      "edge_type": "data_flow",
+      "label": "adapter emits the raw observation shape the custody observer consumes; its tests feed adapter output to observer.normalize_observation",
+      "description": "",
+      "feedback": false
     }
   ],
   "validation_status": {
-    "valid": false,
-    "errors": [
-      "Cycle detected: Cycle detected in graph"
-    ],
-    "warnings": []
+    "valid": true,
+    "errors": [],
+    "warnings": [
+      "Orphaned nodes (no edges): ['ATLAS', 'DIGEST', 'EXPS', 'GL', 'GPCS', 'HIAE', 'HOBJ', 'ITEL', 'MODE', 'OBS', 'ORCID', 'WEB']"
+    ]
   },
   "zone_distribution": {
-    "Z2": 4,
-    "Z1": 3,
-    "code": 14,
-    "CI": 1
+    "Z2": 5,
+    "Z1": 25,
+    "code": 24,
+    "CI": 6
   }
 }

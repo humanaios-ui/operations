@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 228
+  tools: 229
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 178
+  builder_markers_present: 180
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2862,7 +2862,7 @@ tools:
 - tool_id: HAIOS-TOOL-239
   name: safety
   path: tools/Metaculus/safety.py
-  version: 1.1.0
+  version: 1.2.0
   category: security_gate_tool
   zone: 1
   status: draft
@@ -2874,16 +2874,28 @@ tools:
 - tool_id: HAIOS-TOOL-240
   name: mutual_learning_e0
   path: tools/mutual_learning_e0.py
-  version: unversioned
+  version: 1.0.0
   category: validation_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
 - tool_id: HAIOS-TOOL-241
+  name: audit_protocol_gate_v3_1
+  path: tools/audit_protocol_gate_v3_1.py
+  version: 3.1.1
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
+- tool_id: HAIOS-TOOL-242
   name: ops_snapshot
   path: tools/ops_snapshot_v0_1.py
   version: 0.1.0

@@ -67,12 +67,9 @@
     "State-branch write restriction to a dedicated app/workflow identity remains a repository-setting hardening item; this policy does not claim it is configured."
   ],
   "evaluation_admission": {
-    "authorized_actors": [
-      "humanaios-ui"
-    ],
     "required_issue_state": "ADMISSION_REQUESTED",
     "authority_effect": "EVALUATION_ONLY",
-    "evidence": "closing-keyword link to an issue whose body declares ADMISSION_REQUESTED plus latest APPROVED review by an authorized actor",
+    "evidence": "verified cryptographic human-attestation receipt bound to repository, PR, linked issue, exact head SHA, and EVALUATION_ONLY scope",
     "operator_queue_effect": "none",
     "merge_authority": false
   },
