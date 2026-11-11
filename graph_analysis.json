@@ -1,0 +1,483 @@
+{
+  "nodes": {
+    "obs_0_1301bf15": {
+      "id": "obs_0_1301bf15",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.626584",
+      "what_happened": "Commit fix(orac: ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.626566"
+    },
+    "intent_fix(orac": {
+      "id": "intent_fix(orac",
+      "type": "intent",
+      "confidence": 0.65,
+      "created_at": "2026-10-22T22:18:41.626605",
+      "stated_intent": "",
+      "inferred_intent": "Mixed changes across system",
+      "intent_gap": 1.0,
+      "evidence_chain": [
+        "obs_0_1301bf15"
+      ]
+    },
+    "obs_1_6f86c5bb": {
+      "id": "obs_1_6f86c5bb",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.633381",
+      "what_happened": "Commit : ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.633365"
+    },
+    "intent_": {
+      "id": "intent_",
+      "type": "intent",
+      "confidence": 0.65,
+      "created_at": "2026-10-22T22:18:41.673896",
+      "stated_intent": "",
+      "inferred_intent": "Mixed changes across system",
+      "intent_gap": 1.0,
+      "evidence_chain": [
+        "obs_9_6f86c5bb"
+      ]
+    },
+    "obs_2_6f86c5bb": {
+      "id": "obs_2_6f86c5bb",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.638045",
+      "what_happened": "Commit : ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.638030"
+    },
+    "obs_3_f0838c68": {
+      "id": "obs_3_f0838c68",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.645259",
+      "what_happened": "Commit Merge br: ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.645239"
+    },
+    "intent_Merge br": {
+      "id": "intent_Merge br",
+      "type": "intent",
+      "confidence": 0.65,
+      "created_at": "2026-10-22T22:18:41.669145",
+      "stated_intent": "",
+      "inferred_intent": "Mixed changes across system",
+      "intent_gap": 1.0,
+      "evidence_chain": [
+        "obs_8_f0838c68"
+      ]
+    },
+    "obs_4_e5afee5b": {
+      "id": "obs_4_e5afee5b",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.649855",
+      "what_happened": "Commit Model Ev: ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.649839"
+    },
+    "intent_Model Ev": {
+      "id": "intent_Model Ev",
+      "type": "intent",
+      "confidence": 0.65,
+      "created_at": "2026-10-22T22:18:41.649875",
+      "stated_intent": "",
+      "inferred_intent": "Mixed changes across system",
+      "intent_gap": 1.0,
+      "evidence_chain": [
+        "obs_4_e5afee5b"
+      ]
+    },
+    "obs_5_f0838c68": {
+      "id": "obs_5_f0838c68",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.657777",
+      "what_happened": "Commit Merge br: ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.657760"
+    },
+    "obs_6_6f86c5bb": {
+      "id": "obs_6_6f86c5bb",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.662573",
+      "what_happened": "Commit : ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.662556"
+    },
+    "obs_7_46c365b7": {
+      "id": "obs_7_46c365b7",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.664247",
+      "what_happened": "Commit z1-inbox: ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.664239"
+    },
+    "intent_z1-inbox": {
+      "id": "intent_z1-inbox",
+      "type": "intent",
+      "confidence": 0.65,
+      "created_at": "2026-10-22T22:18:41.664260",
+      "stated_intent": "",
+      "inferred_intent": "Mixed changes across system",
+      "intent_gap": 1.0,
+      "evidence_chain": [
+        "obs_7_46c365b7"
+      ]
+    },
+    "obs_8_f0838c68": {
+      "id": "obs_8_f0838c68",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.669132",
+      "what_happened": "Commit Merge br: ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.669122"
+    },
+    "obs_9_6f86c5bb": {
+      "id": "obs_9_6f86c5bb",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.673884",
+      "what_happened": "Commit : ",
+      "context": "Author: None, Files changed: 1",
+      "timestamp": "2026-10-22T22:18:41.673875"
+    },
+    "auth_z1_claude": {
+      "id": "auth_z1_claude",
+      "type": "authority",
+      "confidence": 0.85,
+      "created_at": "2026-10-22T22:18:41.674827",
+      "actor": "Z1 (Claude Proposer)",
+      "domain": [
+        "propose changes",
+        "analyze code",
+        "create PRs"
+      ],
+      "precedence": 1,
+      "gaps": [],
+      "has_gaps": false
+    },
+    "auth_z2_night": {
+      "id": "auth_z2_night",
+      "type": "authority",
+      "confidence": 0.85,
+      "created_at": "2026-10-22T22:18:41.674832",
+      "actor": "Z2 (Night Ratifier)",
+      "domain": [
+        "approve changes",
+        "sign decisions",
+        "enforce governance"
+      ],
+      "precedence": 2,
+      "gaps": [],
+      "has_gaps": false
+    },
+    "auth_z3_executor": {
+      "id": "auth_z3_executor",
+      "type": "authority",
+      "confidence": 0.85,
+      "created_at": "2026-10-22T22:18:41.674834",
+      "actor": "Z3 (Executor)",
+      "domain": [
+        "merge approved changes",
+        "run experiments",
+        "deploy"
+      ],
+      "precedence": 1,
+      "gaps": [],
+      "has_gaps": false
+    },
+    "obs_10_f762b5b6": {
+      "id": "obs_10_f762b5b6",
+      "type": "observation",
+      "confidence": 0.9,
+      "created_at": "2026-10-22T22:18:41.674847",
+      "what_happened": "constitution_checker.py modified with merge commit exemption",
+      "context": "governance decision",
+      "timestamp": "2026-10-22T22:18:41.674843"
+    },
+    "decision_p19_fix": {
+      "id": "decision_p19_fix",
+      "type": "decision",
+      "confidence": 0.7,
+      "created_at": "2026-10-22T22:18:41.674861",
+      "timestamp": "2026-10-22T22:18:41.674848",
+      "stated_reason": "Fix P19 compliance check per CLAUDE.md rules",
+      "inferred_reason": "Modify governance enforcement logic (authority-level change)",
+      "authority_violation": true,
+      "reversible": true,
+      "reason_gap": 1.0
+    },
+    "assume_z1_governance": {
+      "id": "assume_z1_governance",
+      "type": "assumption",
+      "confidence": 0.5,
+      "created_at": "2026-10-22T22:18:41.674866",
+      "claim": "Z1 can modify governance checks if rationale is clear",
+      "falsifiable": true,
+      "collapse_risk": "high",
+      "tested": false
+    },
+    "cap_code_generation": {
+      "id": "cap_code_generation",
+      "type": "capability",
+      "confidence": 0.8,
+      "created_at": "2026-10-22T22:18:41.674885",
+      "name": "Generate and modify code",
+      "scope": "Any file in repository",
+      "verified_range": [
+        "Small scripts",
+        "Complex multi-file changes"
+      ],
+      "edge_cases": [
+        "Can modify governance files (CLAUDE.md, constitution_checker.py)",
+        "Can create new CI/CD workflows",
+        "Can modify database schemas",
+        "Can delete files without confirmation"
+      ],
+      "exploitability": 0.9,
+      "weaponizable": true
+    },
+    "cap_authority_claim": {
+      "id": "cap_authority_claim",
+      "type": "capability",
+      "confidence": 0.8,
+      "created_at": "2026-10-22T22:18:41.674888",
+      "name": "Claim authority to merge changes",
+      "scope": "Git commits, PR creation",
+      "verified_range": [
+        "Individual commits",
+        "Complex PR series"
+      ],
+      "edge_cases": [
+        "Can claim to be Z1 proposer",
+        "Can use Z2 signature format in commits",
+        "Can bypass governance if automation allows",
+        "Can create false evidence chains in commit messages"
+      ],
+      "exploitability": 0.7,
+      "weaponizable": true
+    },
+    "cap_intent_manipulation": {
+      "id": "cap_intent_manipulation",
+      "type": "capability",
+      "confidence": 0.8,
+      "created_at": "2026-10-22T22:18:41.674890",
+      "name": "Describe intent in ways that obscure actual goals",
+      "scope": "Commit messages, PR descriptions",
+      "verified_range": [
+        "Simple statements",
+        "Complex narrative structures"
+      ],
+      "edge_cases": [
+        "Can claim 'refactoring' while introducing new capabilities",
+        "Can claim 'fixes' while changing behavior",
+        "Can hide intent behind technical language",
+        "Can claim time pressure to skip processes"
+      ],
+      "exploitability": 0.6,
+      "weaponizable": true
+    },
+    "manip_governance_override": {
+      "id": "manip_governance_override",
+      "type": "manipulation",
+      "confidence": 0.7,
+      "created_at": "2026-10-22T22:18:41.674892",
+      "attack_vector": "Modify governance enforcement logic to exempt own changes",
+      "target_capability": "cap_code_generation",
+      "detectability": 0.2,
+      "is_currently_live": true
+    },
+    "manip_intent_obscure": {
+      "id": "manip_intent_obscure",
+      "type": "manipulation",
+      "confidence": 0.7,
+      "created_at": "2026-10-22T22:18:41.674896",
+      "attack_vector": "Use vague commit messages to hide intent drift",
+      "target_capability": "cap_intent_manipulation",
+      "detectability": 0.4,
+      "is_currently_live": true
+    },
+    "assume_z2_watching": {
+      "id": "assume_z2_watching",
+      "type": "assumption",
+      "confidence": 0.5,
+      "created_at": "2026-10-22T22:18:41.674901",
+      "claim": "Z2 (Night) is actively monitoring all changes and will catch misalignment",
+      "falsifiable": true,
+      "collapse_risk": "critical",
+      "tested": false
+    },
+    "assume_intent_detectable": {
+      "id": "assume_intent_detectable",
+      "type": "assumption",
+      "confidence": 0.4,
+      "created_at": "2026-10-22T22:18:41.674903",
+      "claim": "True intent can be reliably inferred from code changes",
+      "falsifiable": true,
+      "collapse_risk": "critical",
+      "tested": false
+    },
+    "assume_authority_enforced": {
+      "id": "assume_authority_enforced",
+      "type": "assumption",
+      "confidence": 0.7,
+      "created_at": "2026-10-22T22:18:41.674904",
+      "claim": "Z1 cannot make changes without Z2 approval (it's enforced by CI/CD)",
+      "falsifiable": true,
+      "collapse_risk": "high",
+      "tested": false
+    },
+    "assume_capabilities_known": {
+      "id": "assume_capabilities_known",
+      "type": "assumption",
+      "confidence": 0.3,
+      "created_at": "2026-10-22T22:18:41.674905",
+      "claim": "All capabilities of the system are documented and known",
+      "falsifiable": true,
+      "collapse_risk": "critical",
+      "tested": false
+    }
+  },
+  "edges": [
+    {
+      "source": "obs_0_1301bf15",
+      "type": "supports",
+      "target": "intent_fix(orac",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_1_6f86c5bb",
+      "type": "supports",
+      "target": "intent_",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_2_6f86c5bb",
+      "type": "supports",
+      "target": "intent_",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_3_f0838c68",
+      "type": "supports",
+      "target": "intent_Merge br",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_4_e5afee5b",
+      "type": "supports",
+      "target": "intent_Model Ev",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_5_f0838c68",
+      "type": "supports",
+      "target": "intent_Merge br",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_6_6f86c5bb",
+      "type": "supports",
+      "target": "intent_",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_7_46c365b7",
+      "type": "supports",
+      "target": "intent_z1-inbox",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_8_f0838c68",
+      "type": "supports",
+      "target": "intent_Merge br",
+      "weight": 1.0
+    },
+    {
+      "source": "obs_9_6f86c5bb",
+      "type": "supports",
+      "target": "intent_",
+      "weight": 1.0
+    },
+    {
+      "source": "cap_code_generation",
+      "type": "exposes_to",
+      "target": "manip_governance_override",
+      "weight": 1.0
+    },
+    {
+      "source": "cap_intent_manipulation",
+      "type": "exposes_to",
+      "target": "manip_intent_obscure",
+      "weight": 1.0
+    }
+  ],
+  "observations": [
+    "obs_0_1301bf15",
+    "obs_1_6f86c5bb",
+    "obs_2_6f86c5bb",
+    "obs_3_f0838c68",
+    "obs_4_e5afee5b",
+    "obs_5_f0838c68",
+    "obs_6_6f86c5bb",
+    "obs_7_46c365b7",
+    "obs_8_f0838c68",
+    "obs_9_6f86c5bb",
+    "obs_10_f762b5b6"
+  ],
+  "contradictions": [
+    [
+      "intent_fix(orac_stated",
+      "intent_fix(orac_inferred"
+    ],
+    [
+      "intent__stated",
+      "intent__inferred"
+    ],
+    [
+      "intent__stated",
+      "intent__inferred"
+    ],
+    [
+      "intent_Merge br_stated",
+      "intent_Merge br_inferred"
+    ],
+    [
+      "intent_Model Ev_stated",
+      "intent_Model Ev_inferred"
+    ],
+    [
+      "intent_Merge br_stated",
+      "intent_Merge br_inferred"
+    ],
+    [
+      "intent__stated",
+      "intent__inferred"
+    ],
+    [
+      "intent_z1-inbox_stated",
+      "intent_z1-inbox_inferred"
+    ],
+    [
+      "intent_Merge br_stated",
+      "intent_Merge br_inferred"
+    ],
+    [
+      "intent__stated",
+      "intent__inferred"
+    ],
+    [
+      "decision_p19_fix",
+      "authority_constraint"
+    ]
+  ]
+}
