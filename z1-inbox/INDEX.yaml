@@ -11,9 +11,13 @@ candidates:
   title: Graph orphan wiring, batch one (GNER, TDG, CUST) with edges proven by code, plus the two nodes those edges need
   path: z1-inbox/2026-11-11/Q-GRAPH-ORPHANS-B1-01.md
   submitted: '2026-11-11'
-  status: awaiting_z2
+  status: ratified
   tier: 2
   note: 'Issue #1175 batch one. Three edges, each proven by an import or an executed test and pinned to its line by a test; two new nodes (CPGA, IGV) carry them; orphans go from sixteen to twelve. TDG also has a lead into a workflow that is not yet a node. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-11"
+  z2_ruling: "z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md"
+  z2_hash: "0f1ebdbcb2fd823a439390d02c952d522e90a2503860d32dca2dfdbbbb97dbb0"
 - q_id: Q-SYSTEM-GRAPH-REGEN-01
   title: Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate
   path: z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md
