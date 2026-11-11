@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**228 registered tools** · 2 MCP servers · 4 excluded · 179 carrying Builder v1.7 markers
+**229 registered tools** · 2 MCP servers · 4 excluded · 180 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 228 |
-| — status `draft` | 227 |
+| Registered tools | 229 |
+| — status `draft` | 228 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 179 |
+| Builder v1.7 markers present | 180 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -270,7 +270,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
 
-## Security gates — `security_gate_tool` (14)
+## Security gates — `security_gate_tool` (15)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -288,6 +288,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-231 | b4_admission | `tools/b4_admission.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | B4 controlled-operation admission: verify a GitHub-authenticated approval envelope. |
 | HAIOS-TOOL-237 | metaculus_mode_gate | `tools/Metaculus/mode_gate.py` | 0.1.0 | 1 | draft | — | Fail-closed approval guard for Metaculus actions with external side effects. |
 | HAIOS-TOOL-239 | safety | `tools/Metaculus/safety.py` | 1.2.0 | 1 | draft | — | Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no |
+| HAIOS-TOOL-242 | vulnops_action_trust | `tools/vulnops_v0_1.py` | 0.1.0 | 1 | draft | — | VulnOps action-trust control plane — v0.1. |
 
 ## Templates — `template_tool` (3)
 
@@ -377,7 +378,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 7 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
-| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 14 |
+| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 15 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 34 |
 
