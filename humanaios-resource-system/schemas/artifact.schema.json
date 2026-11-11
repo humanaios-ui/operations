@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:humanaios:resource-system:artifact:1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "resource_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "evidence_snapshot": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "state": {
+      "enum": [
+        "UNDER_REVIEW"
+      ]
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "predicate": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "value": {
+            "type": "boolean"
+          },
+          "evidence_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          }
+        },
+        "required": [
+          "predicate",
+          "value",
+          "evidence_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "prior_artifact_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "overlap": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "delta": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "resource_id",
+    "evidence_snapshot",
+    "authorization_id",
+    "state",
+    "claims",
+    "prior_artifact_id",
+    "overlap",
+    "delta"
+  ],
+  "additionalProperties": false
+}

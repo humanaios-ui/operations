@@ -71,3 +71,9 @@ After #630 lands, the intended integration is an adapter that exposes:
 - conflict/correction view.
 
 No source binding, inference, graph membership, or participation grants authority, warrant, authorization, or execution capability.
+
+## State Continuity Verification integration (Z1 candidate)
+
+The optional [SCVC v0.1 contract](../docs/STATE_CONTINUITY_VERIFICATION_V0_1.md) reads this graph's existing `sources`, `entities`, `assertions`, and `events` alongside HLKS VLR v1 source/observation references. It does not mutate or regenerate the graph, upgrade `CHAT_DERIVED` to evidence, resolve contradictions, or produce a Coordinator decision. A shared source identifier is only a **structural binding**, not proof of source validity. Corrections require explicit longitudinal replay before a continuity finding.
+
+The synthetic regressions are registered in `.tool-control/baseline_tests.yaml` as `tests/test_state_continuity_verification_v0_1.py`. Live authenticated reconstruction and cross-domain private retrieval remain outside the admitted scope.

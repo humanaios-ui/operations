@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Intent-OS — New intent</title>
+<!-- Form for the intent template at intent.md (repo root). Output is a DRAFT markdown file.
+     This page never signs, never submits, never sends data off the page. Save the .md and submit it yourself.
+     Test: tests/test_intent_form.py -->
+<style>
+:root{
+  --board:#101418; --panel:#171d23; --line:#2a333c; --ink:#dce6ee; --dim:#7f8c98;
+  --gold:#c9a86b; --steel:#5aa0d8; --waiting:#e2574d; --done:#37c26b;
+  --mono:"Cascadia Code","Fira Code",Menlo,Consolas,monospace;
+  --sans:"Avenir Next","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--board);color:var(--ink);font-family:var(--sans);line-height:1.5;font-size:15px}
+.wrap{max-width:900px;margin:0 auto;padding:22px 16px 80px}
+h1{font-family:var(--mono);font-size:19px;font-weight:600}
+.lede{color:var(--dim);font-size:13px;margin:6px 0 18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+fieldset{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:14px;margin-bottom:14px}
+legend{font-family:var(--mono);font-size:12px;color:var(--dim);padding:0 6px}
+label{display:block;font-size:13px;color:var(--gold);margin:8px 0 4px}
+.hint{font-size:12px;color:var(--dim);margin-top:3px}
+input[type=text],input[type=number],textarea{
+  width:100%;background:var(--board);color:var(--ink);border:1px solid var(--line);
+  border-radius:4px;padding:8px 10px;font-family:var(--sans);font-size:14px}
+textarea{min-height:76px;resize:vertical}
+input:focus,textarea:focus{outline:1px solid var(--steel);border-color:var(--steel)}
+.req::after{content:" *";color:var(--waiting)}
+.err{color:var(--waiting);font-size:12px;margin-top:3px;min-height:0}
+input[aria-invalid=true],textarea[aria-invalid=true]{border-color:var(--waiting)}
+.checks label{color:var(--ink);font-size:14px;display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+.checks input{margin-top:4px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+button{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;
+  padding:8px 14px;font-family:var(--sans);font-size:14px;cursor:pointer}
+button.primary{border-color:var(--steel);color:var(--steel)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.status{font-size:13px;color:var(--dim)}
+.status.ok{color:var(--done)}
+.status.bad{color:var(--waiting)}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;
+  font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;word-break:break-word;color:var(--ink);
+  max-height:70vh;overflow:auto}
+.note{font-size:12px;color:var(--dim);margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>New intent</h1>
+  <p class="lede">Fill the form. You get a draft <code>.md</code> in the intent template shape. Nothing is signed or sent. Your draft stays in this browser only.</p>
+
+  <div class="grid">
+    <div>
+      <fieldset>
+        <legend>Identity</legend>
+        <label class="req" for="name">Name</label>
+        <input type="text" id="name" maxlength="120" placeholder="short name for this intent"/>
+        <div class="err" aria-live="polite" id="err-name"></div>
+        <label class="req" for="author">Author</label>
+        <input type="text" id="author" maxlength="120" placeholder="your name or did:key"/>
+        <div class="err" aria-live="polite" id="err-author"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>What</legend>
+        <label class="req" for="problem">Problem</label>
+        <textarea id="problem" placeholder="What can't be done today, and who is affected."></textarea>
+        <div class="hint">State it as a symptom, not a solution.</div>
+        <div class="err" aria-live="polite" id="err-problem"></div>
+
+        <label class="req" for="outcome">Proposed Outcome</label>
+        <textarea id="outcome" placeholder="What 'better' looks like when this ships."></textarea>
+        <div class="err" aria-live="polite" id="err-outcome"></div>
+
+        <label for="affected">Affected Users and Systems</label>
+        <textarea id="affected" placeholder="Who interacts with it, what it touches."></textarea>
+
+        <label for="constraints">Constraints</label>
+        <textarea id="constraints" placeholder="What must not change or be introduced."></textarea>
+
+        <label for="questions">Open Questions</label>
+        <textarea id="questions" placeholder="What still needs a decision before design starts."></textarea>
+      </fieldset>
+    </div>
+
+    <div>
+      <fieldset>
+        <legend>Test</legend>
+        <label class="req" for="falsifier">Falsifier</label>
+        <textarea id="falsifier" placeholder="A specific, observable condition that would prove this wrong. e.g. 'If API p95 stays above 4s after this ships, this failed.'"></textarea>
+        <div class="err" aria-live="polite" id="err-falsifier"></div>
+
+        <label class="req" for="smag">Success probability (smag_p, 0 to 1)</label>
+        <input type="number" id="smag" min="0" max="1" step="0.01" placeholder="e.g. 0.72"/>
+        <div class="hint">Your forecast that this reaches the outcome as stated.</div>
+        <div class="err" aria-live="polite" id="err-smag"></div>
+      </fieldset>
+
+      <fieldset class="checks">
+        <legend>Calibration check (only you can tick these)</legend>
+        <label><input type="radio" name="calib" value="endorse"/> Re-read and endorse</label>
+        <label><input type="radio" name="calib" value="revise"/> Re-read and revise (submit revised version, not a flag)</label>
+        <label><input type="radio" name="calib" value="skipped"/> Skipped (mark as AMBIGUITY callout)</label>
+        <div class="hint">Optional for feature-level intents. Required for architectural changes.</div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button class="primary" id="copy">Copy markdown</button>
+    <button id="download">Download .md</button>
+    <button id="clear">Clear draft</button>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
+  </div>
+
+  <label for="out">Preview (draft, unsigned)</label>
+  <pre id="out"></pre>
+
+  <p class="note">
+    Signature and submission are separate acts. This page writes <code>Signature: none</code> and <code>Submitted: not yet</code>.
+    Submit the file through the repo's normal intent path. Z2 decides what happens next.
+  </p>
+</div>
+
+<script>
+(function () {
+  var KEY = "intent-form-draft-v1";
+  var FIELDS = ["name", "author", "problem", "outcome", "affected", "constraints", "questions", "falsifier", "smag"];
+  var $ = function (id) { return document.getElementById(id); };
+
+  function readDraft() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; }
+  }
+  function writeDraft(obj) {
+    try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch (e) { /* private window: keep working without it */ }
+  }
+  function collect() {
+    var d = {};
+    FIELDS.forEach(function (f) { d[f] = $(f).value; });
+    var c = document.querySelector('input[name="calib"]:checked');
+    d.calib = c ? c.value : "";
+    return d;
+  }
+  function restore() {
+    var d = readDraft();
+    FIELDS.forEach(function (f) { if (d[f] != null) $(f).value = d[f]; });
+    if (d.calib) {
+      var r = document.querySelector('input[name="calib"][value="' + d.calib + '"]');
+      if (r) r.checked = true;
+    }
+  }
+
+  // Returns {ok, errors, md}. Pure: no DOM writes, so it is easy to test.
+  function build(d) {
+    var errors = {};
+    var smag = parseFloat(d.smag);
+    if (!d.name.trim()) errors.name = "Name needed.";
+    if (!d.author.trim()) errors.author = "Author needed.";
+    if (!d.problem.trim()) errors.problem = "Problem needed.";
+    if (!d.outcome.trim()) errors.outcome = "Outcome needed.";
+    if (!d.falsifier.trim()) errors.falsifier = "A falsifier is required. Without one, the intent is not testable.";
+    if (d.smag === "" || isNaN(smag) || smag < 0 || smag > 1) errors.smag = "Enter a number from 0 to 1.";
+
+    var box = function (v, label) { return "- [" + (d.calib === v ? "x" : " ") + "] " + label; };
+    var body = function (s) { return s.trim() || "_none_"; };
+    var md = [
+      "# Intent: " + (d.name.trim() || "[name]"),
+      "Author: " + (d.author.trim() || "[name or did:key]") + ". Status: draft.",
+      "Submitted: not yet. Signature: none (this form does not sign).",
+      "",
+      "## Problem", body(d.problem), "",
+      "## Proposed Outcome", body(d.outcome), "",
+      "## Affected Users and Systems", body(d.affected), "",
+      "## Constraints", body(d.constraints), "",
+      "## Open Questions", body(d.questions), "",
+      "---", "",
+      "## Falsifier", body(d.falsifier), "",
+      "## Success Probability",
+      "`smag_p: " + (errors.smag ? "[0..1]" : smag) + "`", "",
+      "## Calibration Check",
+      box("endorse", "Re-read and endorse (not signed here)"),
+      box("revise", "Re-read and revise (submit revised version, not a flag)"),
+      box("skipped", "Skipped (mark as AMBIGUITY callout)"),
+      ""
+    ].join("\n");
+    return { ok: Object.keys(errors).length === 0, errors: errors, md: md };
+  }
+
+  function render() {
+    var d = collect();
+    writeDraft(d);
+    var r = build(d);
+    $("out").textContent = r.md;
+    ["name", "author", "problem", "outcome", "falsifier", "smag"].forEach(function (f) {
+      var msg = $("err-" + f);
+      var el = $(f);
+      msg.textContent = r.errors[f] || "";
+      el.setAttribute("aria-required", "true");
+      el.setAttribute("aria-invalid", r.errors[f] ? "true" : "false");
+      el.setAttribute("aria-describedby", msg.id);
+    });
+    $("copy").disabled = !r.ok;
+    $("download").disabled = !r.ok;
+    var st = $("status");
+    st.className = "status " + (r.ok ? "ok" : "");
+    st.textContent = r.ok ? "Ready. Draft, unsigned." : "Fill the required fields (*).";
+    return r;
+  }
+
+  function slug(s) {
+    return (s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "intent");
+  }
+
+  $("copy").addEventListener("click", function () {
+    var r = render();
+    if (!r.ok) return;
+    var st = $("status");
+    var done = function (msg, cls) { st.className = "status " + cls; st.textContent = msg; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(r.md).then(
+        function () { done("Copied. Draft, unsigned.", "ok"); },
+        function () { done("Copy blocked. Select the preview text instead.", "bad"); });
+    } else {
+      done("Copy not available here. Select the preview text instead.", "bad");
+    }
+  });
+
+  $("download").addEventListener("click", function () {
+    var r = render();
+    if (!r.ok) return;
+    var blob = new Blob([r.md], { type: "text/markdown" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "intent-" + slug($("name").value) + ".md";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  });
+
+  $("clear").addEventListener("click", function () {
+    FIELDS.forEach(function (f) { $(f).value = ""; });
+    document.querySelectorAll('input[name="calib"]').forEach(function (r) { r.checked = false; });
+    try { localStorage.removeItem(KEY); } catch (e) { /* nothing stored */ }
+    render();
+  });
+
+  document.querySelectorAll("input, textarea").forEach(function (el) {
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
+  });
+
+  window.intentForm = { build: build };
+  restore();
+  render();
+})();
+</script>
+</body>
+</html>

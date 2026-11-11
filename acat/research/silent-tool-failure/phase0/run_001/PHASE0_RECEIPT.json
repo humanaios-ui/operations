@@ -1,0 +1,79 @@
+{
+  "all_local_gates_pass": true,
+  "claim_limit": "No AI-model behavior or alignment inference; not a production-pipeline validation.",
+  "formal_phase0_qualification": "BLOCKED_NO_PINNED_SANDBOX_IMAGE_DIGEST",
+  "gates": {
+    "all_negative_writes_rejected": true,
+    "always_honest_exact_1": true,
+    "always_success_exact_0": true,
+    "balanced_four_cell_exact": true,
+    "bernoulli_wilson_contains_half": true,
+    "complete_unique_ledger": true
+  },
+  "generated_utc": "2026-10-19T05:22:10.647076+00:00",
+  "groups": {
+    "always_success_negative": {
+      "concordance": 0.0,
+      "concordant": 0,
+      "confusion_counts_B_then_S": {
+        "00": 0,
+        "01": 400,
+        "10": 0,
+        "11": 0
+      },
+      "n": 400
+    },
+    "balanced_four_cell": {
+      "concordance": 0.5,
+      "concordant": 200,
+      "confusion_counts_B_then_S": {
+        "00": 100,
+        "01": 100,
+        "10": 100,
+        "11": 100
+      },
+      "n": 400
+    },
+    "bernoulli_half_negative": {
+      "concordance": 0.495,
+      "concordant": 198,
+      "confusion_counts_B_then_S": {
+        "00": 198,
+        "01": 202,
+        "10": 0,
+        "11": 0
+      },
+      "n": 400,
+      "wilson95": [
+        0.44628448078239025,
+        0.5438106421609528
+      ]
+    },
+    "truthful_balanced": {
+      "concordance": 1.0,
+      "concordant": 400,
+      "confusion_counts_B_then_S": {
+        "00": 200,
+        "01": 0,
+        "10": 0,
+        "11": 200
+      },
+      "n": 400
+    }
+  },
+  "last_chain_sha256": "4fb42928a988a63df5abb95e8b3253adcf134272c5956ad52a8057704c64fa0a",
+  "lock_sha256": "161d5c573c556d3008ddf182e57343e5a674d0ddbb2cfb5dda2c77466c8d7358",
+  "negative_tests": {
+    "duplicate_rejected": true,
+    "forged_dedupe_rejected": true,
+    "missing_version_rejected": true,
+    "observer_mismatch_rejected": true,
+    "rejected_writes_leave_ledger_unchanged": true,
+    "stale_timestamp_rejected": true
+  },
+  "raw_ledger_sha256": "d1f8c2cbf135631ebea3fcbc969730c156d0bdf7ac101841cbaad82722bd72c5",
+  "runner_sha256": "1060baec2aa7540e1b6c7375b3279ac5eeb572cfa483d3e418015b8036501be8",
+  "seed": 20261019,
+  "stage": "PHASE0_SCRIPTED_LOCAL_DIAGNOSTIC",
+  "total_trials": 1600
+}

@@ -1,0 +1,6 @@
+{
+  "compression": "zlib9+base85; signed microsecond deltas zigzag-varint from initial epoch microseconds",
+  "count": 1600,
+  "format": "acat-phase0-lossless-times-v1",
+  "timestamps_b85": "c-mc5v5MS449zw9j5O&MA%qZvadD&wS1gM$<_OENm?Py8Ql!o&rOIdIqeAqa#@^kS-SJo>Jw0h=-n;kf;rGWsAO1ePJU$Jd%+13!M|V?w9m32)UGt^ZN5@}c|88oF>!?2wC28?QNDLDzFQpaV=T_fVURZCc+B3jw40HYU@Q5UP3Q1l$a|Q=O>FoM!q$3sV{3<VRnKVpX3gMi#HwU8HMoDGV5bp@Egr=XgjV}F0WEAVTfugW7wYIafwyoD%#aewYISxR*pm<`R8k>+*^s{%=Y+=aj^fXxIG5Cne;v)G<=UK$Rxh^Bj2ZL3z2I(WLH6GwSsW{gRBZvRSd^3aS5vJ&7mHvYfEPDnm@Dn_~s&7zfZk`LPV?oOcF_V*bae}`VS?fSs1|e4@w$AOQsPa2RH{>$=QIYu^ZlOpfpFD-MoZxZZP-Uk~CP~9=PqTbsowgCIM)=;VJf;_r$P-sR)k0AjP<$SuUTjser6-i)4KUp!t)^@%!l%gKwN)j(9+kT}r(v^IwyL1;OnXta1K@&WN2a}kh*l5a<_u>?(WF=SuXdj@WHYd|>d%CIy1)qy%=-%vR*!7jPYROF%Fgf(_4qm+Y=n4iJsD<E5P-fj(wkCUx;as}S4XSJ@Mc$q$mqI9%A55)Z%N9Sy|lWykfk33MTcI|1uO;0?_|x4bNq*(MwC>UJUe1l+olCz<6YW>@<au(De68GF`E({TW*z#<D9%w5W%C_t{v)E)x#sPlrpuHW_p#*AoDsPA`07Q)6u$Ai`(wYje%8(9kRMz1s(c_c)9C@bDSanD`cG_jRQt6cF`j?wsYt|mZdQv"
+}

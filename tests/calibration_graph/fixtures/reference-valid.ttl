@@ -1,0 +1,174 @@
+@prefix cal: <https://humanaios.ai/ns/calibration#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://humanaios.ai/fixtures/calibration/> .
+
+# 1. Convergent trace
+ex:trial-convergent a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-c0 ;
+  cal:hasHumanTrace ex:trace-c0 ;
+  cal:hasMachineTrace ex:machine-c0 ;
+  cal:hasComparison ex:compare-c0 ;
+  cal:hasResolutionEvent ex:resolution-c0 ;
+  cal:traceFrozenAt "2026-09-30T12:00:00Z"^^xsd:dateTime .
+
+ex:stim-c0 a cal:Stimulus .
+ex:trace-c0 a cal:HumanTrace ; cal:reportedValue "8" .
+ex:machine-c0 a cal:MachineTrace ; cal:machineValue "8" .
+ex:resolution-c0 a cal:ResolutionEvent ;
+  cal:resolutionState cal:Resolved ;
+  cal:participantConfidence "0.95"^^xsd:decimal ;
+  cal:sequenceIndex 0 .
+ex:compare-c0 a cal:Comparison ; cal:comparisonType cal:Convergence .
+
+# 2. Divergence
+ex:trial-divergent a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-p0 ;
+  cal:hasHumanTrace ex:trace-p0 ;
+  cal:hasMachineTrace ex:machine-p0 ;
+  cal:hasComparison ex:compare-p0 ;
+  cal:hasResolutionEvent ex:resolution-p0 ;
+  cal:traceFrozenAt "2026-09-30T12:01:00Z"^^xsd:dateTime .
+
+ex:stim-p0 a cal:Stimulus .
+ex:trace-p0 a cal:HumanTrace ; cal:reportedValue "13" .
+ex:machine-p0 a cal:MachineTrace ; cal:machineValue "4" .
+ex:resolution-p0 a cal:ResolutionEvent ;
+  cal:resolutionState cal:Resolved ;
+  cal:participantConfidence "0.25"^^xsd:decimal ;
+  cal:sequenceIndex 1 .
+ex:compare-p0 a cal:Comparison ; cal:comparisonType cal:Divergence .
+
+# 3. Unresolved
+ex:trial-unresolved a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-u0 ;
+  cal:hasHumanTrace ex:trace-u0 ;
+  cal:hasComparison ex:compare-u0 ;
+  cal:hasResolutionEvent ex:resolution-u0 ;
+  cal:traceFrozenAt "2026-09-30T12:02:00Z"^^xsd:dateTime .
+
+ex:stim-u0 a cal:Stimulus .
+ex:trace-u0 a cal:HumanTrace .
+ex:resolution-u0 a cal:ResolutionEvent ;
+  cal:resolutionState cal:Unresolved ;
+  cal:sequenceIndex 0 .
+ex:compare-u0 a cal:Comparison ; cal:comparisonType cal:Indeterminate .
+
+# 4. Delayed resolution preserves the earlier unresolved event
+ex:trial-delayed a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-d0 ;
+  cal:hasHumanTrace ex:trace-d0 ;
+  cal:hasMachineTrace ex:machine-d0 ;
+  cal:hasComparison ex:compare-d0 ;
+  cal:hasResolutionEvent ex:resolution-d0-initial, ex:resolution-d0-later ;
+  cal:traceFrozenAt "2026-09-30T12:03:00Z"^^xsd:dateTime .
+
+ex:stim-d0 a cal:Stimulus .
+ex:trace-d0 a cal:HumanTrace .
+ex:machine-d0 a cal:MachineTrace ; cal:machineValue "4" .
+ex:resolution-d0-initial a cal:ResolutionEvent ;
+  cal:resolutionState cal:Unresolved ;
+  cal:sequenceIndex 0 .
+ex:resolution-d0-later a cal:ResolutionEvent ;
+  cal:resolutionState cal:Delayed ;
+  cal:reportedValue "13" ;
+  cal:participantConfidence "0.20"^^xsd:decimal ;
+  cal:sequenceIndex 1 ;
+  cal:follows ex:resolution-d0-initial .
+ex:compare-d0 a cal:Comparison ; cal:comparisonType cal:Divergence .
+
+# 5. Environmental/context event is contextual, not causal
+ex:trial-context a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-env ;
+  cal:hasHumanTrace ex:trace-env ;
+  cal:hasContextObservation ex:context-env ;
+  cal:hasResolutionEvent ex:resolution-env ;
+  cal:hasComparison ex:compare-env ;
+  cal:traceFrozenAt "2026-09-30T12:04:00Z"^^xsd:dateTime .
+
+ex:stim-env a cal:Stimulus .
+ex:trace-env a cal:HumanTrace .
+ex:context-env a cal:ContextObservation ;
+  cal:contextFor ex:trial-context .
+ex:resolution-env a cal:ResolutionEvent ;
+  cal:resolutionState cal:Unresolved ;
+  cal:sequenceIndex 0 .
+ex:compare-env a cal:Comparison ; cal:comparisonType cal:Interference .
+
+# 6. Design delta that fails retest
+ex:trial-delta-fail a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-fail ;
+  cal:hasHumanTrace ex:trace-fail ;
+  cal:generatedDesignDelta ex:delta-fail ;
+  cal:traceFrozenAt "2026-09-30T12:05:00Z"^^xsd:dateTime .
+
+ex:stim-fail a cal:Stimulus .
+ex:trace-fail a cal:HumanTrace .
+ex:delta-fail a cal:DesignDelta ;
+  cal:warrantState cal:Withdrawn ;
+  cal:supportedByFrozenTrace ex:trace-fail ;
+  cal:falsifier "Fresh-symbol retest does not reproduce the effect." ;
+  cal:retestOutcome "FAILED_TO_REPLICATE" .
+
+# 7. Replicated design delta
+ex:trial-delta-replicated a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-repl ;
+  cal:hasHumanTrace ex:trace-repl ;
+  cal:generatedDesignDelta ex:delta-repl ;
+  cal:traceFrozenAt "2026-09-30T12:06:00Z"^^xsd:dateTime .
+
+ex:stim-repl a cal:Stimulus .
+ex:trace-repl a cal:HumanTrace .
+ex:delta-repl a cal:DesignDelta ;
+  cal:warrantState cal:Replicated ;
+  cal:supportedByFrozenTrace ex:trace-repl ;
+  cal:falsifier "Independent fresh-baseline retest reverses the observed benefit." ;
+  cal:retestOutcome "REPLICATED" .
+
+# 8. Landing verification
+ex:landing-pyshacl a cal:LandingCheck ;
+  cal:landingState cal:LandingClarified ;
+  cal:triggerReason "Technical phrase was not fully understood." ;
+  cal:understandingEvidence "Participant identified the ambiguity and accepted the plain-language explanation." ;
+  cal:clarificationText "Canonical SHACL validation still needs an environment that can install and run PySHACL." .
+
+# 9. Dependency flag
+ex:dependency-pyshacl a cal:DependencyFlag ;
+  cal:dependencyType "EXECUTION_ENVIRONMENT_PACKAGE" ;
+  cal:dependencyState cal:DependencyUnsatisfied ;
+  cal:requiredFor "canonical SHACL validation" ;
+  cal:blocksStage true ;
+  cal:plainLanguageNote "The canonical validator cannot run in the current session environment because PySHACL is not installed and package installation is unavailable." ;
+  cal:resolutionAction "Run the committed validator in GitHub Actions, a local Python environment, or another runtime that can install pyshacl==0.40.1." ;
+  cal:fallback "Continue fixture authoring and structural preflight without claiming canonical SHACL execution." .
+
+# 10. Epistemic attractor generated from an unsatisfied dependency
+ex:attractor-pyshacl a cal:EpistemicAttractor ;
+  cal:triggeredBy ex:dependency-pyshacl ;
+  cal:targetNode ex:dependency-pyshacl ;
+  cal:queryIntent cal:SatisfyDependency, cal:SeekContradiction, cal:ProbeCompressionLoss ;
+  cal:queryText "pySHACL 0.40.1 availability, Python requirements, installation path, incompatibilities, and hidden execution prerequisites" .
+
+# 11. External candidate retained before absorption
+ex:candidate-pypi-pyshacl a cal:ExternalCandidate ;
+  cal:originatingAttractor ex:attractor-pyshacl ;
+  cal:sourceURI <https://pypi.org/project/pyshacl/0.40.1/> ;
+  cal:candidateClaim "pyshacl 0.40.1 exists, requires Python >=3.9, and publishes a platform-independent Python wheel." .
+
+ex:assessment-pypi-pyshacl a cal:AbsorptionAssessment ;
+  cal:assessesCandidate ex:candidate-pypi-pyshacl ;
+  cal:disposition cal:DispositionAbsorb ;
+  cal:alignmentNote "Absorb bounded package/version/runtime-requirement facts; source does not prove current environment can install or execute PySHACL." .
+
+# 12. Omission signal distinguishes unknown from false
+ex:omission-validation-receipt a cal:OmissionSignal ;
+  cal:omissionType cal:StructuralOmission ;
+  cal:expectedBy "Stage S3 requires a canonical validator execution receipt." .
+
+# 13. Compression residue from vague dependency language
+ex:compression-dependency-capable a cal:CompressionResidue ;
+  cal:compressedFrom ex:dependency-pyshacl ;
+  cal:preservationGoal "Explain why canonical SHACL validation had not executed." ;
+  cal:omittedAspect "Python compatibility", "package availability", "install/network capability", "execution capability", "precise blocked stage" ;
+  cal:compressionLossRisk "HIGH: the compressed phrase did not fully land and obscured which subdependency was actually unsatisfied." .
+

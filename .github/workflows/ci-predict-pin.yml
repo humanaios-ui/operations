@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   pin:
+    if: ${{ !startsWith(github.event.pull_request.head.ref, 'ci-predict-consolidate/') }}
     runs-on: ubuntu-latest
     steps:
       # Trusted script only: checked out from main, never the PR head. The

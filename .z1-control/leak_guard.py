@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """leak_guard.py — B6: bound the two Empirica session leaks.
 
+Builder v1.7 compliant · governance_tool
+
 Substrate Map build item B6. A janitor for the two leaks proven necessary 2026-10-09:
   - open transactions never POSTFLIGHTed — 93 stale active_transaction_term_*.json across 18 practices
   - pre-compact auto-stashes never pruned — 70 (56 on the evaluator in a single morning)
@@ -22,6 +24,11 @@ Commands:
   --smoke-test
 """
 from __future__ import annotations
+
+TOOL_NAME = "leak_guard"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1
 
 import argparse
 import datetime

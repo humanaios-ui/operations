@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.7
+# HumanAIOS Resource Miner v0.1.8
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -9,6 +9,68 @@ It asks:
 At discovery time, a `ResourceCandidate` is best read as a **candidate resource opportunity**: a bounded external path to value that still requires currentness, eligibility, and acquisition resolution. A mine/platform is not itself the controlled resource, and an opportunity is not yet value under the user's control.
 
 ## Boundary
+
+### Preparation checks and file versions
+
+My Opportunities now supports an optional `preparation` object on the existing
+journey envelope. Old journey JSON and private bundles remain supported without
+adding preparation or changing their projection/digest.
+
+In an editable journey, enter an opaque file ID and role, choose a file, and
+record its version. The browser hashes files up to 10 MB. Names and contents
+are neither saved nor uploaded. Only declared requirements, IDs, roles, version
+numbers, SHA-256 fingerprints, and check reports reach the loopback projector.
+Save/Export retains these metadata in the existing private bundle, not file bytes.
+
+Record a named required check as unknown, failed, or passed after your review.
+The UI binds each report to all current required file versions. Recording a
+different file under the same ID appends a version; reports on earlier versions
+become `STALE` until reviewed again. Import supports check requirements for
+specific subsets of required files. Each report must cover its declared set.
+
+`preparation` has four arrays:
+
+- `required_files`: opaque file IDs, up to 16.
+- `required_checks`: up to 16 `{check_id, file_ids}` requirements. Each file set
+  is nonempty and references declared required files.
+- `files`: up to 32 version metadata entries
+  `{file_id, version, sha256, role}`. Versions are positive integer identifiers;
+  highest version per file is current, regardless of array order. Roles are
+  `INPUT`, `METADATA`, `OUTPUT`, `ARTIFACT`, or `INSTRUCTIONS` and stay fixed
+  for a file ID. Reusing an ID/version, even identically, is rejected. These
+  limits and the existing 12 KB request cap bound this prototype's history.
+- `checks`: up to 16 current reports
+  `{check_id, status, evidence_ref, observed_at, files}`. Status is `PASS`,
+  `FAIL`, or `UNKNOWN`; time is UTC. `files` contains exact
+  `{file_id, version, sha256}` references. A new report replaces that check's
+  previous report in the editable bundle; file version history is retained.
+  This is supplied history, not an append-only or tamper-proof journal.
+
+Readiness is `READY_FOR_HUMAN_REVIEW` only when requirements are nonempty,
+every required file exists and is covered by a required check, and every
+required check reports `PASS` for its exact current versions. Missing,
+unknown, failed and stale checks remain visible. Readiness evaluates the
+**declared** requirements; it cannot prove the provider's full rules were
+captured. Changing the declaration is not an authorized change to those rules.
+
+The reducer validates supplied metadata but does not read files, authenticate
+reports, store bytes, or verify claimed fingerprints. Browser hashing proves
+which selected bytes were hashed, not the file's truth, quality or authorship.
+Reports and fingerprints do not promote participant standing, task acceptance,
+submission, payment, or any execution permission. Human review remains needed.
+
+Run the preparation regressions in the existing journey/HTTP suites and the
+Node DOM interaction harness (which calls the real Python reducer):
+
+```bash
+python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
+node tests/opportunity_preparation_ui.cjs
+```
+
+The DOM harness covers select/hash/version, stale checks, recheck, failure,
+private export/save/import, absence of file-content transmission and unchanged
+provider outcomes. It is not a native-browser visual test.
 
 ```text
 Internet / public sources
@@ -24,6 +86,36 @@ Internet / public sources
 
 The Miner does **not** emit `YOU QUALIFY`, `APPLY_NOW`, or a funding commitment. Every candidate starts with `eligibility_assessed=false` unless a downstream resolver establishes the applicant predicates.
 
+## My AI Footprint: bounded Privacy Footprint Mine
+
+`resource_miner/privacy_footprint.py` adds an on-demand, evidence-only mine for a
+user's own supplied text. The v0.1 kernel detects explicit email, phone, and IP
+address patterns in memory and can identify the same normalized identifier
+across two or more supplied sources. It emits keyed commitments, evidence
+locations, conditional privacy-resource requirements, and a QRC-style receipt.
+Raw source text and detected values are not emitted.
+
+The control path is:
+
+```text
+OAG consent grant -> one RQY audit -> privacy-minimized findings
+  -> conditional Resource Miner requirements -> QRC receipt
+```
+
+This slice makes no network requests, stores no source content, runs no LLM,
+does not fetch provider history, and cannot change or delete anything. An exact
+identifier recurrence is a `LINKAGE_CANDIDATE`, not proof of common identity.
+`ZERO_MATCHES_OBSERVED` is not proof of no exposure. See
+`docs/PRIVACY_FOOTPRINT_MINE.md` and run:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_privacy_footprint.py' -v
+
+# Local one-shot run. The command uses an ephemeral in-memory HMAC key.
+python3 -m resource_miner.privacy_footprint_cli \
+  --input fixtures/privacy_footprint_synthetic.json --pretty
+```
+
 ## MVP discovery adapters
 
 - **Existing HumanAIOS funding pipeline** — imports canonical `../data/sources.json`.
@@ -33,6 +125,45 @@ The Miner does **not** emit `YOU QUALIFY`, `APPLY_NOW`, or a funding commitment.
 - **Generic RSS/Atom** — accepts feed URLs for additional contest, rebate, research, program, and opportunity sources.
 
 The adapter boundary is intentionally small so Devpost, HackerEarth, utility rebates, startup/cloud credits, tribal programs, procurement portals, and open-source bounty networks can be added without changing the resource schema.
+
+## CodeRabbit discount pilot (on demand)
+
+```bash
+python3 -m resource_miner.cli scan --source discounts --dry-run
+```
+
+This small discovery adapter observes three fixed official CodeRabbit endpoints:
+startup program, pricing, and public-repository reviews. It uses bounded GETs,
+refuses redirects, applies an eight-second elapsed-time budget using a spawned
+worker that is killed and reaped on expiry, ignores comments/scripts and explicitly
+hidden HTML, and
+retains failed observations instead of silently erasing offers. It does not crawl
+coupon aggregators or test checkout codes. CSS-computed visibility and semantic
+interpretation of changing offer text are outside this parser's scope.
+
+`discount_offer` survives normal JSON export: source URL is on the candidate;
+observation time, content SHA-256 when fetched, source state, candidate terms,
+untested-code status, unknown eligibility, renewal/stacking and free baseline
+are in the metadata. Duplicate URLs retain discount observations even when another
+source wins on description richness; differing observations are retained under an
+explicit conflict/recheck state. Eligibility stays unassessed and funding caps
+are cleared from exported value fields. Truncated HTTP streams become source
+failures without stopping other endpoint observations. `OFFER_TEXT_OBSERVED` means expected text markers occurred,
+not a verified-current offer or eligibility verdict. Captured terms are hints to
+recheck, never a parsed binding quote. Every run fetches fresh; retained JSON
+observations age and must be re-fetched before use. There is no guessed expiry.
+
+`compare_quotes` accepts complete integer-cent USD totals only when the caller
+establishes identical seats, term, and required features. A paid plan can cost
+more than free public reviews. Missing totals or unlike entitlements remain
+`NOT_COMPARABLE`; startup annual invoice/renewal/stacking require provider
+confirmation. Rates and funding caps are never cash awards. Existing need
+mapping/routing is reused without policy threshold changes; `WATCH` is expected
+when no active need matches. Source observations never authorize buying,
+claiming, signing up, or sending applicant data. No schedules are added.
+
+Run `python3 -m unittest discover -s tests -p 'test_discounts.py' -v` for
+failure, redirect, hidden/removed-terms, export, and cost-comparison cases.
 
 ## Adversarial hardening in v0.1.1
 
@@ -160,6 +291,99 @@ Without `--dry-run`, output defaults to `data/resources.jsonl`, which is git-ign
 - `data/resources.jsonl` — ephemeral local/live scan output, git-ignored (see above).
 - `data/resources.snapshot.jsonl` — durable scan output, checked in, refreshed daily by `.github/workflows/resource-miner-scan.yml`. This is what `app.py`'s `GET /api/resources` falls back to when no live scan has run yet in the current process, so results survive a Railway restart/redeploy without reversing the git-ignore decision above.
 
+### Witness feedback on the On-Track view (first-user E0.3)
+
+The three local INTENT-OS views now form a **read-only evidence/choice loop**:
+
+```text
+/intent-os       -- Resource Miner discovery + source observations
+/my-opportunities -- human selections, survey reports, references and journeys
+/on-track        -- Witness P1 declaration -> P2 evidence challenge -> P3 human correction
+```
+
+The user-shared methodology reference for the On-Track view is
+https://chatgpt.com/share/6adac2b6-8634-83ea-a544-80e060a0dd41 .
+This implementation maps the established HumanAIOS **P1 declare → P2 calibrate/challenge → P3 correct** pattern, reviews Truthfulness, Service, Harm Awareness, Autonomy Respect, Value Alignment and Humility as *questions*, and points to **Observe → Measure → Identify Failure → Propose Improvement → Test → Compare → Repeat**. It does not issue ACAT numerical scores or claim that reading a shared conversation alone establishes the method.
+
+**Procedure:** (1) At `/intent-os`, search for an opportunity, open **Report / verify this source**, select `Page returned 404` or `Possibly closed (not confirmed)`, and **Save source observation locally**. (2) At `/on-track`, choose the candidate, record a P1 initial belief (e.g. `CLOSED`), optionally record a falsifier, and click **Review evidence with Witness**. The current local Witness is **deterministic JavaScript** reading the browser's own local review packet, not a connected LLM or an independently authenticated human/AI witness. Its P2 output preserves a 404-versus-closure distinction and explicitly marks conflicting observations for review. (3) In P3 select `RECHECK`, `KEEP_ACTIVE`, or `DISMISS_LOCAL`, and click **Record my local decision**. Only the human can select and confirm a local dismissal. (4) Return to `/intent-os` and repeat search. A dismissed candidate is excluded from the **rendered local list** unless **Show candidates I dismissed locally** is selected. Underlying source rows, upstream candidate counts, provider accounts and other users remain unchanged. Re-running Witness with P3 `KEEP_ACTIVE` reverses the dismissal; exported unsigned feedback preserves the local review.
+
+**Convergent Research test case (October 22, 2026):** The human observed a Lever posting URL return 404 and later reported that the role was absent from the employer board, requesting elimination. Separate fresh public indexing still showed Program Launch Manager on the employer Lever board and an application page. These **contradictory temporal/source observations** must be investigated rather than converted into automatic global archive or applicant ineligibility. `DISMISS_LOCAL` is a human preference; **`OPPORTUNITY_CLOSED_VERIFIED` is NOT emitted**. This prevents one user's session or an ephemeral HTTP error from changing all users' discoveries.
+
+Privacy and control: Reports and local dispositions are stored in **unencrypted origin-scoped browser localStorage**, and the read-only Witness does not call remote AI, Gmail, Discord, GitHub, employment sites or cloud services. Clear local history through the search page and reset P3 to `KEEP_ACTIVE` if you no longer want dismissal. Neither the Witness nor a P3 choice grants authorization for server-side deletion. Future verified de-listing requires independent canonical-source evidence, confidence/expiry policy, an authorized reviewer and a separately admitted backend change.
+
+### Source verification feedback from search results (first-user E0.2)
+
+**Use:** Browse \`/intent-os\` on the local service. Search for a resource. Each result card now has **Report / verify this source**. Open it and choose a human observation:
+
+- \`LINK_FAILED_404\` — the exact URL returned a 404 in your browser; **does NOT prove opportunity closure**.
+- \`PAGE_UNAVAILABLE_OTHER\` — another source-loading problem.
+- \`SOURCE_WORKING\` — link loaded for the human; not independently checked.
+- \`REPLACEMENT_FOUND\` — human supplies candidate replacement URL; official-source recheck required.
+- \`POSSIBLY_CLOSED\` — human suspects closure; provider status unknown.
+- \`ALREADY_IN_USE\` — user believes this resource is already controlled/used; ownership not independently established.
+- \`OTHER\` — other issue or observation.
+
+Add an optional explanation and **replacement/evidence HTTPS URL**. Optionally choose an **evidence file of any type, including PDF (max 10 MiB)**; it is **hashed in this browser only**. The file contents and filename are never transmitted, saved or embedded in the JSON packet. Only MIME type, size and SHA-256 accompany your saved note, URLs, status and time. Keep the original file for a reviewer.
+
+Click **Save source observation locally**. The record is appended to the browser's private source-review queue. The candidate card shows the most recent observation on the next search. **Export verification review packet** downloads \`intent-os-source-verification.json\` with schema \`humanaios.resource_source_review.v0.1\`. Use **Import review packet** to move reports to another origin/port or combine locally. An offline reviewer can execute:
+
+\`\`\`sh
+python3 -m resource_miner.source_review --input /path/to/intent-os-source-verification.json
+\`\`\`
+
+This produces **review tasks**, never an \`OPPORTUNITY_CLOSED\`, \`VERIFIED_ELIGIBLE\` or \`SOURCE_CATALOG_UPDATED\` claim. The user-supplied fields may be inaccurate or manipulated. **No central submission, server save, GitHub issue, auto source deletion, global ranking change or automatic source recheck is performed.** A separate authenticated user-controlled evidence intake and independently approved review queue is needed for remote submission. Never commit a packet containing personal notes, browsing artifacts or screenshots to public GitHub.
+
+**First example (2026-10-22):** Human observed a 404 from the Convergent Research Program Launch Manager Lever link. Later the public official Convergent Research job board still listed Program Launch Manager, so the correct user-visible task is \`RECHECK_SOURCE_URL_AND_OFFICIAL_BOARD\` rather than silently archiving the job. Browser screenshot is user evidence for URL failure, not proof that the employer withdrew the role. This is a test of correcting stale source links, not filtering relevant opportunities based on link status alone.
+
+**Checkbox clarification:** The initial \`/my-opportunities\` view shows synthetic demonstration events. A previously completed event is deliberately checked and read-only. Choose **Start a blank-action checklist** for a fresh editable set of unchecked human actions; this clears the synthetic prefilled action events and retains a clearly synthetic discovery label. If you have a real record, import its JSON instead of creating duplicate events. Recording a human statement does not prove third-party receipt.
+
+### E0.1: checkbox reports + browser-private evidence attachment
+
+The **Record an explicit human report** section now contains three independent **checkboxes** (selected, survey submitted, Discord joined) rather than a dropdown. The checkboxes are available with an editable/imported journey, and already recorded events display as checked and cannot be submitted twice. Recording is a user assertion, never participant qualification or third-party consent. To correct an existing recorded claim, edit the exported sanitized journey JSON deliberately and re-import; the prototype does not silently delete earlier receipts.
+
+**Attach supporting evidence:** open an editable record; paste a link into the evidence URL field, select its related claim or **Context only**, optionally paste a short excerpt (max 750 characters), and click **Attach evidence locally**. Example forms: a Gmail message URL and a Discord message URL. Neither one is fetched by the application. An Apart Discord community **rules** message is *context-only*, not proof of membership or permission for a bot to read server messages. Follow the server's posted rules, including respectful collaboration, IP attribution, and no self-promotion.
+
+**Evidence trust boundary:** the UI stores link/excerpt records separately from the \`project_journey\` JSON passed to \`POST /api/my-opportunities/project\`. A pasted Gmail URL has not undergone a Gmail connector read or sender/signature verification. A Discord link or excerpt has not been independently authenticated or granted redistribution rights. Simply attaching a URL cannot add an event or promote \`HUMAN_REPORT\` to \`PROVIDER_EMAIL_OBSERVED\` or \`PARTICIPANT_QUALIFIED\`. No server evidence upload endpoint is introduced.
+
+**Persistence and migration:** \`Export private JSON bundle\` now downloads a single **sensitive plaintext** \`intent-os-private-evidence-bundle.json\` containing both the sanitized journey and browser-local evidence records; import supports this new bundle and the old journey-only JSON format. Browser save is **explicit**, not automatic, and includes private evidence links/excerpts. Storage is **unencrypted** and scoped by browser origin/port. Export the bundle before switching ports or wiping browser data, and import it at the new origin. Avoid passwords, access tokens, highly sensitive snippets, or material you don't have permission to retain. Never commit bundle contents to public GitHub or share them over Discord.
+
+**Read-only boundary:** the public \`/intent-os\` page still performs public discovery. New evidence additions do not cause mail sends, Discord reads/posts, form submission, cloud saves, or code changes.
+
+## My Opportunities: local-only journey interface (first-user E0)
+
+The new **My Opportunities** interface is backed by the real `resource_miner.opportunity_journey.project_journey` reducer, not a static status diagram. It deliberately **does not** import Gmail, Calendar, or Discord accounts or prove participation on its own. The default Apart sprint record is explicitly a **synthetic demonstration**, and real-life status must be imported in a user-controlled JSON record.
+
+**Run on your Mac (the server MUST bind to loopback):**
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+python3 app.py --host 127.0.0.1 --port 8766
+```
+
+Browse `http://127.0.0.1:8766/intent-os` and select **My Opportunities**, or open `http://127.0.0.1:8766/my-opportunities` directly. The entry link is shown only when the local-only projection route is reachable.
+
+The page shows an Apart Research starter journey with separate proof categories for discovery, selection, signup welcome email, human-reported survey submission, calendar event and Discord join. It explicitly keeps `PARTICIPANT_QUALIFIED`, research submission and funding/awards **unverified**. Suggestions are review tasks, not automatically executed actions.
+
+To work with **your own record** without sharing it:
+
+1. Select **Use editable starter** to load synthetic fields, then **Export current JSON** as a template, or import an existing bounded JSON record using the file input.
+2. **Replace all `SYNTHETIC-*` evidence references with your own short opaque local identifiers** before regarding it as your real report. Those identifiers are *claims* in this offline file, not automatically verified evidence. Do not insert email addresses, names, private URLs or message contents.
+3. Add a report using the **Record my report** selector; only human-selected, survey-submitted and Discord-joined report kinds may be added. A human cannot assert provider participant qualification via this UI.
+4. **Export current JSON** to save a local backup, or choose **Save privately in this browser**. Browser persistence is explicit, not automatic, is **unencrypted**, and survives reload on the same origin/port only. Deleting the browser's saved record does not delete exported files.
+5. The `POST /api/my-opportunities/project` route only computes a bounded projection; it performs **no server-side file write**. If you do not save or export, the unsaved imported/edited record is lost on reload.
+
+**Security boundary:** `GET /my-opportunities`, `GET /api/my-opportunities`, `GET /api/my-opportunities/starter`, and `POST /api/my-opportunities/project` return 404 if the app is not bound to loopback, or the client IP/Host/Origin are not local and allowed. In particular, **Azure Container Apps with `--host 0.0.0.0` cannot serve the private journey interface**. This is a local privacy prototype, **not user authentication**. Do not expose your local machine with a tunnel or reverse proxy; production requires explicit login, a user-specific storage boundary, and independent authorization review. The public Resource Miner `/intent-os` route and its search API are unchanged.
+
+To test:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
+python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+```
+
+**Existing Mac worktree protection:** The user's original `operations` worktree has unrelated uncommitted work. Never `git reset --hard`, `git clean`, `git checkout`, or pull onto that worktree to try this feature. From an already clean `operations-intent-os` worktree, `git fetch origin feat/intent-os-opportunity-journey-e0-20261022`, then `git worktree add --detach ../operations-my-opportunities FETCH_HEAD`. Launch the new checkout on port `8767` first so the running port `8766` service stays available. When ready to switch, stop the 8766 server with Ctrl+C and run the newer code on 8766. Do not delete the previous worktree until independently verified.
+
 ## Run as an HTTP service
 
 `app.py` (repo root of this directory, sibling to the `resource_miner/` package) exposes the same discovery pipeline over stdlib HTTP, no third-party dependencies added:
@@ -171,10 +395,43 @@ python3 app.py --host 0.0.0.0 --port 8766
 - `GET /api/health` — liveness.
 - `GET /api/needs` — the current Need Graph.
 - `GET /api/requirements` — explicit Resource Requirement Objects used for deficit-aware matching.
-- `GET /api/resources` — the most recent scan output: `data/resources.jsonl` if present, else `data/resources.snapshot.jsonl`.
-- `GET|POST /api/scan` — runs the same discovery -> `enrich()` pipeline as `python3 -m resource_miner.cli scan`, accepting the same `source`/`needs`/`funding_data`/`dev_tag`/`github_query`/`rss` fields as querystring params (GET) or a JSON body (POST). Read-only by default (`persist=false`); pass `persist=1` (or `"persist": true` in a POST body) to write `data/resources.jsonl`, matching this service's Z0/Z1 read-only-discovery framing — nothing here asserts applicant eligibility.
-- `GET /api/entitlement/handoff?resource_id=<id>` — emits a typed, provenance-bearing `humanaios.resource-entitlement-handoff.v1` object for a selected live/snapshot resource. The handoff is always `VERIFY_ELIGIBILITY` with `eligibility_assessed=false` and authority effect `NONE`.
+- `GET /api/resources` — **operator-only**, returns live scan or snapshot; requires HTTP admin authentication because stored scans may include private source observations.
+- `GET|POST /api/scan` — **operator-only** HTTP scanning. Requires a separately provisioned `RESOURCE_MINER_ADMIN_TOKEN` (at least 32 characters) and matching `X-Resource-Miner-Admin-Token` header. Without these, returns HTTP 403. This endpoint accepts source/path options and can persist output, so it MUST NOT be exposed anonymously. CLI scanning remains available without the HTTP admin token.
+- `GET /api/entitlement/handoff?resource_id=<id>` — **operator-only**, emits a typed, provenance-bearing handoff from stored scans. Requires HTTP admin authentication; eligibility remains unverified and authority effect remains `NONE`.
 
+
+**HTTP admin boundary:** Configure the token in your deployment secret manager, not in source code, a repository issue, a browser, or the public INTENT-OS page. The admin API is disabled without a configured strong token. Requests to `/api/scan`, `/api/resources`, and `/api/entitlement/handoff` need `X-Resource-Miner-Admin-Token`. Use a trusted non-browser operator client for those endpoints. Existing remote scan or Entitlement Navigator clients need explicit authorized credential wiring before reuse. Check reverse-proxy access logs do not store secret headers. Authentication is not authorization for arbitrary external target testing; source-specific policy still applies. The public `/intent-os` and `/api/intent` routes remain unauthenticated but read-only; deploy only with upstream rate/request-concurrency controls.
+
+## INTENT-OS: human objective -> Resource Miner (public read-only bridge)
+
+The **existing Resource Miner HTTP service** now serves a small mobile-friendly INTENT-OS page.
+
+- Open `/intent-os` (or `/`) on the running Resource Miner service.
+- Enter one plain-language goal and choose `Public discovery + curated funding` or `Last stored funding snapshot`.
+- The page calls `POST /api/intent` on the **same origin** and displays up to 10 matching resource candidates with source links to verify, provenance, limits and an unsigned reproducibility digest.
+- Live mode uses the existing **public DEV Community adapter** plus the curated HumanAIOS funding source, and discloses any upstream failure. Snapshot mode reads the previously committed funding snapshot without network.
+- This is not the previous E0/E1 synthetic demonstration, and it does not require the user to operate GitHub or the terminal once the service is deployed. This is an HTTP integration against existing candidate models, not a new adapter protocol.
+
+Example:
+
+```bash
+python3 app.py --host 127.0.0.1 --port 8766
+# Open http://127.0.0.1:8766/intent-os
+curl -sS -X POST http://127.0.0.1:8766/api/intent \
+  -H 'Content-Type: application/json' \
+  -d '{"objective":"Find compute credits for AI research","source_mode":"live"}'
+```
+
+**Privacy / authority:** Do not enter private identifying details. The HTTP service does not persist the objective. No cookies, third-party scripts, account access, applications, purchases, outreach, eligibility determination or authorization are performed. The returned SHA-256 selection digest is *not* an authenticated witness receipt. Resource descriptions are untrusted text rendered as text, not instructions. Only the public funding pipeline and DEV candidate classes are allowed through this new route; private Gmail and HackerOne discovery are excluded even if they exist elsewhere in the repository.
+
+**Operational limits:** The live feed may be unavailable; the service will say so and show labeled curated results instead. The funding catalog is not a live eligibility source. The existing deployed service must be updated to the approved commit before the new page works. Reusing the existing Railway start command is sufficient; do not treat a green PR as evidence that public deployment has happened.
+
+Tests:
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+python3 -m unittest discover -s tests -p 'test_intent_os_bridge.py' -v
+```
 
 ## HackerOne scope and authorization boundary
 
@@ -383,6 +640,7 @@ The initial registry includes:
 - Microsoft for Startups — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; bounded program endpoints are re-observed daily.
 - HackerOne — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; the intended resolution unit is `Program x bounty-eligible ScopeAsset`. It remains dependency-gated until the scope-hydrated #680/#683 implementation is present.
 - the HumanAIOS repositories — `EVIDENCE_SOURCE | GOVERNED_SYSTEM`; ordinary issues are not promoted into resources.
+- My AI Footprint — `EVIDENCE_SOURCE` only; an explicit grant bound to one query ID may inspect user-supplied text in memory, but replay prevention is not implemented, and persistent Mine resolution emits `ROLE_ONLY` without reading private content.
 
 Run a Mine resolution manually:
 
@@ -507,3 +765,80 @@ The parsers accept exported CSV evidence so observations can be receipted withou
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+
+### Evidence files, Show more, and teaching the Witness
+
+Source review accepts any file type, including PDFs, images, documents, text and
+archives (1 byte to 10 MiB). Files are hashed locally, never parsed, executed,
+uploaded or retained by the app. Saved in browser storage and review exports:
+notes, URLs, selected status, observation time, MIME type, byte size and SHA-256.
+The filename and file contents are not saved. Keep the original evidence file.
+For compatibility, attachment metadata still uses the existing `evidence.screenshot`
+field; old image-only review packets remain supported. A fingerprint does not
+prove source availability or verify a document's claims.
+
+The search API returns every match within its existing 500-row examination bound.
+The browser starts with ten cards; **Show more** reveals the next ten without
+repeating the search. Counts reflect the currently visible cards. Witness local
+dismissals stay separate and reversible through **Show candidates I dismissed locally**.
+
+Each card has **Teach the Witness about this resource**. Save a note and choose
+**Remember note only**, **Show this earlier**, or **Show this later**. Notes and
+preferences persist only in this browser, capped at 100 lessons. Preferences reorder
+future local displays while keeping every eligible candidate accessible. They do
+not change shared ranking, provider data, source verification, or model weights.
+**Export Witness lessons** creates a separate JSON packet for human review;
+**Clear Witness lessons** reverses these local preferences. No automatic central
+submission, model training, or promotion of a human note into verified evidence occurs.
+
+
+## Local HumanAIOS Witness resource conversation (opt-in, experimental)
+
+INTENT-OS now offers **Ask the Witness about this Resource** on individual
+public resource cards. The historical Convergent/Lever ATS research specimen
+was moved to the **/on-track** view and remains *historical and non-actionable*.
+
+The browser **does not receive an MCP credential**. Its button asks the local
+Resource Miner service to send a bounded, sanitized public resource summary
+(only ID, title, source, route, HTTPS source URL *without query or fragment*,
+and optional short source date/status) plus your typed question to Unit Zero's
+authenticated MCP `haios_talk`. No review-packet notes, uploaded documents,
+private account details, contact records, eligibility data or application
+payloads are forwarded. The button requires explicit consent each time. This
+is a model call to Anthropic, not machine learning, long-term memory,
+provider verification, or automatic approval. Provider data-handling is
+subject to the provider's applicable terms and settings.
+
+**Operator prerequisites on macOS:** your existing authenticated HumanAIOS
+MCP service must already be running on `127.0.0.1:8768/mcp` and have
+`haios_talk`. Use the same Mac Python environment that has the `mcp` and
+`httpx2` libraries available; the isolated MCP service virtualenv is suitable
+for a controlled preview. Start a separate loopback-only Resource Miner process
+using the branch's `app.py` and explicit one-process opt-in:
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+HAIOS_WITNESS_BRIDGE_ENABLED=1 \
+  "$HOME/Library/Application Support/HumanAIOS/mcp/.venv/bin/python" \
+  app.py --host 127.0.0.1 --port 8769
+```
+
+Only run this command when port 8769 is free, and do not replace the installed
+MCP service or modify unrelated working trees. `/on-track` shows personal
+**browser-local** feedback counts; import an existing source review packet into
+INTENT-OS on the *same origin* to populate them. User-reported `ALREADY_IN_USE`
+is not verified account ownership, and `SOURCE_WORKING` is not an acquisition.
+Neither proves mission benefit or earnings delivered to recovery programs.
+
+The bridge is **disabled by default**, refuses non-loopback or cross-origin
+browser requests, reads the MCP bearer token only from the Mac Keychain, never
+exposes it to the browser, and returns generic errors on provider failures.
+Never bind this opted-in interface to `0.0.0.0`, publish it behind a public
+proxy, or send private eligibility/job application/identity data through it.
+No personal feedback is sent just by visiting a page or searching.
+
+UI → bounded public-source payload → local origin/auth gate → Unit Zero MCP
+→ source-aware answer → *human review and decision* is the intended Z1 path.
+No merge, deployment, source-status change, provider action, account access or
+application submission is authorized by the exchange.

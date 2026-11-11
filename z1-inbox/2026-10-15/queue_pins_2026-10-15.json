@@ -1,0 +1,404 @@
+{
+  "schema": "humanaios.queue-sweep-pins.v0_1",
+  "status": "Z1 prior, unsigned, not scoreable until Z2 dates the window",
+  "issued": "2026-10-15",
+  "main_sha": "ab8ef07a",
+  "coordinator_index_ref": "comment 6181721518 on PR 841 (main 3bf3b21, head 65f1c0f2)",
+  "window": "2026-10-22",
+  "resolver": "tree read: admission gate check-run conclusion at head SHA at window close",
+  "open_pr_count": 56,
+  "pins": [
+    {
+      "pr": 858,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 857,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 856,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 855,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 854,
+      "lane": "MAINTENANCE",
+      "lane_source": "receipt read 2026-10-15 (PASS/MAINTENANCE)",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 853,
+      "lane": "MAINTENANCE",
+      "lane_source": "unread; dependabot routine-actions, inferred from cohort",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 852,
+      "lane": "MAINTENANCE",
+      "lane_source": "receipt read 2026-10-15 (PASS/MAINTENANCE)",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 851,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 850,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 849,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 848,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 847,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 846,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 845,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 844,
+      "lane": "UNREAD",
+      "lane_source": "receipt not read; ci-predict-consolidate bot PR, default ADMISSION_REVIEW prior",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 843,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "gate check at head bef8fe1 (FAIL ADMISSION_REVIEW); PASS/WORKBENCH receipt was at older draft head d8b6ccf",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 842,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 COMPARE_CONSOLIDATE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 841,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "receipt read 2026-10-15 00:47 (FAIL ADMISSION_REVIEW at 65f1c0f)",
+      "p_pass": 0.4,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 839,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 COMPARE_CONSOLIDATE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 838,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 ADVANCE",
+      "p_pass": 0.4,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 831,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 827,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 825,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 822,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 819,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 817,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 COMPARE_CONSOLIDATE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 814,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 812,
+      "lane": "ACTIVE",
+      "lane_source": "index@3bf3b21 Active operator queue",
+      "p_pass": 0.85,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 809,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 805,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 CLOSE_PRESERVE",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 802,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 798,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 790,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 785,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 781,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 CLOSE_PRESERVE",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 778,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 777,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 772,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 771,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 ADVANCE",
+      "p_pass": 0.4,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 770,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 ADVANCE",
+      "p_pass": 0.4,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 768,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 767,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 763,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 761,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 744,
+      "lane": "MAINTENANCE",
+      "lane_source": "index@3bf3b21 maintenance-other",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 743,
+      "lane": "MAINTENANCE",
+      "lane_source": "index@3bf3b21 maintenance-other",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 742,
+      "lane": "MAINTENANCE",
+      "lane_source": "index@3bf3b21 maintenance-other",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 741,
+      "lane": "MAINTENANCE",
+      "lane_source": "index@3bf3b21 maintenance-other",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 740,
+      "lane": "MAINTENANCE",
+      "lane_source": "index@3bf3b21 maintenance-other",
+      "p_pass": 0.5,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 724,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 COMPARE_CONSOLIDATE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 719,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 630,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 627,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 606,
+      "lane": "CONTROL_PLANE",
+      "lane_source": "index@3bf3b21 Active operator queue row (lane inferred from CONTROL_PLANE count 1)",
+      "p_pass": 0.3,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 597,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REEXAMINE",
+      "p_pass": 0.1,
+      "claim": "admission gate check concludes success on PR head at window close"
+    },
+    {
+      "pr": 594,
+      "lane": "ADMISSION_REVIEW",
+      "lane_source": "index@3bf3b21 REBASE_RETEST",
+      "p_pass": 0.05,
+      "claim": "admission gate check concludes success on PR head at window close"
+    }
+  ]
+}

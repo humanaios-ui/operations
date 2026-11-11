@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification.
 
+Builder v1.7 compliant · governance_tool
+
 Folds 12 Empirica practice SEATS into their role-survivors per .z1-control/B4_FOLD_MANIFEST.md.
 Collapses the PRACTICE layer (ai_id + .empirica store + calibration), NOT repos — every repo
 stays and is preserved on a remote.
@@ -34,6 +36,11 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ratify_eco  # B1 — ledger reader/verifier (same dir)
+
+TOOL_NAME = "b4_fold_execute"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1
 
 PRACTICES_ROOT = os.path.expanduser("~/practices")
 RATIFY_CANDIDATE = "Q-MOLT-PRACTICES-COLLAPSE-01"

@@ -39,6 +39,12 @@ class ConstitutionChecker:
         violations = []
         msg_lower = commit_msg.lower()
 
+        # Merge commits are exempt from P19 per CLAUDE.md:
+        # "Merge Commits (git merge, rebase-merge, squash-merge): Exempt"
+        is_merge = commit_msg.strip().startswith(("Merge ", "merge "))
+        if is_merge:
+            return violations
+
         # P8: Attraction not promotion (T11)
         if re.search(r'\b(click here|sign up|buy now|limited time|exclusive)\b', msg_lower):
             violations.append("P8: Promotional language detected in commit — use attraction not promotion (T11)")

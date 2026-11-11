@@ -22,6 +22,7 @@ sys.path.insert(0, str(TOOLS_DIR))
 import ci_predict_pin_v1_0 as pin_tool  # noqa: E402
 import ci_predict_resolve_v1_0 as resolve_tool  # noqa: E402
 import ci_predict_consolidate_v1_0 as consolidate_tool  # noqa: E402
+import ci_predict_rollup_v0_1 as rollup_tool  # noqa: E402
 import nf_ledger_v0_1 as engine  # noqa: E402
 
 TOOL_NAME = "test_ci_predict"
@@ -292,6 +293,101 @@ def test_duplicate_check_runs_prefer_highest_id():
     assert resolutions_reversed["x"]["source"] == "new"
 
 
+def test_later_skipped_job_cannot_replace_executed_success():
+    """Issue #870: newer workflow-path skips are separate from completed checks."""
+    sha = "e90e4cbd35ea2192d794dc38908a29b8c2cc7140"
+    examples = (
+        ("Measure molt tier from the diff (ADVISORY)", 116157977703, 116339835553,
+         "38653587426", "38710329738"),
+        ("Repository admission/backpressure gate", 116162748778, 116339835121,
+         "38655061130", "38710328696"),
+    )
+    for name, executed_id, skipped_id, executed_run, skipped_run in examples:
+        pin = bound_pin(sha=sha, checks={
+            name: {"conclusion": "success", "p": 0.8},
+        })
+        success_url = (
+            f"https://github.com/humanaios-ui/operations/actions/runs/"
+            f"{executed_run}/job/{executed_id}"
+        )
+        skipped_url = (
+            f"https://github.com/humanaios-ui/operations/actions/runs/"
+            f"{skipped_run}/job/{skipped_id}"
+        )
+        executed = {"id": executed_id, "name": name, "status": "completed",
+                    "conclusion": "success", "html_url": success_url}
+        skipped = {"id": skipped_id, "name": name, "status": "completed",
+                   "conclusion": "skipped", "html_url": skipped_url}
+        for order in ((executed, skipped), (skipped, executed)):
+            outcomes = resolve_tool.compute_resolutions(pin, list(order))
+            assert outcomes[name]["outcome"] == "YES"
+            assert outcomes[name]["actual_conclusion"] == "success"
+            assert outcomes[name]["source"] == success_url
+            events = consolidate_tool.build_events(
+                pin, outcomes, existing_ids=set(), pushed_at_date="2026-10-14"
+            )
+            assert [event["type"] for event in events] == [
+                "TOKEN", "PIN", "RESOLVE"
+            ]
+            assert events[-1]["outcome"] == "YES"
+            assert events[-1]["source"] == success_url
+
+
+def test_skipped_only_does_not_create_failed_prediction():
+    """Without an executed check, a success/failure forecast is not evaluated."""
+    skipped = [{"id": 100, "name": "gate", "status": "completed",
+                "conclusion": "skipped", "html_url": "https://example/skip"}]
+    for expected in ("success", "failure"):
+        pin = bound_pin(checks={"gate": {"conclusion": expected, "p": 0.8}})
+        result = resolve_tool.compute_resolutions(pin, skipped)
+        assert result == {}
+        assert consolidate_tool.build_events(pin, result, set(), "2026-10-15") == []
+
+
+def test_skipped_is_distinct_valid_forecast_when_declared():
+    """A declared skipped outcome retains its original check-conclusion meaning."""
+    pin = bound_pin(checks={"gate": {"conclusion": "skipped", "p": 0.8}})
+    skipped = {"name": "gate", "status": "completed", "conclusion": "skipped",
+               "html_url": "https://example/skip", "id": 2}
+    result = resolve_tool.compute_resolutions(pin, [skipped])
+    assert result["gate"]["outcome"] == "YES"
+    assert result["gate"]["actual_conclusion"] == "skipped"
+    executed_later = {"name": "gate", "status": "completed",
+                      "conclusion": "success", "html_url": "https://example/success", "id": 3}
+    changed = resolve_tool.compute_resolutions(pin, [skipped, executed_later])
+    assert changed["gate"]["outcome"] == "NO"
+    assert changed["gate"]["source"] == "https://example/success"
+
+
+def test_earlier_real_failure_stays_a_miss_after_later_skip():
+    """An actual failure is scoreable even when a later same-name job skipped."""
+    pin = bound_pin(checks={"guard": {"conclusion": "success", "p": 0.8}})
+    actual_failure = {"name": "guard", "status": "completed", "conclusion": "failure",
+                      "html_url": "https://example/fail", "id": 1}
+    skipped = {"name": "guard", "status": "completed", "conclusion": "skipped",
+               "html_url": "https://example/skip", "id": 3}
+    actual_success = {"name": "guard", "status": "completed", "conclusion": "success",
+                      "html_url": "https://example/pass", "id": 2}
+    missed = resolve_tool.compute_resolutions(pin, [skipped, actual_failure])
+    assert missed["guard"]["outcome"] == "NO"
+    assert missed["guard"]["source"] == "https://example/fail"
+    latest_executed = resolve_tool.compute_resolutions(
+        pin, [actual_failure, skipped, actual_success]
+    )
+    assert latest_executed["guard"]["outcome"] == "YES"
+    assert latest_executed["guard"]["source"] == "https://example/pass"
+    assert resolve_tool.compute_resolutions(pin, [actual_success, skipped],
+                                            already_done={"guard"}) == {}
+
+
+def test_completed_check_without_conclusion_is_pending():
+    pin = bound_pin(checks={"guard": {"conclusion": "success", "p": 0.8}})
+    result = resolve_tool.compute_resolutions(pin, [
+        {"name": "guard", "status": "completed", "conclusion": None, "id": 10}
+    ])
+    assert result == {}
+
+
 def test_gh_json_paginated_flattens_wrapped_pages():
     """Simulates gh api --paginate --slurp output shape without a network call."""
     import ci_predict_resolve_v1_0 as rt
@@ -496,3 +592,161 @@ def test_commit_date_only_extracts_date_portion():
     assert consolidate_tool.commit_date_only("2026-09-12T10:00:00-07:00") == "2026-09-12"
     assert consolidate_tool.commit_date_only("") == ""
     assert consolidate_tool.commit_date_only("garbage") == ""
+
+# --- Single rolling writer and historical ledger boundaries ---------------
+def _sample_rollup_ledger(path, count=1, prev=None):
+    events = [{"seq": i + 1, "type": "OPEN", "at": "2026-10-15",
+               "by": "ci-predict", "label": str(i)} for i in range(count)]
+    engine.append(str(path), events, prev or ("0" * 64))
+    return path
+
+
+def test_rollup_accepts_valid_append_only_extension(tmp_path):
+    base = _sample_rollup_ledger(tmp_path / "main.jsonl")
+    proposal = tmp_path / "proposal.jsonl"
+    proposal.write_bytes(base.read_bytes())
+    _sample_rollup_ledger(proposal, 0)
+    engine.append(str(proposal), [
+        {"seq": 2, "type": "OPEN", "at": "2026-10-15",
+         "by": "ci-predict", "label": "new"}], engine.last_hash(str(proposal)))
+    assert rollup_tool.require_append_only(base, proposal) == 1
+    assert rollup_tool.require_append_only(base, base) == 0
+
+
+def test_rollup_refuses_branch_divergence_even_if_chains_valid(tmp_path):
+    base = _sample_rollup_ledger(tmp_path / "main.jsonl")
+    other = tmp_path / "other.jsonl"
+    engine.append(str(other), [{"seq": 1, "type": "OPEN",
+        "at": "2026-10-15", "by": "ci-predict", "label": "different"}], "0" * 64)
+    import pytest
+    with pytest.raises(rollup_tool.RollupBlocked, match="DIVERGED_LEDGER"):
+        rollup_tool.require_append_only(base, other)
+
+
+def test_rollup_refuses_forged_hash_and_duplicate_tokens(tmp_path):
+    import pytest
+    base = _sample_rollup_ledger(tmp_path / "base.jsonl")
+    other = tmp_path / "altered.jsonl"
+    other.write_bytes(base.read_bytes().replace(b'"label": "0"', b'"label": "X"'))
+    with pytest.raises(rollup_tool.RollupBlocked, match="hash"):
+        rollup_tool.require_append_only(base, other)
+    dup = tmp_path / "duplicate.jsonl"
+    engine.append(str(dup), [
+        {"seq": 1, "type": "TOKEN", "token_id": "SAME"},
+        {"seq": 2, "type": "TOKEN", "token_id": "SAME"}], "0" * 64)
+    with pytest.raises(rollup_tool.RollupBlocked, match="duplicate TOKEN"):
+        rollup_tool.validate_rows(dup)
+
+
+def test_single_writer_rejects_legacy_pr_backlog_and_duplicate_rolling():
+    import pytest
+    old = {"number": 842, "title": rollup_tool.CONSOLIDATE_TITLE,
+           "headRefName": "ci-predict-consolidate/20261015-004422"}
+    stable = {"number": 899, "title": rollup_tool.CONSOLIDATE_TITLE,
+              "headRefName": rollup_tool.ROLLING_BRANCH}
+    with pytest.raises(rollup_tool.RollupBlocked, match="LEGACY_BACKLOG"):
+        rollup_tool.select_writer([old])
+    with pytest.raises(rollup_tool.RollupBlocked, match="LEGACY_BACKLOG"):
+        rollup_tool.select_writer([old, stable])
+    with pytest.raises(rollup_tool.RollupBlocked, match="multiple rolling"):
+        rollup_tool.select_writer([stable, stable])
+    assert rollup_tool.select_writer([stable]) == stable
+    assert rollup_tool.select_writer([]) is None
+
+
+def test_rollup_workflow_is_daily_strict_and_has_no_closed_pr_trigger():
+    workflow = (TOOLS_DIR.parent / ".github/workflows/ci-predict-consolidate.yml").read_text()
+    assert 'cron: "37 4 * * *"' in workflow
+    assert "types: [closed]" not in workflow
+    assert 'BRANCH="ci-predict-consolidate/rolling"' in workflow
+    assert "LEGACY_BACKLOG" not in workflow  # enforced by imported guard
+    assert "consolidation failed; refusing to publish partial ledger" in workflow
+    assert "git push --set-upstream origin" in workflow
+    assert "git push --force" not in workflow
+    assert "tools/ci_predict_rollup_v0_1.py verify-prefix" in workflow
+
+
+def test_calibration_workflows_exclude_self_generated_rollup_activity():
+    root = TOOLS_DIR.parent / ".github/workflows"
+    pin = (root / "ci-predict-pin.yml").read_text()
+    resolve = (root / "ci-predict-resolve.yml").read_text()
+    assert "startsWith(github.event.pull_request.head.ref, 'ci-predict-consolidate/')" in pin
+    assert 'if not str(((pr.get("head") or {}).get("ref")) or "").startswith(' in resolve
+    assert 'subprocess.run(cmd, check=True)' in resolve
+
+
+
+def test_rolling_branch_switch_restores_proposed_ledger():
+    """A dirty main ledger must be reset before checking out rolling head."""
+    script = (TOOLS_DIR.parent / ".github/workflows/ci-predict-consolidate.yml").read_text()
+    save = script.index('cp "$LEDGER" /tmp/ci-predict-proposed-ledger.jsonl')
+    reset = script.index('git restore -- "$LEDGER"')
+    switch = script.index('git switch -c "$BRANCH" FETCH_HEAD')
+    restore = script.index('cp /tmp/ci-predict-proposed-ledger.jsonl "$LEDGER"')
+    assert save < reset < switch < restore
+    assert 'if [ "$rc" -ne 2 ]; then' in script
+    assert 'Cannot establish rolling branch absence' in script
+
+
+def test_strict_ci_api_rejects_failed_and_malformed_responses(monkeypatch):
+    import pytest
+    from types import SimpleNamespace
+
+    for status, output in [(1, "[]"), (0, "{broken"), (0, '[{"check_runs":{}}]')]:
+        monkeypatch.setattr(resolve_tool.subprocess, "run",
+                            lambda *args, **kwargs: SimpleNamespace(returncode=status, stdout=output))
+        with pytest.raises(resolve_tool.GitHubApiFailure):
+            resolve_tool.gh_json_paginated("repos/o/r/commits/a/check-runs",
+                                           key="check_runs", strict=True)
+
+
+def test_partial_success_then_ci_api_failure_never_publishes(monkeypatch, tmp_path):
+    """The second source fails after the first was usable; leave ledger unchanged."""
+    first_sha, second_sha = "a" * 40, "b" * 40
+    pins = {
+        first_sha: bound_pin(pr="123", sha=first_sha),
+        second_sha: bound_pin(pr="123", sha=second_sha)
+    }
+    monkeypatch.setattr(consolidate_tool, "collect_trusted_pins",
+                        lambda comments, expected_pr: pins)
+
+    def fetch(path, key=None, strict=False):
+        assert strict, "expected fail-closed API mode for the collector"
+        if "/issues/" in path:
+            return [{"body": "trusted source fixture"}]
+        if first_sha in path:
+            return [{"name": "x", "status": "completed",
+                     "conclusion": "success", "id": 42,
+                     "html_url": "https://github.com/example/actions/runs/42"}]
+        raise resolve_tool.GitHubApiFailure("synthetic GitHub API failure")
+
+    monkeypatch.setattr(resolve_tool, "gh_json_paginated", fetch)
+    target = tmp_path / "calibration.jsonl"
+    assert consolidate_tool.run("o/r", "123", target) == 1
+    assert not target.exists(), "partially verified events must not be published"
+
+
+def test_rollup_cli_exposes_documented_input_alias():
+    import subprocess
+    assert rollup_tool.TOOL_SESSION == "issue-870"
+    for command in ("select", "verify-prefix"):
+        result = subprocess.run(
+            [sys.executable, str(TOOLS_DIR / "ci_predict_rollup_v0_1.py"),
+             command, "--help"],
+            text=True, capture_output=True, check=False)
+        assert result.returncode == 0
+        assert "--input" in result.stdout
+
+
+
+def test_writer_inventory_limit_matches_cli_bound():
+    import pytest
+    ordinary = {"number": 1, "title": "unrelated", "headRefName": "fix/example"}
+    with pytest.raises(rollup_tool.RollupBlocked, match="inventory incomplete"):
+        rollup_tool.select_writer([ordinary, ordinary], inventory_limit=2)
+    assert rollup_tool.select_writer([ordinary, ordinary], inventory_limit=3) is None
+    with pytest.raises(rollup_tool.RollupBlocked, match="invalid PR inventory limit"):
+        rollup_tool.select_writer([], inventory_limit=0)
+    workflow = (TOOLS_DIR.parent / ".github/workflows/ci-predict-consolidate.yml").read_text()
+    assert 'gh pr list --repo "$REPO" --state open --limit 200' in workflow
+    assert "--limit 200 \\" in workflow

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:humanaios:resource-system:checkin:1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "resource_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "actor": {
+      "enum": [
+        "HUMAN"
+      ]
+    },
+    "observed_state": {
+      "enum": [
+        "PREPARED",
+        "CLICKED",
+        "SUBMITTED",
+        "ACQUIRED",
+        "OUTCOME"
+      ]
+    },
+    "evidence_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "next_operation": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "resource_id",
+    "actor",
+    "observed_state",
+    "evidence_id",
+    "next_operation"
+  ],
+  "additionalProperties": false
+}

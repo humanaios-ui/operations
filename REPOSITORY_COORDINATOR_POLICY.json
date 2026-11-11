@@ -22,7 +22,7 @@
     "DECISION_ARTIFACT_RETENTION_IS_NOT_DURABLE_PROVENANCE"
   ],
   "capacity": {
-    "active_operator_queue": 4
+    "active_operator_queue": 9
   },
   "maintenance": {
     "authors": [
@@ -67,12 +67,9 @@
     "State-branch write restriction to a dedicated app/workflow identity remains a repository-setting hardening item; this policy does not claim it is configured."
   ],
   "evaluation_admission": {
-    "authorized_actors": [
-      "humanaios-ui"
-    ],
     "required_issue_state": "ADMISSION_REQUESTED",
     "authority_effect": "EVALUATION_ONLY",
-    "evidence": "closing-keyword link to an issue whose body declares ADMISSION_REQUESTED plus latest APPROVED review by an authorized actor",
+    "evidence": "verified cryptographic human-attestation receipt bound to repository, PR, linked issue, exact head SHA, and EVALUATION_ONLY scope",
     "operator_queue_effect": "none",
     "merge_authority": false
   },
@@ -128,6 +125,18 @@
       "durable_comment_required": true,
       "authority_effect": "ADMISSION_ROUTING_ONLY",
       "merge_authority": false
+    },
+    "pr_route": {
+      "enabled": true,
+      "subject_kind": "PULL_REQUEST",
+      "command_syntax": "/coordinator admit <full 40-character current PR head SHA>",
+      "revoke_syntax": "/coordinator revoke <full 40-character current PR head SHA>",
+      "authorized_actor_source": "GitHub issue_comment user, cross-checked with fresh GitHub comment API",
+      "current_pr_source": "GitHub pull request API; require open, not draft, not merged",
+      "head_sha_required": true,
+      "authority_effect": "ADMISSION_ROUTING_ONLY",
+      "merge_authority": false,
+      "note": "Enabled in a Z2-review PR for the trusted PR-command handler (pr_comment_mutate job; repository_coordinator_state_v1_1.pr_comment_command). Handler checks PR state, full head-SHA binding, actor authorization, and webhook/API comment custody. Grants routing standing only."
     }
   }
 }

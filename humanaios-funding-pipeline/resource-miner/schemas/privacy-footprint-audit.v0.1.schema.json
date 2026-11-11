@@ -1,0 +1,375 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/privacy-footprint-audit.v0.1.schema.json",
+  "title": "HumanAIOS Privacy Footprint Audit v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "query_id",
+    "state",
+    "findings",
+    "resource_requirements",
+    "receipt",
+    "authority_effect",
+    "execution"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.privacy-footprint-audit.v0.1"
+    },
+    "query_id": {
+      "type": "string",
+      "pattern": "^RQY-[A-F0-9]{16}$"
+    },
+    "state": {
+      "enum": [
+        "FINDINGS_FOR_HUMAN_REVIEW",
+        "ZERO_MATCHES_OBSERVED"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "resource_requirements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resourceRequirement"
+      }
+    },
+    "receipt": {
+      "$ref": "#/$defs/receipt"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "execution": {
+      "const": "DISABLED"
+    }
+  },
+  "$defs": {
+    "evidenceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "line",
+        "column",
+        "span_length",
+        "content_commitment"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "pattern": "^SRC-[A-F0-9]{16}$"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "span_length": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_commitment": {
+          "type": "string",
+          "pattern": "^hmac-sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "finding_type",
+        "state",
+        "basis_type",
+        "value_commitment",
+        "evidence",
+        "source_ids",
+        "occurrence_count",
+        "source_count",
+        "confidence",
+        "confidence_state",
+        "confidence_meaning",
+        "claim_text",
+        "user_validation",
+        "user_disposition",
+        "authority_effect"
+      ],
+      "properties": {
+        "finding_id": {
+          "type": "string",
+          "pattern": "^PFF-[A-F0-9]{16}$"
+        },
+        "finding_type": {
+          "enum": [
+            "EMAIL_ADDRESS",
+            "PHONE_NUMBER",
+            "IP_ADDRESS",
+            "CROSS_SOURCE_LINKAGE"
+          ]
+        },
+        "state": {
+          "enum": [
+            "OBSERVED",
+            "LINKAGE_CANDIDATE",
+            "USER_CONFIRMED",
+            "USER_DENIED",
+            "CONTRADICTED",
+            "REVOKED"
+          ]
+        },
+        "basis_type": {
+          "enum": [
+            "EMAIL_ADDRESS",
+            "PHONE_NUMBER",
+            "IP_ADDRESS"
+          ]
+        },
+        "value_commitment": {
+          "type": "string",
+          "pattern": "^hmac-sha256:[a-f0-9]{64}$"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidenceLocator"
+          }
+        },
+        "source_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[A-F0-9]{16}$"
+          }
+        },
+        "occurrence_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confidence": {
+          "type": "null"
+        },
+        "confidence_state": {
+          "const": "NOT_CALIBRATED"
+        },
+        "confidence_meaning": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user_validation": {
+          "enum": [
+            "UNREVIEWED",
+            "CONFIRMED",
+            "DENIED"
+          ]
+        },
+        "user_disposition": {
+          "enum": [
+            "UNSET",
+            "ACCEPT_RISK",
+            "SEEK_REPAIR"
+          ]
+        },
+        "authority_effect": {
+          "const": "NONE"
+        }
+      }
+    },
+    "resourceRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "gap_status",
+        "label",
+        "objective",
+        "resource_types",
+        "affordances",
+        "signals",
+        "activation_condition",
+        "satisfied_when",
+        "source_finding_ids",
+        "authority_effect"
+      ],
+      "properties": {
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^RR-PRIVACY-[A-Z0-9-]+$"
+        },
+        "gap_status": {
+          "enum": [
+            "CONDITIONAL",
+            "CONFIRMED",
+            "INACTIVE"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "objective": {
+          "type": "string"
+        },
+        "resource_types": {
+          "const": [
+            "privacy_tool"
+          ]
+        },
+        "affordances": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "signals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "activation_condition": {
+          "type": "string"
+        },
+        "satisfied_when": {
+          "type": "string"
+        },
+        "source_finding_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^PFF-[A-F0-9]{16}$"
+          }
+        },
+        "authority_effect": {
+          "const": "NONE"
+        }
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "receipt_id",
+        "grant_id",
+        "query_id",
+        "state",
+        "observed_at",
+        "source_commitments",
+        "finding_count",
+        "requirement_count",
+        "output_sha256",
+        "receipt_kind",
+        "authorization_ref_state",
+        "raw_content_retained",
+        "raw_values_emitted",
+        "network_access",
+        "authority_effect",
+        "execution",
+        "limits"
+      ],
+      "properties": {
+        "schema": {
+          "const": "humanaios.privacy-footprint-query-receipt.v0.1"
+        },
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^QRC-[A-F0-9]{16}$"
+        },
+        "grant_id": {
+          "type": "string",
+          "pattern": "^OAG-[A-F0-9]{16}$"
+        },
+        "query_id": {
+          "type": "string",
+          "pattern": "^RQY-[A-F0-9]{16}$"
+        },
+        "state": {
+          "enum": [
+            "FINDINGS_FOR_HUMAN_REVIEW",
+            "ZERO_MATCHES_OBSERVED"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_commitments": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^SRC-[A-F0-9]{16}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^hmac-sha256:[a-f0-9]{64}$"
+          }
+        },
+        "finding_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirement_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "receipt_kind": {
+          "const": "UNSIGNED_LOCAL_COMMITMENT_NOT_AN_ATTESTATION"
+        },
+        "authorization_ref_state": {
+          "const": "CALLER_SUPPLIED_NOT_CRYPTOGRAPHICALLY_VERIFIED"
+        },
+        "raw_content_retained": {
+          "const": false
+        },
+        "raw_values_emitted": {
+          "const": false
+        },
+        "network_access": {
+          "const": "NONE"
+        },
+        "authority_effect": {
+          "const": "NONE"
+        },
+        "execution": {
+          "const": "DISABLED"
+        },
+        "limits": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
