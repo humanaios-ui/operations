@@ -8,6 +8,10 @@ on:
       - 'architecture/codebase_atlas.components.json'
       - 'tests/test_codebase_atlas.py'
       - 'tests/test_codebase_atlas_bridges.py'
+      - 'architecture/operations_canvas.py'
+      - 'tests/test_operations_canvas.py'
+      - 'ZONE_REGISTRY.md'
+      - 'PLANNED_REPOS.md'
       - '.github/workflows/codebase-atlas.yml'
   push:
     branches: [main]
@@ -17,6 +21,10 @@ on:
       - 'architecture/codebase_atlas.components.json'
       - 'tests/test_codebase_atlas.py'
       - 'tests/test_codebase_atlas_bridges.py'
+      - 'architecture/operations_canvas.py'
+      - 'tests/test_operations_canvas.py'
+      - 'ZONE_REGISTRY.md'
+      - 'PLANNED_REPOS.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,8 +40,20 @@ jobs:
           python-version: '3.11'
       - name: Falsifier regression tests
         run: python -m unittest discover -s tests -p 'test_codebase_atlas*.py' -v
+      - name: Canvas regression tests
+        run: python -m unittest tests.test_operations_canvas -v
       - name: Generate read-only architecture map
         run: python architecture/codebase_atlas.py --out "$RUNNER_TEMP/codebase-atlas"
+      - name: Generate read-only operations canvas
+        run: python architecture/operations_canvas.py --out "$RUNNER_TEMP/codebase-atlas/operations-canvas"
+      - name: Verify canvas authority stays NONE
+        run: |
+          python - "$RUNNER_TEMP/codebase-atlas/operations-canvas/canvas.json" <<'PY'
+          import json,sys
+          c=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert c['authority_effect']=='NONE' and c['ratified'] is False
+          assert c['repo_map'] and c['code_graph']['nodes']
+          PY
       - name: Verify contract and evidence paths
         run: |
           python - "$RUNNER_TEMP/codebase-atlas/atlas.json" <<'PY'

@@ -1,0 +1,25 @@
+{
+  "schema": "humanaios.internal-repository-snapshot.v0.1",
+  "as_of": "2026-10-23T18:46:00-05:00",
+  "items": [
+    {"repository":"humanaios-ui/operations","kind":"PR","number":987,"title":"Assigned agent entry/exit reflex (merged, review gaps remain)","state":"MERGED","head_sha":"476d7aec1d937a93710779b2a5cc3efc68c6aada","source_url":"https://github.com/humanaios-ui/operations/pull/987","capabilities":["agent_coordination","behavioral_calibration"]},
+    {"repository":"humanaios-ui/operations","kind":"PR","number":978,"title":"Synthetic containment Evidence Graph projection","state":"OPEN","head_sha":"81bda6aad305a809e01139f809781097a062e6c0","source_url":"https://github.com/humanaios-ui/operations/pull/978","capabilities":["evidence_provenance","runtime_isolation"]},
+    {"repository":"humanaios-ui/operations","kind":"PR","number":993,"title":"Hold broken ATS source in INTENT-OS","state":"OPEN","head_sha":"1ec3cfa0ffc38bb79ad113dc735154dfc3f9f42e","source_url":"https://github.com/humanaios-ui/operations/pull/993","capabilities":["source_verification","resource_discovery","operator_interface"]},
+    {"repository":"humanaios-ui/operations","kind":"ISSUE","number":986,"title":"Authorized agent coordination reflex research","state":"OPEN","head_sha":null,"source_url":"https://github.com/humanaios-ui/operations/issues/986","capabilities":["agent_coordination"]},
+    {"repository":"humanaios-ui/operations","kind":"ISSUE","number":928,"title":"On-track opportunity impact reflex","state":"OPEN","head_sha":null,"source_url":"https://github.com/humanaios-ui/operations/issues/928","capabilities":["recovery_outcome","operator_interface"]},
+    {"repository":"humanaios-ui/humanaios","kind":"PR","number":123,"title":"Scoped offline bridge security prototype","state":"DRAFT","head_sha":"c1e7486f39a0fd708596b9464caa41a688e30ce8","source_url":"https://github.com/humanaios-ui/humanaios/pull/123","capabilities":["privacy_boundary","offline_witness"]},
+    {"repository":"humanaios-ui/humanaios","kind":"PR","number":124,"title":"Synthetic read-only offline Witness","state":"DRAFT","head_sha":"f532ea0a8c31e6240eff04aab2e516c32e280d54","source_url":"https://github.com/humanaios-ui/humanaios/pull/124","capabilities":["offline_witness","evidence_provenance"]},
+    {"repository":"humanaios-ui/lasting-light-ai","kind":"ISSUE","number":58,"title":"ACAT X-ray programming behavior research","state":"OPEN","head_sha":null,"source_url":"https://github.com/humanaios-ui/lasting-light-ai/issues/58","capabilities":["behavioral_calibration","research_method"]},
+    {"repository":"humanaios-ui/lasting-light-ai","kind":"ISSUE","number":57,"title":"Historical JWT trust exposure investigation","state":"OPEN","head_sha":null,"source_url":"https://github.com/humanaios-ui/lasting-light-ai/issues/57","capabilities":["privacy_boundary","evidence_provenance"]}
+  ],
+  "needs": [
+    {"need_id":"NEED-VERIFY-SOURCE","label":"Preserve broken-source status through INTENT-OS","priority":"P1","repository":"humanaios-ui/operations","source_url":"https://github.com/humanaios-ui/operations/issues/928","capabilities":["source_verification"]},
+    {"need_id":"NEED-AGENT-WITNESS","label":"Observe authorized agents without granting authority","priority":"P1","repository":"humanaios-ui/operations","source_url":"https://github.com/humanaios-ui/operations/issues/986","capabilities":["agent_coordination","offline_witness","behavioral_calibration"]},
+    {"need_id":"NEED-PRIVACY-TRUST","label":"Review private identity and secret-trust boundaries","priority":"P0","repository":"humanaios-ui/lasting-light-ai","source_url":"https://github.com/humanaios-ui/lasting-light-ai/issues/57","capabilities":["privacy_boundary"]},
+    {"need_id":"NEED-REAL-BENEFIT","label":"Verify mission resource acquisition and recovery impact","priority":"P1","repository":"humanaios-ui/operations","source_url":"https://github.com/humanaios-ui/operations/issues/928","capabilities":["recovery_outcome"]}
+  ],
+  "ci_observations": [
+    {"item_ref":"humanaios-ui/operations/PR#993","head_sha":"1ec3cfa0ffc38bb79ad113dc735154dfc3f9f42e","run_id":39907375654,"conclusion":"FAILURE","source_url":"https://github.com/humanaios-ui/operations/actions/runs/39907375654"}
+  ],
+  "agent_events": []
+}

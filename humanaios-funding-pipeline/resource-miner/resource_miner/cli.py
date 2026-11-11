@@ -16,7 +16,7 @@ from .security_authorization import TestingMode
 from .security_capability import profile_from_machine_graph, unknown_capability_profile
 from .security_scope import fetch_scope_graph
 from .store import write_jsonl
-from .sources import devto, funding_pipeline, github, hackerone, rss
+from .sources import devto, discounts, funding_pipeline, github, hackerone, rss
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
@@ -36,7 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     scan = sub.add_parser("scan", help="Discover, normalize, map, and route resource candidates")
-    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "hackerone", "rss"], default=[])
+    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "hackerone", "rss", "discounts"], default=[])
     scan.add_argument("--needs", default=str(DEFAULT_NEEDS))
     scan.add_argument("--requirements", default=str(DEFAULT_REQUIREMENTS))
     scan.add_argument(
@@ -169,6 +169,9 @@ def main() -> None:
         )
     if "rss" in sources:
         discovered.extend(rss.discover(args.rss))
+
+    if "discounts" in sources:
+        discovered.extend(discounts.discover())
 
     extra_requirements = _plan_requirements(args.resource_plan)
     resources = enrich(discovered, args.needs, args.requirements, extra_requirements)

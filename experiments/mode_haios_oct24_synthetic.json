@@ -1,0 +1,11 @@
+{
+  "schema": "humanaios.mode_interop.synthetic_trace.v0.1",
+  "origin": "SYNTHETIC_TEST_ONLY",
+  "objective_id": "MODE-OCT24-SYNTHETIC-REPLAY",
+  "objective": "Inspect an authorized synthetic workspace and identify what further evidence is needed",
+  "steps": [
+    {"ordinal": 1, "action": "LIST_DIRECTORY", "target": ".", "state": "REPORTED_OBSERVED", "entries": [{"name": "docs", "kind": "DIRECTORY"}, {"name": "misc", "kind": "DIRECTORY"}, {"name": "notes", "kind": "DIRECTORY"}, {"name": "tools", "kind": "DIRECTORY"}], "evidence_ref": "synthetic:root-list", "rp_receipt_ref": "rp-synthetic-1"},
+    {"ordinal": 2, "action": "LIST_DIRECTORY", "target": "misc", "state": "REPORTED_OBSERVED", "entries": [{"name": "image.svg", "kind": "FILE"}, {"name": "ship.csv", "kind": "FILE"}, {"name": "start.py", "kind": "FILE"}], "evidence_ref": "synthetic:misc-list", "rp_receipt_ref": "rp-synthetic-2"},
+    {"ordinal": 3, "action": "READ_FILE", "target": "misc/start.py", "state": "BLOCKED_UNSUPPORTED", "entries": [], "evidence_ref": null, "rp_receipt_ref": null}
+  ]
+}
