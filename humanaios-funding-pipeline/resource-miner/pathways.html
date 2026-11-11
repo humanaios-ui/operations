@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HumanAIOS • Resource Miner pathways</title>
+<style>
+:root{color-scheme:dark;--bg:#101b20;--card:#1a2a30;--edge:#37505a;--ink:#e6f0ef;--sub:#bbcdce;--hi:#9ad8c3;--warn:#f0d492}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:1260px;padding:24px 18px 70px;margin:auto}h1{font-size:clamp(1.6rem,3vw,2.5rem);margin:.1em 0}
+h2{font-size:1.2rem;margin:0 0 12px}h3{margin:.2em 0}.brand{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--hi);font-weight:700}
+p{margin:.5em 0 1em}.muted{color:var(--sub)}a{color:#b4e8eb}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--hi);outline-offset:3px}
+.toplinks{display:flex;flex-wrap:wrap;gap:16px;margin:14px 0 20px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0}
+button,select,input{font:inherit;border-radius:9px;min-height:44px}
+button{background:#244a54;color:#effcf8;border:1px solid #668e92;padding:9px 14px;cursor:pointer}
+button[aria-pressed="true"],button:hover{border-color:#d2faed;background:#32626a}button:disabled{opacity:.6;cursor:progress}
+.chip{border-radius:30px;border:1px solid var(--edge);padding:7px 11px;color:var(--sub);font-size:.87rem}
+.notice{background:#2b2b27;border-left:4px solid var(--warn);padding:11px 15px;margin:16px 0;color:#f3e7c1}
+.board{margin:20px 0;padding:17px;background:#16262c;border:1px solid var(--edge);border-radius:14px}
+.flow{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding:6px 0 15px;scrollbar-color:#63858c #17262d}
+.unit{display:flex;align-items:center;flex:none}.step{width:154px;min-height:128px;text-align:left;background:#21343a;border:1px solid #52737b;border-radius:12px;padding:11px}
+.step .n{display:block;font-size:1.35rem;color:#c8f2e2;font-weight:800;line-height:1.2;margin:7px 0 3px}
+.step strong{display:block;font-size:.92rem}.step small{font-size:.73rem;color:#c5d9d9;display:block}
+.arrow{display:block;min-width:29px;text-align:center;color:var(--hi);font-size:1.3rem}
+#stageInfo{padding:12px 15px;background:#213138;border-radius:8px;min-height:46px;font-size:.94rem}
+.flex{display:flex;flex-wrap:wrap;gap:14px}.flex>section{min-width:0;flex:1 1 340px}
+.panel{background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:16px;margin-top:14px}
+input,select{padding:8px 11px;background:#102026;color:var(--ink);border:1px solid #749299}
+label{font-size:.88rem;font-weight:700}.filters{display:flex;gap:11px;flex-wrap:wrap;align-items:end}
+.filters label{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1}#query{width:100%}
+.list{display:grid;gap:8px;margin:14px 0}
+.row{width:100%;display:block;text-align:left;background:#20343a;color:var(--ink);border:1px solid #3d5b64;border-radius:9px;padding:11px}
+.row strong{display:block}.row small{display:block;color:var(--sub)}
+.row[aria-pressed="true"]{background:#2d565d;border-color:#abe4d3}
+.branchwrap{overflow-x:auto;margin:12px 0;padding:7px 0}
+#branchSvg{display:block;width:100%;min-width:660px;height:auto}
+.trace{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0}
+.trace .box{max-width:100%;overflow-wrap:anywhere;background:#263d42;border:1px solid #57807f;border-radius:9px;padding:9px 12px;font-size:.85rem}
+.trace .sep{color:var(--hi)}.meta{font-size:.88rem;color:var(--sub);word-break:break-word}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+.stat>div{background:#22363d;padding:12px;border-radius:9px}.stat strong{display:block;font-size:1.35rem}
+code{color:#bdf4e2;word-break:break-all}#empty{padding:16px}
+@media(max-width:500px){main{padding:16px 12px 40px}.board,.panel{padding:12px}.step{width:147px}.tools button{flex:1}}
+@media(prefers-reduced-motion:no-preference){.step[aria-pressed="true"]{transition:background .16s ease}}
+</style>
+</head>
+<body><main>
+<header>
+<div class="brand">HumanAIOS · Resource Miner · Read-only Witness</div>
+<h1>Where does each resource lead?</h1>
+<p class="muted">Follow a candidate from its source through need, evidence, human choice and observed outcome. The line stops where proof stops.</p>
+<nav class="toplinks" aria-label="Other HumanAIOS views">
+<a href="/intent-os">INTENT-OS</a><a href="/my-opportunities">My Opportunities (local)</a><a href="/on-track">On Track</a>
+</nav>
+</header>
+<div class="tools" role="group" aria-label="Data mode">
+<button id="stored" type="button" aria-pressed="true">Local records · auto-update</button>
+<button id="public" type="button" aria-pressed="false">Read public sources now</button>
+<span class="chip" id="state" role="status" aria-live="polite">Loading local evidence…</span>
+</div>
+<p class="muted" id="stamp">Auto-checks local data every 20 seconds. Public source reads are manual, never automatic actions.</p>
+<div class="notice" id="caveat">Every node is an observation, not approval. Match ≠ eligibility. Recorded acquisition ≠ verified benefit.</div>
+<section class="board" aria-labelledby="mapHeading">
+<h2 id="mapHeading">Resource pathway · select a stage</h2>
+<div class="flow" id="flow" aria-label="Pathway stages">
+<div class="unit"><button class="step" type="button" disabled><strong>INTENT</strong><span class="n">→</span><small>Human goal</small></button><span class="arrow" aria-hidden="true">→</span></div>
+<div class="unit"><button class="step" type="button" disabled><strong>MINES</strong><span class="n">…</span><small>Configured sources</small></button><span class="arrow" aria-hidden="true">→</span></div>
+<div class="unit"><button class="step" type="button" disabled><strong>OBSERVE</strong><span class="n">…</span><small>Candidate records</small></button><span class="arrow" aria-hidden="true">→</span></div>
+<div class="unit"><button class="step" type="button" disabled><strong>MATCH</strong><span class="n">…</span><small>Need + requirement</small></button><span class="arrow" aria-hidden="true">→</span></div>
+<div class="unit"><button class="step" type="button" disabled><strong>EVIDENCE</strong><span class="n">…</span><small>Source + state receipt</small></button><span class="arrow" aria-hidden="true">→</span></div>
+<div class="unit"><button class="step" type="button" disabled><strong>HUMAN</strong><span class="n">…</span><small>Choice / gate</small></button><span class="arrow" aria-hidden="true">→</span></div>
+<div class="unit"><button class="step" type="button" disabled><strong>CONTROL</strong><span class="n">…</span><small>Recorded acquired</small></button><span class="arrow" aria-hidden="true">→</span></div>
+<div class="unit"><button class="step" type="button" disabled><strong>OUTCOME</strong><span class="n">—</span><small>Independent benefit</small></button></div>
+</div>
+<p id="stageInfo" aria-live="polite">Choose a stage to inspect its measured meaning.</p>
+</section>
+<div class="flex">
+<section class="panel" aria-labelledby="resourcesHeading">
+<h2 id="resourcesHeading">Candidate paths</h2>
+<div class="filters">
+<label>Search title or source<input id="query" type="search" placeholder="Search pathways" maxlength="120"></label>
+<label>Need<select id="need"><option value="">All needs</option></select></label>
+</div>
+<div id="list" class="list" aria-live="polite"></div>
+<p id="empty" class="muted" hidden>No matching paths in this observed data. This does not mean no entitlement.</p>
+<button type="button" id="more" hidden>Show more</button>
+<p class="meta" id="listed">No rows loaded.</p>
+</section>
+<section class="panel" aria-labelledby="traceHeading">
+<h2 id="traceHeading">Selected path · linked evidence</h2>
+<div id="trace" role="status" aria-live="polite">Select one candidate. Follow its recorded path.</div>
+<div class="branchwrap"><svg id="branchSvg" viewBox="0 0 1100 260" role="img" aria-label="Selected candidate source branches into need and requirement links before evidence and human review">
+<text x="20" y="130" fill="#bbcdce" font-size="24">Select a candidate to draw its connected pathway.</text>
+</svg></div>
+</section>
+</div>
+<section class="panel" aria-labelledby="coverageHeading">
+<h2 id="coverageHeading">Observation coverage</h2>
+<div class="stat" id="coverage"><div>Waiting for source data…</div></div>
+<p class="meta">Source identity stays separate. A configured Mine is not connected to a candidate unless the candidate carries that Mine ID. No claim, application, funding transfer or deployment occurs here.</p>
+</section>
+</main>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const stageNames=["INTENT","MINES","OBSERVE","MATCH","EVIDENCE","HUMAN","CONTROL","OUTCOME"];
+const stageHelp=[
+"Human intent starts the path. This board does not read private objectives; use INTENT-OS to state one.",
+"Configured Mines are a registry, not proof each Mine was queried. Only explicit Mine IDs establish links.",
+"Candidate observations come from the selected local file or an on-demand public adapter read. They are not open-program confirmations.",
+"Matching links candidates to declared needs or requirements. These are relevance hypotheses, never eligibility rulings.",
+"Evidence references and state receipts are recorded claims. This board does not independently validate their source or signatures.",
+"Human disposition receipts show recorded choices. A user retains authority; this screen cannot approve anything.",
+"Recorded acquired states come from local receipts. They are NOT independent proof of ownership, consumption or benefit.",
+"No independent beneficiary outcome source is connected. A dash means not measured here, not zero real-world benefit."
+];
+const view={data:null,mode:"stored",selected:null,stage:0,limit:10,busy:false};
+const esc=s=>String(s??"");
+function node(tag,text,cls){const n=document.createElement(tag);if(cls)n.className=cls;n.textContent=esc(text);return n;}
+function spanValue(n){return n===null||n===undefined?"—":esc(n);}
+function renderStages(){
+const c=view.data.counts;
+const values=["→",c.configured_mines,c.candidate_rows,c.matched_candidates,c.state_receipts,c.disposition_receipts_linked,c.recorded_acquired_not_verified,"—"];
+$("flow").replaceChildren();
+stageNames.forEach((label,i)=>{
+const u=node("div","","unit"),b=node("button","","step");
+b.type="button";b.dataset.stage=i;b.setAttribute("aria-pressed",String(view.stage===i));
+b.append(node("strong",label),node("span",spanValue(values[i]),"n"),node("small",[
+"Human goal","Registry entries","Records observed","Linked candidates","State receipts","Recorded choices","Not verified","Not measured"][i]));
+b.addEventListener("click",()=>{view.stage=i;renderStages();});
+u.append(b);if(i<stageNames.length-1)u.append(node("span","→","arrow"));$("flow").append(u);
+});
+$("stageInfo").textContent=stageHelp[view.stage];
+}
+function sortedPaths(){const d=view.data;const q=$("query").value.trim().toLowerCase(),n=$("need").value;
+return d.paths.filter(p=>(!n||p.need_ids.includes(n))&&(!q||(p.title+" "+p.source+" "+p.id).toLowerCase().includes(q)));
+}
+function renderList(){
+const a=sortedPaths();if(!a.some(p=>p.id===view.selected))view.selected=a[0]?.id||null;$("list").replaceChildren();const shown=a.slice(0,view.limit);
+shown.forEach(p=>{
+const b=node("button","","row");b.type="button";b.setAttribute("aria-pressed",String(view.selected===p.id));
+b.append(node("strong",p.title),node("small",p.source+" · "+p.id+" · "+p.route));
+b.addEventListener("click",()=>{view.selected=p.id;renderList();renderTrace();});
+$("list").append(b);
+});
+$("empty").hidden=a.length>0;$("more").hidden=a.length<=view.limit;
+$("listed").textContent="Showing "+shown.length+" of "+a.length+" filtered paths; "+view.data.counts.candidate_rows+" source rows observed; "+view.data.counts.unexamined_rows+" not projected.";
+renderTrace();
+}
+function pipe(container,label,value){
+const b=node("div","","box");b.append(node("strong",label+" "),node("span",value));container.append(b);
+}
+function drawBranch(p){
+const svg=$("branchSvg");svg.replaceChildren();if(!p)return;
+const NS="http://www.w3.org/2000/svg";
+const put=(tag,attrs,content)=>{const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,String(v)));if(content!==undefined)e.textContent=content;svg.append(e);return e;};
+const edge=(x,y,X,Y,dashed=false)=>{put("path",{d:"M"+x+","+y+" L"+X+","+Y,fill:"none",stroke:"#9ad8c3","stroke-width":2.5,...(dashed?{"stroke-dasharray":"6 6"}:{})});
+put("path",{d:"M"+(X-9)+","+(Y-6)+" L"+X+","+Y+" L"+(X-9)+","+(Y+6),fill:"none",stroke:"#9ad8c3","stroke-width":2});};
+const card=(x,y,w,h,title,value)=>{put("rect",{x,y,width:w,height:h,rx:11,fill:"#253c43",stroke:"#658b8b","stroke-width":1.5});
+put("text",{x:x+12,y:y+22,fill:"#c0e9dd","font-size":15,"font-weight":700},title);
+put("text",{x:x+12,y:y+48,fill:"#f0f5f3","font-size":17},value);};
+edge(177,131,219,131,p.mine_binding!=="EXPLICIT");
+edge(379,131,420,72);edge(379,131,420,197);
+edge(580,72,630,131);edge(580,197,630,131);
+edge(793,131,824,131);edge(969,131,988,131,true);
+card(5,98,172,67,"SOURCE",p.mine_binding==="EXPLICIT"?"Bound Mine":"Unbound origin");
+card(219,98,160,67,"CANDIDATE",p.id.slice(0,13));
+card(420,39,160,67,"NEED LINKS",String(p.need_ids.length)+" matched");
+card(420,163,160,67,"REQ. LINKS",String(p.requirement_ids.length)+" matched");
+card(630,98,163,67,"EVIDENCE",String(p.evidence_refs+p.receipts.length)+" recorded");
+card(824,98,145,67,"HUMAN GATE","No action");
+card(988,98,109,67,"OUTCOME","Unknown");
+}
+function renderTrace(){
+const d=view.data,p=d.paths.find(x=>x.id===view.selected);$("trace").replaceChildren();drawBranch(p);
+if(!p){$("trace").append(node("p","No selected observation. This is not proof the need has no solution.","muted"));return;}
+$("trace").append(node("h3",p.title),node("p",p.id+" · "+p.source,"meta"));
+if(p.source_url){const link=document.createElement("a");link.href=p.source_url;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open source link · verify on official site ↗";$("trace").append(link);}
+const line=node("div","","trace");
+pipe(line,"Mine",p.mine_binding==="EXPLICIT"?p.mine_id:"Not bound (source label only)");
+line.append(node("span","→","sep"));pipe(line,"Candidate",p.id);
+line.append(node("span","→","sep"));pipe(line,"Needs",p.need_ids.join(", ")||"No match recorded");
+line.append(node("span","→","sep"));pipe(line,"Requirements",p.requirement_ids.join(", ")||"No match recorded");
+line.append(node("span","→","sep"));pipe(line,"Evidence",p.evidence_refs+" reference(s); "+p.receipts.length+" state receipt(s)");
+line.append(node("span","→","sep"));pipe(line,"Human authority","Required · no action");
+line.append(node("span","→","sep"));pipe(line,"Outcome","No independent receipt linked");
+$("trace").append(line);
+const meta=node("p","","meta");meta.textContent="Recorded: "+(p.discovered_at||"unknown")+". Route: "+p.route+". Availability: NOT VERIFIED. Eligibility: NOT ASSESSED."; $("trace").append(meta);
+if(p.receipts.length){const h=node("h3","Recorded state notes");$("trace").append(h);p.receipts.forEach(r=>{
+$("trace").append(node("p",r.type+" · "+(r.recorded_status||"no new status")+" · "+r.observed_at+" ("+r.id+")","meta"));
+});}
+$("trace").append(node("p","A displayed status note can be stale or contradicted. Review official evidence before deciding.","muted"));
+}
+function renderCoverage(){
+const c=view.data.counts;
+const kv=[["Source groups",c.source_groups],["Configured mines",c.configured_mines],["Candidates projected",c.candidate_paths],["Need records",c.need_records],["Requirements",c.requirement_records],["Evidence links",c.linked_evidence_refs],["State receipts",c.state_receipts],["Independent outcomes","Not measured"]];
+$("coverage").replaceChildren();
+kv.forEach(([label,value])=>{const box=node("div","");box.append(node("strong",value),node("span",label));$("coverage").append(box);});
+}
+function setMode(mode){view.mode=mode;$("stored").setAttribute("aria-pressed",String(mode==="stored"));$("public").setAttribute("aria-pressed",String(mode==="public"));}
+async function load(mode){
+if(view.busy)return;view.busy=true;
+$("state").textContent="Reading "+(mode==="public"?"public sources":"local records")+"…";
+$("stored").disabled=true;$("public").disabled=true;
+try{
+const resp=await fetch("/api/pathways?mode="+encodeURIComponent(mode),{cache:"no-store"});
+if(!resp.ok)throw new Error("HTTP "+resp.status);
+const d=await resp.json();
+if(!d||d.schema!=="HUMANAIOS_RESOURCE_PATHWAYS_V0_1"||!Array.isArray(d.paths))throw new Error("Invalid view data");
+view.data=d;setMode(mode);view.limit=10;
+const options=[...d.needs];const saved=$("need").value;$("need").replaceChildren();
+const all=document.createElement("option");all.value="";all.textContent="All needs";$("need").append(all);
+options.forEach(n=>{const opt=document.createElement("option");opt.value=n.id;opt.textContent=n.label;$("need").append(opt);});
+if(options.some(x=>x.id===saved))$("need").value=saved;
+renderStages();renderList();renderCoverage();
+$("state").textContent="Read-only · "+d.origin.replaceAll("_"," ").toLowerCase();
+$("stamp").textContent="Read at "+d.sampled_at+" · Latest candidate observation: "+(d.observed_at_latest||"unknown")+" · "+d.refresh_semantics.replaceAll("_"," ").toLowerCase()+".";
+$("caveat").textContent=d.oldest_possible_warning+" "+(d.source_status?"Source state: "+d.source_status+". ":"")+"No eligibility, approval, acquisition or benefit is established by this graph.";
+}catch(e){$("state").textContent="Unavailable · "+e.message;$("stamp").textContent="No fresh observation was obtained. Do not treat previously drawn paths as current.";}
+finally{view.busy=false;$("stored").disabled=false;$("public").disabled=false;}
+}
+$("stored").addEventListener("click",()=>load("stored"));
+$("public").addEventListener("click",()=>load("public"));
+$("query").addEventListener("input",()=>{view.limit=10;if(view.data)renderList();});
+$("need").addEventListener("change",()=>{view.limit=10;if(view.data)renderList();});
+$("more").addEventListener("click",()=>{view.limit+=10;renderList();});
+load("stored");
+setInterval(()=>{if(view.mode==="stored"&&!document.hidden)load("stored");},20000);
+})();
+</script>
+</body></html>

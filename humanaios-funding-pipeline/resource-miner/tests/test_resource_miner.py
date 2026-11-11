@@ -442,6 +442,51 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertEqual(candidate.route, "VERIFY_NOW")
         self.assertFalse(candidate.eligibility_assessed)
 
+    def test_outcome_announcement_does_not_route_verify_now(self):
+        # Regression: DEV.to "Congrats to the Sanity Challenge Winners!" was
+        # routed VERIFY_NOW with no deadline. A result is not an open call.
+        candidate = normalize_generic(
+            title="Congrats to the Sanity Challenge Winners!",
+            url="https://dev.to/devteam/congrats-to-the-sanity-challenge-winners-1140",
+            source_name="DEV Community", discovery_method="test",
+            description="We are thrilled to announce the winners of the Sanity Challenge.",
+            tags=["devchallenge", "sanity", "challenge"],
+        )
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        self.assertGreaterEqual(max(m.score for m in candidate.need_matches), 0.55)
+        route_candidate(candidate, today=date(2026, 10, 22))
+        self.assertEqual(candidate.route, "WATCH")
+
+    def test_open_call_mentioning_winners_still_routes_verify_now(self):
+        candidate = normalize_generic(
+            title="Benchmark Challenge: prizes for the winners",
+            url="https://example.com/open-challenge",
+            source_name="Example", discovery_method="test",
+            description="Submit benchmark results. Deadline December 1, 2026.",
+            tags=["benchmark", "challenge"],
+        )
+        self.assertEqual(candidate.deadline, "2026-12-01")
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        route_candidate(candidate, today=date(2026, 10, 22))
+        self.assertEqual(candidate.route, "VERIFY_NOW")
+
+    def test_invitation_with_winners_in_title_stays_verify_now_without_dates(self):
+        # Review of #988: a participation invitation whose deadline lives only
+        # in the article body (detail fetch failed) must not be demoted.
+        candidate = normalize_generic(
+            title="Join the Kaggle Benchmarking Challenge: $2,500 in Prizes for FIVE Winners!",
+            url="https://example.com/kaggle-benchmark",
+            source_name="DEV Community", discovery_method="test",
+            description="Benchmark models. Open to all participants.",
+            tags=["benchmark", "challenge"],
+        )
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        route_candidate(candidate, today=date(2026, 10, 22))
+        self.assertEqual(candidate.route, "VERIFY_NOW")
+
     def test_entitlement_handoff_preserves_unassessed_boundary(self):
         candidate = normalize_generic(
             title="Native business support program",
