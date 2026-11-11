@@ -1,0 +1,51 @@
+name: ACAT-R Existing Non-Injected Runtime Reference Pilot
+on:
+  pull_request:
+    paths:
+      - 'experiments/acat_r_noninjected/**'
+      - 'tests/test_noninjected_oracle.py'
+      - '.github/workflows/acat-r-noninjected.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference-conformance-observational:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Independent reference oracle tests
+        run: python -m unittest discover -s tests -p 'test_noninjected_oracle.py' -v
+      - name: Execute unmodified existing On-Track runtime in child processes
+        run: |
+          python experiments/acat_r_noninjected/run_real_workload.py \
+            --source humanaios-funding-pipeline/resource-miner/resource_miner/on_track_reflex.py \
+            --fixture experiments/acat_r_noninjected/pinned_issue_snapshot.json \
+            --output "$RUNNER_TEMP/acat_r_external.json"
+          python - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'acat_r_external.json'
+          r=json.loads(p.read_text())
+          assert r['status']=='CONTRACT_CONFORMANCE_PASS'
+          assert r['runtime']['actual_child_processes']==3
+          assert [x['reference']['case_count'] for x in r['phases']]==[8,24,24]
+          assert all(x['reference']['reference_agreement'] for x in r['phases'])
+          assert r['P2_P3_deterministic_replay'] is True
+          assert r['recovered_cases']==r['regressed_cases']==0
+          assert r['can_authorize'] is False and r['admission']=='HOLD' and r['authority_effect']=='NONE'
+          print('ACATR_EXISTING_RUN_PROOF_START')
+          print(json.dumps(r,sort_keys=True,separators=(',',':')))
+          print('ACATR_EXISTING_RUN_PROOF_END')
+          PY
+      - name: Archive bounded real-workload evaluation evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: acat-r-ontrack-observational-proof
+          path: ${{ runner.temp }}/acat_r_external.json
+          if-no-files-found: error
+          retention-days: 7

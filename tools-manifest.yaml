@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 223
+  tools: 228
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 174
+  builder_markers_present: 179
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2835,6 +2835,66 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'IEW-002: distinguish self-reported receipts from trusted execution observations.'
+- tool_id: HAIOS-TOOL-237
+  name: metaculus_mode_gate
+  path: tools/Metaculus/mode_gate.py
+  version: 0.1.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Fail-closed approval guard for Metaculus actions with external side effects.
+- tool_id: HAIOS-TOOL-238
+  name: metaculus_offline_fixture
+  path: tools/Metaculus/offline_fixture.py
+  version: 0.1.0
+  category: calibration_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Pure-stdlib, offline Metaculus forecast validation harness.
+- tool_id: HAIOS-TOOL-239
+  name: safety
+  path: tools/Metaculus/safety.py
+  version: 1.2.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Metaculus bot run caps and comment privacy (issue #1101). Pure stdlib: importable with no'
+- tool_id: HAIOS-TOOL-240
+  name: mutual_learning_e0
+  path: tools/mutual_learning_e0.py
+  version: 1.0.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker.'
+- tool_id: HAIOS-TOOL-241
+  name: audit_protocol_gate_v3_1
+  path: tools/audit_protocol_gate_v3_1.py
+  version: 3.1.1
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
