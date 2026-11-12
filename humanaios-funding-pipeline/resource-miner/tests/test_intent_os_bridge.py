@@ -65,7 +65,7 @@ class ObjectiveContractTests(unittest.TestCase):
         self.assertEqual(result["candidates"], [])
         self.assertEqual(result["excluded_count"], 2)
 
-    def test_irrelevant_held_duplicate_suppresses_matching_active_candidate(self):
+    def test_irrelevant_held_duplicate_preserves_review_evidence_in_both_orders(self):
         active = candidate(resource_id="RES-SHARED")
         held = candidate(
             resource_id="RES-SHARED",
@@ -75,10 +75,79 @@ class ObjectiveContractTests(unittest.TestCase):
             resource_types=[],
             resource_affordances=[],
             source_verification_status="SOURCE_CONFLICT",
+            private_notes="PRIVATE_CATALOG_NOTE_DO_NOT_ECHO",
         )
-        result = self.evaluate([active, held])
-        self.assertEqual(result["candidates"], [])
-        self.assertEqual(result["matched_count"], 0)
+        outputs = []
+        for rows in ([active, held], [held, active]):
+            result = self.evaluate(rows)
+            self.assertEqual(result["candidates"], [])
+            self.assertEqual(result["matched_count"], 0)
+            self.assertEqual(len(result["verification_cases"]), 1)
+            review = result["verification_cases"][0]
+            self.assertEqual(review["resource_id"], "RES-SHARED")
+            self.assertEqual(review["verification_state"], "CONFLICTING")
+            self.assertEqual(review["reason_code"], "SOURCE_CONFLICT")
+            self.assertEqual(review["source_name"], "HumanAIOS Funding Pipeline")
+            self.assertEqual(
+                set(review),
+                {"resource_id", "verification_state", "reason_code", "source_name", "action"},
+            )
+            self.assertNotIn("PRIVATE_CATALOG_NOTE_DO_NOT_ECHO", json.dumps(result))
+            outputs.append(result["verification_cases"])
+        self.assertEqual(outputs[0], outputs[1])
+
+    def test_source_conflict_wins_over_expired_duplicate_in_both_orders(self):
+        conflict = candidate(
+            resource_id="RES-HELD-PRIORITY",
+            source_name="DEV Community",
+            source_verification_status="SOURCE_CONFLICT",
+        )
+        expired = candidate(
+            resource_id="RES-HELD-PRIORITY",
+            status="CLOSED_OR_STALE",
+            deadline="2000-01-01",
+        )
+        outputs = []
+        for rows in ([conflict, expired], [expired, conflict]):
+            result = self.evaluate(rows)
+            self.assertEqual(result["candidates"], [])
+            self.assertEqual(
+                result["verification_cases"],
+                [{
+                    "resource_id": "RES-HELD-PRIORITY",
+                    "verification_state": "CONFLICTING",
+                    "reason_code": "SOURCE_CONFLICT",
+                    "source_name": "DEV Community",
+                    "action": "Review the authoritative source before pursuing.",
+                }],
+            )
+            outputs.append(result["verification_cases"])
+        self.assertEqual(outputs[0], outputs[1])
+
+    def test_stale_duplicate_suppresses_active_candidate_in_both_orders(self):
+        active = candidate(resource_id="RES-STALE-DUPLICATE")
+        stale = candidate(
+            resource_id="RES-STALE-DUPLICATE",
+            status="CLOSED_OR_STALE",
+            route="ARCHIVE",
+            deadline="2000-01-01",
+        )
+        outputs = []
+        for rows in ([active, stale], [stale, active]):
+            result = self.evaluate(rows)
+            self.assertEqual(result["candidates"], [])
+            self.assertEqual(
+                result["verification_cases"],
+                [{
+                    "resource_id": "RES-STALE-DUPLICATE",
+                    "verification_state": "STALE",
+                    "reason_code": "DEADLINE_PASSED",
+                    "source_name": "HumanAIOS Funding Pipeline",
+                    "action": "Review the authoritative source before pursuing.",
+                }],
+            )
+            outputs.append(result["verification_cases"])
+        self.assertEqual(outputs[0], outputs[1])
 
     def test_url_scheme_is_rejected(self):
         self.assertEqual(self.evaluate([candidate(canonical_url="javascript:alert(1)")])["candidates"], [])
