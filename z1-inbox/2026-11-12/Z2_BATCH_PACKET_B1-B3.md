@@ -36,6 +36,13 @@ Merge state checked via the GitHub API this session:
 | Q-TOOLCONTROL-01, Q-TOOLCONTROL-03, Q-P19-GATE-INERT-01, Q-GATE-PATHS-TEST-LOGIC-01 | not checked | - | INDEX notes only. -01 has an 8-item checklist including doc reviews (partial hold). |
 "Accept after merge" records a decision that the landed change is the intended one; it is not a re-review. Tier 2 rows (409) deserve a read of the diff before signing.
 
+## Night direction recorded 2026-11-12 (Z1 note, not a signature)
+Night's instruction in session: sign only the verified Batch 1 rows; hold Q-RBE-01 and the Q-TOOL-MANIFEST-DRIFT-PREVENTION-01 (#425) row.
+- Sign: Q-PHASE-2-BOARD-MOLT-01 and Q-INTENT-OS-WITNESS-LEDGER-01 (the two Batch 1 rows marked [V]).
+- Hold: Q-RBE-01 (not clean) and the #425 row (not confirmed).
+- Not signed by this packet: Batch 1b, Batch 2 and the other Batch 3 rows stay unsigned and open. The instruction named neither, so I read it as "not now".
+- Z1 has signed nothing and edited no INDEX status. The signature and any INDEX/status change are Night's act.
+
 ## What Z1 will do next if Night wants it (nothing below happens without a go-ahead)
 1. Read the candidate files behind Batch 1b, 2 and the unconfirmed Batch 3 rows and turn `[I]` into `[V]`.
 2. Map Q-RBE-01's four asks to records.
