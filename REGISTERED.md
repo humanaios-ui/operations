@@ -5852,7 +5852,7 @@ superseded_by: null
 ---
 id: "IC-066"
 name: "merge-gate-enforcement-gap-main"
-status: CANDIDATE
+status: REGISTERED
 class: IC
 date_registered: "2026-11-11"
 date_origin: "2026-11-11"
@@ -5881,7 +5881,9 @@ None of the other CI workflows that run on every PR — `security-gates.yml`, `z
 - `.github/workflows/repository-admission-gate.yml` (lines 1–6, 60–70, 325–355)
 - `tools/repository_coordinator_v0_1.py` (lines 642–666)
 
-**Z2 Ratification:** PENDING
+**Z2 Ratification (Night, 2026-11-11):** ACCEPT. The enforcement gap is real and worth tracking as found. This ratification accepts the finding only — which remediation path (add required checks vs. ratify `guard`-only) is deferred to Q-MERGE-GATE-ENFORCEMENT-01, not decided here.
+
+Ratified directly in the same chat session that filed the candidate (S-111126-01-copilot-billing-audit, Claude Code) — no separate GitHub-visible approval trail exists for this ratification. Recorded here per the IC-065 disclosure convention, so this doesn't rest on an unwitnessed say-so with no record of how it was given.
 
 -----
 
@@ -5890,7 +5892,7 @@ None of the other CI workflows that run on every PR — `security-gates.yml`, `z
 ---
 id: "IC-067"
 name: "agent-attribution-drift-and-oracle-fit"
-status: CANDIDATE
+status: REGISTERED
 class: IC
 date_registered: "2026-11-11"
 date_origin: "2026-11-11"
@@ -5916,5 +5918,7 @@ superseded_by: null
 - `gh api repos/humanaios-ui/operations/issues` label distribution and ACAT-R title search (2026-11-11)
 - Issues #517, #1161 (Grok usage), #1081, #1076, #1068, #1083 (ACAT-R oracle requests)
 
-**Z2 Ratification:** PENDING
+**Z2 Ratification (Night, 2026-11-11):** ACCEPT. Both the attribution-drift finding and the Grok/ACAT-R oracle fit are accepted as findings. The specific remediation (add labels, pilot Grok on #1081) is deferred to Q-AGENT-ORACLE-ATTRIBUTION-01 for execution, not decided by this ratification alone.
+
+Ratified directly in the same chat session that filed the candidate (S-111126-01-copilot-billing-audit, Claude Code) — no separate GitHub-visible approval trail exists for this ratification. Recorded here per the IC-065 disclosure convention, so this doesn't rest on an unwitnessed say-so with no record of how it was given.
 
