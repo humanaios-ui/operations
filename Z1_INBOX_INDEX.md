@@ -447,7 +447,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 `z1-inbox/2026-11-12/Q-PILLOW-PYSEC-2026-4363-WAIVER-01.md`
 
 - [ ] Waive PYSEC-2026-4363 for `tools/Metaculus/requirements.txt` only? — options: ratify waiver, remove waiver, later
-- [ ] Reachability of the pillow flaw from Metaculus tooling is assessed, or Z2 accepts it as unassessed.
+- [ ] Reachability: Z2 accepts the partial read above (no call path found from the bot; advisory text unread; not traced end to end).
 - [ ] A follow-up exists to move off `forecasting-tools<0.4.0` (issue #1101 or a new one), so the waiver has an owner and an exit.
 
 ### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
