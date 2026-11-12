@@ -38,32 +38,47 @@ What this enforces (mirrors the issue's required-behavior list):
     not open. Nonpositive or nonfinite quantities are rejected before any
     reservation math runs.
   - A human kill switch, once set, fails every new request closed and
-    marks the gateway unable to accept until explicitly cleared.
+    marks the gateway unable to accept until explicitly cleared — the
+    switch is rechecked INSIDE the reservation transaction, not only by a
+    fast pre-check before it, so a flip mid-flight cannot be raced.
   - A per-agent drawdown stop rejects new *buy* orders (sells are always
     allowed, so a losing agent can still de-risk) once that agent's
     mark-to-market equity has fallen more than `max_drawdown_fraction`
     below its own high-water mark. The default (1.0) is a no-op — the
     real threshold is a protocol decision this file has no opinion on
     (PROTOCOL_E0.md Â§5) — but the mechanism itself is implemented and
-    tested, not merely described.
+    tested, not merely described. The high-water mark is checkpointed on
+    both a buy evaluation AND a plain price update (set_price()) AND a
+    fill (settle()) — not only on a buy — so a peak reached by a pure
+    price move between two orders is not lost. Marking any held position
+    to market requires a fresh quote for THAT instrument specifically,
+    not just the one in the order being evaluated; a stale mark on any
+    held instrument blocks the buy (`stale_position_mark`) rather than
+    silently excluding it from the equity figure.
   - Every decision (accept/reject + reason code), and every settlement and
     cancellation, is appended to an audit log carrying the order id and
-    idempotency key, so a request can be traced to its eventual receipt.
-  - A fill cannot exceed what its order has left to fill, or cost more
-    than that order still has reserved — either is rejected rather than
-    silently absorbed. Settling a buy actually removes the spent cash
-    from the shared pool's total (not just its reservation); settling a
-    sell returns proceeds to the pool. Quantities are integer micro-units
-    throughout, not floats, so there is no rounding drift and no
-    fractional-share-for-free exploit (charges round up, credits round
-    down, so rounding can never manufacture value).
-  - reconcile() compares the ledger's internal claims against an
-    independently-tallied record when one is supplied (PaperBroker keeps
-    its own tally from the fills it issued, separate from the ledger's
-    own bookkeeping) and otherwise falls back to an internal-consistency
-    check (no negative cash, no negative shares, claims within the pool's
-    declared total) — either way, it does not assume the ledger is
-    self-consistent just because it is internally generated.
+    idempotency key, in the SAME transaction as the state change it
+    records (or the lack of one, for a rejection) — not a separate
+    autocommit call afterward, which could leave a persisted mutation
+    with no audit trail if the process died in between.
+  - A fill cannot exceed what its order has left to fill, cost more than
+    that order still has reserved, or carry a nonpositive/nonfinite price
+    — any of those is rejected rather than silently absorbed or allowed
+    to move cash/shares before being checked. Settling a buy actually
+    removes the spent cash from the shared pool's total (not just its
+    reservation); settling a sell returns proceeds to the pool.
+    Quantities are integer micro-units throughout, not floats, so there
+    is no rounding drift and no fractional-share-for-free exploit
+    (charges round up, credits round down, so rounding can never
+    manufacture value).
+  - reconcile() always enforces the internal invariants (no negative
+    cash, no negative shares, claims within the pool's declared total)
+    regardless of whether a broker is supplied — supplying one ADDS
+    checks (positions and net cash flow against an independently-tallied
+    PaperBroker record) rather than replacing the internal ones; an
+    earlier version dropped the pool-cash bound in the broker branch,
+    which a second reviewer caught as a real way for reconcile() to
+    report `ok=True` over a genuine cash corruption.
 
 What this does NOT do: decide A, B, N, the benchmark, the horizon, or
 whether to ever go live. It has no opinion about any of that. It is a
@@ -152,7 +167,8 @@ class Ledger:
                 CREATE TABLE IF NOT EXISTS pool (
                     id INTEGER PRIMARY KEY CHECK (id = 1),
                     total_cents INTEGER NOT NULL,
-                    reserved_cents INTEGER NOT NULL DEFAULT 0
+                    reserved_cents INTEGER NOT NULL DEFAULT 0,
+                    opening_total_cents INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS positions (
                     agent_id TEXT NOT NULL,
@@ -210,11 +226,16 @@ class Ledger:
     # ---- setup (run once, before any order traffic) ----------------------
 
     def set_pool_total(self, total_cents: int) -> None:
+        """Sets the pool's current AND opening total. `opening_total_cents`
+        is frozen here and never mutated again — it is the independent
+        reference reconcile() uses to check that the pool's net cash
+        movement since the run started matches what a broker independently
+        tallied, not just that the ledger agrees with itself."""
         with self._lock:
             self._conn.execute("DELETE FROM pool WHERE id = 1")
             self._conn.execute(
-                "INSERT INTO pool (id, total_cents, reserved_cents) VALUES (1, ?, 0)",
-                (total_cents,),
+                "INSERT INTO pool (id, total_cents, reserved_cents, opening_total_cents) VALUES (1, ?, 0, ?)",
+                (total_cents, total_cents),
             )
 
     def register_agent(self, agent_id: str, allocation_cents: int) -> None:
@@ -225,22 +246,78 @@ class Ledger:
                 (agent_id, allocation_cents, allocation_cents, allocation_cents),
             )
 
-    def set_price(self, instrument: str, price_cents: int, tag: str = "", ts: Optional[float] = None) -> None:
-        if price_cents <= 0:
-            raise ValueError(f"price_cents must be positive, got {price_cents!r}")
+    def set_price(self, instrument: str, price_cents: int, tag: Optional[str] = None,
+                  ts: Optional[float] = None) -> None:
+        """`tag=None` (the default) means "a plain price refresh" and
+        preserves whatever classification the instrument already has —
+        it does NOT reset to untagged. A refresh that silently cleared an
+        instrument's tag (e.g. "perpetual" -> "") would un-denylist it on
+        an ordinary quote update, which a second reviewer caught as a real
+        bypass. Pass an explicit `tag` (including `""`) to actually change
+        the classification.
+
+        Also checkpoints the equity high-water mark of every agent
+        currently holding this instrument. The drawdown stop only used to
+        update an agent's peak while evaluating a buy, so a price spike
+        that happens between two orders — reached and lost without either
+        agent ever submitting anything in between — was never recorded,
+        letting a later buy pass a drawdown check it should have failed.
+        Valuation (here) and fills (settle()) are now both checkpoints,
+        independent of order submission, per a second reviewer's finding."""
+        if not math.isfinite(price_cents) or price_cents <= 0:
+            raise ValueError(f"price_cents must be a positive finite number, got {price_cents!r}")
         ts = time.time() if ts is None else ts
         with self._lock:
-            self._conn.execute(
-                "INSERT INTO prices (instrument, price_cents, tag, updated_at) VALUES (?, ?, ?, ?) "
-                "ON CONFLICT(instrument) DO UPDATE SET price_cents=excluded.price_cents, "
-                "tag=excluded.tag, updated_at=excluded.updated_at",
-                (instrument, price_cents, tag, ts),
-            )
+            cur = self._conn.cursor()
+            cur.execute("BEGIN IMMEDIATE")
+            try:
+                if tag is None:
+                    existing = cur.execute(
+                        "SELECT tag FROM prices WHERE instrument = ?", (instrument,)
+                    ).fetchone()
+                    tag = existing[0] if existing else ""
+                cur.execute(
+                    "INSERT INTO prices (instrument, price_cents, tag, updated_at) VALUES (?, ?, ?, ?) "
+                    "ON CONFLICT(instrument) DO UPDATE SET price_cents=excluded.price_cents, "
+                    "tag=excluded.tag, updated_at=excluded.updated_at",
+                    (instrument, price_cents, tag, ts),
+                )
+
+                holder_rows = cur.execute(
+                    "SELECT DISTINCT agent_id FROM positions WHERE instrument = ? "
+                    "AND (available_qty_micro != 0 OR reserved_qty_micro != 0)",
+                    (instrument,),
+                ).fetchall()
+                for (holder_agent_id,) in holder_rows:
+                    equity_cents = self._agent_equity_cents_or_none(
+                        cur, holder_agent_id, ts, DEFAULT_MAX_PRICE_AGE_SECONDS
+                    )
+                    if equity_cents is None:
+                        continue  # some other held instrument is stale; skip this checkpoint, don't block the price write
+                    peak_row = cur.execute(
+                        "SELECT peak_equity_cents FROM agents WHERE agent_id = ?", (holder_agent_id,)
+                    ).fetchone()
+                    if peak_row and equity_cents > peak_row[0]:
+                        cur.execute(
+                            "UPDATE agents SET peak_equity_cents = ? WHERE agent_id = ?",
+                            (equity_cents, holder_agent_id),
+                        )
+                cur.execute("COMMIT")
+            except Exception:
+                cur.execute("ROLLBACK")
+                raise
 
     def set_kill_switch(self, on: bool) -> None:
         with self._lock:
-            self._conn.execute("UPDATE kill_switch SET on_flag = ? WHERE id = 1", (1 if on else 0,))
-        self._audit(None, None, None, "kill_switch_set", "operator", f"on={on}")
+            cur = self._conn.cursor()
+            cur.execute("BEGIN IMMEDIATE")
+            try:
+                cur.execute("UPDATE kill_switch SET on_flag = ? WHERE id = 1", (1 if on else 0,))
+                self._audit_cur(cur, None, None, None, "kill_switch_set", "operator", f"on={on}")
+                cur.execute("COMMIT")
+            except Exception:
+                cur.execute("ROLLBACK")
+                raise
 
     # ---- read helpers ------------------------------------------------------
 
@@ -292,6 +369,14 @@ class Ledger:
 
     def _audit(self, agent_id: Optional[str], order_id: Optional[str], idempotency_key: Optional[str],
                event: str, reason: str, detail: str) -> None:
+        """Standalone, autocommit audit insert — only for call sites with no
+        surrounding state-changing transaction to join. Anywhere a state
+        change is happening (reserve/settle/cancel/kill-switch), use
+        `_audit_cur` with that same transaction's cursor instead, so the
+        audit row and the state change persist or roll back together. A
+        separate autocommit insert after a transaction already committed
+        is exactly the non-atomicity a second reviewer flagged: a crash
+        between the two leaves a mutation with no audit trail."""
         with self._lock:
             self._conn.execute(
                 "INSERT INTO audit_log (ts, agent_id, order_id, idempotency_key, event, reason, detail) "
@@ -299,12 +384,56 @@ class Ledger:
                 (time.time(), agent_id, order_id, idempotency_key, event, reason, detail),
             )
 
+    @staticmethod
+    def _audit_cur(cur, agent_id: Optional[str], order_id: Optional[str], idempotency_key: Optional[str],
+                    event: str, reason: str, detail: str) -> None:
+        """Audit insert using the caller's own cursor, inside the caller's
+        own transaction — the atomic counterpart to `_audit`."""
+        cur.execute(
+            "INSERT INTO audit_log (ts, agent_id, order_id, idempotency_key, event, reason, detail) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (time.time(), agent_id, order_id, idempotency_key, event, reason, detail),
+        )
+
     def audit_log(self):
         with self._lock:
             return self._conn.execute(
                 "SELECT ts, agent_id, order_id, idempotency_key, event, reason, detail "
                 "FROM audit_log ORDER BY id"
             ).fetchall()
+
+    @staticmethod
+    def _agent_equity_cents_or_none(cur, agent_id: str, now: float, max_price_age_seconds: float) -> Optional[int]:
+        """Mark-to-market equity (available + reserved cash, plus every
+        held position valued at its latest price) for one agent, using the
+        given transaction's cursor. Returns None — rather than a number
+        computed from a stale or missing quote — if ANY held position
+        (available_qty_micro + reserved_qty_micro != 0) lacks a mark fresh
+        within `max_price_age_seconds`. A drawdown decision built from a
+        partially-stale mark is worse than no decision: the earlier version
+        only checked freshness for the instrument in the order being
+        submitted, so a stale mark on a *different* held instrument could
+        silently pass. A missing price row counts as stale."""
+        row = cur.execute(
+            "SELECT available_cents, reserved_cents FROM agents WHERE agent_id = ?", (agent_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        equity_cents = row[0] + row[1]
+        for pos_instrument, avail_q, resv_q in cur.execute(
+            "SELECT instrument, available_qty_micro, reserved_qty_micro FROM positions WHERE agent_id = ?",
+            (agent_id,),
+        ).fetchall():
+            held_qty_micro = avail_q + resv_q
+            if held_qty_micro == 0:
+                continue
+            mark_row = cur.execute(
+                "SELECT price_cents, updated_at FROM prices WHERE instrument = ?", (pos_instrument,)
+            ).fetchone()
+            if mark_row is None or (now - mark_row[1]) > max_price_age_seconds:
+                return None
+            equity_cents += _floor_div(mark_row[0] * held_qty_micro, QTY_SCALE)
+        return equity_cents
 
     # ---- the one place reservations happen --------------------------------
 
@@ -323,37 +452,61 @@ class Ledger:
         per_position_cap_fraction: float,
         cooldown_seconds: float,
         max_drawdown_fraction: float = 1.0,
+        max_price_age_seconds: float = DEFAULT_MAX_PRICE_AGE_SECONDS,
     ) -> Decision:
         """Atomically check-and-reserve. Holds the process-wide lock for the
         whole check+write so two concurrent requests cannot both pass a
-        check before either writes. The cross-agent cooldown check, the
-        per-position exposure check, and the per-agent drawdown check all
-        happen *inside* this same transaction (not as separate locked calls
-        before/after it) — splitting the cooldown check out that way left a
-        window where two racing requests could each observe no conflict and
-        both be accepted; that gap was a real bug a second reviewer's
-        hostile-case suite caught. `max_drawdown_fraction` defaults to 1.0
-        (no stop) because the real threshold is a protocol decision this
-        file has no opinion on (see PROTOCOL_E0.md Â§5) — pass a real value
-        once one is set; this parameter exists so the mechanism is there to
-        configure, not to supply a default worth trusting."""
+        check before either writes. The kill switch, the cross-agent
+        cooldown check, the per-position exposure check, and the per-agent
+        drawdown check all happen *inside* this same transaction (not as
+        separate locked calls before/after it) — splitting checks out that
+        way left windows where a switch flip or a racing request could slip
+        past a check made just before it; those gaps were real bugs two
+        rounds of a second reviewer's hostile-case suite caught, one round
+        at a time. Every exit path — accepted or rejected — commits its own
+        audit row in the same transaction as whatever state it changed (or
+        didn't), rather than auditing in a separate autocommit call after
+        the fact: a rejection has nothing else to roll back, so there is no
+        reason its audit record should be anything but committed, and an
+        acceptance's audit row must survive exactly when its state change
+        does. `max_drawdown_fraction` defaults to 1.0 (no stop) because the
+        real threshold is a protocol decision this file has no opinion on
+        (see PROTOCOL_E0.md Â§5) — pass a real value once one is set; this
+        parameter exists so the mechanism is there to configure, not to
+        supply a default worth trusting."""
         if side not in ("buy", "sell"):
             return Decision(False, "unknown_side")
 
         notional_micro_cents = price_cents * qty_micro  # exact integer, no rounding yet
         fee_cents = _ceil_div(notional_micro_cents * fee_buffer_bps, QTY_SCALE * 10_000)
         reserve_cost_cents = _ceil_div(notional_micro_cents, QTY_SCALE) + fee_cents
+        detail = f"{instrument} {side} qty_micro={qty_micro}"
 
         with self._lock:
             cur = self._conn.cursor()
             cur.execute("BEGIN IMMEDIATE")
             try:
+                def reject(reason: str) -> Decision:
+                    self._audit_cur(cur, agent_id, None, idempotency_key, "rejected", reason, detail)
+                    cur.execute("COMMIT")
+                    return Decision(False, reason)
+
+                # Rechecked HERE, not only before the caller entered this
+                # transaction: a submission that passed an earlier,
+                # unserialized check can still be sitting in this same
+                # process when the switch flips. This is the authoritative
+                # check; a pre-check elsewhere is only a fast-path skip.
+                kill_row = cur.execute("SELECT on_flag FROM kill_switch WHERE id = 1").fetchone()
+                if kill_row and kill_row[0]:
+                    return reject("kill_switch_active")
+
                 dup = cur.execute(
                     "SELECT order_id FROM orders WHERE agent_id = ? AND idempotency_key = ?",
                     (agent_id, idempotency_key),
                 ).fetchone()
                 if dup:
-                    cur.execute("ROLLBACK")
+                    self._audit_cur(cur, agent_id, dup[0], idempotency_key, "rejected", "duplicate_idempotency_key", detail)
+                    cur.execute("COMMIT")
                     return Decision(False, "duplicate_idempotency_key", dup[0])
 
                 opposite = "sell" if side == "buy" else "buy"
@@ -363,24 +516,20 @@ class Ledger:
                     (instrument, opposite, agent_id, now - cooldown_seconds),
                 ).fetchone()
                 if conflict:
-                    cur.execute("ROLLBACK")
-                    return Decision(False, "cross_agent_same_instrument_cooldown")
+                    return reject("cross_agent_same_instrument_cooldown")
 
                 agent_row = cur.execute(
-                    "SELECT allocation_cents, available_cents, reserved_cents, peak_equity_cents "
-                    "FROM agents WHERE agent_id = ?", (agent_id,)
+                    "SELECT allocation_cents, available_cents FROM agents WHERE agent_id = ?", (agent_id,)
                 ).fetchone()
                 if agent_row is None:
-                    cur.execute("ROLLBACK")
-                    return Decision(False, "unknown_agent")
-                allocation_cents, available_cents, agent_reserved_cents, peak_equity_cents = agent_row
+                    return reject("unknown_agent")
+                allocation_cents, available_cents = agent_row
 
                 pool_row = cur.execute(
                     "SELECT total_cents, reserved_cents FROM pool WHERE id = 1"
                 ).fetchone()
                 if pool_row is None:
-                    cur.execute("ROLLBACK")
-                    return Decision(False, "pool_not_configured")
+                    return reject("pool_not_configured")
                 pool_total, pool_reserved = pool_row
                 pool_available = pool_total - pool_reserved
 
@@ -402,36 +551,34 @@ class Ledger:
                     projected_notional_cents = _ceil_div(price_cents * projected_qty_micro, QTY_SCALE)
                     cap_cents = int(allocation_cents * per_position_cap_fraction)
                     if projected_notional_cents > cap_cents:
-                        cur.execute("ROLLBACK")
-                        return Decision(False, "per_position_cap_exceeded")
+                        return reject("per_position_cap_exceeded")
 
-                    equity_cents = available_cents + agent_reserved_cents
-                    for pos_instrument, avail_q, resv_q in cur.execute(
-                        "SELECT instrument, available_qty_micro, reserved_qty_micro "
-                        "FROM positions WHERE agent_id = ?",
-                        (agent_id,),
-                    ).fetchall():
-                        mark_row = cur.execute(
-                            "SELECT price_cents FROM prices WHERE instrument = ?", (pos_instrument,)
-                        ).fetchone()
-                        if mark_row:
-                            equity_cents += _floor_div(mark_row[0] * (avail_q + resv_q), QTY_SCALE)
+                    equity_cents = self._agent_equity_cents_or_none(cur, agent_id, now, max_price_age_seconds)
+                    if equity_cents is None:
+                        return reject("stale_position_mark")
+                    peak_row = cur.execute(
+                        "SELECT peak_equity_cents FROM agents WHERE agent_id = ?", (agent_id,)
+                    ).fetchone()
+                    peak_equity_cents = peak_row[0]
                     if equity_cents > peak_equity_cents:
                         cur.execute(
                             "UPDATE agents SET peak_equity_cents = ? WHERE agent_id = ?",
                             (equity_cents, agent_id),
                         )
                         peak_equity_cents = equity_cents
+                        # This write must survive even if the order below is
+                        # rejected for an unrelated reason (e.g. a cap) — a
+                        # real equity peak observed right now is true
+                        # regardless of what this particular order does next.
+                        # Every exit path below commits rather than rolls
+                        # back, which is what keeps it from being undone.
                     if peak_equity_cents > 0 and (peak_equity_cents - equity_cents) / peak_equity_cents > max_drawdown_fraction:
-                        cur.execute("ROLLBACK")
-                        return Decision(False, "agent_drawdown_stop")
+                        return reject("agent_drawdown_stop")
 
                     if reserve_cost_cents > available_cents:
-                        cur.execute("ROLLBACK")
-                        return Decision(False, "agent_cap_exceeded")
+                        return reject("agent_cap_exceeded")
                     if reserve_cost_cents > pool_available:
-                        cur.execute("ROLLBACK")
-                        return Decision(False, "pool_cap_exceeded")
+                        return reject("pool_cap_exceeded")
 
                     cur.execute(
                         "UPDATE agents SET available_cents = available_cents - ?, "
@@ -450,11 +597,10 @@ class Ledger:
                     ).fetchone()
                     held_available = pos_row[0] if pos_row else 0
                     if qty_micro > held_available:
-                        cur.execute("ROLLBACK")
                         # No margin/borrowing path exists: a sell beyond what is
                         # held is a short-sale attempt, which this gateway has
                         # no code path to fulfil.
-                        return Decision(False, "insufficient_position_no_shorting")
+                        return reject("insufficient_position_no_shorting")
                     cur.execute(
                         "INSERT INTO positions (agent_id, instrument, available_qty_micro, reserved_qty_micro) "
                         "VALUES (?, ?, ?, ?) ON CONFLICT(agent_id, instrument) DO UPDATE SET "
@@ -477,6 +623,7 @@ class Ledger:
                     "INSERT INTO cross_agent_activity (instrument, agent_id, side, ts) VALUES (?, ?, ?, ?)",
                     (instrument, agent_id, side, now),
                 )
+                self._audit_cur(cur, agent_id, order_id, idempotency_key, "accepted", "accepted", detail)
                 cur.execute("COMMIT")
                 return Decision(True, "accepted", order_id)
             except Exception:
@@ -484,18 +631,31 @@ class Ledger:
                 raise
 
     def settle(self, order_id: str, filled_qty: float, fill_price_cents: int, *, fee_cents: int = 0,
-               final: bool = True) -> None:
+               final: bool = True, max_price_age_seconds: float = DEFAULT_MAX_PRICE_AGE_SECONDS) -> None:
         """Apply a (paper) fill receipt. A fill cannot exceed what the order
         still has left to fill, and a buy fill cannot cost more than the
         order still has reserved — either is rejected (raises ValueError)
         rather than silently creating shares or absorbing an overcharge.
-        Settling a buy removes the actually-spent cash from the pool's
-        *total*, not just its reservation; settling a sell adds proceeds
-        back to the pool's total. Any unused reservation is released back
-        to the agent only on `final=True`; a partial fill's unfilled
-        remainder stays reserved exactly as it was (for a sell, this means
-        the not-yet-sold shares stay out of `available_qty_micro` until
-        the order is finalized or cancelled, not released early)."""
+        The receipt's OWN price is validated here too — a negative or zero
+        fill price is rejected before it touches any balance, rather than
+        relying on `set_price()`'s validation of the original quote, which
+        this call never goes through. Settling a buy removes the
+        actually-spent cash from the pool's *total*, not just its
+        reservation; settling a sell adds proceeds back to the pool's
+        total. Any unused reservation is released back to the agent only
+        on `final=True`; a partial fill's unfilled remainder stays reserved
+        exactly as it was (for a sell, this means the not-yet-sold shares
+        stay out of `available_qty_micro` until the order is finalized or
+        cancelled, not released early). Opportunistically marks the
+        agent's equity to market and bumps its high-water mark if this
+        fill reveals a new peak — a buy's drawdown check only updates the
+        peak when an order is actually submitted, so a peak reached purely
+        from a price move landing between two orders would otherwise never
+        be recorded; silently skipped if a held position's mark is stale,
+        since a settlement must apply given a valid receipt regardless of
+        unrelated stale data elsewhere."""
+        if not math.isfinite(fill_price_cents) or fill_price_cents <= 0:
+            raise ValueError(f"fill_price_cents must be a positive finite number, got {fill_price_cents!r}")
         filled_qty_micro = to_qty_micro(filled_qty)
         if fee_cents < 0:
             raise ValueError(f"fee_cents must be non-negative, got {fee_cents!r}")
@@ -602,14 +762,26 @@ class Ledger:
                     "reserved_qty_micro = ? WHERE order_id = ?",
                     (new_status, new_filled_micro, new_order_reserved_cents, new_reserved_qty_micro, order_id),
                 )
+
+                equity_cents = self._agent_equity_cents_or_none(cur, agent_id, time.time(), max_price_age_seconds)
+                if equity_cents is not None:
+                    peak_row = cur.execute(
+                        "SELECT peak_equity_cents FROM agents WHERE agent_id = ?", (agent_id,)
+                    ).fetchone()
+                    if peak_row and equity_cents > peak_row[0]:
+                        cur.execute(
+                            "UPDATE agents SET peak_equity_cents = ? WHERE agent_id = ?",
+                            (equity_cents, agent_id),
+                        )
+
+                self._audit_cur(
+                    cur, agent_id, order_id, idem_key, "settled", new_status,
+                    f"filled_qty_micro={filled_qty_micro} price_cents={fill_price_cents} fee_cents={fee_cents} final={final}",
+                )
                 cur.execute("COMMIT")
             except Exception:
                 cur.execute("ROLLBACK")
                 raise
-        self._audit(
-            agent_id, order_id, idem_key, "settled", new_status,
-            f"filled_qty_micro={filled_qty_micro} price_cents={fill_price_cents} fee_cents={fee_cents} final={final}",
-        )
 
     def cancel(self, order_id: str) -> None:
         """Release whatever is still reserved on an open order back to the
@@ -646,23 +818,31 @@ class Ledger:
                     "WHERE order_id = ?",
                     (order_id,),
                 )
+                self._audit_cur(cur, agent_id, order_id, idem_key, "cancelled", "released_reservation", "")
                 cur.execute("COMMIT")
             except Exception:
                 cur.execute("ROLLBACK")
                 raise
-        self._audit(agent_id, order_id, idem_key, "cancelled", "released_reservation", "")
 
     def reconcile(self, broker: Optional["PaperBroker"] = None) -> dict:
         """With a `broker` supplied, compares the ledger's aggregate cash
         and positions against that broker's *independently* tallied record
         (kept from the fills it issued, not derived from this ledger) —
         the closest a paper stage can get to comparing against an external
-        broker statement. Without one, falls back to an internal-only
-        invariant check: no negative cash, no negative shares, and claims
-        that do not exceed the pool's declared total. Either way, this does
-        not assume the ledger is self-consistent just because it is
-        internally generated — a violation here is exactly the signature a
-        forged/garbled fill receipt would leave behind."""
+        broker statement. The internal invariants (no negative cash, no
+        negative shares, claims not exceeding the pool's current total)
+        are checked EITHER way — supplying a broker adds checks on top of
+        those, it does not replace them, which an earlier version of this
+        method got wrong (its broker branch dropped the pool-cash bound
+        entirely, so the exact cash-corruption case this file's own
+        earlier smoke test used to prove the no-broker path catches a
+        forged receipt would have reported `ok=True` the moment a broker
+        happened to be supplied). With a broker, also compares its
+        independently tallied `net_cash_cents` against the pool's own net
+        movement since `set_pool_total()` froze an opening balance — a
+        divergence there means cash moved in the ledger that the broker's
+        fills don't account for, which position-only comparison would
+        miss."""
         with self._lock:
             agent_rows = self._conn.execute(
                 "SELECT agent_id, available_cents, reserved_cents FROM agents"
@@ -670,23 +850,28 @@ class Ledger:
             position_rows = self._conn.execute(
                 "SELECT agent_id, instrument, available_qty_micro, reserved_qty_micro FROM positions"
             ).fetchall()
-        pool_total, _pool_reserved = self.pool_balance()
+            pool_row = self._conn.execute(
+                "SELECT total_cents, opening_total_cents FROM pool WHERE id = 1"
+            ).fetchone()
+        pool_total, pool_opening_total = pool_row
 
         negative_cash_agents = [r[0] for r in agent_rows if r[1] < 0 or r[2] < 0]
         negative_position_rows = [
             (r[0], r[1]) for r in position_rows if r[2] < 0 or r[3] < 0
         ]
         total_claimed_cents = sum(r[1] + r[2] for r in agent_rows)
+        within_pool_bound = total_claimed_cents <= pool_total
 
         report = {
             "negative_cash_agents": negative_cash_agents,
             "negative_positions": negative_position_rows,
             "total_claimed_cents": total_claimed_cents,
             "pool_total_cents": pool_total,
+            "within_pool_bound": within_pool_bound,
         }
 
+        mismatches = []
         if broker is not None:
-            mismatches = []
             ledger_positions = {(r[0], r[1]): r[2] + r[3] for r in position_rows}
             for key, broker_qty_micro in broker.independent_positions.items():
                 if ledger_positions.get(key, 0) != broker_qty_micro:
@@ -697,14 +882,20 @@ class Ledger:
             for key, ledger_qty_micro in ledger_positions.items():
                 if key not in broker.independent_positions and ledger_qty_micro != 0:
                     mismatches.append(f"position {key}: ledger={ledger_qty_micro} broker=0 (untracked)")
+
+            ledger_net_cash_cents = pool_total - pool_opening_total
+            if ledger_net_cash_cents != broker.net_cash_cents:
+                mismatches.append(
+                    f"cash movement: ledger={ledger_net_cash_cents} broker={broker.net_cash_cents}"
+                )
             report["position_mismatches"] = mismatches
-            report["ok"] = not (negative_cash_agents or negative_position_rows or mismatches)
-        else:
-            report["ok"] = (
-                total_claimed_cents <= pool_total
-                and not negative_cash_agents
-                and not negative_position_rows
-            )
+
+        report["ok"] = (
+            within_pool_bound
+            and not negative_cash_agents
+            and not negative_position_rows
+            and not mismatches
+        )
         return report
 
 
@@ -768,20 +959,20 @@ class OrderGateway:
             self.ledger._audit(agent_id, order_id, idempotency_key, "rejected", "stale_balance", f"{instrument} age={now - updated_at:.0f}s")
             return Decision(False, "stale_balance")
 
-        decision = self.ledger.reserve(
+        # `reserve()` audits every outcome itself, inside the same
+        # transaction as whatever it did or didn't change — not duplicated
+        # here. The checks above this point (kill switch pre-check, qty/
+        # price validation, instrument lookup, denylist, staleness) mutate
+        # nothing, so their own separate audit calls have no atomicity
+        # requirement to satisfy.
+        return self.ledger.reserve(
             order_id, agent_id, instrument, side, qty_micro, price_cents,
             self.fee_buffer_bps, idempotency_key, now,
             per_position_cap_fraction=self.per_position_cap_fraction,
             cooldown_seconds=self.cross_agent_cooldown_seconds,
             max_drawdown_fraction=self.max_drawdown_fraction,
+            max_price_age_seconds=self.max_price_age_seconds,
         )
-        self.ledger._audit(
-            agent_id, order_id if decision.accepted else None, idempotency_key,
-            "accepted" if decision.accepted else "rejected",
-            decision.reason,
-            f"{instrument} {side} qty={qty}",
-        )
-        return decision
 
     def set_kill_switch(self, on: bool) -> None:
         self.ledger.set_kill_switch(on)
@@ -1230,6 +1421,131 @@ def run_smoke_test() -> int:
     accept_rows = [r for r in log_rows if r[5] == "accepted" and r[3] == "traceable"]
     check("an accepted order's audit row carries its idempotency key", len(accept_rows) == 1)
     check("an accepted order's audit row carries its order id", accept_rows[0][2] == d.order_id)
+
+    # 20. a plain price refresh (no tag argument) preserves the existing
+    # classification instead of resetting it to untagged — the bug would
+    # have un-denylisted a perpetual on an ordinary quote update.
+    ledger, gw = fresh_gateway()
+    ledger.set_price("ZZZ-PERP", 11_00)  # no tag passed — a plain refresh
+    still_blocked = gw.submit_order_request("agent-a", "ZZZ-PERP", "buy", 1)
+    check(
+        "a price refresh with no explicit tag does not clear an instrument's denylisted classification",
+        not still_blocked.accepted and still_blocked.reason == "denylisted_instrument",
+    )
+
+    # 21. the kill switch is rechecked INSIDE reserve()'s own transaction,
+    # not only by the gateway's pre-check before it — calling reserve()
+    # directly (bypassing the pre-check) while the switch is on must still
+    # be rejected.
+    ledger = Ledger(":memory:")
+    ledger.set_pool_total(1_000_00)
+    ledger.register_agent("agent-a", 500_00)
+    ledger.set_price("XYZ", 10_00, tag="equity")
+    ledger.set_kill_switch(True)
+    direct = ledger.reserve(
+        str(uuid.uuid4()), "agent-a", "XYZ", "buy", to_qty_micro(1), 10_00, 0, "direct-1", time.time(),
+        per_position_cap_fraction=1.0, cooldown_seconds=0,
+    )
+    check(
+        "reserve() itself rejects while the kill switch is on, even called directly (kill_switch_active)",
+        not direct.accepted and direct.reason == "kill_switch_active",
+    )
+
+    # 22. a stale mark on a DIFFERENT held instrument blocks a buy of a
+    # freshly-quoted one — the drawdown calculation used to only check
+    # freshness for the instrument in the order being submitted.
+    ledger = Ledger(":memory:")
+    ledger.set_pool_total(1_000_00)
+    ledger.register_agent("agent-a", 500_00)
+    ledger.set_price("XYZ", 10_00, tag="equity")
+    ledger.set_price("ABC", 10_00, tag="equity")
+    gw = OrderGateway(ledger, per_position_cap_fraction=1.0, max_price_age_seconds=3600)
+    held = gw.submit_order_request("agent-a", "XYZ", "buy", 10, idempotency_key="hold-xyz")
+    PaperBroker(ledger).simulate_fill(held.order_id, fill_price_cents=10_00, final=True)
+    # XYZ's mark goes stale; ABC gets a perfectly fresh quote.
+    with ledger._lock:
+        ledger._conn.execute(
+            "UPDATE prices SET updated_at = ? WHERE instrument = 'XYZ'", (time.time() - 10_000,)
+        )
+    ledger.set_price("ABC", 11_00, tag="equity")
+    blocked_by_other = gw.submit_order_request("agent-a", "ABC", "buy", 1, idempotency_key="buy-abc-blocked")
+    check(
+        "a stale mark on a held instrument OTHER than the one being bought still blocks the buy (stale_position_mark)",
+        not blocked_by_other.accepted and blocked_by_other.reason == "stale_position_mark",
+    )
+
+    # 23. equity peaks reached between orders — pure price moves, no buy or
+    # sell in between — are not lost: set_price() checkpoints every current
+    # holder's peak, not only a buy evaluation.
+    ledger = Ledger(":memory:")
+    ledger.set_pool_total(1_000_00)
+    ledger.register_agent("agent-a", 500_00)
+    ledger.set_price("XYZ", 10_00, tag="equity")
+    gw = OrderGateway(ledger, per_position_cap_fraction=1.0, max_drawdown_fraction=0.20)
+    peak_buy = gw.submit_order_request("agent-a", "XYZ", "buy", 40, idempotency_key="peak-buy")  # $400 of $500
+    PaperBroker(ledger).simulate_fill(peak_buy.order_id, fill_price_cents=10_00, final=True)
+    ledger.set_price("XYZ", 20_00, tag="equity")  # equity peaks near $900 here, with no order submitted
+    ledger.set_price("XYZ", 10_00, tag="equity")  # price falls back; no order submitted either
+    should_block = gw.submit_order_request("agent-a", "XYZ", "buy", 1, idempotency_key="peak-buy-2")
+    check(
+        "a peak reached by a pure price move (no order in between) is still recorded and enforced "
+        "on the next buy (agent_drawdown_stop)",
+        not should_block.accepted and should_block.reason == "agent_drawdown_stop",
+    )
+
+    # 24. a fill's own price is validated before it touches any balance —
+    # a negative or zero fill price must not manufacture cash or shares.
+    ledger, gw = fresh_gateway()
+    d = gw.submit_order_request("agent-a", "XYZ", "buy", 1, idempotency_key="bad-fill-price")
+    before_bal = ledger.agent_balance("agent-a")
+    for bad_price in (-1000, 0):
+        try:
+            ledger.settle(d.order_id, 1, bad_price, final=True)
+            check(f"a fill priced at {bad_price} is rejected before any balance changes", False)
+        except ValueError:
+            check(f"a fill priced at {bad_price} is rejected before any balance changes", True)
+    after_bal = ledger.agent_balance("agent-a")
+    check("a rejected fill leaves the agent's balance completely untouched", after_bal == before_bal)
+
+    # 25. reconciliation with a broker supplied still enforces the pool-cash
+    # bound, and catches a pure cash corruption that leaves positions alone
+    # (the earlier version's broker branch dropped this check entirely).
+    ledger = Ledger(":memory:")
+    ledger.set_pool_total(1_000_00)
+    ledger.register_agent("agent-a", 500_00)
+    ledger.set_price("XYZ", 10_00, tag="equity")
+    gw = OrderGateway(ledger, per_position_cap_fraction=1.0)
+    broker4 = PaperBroker(ledger)
+    buy3 = gw.submit_order_request("agent-a", "XYZ", "buy", 10, idempotency_key="recon-cash-buy")
+    broker4.simulate_fill(buy3.order_id, fill_price_cents=10_00, final=True)
+    check("reconciliation against a broker is ok after a normal fill", ledger.reconcile(broker4)["ok"])
+    with ledger._lock:
+        ledger._conn.execute(
+            "UPDATE agents SET available_cents = available_cents + 10_000_000 WHERE agent_id = 'agent-a'"
+        )
+    report_cash_corrupt = ledger.reconcile(broker4)
+    check(
+        "a cash corruption with matching positions is still caught when a broker is supplied "
+        "(the pool-cash bound is not dropped just because a broker was passed)",
+        not report_cash_corrupt["ok"],
+    )
+
+    # 26. reconciliation also compares the broker's independently-tallied
+    # net cash flow against the pool's own net movement, not just positions.
+    ledger = Ledger(":memory:")
+    ledger.set_pool_total(1_000_00)
+    ledger.register_agent("agent-a", 500_00)
+    ledger.set_price("XYZ", 10_00, tag="equity")
+    gw = OrderGateway(ledger, per_position_cap_fraction=1.0)
+    broker5 = PaperBroker(ledger)
+    buy4 = gw.submit_order_request("agent-a", "XYZ", "buy", 10, idempotency_key="recon-netcash-buy")
+    broker5.simulate_fill(buy4.order_id, fill_price_cents=10_00, final=True)
+    broker5.net_cash_cents += 5_000  # desync the broker's tally from what actually happened
+    report_netcash_mismatch = ledger.reconcile(broker5)
+    check(
+        "a mismatch between the broker's net cash tally and the pool's own net movement is caught",
+        not report_netcash_mismatch["ok"] and report_netcash_mismatch["position_mismatches"],
+    )
 
     print(f"{checks - failures}/{checks} checks passed")
     return 1 if failures else 0

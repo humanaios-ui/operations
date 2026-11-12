@@ -38,12 +38,24 @@ authorizes; it does not authorize anything past that.
   (not just its reservation — the single most serious bug a GitHub Copilot
   PR review on this work caught), and a reconciliation check against an
   independently-tallied broker record. Run
-  `python3 gateway/ledger_gateway_v0_1.py --smoke-test` — 42/42 hostile and
+  `python3 gateway/ledger_gateway_v0_1.py --smoke-test` — 52/52 hostile and
   boundary cases pass. The file's git history is the honest record of this:
   the first version passed its own 22 self-authored tests and still shipped
-  nine High-severity bugs that a second reviewer's hostile cases found —
-  which is the argument for getting a second, differently-biased reviewer
-  before trusting any test count a component's own author wrote.
+  nine High-severity bugs a GitHub Copilot PR review's hostile cases found;
+  the fix for those passed its own enlarged 42-test suite and *still*
+  shipped seven more High-severity bugs (plus two incompletely-fixed
+  carryovers) on the next review pass — a quote refresh silently clearing
+  an instrument's denylist tag, the kill switch not being rechecked inside
+  the reservation transaction, a stale mark on an unrelated held position
+  bypassing the drawdown check, the drawdown peak missing moves that happen
+  between orders, an unvalidated fill price, audit log inserts that
+  weren't atomic with the state change they recorded, and the broker-backed
+  reconciliation branch silently dropping the pool-cash invariant. Two
+  review passes in a row each found High-severity bugs the previous pass's
+  own expanded test suite didn't — which is the actual argument for a
+  second, differently-biased reviewer: not that one pass suffices once
+  you've "gotten" one, but that each pass's fixes need their own next
+  pass before anyone should trust the test count its own author wrote.
 
 Reading order for someone new to the issue: the audit file first (for the
 COI disclosure and new findings), then `PROTOCOL_E0.md` (for how the
