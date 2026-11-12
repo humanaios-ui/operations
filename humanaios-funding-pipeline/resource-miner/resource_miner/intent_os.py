@@ -21,11 +21,6 @@ from .query_quality import (
 MAX_OBJECTIVE = 500
 MAX_ROWS = 500
 PUBLIC_SOURCES = {"HumanAIOS Funding Pipeline", "DEV Community"}
-# These source states are holds, NOT proof the program is closed or the applicant is ineligible.
-HELD_SOURCE_STATUSES = frozenset({
-    "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE",
-    "RECHECK_REQUIRED", "UNVERIFIED_RECHECK",
-})
 
 
 def _words(value: str) -> set[str]:
@@ -89,7 +84,7 @@ def _verification_state(row: dict) -> tuple[str, str]:
         return "CONFLICTING", "SOURCE_CONFLICT"
     if source in {"SOURCE_UNAVAILABLE", "LINK_FAILED_404"}:
         return "UNAVAILABLE", source
-    if source in {"ROLE_NOT_LISTED", "RECHECK_REQUIRED"}:
+    if source in {"ROLE_NOT_LISTED", "RECHECK_REQUIRED", "UNVERIFIED_RECHECK"}:
         return "UNKNOWN", source
 
     # A declared validity end is a negative freshness boundary, not proof
@@ -133,17 +128,16 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
 
     matches = []
     verification_cases = []
+    held_ids: set[str] = set()
     omitted = 0
     unexamined_count = max(0, len(rows) - MAX_ROWS)
     for row in rows[:MAX_ROWS]:
         if not isinstance(row, dict) or row.get("source_name") not in PUBLIC_SOURCES:
             omitted += 1
             continue
-        # Preserve a negative source correction through the user-facing search.
-        # A proposed official recheck cannot self-release a held lead.
-        if row.get("source_verification_status") in HELD_SOURCE_STATUSES:
-            omitted += 1
-            continue
+        candidate_id = str(row.get("resource_id") or "")[:100]
+        if row.get("source_verification_status") in HELD_SOURCE_STATUSES and candidate_id:
+            held_ids.add(candidate_id)
         url = _public_https(row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url"))
         if not url:
             omitted += 1
@@ -165,7 +159,6 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             omitted += 1
             continue
         # Never approximate a structured ID from loose semantic tokens.
-        candidate_id = str(row.get("resource_id") or "")[:100]
         if not has_exact_anchors(objective, " ".join(
             (candidate_id, title, desc, terms, labels)
         )):
@@ -217,7 +210,6 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
     duplicate_count = len(matches) - len(unique_matches)
     # The same identity cannot remain an actionable discovery row if a
     # separate snapshot row for that identity has an explicit source hold.
-    held_ids = {r["resource_id"] for r in verification_cases if r["resource_id"]}
     matches = fuse_rankings(
         [r for r in unique_matches.values() if r["resource_id"] not in held_ids]
     )

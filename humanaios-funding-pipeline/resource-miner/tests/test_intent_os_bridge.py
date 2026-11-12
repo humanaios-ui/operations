@@ -65,6 +65,21 @@ class ObjectiveContractTests(unittest.TestCase):
         self.assertEqual(result["candidates"], [])
         self.assertEqual(result["excluded_count"], 2)
 
+    def test_irrelevant_held_duplicate_suppresses_matching_active_candidate(self):
+        active = candidate(resource_id="RES-SHARED")
+        held = candidate(
+            resource_id="RES-SHARED",
+            title="Unrelated review-only record",
+            description="Unrelated archived entry",
+            tags=[],
+            resource_types=[],
+            resource_affordances=[],
+            source_verification_status="SOURCE_CONFLICT",
+        )
+        result = self.evaluate([active, held])
+        self.assertEqual(result["candidates"], [])
+        self.assertEqual(result["matched_count"], 0)
+
     def test_url_scheme_is_rejected(self):
         self.assertEqual(self.evaluate([candidate(canonical_url="javascript:alert(1)")])["candidates"], [])
         self.assertEqual(self.evaluate([candidate(canonical_url="http://127.0.0.1/")])["candidates"], [])
