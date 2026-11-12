@@ -41,15 +41,14 @@ python3 -m unittest discover -s tests -p 'test_witness_bridge.py' -v
 
 For a cross-version test, run the new test module with the E0.3 package as the current import root and the proposal's `tests` folder on `PYTHONPATH`; do **not** change or replace E0.3 application files.
 
-## Observed results, 2026-11-11
+## Observed results through 2026-11-12 (UTC)
 
-- New permanent contract module: **13/13 PASS on patched main**.
-- Same permanent module: **13/13 PASS with E0.3 code loaded**.
-- Existing bridge regression module: **6/6 PASS**.
-- E0.3 joined-workspace browser test: PASS (existing script).
-- Unit Zero v0.2 local service: 5 tools listed and read-only `haios_status` PASS; no Anthropic key loaded.
-- Main full Resource Miner discovery: **625 tests run, 4 failures, 2 errors, 9 skipped**. Observed failures in ACAT-R verification/source-state tests, not in the new Witness contract tests. We have **not yet independently established whether these six failures reproduce at unchanged main**. Do not claim full-suite green or interpret them as caused/cleared by this proposal.
-- Test observations are operator-side, not third-party attestation; the exact new test module itself is the repeatable executable evidence.
+- The original 13-case contract module passed **13/13** in earlier patched-main and E0.3 import-root checks. Commit `302ee29` added a proxy-safe handler-receipt test; the exact PR code head now has **14 contract cases**.
+- At exact code head `302ee29e0006337fe4d85e7ba4ecf088e999f455`, all 14 contract cases and the existing Witness bridge's 6 cases passed within hosted Resource Miner run [43133015256](https://github.com/humanaios-ui/operations/actions/runs/43133015256). This was not a standalone 14-case rerun or a post-addition E0.3 import-root rerun.
+- E0.3 joined-workspace browser test: PASS (existing script). Unit Zero v0.2 local service: 5 tools listed and read-only `haios_status` PASS; no Anthropic key loaded.
+- Exact PR-head full Resource Miner suite: **626 tests, 4 failures, 2 errors, 9 skipped**, exit 1. The six failures are ACAT-R/source-state cases, not Witness cases. The unchanged current-main baseline at `cebb1846d92343fbbc304cf608b0c89d07acdcbd` has not yet been independently rerun. Do not claim full-suite green or infer that this proposal caused or cleared those failures.
+- Test observations are operator-side, not third-party attestation. The full run's logs show the new proxy case reached the loopback handler under hostile proxy settings.
+- This evidence is anchored to code head `302ee29`. A documentation-only correction follows; the updated PR head needs a fresh hosted run.
 
 ## Test exclusions and risk register
 
@@ -66,7 +65,7 @@ For a cross-version test, run the new test module with the E0.3 package as the c
 Approve only a **test/security-boundary proposal** after an independent reviewer:
 
 1. Confirms the `Sec-Fetch-Site` check preserves legitimate same-origin user workflow and denies hostile cross-site requests.
-2. Reproduces 13/13 new checks on exact proposed head and validates no Keychain or Anthropic access.
+2. Reproduces all 14 contract checks on exact proposed head and validates no Keychain or Anthropic access.
 3. Separately reruns baseline ACAT-R source-state failures and resolves their cause or explicitly excludes them with evidence.
 4. Confirms v0.2 PR #1012 admission is a **separate decision**.
 5. Keeps all merges, deployments, model usage, and resource actions subject to explicit Night/Z2 approval.
