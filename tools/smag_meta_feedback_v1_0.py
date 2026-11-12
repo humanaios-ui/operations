@@ -118,12 +118,8 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
     """
     Measure recent consolidation PRs' actual outcomes via GitHub REST API.
 
-    Uses 'gh api' to call GitHub REST API directly (avoids GraphQL which is unavailable
-    in Claude Code cloud sessions). Extracts immutable smag_p_meta predictions and merge
-    status, computes accuracy.
-
-    Note: Predictions are immutable (captured at PR open/sync time). Outcomes
-    are determined by GitHub merge state, not PR body prose.
+    Fetches all PRs page-by-page within the lookback window, filters by title and date,
+    extracts immutable smag_p_meta predictions and merge status, computes accuracy.
 
     Returns: {
       "total_prs": int,
@@ -146,79 +142,83 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         owner, repo_name = repo.split("/", 1)
 
         # Use gh api to call GitHub REST API directly (avoids GraphQL)
-        # REST API endpoint: GET /repos/{owner}/{repo}/pulls?state=all&per_page=100
+        # Fetch all PRs page-by-page within the lookback window
         cutoff_timestamp = (datetime.utcnow() - timedelta(days=lookback_days)).isoformat()
+        all_prs = []
+        page = 1
+        max_pages = 10  # Safety limit to avoid infinite loops
 
-        result = subprocess.run(
-            [
-                "gh",
-                "api",
-                "-X",
-                "GET",
-                f"repos/{owner}/{repo_name}/pulls",
-                "-f",
-                "state=all",
-                "-f",
-                "per_page=100",
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=30,
-        )
+        while page <= max_pages:
+            result = subprocess.run(
+                [
+                    "gh",
+                    "api",
+                    "-X",
+                    "GET",
+                    f"repos/{owner}/{repo_name}/pulls",
+                    "-f",
+                    "state=all",
+                    "-f",
+                    "per_page=100",
+                    "-f",
+                    f"page={page}",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=30,
+            )
 
-        if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else "GitHub REST API unavailable"
-            return {
-                "total_prs": 0,
-                "predicted_prs": 0,
-                "successful": 0,
-                "reworked": 0,
-                "reverted": 0,
-                "predicted_accuracy": None,
-                "actual_success_rate": None,
-                "calibration_gap": None,
-                "focus_areas": [],
-                "meta_signal_available": False,
-                "lookback_days": lookback_days,
-                "error": f"GitHub API failed: {error_msg}",
-            }
+            if result.returncode != 0:
+                error_msg = result.stderr if result.stderr else "GitHub REST API unavailable"
+                return {
+                    "total_prs": 0,
+                    "predicted_prs": 0,
+                    "successful": 0,
+                    "reworked": 0,
+                    "reverted": 0,
+                    "predicted_accuracy": None,
+                    "actual_success_rate": None,
+                    "calibration_gap": None,
+                    "focus_areas": [],
+                    "meta_signal_available": False,
+                    "lookback_days": lookback_days,
+                    "error": f"GitHub API failed: {error_msg}",
+                }
 
-        if not result.stdout:
-            return {
-                "total_prs": 0,
-                "predicted_prs": 0,
-                "successful": 0,
-                "reworked": 0,
-                "reverted": 0,
-                "predicted_accuracy": None,
-                "actual_success_rate": None,
-                "calibration_gap": None,
-                "focus_areas": [],
-                "meta_signal_available": False,
-                "lookback_days": lookback_days,
-                "note": "No PRs found",
-            }
+            if not result.stdout:
+                break
 
-        try:
-            all_prs = json.loads(result.stdout)
-            if not isinstance(all_prs, list):
-                all_prs = [all_prs] if all_prs else []
-        except json.JSONDecodeError as e:
-            return {
-                "total_prs": 0,
-                "predicted_prs": 0,
-                "successful": 0,
-                "reworked": 0,
-                "reverted": 0,
-                "predicted_accuracy": None,
-                "actual_success_rate": None,
-                "calibration_gap": None,
-                "focus_areas": [],
-                "meta_signal_available": False,
-                "lookback_days": lookback_days,
-                "error": f"Failed to parse GitHub API response: {e}",
-            }
+            try:
+                page_prs = json.loads(result.stdout)
+                if not isinstance(page_prs, list):
+                    page_prs = [page_prs] if page_prs else []
+            except json.JSONDecodeError as e:
+                return {
+                    "total_prs": 0,
+                    "predicted_prs": 0,
+                    "successful": 0,
+                    "reworked": 0,
+                    "reverted": 0,
+                    "predicted_accuracy": None,
+                    "actual_success_rate": None,
+                    "calibration_gap": None,
+                    "focus_areas": [],
+                    "meta_signal_available": False,
+                    "lookback_days": lookback_days,
+                    "error": f"Failed to parse GitHub API response: {e}",
+                }
+
+            # Check if this page has PRs older than cutoff
+            if page_prs:
+                oldest_created = min((pr.get("created_at", "") for pr in page_prs), default="")
+                all_prs.extend(page_prs)
+                if oldest_created and oldest_created < cutoff_timestamp:
+                    # This page has PRs older than cutoff; stop fetching
+                    break
+                page += 1
+            else:
+                break
 
         # Filter PRs by title and creation date
         prs_data = []
