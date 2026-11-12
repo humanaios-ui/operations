@@ -15,10 +15,16 @@ authorizes; it does not authorize anything past that.
   that review's findings #3 and #8.
 - [`break_even_table.py`](break_even_table.py) /
   [`break_even_table.md`](break_even_table.md) /
-  [`break_even_table.csv`](break_even_table.csv) — the required-return
-  sensitivity grid the prior review's finding #1 calls the blocking
-  prerequisite. Re-run with `--capital`/`--cost`/`--months` once the real
-  B (Coinbase eligible capital) and N (verified paid roster) are known.
+  [`break_even_table.csv`](break_even_table.csv) — horizon-independent
+  required-return grid and min-capital inversion for finding #1.
+  Reports linear `12·C/A` and monthly-compounded `(1 + C/A)^12 − 1`,
+  with plausibility columns at 7%/10%/15% per year. Default costs are
+  the 2026-11 list-price points ($10, $20, $30, $39, $100); C=0 is
+  omitted because no cohort member costs $0. Horizon H is not an
+  input (it belongs to the statistical-power question). Re-run with
+  `--capital`/`--cost` (and optionally `--include-cost-200`). Actual
+  billed tiers remain UNVERIFIED. This table does not record any real
+  capital amount.
 - [`PROTOCOL_E0.md`](PROTOCOL_E0.md) — the consolidated forward-paper-trading
   protocol: frozen participant tuple (including sampling parameters and
   training cutoff, per audit findings #17–18), window/benchmark/capital
