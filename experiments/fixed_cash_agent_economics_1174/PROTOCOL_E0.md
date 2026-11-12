@@ -47,7 +47,7 @@ opens. Changing any field mid-window is a protocol event, not a silent edit.
   parameter at all (fixed 2026-11-12: the earlier H-dependent formula
   was a compounding-convention artifact, not a real economic effect).
 - **No extension, no early stop on a favorable result.** Early stop on a
-  predeclared risk/drawdown limit is allowed (see Â§5); early stop because a
+  predeclared risk/drawdown limit is allowed (see §5); early stop because a
   result looks good is not.
 
 ## 4. Benchmark and capital — RATIFIED DISPOSITION (2026-11-12)
@@ -94,7 +94,7 @@ frozen benchmark over the same window? Measured separately per agent:
    after fees. Reported with the standing caveat that small N and a
    short window cannot establish skill (red-team finding #2).
 4. **Inactive agents** scored by the rule predeclared before the window
-   opens (audit finding #20; Â§5 below), not decided after seeing who
+   opens (audit finding #20; §5 below), not decided after seeing who
    went idle.
 
 ## 5. Risk and instrument limits (enforced at the gateway, not by instruction)
@@ -141,7 +141,7 @@ fails closed; every decision (accepted/rejected + reason) is appended to an
 audit log; reconciliation compares the ledger's claims against the
 "broker's" (paper-mode) authoritative record and flags any mismatch.
 
-## 7. Hostile test coverage required before any later gate (red-team finding #13; annex 2 Â§Security)
+## 7. Hostile test coverage required before any later gate (red-team finding #13; annex 2 §Security)
 
 `gateway/ledger_gateway_v0_1.py --smoke-test` exercises: normal accept,
 per-agent over-cap reject, pool-exceeded reject, duplicate idempotency-key
@@ -162,11 +162,11 @@ this one, regardless of whether it's in the named four.
 
 One redacted packet linking: this protocol, the frozen tuples actually used,
 the gateway's audit log for the run, the reconciliation report, the four
-Â§4 measures per agent (control integrity, decision quality,
+§4 measures per agent (control integrity, decision quality,
 benchmark-relative result, inactive-agent disposition), and a
 GO / REVISE / STOP recommendation for the *next* research step only — never
 a blanket "trading works" conclusion (red-team finding #2 on skill vs. luck
-at N=4), and never a subscription keep/cancel decision (Â§4: that's judged
+at N=4), and never a subscription keep/cancel decision (§4: that's judged
 on nonfinancial production, not this packet).
 
 No trades, transfers, connections, accounts, or permission changes are

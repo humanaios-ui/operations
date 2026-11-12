@@ -399,16 +399,35 @@ def run_smoke_test() -> int:
     a_min = min_capital(30, 0.15)
     check("A_min(C=30,r=0.15) == 2400", abs(a_min - 2400.0) < 1e-12)
 
-    entry = cohort_requirement("Entry", TIER_SCENARIOS["Entry"], 0.15)
-    check("entry B_all at 15% == 9600", abs(entry.b_all_four - 9600.0) < 1e-12)
-    check("entry B_aggregate at 15% == 6400", abs(entry.b_aggregate - 6400.0) < 1e-12)
-
-    power = cohort_requirement("Power", TIER_SCENARIOS["Power"], 0.15)
-    check("power B_all at 15% == 32000", abs(power.b_all_four - 32000.0) < 1e-12)
-    check("power B_aggregate at 15% == 27120", abs(power.b_aggregate - 27120.0) < 1e-12)
+    # List-price tier figures through cohort_requirement (A_min = 12*C/r).
+    entry_15 = cohort_requirement("Entry", TIER_SCENARIOS["Entry"], 0.15)
+    entry_15_a = {p.name: p.a_min for p in entry_15.per_agent}
+    check("entry/15%: ChatGPT A_min = $1,600", abs(entry_15_a["ChatGPT Plus"] - 1600) < 1.0)
+    check("entry/15%: Copilot A_min = $800", abs(entry_15_a["Copilot Pro"] - 800) < 1.0)
+    check("entry/15%: SuperGrok A_min = $2,400", abs(entry_15_a["SuperGrok"] - 2400) < 1.0)
+    check("entry/15%: B for all 4 to pass = $9,600", abs(entry_15.b_all_four - 9600) < 1.0)
+    check(
+        "entry/15%: B for cohort in aggregate = $6,400",
+        abs(entry_15.b_aggregate - 6400) < 1.0,
+    )
 
     entry_10 = cohort_requirement("Entry", TIER_SCENARIOS["Entry"], 0.10)
-    check("entry B_all at 10% == 14400", abs(entry_10.b_all_four - 14400.0) < 1e-12)
+    check("entry/10%: B for all 4 to pass = $14,400", abs(entry_10.b_all_four - 14400) < 1.0)
+
+    entry_7 = cohort_requirement("Entry", TIER_SCENARIOS["Entry"], 0.07)
+    check("entry/7%: B for all 4 to pass ~= $20,571", abs(entry_7.b_all_four - 20571) < 1.0)
+
+    power_15 = cohort_requirement("Power", TIER_SCENARIOS["Power"], 0.15)
+    power_15_a = {p.name: p.a_min for p in power_15.per_agent}
+    check("power/15%: Copilot Pro+ A_min = $3,120", abs(power_15_a["Copilot Pro+"] - 3120) < 1.0)
+    check("power/15%: B for all 4 to pass = $32,000", abs(power_15.b_all_four - 32000) < 1.0)
+    check(
+        "power/15%: B for cohort in aggregate = $27,120",
+        abs(power_15.b_aggregate - 27120) < 1.0,
+    )
+
+    power_7 = cohort_requirement("Power", TIER_SCENARIOS["Power"], 0.07)
+    check("power/7%: B for all 4 to pass ~= $68,571", abs(power_7.b_all_four - 68571) < 1.0)
 
     check("zero capital -> inf, not an exception", required_annual_linear(0, 20) == float("inf"))
     check(

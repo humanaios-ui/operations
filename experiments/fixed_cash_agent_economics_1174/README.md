@@ -28,7 +28,7 @@ authorizes; it does not authorize anything past that.
   is the one the operator actually used**: the real starting capital
   came in below every tier's break-even floor, so the "pay for its own
   subscription through trading" track is now STOPPED (see
-  `PROTOCOL_E0.md` Â§4) — subscription keep/cancel now runs on
+  `PROTOCOL_E0.md` §4) — subscription keep/cancel now runs on
   nonfinancial production instead. Re-run with `--capital`/`--cost`
   (and optionally `--include-cost-200`). Actual billed tiers remain
   UNVERIFIED; no real capital amount is recorded.

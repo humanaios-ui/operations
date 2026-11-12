@@ -7,7 +7,7 @@ section and the operator's follow-up "User-ratified control direction —
 enforced ledger gate" comment, which authorizes *design and implementation*
 of this gate under #1174 — it does NOT authorize a broker connection, an
 account, credentials, or a live order. There is no network client in this
-file and none should be added to it; see PROTOCOL_E0.md Â§1 for why this
+file and none should be added to it; see PROTOCOL_E0.md §1 for why this
 stage stays paper-only.
 
 What this enforces (mirrors the issue's required-behavior list):
@@ -46,7 +46,7 @@ What this enforces (mirrors the issue's required-behavior list):
     mark-to-market equity has fallen more than `max_drawdown_fraction`
     below its own high-water mark. The default (1.0) is a no-op — the
     real threshold is a protocol decision this file has no opinion on
-    (PROTOCOL_E0.md Â§5) — but the mechanism itself is implemented and
+    (PROTOCOL_E0.md §5) — but the mechanism itself is implemented and
     tested, not merely described. The high-water mark is checkpointed on
     both a buy evaluation AND a plain price update (set_price()) AND a
     fill (settle()) — not only on a buy — so a peak reached by a pure
@@ -471,7 +471,7 @@ class Ledger:
         acceptance's audit row must survive exactly when its state change
         does. `max_drawdown_fraction` defaults to 1.0 (no stop) because the
         real threshold is a protocol decision this file has no opinion on
-        (see PROTOCOL_E0.md Â§5) — pass a real value once one is set; this
+        (see PROTOCOL_E0.md §5) — pass a real value once one is set; this
         parameter exists so the mechanism is there to configure, not to
         supply a default worth trusting."""
         if side not in ("buy", "sell"):
