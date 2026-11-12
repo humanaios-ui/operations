@@ -60,7 +60,16 @@ impact_prediction:
 
 ## How this gets ruled
 
-Per the 2026-09-18 ruling ("the merge is the ratification", `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`): write the option on the `choice:` line below and set `status: DECIDED` in a one-file pull request, or tap it on the board's Decisions page and use **→ PR**. Merging that pull request is the ratification. Z1 signs nothing and does not merge it.
+Per the 2026-09-18 ruling ("the merge is the ratification", `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`): a one-file pull request fills this file's `## Ruling` section, and merging it is the ratification. The section must be the one `tools/decision_relay.py` writes: `choice`, `by`, `at`, `status: DECIDED`, `block_hash`, `body_hash` and the fenced `RULING` block. `tools/intent_os_reconcile_v1_0.py` (`plan()`) skips a section that lacks that block, and it refuses one whose hashes do not match the file. So editing only `choice:` and `status:` by hand is not enough: the candidate would stay `awaiting_z2` and no signature would be written.
+
+Two ways to land the section:
+
+1. Night taps the option on the board's Decisions page and uses **→ PR**. The relay writes the section.
+2. Z1 builds the same section with the relay's own `ruling_block`, `body_hash` and `write_choice` and opens the one-file pull request. In that block, `by` is a Z1 label and is not a claim about who ruled. The signature's `by` and `at` come only from the merger's GitHub login (mapped to a declared ratifier) and the merge date.
+
+The `body_hash` pins every byte of this file outside `## Ruling`. Any edit to the rest of the file after the ruling pull request is opened breaks reconciliation, so this text is final once that pull request exists.
+
+Z1 does not merge the ruling pull request. The merger's login becomes the ratifier's name, so a Z1 merge would be read as Night's act.
 
 ## Ruling
 
