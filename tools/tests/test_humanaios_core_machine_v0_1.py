@@ -501,6 +501,23 @@ class TestAuthorityBoundary:
         assert result["can_execute"] is False
         assert result["merge_authority"] is False
 
+    def test_grok_haios_is_a_participant_and_not_an_authorization_actor(self):
+        # participants names a Z1 research role. It is not authorized_actors,
+        # which is the HCM allow-list for evaluation-admission receipts.
+        current = json.loads((TOOLS.parent / "REPOSITORY_COORDINATOR_POLICY.json").read_text())
+        evaluation = current["evaluation_admission"]
+        assert "authorized_actors" not in evaluation
+        assert evaluation["merge_authority"] is False
+        assert evaluation["authority_effect"] == "EVALUATION_ONLY"
+        assert evaluation["participants"] == [{
+            "id": "grok-haios",
+            "display_name": "Grok-HAIOS",
+            "zone": "Z1",
+            "role": "research_participant",
+            "may": ["evaluate", "propose"],
+            "may_not": ["ratify", "apply_z2_labels", "merge", "deploy"],
+        }]
+
     def test_runtime_pins_are_required_for_authority_import(self):
         result = machine.run_program(compile_source(source(full=True)))
         assert result["status"] == "HALTED"

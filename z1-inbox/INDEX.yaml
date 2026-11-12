@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 121
+  candidates: 122
   records: 72
 ratifiers:
 - Night
 candidates:
+- q_id: Q-GROK-HAIOS-PARTICIPANT-01
+  title: Admit grok-haios (Grok-HAIOS) as a Z1 research participant
+  path: z1-inbox/2026-11-12/Q-GROK-HAIOS-PARTICIPANT-01.md
+  submitted: '2026-11-12'
+  status: awaiting_z2
+  tier: 0
+  note: 'Draft role. Evaluate and propose only. Does not add evaluation_admission.authorized_actors, so the core machine stays halt-closed. Falsifier stated. Not ratified.'
 - q_id: Q-GRAPH-ORPHANS-B1-01
   title: Graph orphan wiring, batch one (GNER, TDG, CUST) with edges proven by code, plus the two nodes those edges need
   path: z1-inbox/2026-11-11/Q-GRAPH-ORPHANS-B1-01.md
