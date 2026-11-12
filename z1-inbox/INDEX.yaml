@@ -970,12 +970,12 @@ records:
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
     \ signature appends a section carrying its own sha256."
-- title: Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record)
-  path: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+- path: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+  title: Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record)
   submitted: '2026-10-22'
   note: 'Re-signs the current candidate bytes after the 2026-10-15 signature stopped verifying. The earlier record is kept as superseded. Scope unchanged.'
-- title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
-  path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
+- path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
+  title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
   submitted: '2026-10-15'
   note: Records the Z2 ratification of the read-only graph lookup tool. §A wiring and graph commit remain open.
 - path: z1-inbox/2026-10-14/QUEUE_MAP_2026-10-14.md
