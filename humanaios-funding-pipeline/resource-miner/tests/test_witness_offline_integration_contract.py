@@ -6,11 +6,12 @@ Compatible with the reconciled E0.3 build and the main-branch public bridge.
 from __future__ import annotations
 
 import json
+import os
 import threading
 import unittest
 from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
+from urllib.request import Request, ProxyHandler, build_opener
 from unittest.mock import patch
 
 import app
@@ -118,8 +119,18 @@ class LocalHttpFailClosed(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), app.Handler)
+        cls.requests_observed = 0
+        cls.requests_lock = threading.Lock()
+
+        class CountingHandler(app.Handler):
+            def do_POST(self):
+                with cls.requests_lock:
+                    cls.requests_observed += 1
+                return super().do_POST()
+
+        cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), CountingHandler)
         cls.port = cls.httpd.server_address[1]
+        cls.opener = build_opener(ProxyHandler({}))
         cls.thread = threading.Thread(target=cls.httpd.serve_forever, daemon=True)
         cls.thread.start()
 
@@ -139,11 +150,17 @@ class LocalHttpFailClosed(unittest.TestCase):
         data = json.dumps(body).encode("utf-8")
         req = Request(address + "/api/witness/ask-resource", data=data,
                       headers=hdr, method="POST")
+        with self.requests_lock:
+            before = self.requests_observed
         try:
-            with urlopen(req, timeout=4) as response:
-                return response.status, response.read()
+            with self.opener.open(req, timeout=4) as response:
+                result = response.status, response.read()
         except HTTPError as error:
-            return error.code, error.read()
+            result = error.code, error.read()
+        with self.requests_lock:
+            after = self.requests_observed
+        self.assertEqual(after, before + 1, "Request must reach the local app.Handler")
+        return result
 
     def test_same_origin_disabled_503_without_provider(self):
         with patch.object(app, "witness_enabled", return_value=False), \
@@ -172,6 +189,25 @@ class LocalHttpFailClosed(unittest.TestCase):
             status, _ = self.send({
                 "Origin": "http://127.0.0.1:%s" % self.port,
                 "Sec-Fetch-Site": "cross-site"})
+        self.assertIn(status, (403, 404))
+        talk.assert_not_called()
+
+    def test_hostile_proxy_environment_still_reaches_handler(self):
+        hostile = {
+            "HTTP_PROXY": "http://127.0.0.1:1",
+            "HTTPS_PROXY": "http://127.0.0.1:1",
+            "ALL_PROXY": "http://127.0.0.1:1",
+            "NO_PROXY": "example.invalid",
+            "http_proxy": "http://127.0.0.1:1",
+            "https_proxy": "http://127.0.0.1:1",
+            "all_proxy": "http://127.0.0.1:1",
+            "no_proxy": "example.invalid",
+        }
+        with patch.dict(os.environ, hostile), patch.object(app, "ask_resource") as talk:
+            status, _ = self.send({
+                "Origin": "http://127.0.0.1:%s" % self.port,
+                "Sec-Fetch-Site": "cross-site",
+            })
         self.assertIn(status, (403, 404))
         talk.assert_not_called()
 
