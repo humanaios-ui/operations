@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 121
+  candidates: 122
   records: 72
 ratifiers:
 - Night
@@ -945,6 +945,13 @@ candidates:
   ratified_at: "2026-10-31"
   z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
   z2_hash: "462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0"
+- q_id: Q-PILLOW-PYSEC-2026-4363-WAIVER-01
+  title: Scoped audit waiver for PYSEC-2026-4363 (pillow 12.3.0) on tools/Metaculus only; records the Z2 direction behind PR 1185
+  path: z1-inbox/2026-11-12/Q-PILLOW-PYSEC-2026-4363-WAIVER-01.md
+  submitted: '2026-11-12'
+  status: awaiting_z2
+  note: 'Answers CodeRabbit''s finding on 1185 (the workflow cites a Z2 direction no repository record holds). Waiver, not a fix; advisory text read from PyPI (trigger is a TIFF save); no save path found from the bot, not traced end to end; CVSS is CodeRabbit''s, unchecked; the PR-time CI scan did not exercise the waiver, the first main run that audits the Metaculus file does. Ruled by the one-file PR rule (merge is the ratification). Falsifier stated.'
+  tier: 2
 records:
 - path: z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md
   title: "Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py)"
