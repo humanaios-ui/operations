@@ -950,7 +950,7 @@ candidates:
   path: z1-inbox/2026-11-12/Q-PILLOW-PYSEC-2026-4363-WAIVER-01.md
   submitted: '2026-11-12'
   status: awaiting_z2
-  note: 'Answers CodeRabbit''s finding on 1185 (the workflow cites a Z2 direction no repository record holds). Waiver, not a fix; reachability partly read (no call path found from the bot, not traced end to end, advisory text unread); CVSS and dates are CodeRabbit''s, not checked. Ruled by the one-file PR rule (merge is the ratification). Falsifier stated.'
+  note: 'Answers CodeRabbit''s finding on 1185 (the workflow cites a Z2 direction no repository record holds). Waiver, not a fix; advisory text read from PyPI (trigger is a TIFF save); no save path found from the bot, not traced end to end; CVSS is CodeRabbit''s, unchecked; the PR-time CI scan did not exercise the waiver, the first main run that audits the Metaculus file does. Ruled by the one-file PR rule (merge is the ratification). Falsifier stated.'
   tier: 2
 records:
 - path: z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md

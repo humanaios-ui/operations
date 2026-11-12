@@ -35,15 +35,15 @@ impact_prediction:
 - **claim:** `pip-audit` on `tools/Metaculus/requirements.txt` reports pillow 12.3.0 with PYSEC-2026-4363, fixed in 13.0.0. The file pins `forecasting-tools<0.4.0`, which requires `pillow<13`, so the fixed version cannot resolve there. The existing scoped exception list in the same command (54 IDs) records the same constraint.
 - **evidence:**
   - [V] #1185's body, from a run Z1 did not repeat: before the change `Found 1 known vulnerability, ignored 54`; after, `No known vulnerabilities found, 55 ignored`.
-  - [V] On #1185 head `8233486049756843693a279c0c9db6f1f1dffaef`, CI job "Python dependency vulnerability scan" passed (observed in this session).
-  - [I] The severity (CodeRabbit says Critical, CVSS 9.1) and the advisory's publication date (5 November 2026) come from CodeRabbit's comment. Z1 did not check the advisory record.
+  - [V] The PR-time CI job "Python dependency vulnerability scan" on #1185 head `8233486049756843693a279c0c9db6f1f1dffaef` logged `No requirements files to audit for pull_request.` Its green result therefore did NOT exercise the waiver. The only evidence that the ignore clears the finding is the #1185 author's local `pip_audit` run quoted above, which Z1 did not repeat. The first run that audits the Metaculus file after #1185 merges is the real test (see below).
+  - [V] Advisory record, read 2026-11-12 from PyPI's JSON listing for pillow 12.3.0 (source `osv`): `PYSEC-2026-4363`, aliases `CVE-2026-112902` and `GHSA-xvh5-g6gv-559v`, fixed in `13.0.0`, not withdrawn. Text: through 12.3.0 the libtiff TIFF *encoder* can pass arguments to `TIFFSetField()` that do not match libtiff's tag definition. When an application saves attacker-controlled image metadata through this encoder, crafted tag values can cause invalid memory reads, copying process memory into the encoded output or crashing the process; an application that returns the encoded output to an attacker can disclose that memory. Reachable when re-saving compressed TIFF images and through conversions that keep EXIF metadata into compressed TIFF output.
+  - [I] The severity (CodeRabbit says Critical, CVSS 9.1) is CodeRabbit's claim. The PyPI listing carries no score; Z1 did not check one.
   - [V] Reachability read, 2026-11-12, by unpacking the published wheels of `forecasting-tools` 0.3.5 and 0.3.6 (both require `pillow<13.0.0`; no 0.4.0 exists on PyPI). Pillow call sites in the package:
     - `ai_models/ai_utils/openai_utils.py` lines 144 and 148: `Image.open` on an image URL (fetched with `urlopen`) or a base64 string, inside a private token-counting helper. It runs only for a chat message that holds an `image_url` item.
     - `agents_and_tools/source_archive/fetchers/playwright_fetcher.py` line 86: `Image.open` on a PNG that fetcher made itself (lazy, size only). Part of the source-archive tool, which has its own command-line entry point.
     - `util/file_manipulation.py`: imports `Image` for an image-writing helper.
   - [V] `tools/Metaculus/main.py` imports only text classes from `forecasting_tools` and does not mention `image_url`, playwright or images (grep).
-  - [I] No call path from the bot to `Image.open` was found. Not proven absent: Z1 did not trace every search and LLM path end to end.
-  - [I] What the advisory's flaw triggers on is unknown: the advisory service was unreachable from the Z1 box (403), so the advisory text was not read.
+  - [I] No call path from the bot to a TIFF save was found. The advisory's trigger is a save (encode) of attacker-controlled metadata; in `forecasting-tools` the only `Image.save` found is the generic `write_image_file` helper in `util/file_manipulation.py`, and the `Image.open` calls only read. Not proven absent: Z1 did not trace every search and LLM path end to end.
 - **not claimed:** that the exposure is harmless; that this is a fix (it is a waiver); anything about `tools/calibration_graph/requirements.txt` or `tools/requirements.txt`.
 
 ## Options
@@ -54,7 +54,7 @@ impact_prediction:
 
 ## What each sets in motion
 
-- `ratify waiver`: Z1 adds this candidate's ID to the workflow comment in #1185 (one more push), CI re-runs, and #1185 may then merge. #1142 (pytest) follows.
+- `ratify waiver`: Z1 adds this candidate's ID to the workflow comment in #1185 (one more push), CI re-runs, and #1185 may then merge. #1142 (pytest) follows. After #1185 merges, the first run on `main` that audits `tools/Metaculus/requirements.txt` must pass; that run, not the PR-time job, is the evidence the ignore works.
 - `remove waiver`: #1185 closes. security-gates stays red on main until the dependency moves off `forecasting-tools<0.4.0`; #1142 and #1198 inherit the red scan.
 - `later`: this block closes with its bytes signed; the question returns only as a new block. #1185 stays unmerged.
 
@@ -81,7 +81,7 @@ status: OPEN
 ## Z2 Review Checklist
 
 - [ ] Waive PYSEC-2026-4363 for `tools/Metaculus/requirements.txt` only? — options: ratify waiver, remove waiver, later
-- [ ] Reachability: Z2 accepts the partial read above (no call path found from the bot; advisory text unread; not traced end to end).
+- [ ] Reachability: Z2 accepts the partial read above (advisory text read; trigger is a TIFF save; no save path found from the bot; not traced end to end).
 - [ ] A follow-up exists to move off `forecasting-tools<0.4.0` (issue #1101 or a new one), so the waiver has an owner and an exit.
 
 ## Falsifier
@@ -91,4 +91,4 @@ Event-based, no clock. This waiver is wrong, and should be removed rather than c
 - (a) scope drift: the ignore for this ID is applied to any audit command other than the Metaculus one, whatever those audits report. A finding of this advisory in another requirements file is not scope drift: it is consistent with a Metaculus-only waiver, and it is a separate finding that needs its own ruling; or
 - (b) pillow is shown reachable from code the Metaculus tooling runs, at 12.3.0, with the advisory's trigger.
 
-Probe for (a): the ID appears once in `security-gates.yml`, inside the Metaculus `pip_audit` command only (`grep -n PYSEC-2026-4363 .github/workflows/security-gates.yml`).
+Probe for (a): inspect executable arguments, not mentions of the ID (the ID also appears in a comment). `grep -n -e '--ignore-vuln PYSEC-2026-4363' .github/workflows/security-gates.yml` must print exactly one line, and that line must sit inside the branch that tests `"${normalized_req}" = "tools/Metaculus/requirements.txt"`.
