@@ -2,11 +2,33 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 119
-  records: 67
+  candidates: 121
+  records: 72
 ratifiers:
 - Night
 candidates:
+- q_id: Q-GRAPH-ORPHANS-B1-01
+  title: Graph orphan wiring, batch one (GNER, TDG, CUST) with edges proven by code, plus the two nodes those edges need
+  path: z1-inbox/2026-11-11/Q-GRAPH-ORPHANS-B1-01.md
+  submitted: '2026-11-11'
+  status: ratified
+  tier: 2
+  note: 'Issue #1175 batch one. Three edges, each proven by an import or an executed test and pinned to its line by a test; two new nodes (CPGA, IGV) carry them; orphans go from sixteen to twelve. TDG also has a lead into a workflow that is not yet a node. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-11"
+  z2_ruling: "z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md"
+  z2_hash: "0f1ebdbcb2fd823a439390d02c952d522e90a2503860d32dca2dfdbbbb97dbb0"
+- q_id: Q-SYSTEM-GRAPH-REGEN-01
+  title: Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate
+  path: z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md
+  submitted: '2026-11-10'
+  status: ratified
+  tier: 2
+  note: 'PR #1158. Regenerates the graph last built 2026-09-13 (valid=False), flags 16 loop-closing edges as feedback, adds 36 nodes (16 documented orphans with notes; six edges removed after review because no file supports them), a --write/--check CLI and a freshness workflow. Statuses of added nodes come from files in the tree, not from proven runs. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-11"
+  z2_ruling: "z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md"
+  z2_hash: "308fb698a1fb1dc569e4bf6ebe1fe8b413b2ae3d8fe32dd79601a2efd0a0cbbc"
 - q_id: Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01
   title: 'Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages'
   path: z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md
@@ -924,6 +946,10 @@ candidates:
   z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
   z2_hash: "462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0"
 records:
+- path: z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md
+  title: "Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-21/CAPACITY_CONTROL_PLANE_REVIEW_RECORD.md
   title: Record of the Z2-directed capacity change (4 to 9) and what is still unsigned
   note: 'Records commit ffc95937 raising coordinator active_operator_queue from 4 to 9.
@@ -1112,6 +1138,18 @@ records:
 - path: z1-inbox/2026-10-02/SESSION_FINDINGS.md
   title: Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop
   note: 'Session close handoff for five friction point implementations and establishment of TENSION_FINDINGS.md governance feedback mechanism. Completed: all five friction points coded, governance integrity issue fixed (real digests recorded in CLAUDE.md), and feedback loop created for continuous guidance improvement. Receipt reconciliation: all claims verified against ledger with zero gaps. Also created root-level TENSION_FINDINGS.md artifact with template and backfilled findings from this and prior sessions. No Z2 ratification requested; Z1 reference handoff documenting completed work and filing Z2 governance decisions needed for PR #642 admission. Indexed as a record, not a live candidate.'
+- path: z1-inbox/2026-10-01/RED-TEAM-AUDIT-PR-630.md
+  title: 'Red-Team Audit Report — PR #630 Credential Deployment Findings'
+  note: 'Security audit documenting 12 challenges (3 critical, 5 high, 4 medium) in PR #630 credential deployment guide. Records authoritative findings from Claude Code red-team session for Z2 ratification decision. No candidate is filed for these findings; the ID Q-PR630-AUDIT-01 appears only in the document and has no candidate entry in this index.'
+- path: z1-inbox/2026-10-01/PR-630-WARRANT.md
+  title: 'WARRANT: PR #630 Admissions Approval & Credential Deployment'
+  note: 'Evidence synthesis warrant integrating CI results, red-team audit findings, and governance compliance assessment. Recommends Option B (accept with mandatory remediation). The document names Q-PR630-WARRANT-01, but no candidate is filed under that ID in this index; Z2 ratification is not recorded.'
+- path: z1-inbox/2026-10-01/PR-630-REMEDIATION-PATCHES.md
+  title: 'PR #630 Remediation Patches — 6 Actionable Fixes'
+  note: 'Proposed remediation patches for 12 challenges identified in red-team audit. Patches 1–6 address credential deployment security, gitleaks allowlist hardening, authorization gates, and audit logging. The document names Q-PR630-REMEDIATION-01, but no candidate is filed under that ID in this index; it supports the Option B path if Z2 takes it up.'
+- path: z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md
+  title: 'Z3 Execution Cycle 1 Handoff — Results & Verification Gaps'
+  note: 'Z3 execution summary for Cycle 1 operations. Documents VERDICT emissions, falsifier assessment, and capacity allocation across zones. The document names Q-Z3-EXEC-CYCLE-1-HANDOFF-01, but no candidate is filed under that ID in this index; Z2 ratification is not recorded.'
 - path: z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md
   title: 'H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01'
   note: 'Z2 decision window for Q-PR956-GOVERNANCE-ADMISSION-01 (Q-candidate for admission of PR #956 governance documentation to working set) closed on 2026-10-26 11:01 UTC without a recorded decision. Current status: 2026-10-27 06:16 UTC (19+ hours overdue). PR #1008 remains open with no Z2 comments or documented decision. ADMISSION_LEDGER.jsonl shows PR #956 not admitted. Falsifier set: Admiral must provide ACCEPT/EDIT/REJECT decision with timestamp and hash within 24 hours. Escalation routes to Admiral for governance decision enforcement.'

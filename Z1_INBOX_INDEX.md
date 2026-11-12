@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**119 candidates** — ⏳ awaiting Z2 100 · ✅ ratified 19 · **67 records**
+**121 candidates** — ⏳ awaiting Z2 100 · ✅ ratified 21 · **72 records**
 
 ## Awaiting Z2 (100)
 
@@ -113,7 +113,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 
-## Decided (19)
+## Decided (21)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -136,6 +136,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-HIAE-001-ASSIGNMENT-RECEIPTS-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0` |
 | ✅ ratified | **Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`ce40510fa97b6df060aa5cdc4fc12809dd80dfe282a2a17f93d2169513788c83` |
 | ✅ ratified | **Q-ZONE-Z011-RESEARCH-CAP-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`a33a0e63d9f7a3709ba96e2cea0e69a143bf9103732840a26cfd8b6d4d6a2b57` |
+| ✅ ratified | **Q-GRAPH-ORPHANS-B1-01** | Night | 2026-11-11 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md`<br>`0f1ebdbcb2fd823a439390d02c952d522e90a2503860d32dca2dfdbbbb97dbb0` |
+| ✅ ratified | **Q-SYSTEM-GRAPH-REGEN-01** | Night | 2026-11-11 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md`<br>`308fb698a1fb1dc569e4bf6ebe1fe8b413b2ae3d8fe32dd79601a2efd0a0cbbc` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -489,7 +491,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (67)
+## Records (72)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -549,6 +551,10 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md` | IC-065 — Evidence Ledger Gap (PR #465) |
 | `z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md` | Phase 3 credential deployment guide |
 | `z1-inbox/2026-10-01/HANDOFF.md` | Z1 Session Handoff — Phase 2B Salvage Complete |
+| `z1-inbox/2026-10-01/PR-630-REMEDIATION-PATCHES.md` | PR #630 Remediation Patches — 6 Actionable Fixes |
+| `z1-inbox/2026-10-01/PR-630-WARRANT.md` | WARRANT: PR #630 Admissions Approval & Credential Deployment |
+| `z1-inbox/2026-10-01/RED-TEAM-AUDIT-PR-630.md` | Red-Team Audit Report — PR #630 Credential Deployment Findings |
+| `z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md` | Z3 Execution Cycle 1 Handoff — Results & Verification Gaps |
 | `z1-inbox/2026-10-02/SESSION_FINDINGS.md` | Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop |
 | `z1-inbox/2026-10-10/HANDOFF.md` | Session Handoff — Manifest Integrity Fix (GNER E0/E1/E2) |
 | `z1-inbox/2026-10-14/HANDOFF.md` | Session Handoff — Multi-agent queue plan (Q-MULTI-AGENT-QUEUE-PLAN-01) |
@@ -561,6 +567,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md` | Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record) |
 | `z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md` | H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01 |
 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md` | Z2 rulings — 2026-10-31 (signed via .z1-control/ratify.py) |
+| `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md` | Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---

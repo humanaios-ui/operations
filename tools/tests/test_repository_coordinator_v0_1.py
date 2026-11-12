@@ -1746,9 +1746,13 @@ def test_oracle_repository_reads_operations_system_graph():
         for a in graph["assertions"]
         if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
     }
-    assert values["node_count"] == 22
-    assert values["edge_count"] == 53
-    assert values["generated_at"] == "2026-09-13T15:12:28.926529"
+    # Read the expected values from the committed graph so regenerating
+    # system_graph.json does not require editing a pin here; the test still
+    # checks that the oracle projection matches the file on disk.
+    committed = json.loads((root / "system_graph.json").read_text())
+    assert values["node_count"] == len(committed["nodes"])
+    assert values["edge_count"] == len(committed["edges"])
+    assert values["generated_at"] == committed["generated_at"]
     assert graph["authority"]["authority_effect"] == "NONE"
 
 
@@ -1769,7 +1773,11 @@ def test_oracle_global_reconciles_identity_and_retains_both_values():
         if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
         and a["predicate"] == "node_count"
     }
-    assert node_values == {19, 22}
+    # 19 and 22 are the two values the Drive snapshot carries (prose claim and
+    # its stale JSON export); the repository value is read from the committed
+    # graph so regenerating it does not require editing this test.
+    committed = json.loads((root / "system_graph.json").read_text())
+    assert node_values == {19, 22, len(committed["nodes"])}
     assert len(graph["conflicts"]) >= 2
 
 
