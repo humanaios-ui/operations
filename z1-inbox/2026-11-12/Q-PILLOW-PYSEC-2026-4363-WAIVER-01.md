@@ -73,10 +73,23 @@ Z1 does not merge the ruling pull request. The merger's login becomes the ratifi
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: ratify waiver
+by: Z1-prepared (not an identity claim)
+at: 2026-11-12T23:27:55Z
+status: DECIDED
+block_hash: ed3965ff857bfcfbccc6eea54a3cce97caae9527908ea4f50c5e9486abe3dc40
+body_hash: 8a470d8a7cfeb17b6296d5b0a24ae31d339995a81a11cbe96d8d86b1f3d367fe
+
+```
+RULING z1-pillow-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Waive PYSEC-2026-4363 (pillow) for tools/Metaculus only?
+  choice: ratify waiver
+  note: 
+  at: 2026-11-12T23:27:55Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 
