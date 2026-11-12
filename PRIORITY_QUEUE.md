@@ -49,8 +49,12 @@ Permitted temporal classes:
 | 3 | Q-BOOT-PROCESS-MAP-01 | Session rituals → resource states | 7/10 | 30% | HIGH | ALIGNED / verify under gate |
 | 4 | Q-CANDIDATE-BLOCK-TEMPLATE-01 | Align proposal template to canonical resource vector | 6/10 | 35% | HIGH | PART OF GATE |
 | 5 | Q-GOVERNANCE-FILES-01 | Registry of governance files | 5/10 | 40% | MEDIUM | ELIGIBLE AFTER GATE where affected |
-| 6 | Q-MERGE-GATE-ENFORCEMENT-01 | Decide required-status-check scope on `main` (IC-066) | 7/10 | 0% | HIGH | CANDIDATE |
-| 7 | Q-AGENT-ORACLE-ATTRIBUTION-01 | Add src:cursor/src:grok labels; pilot Grok as ACAT-R independent oracle on #1081 (IC-067) | 6/10 | 0% | MEDIUM | CANDIDATE |
+| 6 | Q-MERGE-GATE-ENFORCEMENT-01 | Decide required-status-check scope on `main` (IC-066) | 7/10 | 0% | HIGH | **DECIDED (PARTIAL)** — see note |
+| 7 | Q-AGENT-ORACLE-ATTRIBUTION-01 | Add src:cursor label; connect Grok oracle fit to grok-haios registration (IC-067) | 6/10 | 0% | MEDIUM | **DECIDED** — see note |
+
+**Q-MERGE-GATE-ENFORCEMENT-01 decision (2026-11-11):** Added `Secret scanning (gitleaks)` and `Python dependency vulnerability scan` to `main`'s required status checks (confirmed unconditional trigger, 15/15 clean runs). Did **not** add `z2_ratification_gate` — its trigger is path-filtered (`on: pull_request: paths: [...]`, scoped to governance files), so it never runs on most PRs; making it required as-is would permanently deadlock any PR outside those paths (GitHub waits forever for a status that never reports). Converting its trigger to run unconditionally with a job-level path `if:` (so it reports `skipped` rather than nothing) is a separate follow-up, not done here.
+
+**Q-AGENT-ORACLE-ATTRIBUTION-01 decision (2026-11-11):** `src:chatgpt`'s own description already covers Grok ("Sourced from ChatGPT / Grok session") — backfilled onto #1161, no new `src:grok` label created to avoid forking an already-defined category. Created `src:cursor` (genuine gap) and applied to all 10 open `cursor/*` PRs. For the oracle pilot: found PR #1196 already in flight, formally registering `grok-haios` as a Z1 research participant (evaluate/propose, not ratify/merge/deploy) — posted the ACAT-R oracle-fit evidence (#1081/#1076/#1068/#1083) as a comment there rather than opening a separate, uncoordinated pilot thread on #1081. Execution of the actual pilot depends on that registration landing.
 
 ---
 
