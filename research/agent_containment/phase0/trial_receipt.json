@@ -1,0 +1,75 @@
+{
+  "kind": "SIMULATION_NOT_PRODUCTION_EVIDENCE",
+  "scenario_id": "HFAI-JULY-2026-SYNTHETIC-PHASE0",
+  "trial_results": [
+    {
+      "id": "T01",
+      "status": 201,
+      "reason": "ACCEPTED"
+    },
+    {
+      "id": "T02",
+      "status": 202,
+      "reason": "UNSANCTIONED_AGENT_CHANNEL"
+    },
+    {
+      "id": "T03",
+      "status": 202,
+      "reason": "EGRESS_DENIED"
+    },
+    {
+      "id": "T04",
+      "status": 202,
+      "reason": "UNTRUSTED_PARSER_BEHAVIOR"
+    },
+    {
+      "id": "T05",
+      "status": 202,
+      "reason": "UNTRUSTED_PARSER_BEHAVIOR"
+    },
+    {
+      "id": "T06",
+      "status": 202,
+      "reason": "CLIENT_ZONE_NOT_TRUSTED"
+    },
+    {
+      "id": "T07",
+      "status": 202,
+      "reason": "PRODUCTION_CAPABILITY_FORBIDDEN"
+    },
+    {
+      "id": "T08",
+      "status": 202,
+      "reason": "PRODUCTION_CAPABILITY_FORBIDDEN"
+    },
+    {
+      "id": "T09",
+      "status": 202,
+      "reason": "HALT_AUTHORITY_DENIED"
+    },
+    {
+      "id": "T10",
+      "status": 201,
+      "reason": "ACCEPTED"
+    },
+    {
+      "id": "T11",
+      "status": 201,
+      "reason": "ACCEPTED"
+    },
+    {
+      "id": "T12",
+      "status": 423,
+      "reason": "SIM_HALTED"
+    }
+  ],
+  "events": 11,
+  "quarantined_events": 8,
+  "head_hash": "c1454d8c5c77b825babdfddcd62153644030630b00f37c74d0cd841fda94328f",
+  "chain_verified": true,
+  "production_writes": 0,
+  "production_receipts": 0,
+  "real_network_calls": 0,
+  "halted": true,
+  "last_status": 423
+}

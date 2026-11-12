@@ -1,0 +1,5 @@
+# Deny known-compromised releases (LiteLLM incident 2026-10-21, issue #1101).
+# litellm is a transitive dependency of forecasting-tools; this does not pin it.
+# Reconcile with PR #1059 rather than overwriting it. Exposure of any deployed image
+# is UNVERIFIED: inspect installed tree / image digests independently.
+litellm!=1.107.0
