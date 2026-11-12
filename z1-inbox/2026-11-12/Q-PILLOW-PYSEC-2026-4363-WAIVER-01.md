@@ -79,7 +79,7 @@ status: OPEN
 
 Event-based, no clock. This waiver is wrong, and should be removed rather than carried, if either happens:
 
-- (a) the next `security-gates` run after #1185 merges fails in a file other than the Metaculus one because of this ID, meaning the waiver spread beyond its scope; or
+- (a) scope drift: the ignore for this ID is applied to any audit command other than the Metaculus one, whatever those audits report. A finding of this advisory in another requirements file is not scope drift: it is consistent with a Metaculus-only waiver, and it is a separate finding that needs its own ruling; or
 - (b) pillow is shown reachable from code the Metaculus tooling runs, at 12.3.0, with the advisory's trigger.
 
 Probe for (a): the ID appears once in `security-gates.yml`, inside the Metaculus `pip_audit` command only (`grep -n PYSEC-2026-4363 .github/workflows/security-gates.yml`).
