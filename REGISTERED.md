@@ -5845,3 +5845,76 @@ superseded_by: null
 - Original PR Decision: `Z2_REVIEW_PR465_COMPARISON.md`
 - Engine Code: `comparison_engine.py` (commit 0585135)
 
+-----
+
+## IC-066: Merge-Gate Enforcement Gap on `main` (REST API Verification)
+
+---
+id: "IC-066"
+name: "merge-gate-enforcement-gap-main"
+status: CANDIDATE
+class: IC
+date_registered: "2026-11-11"
+date_origin: "2026-11-11"
+session_registered: "S-111126-01-copilot-billing-audit"
+principles_triggered: ["Governance"]
+substrate: "Anthropic Claude Sonnet 5"
+tags: ["ci", "branch-protection", "merge-authority", "governance", "copilot"]
+superseded_by: null
+---
+
+**Severity:** IC (correctional) — Enforcement gap, not a prediction error.
+
+**Finding:** The only required status check gating merges to `humanaios-ui/operations` `main` is `guard` (job `guard` in `.github/workflows/no-op-pr-guard.yml`), which tests only that a PR's diff is non-empty. Verified directly via `gh api repos/humanaios-ui/operations/branches/main/protection` (2026-11-11): `required_status_checks.checks == [{"context":"guard","app_id":15368}]`, `required_pull_request_reviews.required_approving_review_count == 0`.
+
+None of the other CI workflows that run on every PR — `security-gates.yml`, `z2_ratification_gate.yml`, `sonarcloud-baseline-auto.yml`, `behavioral-compliance.yml`, `repository-admission-gate.yml` — are wired into branch protection as required checks. `repository-admission-gate.yml`'s own header states admission is "routing only and never merge authority" (confirmed by direct read); its `gate` job posts a PASS/FAIL receipt as a PR *comment*, not a check-run, and `admission_gate=PASS` is the default outcome for most lanes (`WORKBENCH`, `ADMITTED_TO_EVALUATION`, `MAINTENANCE`, `CONTROL_PLANE`, non-duplicate `ACTIVE`) per `tools/repository_coordinator_v0_1.py` lines 642–666.
+
+**Root Cause:** CI workflow proliferation (dozens of `.github/workflows/*.yml`, each running on every PR) was not accompanied by branch-protection wiring. The apparent governance surface (many named gates) and the actually-enforced surface (one trivial check) have drifted apart.
+
+**Discovery context:** Side effect of a Copilot billing investigation, same session (2026-11-11) — found while tracing whether `copilot_code_review`'s automatic trigger could be rewired to admission state. The `copilot_code_review` ruleset itself was knowingly left enabled by Z2 (cost accepted) during this session; the ruleset's 2026-10-31 edit is confirmed as Z2's direct mitigation response to the October bill, not an unexplained change.
+
+**Recommendation:** Decide explicitly rather than let this stand by drift: (a) add `security-gates`/`z2_ratification_gate` to `required_status_checks.checks` on `main`, or (b) ratify that `guard`-only is the intentional minimal bar and record why the other gates stay advisory. See Q-MERGE-GATE-ENFORCEMENT-01.
+
+**Evidence:**
+- `gh api repos/humanaios-ui/operations/branches/main/protection` (2026-11-11 raw output)
+- `.github/workflows/no-op-pr-guard.yml` (job `guard`)
+- `.github/workflows/repository-admission-gate.yml` (lines 1–6, 60–70, 325–355)
+- `tools/repository_coordinator_v0_1.py` (lines 642–666)
+
+**Z2 Ratification:** PENDING
+
+-----
+
+## IC-067: Agent Attribution Drift and an Unused Fit for Grok's Independent-Oracle Role
+
+---
+id: "IC-067"
+name: "agent-attribution-drift-and-oracle-fit"
+status: CANDIDATE
+class: IC
+date_registered: "2026-11-11"
+date_origin: "2026-11-11"
+session_registered: "S-111126-01-copilot-billing-audit"
+principles_triggered: ["Governance"]
+substrate: "Anthropic Claude Sonnet 5"
+tags: ["installed-apps", "agent-attribution", "acat-r", "grok", "cursor", "codex", "governance"]
+superseded_by: null
+---
+
+**Severity:** IC (correctional) — Tracking/utilization gap, not a defect.
+
+**Finding (attribution drift):** Three coding agents are independently active in `operations` via real branches/commits, each informally specializing without being tracked as such: Claude (ubiquitous), Cursor (8 branches — `cursor/fix-admission-gate-709f`, `cursor/z2-governance-signature-tooling-709f`, `cursor/post-811-workflow-repairs-709f`, etc., plus authored commit `613d119`), ChatGPT/Codex (16 branches — `chatgpt/repository-coordinator-v0-2-admission`, `codex/repository-knowledge-graph-inference`, etc.). The repo already tracks agent provenance via labels (`src:chatgpt`: 15 open issues, `substrate:copilot`: 2, `substrate:claude-code`: 1) — but no `src:cursor` or equivalent exists despite Cursor's branch volume matching Codex's. Attribution convention has not kept pace with actual agent participation.
+
+**Finding (unused oracle fit):** Grok (xAI) is already used, but only ad hoc, as an independent adversarial verifier — issue #517 "HARC Trial 003 — Grok independent adversarial retest packet," #1161 "Buffer × Grok read-only inventory." Separately, the live ACAT-R research track has multiple open issues explicitly requesting exactly this function from *some* external source: #1081 "Second existing runtime — GNER-E1 fair unit-test comparison and independent oracle review," #1076 "Prove non-injected existing On-Track runtime against separate GitHub-sourced oracle," #1068 "general machine-runtime calibration, offline three-phase contract," #1083 "repair PR #1082 review findings, oracle packet." None currently name Grok as the oracle source — they source independence elsewhere despite an app already installed and already proven in that exact role.
+
+**Root Cause:** App installation and research-track design proceeded on separate tracks; nobody connected "we have an independent-verification app" to "we have four open issues asking for independent verification."
+
+**Recommendation:** (a) add `src:cursor` and `src:grok` labels matching the existing convention; (b) pilot Grok explicitly as the independent oracle on one open ACAT-R issue (#1081 is the most self-contained) before deciding whether to formalize it track-wide.
+
+**Evidence:**
+- `gh api repos/humanaios-ui/operations/branches` — cursor/chatgpt/codex branch listing (2026-11-11)
+- `gh api repos/humanaios-ui/operations/issues` label distribution and ACAT-R title search (2026-11-11)
+- Issues #517, #1161 (Grok usage), #1081, #1076, #1068, #1083 (ACAT-R oracle requests)
+
+**Z2 Ratification:** PENDING
+

@@ -49,6 +49,8 @@ Permitted temporal classes:
 | 3 | Q-BOOT-PROCESS-MAP-01 | Session rituals → resource states | 7/10 | 30% | HIGH | ALIGNED / verify under gate |
 | 4 | Q-CANDIDATE-BLOCK-TEMPLATE-01 | Align proposal template to canonical resource vector | 6/10 | 35% | HIGH | PART OF GATE |
 | 5 | Q-GOVERNANCE-FILES-01 | Registry of governance files | 5/10 | 40% | MEDIUM | ELIGIBLE AFTER GATE where affected |
+| 6 | Q-MERGE-GATE-ENFORCEMENT-01 | Decide required-status-check scope on `main` (IC-066) | 7/10 | 0% | HIGH | CANDIDATE |
+| 7 | Q-AGENT-ORACLE-ATTRIBUTION-01 | Add src:cursor/src:grok labels; pilot Grok as ACAT-R independent oracle on #1081 (IC-067) | 6/10 | 0% | MEDIUM | CANDIDATE |
 
 ---
 
