@@ -178,3 +178,20 @@ A = one-time per-agent capital allocation. C = monthly subscription + usage-attr
 68/168 grid cells clear the 15.0%/yr ceiling. Read this as: for a given real (A, C), find the row — if it lands in the 'no' column, the break-even bar for that cell is above what a passive benchmark plausibly returns, and the review's finding #1 (STOP the live track as framed; keep it a paper study) applies directly to that cell.
 
 Real B (Coinbase eligible capital snapshot) and N (verified paid roster size) are UNKNOWN as of 2026-11-11 per the issue body and annexes; A = B/N is therefore not yet knowable. This table exists so that once B and N are verified, reading the answer off this grid (or re-running `break_even_table.py --capital <B/N> --cost <C> --months <H>`) is immediate.
+
+**Status (2026-11-12): superseded for decision purposes.** The operator already made the STOP call using the real-subscription-price table below, not this illustrative grid. This section stays as a general sensitivity tool.
+
+## Real-subscription-price break-even table (ratified 2026-11-12)
+
+This is the table the operator actually compared the real starting capital against; see the module docstring's RATIFIED DISPOSITION. `A_min` = minimum per-agent allocation to break even on subscription cost alone at that annual return, by service. `B for all 4 to pass` sizes an equal four-way split to the most expensive service. `B for cohort in aggregate` sizes it to the combined monthly cost only.
+
+| Tier scenario | r (%/yr) | A_min per agent | B for all 4 to pass | B for cohort in aggregate |
+|---|---:|---|---:|---:|
+| entry (Plus / Copilot Pro / Pro / SuperGrok) | 15 | $1,600 / $800 / $1,600 / $2,400 | **$9,600** | $6,400 |
+| entry (Plus / Copilot Pro / Pro / SuperGrok) | 10 | $2,400 / $1,200 / $2,400 / $3,600 | **$14,400** | $9,600 |
+| entry (Plus / Copilot Pro / Pro / SuperGrok) | 7 | $3,429 / $1,714 / $3,429 / $5,143 | **$20,571** | $13,714 |
+| power (Pro / Copilot Pro+ / Max / SuperGrok Plus) | 15 | $8,000 / $3,120 / $8,000 / $8,000 | **$32,000** | $27,120 |
+| power (Pro / Copilot Pro+ / Max / SuperGrok Plus) | 10 | $12,000 / $4,680 / $12,000 / $12,000 | **$48,000** | $40,680 |
+| power (Pro / Copilot Pro+ / Max / SuperGrok Plus) | 7 | $17,143 / $6,686 / $17,143 / $17,143 | **$68,571** | $58,114 |
+
+Real B (the Coinbase eligible capital snapshot) is intentionally not posted in this repo. Compare it privately against the bold column for the verified tier.

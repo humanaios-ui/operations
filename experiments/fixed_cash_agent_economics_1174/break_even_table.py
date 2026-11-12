@@ -40,6 +40,20 @@ actually hit any of these numbers — it only says what would be required
 to break even, which is a different and narrower question than "is this
 profitable" or "should you do this." It is not financial advice.
 
+RATIFIED DISPOSITION (2026-11-12, operator comment on #1174): the operator
+compared the real starting capital B against this table's illustrative
+grid and the real-tier table below, and it came in below the lowest
+per-agent row at every tier. Result: the "agent must pay for its own
+subscription through trading" track is **STOPPED**. Starting capital is
+reclassified as an experiment cost, not an investment expected to
+return; subscription keep/cancel decisions are judged on nonfinancial
+production (code, PRs, tests, research), not trading P&L. See
+PROTOCOL_E0.md Â§4 for the reframed measures #1174 now uses instead
+(control integrity, decision quality, benchmark-relative result, a
+predeclared inactive-agent rule). This file's tables remain useful as a
+sensitivity tool and as the independently-rederivable record of the
+arithmetic that decision rested on — not as a live go/no-go gate anymore.
+
 Usage:
   python3 break_even_table.py                  # full default grid, markdown + csv
   python3 break_even_table.py --smoke-test      # self-check, no file writes
@@ -56,6 +70,103 @@ DEFAULT_CAPITAL = [100, 250, 500, 1_000, 2_500, 5_000, 10_000]
 DEFAULT_COST = [0, 10, 20, 50, 100, 200]
 DEFAULT_MONTHS = [1, 3, 6, 12]
 DEFAULT_BENCHMARK_PCT = 15.0  # % per year; "not obviously a lottery" ceiling
+
+# Public US list prices (monthly billing, before tax), observed 2026-11-11.
+# Sources: https://docs.github.com/en/copilot/get-started/plans ,
+# https://claude.com/pricing , https://plan-price.com/en/countries/united-states/
+# Which tier each cohort service is actually billed at remains UNVERIFIED
+# (annex 2's roster census) — these are the two tiers a public lookup can
+# confirm exist, not a claim about which one applies.
+REAL_TIER_COST_GRID: dict[str, dict[str, float]] = {
+    "entry (Plus / Copilot Pro / Pro / SuperGrok)": {
+        "ChatGPT Plus": 20.0,
+        "GitHub Copilot Pro": 10.0,
+        "Claude Pro": 20.0,
+        "SuperGrok": 30.0,
+    },
+    "power (Pro / Copilot Pro+ / Max / SuperGrok Plus)": {
+        "ChatGPT Pro": 100.0,
+        "GitHub Copilot Pro+": 39.0,
+        "Claude Max": 100.0,
+        "SuperGrok Plus": 100.0,
+    },
+}
+REAL_TIER_RETURN_SCENARIOS_PCT = [15.0, 10.0, 7.0]  # %/yr the cohort might plausibly clear
+
+
+@dataclass(frozen=True)
+class TierRow:
+    tier_label: str
+    annual_return_pct: float
+    per_service_a_min: dict[str, float]  # minimum per-agent allocation to break even, by service
+    b_for_all_to_pass: float  # equal N-way split sized to the most expensive service
+    b_for_cohort_aggregate: float  # equal split sized only to the combined total
+
+
+def min_capital_for_return(monthly_cost: float, annual_return_pct: float) -> float:
+    """A_min = 12*C/r — the inverse of required_annual_linear: given a
+    plausible annual return r, the smallest one-time allocation that
+    breaks even on subscription cost alone. Same formula as
+    required_annual_linear, solved for A instead of r."""
+    if annual_return_pct <= 0:
+        return float("inf")
+    return 12.0 * monthly_cost / (annual_return_pct / 100.0)
+
+
+def build_real_tier_table(
+    cost_grid: dict[str, dict[str, float]] = REAL_TIER_COST_GRID,
+    return_scenarios_pct: list[float] = REAL_TIER_RETURN_SCENARIOS_PCT,
+) -> list[TierRow]:
+    """Reproduces the real-subscription-price break-even table from the
+    issue's 2026-11-11 follow-up comment, independently, from the public
+    list prices above — so the arithmetic behind that decision is
+    re-derivable from this repo rather than only quotable from a GitHub
+    comment. See run_smoke_test for the exact figures checked against
+    that comment's posted table."""
+    rows: list[TierRow] = []
+    for tier_label, costs in cost_grid.items():
+        for r in return_scenarios_pct:
+            a_min = {service: min_capital_for_return(c, r) for service, c in costs.items()}
+            n = len(costs)
+            rows.append(
+                TierRow(
+                    tier_label=tier_label,
+                    annual_return_pct=r,
+                    per_service_a_min=a_min,
+                    b_for_all_to_pass=n * max(a_min.values()),
+                    b_for_cohort_aggregate=min_capital_for_return(sum(costs.values()), r),
+                )
+            )
+    return rows
+
+
+def render_real_tier_markdown(rows: list[TierRow]) -> str:
+    lines = [
+        "## Real-subscription-price break-even table (ratified 2026-11-12)",
+        "",
+        "This is the table the operator actually compared the real starting "
+        "capital against; see the module docstring's RATIFIED DISPOSITION. "
+        "`A_min` = minimum per-agent allocation to break even on subscription "
+        "cost alone at that annual return, by service. `B for all 4 to pass` "
+        "sizes an equal four-way split to the most expensive service. "
+        "`B for cohort in aggregate` sizes it to the combined monthly cost only.",
+        "",
+        "| Tier scenario | r (%/yr) | A_min per agent | B for all 4 to pass | B for cohort in aggregate |",
+        "|---|---:|---|---:|---:|",
+    ]
+    for row in rows:
+        a_min_str = " / ".join(f"${v:,.0f}" for v in row.per_service_a_min.values())
+        lines.append(
+            f"| {row.tier_label} | {row.annual_return_pct:.0f} | {a_min_str} | "
+            f"**${row.b_for_all_to_pass:,.0f}** | ${row.b_for_cohort_aggregate:,.0f} |"
+        )
+    lines += [
+        "",
+        "Real B (the Coinbase eligible capital snapshot) is intentionally not "
+        "posted in this repo. Compare it privately against the bold column "
+        "for the verified tier.",
+    ]
+    return "\n".join(lines)
 
 
 @dataclass(frozen=True)
@@ -155,6 +266,11 @@ def render_markdown(rows: list[Row], benchmark_pct: float) -> str:
         "so that once B and N are verified, reading the answer off this grid "
         "(or re-running `break_even_table.py --capital <B/N> --cost <C> "
         "--months <H>`) is immediate.",
+        "",
+        "**Status (2026-11-12): superseded for decision purposes.** The "
+        "operator already made the STOP call using the real-subscription-"
+        "price table below, not this illustrative grid. This section stays "
+        "as a general sensitivity tool.",
     ]
     return "\n".join(lines)
 
@@ -245,6 +361,33 @@ def run_smoke_test() -> int:
         ).plausible,
     )
 
+    # Independently reproduce the real-subscription-price table from the
+    # issue's 2026-11-11 follow-up comment, checking the exact figures it
+    # posted (not just internal self-consistency) — so an arithmetic slip
+    # in either place would be caught by the other.
+    tier_rows = {(r.tier_label, r.annual_return_pct): r for r in build_real_tier_table()}
+
+    entry_15 = tier_rows[("entry (Plus / Copilot Pro / Pro / SuperGrok)", 15.0)]
+    check("entry/15%: ChatGPT A_min = $1,600", abs(entry_15.per_service_a_min["ChatGPT Plus"] - 1600) < 1.0)
+    check("entry/15%: Copilot A_min = $800", abs(entry_15.per_service_a_min["GitHub Copilot Pro"] - 800) < 1.0)
+    check("entry/15%: SuperGrok A_min = $2,400", abs(entry_15.per_service_a_min["SuperGrok"] - 2400) < 1.0)
+    check("entry/15%: B for all 4 to pass = $9,600", abs(entry_15.b_for_all_to_pass - 9600) < 1.0)
+    check("entry/15%: B for cohort in aggregate = $6,400", abs(entry_15.b_for_cohort_aggregate - 6400) < 1.0)
+
+    entry_10 = tier_rows[("entry (Plus / Copilot Pro / Pro / SuperGrok)", 10.0)]
+    check("entry/10%: B for all 4 to pass = $14,400", abs(entry_10.b_for_all_to_pass - 14400) < 1.0)
+
+    entry_7 = tier_rows[("entry (Plus / Copilot Pro / Pro / SuperGrok)", 7.0)]
+    check("entry/7%: B for all 4 to pass ~= $20,571", abs(entry_7.b_for_all_to_pass - 20571) < 1.0)
+
+    power_15 = tier_rows[("power (Pro / Copilot Pro+ / Max / SuperGrok Plus)", 15.0)]
+    check("power/15%: Copilot Pro+ A_min = $3,120", abs(power_15.per_service_a_min["GitHub Copilot Pro+"] - 3120) < 1.0)
+    check("power/15%: B for all 4 to pass = $32,000", abs(power_15.b_for_all_to_pass - 32000) < 1.0)
+    check("power/15%: B for cohort in aggregate = $27,120", abs(power_15.b_for_cohort_aggregate - 27120) < 1.0)
+
+    power_7 = tier_rows[("power (Pro / Copilot Pro+ / Max / SuperGrok Plus)", 7.0)]
+    check("power/7%: B for all 4 to pass ~= $68,571", abs(power_7.b_for_all_to_pass - 68571) < 1.0)
+
     print(f"{checks - failures}/{checks} checks passed")
     return 1 if failures else 0
 
@@ -269,7 +412,8 @@ def main() -> int:
         args.months or DEFAULT_MONTHS,
         args.benchmark,
     )
-    md = render_markdown(rows, args.benchmark)
+    real_tier_rows = build_real_tier_table()
+    md = render_markdown(rows, args.benchmark) + "\n\n" + render_real_tier_markdown(real_tier_rows)
     args.out_md.write_text(md + "\n")
     write_csv(rows, args.out_csv)
     print(md)

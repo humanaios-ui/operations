@@ -17,12 +17,20 @@ authorizes; it does not authorize anything past that.
   [`break_even_table.md`](break_even_table.md) /
   [`break_even_table.csv`](break_even_table.csv) — the required-return
   sensitivity grid the prior review's finding #1 calls the blocking
-  prerequisite. Re-run with `--capital`/`--cost`/`--months` once the real
-  B (Coinbase eligible capital) and N (verified paid roster) are known.
+  prerequisite, plus a real-subscription-price table (public US list
+  prices for the four cohort services, independently re-derived and
+  checked against the issue's posted figures in the 21-case smoke test).
+  **This table is the one the operator actually used**: the real
+  starting capital came in below every tier's break-even floor, so the
+  "pay for its own subscription through trading" track is now STOPPED
+  (see `PROTOCOL_E0.md` Â§4) — the illustrative grid stays as a general
+  sensitivity tool, not a live decision input.
 - [`PROTOCOL_E0.md`](PROTOCOL_E0.md) — the consolidated forward-paper-trading
   protocol: frozen participant tuple (including sampling parameters and
   training cutoff, per audit findings #17–18), window/benchmark/capital
-  rules, and the risk/instrument limits the gateway enforces.
+  rules (now carrying the ratified STOP disposition and the reframed
+  four per-agent measures that replace "pay for itself"), and the
+  risk/instrument limits the gateway enforces.
 - [`gateway/ledger_gateway_v0_1.py`](gateway/ledger_gateway_v0_1.py) — the
   enforced ledger / order gateway itself: atomic per-agent and per-pool
   cash reservation, no deposit/withdrawal/margin code path at all, integer
