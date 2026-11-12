@@ -15,16 +15,23 @@ authorizes; it does not authorize anything past that.
   that review's findings #3 and #8.
 - [`break_even_table.py`](break_even_table.py) /
   [`break_even_table.md`](break_even_table.md) /
-  [`break_even_table.csv`](break_even_table.csv) — the required-return
-  sensitivity grid the prior review's finding #1 calls the blocking
-  prerequisite, plus a real-subscription-price table (public US list
-  prices for the four cohort services, independently re-derived and
-  checked against the issue's posted figures in the 21-case smoke test).
-  **This table is the one the operator actually used**: the real
-  starting capital came in below every tier's break-even floor, so the
-  "pay for its own subscription through trading" track is now STOPPED
-  (see `PROTOCOL_E0.md` Â§4) — the illustrative grid stays as a general
-  sensitivity tool, not a live decision input.
+  [`break_even_table.csv`](break_even_table.csv) — horizon-independent
+  required-return grid and min-capital inversion for finding #1 (fixed
+  2026-11-12 per issue comment 6812392277: the earlier H-dependent
+  "compounded" form mixed compounding conventions as H changed, so its
+  verdict moved with H even though the monthly hurdle `C/A` is constant
+  — H belongs to the statistical-power question, not this break-even
+  one). Reports linear `12·C/A` and monthly-compounded `(1 + C/A)^12 −
+  1`, with plausibility columns at 7%/10%/15% per year, against
+  2026-11 list-price cost points (no cohort member costs $0). Also
+  includes the `A_min = 12·C/r` cohort inversion by tier. **This table
+  is the one the operator actually used**: the real starting capital
+  came in below every tier's break-even floor, so the "pay for its own
+  subscription through trading" track is now STOPPED (see
+  `PROTOCOL_E0.md` Â§4) — subscription keep/cancel now runs on
+  nonfinancial production instead. Re-run with `--capital`/`--cost`
+  (and optionally `--include-cost-200`). Actual billed tiers remain
+  UNVERIFIED; no real capital amount is recorded.
 - [`PROTOCOL_E0.md`](PROTOCOL_E0.md) — the consolidated forward-paper-trading
   protocol: frozen participant tuple (including sampling parameters and
   training cutoff, per audit findings #17–18), window/benchmark/capital

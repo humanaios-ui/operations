@@ -42,8 +42,10 @@ opens. Changing any field mid-window is a protocol event, not a silent edit.
   are recorded above.
 - **Horizon:** predeclared, not extended or shortened based on interim
   results (red-team finding #2 — a short window with a cut-the-losers rule
-  mostly tracks noise). Use `break_even_table.py --months <H>` to see how the
-  required return changes with the horizon actually chosen.
+  mostly tracks noise). Horizon is a statistical-power question, not a
+  break-even input — `break_even_table.py` no longer takes a horizon
+  parameter at all (fixed 2026-11-12: the earlier H-dependent formula
+  was a compounding-convention artifact, not a real economic effect).
 - **No extension, no early stop on a favorable result.** Early stop on a
   predeclared risk/drawdown limit is allowed (see Â§5); early stop because a
   result looks good is not.
