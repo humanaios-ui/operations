@@ -71,7 +71,17 @@
     "authority_effect": "EVALUATION_ONLY",
     "evidence": "verified cryptographic human-attestation receipt bound to repository, PR, linked issue, exact head SHA, and EVALUATION_ONLY scope",
     "operator_queue_effect": "none",
-    "merge_authority": false
+    "merge_authority": false,
+    "participants": [
+      {
+        "id": "grok-haios",
+        "display_name": "Grok-HAIOS",
+        "zone": "Z1",
+        "role": "research_participant",
+        "may": ["evaluate", "propose"],
+        "may_not": ["ratify", "apply_z2_labels", "merge", "deploy"]
+      }
+    ]
   },
   "state": {
     "branch": "repository-coordinator-state",
