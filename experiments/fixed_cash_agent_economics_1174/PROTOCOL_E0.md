@@ -66,9 +66,22 @@ Per red-team finding #4 and audit finding #16:
 
 - No derivatives, options, leveraged/inverse products, margin, or borrowing —
   denylisted at the gateway, not merely instructed against.
-- Per-position size cap (fraction of that agent's remaining cash).
-- Max drawdown stop per agent (gateway fails closed for that agent past the
-  threshold; does not affect other agents' caps or the pool).
+- Per-position size cap (fraction of that agent's allocation, projected
+  across current holdings *and* outstanding orders — not checked per order
+  in isolation, which a GitHub Copilot PR review on the gateway's first
+  version caught as a real bypass: three individually-small orders could
+  split past a cap none of them triggered alone).
+- Max drawdown stop per agent: implemented and tested
+  (`OrderGateway(max_drawdown_fraction=...)`) — rejects new buy orders
+  once that agent's mark-to-market equity falls more than the configured
+  fraction below its own high-water mark; sells are always allowed through
+  so a losing agent can still de-risk. The gateway's default
+  (`max_drawdown_fraction=1.0`) is a no-op: the real threshold is still a
+  protocol decision this file has no opinion on. Set a real value before
+  E0 starts — an unset default is a blocker, not a working control, even
+  though the mechanism itself now exists and is covered by
+  `gateway/ledger_gateway_v0_1.py --smoke-test`. Does not affect other
+  agents' caps or the pool.
 - Same-instrument, opposite-side orders from two different sub-agents inside
   one cooldown window are blocked, not just logged (audit finding #16 —
   this is a market-conduct control, distinct from the wash-sale/tax issue in

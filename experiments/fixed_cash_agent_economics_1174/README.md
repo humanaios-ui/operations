@@ -25,15 +25,25 @@ authorizes; it does not authorize anything past that.
   rules, and the risk/instrument limits the gateway enforces.
 - [`gateway/ledger_gateway_v0_1.py`](gateway/ledger_gateway_v0_1.py) — the
   enforced ledger / order gateway itself: atomic per-agent and per-pool
-  cash reservation, no deposit/withdrawal/margin code path at all, a
-  denylist for derivatives/leveraged/inverse/perpetual instruments, a
-  per-position size cap, a cross-agent same-instrument cooldown (blocks
-  self-crossing between sub-agents), a stale-price fail-closed check, a
-  kill switch, an append-only audit log, and a reconciliation check. Run
-  `python3 gateway/ledger_gateway_v0_1.py --smoke-test` — 22/22 hostile
-  and boundary cases pass, including a concurrency race that caught a
-  real bug (several read methods weren't taking the same lock the writers
-  did) before this README was written.
+  cash reservation, no deposit/withdrawal/margin code path at all, integer
+  micro-unit quantities (no float drift, no fractional-share-for-free
+  rounding exploit), a denylist for derivatives/leveraged/inverse/perpetual
+  instruments, a per-position cap projected across holdings *and*
+  outstanding orders (not checked per-order in isolation), a per-agent
+  drawdown stop, a cross-agent same-instrument cooldown checked atomically
+  with the reservation itself (blocks self-crossing between sub-agents, and
+  closes a race the first version had), a stale-price fail-closed check, a
+  kill switch, an append-only audit log carrying order ids and idempotency
+  keys, settlement that actually removes spent cash from the shared pool
+  (not just its reservation — the single most serious bug a GitHub Copilot
+  PR review on this work caught), and a reconciliation check against an
+  independently-tallied broker record. Run
+  `python3 gateway/ledger_gateway_v0_1.py --smoke-test` — 42/42 hostile and
+  boundary cases pass. The file's git history is the honest record of this:
+  the first version passed its own 22 self-authored tests and still shipped
+  nine High-severity bugs that a second reviewer's hostile cases found —
+  which is the argument for getting a second, differently-biased reviewer
+  before trusting any test count a component's own author wrote.
 
 Reading order for someone new to the issue: the audit file first (for the
 COI disclosure and new findings), then `PROTOCOL_E0.md` (for how the
