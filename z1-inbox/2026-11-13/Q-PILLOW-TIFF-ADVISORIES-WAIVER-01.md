@@ -80,10 +80,23 @@ The `body_hash` pins every byte of this file outside `## Ruling`; this text is f
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: ratify waiver
+by: Z1-prepared (not an identity claim)
+at: 2026-11-13T14:17:33Z
+status: DECIDED
+block_hash: 8712c643c07b986d13f6856623d31f016ccbcfa17ebfdb4d4837294d361eb5d3
+body_hash: f6a10445641b9046dde26be8005ba44b7b7c65efc46c0b9f4b9bc23ce8471b5c
+
+```
+RULING z1-pillow-02
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Waive CVE-2026-128067 and CVE-2026-128066 (pillow) for tools/Metaculus only?
+  choice: ratify waiver
+  note: 
+  at: 2026-11-13T14:17:33Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 
