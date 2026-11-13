@@ -73,6 +73,23 @@ Three things changed with the fix, each of which had its own failure:
   branches each add an entry and each write `+1`, git merges the two identical
   lines into one bump and keeps both entries.
 
+1.3.0 — THE STALE "Not ratified." SENTENCE
+------------------------------------------
+Candidates are indexed with a `note:` that ends "Not ratified." when they are
+filed. `--apply` flipped `status` to `ratified` and left the note, so the first
+two entries signed from a Z1 PR (2026-11-11) read both "ratified" and "Not
+ratified" in the authoritative index. No tool reads the sentence, so nothing
+failed; a human reading the index got two answers. On ACCEPT the single-line `note:`
+now loses that sentence. Rules, each pinned by a test:
+
+* a note is edited only when it fits on one line (the next line is not indented); a
+  note that wraps over several lines is left alone, whichever line the sentence is on;
+* a note that is only the sentence becomes an explicit empty string, not null;
+* text left over that would read as a boolean, null or number (`true`, `yes`, `null`,
+  `123`) is quoted, so the note keeps its type;
+* EDIT and REJECT leave the note alone, because for those the sentence is still true;
+* a `Not ratified` left anywhere the tool does not edit is reported, not guessed at.
+
 Deps: PyYAML. No network.
 """
 from __future__ import annotations
@@ -97,7 +114,7 @@ from validate import (  # noqa: E402
 )
 
 TOOL_NAME = "z1_ratify"
-TOOL_VERSION = "1.2.0"
+TOOL_VERSION = "1.3.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_ZONE = 2  # records a Z2 act; run by the ratifier
 
@@ -414,6 +431,45 @@ def is_board_ruling(candidate_bytes: bytes) -> bool:
     return bool(BOARD_RULING_RE.search(candidate_bytes))
 
 
+# A candidate is filed with a note that ends "Not ratified." The sentence is true until the
+# candidate is accepted. Only a note that fits on ONE line is edited: a scalar that wraps over
+# several lines (its next line is indented four or more spaces) is left for a human, whichever
+# line the sentence sits on. The lookahead is what tells the two apart.
+_ONE_LINE = r"(?=\n(?! {3})|\Z)"
+STALE_SENTENCE_ONLY_RE = re.compile(
+    r"^(  note: )(['\"]?)Not ratified\.\2[ ]*$" + _ONE_LINE, re.M)
+STALE_NOT_RATIFIED_RE = re.compile(
+    r"^(  note: [^\n]*?)[ ]+Not ratified\.([^\n]*)$" + _ONE_LINE, re.M)
+
+
+def drop_stale_not_ratified(body: str) -> str:
+    """Remove the "Not ratified." sentence from a candidate's single-line note.
+
+    A note that is only that sentence becomes an explicit empty string, so the key keeps a
+    value of the type every reader already expects instead of turning into null.
+    """
+    def empty(m: "re.Match[str]") -> str:
+        quote = m.group(2) or "''"
+        return m.group(1) + (quote * 2 if m.group(2) else quote)
+    cleared = STALE_SENTENCE_ONLY_RE.sub(empty, body, count=1)
+    if cleared != body:
+        return cleared
+
+    def joined(m: "re.Match[str]") -> str:
+        line = m.group(1) + m.group(2)
+        value = line[len("  note: "):]
+        if value[:1] in ("'", '"'):
+            return line
+        # What is left can read as a non-string once the sentence is gone (`true`, `yes`,
+        # `null`, `123`). A plain scalar would change the note's type, so quote it.
+        try:
+            keeps_text = isinstance(yaml.safe_load(value), str)
+        except yaml.YAMLError:
+            return line
+        return line if keeps_text else "  note: '" + value.replace("'", "''") + "'"
+    return STALE_NOT_RATIFIED_RE.sub(joined, body, count=1)
+
+
 def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> int:
     if by not in KNOWN_RATIFIERS:
         print(f"::error::'{by}' is not a ratifier. Allowed: {sorted(KNOWN_RATIFIERS)}")
@@ -489,6 +545,10 @@ def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> i
     head, body = block.group(1), block.group(2)
     body = re.sub(r"^  status: .*\n", f"  status: {status}\n", body,
                   count=1, flags=re.MULTILINE)
+    if decision == "ACCEPT":
+        body = drop_stale_not_ratified(body)
+    leftover_not_ratified = (decision == "ACCEPT"
+                             and bool(re.search(r"not ratified", body, re.I)))
     add = (f'  ratified_by: {by}\n'
            f'  ratified_at: "{at}"\n'
            f'  z2_ruling: "{ruling_rel}"\n'
@@ -530,6 +590,10 @@ def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> i
     open(INDEX, "w", encoding="utf-8").write(new_text)
 
     print(f"\nRecorded — ruling written, candidate signed, record indexed, counts {counts}.")
+    if leftover_not_ratified:
+        print(f"::warning::{q_id}: the index entry still says \"not ratified\" somewhere the tool "
+              f"does not edit (a note that wraps over several lines, for one). Fix it by hand "
+              f"before committing.")
     print(f"Next:")
     print(f"  1. python3 .z1-control/render.py")
     print(f"  2. python3 .z1-control/validate.py")
