@@ -1,0 +1,135 @@
+{
+  "dimensions": [
+    "assurance",
+    "attention",
+    "capital",
+    "compute",
+    "evidence",
+    "labor",
+    "participation"
+  ],
+  "policy": {
+    "conversion": "none_by_default",
+    "shadow_price_min_n": 8
+  },
+  "ratification_hash": "b6b8233dd06400f565e5e21286cc0fec65a71472adfa1ebb98045f2dfaeff2a2",
+  "schema": "humanaios.resource-units.snapshot.v1",
+  "source": "operations/RESOURCE_UNITS.yaml",
+  "source_commit": "52aa7c0ed70f6e24ec050d0d56788a791e5f78f7",
+  "source_sha256": "8ed9cd14d6529fdba6995510d80c8967c4455df59489dc0f083bbc296c3e094f",
+  "status": "RATIFIED",
+  "units": [
+    {
+      "conservation": "renewable",
+      "dimension": "attention",
+      "kind": "flow",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "RAT-min"
+    },
+    {
+      "conservation": "renewable",
+      "dimension": "compute",
+      "kind": "flow",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "Z1-ktok"
+    },
+    {
+      "conservation": "renewable",
+      "dimension": "labor",
+      "kind": "flow",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "Z3-hr"
+    },
+    {
+      "conservation": "depletable",
+      "dimension": "compute",
+      "kind": "flow",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "CI-min"
+    },
+    {
+      "conservation": "depletable",
+      "dimension": "capital",
+      "kind": "stock",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "RUN-day"
+    },
+    {
+      "conservation": "depletable",
+      "dimension": "participation",
+      "kind": "flow",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "SPEC-hr"
+    },
+    {
+      "conservation": "non_depleting",
+      "dimension": "evidence",
+      "kind": "stock",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "EVID-row"
+    },
+    {
+      "conservation": "non_depleting",
+      "dimension": "evidence",
+      "kind": "stock",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "CAL-pt"
+    },
+    {
+      "conservation": "degradable",
+      "dimension": "assurance",
+      "kind": "stock",
+      "sign": "positive",
+      "status": "REGISTERED",
+      "symbol": "RAT-art"
+    },
+    {
+      "conservation": "depletable",
+      "dimension": "attention",
+      "kind": "stock",
+      "sign": "negative",
+      "status": "REGISTERED",
+      "symbol": "OBL-open"
+    },
+    {
+      "conservation": "depletable",
+      "dimension": "evidence",
+      "kind": "stock",
+      "sign": "negative",
+      "status": "REGISTERED",
+      "symbol": "GAP-row"
+    },
+    {
+      "conservation": "degradable",
+      "dimension": "assurance",
+      "kind": "flow",
+      "sign": "negative",
+      "status": "REGISTERED",
+      "symbol": "STALE-day"
+    },
+    {
+      "conservation": "degradable",
+      "dimension": "assurance",
+      "kind": "stock",
+      "sign": "positive",
+      "status": "CANDIDATE",
+      "symbol": "TRUST-pt"
+    },
+    {
+      "conservation": "renewable",
+      "dimension": "attention",
+      "kind": "flow",
+      "sign": "positive",
+      "status": "CANDIDATE",
+      "symbol": "OP-hr"
+    }
+  ]
+}

@@ -502,6 +502,19 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md` | Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
+## Excluded from the conversion record (8)
+
+Neither a candidate nor a record. Listed because an exclusion the index accepts must still be visible — silence is what the coverage rule exists to prevent.
+
+- `z1-inbox/2026-11-12/project-desk-bridge/README.md`
+- `z1-inbox/2026-11-12/project-desk-bridge/docs/AUDIT_HANDOFF.md`
+- `z1-inbox/2026-11-12/project-desk-bridge/docs/AUDIT_LOG.md`
+- `z1-inbox/2026-11-12/project-desk-bridge/docs/IMPLEMENTATION_NOTES.md`
+- `z1-inbox/2026-11-12/project-desk-bridge/docs/LIMITATION_REGISTER.md`
+- `z1-inbox/2026-11-12/project-desk-bridge/docs/RECONCILIATION_REPORT.md`
+- `z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_A_REPORT.md`
+- `z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_MANIFEST.md`
+
 ---
 
 **Converting an inbox item to a Z2 decision:** add it to `z1-inbox/INDEX.yaml` under `candidates:` with `status: awaiting_z2` and a falsifier in the block itself, run `python3 .z1-control/render.py`, and commit both. An undecided candidate carries no signature fields at all.
