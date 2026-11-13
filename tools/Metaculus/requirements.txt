@@ -7,8 +7,9 @@
 # main.py v2.3 (S-060526-NN-forecast-bot-comment-fix)
 
 # Explicit transitive floor: setuptools below 84.1.0 has GHSA-xmj3-9gf7-h52w.
+# forecasting-tools floor raised to 0.3.5; setuptools keeps the upper bound from main.
 setuptools>=84.1.0,<85.0.0
-forecasting-tools>=0.3.4,<0.4.0
+forecasting-tools>=0.3.5,<0.4.0
 supabase>=2.33.0,<3.0.0
 python-dotenv>=1.2.4,<2.0.0
 Pygments>=2.21.0
