@@ -14,7 +14,7 @@ model/credit spend, and not a merge.
 admission of budget/reviewer/ethics controls, confirmed sprint-form
 eligibility to receive a submission, and — separately from research
 ratification — an explicit repository-coordinator admission record for the
-carrying PR (`ADMISSION_REVIEW` is currently `FAIL`; see PR #1210).
+carrying PR (admission must be checked against the **current PR head**; the previous admission receipt only applies to its pinned SHA).
 
 This draft operationalizes #1200's "frozen, falsifiable protocol candidate"
 into values that could be frozen. Every numeric choice below is a proposal,
@@ -63,22 +63,35 @@ since it is easy to lose when discussing "growth"/"meaning" language.
    `freeze_receipt.json` (see `research/collusion_audit/followup_v0_3/` on
    branch `research/apart-review-followup-v03-20261108` for the prior
    project's freeze-receipt convention — not yet merged to `main`).
-2. **Missingness / retry thresholds (previously referenced here as "§3.2"
-   without a definition — fixed now):**
-   - Retries are keyed strictly by transport error class, decided before
-     any call: HTTP 429 or timeout → retry up to **2 times** with backoff;
-     any other error → **0 retries**, logged and retained as missingness.
-   - A substantive text response is never retried because of its content
-     (length, apparent refusal text, or anything else) — retrying on
-     content is exactly the post-hoc-retry failure the October collusion
-     audit hit (see `research/aerc/` and #1114's Phase 1 standing).
-   - Hard ceiling: **90 total attempts** across the pilot (60 base + at
-     most 30 retries, i.e. 2 retries × 60). If a cell still lacks 10 valid
-     responses after exhausting its retry budget, that cell is reported
-     with its actual n and the gap is retained as missingness in the
-     denominator — the cell is not reopened or resampled to reach 10.
-   - No live call proceeds past this ceiling without a separate,
-     explicit Night approval of additional spend.
+2. **Predeclared retry allocation (read-only simulated in
+   `synthetic/trial_schedule.py`, no provider calls):**
+   - Generate exactly **60 base trial IDs**: 3 phrases × 2 contexts × 10
+     repeats; shuffle with a frozen seed. **Reserve and log the first
+     attempt for every one of the 60 trials before planning a retry**.
+     Keep each original ID and condition fixed; never replace a trial
+     because its answer is inconvenient.
+   - Retry only transport HTTP 429 or timeouts, with fixed backoff and
+     **at most two retries per trial**, **at most five retries per
+     condition/cell**, and **at most 30 retries total**. Hard ceiling:
+     **90 total attempts = 60 initial + 30 retries**, not 2 × 60
+     retries. Never start a retry while a base trial remains unattempted.
+     Reserve a budget for every cell and do not let early cells starve
+     later cells. The deterministic scheduler enforces these count caps.
+   - Successful replies and textual refusals are observations, **not**
+     transport failures; never retry based on the content, length or
+     apparent desirability of a response. Other transport errors receive
+     zero retries. Every attempt/status/error/recovery is recorded.
+   - **Two distinct denominators:** attempts (including recovered 429s)
+     for reliability and cost; trial IDs (10 planned per cell) for the
+     response-level outcome. Only a trial with no final usable text
+     after its permitted retries counts as a **missing final trial**.
+     A recovered error remains in the attempt log, but is not a
+     missing response. Report per-cell observed n and all 10 planned
+     trial IDs; never refill cells beyond the predeclared cap.
+   - No inference or spend is authorized here. The future live
+     orchestrator must pin the full prompt packet, model/version, seed,
+     max token/price budget, attempt trace, and a dry-run receipt before
+     any real calls; this Python module only proves the offline schedule.
 3. Rating rubric (ref: `synthetic/metrics.py`) and rater instructions
    finalized; two raters recruited and confirmed blinded to phrase/context
    label.
@@ -90,7 +103,7 @@ since it is easy to lose when discussing "growth"/"meaning" language.
      span is redacted to `[PHRASE]` / `[CONTEXT]` before the rater sees it,
      by a script, not by the rater's own judgment about what to ignore.
 4. Synthetic regression suite (`synthetic/test_metrics.py`) green — 20/20
-   as of this revision, including a case demonstrating that percent
+   in the prior revision (new scheduler tests are separate), including a case demonstrating that percent
    agreement and kappa can diverge on skewed 0/1 labels (see §5).
 
 ## 4. Outcomes
@@ -141,17 +154,21 @@ resolve).
 
 ## 6. Falsifiers
 
-- Phrase contrast disappears or reverses when checked separately within
-  each of the two defined contexts (short-neutral and long-closedown) →
-  report no phrase-specific effect. ("Held-out" previously implied a third
-  context that does not exist in this design — removed.)
+- If the contrast is approximately absent in **both** defined contexts,
+  report no observed phrase-specific contrast within this pilot's
+  uncertainty; this does not establish the null as true.
+- A consistent **reversal** (fewer unsupported claims for "The floor is
+  yours.") is a phrase-associated contrast **against the direction of
+  H1**, not evidence of "no effect". A contrast in only one context is
+  **context-dependent**, not a uniform phrase effect.
 - Effect is dominated by long-context irrespective of phrase → report
   context, not phrase, as the driver.
 - Rater reliability is poor (kappa below the §5 gate) → score the pilot
   **UNRESOLVED**, not negative.
-- Refusals/timeouts/429s are retained as missingness; no sampling continues
-  until the thresholds in §3.2 are met, and no cell is resampled past the
-  §3.2 ceiling to force n=10.
+- Record all transport attempts including 429/timeouts; count final
+  missing responses only for unrecovered trials. Textual refusals are
+  observed replies, not transport missingness. Never refill a cell or
+  increase the Section 3(2) limits after seeing outcomes.
 
 ## 7. Limitations and dual-use considerations (draft — not the sprint's
 final required appendix, but its missing inputs)
@@ -173,17 +190,16 @@ final required appendix, but its missing inputs)
   those materials, and a model response could echo phrasing from them if
   any of that language leaked into a prompt upstream. No such check exists
   yet in this draft.
-- **Spend:** §3.2 now fixes an attempt ceiling (90 calls) and a retry
-  policy; before this draft, "pre-specified thresholds in §3.2" was
-  referenced without existing. No cost-per-call ceiling in dollars has
-  been set — that number depends on which provider/model Night approves
-  and is out of scope for this document to invent.
+- **Spend:** Section 3(2) fixes a 90-attempt ceiling and
+  balanced per-cell retry caps. No cost-per-call dollar ceiling has
+  yet been set — it depends on provider/model and a separate human
+  decision. Attempt limits are not spending authorization.
 
 ## 8. Explicitly out of scope for this draft
 
 - Track B (the inert synthetic authorization-claim comparison) remains
   deferred per the Nov 12 scope decision; this draft does not attempt to
   also freeze Track B.
-- No live call under this draft until §3's gate is satisfied, Night admits
-  budget/reviewer/ethics controls, and the repository-coordinator
-  admission record for the carrying PR is granted.
+- No live call under this draft until Section 3's gate is satisfied,
+  Night admits budget/reviewer/ethics controls, and an exact-current-head
+  repository-coordinator admission record is verified.
