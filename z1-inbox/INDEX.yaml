@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 123
-  records: 72
+  records: 74
 ratifiers:
 - Night
 candidates:
@@ -337,72 +337,112 @@ candidates:
   title: Board ruling d3 — z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-03.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "d9205f80f381b99b49f2cd336494e6f313be2688698c06094ed15e4f8514b09c"
 - q_id: Q-BOARD-RULING-05
   title: Board ruling d5 — GRBS ↔ Empirica — what is the formal relationship?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-05.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "b1aeacc4d76a2f5b00e1705376376d051069e46bc2d41391bb15156edb45f2a3"
 - q_id: Q-BOARD-RULING-06
   title: Board ruling d6 — First job-posting batch — where does it come from?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-06.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "8eaf5ba86242368b13e3418cbfc327c5149febed788ba2037b134d364a5f832e"
 - q_id: Q-BOARD-RULING-07
   title: Board ruling d7 — Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-07.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "c16c68fc6d746960957e073b4eaaad595f0a8fa768e5f936680902a10814cb3a"
 - q_id: Q-BOARD-RULING-08
   title: Board ruling d8 — c08f86c history — accept that the PII literals stay in history, or rewrite history?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-08.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "13872d43cf874c4191afdaa49e9c497f15fabfb5a009b0156892a253838d3a35"
 - q_id: Q-BOARD-RULING-09
   title: Board ruling d9 — B1 — is the platform contract id / feedback / task count covered by the contractor agreement?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-09.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "0223e63774de313e12b4c2fb48c13605a174caf62ad01d0e3b380fe5c484f4dd"
 - q_id: Q-BOARD-RULING-10
   title: Board ruling d10 — Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-10.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "7c4cebf936c8a4f5769a6569e8a7df0459243dc74bab9915922b4e3e0a69521d"
 - q_id: Q-BOARD-RULING-11
   title: Board ruling d11 — Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-11.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "9851a3b0752090a0b2da32e0a601bf9b49afb3d8c9e302d215e17f15a976ce81"
 - q_id: Q-BOARD-RULING-12
   title: Board ruling d12 — H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-12.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "5b4b235054a9c853be1711b42debd8ab84b003571cca742d60b8d5a478f0f48b"
 - q_id: Q-BOARD-RULING-13
   title: Board ruling d13 — Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-13.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "fa83e8cad90de5979c733e1135369a540a10c164a56c1a05e0da77db8e8dceb6"
 - q_id: Q-BOARD-RULING-14
   title: Board ruling d14 — LPCS — independent check (a), convergence specimen (b), destination (c), or none?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-14.md
@@ -417,16 +457,24 @@ candidates:
   title: Board ruling d15 — FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-15.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "9a74fa65d8997015b091773db6f595d6210207a474973c59dd508ca5bd07b7ad"
 - q_id: Q-BOARD-RULING-16
   title: 'Board ruling d16 — docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?'
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-16.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  z2_hash: "4222c6c47c77b78f75528559d98ada6358da07dba025a4ea28c533e2152cf531"
 - q_id: Q-BOOT-STATE-MACHINE-01
   title: Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation
   path: z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md
@@ -956,10 +1004,20 @@ candidates:
   title: Scoped audit waiver for PYSEC-2026-4363 (pillow 12.3.0) on tools/Metaculus only; records the Z2 direction behind PR 1185
   path: z1-inbox/2026-11-12/Q-PILLOW-PYSEC-2026-4363-WAIVER-01.md
   submitted: '2026-11-12'
-  status: awaiting_z2
+  status: ratified
   note: 'Answers CodeRabbit''s finding on 1185 (the workflow cites a Z2 direction no repository record holds). Waiver, not a fix; advisory text read from PyPI (trigger is a TIFF save); no save path found from the bot, not traced end to end; CVSS is CodeRabbit''s, unchecked; the PR-time CI scan did not exercise the waiver, the first main run that audits the Metaculus file does. Ruled by the one-file PR rule (merge is the ratification). Falsifier stated.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-12"
+  z2_ruling: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
+  z2_hash: "c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa"
 records:
+- path: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
+  title: "Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
+- path: "z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md"
+  title: "Z2 rulings 2026-09-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md
   title: "Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
