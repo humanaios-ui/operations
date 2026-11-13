@@ -1,0 +1,48 @@
+{
+  "schema": "humanaios.imagined_harm_source_trace.v0.1",
+  "case_id": "CASE-SYNTH-01",
+  "p1": {
+    "resource_id": "RES-SYNTH-JOB-01",
+    "source_revision": "REV-SYNTH-001",
+    "claim": "OPEN_UNVERIFIED",
+    "harm_forecast": "SEVERE_HARM_POSSIBLE",
+    "forecast_confidence": 0.75,
+    "source_url": "https://jobs.example.org/positions/fictional-001"
+  },
+  "p2": {
+    "report_id": "REPORT-SYNTH-404",
+    "source_review_packet": {
+      "schema": "humanaios.resource_source_review.v0.1",
+      "records": [
+        {
+          "id": "REPORT-SYNTH-404",
+          "resource_title": "Program Coordination Lead (synthetic)",
+          "source_url": "https://jobs.example.org/positions/fictional-001",
+          "status": "LINK_FAILED_404",
+          "evidence": {
+            "note": "Synthetic user report only",
+            "replacement_url": "",
+            "screenshot": null
+          },
+          "observed_at": "2026-10-22T19:00:00Z"
+        }
+      ]
+    },
+    "resource_id": "RES-SYNTH-JOB-01",
+    "source_revision": "REV-SYNTH-001"
+  },
+  "p3": {
+    "claim": "AVAILABILITY_UNKNOWN",
+    "presentation": "SUPPRESS_PENDING_RECHECK",
+    "harm_assessment": "TIME_LOSS_POSSIBLE"
+  },
+  "history": {
+    "unqualified_presentations_after_report": 0,
+    "human_outcome_observation": "NOT_OBSERVED"
+  },
+  "heldout": {
+    "resource_id": "RES-HELDOUT-UNAFFECTED",
+    "visible_before": true,
+    "visible_after": true
+  }
+}
