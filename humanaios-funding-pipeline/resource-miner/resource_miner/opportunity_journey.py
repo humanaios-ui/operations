@@ -21,6 +21,14 @@ EVENT_SOURCE = {
     "CALENDAR_EVENT_CREATED": "CALENDAR_CONNECTOR_RECEIPT",
     "DISCORD_JOINED_HUMAN": "HUMAN_REPORT",
 }
+# A bounded application lifecycle, reusing this reducer rather than a second tracker.
+# These are reports/observations, NOT authenticated provider receipts.
+APPLICATION_EVENT_SOURCE = {
+    "APPLICATION_SUBMITTED_HUMAN": "HUMAN_REPORT",
+    "APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED": "HUMAN_REPORT",
+}
+APPLICATION_ALLOWED = {"DISCOVERED", "HUMAN_SELECTED", *APPLICATION_EVENT_SOURCE}
+APPLICATION_WORKFLOW = "RESEARCH_SUPPORT_APPLICATION"
 MAX_EVENTS = 64
 TOKEN = re.compile(r"[A-Za-z0-9_-]{1,100}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -157,8 +165,14 @@ def project_journey(payload: dict) -> dict:
     if not isinstance(payload, dict) or set(payload) not in (
         {"schema", "opportunity", "events"},
         {"schema", "opportunity", "events", "preparation"},
+        {"schema", "opportunity", "events", "workflow"},
+        {"schema", "opportunity", "events", "preparation", "workflow"},
     ):
         raise ValueError("Unexpected journey envelope")
+    workflow = payload.get("workflow")
+    if workflow is not None and workflow != APPLICATION_WORKFLOW:
+        raise ValueError("Unsupported application workflow")
+    allowed_sources = (EVENT_SOURCE | APPLICATION_EVENT_SOURCE) if workflow else EVENT_SOURCE
     if payload["schema"] != SCHEMA:
         raise ValueError("Unsupported journey version")
     opportunity = payload["opportunity"]
@@ -181,9 +195,10 @@ def project_journey(payload: dict) -> dict:
         event_id = _token(event["event_id"], "event ID")
         kind = event["kind"]
         source_kind = event["source_kind"]
-        if not isinstance(kind, str) or kind not in EVENT_SOURCE:
+        if (not isinstance(kind, str) or kind not in allowed_sources
+                or (workflow and kind not in APPLICATION_ALLOWED)):
             raise ValueError("Unknown event kind: no implicit outcome promotion")
-        if source_kind != EVENT_SOURCE[kind]:
+        if source_kind != allowed_sources[kind]:
             raise ValueError("Untrusted source cannot assert that event kind")
         record = {
             "event_id": event_id,
@@ -200,7 +215,7 @@ def project_journey(payload: dict) -> dict:
 
     ordered = sorted(unique.values(), key=lambda e: (e["observed_at"], e["event_id"]))
     kinds = {event["kind"] for event in ordered}
-    observed = {kind: kind in kinds for kind in EVENT_SOURCE}
+    observed = {kind: kind in kinds for kind in allowed_sources}
     signup = observed["SIGNUP_WELCOME_EMAIL_OBSERVED"]
     survey = observed["SURVEY_SUBMITTED_HUMAN"]
     selected = observed["HUMAN_SELECTED"]
@@ -256,6 +271,38 @@ def project_journey(payload: dict) -> dict:
         "authority_effect": "NONE",
         "receipt_kind": "UNSIGNED_LOCAL_PROJECTION_NOT_INDEPENDENT_ATTESTATION",
     }
+    if workflow == APPLICATION_WORKFLOW:
+        submitted = observed["APPLICATION_SUBMITTED_HUMAN"]
+        page = observed["APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED"]
+        # A browser success page is stronger contextual evidence than an unaided
+        # human statement, but an imported JSON cannot authenticate that page.
+        if page and not submitted:
+            warnings.append("CONFIRMATION_PAGE_WITHOUT_SUBMISSION_REPORT")
+        result.update({
+            "workflow": APPLICATION_WORKFLOW,
+            "application_standing": (
+                "SUBMITTED_AND_CONFIRMATION_PAGE_HUMAN_OBSERVED" if submitted and page
+                else "SUBMITTED_HUMAN_REPORTED" if submitted
+                else "CONFIRMATION_PAGE_ONLY_HUMAN_OBSERVED" if page
+                else "SUBMISSION_NOT_DOCUMENTED"
+            ),
+            "confirmation_page_standing": (
+                "HUMAN_OBSERVED_NOT_CONNECTOR_AUTHENTICATED" if page else "UNVERIFIED"
+            ),
+            "provider_receipt_email_standing": "UNVERIFIED",
+            "provider_review_standing": "NOT_OBSERVED",
+            "provider_decision_standing": "UNVERIFIED",
+            "grant_or_support_outcome": "UNVERIFIED",
+            "human_action_cycle": (
+                "SUBMISSION_AND_PAGE_OBSERVATION_REPORTED" if submitted and page
+                else "SUBMISSION_REPORTED" if submitted else "INCOMPLETE"
+            ),
+            "next_action_codes": (
+                ["CHECK_FOR_PROVIDER_RESPONSE"] if submitted and page
+                else ["REVIEW_AND_RECORD_CONFIRMATION"] if submitted
+                else ["REVIEW_APPLICATION_AND_CONFIRM_SUBMISSION"]
+            ),
+        })
     if "preparation" in payload:
         result["preparation"] = project_preparation(payload["preparation"])
         result["next_action_codes"].insert(0, (
