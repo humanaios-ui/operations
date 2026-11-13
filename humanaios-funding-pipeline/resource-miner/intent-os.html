@@ -31,6 +31,15 @@ a{color:#87d6fa;overflow-wrap:anywhere}a:hover{text-decoration-thickness:2px}
 .verification-actions{display:flex;gap:10px;flex-wrap:wrap}
 .status-line{font-size:.82rem;color:#f0d09a}
 #localFilter{font-size:.84rem}
+
+.witness-dialogue{border-color:#5a8fa8}
+.witness-dialogue .witness-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.witness-dialogue .witness-consent{display:flex;gap:10px;align-items:flex-start;font-weight:500}
+.witness-dialogue .witness-consent input{margin-top:5px}
+.witness-dialogue #witnessTranscript{border:1px solid #36526b;border-radius:10px;padding:12px;max-height:440px;overflow:auto;background:#0a1828}
+.witness-dialogue .witness-turn{padding:10px 0;border-bottom:1px solid #34506b;white-space:pre-wrap;overflow-wrap:anywhere}
+.witness-dialogue .witness-turn:last-child{border-bottom:0}
+.witness-dialogue .witness-limit{font-size:.85rem;color:#e6cd9b}
 #results[hidden]{display:none}footer{font-size:.84rem;line-height:1.6;color:#a3b3c6;margin-top:26px}
 
 @media(max-width:719px){
@@ -82,6 +91,20 @@ button,select,input[type=file]{min-height:44px}
 <div id="items"></div>
 <button id="showMore" type="button" hidden>Show more</button>
 <p class="muted" id="receipt"></p>
+</section>
+
+<section class="panel witness-dialogue" id="witnessPanel" aria-labelledby="witnessPanelTitle">
+<h2 id="witnessPanelTitle">Witness conversation · local preview</h2>
+<p class="muted">Find resources first. Select one public candidate and ask. Each question is independent; prior dialogue is NOT sent to the model. Replies stay in this tab only. Nothing changes eligibility or records.</p>
+<p class="witness-limit">Privacy: Only when you press Ask Witness with consent, the selected public resource summary and typed question go through your local Witness to its configured model provider (Anthropic/Claude). Never enter sensitive goals, identities, account data, contracts or private notes. No automatic network calls or saved transcript.</p>
+<label for="witnessResource">Public resource to discuss</label>
+<select id="witnessResource" disabled><option value="">Search first</option></select>
+<label for="witnessQuestion">Question for Witness</label>
+<textarea id="witnessQuestion" maxlength="350" rows="3" placeholder="What does the source support, what is unknown, and what should I verify next?"></textarea>
+<label class="witness-consent" for="witnessConsent"><input id="witnessConsent" type="checkbox"> I consent to sending this public resource and question to the local Witness and configured provider for this one request.</label>
+<div class="witness-actions"><button type="button" id="witnessSend">Ask Witness</button><button type="button" id="witnessClear">Clear dialogue</button></div>
+<p id="witnessStatus" role="status" aria-live="polite">No request sent. Available only from local INTENT-OS after Witness opt-in.</p>
+<div id="witnessTranscript" role="log" aria-label="Temporary Witness dialogue" aria-live="polite" aria-relevant="additions text"></div>
 </section>
 <section class="panel" id="verificationQueue" aria-label="Resource verification queue">
 <h2>My source verification reports</h2>
@@ -494,6 +517,83 @@ function addCard(row){
  }catch(_){}
  return card;
 }
+
+/* E0 Witness dialogue reuses the existing loopback-only endpoint.
+ * Display only; no write, memory, history forwarding, or implicit model call. */
+const witnessResource=document.getElementById("witnessResource"),
+ witnessQuestion=document.getElementById("witnessQuestion"),
+ witnessConsent=document.getElementById("witnessConsent"),
+ witnessSend=document.getElementById("witnessSend"),
+ witnessClear=document.getElementById("witnessClear"),
+ witnessStatus=document.getElementById("witnessStatus"),
+ witnessTranscript=document.getElementById("witnessTranscript");
+let witnessGeneration=0;
+function clearWitnessDialogue(message="Temporary dialogue cleared. No stored transcript."){
+ witnessGeneration++;witnessTranscript.replaceChildren();witnessConsent.checked=false;
+ text(witnessStatus,message);
+}
+function refreshWitnessChoices(){
+ clearWitnessDialogue("New search; previous dialogue cleared. Choose a current public resource.");
+ witnessResource.replaceChildren();
+ const choose=document.createElement("option");choose.value="";
+ text(choose,latestCandidates.length?"Choose a public candidate":"No candidates available");
+ witnessResource.append(choose);
+ latestCandidates.forEach((row,i)=>{
+  const option=document.createElement("option");option.value=String(i);
+  text(option,String(row.title||"Untitled candidate").slice(0,120));
+  witnessResource.append(option);
+ });
+ witnessResource.value="";witnessResource.disabled=latestCandidates.length===0;
+}
+function appendWitnessTurn(who,content){
+ const e=document.createElement("div");e.className="witness-turn";
+ text(e,who+": "+content);
+ if(witnessTranscript.children.length>=12)
+  witnessTranscript.replaceChildren(...Array.from(witnessTranscript.children).slice(-11));
+ witnessTranscript.append(e);
+}
+witnessClear.addEventListener("click",()=>clearWitnessDialogue());
+witnessSend.addEventListener("click",async()=>{
+ const localHost=typeof location!=="undefined"&&
+  ["127.0.0.1","localhost","::1","[::1]"].includes(location.hostname);
+ if(!localHost){text(witnessStatus,"Blocked: local INTENT-OS required.");return;}
+ if(!witnessConsent.checked){text(witnessStatus,"Consent required for each question; nothing sent.");return;}
+ const idx=Number(witnessResource.value);
+ if(witnessResource.value===""||!Number.isInteger(idx)||idx<0||idx>=latestCandidates.length){
+  text(witnessStatus,"Choose a resource from current results.");return;
+ }
+ const question=witnessQuestion.value.trim();
+ if(question.length<3||question.length>350){text(witnessStatus,"Use 3–350 characters.");return;}
+ const row=latestCandidates[idx],generation=witnessGeneration;
+ witnessSend.disabled=true;text(witnessStatus,"Contacting the local Witness…");
+ const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),85000);
+ try{
+  const safe=new URL(publicUrl(row.source_url));safe.search="";safe.hash="";
+  const resource={resource_id:row.resource_id,title:row.title,source_name:row.source_name,
+   source_url:safe.href,route:row.route};
+  for(const key of ["observed_at","deadline","source_status"])
+   if(typeof row[key]==="string")resource[key]=row[key].slice(0,80);
+  const response=await fetch("/api/witness/ask-resource",{
+   method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",
+   body:JSON.stringify({resource,question,consent:true}),signal:ctl.signal});
+  if(!response.ok)throw new Error(response.status===503?
+   "Local Witness disabled or unavailable; no answer recorded.":
+   "Request refused (HTTP "+response.status+").");
+  const reply=await response.json();
+  if(!reply||reply.resource_id!==row.resource_id||reply.authority!=="NONE"||
+     reply.execution!=="DISABLED"||typeof reply.answer!=="string"||
+     reply.answer.length>12000)throw new Error("Unsafe or mismatched answer.");
+  if(generation!==witnessGeneration)return;
+  appendWitnessTurn("Your question",question);
+  appendWitnessTurn("Witness (unverified model output)",reply.answer);
+  text(witnessStatus,"Unverified answer, shown in this tab only. No authority or eligibility granted.");
+ }catch(error){
+  if(generation===witnessGeneration)text(witnessStatus,error.name==="AbortError"?
+   "Witness timed out. No answer recorded.":"Witness unavailable: "+error.message);
+ }finally{
+  clearTimeout(timer);witnessConsent.checked=false;witnessSend.disabled=false;
+ }
+});
 form.addEventListener("submit",async event=>{
  event.preventDefault();const objective=field.value.trim();
  if(!objective){field.focus();return;}
@@ -520,7 +620,7 @@ form.addEventListener("submit",async event=>{
      "No supported matches in these sources.")+" Try another goal or the other source mode.");
    warning.hidden=!result.source_warning;
    text(warning,result.source_warning);
-   latestCandidates=result.candidates||[];visibleLimit=10;
+   latestCandidates=result.candidates||[];visibleLimit=10;refreshWitnessChoices();
    renderVerificationCases(result.verification_cases);
    renderCandidates();
    text(receipt,"Source: "+result.source_status+" · Unsigned selection digest: "+result.receipt_sha256);
