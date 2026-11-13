@@ -224,6 +224,116 @@ def test_a_non_ratifier_is_refused() -> None:
         assert open(index, encoding="utf-8").read() == before
 
 
+NOTE_INDEX = """version: 1
+generated: '2026-09-14'
+decision_window_days: 2
+counts:
+  candidates: 4
+  records: 0
+ratifiers:
+- Night
+candidates:
+- q_id: Q-FIXTURE-A-01
+  title: Quoted note, sentence at the end
+  path: z1-inbox/2026-09-01/Q-FIXTURE-A-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: 'Three edges, each proven. Falsifier stated. Not ratified.'
+- q_id: Q-FIXTURE-B-01
+  title: Plain note, sentence in the middle
+  path: z1-inbox/2026-09-01/Q-FIXTURE-B-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: Falsifier stated. Not ratified. Tier 2 because it changes a gate.
+- q_id: Q-FIXTURE-C-01
+  title: Wrapped note, sentence on a continuation line
+  path: z1-inbox/2026-09-01/Q-FIXTURE-C-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: "A note that wraps over two lines, with the sentence on the second.\\
+    \\ Not ratified."
+- q_id: Q-FIXTURE-D-01
+  title: Neighbour that is not decided
+  path: z1-inbox/2026-09-01/Q-FIXTURE-D-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: 'Still waiting. Not ratified.'
+records: []
+"""
+
+
+def note_sandbox(tmp: str) -> str:
+    index = build_sandbox(tmp)
+    day = os.path.join(tmp, "z1-inbox", "2026-09-01")
+    for q in ("C", "D"):
+        with open(os.path.join(day, f"Q-FIXTURE-{q}-01.md"), "w", encoding="utf-8") as fh:
+            fh.write(f"# Q-FIXTURE-{q}-01\n\nFalsifier: this file is not read for content.\n")
+    with open(index, "w", encoding="utf-8") as fh:
+        fh.write(NOTE_INDEX)
+    return index
+
+
+def decide(tmp: str, q_id: str, decision: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, os.path.join(tmp, ".z1-control", "ratify.py"),
+         q_id, "--decision", decision, "--by", "Night", "--apply"],
+        capture_output=True, text=True, cwd=tmp)
+
+
+def test_accept_drops_not_ratified_from_a_quoted_note() -> None:
+    """The index said both `ratified` and `Not ratified.` for the first signed entries."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        proc = decide(tmp, "Q-FIXTURE-A-01", "ACCEPT")
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-A-01")
+        assert c["status"] == "ratified"
+        assert c["note"] == "Three edges, each proven. Falsifier stated.", c["note"]
+        assert "warning" not in proc.stdout
+
+
+def test_accept_drops_it_from_the_middle_of_a_plain_note() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        assert decide(tmp, "Q-FIXTURE-B-01", "ACCEPT").returncode == 0
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-B-01")
+        assert c["note"] == "Falsifier stated. Tier 2 because it changes a gate.", c["note"]
+
+
+def test_the_neighbours_note_is_not_edited() -> None:
+    """The edit is scoped to the decided candidate's block."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        assert decide(tmp, "Q-FIXTURE-A-01", "ACCEPT").returncode == 0
+        doc = yaml.safe_load(open(index, encoding="utf-8"))
+        assert find(doc, "Q-FIXTURE-B-01")["note"].endswith("changes a gate.")
+        assert "Not ratified." in find(doc, "Q-FIXTURE-B-01")["note"]
+        assert find(doc, "Q-FIXTURE-D-01")["note"] == "Still waiting. Not ratified."
+
+
+def test_reject_and_edit_keep_the_note() -> None:
+    """For REJECT and EDIT the sentence is still true."""
+    for decision, status in (("REJECT", "rejected"), ("EDIT", "edit_requested")):
+        with tempfile.TemporaryDirectory() as tmp:
+            index = note_sandbox(tmp)
+            assert decide(tmp, "Q-FIXTURE-A-01", decision).returncode == 0
+            c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-A-01")
+            assert c["status"] == status
+            assert c["note"].endswith("Not ratified."), (decision, c["note"])
+
+
+def test_a_wrapped_note_is_reported_not_guessed_at() -> None:
+    """A sentence on a continuation line is left alone and the signer says so."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        proc = decide(tmp, "Q-FIXTURE-C-01", "ACCEPT")
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        assert "::warning::Q-FIXTURE-C-01" in proc.stdout, proc.stdout
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-C-01")
+        assert c["status"] == "ratified"
+        assert c["note"].endswith("Not ratified."), c["note"]
+
+
 def test_resulting_tree_passes_the_validator() -> None:
     """End to end: --apply alone, with no manual steps, leaves a tree the gate accepts."""
     with tempfile.TemporaryDirectory() as tmp:
