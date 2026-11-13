@@ -77,10 +77,10 @@ transport error does not become a missing final response. This is a
 **deterministic schedule and event simulation, not a provider API mock, live
 trial, or observed language effect**.
 
-`synthetic/test_trial_schedule.py` adds nine tests for balanced design,
+`synthetic/test_trial_schedule.py` adds ten tests for balanced design,
 admission of initial attempts, retry and per-cell caps, invalid sequences,
 refusals, recovered failures and final denominators. They passed in a local
-offline reproduction before being copied to this branch. Independent
+exact-source offline reproduction before being copied to this branch. Independent
 exact-head CI replay remains a separate gate. The existing scoring suite
 has twenty synthetic test cases reported in its protocol; neither suite
 replaces two blind human primary-outcome raters.
