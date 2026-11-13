@@ -64,6 +64,7 @@ SUPABASE_PROJECT = "ksinisdzgtnqzsymhfya"
 CONTACT_EMAIL    = "aioshuman@gmail.com"
 
 # Known collaborators — skip re-adding
+# Legacy tracker IDs. Presence here is NOT proof of a live collaboration.
 KNOWN_COLLAB_IDS = {
     "COL-001": "EmergenceAI / Agent-E",
     "COL-002": "ShiftSmart",
@@ -231,9 +232,16 @@ def run(data: dict) -> dict:
         if scanner is None:
             warnings.append(f"Unknown source: {source}")
             continue
+        # No live adapters are wired in v1.0. An unprovided injection key is
+        # NOT a successful source scan; do not report an empty stub as checked.
+        if f"_{source}_results" not in data:
+            warnings.append(f"{source}: no authenticated adapter; not scanned")
+            continue
         try:
             results = scanner(data)
-            sources_scanned.append(source)
+            if not isinstance(results, list):
+                raise TypeError("injected results must be a list")
+            sources_scanned.append(source)  # caller-supplied fixtures, NOT live verification
             raw_candidates.extend(results)
         except Exception as e:
             warnings.append(f"Scanner {source} error: {e}")
@@ -250,6 +258,9 @@ def run(data: dict) -> dict:
         source_type = raw.get("source_type", "manual")
         source_ref  = raw.get("source_ref", "")
 
+        if not source_ref:
+            warnings.append(f"Skipped candidate without a source_ref: {name[:40]}")
+            continue
         col_id, confidence = fuzzy_match_known(name)
         category  = infer_category(text)
         signals   = extract_convergence_signals(text)
@@ -263,6 +274,7 @@ def run(data: dict) -> dict:
                 "source_type": source_type,
                 "source_ref": source_ref,
                 "match_confidence": round(confidence, 3),
+                "relationship_status": "UNVERIFIED",  # fuzzy match is NOT proof
             })
         else:
             # New candidate
@@ -279,7 +291,8 @@ def run(data: dict) -> dict:
                 "convergence_signals": signals,
                 "raw_signal": raw.get("signal", ""),
                 "match_confidence": round(confidence, 3),
-                "z2_action": "RATIFY_NEW",
+                "z2_action": "REVIEW_CANDIDATE",
+                "relationship_status": "UNVERIFIED",
                 "z2_item_id": z2_id,
             })
 
@@ -294,21 +307,22 @@ def run(data: dict) -> dict:
                 "notes": f"Source: {source_ref}. Category: {category}. Signals: {', '.join(signals[:2])}",
             })
 
-    # Also surface existing Pending Outreach entries as aged Z2 items
-    for col_id, name in KNOWN_COLLAB_IDS.items():
-        if col_id in ("COL-004", "COL-005", "COL-006"):  # known pending outreach
-            z2_items.append({
-                "id": f"OUTREACH-{col_id}",
-                "description": f"Z2 ratification pending: outreach to {name}",
-                "type": "outreach",
-                "sessions_open": 2,
-                "first_session": "S-052326",
-                "last_session": data.get("session_id", "UNKNOWN"),
-                "blocker_if_unresolved": False,
-                "notes": "GitHub Issues is confirmed contact method. Night Zone 2 ratification required.",
-            })
+    # Aged outreach approval needs dated evidence, not a legacy hardcoded record.
+    # Only source-linked candidates may appear in this Z1 review queue.
 
-    status = "PASS" if not warnings else "WARN"
+    crm_snapshot = None
+    crm_invalid = False
+    if data.get("crm_baseline_path"):
+        try:
+            crm_dir = Path(__file__).resolve().parents[1] / "collaborator-ops" / "crm"
+            sys.path.append(str(crm_dir))
+            from crm_baseline import load_baseline, summary as crm_summary
+            crm_snapshot = crm_summary(load_baseline(data["crm_baseline_path"]))
+        except (ValueError, OSError) as exc:
+            warnings.append(f"CRM baseline invalid: {exc}")
+            crm_invalid = True
+
+    status = "FAIL" if crm_invalid else ("PASS" if not warnings else "WARN")
     if not sources_scanned and sources_requested:
         status = "WARN"
         warnings.append("No sources successfully scanned — check MCP connectivity")
@@ -318,7 +332,9 @@ def run(data: dict) -> dict:
         "scan_timestamp": datetime.now(timezone.utc).isoformat(),
         "session_id": data.get("session_id", "UNKNOWN"),
         "sources_scanned": sources_scanned,
+        "source_mode": "CALLER_SUPPLIED_FIXTURES_ONLY",
         "sources_requested": sources_requested,
+        "crm_baseline": crm_snapshot,
         "new_candidates": new_candidates,
         "updates": updates,
         "z2_queue_items": z2_items,
@@ -400,12 +416,14 @@ def run_smoke_test() -> bool:
         result = run(test_data)
         assert result["status"] in ("PASS", "WARN", "FAIL")
         assert result["summary"]["new_candidates"] == 2
-        assert result["summary"]["z2_items"] >= 2 + 3  # 2 new + 3 pending outreach
+        assert result["summary"]["z2_items"] == 2  # no auto-queued historical outreach
         assert result["new_candidates"][0]["category"] == "Research"
 
         # Test empty
         result2 = run({"sources": []})
         assert result2["status"] in ("PASS", "WARN")
+        assert run({"sources": ["github"]})["summary"]["sources_scanned"] == 0
+        assert run({"sources": ["github"]})["status"] == "WARN"
 
         # Test aggregate envelope
         out = aggregate(result, "_smoke")
@@ -440,6 +458,7 @@ def main() -> None:
     )
     parser.add_argument("--output", "-o", default="outputs/")
     parser.add_argument("--smoke-test", action="store_true")
+    parser.add_argument("--crm-baseline", help="read-only, pinned CRM baseline JSON (Z1)")
     parser.add_argument("--serve", action="store_true", help="FastMCP stdio mode")
     args = parser.parse_args()
 
@@ -473,6 +492,8 @@ def main() -> None:
         data = {}
 
     data["sources"] = [s.strip() for s in args.sources.split(",")]
+    if args.crm_baseline:
+        data["crm_baseline_path"] = args.crm_baseline
 
     run_result = run(data)
     output = aggregate(run_result, args.input or "cli")

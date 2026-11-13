@@ -1,0 +1,144 @@
+{
+  "schema_version": "humanaios.crm.baseline.v0.1",
+  "snapshot_date": "2026-10-28",
+  "repository": "humanaios-ui/operations",
+  "base_commit": "52aa7c0ed70f6e24ec050d0d56788a791e5f78f7",
+  "authority_effect": "NONE",
+  "execution": "DISABLED",
+  "ratification": "Z1_PROPOSAL_NOT_RATIFIED",
+  "scope": "Source-pinned public-safe snapshot of earlier repository claims; NOT independently verified live relationship status.",
+  "records": [
+    {
+      "id": "CRM-001",
+      "label": "DeMarius Lawson / O.T.M Productions / Governing Engines",
+      "kind": "external_research",
+      "historical_state": "ACTIVE_RECORDED",
+      "historical_as_of": "2026-07-22",
+      "current_state": "NEEDS_REVALIDATION",
+      "evidence_state": "SUPPORTED",
+      "sources": [
+        {
+          "path": "collaborators/DEMARIUS_J_LAWSON.md",
+          "blob_sha": "dbef0f8afaeb6e30b777b8bedabcf934fda6ec02",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/collaborators/DEMARIUS_J_LAWSON.md",
+          "supports": "Registry identifies an active architecture and evaluation collaborator in July."
+        },
+        {
+          "path": "collaborator-ops/agreements/MODE_AI_PARTNERSHIP.md",
+          "blob_sha": "4f5cf17bed8e65275e1aa9ea21e75cf8231ab0cd",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/collaborator-ops/agreements/MODE_AI_PARTNERSHIP.md",
+          "supports": "Working collaboration is described; signed MOU, IP, compensation, and publication rights remain unresolved."
+        }
+      ],
+      "next_review": "Confirm current engagement, exact agreement status, shared research scope and publication permissions with the human owner."
+    },
+    {
+      "id": "CRM-002",
+      "label": "David / Empirica",
+      "kind": "external_mesh_support",
+      "historical_state": "ACTIVE_RECORDED",
+      "historical_as_of": "2026-07-22",
+      "current_state": "NEEDS_REVALIDATION",
+      "evidence_state": "SUPPORTED",
+      "sources": [
+        {
+          "path": "collaborators/DAVID_EMPIRICA.md",
+          "blob_sha": "2245fd0a7be6ed6a68962bac7051cd984e33bb98",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/collaborators/DAVID_EMPIRICA.md",
+          "supports": "Profile describes technical mesh support, not HumanAIOS decision authority or a research co-investigator."
+        }
+      ],
+      "next_review": "Confirm current mesh-support scope and whether any newer agreement changes the July role."
+    },
+    {
+      "id": "CRM-003",
+      "label": "Partner-B (anonymized)",
+      "kind": "confidential_commercialization",
+      "historical_state": "ACTIVE_RECORDED",
+      "historical_as_of": "2026-07-06",
+      "current_state": "NEEDS_PRIVATE_REVALIDATION",
+      "evidence_state": "SUPPORTED",
+      "sources": [
+        {
+          "path": "deliverables/collab-partner-b-brief.md",
+          "blob_sha": "069392178d5d87e423d83de2f66a95da360376cf",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/deliverables/collab-partner-b-brief.md",
+          "supports": "July brief reports an active multi-phase relationship; the private register owns deal state."
+        }
+      ],
+      "next_review": "Human owner rechecks private source of truth; never place identity, terms or IP details in public CRM."
+    },
+    {
+      "id": "CRM-004",
+      "label": "Partner-V (anonymized)",
+      "kind": "confidential_instrument_validation",
+      "historical_state": "PARTNER_SIDE_CONDITIONAL_ACCEPTANCE_RECORDED",
+      "historical_as_of": "2026-07-06",
+      "current_state": "NEEDS_PRIVATE_REVALIDATION",
+      "evidence_state": "SUPPORTED",
+      "sources": [
+        {
+          "path": "deliverables/collab-partner-v-pilot.md",
+          "blob_sha": "b9cf2a0b497e0a5829dc62db2f6aa4e6619ea089",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/deliverables/collab-partner-v-pilot.md",
+          "supports": "July brief records partner-side acceptance of a bounded test and pending HumanAIOS Z2 review."
+        }
+      ],
+      "next_review": "Check private record for later ratification and protect partner IP; do not initiate experiment from historical draft."
+    },
+    {
+      "id": "CRM-005",
+      "label": "Longview funding application",
+      "kind": "funder_application",
+      "historical_state": "APPLICATION_LISTED_PENDING",
+      "historical_as_of": "2026-07-22",
+      "current_state": "NEEDS_REVALIDATION",
+      "evidence_state": "UNVERIFIED",
+      "sources": [
+        {
+          "path": "collaborators/LONGVIEW_FOUNDATION.md",
+          "blob_sha": "c4e129a46d2ad0d5775eb21117cf0b48c250158c",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/collaborators/LONGVIEW_FOUNDATION.md",
+          "supports": "The file says application submitted but explicitly requests submission confirmation; no award evidence."
+        }
+      ],
+      "next_review": "Obtain dated submission/decision evidence before describing Longview as funder or partner."
+    },
+    {
+      "id": "CRM-006",
+      "label": "ShiftSmart (prospect only)",
+      "kind": "external_prospect",
+      "historical_state": "SCOPING_LISTED",
+      "historical_as_of": "2026-05-24",
+      "current_state": "UNVERIFIED_PROSPECT",
+      "evidence_state": "UNVERIFIED",
+      "sources": [
+        {
+          "path": "tools/haios_collaboration_tracker_v3.jsx",
+          "blob_sha": "e675283d1f069cb91ad3a9d3b171b40325370a5c",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/tools/haios_collaboration_tracker_v3.jsx",
+          "supports": "Hardcoded dashboard entry states scoping; no independently confirmed outreach or agreement."
+        }
+      ],
+      "next_review": "Verify whether contact occurred; no outbound action without human approval."
+    },
+    {
+      "id": "CRM-007",
+      "label": "SYCON-Bench (research prospect only)",
+      "kind": "external_prospect",
+      "historical_state": "OUTREACH_PENDING_LISTED",
+      "historical_as_of": "2026-05-24",
+      "current_state": "UNVERIFIED_PROSPECT",
+      "evidence_state": "UNVERIFIED",
+      "sources": [
+        {
+          "path": "tools/haios_collaboration_tracker_v3.jsx",
+          "blob_sha": "e675283d1f069cb91ad3a9d3b171b40325370a5c",
+          "url": "https://github.com/humanaios-ui/operations/blob/52aa7c0ed70f6e24ec050d0d56788a791e5f78f7/tools/haios_collaboration_tracker_v3.jsx",
+          "supports": "Hardcoded research convergence prospect; no confirmed mutual collaboration."
+        }
+      ],
+      "next_review": "Evaluate evidence fit before a separately approved outreach proposal."
+    }
+  ]
+}
