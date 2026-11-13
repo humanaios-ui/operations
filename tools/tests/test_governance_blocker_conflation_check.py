@@ -49,6 +49,22 @@ def test_does_not_flag_gate_already_decomposed_beneath_it():
     assert detect_bundled_gates(text, "src") == []
 
 
+def test_does_not_flag_negated_scope_boundary():
+    """Found running against the real #1114 thread: 'Do not admit, merge,
+    deploy, sync personal data, or claim real benefit.' matched the verb +
+    separator-count heuristic but is the opposite of a bundled ask."""
+    text = "Do not admit, merge, deploy, sync personal data, or claim real benefit.\n"
+    assert detect_bundled_gates(text, "src") == []
+
+
+def test_does_not_flag_inline_lettered_sublist():
+    """Found running against the real #1114 thread: '(a) Admit v2 for
+    independent review only... (b) Require KD-1..KD-3... (c) Reject.' is
+    already decomposed, just inline rather than on separate lines."""
+    text = "(a) Admit v2 for independent review only. (b) Require fixes first. (c) Reject.\n"
+    assert detect_bundled_gates(text, "src") == []
+
+
 def test_does_not_flag_single_ask_line():
     text = "- [ ] Confirm sprint signup and submission UI state with provider.\n"
     # "and" appears once, "admit"/"ratify"/etc. verbs are absent -> no flag

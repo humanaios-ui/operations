@@ -74,6 +74,10 @@ _DECISION_NEEDED_RE = re.compile(r"(?mi)\*{0,2}decision needed\*{0,2}:?\s*(.+?)\
 _BUNDLED_GATE_VERB_RE = re.compile(r"(?i)\b(admit|ratify|approve|decide on|sign off on)\b")
 _SEPARATOR_RE = re.compile(r"[,;]|\band\b", re.I)
 _SUBLIST_RE = re.compile(r"^\s*(?:\d+[.)]|[-*]\s*\[)", re.MULTILINE)
+_INLINE_SUBLIST_RE = re.compile(r"\([a-z]\)\s*\S.*\([a-z]\)", re.I)
+# "Do NOT admit, merge, deploy..." reads as a negated scope boundary, not a
+# bundled ask -- the real IC-033 shape is an affirmative decision verb.
+_NEGATION_BEFORE_RE = re.compile(r"(?i)\b(not|never|n't)\b\s*$")
 
 
 @dataclass
@@ -114,15 +118,30 @@ def extract_requirement_lines(text: str, source_id: str) -> list[RequirementLine
 def detect_bundled_gates(text: str, source_id: str) -> list[BundledGateCandidate]:
     """Flag lines shaped like IC-033's Z2-CORPUS-TRUST-01: one decision verb
     governing 2+ distinct asks on one line, with no sub-decomposition
-    (numbered or checkbox list) in the following few lines. Advisory only --
-    this does not claim the asks are actually independent, only that the
-    shape matches the pattern REGISTERED.md already names."""
+    (numbered/checkbox list on a following line, or inline "(a) ... (b) ...")
+    already present. Advisory only -- this does not claim the asks are
+    actually independent, only that the shape matches the pattern
+    REGISTERED.md already names.
+
+    Known false-positive classes this guards against, found by running the
+    tool against the real #1200/#1114/PR #1210 thread (not just synthetic
+    fixtures): a negated scope boundary ("do NOT admit, merge, deploy...")
+    reads as the opposite of a bundled ask, and an already-decomposed line
+    written inline as "(a) ... (b) ... (c) ..." is not an unfixed
+    conflation. Still advisory, still expected to false-positive on prose
+    that merely discusses a decision verb (e.g. a variable named
+    `both_approve_observed`, or a sentence describing what a prior review
+    found) -- a human/Z1 reads every hit before acting on it."""
     candidates: list[BundledGateCandidate] = []
     text_lines = text.splitlines()
     for i, line in enumerate(text_lines):
+        if _INLINE_SUBLIST_RE.search(line):
+            continue  # already decomposed inline, e.g. "(a) ... (b) ..."
         verb_match = _BUNDLED_GATE_VERB_RE.search(line)
         if not verb_match:
             continue
+        if _NEGATION_BEFORE_RE.search(line[: verb_match.start()]):
+            continue  # "do NOT admit/ratify/..." is a scope boundary, not an ask
         remainder = line[verb_match.end():]
         if len(_SEPARATOR_RE.findall(remainder)) < 2:
             continue
@@ -141,8 +160,19 @@ def check_completeness(
     """For every requirement-shaped line found across `sources`, check
     whether its significant tokens are substantially present somewhere in
     `candidate_text`. A line below `threshold` overlap is reported as
-    unrepresented -- a candidate completeness gap, not proof the candidate
-    is wrong (a source line can legitimately be out of scope)."""
+    unrepresented.
+
+    Important limitation, found by running this against the real
+    #1200/#1114/PR #1210 thread: this function has no notion of a
+    candidate's INTENDED scope. A candidate that deliberately covers only
+    budget/reviewer/ethics will correctly show every consent/outreach/
+    registration/bot-install line from its sources as "unrepresented" --
+    that is not a gap, it is the candidate staying scoped instead of
+    re-conflating everything it was trying to decompose. A human/Z1 must
+    read each unrepresented line and ask "was this ever claimed to be in
+    scope?" before treating it as a dropped requirement. Expect noise from
+    non-requirement text too (checkbox widgets in rendered GitHub comments,
+    e.g. "Commit to this branch", are not requirements at all)."""
     candidate_tokens = normalize_tokens(candidate_text)
     represented: list[dict] = []
     unrepresented: list[dict] = []
