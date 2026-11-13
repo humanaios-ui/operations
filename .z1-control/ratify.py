@@ -426,12 +426,28 @@ def is_board_ruling(candidate_bytes: bytes) -> bool:
 
 
 # A candidate is filed with a note that ends "Not ratified." The sentence is true until the
-# candidate is accepted. Single-line notes only: a wrapped scalar is left for a human.
-STALE_NOT_RATIFIED_RE = re.compile(r"^(  note: [^\n]*?)[ ]+Not ratified\.([^\n]*)$", re.M)
+# candidate is accepted. Only a note that fits on ONE line is edited: a scalar that wraps over
+# several lines (its next line is indented four or more spaces) is left for a human, whichever
+# line the sentence sits on. The lookahead is what tells the two apart.
+_ONE_LINE = r"(?=\n(?! {3})|\Z)"
+STALE_SENTENCE_ONLY_RE = re.compile(
+    r"^(  note: )(['\"]?)Not ratified\.\2[ ]*$" + _ONE_LINE, re.M)
+STALE_NOT_RATIFIED_RE = re.compile(
+    r"^(  note: [^\n]*?)[ ]+Not ratified\.([^\n]*)$" + _ONE_LINE, re.M)
 
 
 def drop_stale_not_ratified(body: str) -> str:
-    """Remove the first "Not ratified." sentence from a candidate's single-line note."""
+    """Remove the "Not ratified." sentence from a candidate's single-line note.
+
+    A note that is only that sentence becomes an explicit empty string, so the key keeps a
+    value of the type every reader already expects instead of turning into null.
+    """
+    def empty(m: "re.Match[str]") -> str:
+        quote = m.group(2) or "''"
+        return m.group(1) + (quote * 2 if m.group(2) else quote)
+    cleared = STALE_SENTENCE_ONLY_RE.sub(empty, body, count=1)
+    if cleared != body:
+        return cleared
     return STALE_NOT_RATIFIED_RE.sub(r"\1\2", body, count=1)
 
 

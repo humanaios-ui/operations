@@ -228,7 +228,7 @@ NOTE_INDEX = """version: 1
 generated: '2026-09-14'
 decision_window_days: 2
 counts:
-  candidates: 4
+  candidates: 7
   records: 0
 ratifiers:
 - Night
@@ -258,6 +258,25 @@ candidates:
   submitted: '2026-09-01'
   status: awaiting_z2
   note: 'Still waiting. Not ratified.'
+- q_id: Q-FIXTURE-E-01
+  title: Note that is only the sentence, quoted
+  path: z1-inbox/2026-09-01/Q-FIXTURE-E-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: 'Not ratified.'
+- q_id: Q-FIXTURE-F-01
+  title: Note that is only the sentence, plain
+  path: z1-inbox/2026-09-01/Q-FIXTURE-F-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: Not ratified.
+- q_id: Q-FIXTURE-G-01
+  title: Wrapped note with the sentence on its first line
+  path: z1-inbox/2026-09-01/Q-FIXTURE-G-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: "A wrapped note. Not ratified.\\
+    \\ Evidence that must survive on the second line."
 records: []
 """
 
@@ -265,7 +284,7 @@ records: []
 def note_sandbox(tmp: str) -> str:
     index = build_sandbox(tmp)
     day = os.path.join(tmp, "z1-inbox", "2026-09-01")
-    for q in ("C", "D"):
+    for q in ("C", "D", "E", "F", "G"):
         with open(os.path.join(day, f"Q-FIXTURE-{q}-01.md"), "w", encoding="utf-8") as fh:
             fh.write(f"# Q-FIXTURE-{q}-01\n\nFalsifier: this file is not read for content.\n")
     with open(index, "w", encoding="utf-8") as fh:
@@ -332,6 +351,47 @@ def test_a_wrapped_note_is_reported_not_guessed_at() -> None:
         c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-C-01")
         assert c["status"] == "ratified"
         assert c["note"].endswith("Not ratified."), c["note"]
+
+
+def test_a_note_that_is_only_the_sentence_becomes_an_empty_string() -> None:
+    """Quoted or plain, the key keeps a string value instead of turning into null."""
+    for q_id, expected_text in (("Q-FIXTURE-E-01", "''"), ("Q-FIXTURE-F-01", "''")):
+        with tempfile.TemporaryDirectory() as tmp:
+            index = note_sandbox(tmp)
+            proc = decide(tmp, q_id, "ACCEPT")
+            assert proc.returncode == 0, proc.stdout + proc.stderr
+            c = find(yaml.safe_load(open(index, encoding="utf-8")), q_id)
+            assert c["status"] == "ratified"
+            assert c["note"] == "", (q_id, c["note"])
+            assert "warning" not in proc.stdout, proc.stdout
+            assert f"note: {expected_text}" in open(index, encoding="utf-8").read()
+
+
+def test_a_wrapped_note_is_left_alone_even_when_the_sentence_is_on_its_first_line() -> None:
+    """Whether a note is edited depends on its shape, not on which line the sentence is on."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        before = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-G-01")["note"]
+        proc = decide(tmp, "Q-FIXTURE-G-01", "ACCEPT")
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        assert "::warning::Q-FIXTURE-G-01" in proc.stdout, proc.stdout
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-G-01")
+        assert c["status"] == "ratified"
+        assert c["note"] == before, (before, c["note"])
+        assert "Evidence that must survive" in c["note"]
+
+
+def test_this_prs_own_index_note_keeps_its_whole_text() -> None:
+    """An unquoted note containing ' #' parses as a comment and silently loses the rest.
+
+    That cut this candidate's own entry down to six words once ("... on #1190" started a
+    comment). The note must be quoted so the parsed value still ends with its last sentence.
+    """
+    path = os.path.join(REPO, "z1-inbox", "INDEX.yaml")
+    doc = yaml.safe_load(open(path, encoding="utf-8"))
+    entry = find(doc, "Q-RATIFY-STALE-NOTE-01")
+    assert entry["note"].endswith("Not ratified."), entry["note"]
+    assert "#1190" in entry["note"], entry["note"]
 
 
 def test_resulting_tree_passes_the_validator() -> None:

@@ -13,7 +13,7 @@ candidates:
   submitted: '2026-11-13'
   status: awaiting_z2
   tier: 2
-  note: Found by a review comment on #1190. Five new tests on a throwaway tree; three fail on the 1.2.0 tool. The hash, status, ruling and counts logic are unchanged. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.
+  note: 'Found by a review comment on #1190. Eight new tests on a throwaway tree; five fail on the 1.2.0 tool. The hash, status, ruling and counts logic are unchanged. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
 - q_id: Q-GRAPH-ORPHANS-B1-01
   title: Graph orphan wiring, batch one (GNER, TDG, CUST) with edges proven by code, plus the two nodes those edges need
   path: z1-inbox/2026-11-11/Q-GRAPH-ORPHANS-B1-01.md
