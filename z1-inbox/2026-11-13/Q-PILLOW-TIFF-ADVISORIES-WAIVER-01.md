@@ -52,7 +52,7 @@ impact_prediction:
 The waiver has an owner and an exit, both stated without dates:
 
 - **Owner:** issue #1214, "Move tools/Metaculus off forecasting-tools<0.4.0 so pillow can reach 13 (exit for the pillow audit waivers)", filed with this candidate.
-- **Exit event:** any one of (i) a `forecasting-tools` release that allows `pillow>=13`; (ii) the Metaculus tooling dropping `forecasting-tools`; (iii) the Metaculus tooling being retired. When the event happens, the two `--ignore-vuln` lines and the 55 older ones are removed in the same pull request that moves the dependency, and the audit is re-run.
+- **Exit event:** any one of (i) a `forecasting-tools` release that allows `pillow>=13` is adopted and `tools/Metaculus/requirements.txt` resolves pillow 13.x (publication of the release alone is not the exit; the waiver stays while 12.3.0 resolves); (ii) the Metaculus tooling dropping `forecasting-tools`; (iii) the Metaculus tooling being retired. When the event happens, the two `--ignore-vuln` lines and the 55 older ones are removed in the same pull request that moves the dependency, and the audit is re-run.
 - **Sweep rule:** when the exit event happens, issue #1214 lists every `--ignore-vuln` ID in the Metaculus branch and each is either shown fixed by the new pin or filed as its own ruling.
 
 ## Options
@@ -77,6 +77,13 @@ Two ways to land the section:
 2. Z1 builds the same section with the relay's own `ruling_block`, `body_hash` and `write_choice` and opens the one-file pull request. In that block, `by` is a Z1 label and is not a claim about who ruled. The signature's `by` and `at` come only from the merger's GitHub login (mapped to a declared ratifier) and the merge date.
 
 The `body_hash` pins every byte of this file outside `## Ruling`; this text is final once that pull request exists. Z1 does not merge the ruling pull request: the merger's login becomes the ratifier's name, so a Z1 merge would be read as Night's act.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
 
 ## Z2 Review Checklist
 
