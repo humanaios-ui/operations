@@ -11,7 +11,7 @@ function boot(data=new Map()){
  const fetchCalls=[];
  const document={body:element(),getElementById(id){if(!dom.has(id))dom.set(id,element());return dom.get(id)},
  createElement:element,querySelectorAll(){return []}};
- const context=vm.createContext({document,URL,Blob,setTimeout,clearTimeout,AbortController,
+ const context=vm.createContext({document,location:{hostname:'127.0.0.1'},URL,Blob,setTimeout,clearTimeout,AbortController,
  crypto:require('node:crypto').webcrypto,confirm:()=>true,
  localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)},
  fetch:async(...args)=>{fetchCalls.push(args);return {ok:false}}});
@@ -142,4 +142,82 @@ test('ACAT-R verification review states remain visible without raw evidence',()=
  assert.ok(descendants(card).some(x=>String(x.textContent).includes('Verification: UNKNOWN')));
  vm.runInContext('renderVerificationCases([])',b.context);
  assert.equal(section.hidden,true);
+});
+
+
+test('Witness panel offers current public candidates without automatic provider traffic',()=>{
+ const b=boot();
+ const before=b.fetchCalls.length;
+ b.context.rows=[{...row,source_name:'HumanAIOS Funding Pipeline',route:'WATCH',resource_id:'RES-TEST'}];
+ vm.runInContext('latestCandidates=rows;refreshWitnessChoices()',b.context);
+ assert.equal(b.fetchCalls.length,before);
+ assert.equal(b.dom.get('witnessResource').children.length,2);
+ assert.equal(b.dom.get('witnessResource').disabled,false);
+ assert.equal(b.dom.get('witnessConsent').checked,false);
+ assert.equal(b.dom.get('witnessTranscript').children.length,0);
+});
+
+test('Witness dialogue requires consent, local host and bounded public-only summary',async()=>{
+ const b=boot(),resource={...row,resource_id:'RES-TEST',
+  source_name:'HumanAIOS Funding Pipeline',route:'WATCH',
+  source_url:'https://example.org/grant?private=DO_NOT_SEND',
+  private_notes:'NEVER_EXPORTED'};
+ b.context.rows=[resource];
+ vm.runInContext('latestCandidates=rows;refreshWitnessChoices()',b.context);
+ const send=b.dom.get('witnessSend'),sel=b.dom.get('witnessResource'),
+  question=b.dom.get('witnessQuestion'),consent=b.dom.get('witnessConsent');
+ sel.value='0';question.value='What is missing proof for this public lead?';
+ const before=b.fetchCalls.length;
+ await send.listeners.click();
+ assert.equal(b.fetchCalls.length,before,'no consent, no model call');
+ consent.checked=true;b.context.location.hostname='humanaios.ai';
+ await send.listeners.click();
+ assert.equal(b.fetchCalls.length,before,'public host must not send');
+ b.context.location.hostname='127.0.0.1';consent.checked=true;
+ await send.listeners.click();
+ assert.equal(b.fetchCalls.length,before+1);
+ const [url,options]=b.fetchCalls.at(-1);
+ assert.equal(url,'/api/witness/ask-resource');assert.equal(options.method,'POST');
+ const req=JSON.parse(options.body);
+ assert.equal(req.consent,true);
+ assert.equal(req.resource.source_url,'https://example.org/grant');
+ assert.equal(req.resource.resource_id,'RES-TEST');
+ assert.equal(req.resource.private_notes,undefined);
+ assert.ok(!JSON.stringify(req).includes('DO_NOT_SEND'));
+ assert.ok(!JSON.stringify(req).includes('NEVER_EXPORTED'));
+ assert.equal(consent.checked,false,'per-request consent resets');
+ assert.equal(b.dom.get('witnessTranscript').children.length,0,'failed requests do not fabricate responses');
+ assert.equal(b.data.size,0,'dialogue never uses browser storage');
+});
+
+test('Witness dialogue renders only safe text, clears on new search and does not forward history',async()=>{
+ const b=boot();b.context.rows=[{...row,resource_id:'RES-TEST',
+  source_name:'HumanAIOS Funding Pipeline',route:'WATCH'}];
+ vm.runInContext('latestCandidates=rows;refreshWitnessChoices()',b.context);
+ const sel=b.dom.get('witnessResource'),q=b.dom.get('witnessQuestion'),
+  c=b.dom.get('witnessConsent'),send=b.dom.get('witnessSend'),history=b.dom.get('witnessTranscript');
+ sel.value='0';q.value='What remains unknown?';c.checked=true;
+ const calls=[];
+ b.context.fetch=async(url,opts)=>{
+  calls.push({url,req:JSON.parse(opts.body)});
+  return {ok:true,json:async()=>({
+   resource_id:'RES-TEST',authority:'NONE',execution:'DISABLED',
+   answer:'Unverified: <script>do not run</script>',source_manifest:[]
+  })};
+ };
+ await send.listeners.click();
+ assert.equal(history.children.length,2);
+ assert.match(history.children[1].textContent,/Unverified: <script>/);
+ assert.equal(history.children[1].children.length,0,'no HTML nodes from model output');
+ c.checked=true;q.value='What should be reviewed next?';
+ await send.listeners.click();
+ assert.equal(calls.length,2);
+ assert.deepEqual(Object.keys(calls[1].req).sort(),['consent','question','resource']);
+ assert.ok(!JSON.stringify(calls[1].req).includes('Unverified:'));
+ assert.equal(history.children.length,4);
+ b.dom.get('witnessClear').listeners.click();
+ assert.equal(history.children.length,0);
+ assert.equal(b.data.size,0);
+ vm.runInContext('latestCandidates=[];refreshWitnessChoices()',b.context);
+ assert.equal(sel.disabled,true);
 });
