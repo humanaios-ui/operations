@@ -448,7 +448,20 @@ def drop_stale_not_ratified(body: str) -> str:
     cleared = STALE_SENTENCE_ONLY_RE.sub(empty, body, count=1)
     if cleared != body:
         return cleared
-    return STALE_NOT_RATIFIED_RE.sub(r"\1\2", body, count=1)
+
+    def joined(m: "re.Match[str]") -> str:
+        line = m.group(1) + m.group(2)
+        value = line[len("  note: "):]
+        if value[:1] in ("'", '"'):
+            return line
+        # What is left can read as a non-string once the sentence is gone (`true`, `yes`,
+        # `null`, `123`). A plain scalar would change the note's type, so quote it.
+        try:
+            keeps_text = isinstance(yaml.safe_load(value), str)
+        except yaml.YAMLError:
+            return line
+        return line if keeps_text else "  note: '" + value.replace("'", "''") + "'"
+    return STALE_NOT_RATIFIED_RE.sub(joined, body, count=1)
 
 
 def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> int:

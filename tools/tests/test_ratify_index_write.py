@@ -381,6 +381,21 @@ def test_a_wrapped_note_is_left_alone_even_when_the_sentence_is_on_its_first_lin
         assert "Evidence that must survive" in c["note"]
 
 
+def test_a_remainder_that_reads_as_a_non_string_is_quoted() -> None:
+    """`note: true Not ratified.` must not become `note: true`, which loads as a boolean."""
+    sys.path.insert(0, os.path.join(REPO, ".z1-control"))
+    import importlib
+    ratify_mod = importlib.import_module("ratify")
+    for remainder in ("true", "yes", "null", "123"):
+        out = ratify_mod.drop_stale_not_ratified(f"  note: {remainder} Not ratified.\n")
+        value = yaml.safe_load(out.split("note: ", 1)[1])
+        assert value == remainder, (remainder, out, value)
+    plain = ratify_mod.drop_stale_not_ratified("  note: Plain text. Not ratified.\n")
+    assert plain == "  note: Plain text.\n", plain
+    quoted = ratify_mod.drop_stale_not_ratified("  note: 'It''s true. Not ratified.'\n")
+    assert quoted == "  note: 'It''s true.'\n", quoted
+
+
 def test_this_prs_own_index_note_keeps_its_whole_text() -> None:
     """An unquoted note containing ' #' parses as a comment and silently loses the rest.
 
@@ -390,8 +405,10 @@ def test_this_prs_own_index_note_keeps_its_whole_text() -> None:
     path = os.path.join(REPO, "z1-inbox", "INDEX.yaml")
     doc = yaml.safe_load(open(path, encoding="utf-8"))
     entry = find(doc, "Q-RATIFY-STALE-NOTE-01")
-    assert entry["note"].endswith("Not ratified."), entry["note"]
+    # Signing this candidate removes its trailing "Not ratified." (that is what it ships), so
+    # the check must hold before and after: text from both sides of ' #' has to survive.
     assert "#1190" in entry["note"], entry["note"]
+    assert "Falsifier stated." in entry["note"], entry["note"]
 
 
 def test_resulting_tree_passes_the_validator() -> None:
