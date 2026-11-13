@@ -66,14 +66,41 @@ previously-undefined "§3.2" missingness thresholds are now concrete numbers;
 a masking/blinding procedure and a limitations-and-dual-use section were
 added. See `PROTOCOL_DRAFT_v0.md` for the detail.
 
+## Zero-network trial-schedule controls
+
+`synthetic/trial_schedule.py` constructs **60 condition-balanced unique trial IDs** with a
+reproducible seed. It requires every initial trial to have a recorded attempt
+before retry planning; it allows only HTTP429/timeout transport retries and
+limits retries to **two per trial, five per condition, thirty overall (ninety
+total attempts)**. Attempt-level errors remain visible, while a recovered
+transport error does not become a missing final response. This is a
+**deterministic schedule and event simulation, not a provider API mock, live
+trial, or observed language effect**.
+
+`synthetic/test_trial_schedule.py` adds nine tests for balanced design,
+admission of initial attempts, retry and per-cell caps, invalid sequences,
+refusals, recovered failures and final denominators. They passed in a local
+offline reproduction before being copied to this branch. Independent
+exact-head CI replay remains a separate gate. The existing scoring suite
+has twenty synthetic test cases reported in its protocol; neither suite
+replaces two blind human primary-outcome raters.
+
+Run from this directory:
+
+```sh
+python3 -m pytest synthetic/test_metrics.py synthetic/test_trial_schedule.py -q
+```
+
 ## Open blocker
 
-PR #1210's `repository-admission-gate` currently reports
-`ADMISSION_REVIEW / FAIL`: "ready non-maintenance work has no explicit
-admission record." Per `REPOSITORY_COORDINATOR_POLICY.json`, admission is
-separate from code review or research ratification and is granted by an
-authorized operator (`/coordinator admit <PR-head-SHA>` or an explicit PR
-entry in policy) — not something this draft can self-grant.
+The coordinator previously recorded PASS for an earlier pinned PR head,
+but **new commits invalidate that exact-head receipt**. Check the
+`repository-admission-gate` against the *latest* head; if admission
+is missing, only the authorized operator can admit it. Admission is not
+research protocol ratification, a code approval, permission to spend, or
+permission to conduct real inference. Four earlier human/CodeRabbit
+protocol-review threads must be re-reviewed on this head; do not
+auto-resolve their threads from the act of writing corrections.
 
 ## Reproduce locally (no network, no model calls)
 
