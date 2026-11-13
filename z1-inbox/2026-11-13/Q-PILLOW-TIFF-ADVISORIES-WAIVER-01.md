@@ -52,7 +52,7 @@ impact_prediction:
 The waiver has an owner and an exit, both stated without dates:
 
 - **Owner:** issue #1214, "Move tools/Metaculus off forecasting-tools<0.4.0 so pillow can reach 13 (exit for the pillow audit waivers)", filed with this candidate.
-- **Exit event:** any one of (i) a `forecasting-tools` release that allows `pillow>=13` is adopted and `tools/Metaculus/requirements.txt` resolves pillow 13.x (publication of the release alone is not the exit; the waiver stays while 12.3.0 resolves); (ii) the Metaculus tooling dropping `forecasting-tools`; (iii) the Metaculus tooling being retired. When the event happens, the two `--ignore-vuln` lines and the 55 older ones are removed in the same pull request that moves the dependency, and the audit is re-run.
+- **Exit event:** any one of (i) a `forecasting-tools` release that allows `pillow>=13` is adopted and `tools/Metaculus/requirements.txt` resolves pillow 13.x (publication of the release alone is not the exit; the waiver stays while 12.3.0 resolves); (ii) the Metaculus tooling dropping `forecasting-tools`; (iii) the Metaculus tooling being retired. When the event happens, every Metaculus-scoped `--ignore-vuln` argument in the audit command (the two this record covers and all older ones) is removed in the same pull request that moves the dependency, and the audit is re-run.
 - **Sweep rule:** when the exit event happens, issue #1214 lists every `--ignore-vuln` ID in the Metaculus branch and each is either shown fixed by the new pin or filed as its own ruling.
 
 ## Options
