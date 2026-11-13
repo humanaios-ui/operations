@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**122 candidates** — ⏳ awaiting Z2 101 · ✅ ratified 21 · **72 records**
+**123 candidates** — ⏳ awaiting Z2 102 · ✅ ratified 21 · **72 records**
 
-## Awaiting Z2 (101)
+## Awaiting Z2 (102)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -112,6 +112,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PR956-GOVERNANCE-ADMISSION-01** | Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff) | `z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md` |
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
+| 2026-11-14 | **Q-APART-PHASE3-ADMISSION-01** | Admit budget, reviewer, and ethics controls for the Apart Phase 3 loaded-phrase pilot (Track A), as three independent decisions | `z1-inbox/2026-11-12/Q-APART-PHASE3-ADMISSION-01.md` |
 | 2026-11-14 | **Q-PILLOW-PYSEC-2026-4363-WAIVER-01** | Scoped audit waiver for PYSEC-2026-4363 (pillow 12.3.0) on tools/Metaculus only; records the Z2 direction behind PR 1185 | `z1-inbox/2026-11-12/Q-PILLOW-PYSEC-2026-4363-WAIVER-01.md` |
 
 ## Decided (21)
