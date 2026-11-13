@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**123 candidates** — ⏳ awaiting Z2 89 · ✅ ratified 34 · **74 records**
+**124 candidates** — ⏳ awaiting Z2 90 · ✅ ratified 34 · **74 records**
 
-## Awaiting Z2 (89)
+## Awaiting Z2 (90)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -100,6 +100,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PR956-GOVERNANCE-ADMISSION-01** | Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff) | `z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md` |
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
+| 2026-11-15 | **Q-PILLOW-TIFF-ADVISORIES-WAIVER-01** | Scoped audit waiver for CVE-2026-128067 and CVE-2026-128066 (pillow 12.3.0) on tools/Metaculus only, with an owner and an exit event | `z1-inbox/2026-11-13/Q-PILLOW-TIFF-ADVISORIES-WAIVER-01.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
 
 ## Decided (34)
@@ -152,7 +153,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (125)
+## Open questions for Z2 (129)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -370,6 +371,15 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] **Risk acceptable?** (mitigations sufficient?)
 - [ ] **Deployment feasible?** (Night can execute 6-step guide?)
 - [ ] **Ready to ratify?** (Sign with sha256 hash)
+
+### Q-PILLOW-TIFF-ADVISORIES-WAIVER-01 (4)
+
+`z1-inbox/2026-11-13/Q-PILLOW-TIFF-ADVISORIES-WAIVER-01.md`
+
+- [ ] Waive CVE-2026-128067 and CVE-2026-128066 for `tools/Metaculus/requirements.txt` only? — options: ratify waiver, remove waiver, later
+- [ ] Reachability: Z2 accepts the partial read above. Note the second advisory is a parse trigger, not a save trigger; the carried-forward read covers both `Image.open` sites but is not an end-to-end trace.
+- [ ] Issue #1214 (owner and exit event above) exists and is linked from the carrying pull request.
+- [ ] Z2 accepts that a third pillow advisory on this file needs its own block, not an edit to this one.
 
 ### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
 
