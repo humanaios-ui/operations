@@ -64,6 +64,13 @@ def next_retries(trials: tuple[Trial, ...], attempts: tuple[Attempt, ...],
         grouped[a.trial_id].append(a)
     if set(grouped) != set(by_id):
         raise ValueError("all initial attempts must be recorded before retries")
+    # Attempt records are chronological. No retry may appear before the
+    # complete first pass, even if the log eventually contains all 60 bases.
+    n_base = len(trials)
+    if (len(attempts) < n_base
+            or any(a.number != 0 for a in attempts[:n_base])
+            or any(a.number == 0 for a in attempts[n_base:])):
+        raise ValueError("reserve all base attempts chronologically before retries")
     for records in grouped.values():
         nums = sorted(a.number for a in records)
         if nums != list(range(len(records))) or len(records) > 3:
