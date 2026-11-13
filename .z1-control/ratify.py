@@ -79,10 +79,16 @@ Candidates are indexed with a `note:` that ends "Not ratified." when they are
 filed. `--apply` flipped `status` to `ratified` and left the note, so the first
 two entries signed from a Z1 PR (2026-11-11) read both "ratified" and "Not
 ratified" in the authoritative index. No tool reads the sentence, so nothing
-failed; a human reading the index got two answers. On ACCEPT the single-line
-`note:` now loses that sentence. EDIT and REJECT leave the note alone, because
-for those the sentence is still true. A `Not ratified` left anywhere else in the
-block (a note that wraps over several lines, for one) is reported, not guessed at.
+failed; a human reading the index got two answers. On ACCEPT the single-line `note:`
+now loses that sentence. Rules, each pinned by a test:
+
+* a note is edited only when it fits on one line (the next line is not indented); a
+  note that wraps over several lines is left alone, whichever line the sentence is on;
+* a note that is only the sentence becomes an explicit empty string, not null;
+* text left over that would read as a boolean, null or number (`true`, `yes`, `null`,
+  `123`) is quoted, so the note keeps its type;
+* EDIT and REJECT leave the note alone, because for those the sentence is still true;
+* a `Not ratified` left anywhere the tool does not edit is reported, not guessed at.
 
 Deps: PyYAML. No network.
 """
