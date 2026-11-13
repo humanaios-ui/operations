@@ -2,8 +2,8 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 121
-  records: 71
+  candidates: 122
+  records: 72
 ratifiers:
 - Night
 candidates:
@@ -11,16 +11,24 @@ candidates:
   title: Graph orphan wiring, batch one (GNER, TDG, CUST) with edges proven by code, plus the two nodes those edges need
   path: z1-inbox/2026-11-11/Q-GRAPH-ORPHANS-B1-01.md
   submitted: '2026-11-11'
-  status: awaiting_z2
+  status: ratified
   tier: 2
   note: 'Issue #1175 batch one. Three edges, each proven by an import or an executed test and pinned to its line by a test; two new nodes (CPGA, IGV) carry them; orphans go from sixteen to twelve. TDG also has a lead into a workflow that is not yet a node. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-11"
+  z2_ruling: "z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md"
+  z2_hash: "0f1ebdbcb2fd823a439390d02c952d522e90a2503860d32dca2dfdbbbb97dbb0"
 - q_id: Q-SYSTEM-GRAPH-REGEN-01
   title: Regenerate system_graph.json (58 nodes, 70 edges), count loop-closing edges as feedback, add a freshness gate
   path: z1-inbox/2026-11-10/Q-SYSTEM-GRAPH-REGEN-01.md
   submitted: '2026-11-10'
-  status: awaiting_z2
+  status: ratified
   tier: 2
   note: 'PR #1158. Regenerates the graph last built 2026-09-13 (valid=False), flags 16 loop-closing edges as feedback, adds 36 nodes (16 documented orphans with notes; six edges removed after review because no file supports them), a --write/--check CLI and a freshness workflow. Statuses of added nodes come from files in the tree, not from proven runs. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-11"
+  z2_ruling: "z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md"
+  z2_hash: "308fb698a1fb1dc569e4bf6ebe1fe8b413b2ae3d8fe32dd79601a2efd0a0cbbc"
 - q_id: Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01
   title: 'Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages'
   path: z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md
@@ -937,7 +945,18 @@ candidates:
   ratified_at: "2026-10-31"
   z2_ruling: "z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md"
   z2_hash: "462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0"
+- q_id: Q-PILLOW-PYSEC-2026-4363-WAIVER-01
+  title: Scoped audit waiver for PYSEC-2026-4363 (pillow 12.3.0) on tools/Metaculus only; records the Z2 direction behind PR 1185
+  path: z1-inbox/2026-11-12/Q-PILLOW-PYSEC-2026-4363-WAIVER-01.md
+  submitted: '2026-11-12'
+  status: awaiting_z2
+  note: 'Answers CodeRabbit''s finding on 1185 (the workflow cites a Z2 direction no repository record holds). Waiver, not a fix; advisory text read from PyPI (trigger is a TIFF save); no save path found from the bot, not traced end to end; CVSS is CodeRabbit''s, unchecked; the PR-time CI scan did not exercise the waiver, the first main run that audits the Metaculus file does. Ruled by the one-file PR rule (merge is the ratification). Falsifier stated.'
+  tier: 2
 records:
+- path: z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md
+  title: "Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - path: z1-inbox/2026-10-21/CAPACITY_CONTROL_PLANE_REVIEW_RECORD.md
   title: Record of the Z2-directed capacity change (4 to 9) and what is still unsigned
   note: 'Records commit ffc95937 raising coordinator active_operator_queue from 4 to 9.
@@ -951,12 +970,12 @@ records:
   title: "Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
     \ signature appends a section carrying its own sha256."
-- title: Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record)
-  path: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+- path: z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md
+  title: Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record)
   submitted: '2026-10-22'
   note: 'Re-signs the current candidate bytes after the 2026-10-15 signature stopped verifying. The earlier record is kept as superseded. Scope unchanged.'
-- title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
-  path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
+- path: z1-inbox/2026-10-15/Q-REPO-GRAPH-LOOKUP-01-RATIFICATION.md
+  title: Night ratification record for Q-REPO-GRAPH-LOOKUP-01
   submitted: '2026-10-15'
   note: Records the Z2 ratification of the read-only graph lookup tool. §A wiring and graph commit remain open.
 - path: z1-inbox/2026-10-14/QUEUE_MAP_2026-10-14.md
