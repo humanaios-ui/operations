@@ -68,3 +68,6 @@ relay_out/
 
 # comparison_engine.py generated output (engine output, not tracked evidence)
 Z2_REVIEW_*_ENGINE_OUTPUT.md
+
+# research hub runtime state
+.hub_state/
