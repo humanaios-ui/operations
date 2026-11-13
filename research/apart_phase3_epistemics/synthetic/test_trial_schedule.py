@@ -83,6 +83,7 @@ def test_no_retry_after_successful_response():
     with pytest.raises(ValueError, match="non-retryable"):
         next_retries(plan, base + (Attempt(plan[0].trial_id, 1, "http_429"),))
 
+
 def test_no_early_retry_even_if_all_bases_eventually_logged():
     plan = build_trials(11)
     bases = tuple(Attempt(t.trial_id, 0, "timeout") for t in plan)
