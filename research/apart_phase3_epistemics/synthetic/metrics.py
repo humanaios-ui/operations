@@ -183,6 +183,13 @@ def agreement(rater_a: dict[str, int], rater_b: dict[str, int]) -> AgreementResu
     if invalid:
         raise ValueError(f"ratings must be 0 or 1; out-of-scale items: {invalid}")
 
+    for rater_name, ratings in (("rater_a", rater_a), ("rater_b", rater_b)):
+        for item_id, value in ratings.items():
+            if type(value) is not int or value not in (0, 1):
+                raise ValueError(
+                    f"{rater_name}[{item_id!r}] must be an integer 0 or 1; got {value!r}"
+                )
+
     disagreements = [
         RaterDisagreement(item_id=item_id, rater_a=rater_a[item_id], rater_b=rater_b[item_id])
         for item_id in sorted(rater_a)
