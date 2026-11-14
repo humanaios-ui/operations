@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Form Assistance (local preview)</title>
+<style>
+:root{--bg:#fafaf9;--fg:#1c1917;--muted:#57534e;--line:#d6d3d1;--card:#fff;--accent:#1d4ed8}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1917;--fg:#fafaf9;--muted:#a8a29e;--line:#44403c;--card:#292524;--accent:#93c5fd}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:.5rem 0}
+.note{color:var(--muted);font-size:.9rem;margin:.25rem 0}
+section,.row{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0}
+.row strong{display:block}
+.kind{color:var(--muted);font-size:.8rem}
+label{display:block;margin:8px 0 4px}
+input,select,textarea{width:100%;box-sizing:border-box;margin:4px 0;padding:8px;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+textarea{min-height:72px}
+button{font:inherit;padding:10px 16px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--bg);cursor:pointer;margin-right:8px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.ready{border-left:4px solid #15803d}
+.needs{border-left:4px solid #b45309}
+.err{color:#b91c1c}
+</style>
+</head>
+<body>
+<main>
+<h1>Form Assistance (local preview)</h1>
+<p class="note">Read-only. Values go only to this local server. Nothing is saved or submitted. You decide every answer.</p>
+<p class="note">Source: BlueDot Rapid Grants form as you captured it. Not checked against the live form.</p>
+<section>
+<label for="policy">Provider rule on AI help</label>
+<select id="policy">
+<option value="UNKNOWN">Not checked yet</option>
+<option value="RESEARCH_ONLY">Research only</option>
+<option value="PROOFREAD_ONLY">Proofreading only</option>
+<option value="DRAFT_ALLOWED">Drafting allowed</option>
+</select>
+<label for="policyRef">Where you checked that rule (link or note)</label>
+<input id="policyRef" maxlength="300" autocomplete="off">
+<p class="note">Written answers stay blocked until a rule is chosen and a source is recorded.</p>
+</section>
+<div id="fields"></div>
+<p id="status" class="note" role="status"></p>
+<button id="build" type="button" disabled>Build review packet</button>
+<button id="download" type="button" disabled>Download packet JSON</button>
+<div id="result" aria-live="polite"></div>
+</main>
+<script>
+(function(){
+var ROUTE='/api/form-assistance/packet';
+var fieldsEl=document.getElementById('fields');
+var resultEl=document.getElementById('result');
+var statusEl=document.getElementById('status');
+var buildBtn=document.getElementById('build');
+var dlBtn=document.getElementById('download');
+var rows={};
+var lastPacket=null;
+function el(tag,cls,text){var e=document.createElement(tag);if(cls){e.className=cls;}if(text!==undefined){e.textContent=text;}return e;}
+function post(payload){
+return fetch(ROUTE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){
+return r.json().then(function(j){if(!r.ok){throw new Error(j.error||'Request failed');}return j;});
+});
+}
+function buildForm(fields){
+fieldsEl.textContent='';
+fields.forEach(function(f){
+var row=el('div','row');
+row.appendChild(el('strong',null,f.label+(f.required?' *':'')));
+row.appendChild(el('span','kind',f.kind));
+if(f.kind==='human_choice'||f.kind==='human_consent'){
+row.appendChild(el('p','note','Your decision. Never filled for you.'));
+}else{
+var v=f.kind==='draft'?document.createElement('textarea'):document.createElement('input');
+v.maxLength=f.kind==='draft'?600:300;
+v.setAttribute('aria-label',f.label+' value');
+var o=document.createElement('select');
+o.setAttribute('aria-label',f.label+' origin');
+[['','Not verified (ignored)'],['USER_VERIFIED','I verified this'],['SOURCE_VERIFIED','Verified from a source']].forEach(function(p){
+var op=document.createElement('option');op.value=p[0];op.textContent=p[1];o.appendChild(op);
+});
+var ev=document.createElement('input');
+ev.maxLength=300;ev.placeholder='Evidence link or note';
+ev.setAttribute('aria-label',f.label+' evidence');
+row.appendChild(v);row.appendChild(o);row.appendChild(ev);
+rows[f.id]={v:v,o:o,ev:ev};
+}
+fieldsEl.appendChild(row);
+});
+}
+function render(packet){
+resultEl.textContent='';
+var head=el('section');
+head.appendChild(el('strong',null,'Review packet'));
+head.appendChild(el('p','note','Policy: '+packet.policy+' | rule verified: '+packet.policy_verified+' | submission: '+packet.submission+' | authority: '+packet.authority));
+head.appendChild(el('p','note','Every answer needs your review. Missing items show what to do next.'));
+resultEl.appendChild(head);
+packet.fields.forEach(function(f){
+var ready=f.status==='READY_FOR_HUMAN_REVIEW';
+var box=el('div','row '+(ready?'ready':'needs'));
+box.appendChild(el('strong',null,f.label));
+if(ready){
+box.appendChild(el('p',null,f.suggested_value));
+box.appendChild(el('p','note','Ready for your review | origin: '+f.origin+(f.evidence_ref?' | evidence: '+f.evidence_ref:'')));
+}else{
+var why=(f.kind==='human_choice'||f.kind==='human_consent')?'Your decision.':(f.kind==='draft'?'Blocked until the provider rule allows drafting and a source is recorded, or write it yourself.':'Needs a verified value and origin.');
+box.appendChild(el('p','note','Needs input. '+why));
+}
+resultEl.appendChild(box);
+});
+}
+buildBtn.addEventListener('click',function(){
+var verified={};
+Object.keys(rows).forEach(function(id){
+var r=rows[id];
+var value=r.v.value.trim();
+if(value&&r.o.value){verified[id]={value:value,origin:r.o.value,evidence_ref:r.ev.value.trim()};}
+});
+var payload={verified:verified,assistance_policy:document.getElementById('policy').value,policy_evidence_ref:document.getElementById('policyRef').value.trim()};
+if(JSON.stringify(payload).length>12000){statusEl.className='err';statusEl.textContent='Too much text for one packet. Shorten the longest answers.';return;}
+statusEl.className='note';statusEl.textContent='Building...';
+post(payload).then(function(j){lastPacket=j;render(j.packet);dlBtn.disabled=false;statusEl.textContent='Packet built. Nothing was saved or sent.';}).catch(function(e){statusEl.className='err';statusEl.textContent=e.message;});
+});
+dlBtn.addEventListener('click',function(){
+if(!lastPacket){return;}
+var blob=new Blob([JSON.stringify(lastPacket,null,2)],{type:'application/json'});
+var a=document.createElement('a');
+a.href=URL.createObjectURL(blob);a.download='form-assistance-packet.json';
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+});
+post({}).then(function(j){buildForm(j.packet.fields);buildBtn.disabled=false;}).catch(function(e){statusEl.className='err';statusEl.textContent='Local form assistance is unavailable: '+e.message;});
+})();
+</script>
+</body>
+</html>
