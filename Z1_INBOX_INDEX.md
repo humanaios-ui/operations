@@ -4,15 +4,14 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**124 candidates** — ⏳ awaiting Z2 90 · ✅ ratified 34 · **74 records**
+**124 candidates** — ⏳ awaiting Z2 89 · ✅ ratified 35 · **75 records**
 
-## Awaiting Z2 (90)
+## Awaiting Z2 (89)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
 | decision due | candidate | what it asks | block |
 |---|---|---|---|
-| 2026-09-10 | **Q-ACAT-BENCHMARK-01** | ACAT ↔ market-benchmark map (H-BM-01..03) | `z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md` |
 | 2026-09-10 | **Q-DOC-LIFECYCLE-01** | docs/ lifecycle — disposition for 108 files | `z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md` |
 | 2026-09-12 | **Q-FRAMEWORK-MAPPING-01** ⚠️ falsifier waived | Framework Mapping — 5 AI engineering concepts → Z-roles | `z1-inbox/2026-09-10/FRAMEWORK_MAPPING_CANDIDATE.md` |
 | 2026-09-12 | **Q-FRAMEWORK-MAPPING-INTEGRATION-01** | Framework Mapping governance integration across 31 repos | `z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md` |
@@ -103,7 +102,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-11-15 | **Q-PILLOW-TIFF-ADVISORIES-WAIVER-01** | Scoped audit waiver for CVE-2026-128067 and CVE-2026-128066 (pillow 12.3.0) on tools/Metaculus only, with an owner and an exit event | `z1-inbox/2026-11-13/Q-PILLOW-TIFF-ADVISORIES-WAIVER-01.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
 
-## Decided (34)
+## Decided (35)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -141,6 +140,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-GRAPH-ORPHANS-B1-01** | Night | 2026-11-11 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md`<br>`0f1ebdbcb2fd823a439390d02c952d522e90a2503860d32dca2dfdbbbb97dbb0` |
 | ✅ ratified | **Q-SYSTEM-GRAPH-REGEN-01** | Night | 2026-11-11 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md`<br>`308fb698a1fb1dc569e4bf6ebe1fe8b413b2ae3d8fe32dd79601a2efd0a0cbbc` |
 | ✅ ratified | **Q-PILLOW-PYSEC-2026-4363-WAIVER-01** | Night | 2026-11-12 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md`<br>`c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa` |
+| ✅ ratified | **Q-ACAT-BENCHMARK-01** | Night | 2026-11-14 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md`<br>`4e08fe3fa0c8883d0bf16ba691745dc916ebda34cecbe1409dec44a5e1441cbd` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -431,7 +431,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (74)
+## Records (75)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -510,6 +510,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md` | Z2 rulings — 2026-10-31 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md` | Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md` | Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md` | Z2 rulings 2026-11-14 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
