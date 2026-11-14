@@ -58,13 +58,6 @@
       "event_id": "RCSEVT-88EB99392AB13430",
       "objective_issue_number": null
     },
-    "PULL_REQUEST#1218": {
-      "admission_scope": "subject:PULL_REQUEST#1218",
-      "admitted_head_sha": "b43bbb1946f2fcca15abf9f0b7a355f0572425e4",
-      "command_ref": "RCC-GITHUB-COMMENT-6874089855",
-      "event_id": "RCSEVT-E2058C78589E85CE",
-      "objective_issue_number": null
-    },
     "PULL_REQUEST#1219": {
       "admission_scope": "subject:PULL_REQUEST#1219",
       "admitted_head_sha": "3f7c2fdb063e03f579cdc9126bed1fe46ba44306",
@@ -90,7 +83,6 @@
     "PULL_REQUEST#1183": "RCSEVT-DAEB44F68CFA8EF2",
     "PULL_REQUEST#1205": "RCSEVT-651F4CE833840521",
     "PULL_REQUEST#1211": "RCSEVT-88EB99392AB13430",
-    "PULL_REQUEST#1218": "RCSEVT-E2058C78589E85CE",
     "PULL_REQUEST#1219": "RCSEVT-805B6A648B357809",
     "PULL_REQUEST#990": "RCSEVT-884F30C1E72FADC6"
   },
@@ -107,7 +99,6 @@
     1183,
     1205,
     1211,
-    1218,
     1219
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
@@ -263,6 +254,7 @@
     "RCC-GITHUB-PR-LIFECYCLE-1207-b18b40165734a7a4e0c8e2bc51701af9f7caea85-2026-11-12T23:54:01Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-1208-cc5471c1d5f705852666fcae52a23e8aabe22a17-2026-11-13T00:00:27Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-1209-73d93a56abeff21dd177bcb2a61c87916bc29219-2026-11-13T05:07:35Z-MERGED",
+    "RCC-GITHUB-PR-LIFECYCLE-1218-b43bbb1946f2fcca15abf9f0b7a355f0572425e4-2026-11-14T07:52:14Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-1220-13432d944235f24adfcbb4fe29f28874838a6cdc-2026-11-14T06:57:54Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-630-c3e0bb5685e686633c79e83dfef991d295864cfc-2026-10-16T19:08:10Z-CLOSED",
     "RCC-GITHUB-PR-LIFECYCLE-678-07d4356be77f1cad21e12b04535ef11047949ab5-2026-10-06T06:38:12Z-MERGED",
@@ -365,14 +357,14 @@
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "e2058c78589e85cec4ed42a6a5ea09f56130bae424ba7d4b13d105b6d6506ac7",
-  "last_event_id": "RCSEVT-E2058C78589E85CE",
-  "last_sequence": 277,
-  "ledger_event_count": 277,
-  "ledger_sha256": "a7f5c78f0f55f9c1c7e250af7952afe8d3a79998ba326d0842230eb1f40d005a",
+  "last_event_hash": "ce78b23ea69c6123bfc942cd172ba42da8b7d31c9f07c64bb3c3cdb2f753dfed",
+  "last_event_id": "RCSEVT-CE78B23EA69C6123",
+  "last_sequence": 278,
+  "ledger_event_count": 278,
+  "ledger_sha256": "f124e7cb6ed26f1d22ea4c02374f6ef14f7738f1d28e2c52f692a437df9aa073",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
-  "source_policy_sha": "a6d3ce7ab3273520f7fcb1aee0fc2f48a2bf81c9",
+  "source_policy_sha": "0cda22c6d83cdf053fdbcfe89bbd94861dfea147",
   "state_branch": "repository-coordinator-state"
 }
