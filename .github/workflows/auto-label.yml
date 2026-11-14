@@ -1,0 +1,131 @@
+name: auto-label
+
+# Apply labels this repository already defines. Creates only the labels the
+# rules need that are not already present: smag and experiment. conflict and
+# stale already exist; this workflow uses conflict and does not create stale
+# (the weekly sweep owns that label).
+#
+# Rules:
+#   dependencies            author is dependabot[bot]
+#   Z1                      title prefix z1 or [Z1 ...]
+#   experiment              title prefix experiment or [EXPERIMENT ...]
+#   do not merge            the phrase "do not merge" in the title or body
+#   governance              title prefix governance or [GOVERNANCE ...]
+#   z2-queue                title prefix z2 or [Z2 ...]
+#   substrate:copilot       head branch starts with copilot/
+#   substrate:claude-code   head branch starts with claude/
+#   smag                    github-actions[bot] on smag-consolidate/ or a SMAG: title from that bot
+#   conflict                REST mergeable_state is dirty; removed once it is not
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  schedule:
+    - cron: "11 7 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure missing labels and apply rules
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python3 - << 'PY'
+          import json, os, re, subprocess
+
+          REPO = os.environ["REPO"]
+          EVENT = os.environ.get("EVENT") or ""
+          ONLY = os.environ.get("PR_NUMBER") or ""
+          CREATE = {
+              "smag": ("1d76db", "SMAG consolidation pull request"),
+              "experiment": ("FBCA04", "Live experiment; exempt from stale close and the dirty-PR draft SLA"),
+          }
+
+          def run(args, check=True):
+              proc = subprocess.run(args, text=True, capture_output=True)
+              if check and proc.returncode != 0:
+                  raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "command failed")
+              return proc
+
+          def api(path):
+              return json.loads(run(["gh", "api", path]).stdout)
+
+          existing = {row["name"] for row in json.loads(run(["gh", "label", "list", "--repo", REPO, "--limit", "200", "--json", "name"]).stdout)}
+          for name, (color, description) in CREATE.items():
+              if name in existing:
+                  continue
+              run(["gh", "label", "create", name, "--repo", REPO, "--color", color, "--description", description])
+              print(f"created label {name}")
+
+          def wanted(pr):
+              title = pr.get("title") or ""
+              body = pr.get("body") or ""
+              author = ((pr.get("user") or {}).get("login")) or ""
+              head = ((pr.get("head") or {}).get("ref")) or ""
+              labels = []
+              if author == "dependabot[bot]":
+                  labels.append("dependencies")
+              if re.search(r"(?i)^\s*(\[[^\]]*z1[^\]]*\]|z1\b)", title):
+                  labels.append("Z1")
+              if re.search(r"(?i)^\s*(\[[^\]]*experiment[^\]]*\]|experiment\b)", title):
+                  labels.append("experiment")
+              if re.search(r"(?i)do not merge", title) or re.search(r"(?i)do not merge", body):
+                  labels.append("do not merge")
+              if re.search(r"(?i)^\s*(\[[^\]]*governance[^\]]*\]|governance\b)", title):
+                  labels.append("governance")
+              if re.search(r"(?i)^\s*(\[[^\]]*z2[^\]]*\]|z2\b)", title):
+                  labels.append("z2-queue")
+              if head.startswith("copilot/"):
+                  labels.append("substrate:copilot")
+              if head.startswith("claude/"):
+                  labels.append("substrate:claude-code")
+              if author == "github-actions[bot]" and (
+                  head.startswith("smag-consolidate/") or title.startswith("SMAG:")
+              ):
+                  labels.append("smag")
+              return labels
+
+          def numbers():
+              if EVENT == "pull_request" and ONLY:
+                  return [int(ONLY)]
+              found = []
+              page = 1
+              while page <= 10:
+                  batch = api(f"repos/{REPO}/pulls?state=open&per_page=100&page={page}")
+                  if not batch:
+                      break
+                  found.extend(item["number"] for item in batch)
+                  if len(batch) < 100:
+                      break
+                  page += 1
+              return found
+
+          for number in numbers():
+              pr = api(f"repos/{REPO}/pulls/{number}")
+              current = {label["name"] for label in pr.get("labels") or []}
+              for label in wanted(pr):
+                  if label in current:
+                      continue
+                  run(["gh", "pr", "edit", str(number), "--repo", REPO, "--add-label", label])
+                  print(f"#{number} +{label}")
+                  current.add(label)
+              state = (pr.get("mergeable_state") or "").lower()
+              if state == "dirty" and "conflict" not in current:
+                  run(["gh", "pr", "edit", str(number), "--repo", REPO, "--add-label", "conflict"])
+                  print(f"#{number} +conflict")
+              elif state in {"clean", "behind", "blocked", "unstable", "draft"} and "conflict" in current:
+                  run(["gh", "pr", "edit", str(number), "--repo", REPO, "--remove-label", "conflict"])
+                  print(f"#{number} -conflict")
+              elif state in {"", "unknown"}:
+                  print(f"#{number} mergeable_state not computed; conflict label unchanged")
+          PY
