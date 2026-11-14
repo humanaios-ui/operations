@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 229
+  tools: 230
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 180
+  builder_markers_present: 181
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2908,6 +2908,18 @@ tools:
   builder_markers: true
   purpose: pre_submit.py — run the PR pre-submission checks in one command.
   session: S-101126-01
+- tool_id: HAIOS-TOOL-243
+  name: opd_offline_distiller
+  path: tools/opd/offline_distiller.py
+  version: 0.1.1
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: No GitHub credentials, network calls, execution, or authority effects.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
