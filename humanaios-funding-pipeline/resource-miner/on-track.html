@@ -55,6 +55,7 @@ table{min-width:0}
 <h1>What actually moved our goal?</h1>
 <p>One goal: a human can ask INTENT-OS for resources, review grounded leads, and decide what to do. We measure that path. We do not count merged PRs as user success.</p>
 <p><a href="/intent-os">← Find resources</a> · <a href="/my-opportunities">My Opportunities</a></p>
+<p id="observatoryLink" hidden><a href="/project-observatory">Project Observatory · local read-only preview</a> <small>(public GitHub activity only, not proof of progress; no approval authority)</small></p>
 <section aria-labelledby="state-title">
 <h2 id="state-title">Current evidence</h2>
 <div id="warning" class="notice" role="status" aria-live="polite">UNVERIFIED — No observation has been imported. No deployment or human success is claimed.</div>
@@ -148,6 +149,10 @@ table{min-width:0}
 <!--@@EMBED_SNAPSHOT@@-->
 <script>
 "use strict";
+// Show the observatory link only when this instance serves it (loopback; assets present).
+fetch("/project-observatory",{cache:"no-store"})
+ .then(r=>{if(r.ok)document.getElementById("observatoryLink").hidden=false;})
+ .catch(()=>{});
 const find=id=>document.getElementById(id);
 const text=(id,value)=>{find(id).textContent=String(value??"");};
 function resetEvidence(){
