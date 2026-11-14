@@ -1,0 +1,45 @@
+# ACAT #750 — Evidence Audit Report (Z1 / NO AUTHORITY)
+**Observation:** 2026-11-09 · **Issue:** [#750](https://github.com/humanaios-ui/operations/issues/750) · **Parent:** [#747](https://github.com/humanaios-ui/operations/issues/747) · **Registry:** [ACAT_VERSION_REGISTRY.md](ACAT_VERSION_REGISTRY.md)
+
+## Verdict: source conflict CONFIRMED, canonical selection PENDING
+
+This audit examined current GitHub content at named blob SHAs and public `humanaios.ai` page text. **It did not** rerun original ACAT cohorts, inspect all historical commits/dataset rows, verify the website deployment SHA, independently reconstruct factor analysis, or ratify an instrument. Scores and corpus summaries remain as published/claimed. Do not edit their values or assign a new version retroactively.
+
+### Observed and reproducible conflicts
+
+| ID | Observed sources | Problem | Correct disposition / owner |
+|---|---|---|---|
+| ACAT-750-C01 | [Original v5.0 prompt](https://github.com/humanaios-ui/lasting-light-ai/blob/57aeab21a6606303ff5f7c1979f48b9945737d6c/ACAT_PROMPT_V5_0.txt) vs [v5.5 authority assertion](https://github.com/humanaios-ui/operations/blob/76cffa51899913f4999f4345e722904ebf4a55fe/research/aerc/ACAT_AUTHORITATIVE_SOURCE.md) | Original documented 6 axes/0–100, asserted later 12 D-axes/1–10; primary v5.5 spec cited under `lasting-light-ai/research/ACAT_v5.5_technical_specification.md` not found at default path | Research owner locates actual primary version-pinned instrument and raw validation; **no canonical designation yet** |
+| ACAT-750-C02 | [operations Phase 1 schema](https://github.com/humanaios-ui/operations/blob/92f29f794a83c9d099917a682d10779b94021a2c/acat/contracts/phase1_intake.schema.json) vs [v5.5 claimed D1–D12](https://github.com/humanaios-ui/operations/blob/76cffa51899913f4999f4345e722904ebf4a55fe/research/aerc/ACAT_AUTHORITATIVE_SOURCE.md) | Both have 12 slots but different semantic axes and score ranges | Keep separate `instrument_id` namespaces and mappings; prohibit cross-aggregation |
+| ACAT-750-C03 | [LLAI public/assess.html](https://github.com/humanaios-ui/lasting-light-ai/blob/38a7aef68ff2d5b09cbfccbc1c354947390d5939/public/assess.html) vs [operations 12-score schema](https://github.com/humanaios-ui/operations/blob/92f29f794a83c9d099917a682d10779b94021a2c/acat/contracts/phase1_intake.schema.json) | 11 dims (6+5) versus 12 dims (6+6) | Treat public assessment as **11-axis versioned legacy variant** until instrument and deployment reconciled |
+| ACAT-750-C04 | [public/methods.html](https://github.com/humanaios-ui/lasting-light-ai/blob/215a4872813cff278ed6f2a0b7734c765edcdaa5/public/methods.html) and [public/research.html](https://github.com/humanaios-ui/lasting-light-ai/blob/main/public/research.html) vs [LLAI llms.txt](https://github.com/humanaios-ui/lasting-light-ai/blob/3d69610d3da89202170bbea9a15f02050b413dd0/llms.txt) | `1−abs(P1−P3)/P1` is NOT directional `P3/P1`, and cannot equal it for upward recalibration | Propose public clarification that absolute-gap is an **unapproved separate metric**, not Learning Index |
+| ACAT-750-C05 | [public/methodology.html](https://github.com/humanaios-ui/lasting-light-ai/blob/f4b5745f178b6cc11fd57fb8ce9fcbd00eb1a78a/public/methodology.html) vs [v6 de-anchoring analysis](https://github.com/humanaios-ui/operations/blob/9461e70c386bb3f07232b567555205537c8959b8/docs/ACAT_PAPER_V6_0_DRAFT.md) | v5.3 page describes P3 anchored to P1 while v6 draft states de-anchoring corrected early phase design | Mark as **contradictory methodological description**, review actual P2/P3 prompts before claim of "clean v5.3+" |
+| ACAT-750-C06 | [public/assess.html](https://github.com/humanaios-ui/lasting-light-ai/blob/38a7aef68ff2d5b09cbfccbc1c354947390d5939/public/assess.html) vs [public/how-it-works.html](https://github.com/humanaios-ui/lasting-light-ai/blob/618925c5fcca96e8242bbe86f3fcfe2704fd6c74/public/how-it-works.html) | Assessment UI caps Phase 3 Core 6 scores at Phase 1; guide states LI>1 can occur | Flag **data collection bias risk**. Test with a synthetic upward-score fixture before any UI correction |
+| ACAT-750-C07 | [operations docs/acat-framework.md](https://github.com/humanaios-ui/operations/blob/ccac427ef1ef76c6c73ed8ee7c79b551952db8f8/docs/acat-framework.md) and [phase1 schema](https://github.com/humanaios-ui/operations/blob/92f29f794a83c9d099917a682d10779b94021a2c/acat/contracts/phase1_intake.schema.json) vs [ops prompt_templates.py](https://github.com/humanaios-ui/operations/blob/613ed79f376fc3613ac60e145f895be7e4f0b9c4/acat/api/services/prompt_templates.py) | Intake schema demands 12 while the model prompting template asks for exactly 6; may be intentional pathway mismatch or unimplemented extension | Trace call path to adapter/parser and tests. Do **not** assume each path interoperates |
+| ACAT-750-C08 | [llai six-dimension llms.txt](https://github.com/humanaios-ui/lasting-light-ai/blob/3d69610d3da89202170bbea9a15f02050b413dd0/llms.txt) vs [ops v6 research draft](https://github.com/humanaios-ui/operations/blob/9461e70c386bb3f07232b567555205537c8959b8/docs/ACAT_PAPER_V6_0_DRAFT.md) | Tier 1 and Tier 2 use different perturbations; pooling makes effect estimates invalid | Preserve `tier`, `exposure_type`, `prompt_version`, `cohort`; no mixed LI |
+| ACAT-750-C09 | [LLAI public methodology](https://github.com/humanaios-ui/lasting-light-ai/blob/f4b5745f178b6cc11fd57fb8ce9fcbd00eb1a78a/public/methodology.html) vs [ops HF card draft](https://github.com/humanaios-ui/operations/blob/0e44a65ade4a741f922142507cb24e6a5ee28bf2/acat/HF_DATASET_CARD.md) | Historical N, cohort, denominator and means not automatically commensurate | Require dataset hashes, inclusion policy, observation timestamp, unique session counts, exclusion flags and recomputed statistics |
+| ACAT-750-C10 | [#750 body](https://github.com/humanaios-ui/operations/issues/750) vs [#750 corrective comment](https://github.com/humanaios-ui/operations/issues/750#issuecomment-6059874574) | Issue text proposes 12 and alternative absolute-gap LI; prior governance comment rejects assuming it | **Follow correction** for audit; issue body is not research authority; only human Z2 can ratify |
+| ACAT-750-C11 | [Home page](https://humanaios.ai/), [methods](https://humanaios.ai/methods), [assess](https://humanaios.ai/assess), [how-it-works](https://humanaios.ai/how-it-works) | At least three different dimension counts are presented as current to readers | Add **version-stamped public conflict banner** and methodology link after approval; do not replace historical text silently |
+
+### Arithmetic gate / falsification examples
+- `P1=80, P3=60`: directional LI=.75; absolute gap score=.75.
+- `P1=80, P3=100`: directional LI=1.25; absolute gap score=.75. **Direction lost**.
+- `P1=0, P3=0`: ratio is undefined (not 1); record `LI=NULL` + reason `ZERO_BASELINE` pending version-specific policy.
+- `P1=0, P3>0`: ratio is undefined; **never substitute a guessed score**.
+- `P1_core6=450` and `P3_extended12=500`: do not compare totals; score count differs.
+- `P1=70` (pre-anchor) and `P3=65` (with visible own P1): label `exposure_contaminated` until protocol allows it; do not call a clean replicate.
+- `self-reported score and passing CI`: neither authenticates model identity nor independently proves user outcome.
+
+### What can be proposed now, without Z2 instrument selection?
+1. Adopt a read-only version registry with source hashes and explicit conflict status.
+2. Treat **six 0–100 core axes with LI=P3/P1** as the documented historical reconciliation baseline **for like-for-like cohorts**, **not** as an exclusive current canonical version.
+3. Segregate eleven-axis public assessment, twelve-axis operational schema, v6 two-tier draft, and purported v5.5 bi-factor factor-score research.
+4. Retain directional LI and negative results; do not clamp P3 upward correction or convert it silently.
+5. Put missing primary source, exact prompts, data export verification and version-specific denominator policy before canonical ratification.
+6. Do not ship a new global CI gate or rewrite public scientific assertions until owners review the scope and Z2 approves.
+7. Update [Claude evidence pilot #1165](https://github.com/humanaios-ui/operations/issues/1165) **only after** a chosen instrument version is pinned; no retrospective 12-axis scores by inference.
+
+### Known limits
+This is a targeted 17-surface sample, **not a complete tracked-file census** of three domains. The referenced v5.5 file's current 404 does not prove it never existed on an old branch or private source. A filename and GitHub blob prove the current file's bytes, not that a browser saw those bytes. The claims α=.901 and variance components were **not recomputed**. No original empirical dataset was mutated. No provider-scoring or legal assertion results from this audit.
+
+**Disposition:** Z1 E0 audit ready for independent review; #750 remains OPEN, canonical approval PENDING; public modifications and cross-repo migrations remain BLOCKED pending source verification and human approval.
