@@ -11,7 +11,7 @@ setup(
     packages=find_packages(where="src"),
     python_requires=">=3.10",
     install_requires=[
-        "pydantic>=2.6,<3",
+        "pydantic>=2.14.1,<3",
         "requests>=2.34.2,<3",
         "beautifulsoup4>=4.12,<5",
         "lxml>=5.0",
