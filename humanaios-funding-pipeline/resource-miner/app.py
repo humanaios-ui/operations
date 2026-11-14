@@ -134,6 +134,7 @@ class Handler(BaseHTTPRequestHandler):
             origin = self.headers.get("Origin")
             return (bound.is_loopback and peer.is_loopback
                     and self.headers.get("Host") in permitted
+                    and self.headers.get("Sec-Fetch-Site") in (None, "same-origin", "none")
                     and (origin is None or origin in {"http://" + host for host in permitted}))
         except (ValueError, AttributeError, IndexError, TypeError):
             return False
