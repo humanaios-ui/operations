@@ -11,9 +11,13 @@ candidates:
   title: Scoped audit waiver for CVE-2026-128067 and CVE-2026-128066 (pillow 12.3.0) on tools/Metaculus only, with an owner and an exit event
   path: z1-inbox/2026-11-13/Q-PILLOW-TIFF-ADVISORIES-WAIVER-01.md
   submitted: '2026-11-13'
-  status: awaiting_z2
+  status: ratified
   tier: 2
   note: 'Found by the first main run after 1185 merged (the first waiver worked). Waiver, not a fix; two separate advisories, one a TIFF save trigger, one a parse trigger; reachability partial and carried forward, not end to end; the revisit note names an owner issue and an exit event; a third pillow advisory needs its own block. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-14"
+  z2_ruling: "z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md"
+  z2_hash: "710ef85dd69c5d23e999891d9fc8dea3361225e888af1b3d7354435e9eb044e4"
 - q_id: Q-RATIFY-STALE-NOTE-01
   title: 'ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate''s single-line index note'
   path: z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md
