@@ -259,6 +259,9 @@ baseline_tests:
     requires: []
     description: Meta-SMAG observed outcome versus predicted confidence isolation regressions
 
+  - path: tools/tests/test_coderabbit_path_coverage.py
+    requires: []
+    description: CodeRabbit specialized review guidance reaches journey, resource, and calibration targets
   - path: tools/tests/test_b4_admission.py
     requires: []
     description: B4 controlled admission contract regressions
