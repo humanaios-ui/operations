@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**229 registered tools** · 2 MCP servers · 4 excluded · 180 carrying Builder v1.7 markers
+**230 registered tools** · 2 MCP servers · 4 excluded · 181 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 229 |
-| — status `draft` | 228 |
+| Registered tools | 230 |
+| — status `draft` | 229 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 180 |
+| Builder v1.7 markers present | 181 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -36,7 +36,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-176 | grant_matching_engine_v1_0 | `tools/grant_matching_engine_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Matching Engine v1.0 |
 | HAIOS-TOOL-200 | workflow_telemetry_collector | `tools/workflow_telemetry_collector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Telemetry Collector |
 
-## Audit — `audit_tool` (25)
+## Audit — `audit_tool` (26)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -65,6 +65,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-205 | graph_capture_lint | `tools/graph_capture_lint_v1_0.py` | 1.0.0 | 1 | draft | — | Scores a graph file against the nine properties of a graph that cannot be wrong from the inside; blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting baseline (crb/graph_capture_baseline.json). |
 | HAIOS-TOOL-222 | coderabbit_coverage_inventory | `tools/coderabbit_coverage_inventory.py` | 0.2.0 | 1 | draft | — | Exact-head file inventory and fail-closed CodeRabbit review coverage accounting (#806) |
 | HAIOS-TOOL-232 | governance_invariant_evaluator | `tools/governance_invariant_evaluator.py` | 1.0.0 | 1 | draft | — | Advisory governance invariant evaluator. No admission or ratification capability. |
+| HAIOS-TOOL-243 | governance_blocker_conflation_check | `tools/governance_blocker_conflation_check.py` | 1.0.0 | 1 | draft | — | governance_blocker_conflation_check.py — detects bundled-gate conflation and |
 
 ## Calibration — `calibration_tool` (18)
 
@@ -366,7 +367,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 25 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 26 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 18 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
