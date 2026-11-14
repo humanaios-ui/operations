@@ -51,7 +51,7 @@ button,select,input[type=file]{min-height:44px}
 <header><div class="brand">HUMANAIOS / INTENT-OS</div><h1>What resource would help you?</h1>
 <p class="muted">Describe a goal. INTENT-OS will match it to observations from the existing Resource Miner. You decide what to pursue.</p>
 <p><a href="/on-track">What work actually moves us toward a usable INTENT-OS? →</a></p>
-<p><a href="/project-observatory">Project Observatory · local read-only preview</a> <small>(public GitHub activity only; not an approval board or verified outcomes; unavailable on hosted/public instances)</small></p>
+<p id="observatoryLink" hidden><a href="/project-observatory">Project Observatory · local read-only preview</a> <small>(public GitHub activity only; not an approval board or verified outcomes; unavailable on hosted/public instances)</small></p>
 <p id="myOpportunitiesLink" hidden><a href="/my-opportunities">My Opportunities →</a></p></header>
 <section class="panel" aria-label="Resource search">
 <form id="form">
@@ -330,6 +330,10 @@ document.getElementById("clearLessons").addEventListener("click",()=>{
  try{localStorage.removeItem(teachingKey);renderCandidates();reviewMessage("Local preferences cleared.");}
  catch(error){reviewMessage("Could not clear lessons: "+error.message);}
 });
+// Show the observatory link only when this instance serves it (loopback; assets present).
+fetch("/project-observatory",{cache:"no-store"})
+ .then(r=>{if(r.ok)document.getElementById("observatoryLink").hidden=false;})
+ .catch(()=>{});
 // Show the personal preview link only when this instance is bound to loopback.
 fetch("/api/my-opportunities",{cache:"no-store"})
  .then(r=>{if(r.ok)document.getElementById("myOpportunitiesLink").hidden=false;})
