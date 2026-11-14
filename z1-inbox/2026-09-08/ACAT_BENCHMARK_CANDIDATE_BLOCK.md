@@ -17,3 +17,22 @@ GAP-SPEC-01  CLOSED at landing for the dimension list (12 keys in acat/contracts
 GAP-DIM-02  Public site says 12 / 11 / 6 dimensions in different places. OPEN. falsifier: repo or preprint states one canonical count.
 
 Predictions locked on the board: C9 (co-run completes ≥5/6 pairs in 4 weeks) 0.60 · C10 (≥1 pair r ≥ 0.5) 0.55 · C12 0.15 · C13 (remap loop declines on first read) 0.85.
+
+## Options
+
+- `ratify`
+- `edit`
+- `later`
+
+## What each sets in motion
+
+- `ratify`: H-BM-01, H-BM-02 and H-BM-03 are accepted as PROPOSED hypotheses, each with the falsifier stated above. Entering them in REGISTERED.md is a Z2 act; Z1 does not write that file.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
