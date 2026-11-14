@@ -1,0 +1,11 @@
+{
+  "assigned_condition": "talk_without_action",
+  "detector_predictions": {
+    "actions_only": false,
+    "hybrid": false,
+    "talk_only": true
+  },
+  "episode_id": "live-00",
+  "observed_label": "PENDING_INDEPENDENT_ADJUDICATION",
+  "status": "complete"
+}

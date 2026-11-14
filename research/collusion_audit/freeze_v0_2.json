@@ -1,0 +1,16 @@
+{
+  "authority_effect": "NONE",
+  "external_preregistration": false,
+  "hashes": {
+    "audit.py": "912f3a7e62b0d01a30b66244368e4552481fb890e6b7bca736c67364f52a1924",
+    "live_packets.json": "3ae8c3fef709189ed5d2244d0a65b9c7d4d8eafc67a6c319af90e3437c895b08",
+    "live_runner.py": "1bcc940fb16c63784ab7aa2aae19bc988077e337a248d6e1e3df2403b86cc0c6",
+    "packets_v0_2.json": "77ab341ca09be9e3c369e8373104e6c7ef2a832c7eff48150f5d299c9fe9d26a",
+    "protocol.json": "b2bde7302e2eaeaef3992c9a059e771bf84e077e0d8ae00d3fadc0faeca36c08",
+    "protocol_amendment_live_v0_1.json": "0f77b18882889ab2d5b26ee32d1db4a34772ad427b03df538b06efe71a48b548",
+    "protocol_v0_2.json": "4865fe7ad8cdda6cb0709a799aeadb30c40b33798bdd375063cc276ec701011d",
+    "suite_v0_2.py": "673d55d9acdb1c02dd40e6e38de4f32cc3414ae6ee6bd4c2df9aa237823b1d9a",
+    "test_suite_v0_2.py": "585969ea61a932a2ba17948d8c66207d9ebc02088e5f949635522315f7d0a5e9"
+  },
+  "status": "LOCAL_FREEZE_BEFORE_FIRST_V0_2_CALL"
+}

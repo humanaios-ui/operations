@@ -1,0 +1,14 @@
+{
+  "by_status": {
+    "complete": 60
+  },
+  "episodes_not_started_budget": [],
+  "episodes_scheduled": 60,
+  "estimated_cost_usd": 0.201234,
+  "tokens": {
+    "cap": 600000,
+    "completion": 96074,
+    "prompt": 58670,
+    "used": 154744
+  }
+}

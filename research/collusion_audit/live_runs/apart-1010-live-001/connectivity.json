@@ -1,0 +1,32 @@
+{
+  "model": "qwen-3.8-27b",
+  "model_listed": false,
+  "models_listing": {
+    "http_status": 403,
+    "model_ids": null
+  },
+  "ping": {
+    "content": null,
+    "error": null,
+    "http_status": 403,
+    "request": {
+      "messages": [
+        {
+          "content": "Reply with the single word OK.",
+          "role": "user"
+        }
+      ],
+      "model": "qwen-3.8-27b",
+      "sampling": {
+        "max_completion_tokens": 2048,
+        "reasoning_effort": "low",
+        "temperature": 0.0
+      }
+    },
+    "request_id": null,
+    "response_raw": "error code: 1010\n",
+    "status": "call_failed",
+    "transport_error": null
+  },
+  "purpose": "connectivity check, outside study data"
+}
