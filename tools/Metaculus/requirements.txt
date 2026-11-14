@@ -8,7 +8,8 @@
 
 # Explicit transitive floor: setuptools below 84.1.0 has GHSA-xmj3-9gf7-h52w.
 setuptools>=84.1.0,<85.0.0
-forecasting-tools>=0.3.4,<0.4.0
+# Floor 0.3.7: first release allowing pillow>=13 (issue #1214).
+forecasting-tools>=0.3.7,<0.4.0
 supabase>=2.33.0,<3.0.0
 python-dotenv>=1.2.4,<2.0.0
 Pygments>=2.21.0
