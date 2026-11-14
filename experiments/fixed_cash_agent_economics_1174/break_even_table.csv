@@ -1,0 +1,65 @@
+section,capital_usd,monthly_cost_usd,required_annual_pct_linear,required_annual_pct_monthly_compounded,plausible_vs_7,plausible_vs_10,plausible_vs_15,scenario,rate,agent,a_min_usd,b_all_four_usd,b_aggregate_usd
+grid,25,10,480.0000,5569.3912,False,False,False,,,,,,
+grid,25,20,960.0000,115583.1381,False,False,False,,,,,,
+grid,25,30,1440.0000,1285400.2631,False,False,False,,,,,,
+grid,25,39,1872.0000,7922716.2514,False,False,False,,,,,,
+grid,25,100,4800.0000,24414062400.0000,False,False,False,,,,,,
+grid,100,10,120.0000,213.8428,False,False,False,,,,,,
+grid,100,20,240.0000,791.6100,False,False,False,,,,,,
+grid,100,30,360.0000,2229.8085,False,False,False,,,,,,
+grid,100,39,468.0000,5102.0869,False,False,False,,,,,,
+grid,100,100,1200.0000,409500.0000,False,False,False,,,,,,
+grid,250,10,48.0000,60.1032,False,False,False,,,,,,
+grid,250,20,96.0000,151.8170,False,False,False,,,,,,
+grid,250,30,144.0000,289.5976,False,False,False,,,,,,
+grid,250,39,187.2000,469.5004,False,False,False,,,,,,
+grid,250,100,480.0000,5569.3912,False,False,False,,,,,,
+grid,500,10,24.0000,26.8242,False,False,False,,,,,,
+grid,500,20,48.0000,60.1032,False,False,False,,,,,,
+grid,500,30,72.0000,101.2196,False,False,False,,,,,,
+grid,500,39,93.6000,146.2777,False,False,False,,,,,,
+grid,500,100,240.0000,791.6100,False,False,False,,,,,,
+grid,1000,10,12.0000,12.6825,False,False,True,,,,,,
+grid,1000,20,24.0000,26.8242,False,False,False,,,,,,
+grid,1000,30,36.0000,42.5761,False,False,False,,,,,,
+grid,1000,39,46.8000,58.2656,False,False,False,,,,,,
+grid,1000,100,120.0000,213.8428,False,False,False,,,,,,
+grid,2500,10,4.8000,4.9070,True,True,True,,,,,,
+grid,2500,20,9.6000,10.0339,False,True,True,,,,,,
+grid,2500,30,14.4000,15.3895,False,False,True,,,,,,
+grid,2500,39,18.7200,20.4127,False,False,False,,,,,,
+grid,2500,100,48.0000,60.1032,False,False,False,,,,,,
+grid,5000,10,2.4000,2.4266,True,True,True,,,,,,
+grid,5000,20,4.8000,4.9070,True,True,True,,,,,,
+grid,5000,30,7.2000,7.4424,False,True,True,,,,,,
+grid,5000,39,9.3600,9.7722,False,True,True,,,,,,
+grid,5000,100,24.0000,26.8242,False,False,False,,,,,,
+grid,10000,10,1.2000,1.2066,True,True,True,,,,,,
+grid,10000,20,2.4000,2.4266,True,True,True,,,,,,
+grid,10000,30,3.6000,3.6600,True,True,True,,,,,,
+grid,10000,39,4.6800,4.7817,True,True,True,,,,,,
+grid,10000,100,12.0000,12.6825,False,False,True,,,,,,
+cohort,,20,,,,,,Entry,0.07,ChatGPT Plus,3428.5714,20571.4286,13714.2857
+cohort,,10,,,,,,Entry,0.07,Copilot Pro,1714.2857,20571.4286,13714.2857
+cohort,,20,,,,,,Entry,0.07,Claude Pro,3428.5714,20571.4286,13714.2857
+cohort,,30,,,,,,Entry,0.07,SuperGrok,5142.8571,20571.4286,13714.2857
+cohort,,20,,,,,,Entry,0.1,ChatGPT Plus,2400.0000,14400.0000,9600.0000
+cohort,,10,,,,,,Entry,0.1,Copilot Pro,1200.0000,14400.0000,9600.0000
+cohort,,20,,,,,,Entry,0.1,Claude Pro,2400.0000,14400.0000,9600.0000
+cohort,,30,,,,,,Entry,0.1,SuperGrok,3600.0000,14400.0000,9600.0000
+cohort,,20,,,,,,Entry,0.15,ChatGPT Plus,1600.0000,9600.0000,6400.0000
+cohort,,10,,,,,,Entry,0.15,Copilot Pro,800.0000,9600.0000,6400.0000
+cohort,,20,,,,,,Entry,0.15,Claude Pro,1600.0000,9600.0000,6400.0000
+cohort,,30,,,,,,Entry,0.15,SuperGrok,2400.0000,9600.0000,6400.0000
+cohort,,100,,,,,,Power,0.07,ChatGPT Pro,17142.8571,68571.4286,58114.2857
+cohort,,39,,,,,,Power,0.07,Copilot Pro+,6685.7143,68571.4286,58114.2857
+cohort,,100,,,,,,Power,0.07,Claude Max,17142.8571,68571.4286,58114.2857
+cohort,,100,,,,,,Power,0.07,SuperGrok Plus,17142.8571,68571.4286,58114.2857
+cohort,,100,,,,,,Power,0.1,ChatGPT Pro,12000.0000,48000.0000,40680.0000
+cohort,,39,,,,,,Power,0.1,Copilot Pro+,4680.0000,48000.0000,40680.0000
+cohort,,100,,,,,,Power,0.1,Claude Max,12000.0000,48000.0000,40680.0000
+cohort,,100,,,,,,Power,0.1,SuperGrok Plus,12000.0000,48000.0000,40680.0000
+cohort,,100,,,,,,Power,0.15,ChatGPT Pro,8000.0000,32000.0000,27120.0000
+cohort,,39,,,,,,Power,0.15,Copilot Pro+,3120.0000,32000.0000,27120.0000
+cohort,,100,,,,,,Power,0.15,Claude Max,8000.0000,32000.0000,27120.0000
+cohort,,100,,,,,,Power,0.15,SuperGrok Plus,8000.0000,32000.0000,27120.0000
