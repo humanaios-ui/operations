@@ -1,0 +1,41 @@
+{
+  "protocol": "DHP-1.0",
+  "experiment_id": "HMBM-CYCLE-003",
+  "evidence_id": "C003-DHP-CONNECTOR-FILE-BRIDGE-001",
+  "result": "PASS_REPOSITORY_IMPLEMENTATION",
+  "failure_context": "C003-DHP-F004",
+  "bridge_version": "DHP-CONNECTOR-FILE-BRIDGE-1",
+  "implementation": [
+    "experiments/hmbm/dhp/github_file_bridge.py",
+    "experiments/hmbm/dhp/test_github_file_bridge.py",
+    "experiments/hmbm/dhp/CONNECTOR_FILE_BRIDGE.md"
+  ],
+  "invariants": {
+    "immutable_commit_required": true,
+    "mutable_refs_rejected": true,
+    "blob_sha_bound": true,
+    "sha256_required": true,
+    "byte_length_required": true,
+    "semantic_transformation": false,
+    "reusable_file_handle_required": true,
+    "paper_only": true
+  },
+  "ci": {
+    "workflow": "HMBM DHP invariants",
+    "run_id": 36770425210,
+    "head_sha": "1831ef62cff68a4c87136e448a149786d5869aae",
+    "unit_tests": "success",
+    "queue_transport_reference_validation": "success",
+    "conclusion": "success"
+  },
+  "platform_binding": {
+    "current_github_repository_file_action_returns_reusable_file_uri": false,
+    "github_actions_artifact_downloader_returns_reusable_file_uri": true,
+    "required_runtime_primitive": "commit-pinned repository file -> ConnectorFileReference/file_uri",
+    "status": "PLATFORM_BINDING_REQUIRED"
+  },
+  "state_after": "QUEUED",
+  "canonical_state_after": "C003-H0-ACCEPTED",
+  "next_authorized_node": "COURIER",
+  "paper_only": true
+}

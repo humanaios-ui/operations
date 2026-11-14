@@ -1,0 +1,45 @@
+name: HMBM DHP invariants
+on:
+  pull_request:
+    paths:
+      - 'experiments/hmbm/dhp/**'
+      - 'experiments/hmbm/cycle-003/dhp-*'
+      - 'experiments/hmbm/cycle-003/DHP_REPOSITORY_QUEUE.md'
+      - 'experiments/hmbm/cycle-003/queue/**'
+      - 'experiments/hmbm/cycle-003/evidence/C003-DHP-*'
+      - '.github/workflows/hmbm-dhp-invariants.yml'
+  push:
+    paths:
+      - 'experiments/hmbm/dhp/**'
+      - 'experiments/hmbm/cycle-003/dhp-*'
+      - 'experiments/hmbm/cycle-003/DHP_REPOSITORY_QUEUE.md'
+      - 'experiments/hmbm/cycle-003/queue/**'
+      - 'experiments/hmbm/cycle-003/evidence/C003-DHP-*'
+      - '.github/workflows/hmbm-dhp-invariants.yml'
+jobs:
+  invariant-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run DHP unit tests
+        run: python -m unittest discover -s experiments/hmbm/dhp -p 'test_*.py'
+      - name: Validate repository queue transport references
+        run: python experiments/hmbm/dhp/validate_queue.py
+      - name: Materialize pinned GEN-003 for connector handoff
+        run: python experiments/hmbm/dhp/github_actions_file_provider.py --reference experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/artifact-reference.json --output courier-bridge/HMBM-CYCLE-003_C003-H01-GEN-003_candidate.json --receipt courier-bridge/bridge-receipt.json
+      - name: Publish verified connector bridge artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: C003-H01-GEN-003-connector-bridge
+          path: |
+            courier-bridge/HMBM-CYCLE-003_C003-H01-GEN-003_candidate.json
+            courier-bridge/bridge-receipt.json
+          if-no-files-found: error
+          retention-days: 1

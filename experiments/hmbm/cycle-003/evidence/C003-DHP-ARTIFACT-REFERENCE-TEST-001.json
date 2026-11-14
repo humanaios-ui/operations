@@ -1,0 +1,43 @@
+{
+  "protocol": "DHP-1.0",
+  "experiment_id": "HMBM-CYCLE-003",
+  "test_id": "C003-DHP-ARTIFACT-REFERENCE-TEST-001",
+  "test_type": "QUEUED_TRANSPORT_ADDRESSABILITY_REMEDIATION",
+  "result": "PASS",
+  "failure_mitigated": "C003-DHP-F003",
+  "candidate_id": "C003-H01-CANDIDATE",
+  "generation_id": "C003-H01-GEN-003",
+  "predecessor_state_id": "C003-H0-ACCEPTED",
+  "invariants": {
+    "original_candidate_modified": false,
+    "original_manifest_modified": false,
+    "original_queued_receipt_modified": false,
+    "full_commit_pin_present": true,
+    "git_blob_sha_bound": true,
+    "file_sha256_bound": true,
+    "byte_length_bound": true,
+    "mutable_branch_locator_prohibited": true,
+    "queue_wide_ci_enforcement": true,
+    "paper_only": true
+  },
+  "artifact_reference": {
+    "commit_sha": "3fe388a911630b0f3f754fb363cf313e6c253550",
+    "blob_sha": "57bd97fab97d8a39d984234d0b4e31f22a0d9209",
+    "sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "byte_length": 808046,
+    "sidecar": "experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/artifact-reference.json"
+  },
+  "ci": {
+    "workflow": "HMBM DHP invariants",
+    "run_id": 36765263023,
+    "head_sha": "870347a73522c0e2ce7d5074bd92b573b08251b0",
+    "conclusion": "success",
+    "unit_tests": "success",
+    "queue_transport_reference_validation": "success"
+  },
+  "state_after": "QUEUED",
+  "canonical_state_after": "C003-H0-ACCEPTED",
+  "next_authorized_node": "COURIER",
+  "next_expected_transition": "QUEUED -> VERIFY_ARTIFACT -> GMAIL_COMMUNICATION -> COMMUNICATION_RECEIPT -> COMMUNICATED",
+  "paper_only": true
+}
