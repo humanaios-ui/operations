@@ -224,6 +224,193 @@ def test_a_non_ratifier_is_refused() -> None:
         assert open(index, encoding="utf-8").read() == before
 
 
+NOTE_INDEX = """version: 1
+generated: '2026-09-14'
+decision_window_days: 2
+counts:
+  candidates: 7
+  records: 0
+ratifiers:
+- Night
+candidates:
+- q_id: Q-FIXTURE-A-01
+  title: Quoted note, sentence at the end
+  path: z1-inbox/2026-09-01/Q-FIXTURE-A-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: 'Three edges, each proven. Falsifier stated. Not ratified.'
+- q_id: Q-FIXTURE-B-01
+  title: Plain note, sentence in the middle
+  path: z1-inbox/2026-09-01/Q-FIXTURE-B-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: Falsifier stated. Not ratified. Tier 2 because it changes a gate.
+- q_id: Q-FIXTURE-C-01
+  title: Wrapped note, sentence on a continuation line
+  path: z1-inbox/2026-09-01/Q-FIXTURE-C-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: "A note that wraps over two lines, with the sentence on the second.\\
+    \\ Not ratified."
+- q_id: Q-FIXTURE-D-01
+  title: Neighbour that is not decided
+  path: z1-inbox/2026-09-01/Q-FIXTURE-D-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: 'Still waiting. Not ratified.'
+- q_id: Q-FIXTURE-E-01
+  title: Note that is only the sentence, quoted
+  path: z1-inbox/2026-09-01/Q-FIXTURE-E-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: 'Not ratified.'
+- q_id: Q-FIXTURE-F-01
+  title: Note that is only the sentence, plain
+  path: z1-inbox/2026-09-01/Q-FIXTURE-F-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: Not ratified.
+- q_id: Q-FIXTURE-G-01
+  title: Wrapped note with the sentence on its first line
+  path: z1-inbox/2026-09-01/Q-FIXTURE-G-01.md
+  submitted: '2026-09-01'
+  status: awaiting_z2
+  note: "A wrapped note. Not ratified.\\
+    \\ Evidence that must survive on the second line."
+records: []
+"""
+
+
+def note_sandbox(tmp: str) -> str:
+    index = build_sandbox(tmp)
+    day = os.path.join(tmp, "z1-inbox", "2026-09-01")
+    for q in ("C", "D", "E", "F", "G"):
+        with open(os.path.join(day, f"Q-FIXTURE-{q}-01.md"), "w", encoding="utf-8") as fh:
+            fh.write(f"# Q-FIXTURE-{q}-01\n\nFalsifier: this file is not read for content.\n")
+    with open(index, "w", encoding="utf-8") as fh:
+        fh.write(NOTE_INDEX)
+    return index
+
+
+def decide(tmp: str, q_id: str, decision: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, os.path.join(tmp, ".z1-control", "ratify.py"),
+         q_id, "--decision", decision, "--by", "Night", "--apply"],
+        capture_output=True, text=True, cwd=tmp)
+
+
+def test_accept_drops_not_ratified_from_a_quoted_note() -> None:
+    """The index said both `ratified` and `Not ratified.` for the first signed entries."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        proc = decide(tmp, "Q-FIXTURE-A-01", "ACCEPT")
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-A-01")
+        assert c["status"] == "ratified"
+        assert c["note"] == "Three edges, each proven. Falsifier stated.", c["note"]
+        assert "warning" not in proc.stdout
+
+
+def test_accept_drops_it_from_the_middle_of_a_plain_note() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        assert decide(tmp, "Q-FIXTURE-B-01", "ACCEPT").returncode == 0
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-B-01")
+        assert c["note"] == "Falsifier stated. Tier 2 because it changes a gate.", c["note"]
+
+
+def test_the_neighbours_note_is_not_edited() -> None:
+    """The edit is scoped to the decided candidate's block."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        assert decide(tmp, "Q-FIXTURE-A-01", "ACCEPT").returncode == 0
+        doc = yaml.safe_load(open(index, encoding="utf-8"))
+        assert find(doc, "Q-FIXTURE-B-01")["note"].endswith("changes a gate.")
+        assert "Not ratified." in find(doc, "Q-FIXTURE-B-01")["note"]
+        assert find(doc, "Q-FIXTURE-D-01")["note"] == "Still waiting. Not ratified."
+
+
+def test_reject_and_edit_keep_the_note() -> None:
+    """For REJECT and EDIT the sentence is still true."""
+    for decision, status in (("REJECT", "rejected"), ("EDIT", "edit_requested")):
+        with tempfile.TemporaryDirectory() as tmp:
+            index = note_sandbox(tmp)
+            assert decide(tmp, "Q-FIXTURE-A-01", decision).returncode == 0
+            c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-A-01")
+            assert c["status"] == status
+            assert c["note"].endswith("Not ratified."), (decision, c["note"])
+
+
+def test_a_wrapped_note_is_reported_not_guessed_at() -> None:
+    """A sentence on a continuation line is left alone and the signer says so."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        proc = decide(tmp, "Q-FIXTURE-C-01", "ACCEPT")
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        assert "::warning::Q-FIXTURE-C-01" in proc.stdout, proc.stdout
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-C-01")
+        assert c["status"] == "ratified"
+        assert c["note"].endswith("Not ratified."), c["note"]
+
+
+def test_a_note_that_is_only_the_sentence_becomes_an_empty_string() -> None:
+    """Quoted or plain, the key keeps a string value instead of turning into null."""
+    for q_id, expected_text in (("Q-FIXTURE-E-01", "''"), ("Q-FIXTURE-F-01", "''")):
+        with tempfile.TemporaryDirectory() as tmp:
+            index = note_sandbox(tmp)
+            proc = decide(tmp, q_id, "ACCEPT")
+            assert proc.returncode == 0, proc.stdout + proc.stderr
+            c = find(yaml.safe_load(open(index, encoding="utf-8")), q_id)
+            assert c["status"] == "ratified"
+            assert c["note"] == "", (q_id, c["note"])
+            assert "warning" not in proc.stdout, proc.stdout
+            assert f"note: {expected_text}" in open(index, encoding="utf-8").read()
+
+
+def test_a_wrapped_note_is_left_alone_even_when_the_sentence_is_on_its_first_line() -> None:
+    """Whether a note is edited depends on its shape, not on which line the sentence is on."""
+    with tempfile.TemporaryDirectory() as tmp:
+        index = note_sandbox(tmp)
+        before = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-G-01")["note"]
+        proc = decide(tmp, "Q-FIXTURE-G-01", "ACCEPT")
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+        assert "::warning::Q-FIXTURE-G-01" in proc.stdout, proc.stdout
+        c = find(yaml.safe_load(open(index, encoding="utf-8")), "Q-FIXTURE-G-01")
+        assert c["status"] == "ratified"
+        assert c["note"] == before, (before, c["note"])
+        assert "Evidence that must survive" in c["note"]
+
+
+def test_a_remainder_that_reads_as_a_non_string_is_quoted() -> None:
+    """`note: true Not ratified.` must not become `note: true`, which loads as a boolean."""
+    sys.path.insert(0, os.path.join(REPO, ".z1-control"))
+    import importlib
+    ratify_mod = importlib.import_module("ratify")
+    for remainder in ("true", "yes", "null", "123"):
+        out = ratify_mod.drop_stale_not_ratified(f"  note: {remainder} Not ratified.\n")
+        value = yaml.safe_load(out.split("note: ", 1)[1])
+        assert value == remainder, (remainder, out, value)
+    plain = ratify_mod.drop_stale_not_ratified("  note: Plain text. Not ratified.\n")
+    assert plain == "  note: Plain text.\n", plain
+    quoted = ratify_mod.drop_stale_not_ratified("  note: 'It''s true. Not ratified.'\n")
+    assert quoted == "  note: 'It''s true.'\n", quoted
+
+
+def test_this_prs_own_index_note_keeps_its_whole_text() -> None:
+    """An unquoted note containing ' #' parses as a comment and silently loses the rest.
+
+    That cut this candidate's own entry down to six words once ("... on #1190" started a
+    comment). The note must be quoted so the parsed value still ends with its last sentence.
+    """
+    path = os.path.join(REPO, "z1-inbox", "INDEX.yaml")
+    doc = yaml.safe_load(open(path, encoding="utf-8"))
+    entry = find(doc, "Q-RATIFY-STALE-NOTE-01")
+    # Signing this candidate removes its trailing "Not ratified." (that is what it ships), so
+    # the check must hold before and after: text from both sides of ' #' has to survive.
+    assert "#1190" in entry["note"], entry["note"]
+    assert "Falsifier stated." in entry["note"], entry["note"]
+
+
 def test_resulting_tree_passes_the_validator() -> None:
     """End to end: --apply alone, with no manual steps, leaves a tree the gate accepts."""
     with tempfile.TemporaryDirectory() as tmp:
