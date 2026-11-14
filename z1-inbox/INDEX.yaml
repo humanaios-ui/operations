@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 124
-  records: 74
+  records: 75
 ratifiers:
 - Night
 candidates:
@@ -181,8 +181,12 @@ candidates:
   title: ACAT ↔ market-benchmark map (H-BM-01..03)
   path: z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md
   submitted: '2026-09-08'
-  status: awaiting_z2
+  status: ratified
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-14"
+  z2_ruling: "z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md"
+  z2_hash: "4e08fe3fa0c8883d0bf16ba691745dc916ebda34cecbe1409dec44a5e1441cbd"
 - q_id: Q-DOC-LIFECYCLE-01
   title: docs/ lifecycle — disposition for 108 files
   path: z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md
@@ -1019,6 +1023,9 @@ candidates:
   z2_ruling: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
   z2_hash: "c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa"
 records:
+- path: "z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md"
+  title: "Z2 rulings 2026-11-14 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
   title: "Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
