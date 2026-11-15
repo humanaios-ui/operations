@@ -58,13 +58,6 @@
       "event_id": "RCSEVT-88EB99392AB13430",
       "objective_issue_number": null
     },
-    "PULL_REQUEST#1232": {
-      "admission_scope": "subject:PULL_REQUEST#1232",
-      "admitted_head_sha": "5ee11447be0677014172143af536e96fc152a3fa",
-      "command_ref": "RCC-GITHUB-COMMENT-6894836189",
-      "event_id": "RCSEVT-6A379F228F320263",
-      "objective_issue_number": null
-    },
     "PULL_REQUEST#990": {
       "admission_scope": "subject:PULL_REQUEST#990",
       "admitted_head_sha": "6bc03b2c58a7db2cbd70e2b818e1114accfc1530",
@@ -83,7 +76,6 @@
     "PULL_REQUEST#1183": "RCSEVT-DAEB44F68CFA8EF2",
     "PULL_REQUEST#1205": "RCSEVT-651F4CE833840521",
     "PULL_REQUEST#1211": "RCSEVT-88EB99392AB13430",
-    "PULL_REQUEST#1232": "RCSEVT-6A379F228F320263",
     "PULL_REQUEST#990": "RCSEVT-884F30C1E72FADC6"
   },
   "admitted_issue_numbers": [
@@ -98,8 +90,7 @@
     1153,
     1183,
     1205,
-    1211,
-    1232
+    1211
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
   "consumed_command_refs": [
@@ -378,14 +369,15 @@
     "RCC-GITHUB-RECONCILE-43669546063-PR-1227-HEAD-MOVED-a7f1565e861220a8542733fe7b5548d2c3ab1a62",
     "RCC-GITHUB-RECONCILE-43716920064-PR-1229-MERGED",
     "RCC-GITHUB-RECONCILE-43717918413-PR-1231-MERGED",
+    "RCC-GITHUB-RECONCILE-43717927707-PR-1232-HEAD-MOVED-faaf8039b3889722715d8ce07eca38c9d44880d1",
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "b4d938db104ec5b0f2dc502e9f961b9ab21e13ef42fbb1d166cef1a76a4f7fcf",
-  "last_event_id": "RCSEVT-B4D938DB104EC5B0",
-  "last_sequence": 302,
-  "ledger_event_count": 302,
-  "ledger_sha256": "805ee4d8c6f0458131ee1c86e362dc8fa0701c162c21534a4bfc35f1f9662c2f",
+  "last_event_hash": "4b6232f41b8e013ef4ac8edafb1e1f15892ab7c4ffb91723d79bb18ccc78da98",
+  "last_event_id": "RCSEVT-4B6232F41B8E013E",
+  "last_sequence": 303,
+  "ledger_event_count": 303,
+  "ledger_sha256": "bc104ffcab73c207a818acd73286d7de2fde108592e03930fbf9a4979600e6df",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
