@@ -58,13 +58,6 @@
       "event_id": "RCSEVT-88EB99392AB13430",
       "objective_issue_number": null
     },
-    "PULL_REQUEST#1229": {
-      "admission_scope": "subject:PULL_REQUEST#1229",
-      "admitted_head_sha": "70f1fe7b710d45ca213c335fab9ec7d632130f3c",
-      "command_ref": "RCC-GITHUB-COMMENT-6891141822",
-      "event_id": "RCSEVT-655470D79D65F9CE",
-      "objective_issue_number": null
-    },
     "PULL_REQUEST#990": {
       "admission_scope": "subject:PULL_REQUEST#990",
       "admitted_head_sha": "6bc03b2c58a7db2cbd70e2b818e1114accfc1530",
@@ -83,7 +76,6 @@
     "PULL_REQUEST#1183": "RCSEVT-DAEB44F68CFA8EF2",
     "PULL_REQUEST#1205": "RCSEVT-651F4CE833840521",
     "PULL_REQUEST#1211": "RCSEVT-88EB99392AB13430",
-    "PULL_REQUEST#1229": "RCSEVT-655470D79D65F9CE",
     "PULL_REQUEST#990": "RCSEVT-884F30C1E72FADC6"
   },
   "admitted_issue_numbers": [
@@ -98,8 +90,7 @@
     1153,
     1183,
     1205,
-    1211,
-    1229
+    1211
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
   "consumed_command_refs": [
@@ -374,17 +365,18 @@
     "RCC-GITHUB-RECONCILE-43598684430-PR-1142-MERGED",
     "RCC-GITHUB-RECONCILE-43663431521-PR-1223-MERGED",
     "RCC-GITHUB-RECONCILE-43669546063-PR-1227-HEAD-MOVED-a7f1565e861220a8542733fe7b5548d2c3ab1a62",
+    "RCC-GITHUB-RECONCILE-43716920064-PR-1229-MERGED",
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "655470d79d65f9ce4ef83af45ca512a25b41af94e64aae080524ef3178c15ac3",
-  "last_event_id": "RCSEVT-655470D79D65F9CE",
-  "last_sequence": 298,
-  "ledger_event_count": 298,
-  "ledger_sha256": "0f2878e5e429ad38b0666750cf172aafa5b397dd4ef9060a8db8659bbd7aceda",
+  "last_event_hash": "8ca7e38b3594f0cd7b57697c07580d0f0e26668a48a6de5b5283887ca2349635",
+  "last_event_id": "RCSEVT-8CA7E38B3594F0CD",
+  "last_sequence": 299,
+  "ledger_event_count": 299,
+  "ledger_sha256": "82ceac2da9f417916fafcc5790318dffabb11eface94b6e5a477c961aa839abd",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
-  "source_policy_sha": "a30b3ad55f53d118e960981cdbc3c4dfa5531b79",
+  "source_policy_sha": "6403e127fb04388b96296f5459fbe59b2ddd2e7b",
   "state_branch": "repository-coordinator-state"
 }
