@@ -257,7 +257,21 @@ Note on an earlier record: `z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md`
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: accept
+by: Z1-prepared (not an identity claim)
+at: 2026-11-15T07:01:58Z
+status: DECIDED
+block_hash: 7762e54ed3f047e5080e788d4567c3feef12760f9ef567a1600714e1374cfacd
+body_hash: d1be202a3c820b96237f0db95841179ee8fe7a571a90c3cb92bf3321af7008e5
+
+```
+RULING z1-nfadapter-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Accept Q-NF-ADAPTER-01 (molt_cycle.py and specimen_intake_evaluator.py onto the real NF ledger)?
+  choice: accept
+  note: 
+  at: 2026-11-15T07:01:58Z
+  status: DECIDED
+```
+
