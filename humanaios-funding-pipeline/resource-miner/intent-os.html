@@ -330,10 +330,13 @@ document.getElementById("clearLessons").addEventListener("click",()=>{
  try{localStorage.removeItem(teachingKey);renderCandidates();reviewMessage("Local preferences cleared.");}
  catch(error){reviewMessage("Could not clear lessons: "+error.message);}
 });
-// Show the observatory link only when this instance serves it (loopback; assets present).
-fetch("/project-observatory",{cache:"no-store"})
- .then(r=>{if(r.ok)document.getElementById("observatoryLink").hidden=false;})
- .catch(()=>{});
+// The browser has fetch; the static On-Track VM harness deliberately does not.
+// Keep the preview hidden wherever availability cannot be checked.
+if (typeof fetch === "function") {
+ fetch("/project-observatory",{cache:"no-store"})
+  .then(r=>{if(r.ok)document.getElementById("observatoryLink").hidden=false;})
+  .catch(()=>{});
+}
 // Show the personal preview link only when this instance is bound to loopback.
 fetch("/api/my-opportunities",{cache:"no-store"})
  .then(r=>{if(r.ok)document.getElementById("myOpportunitiesLink").hidden=false;})
