@@ -177,3 +177,34 @@ the project is the only structural answer.
 ```yaml
 z2_decision: {status: awaiting_ratification, ratified_at: null, ratification_hash: null, z2_notes: ""}
 ```
+
+---
+
+## Options
+
+- `ratify 1-3`
+- `ratify 1-2`
+- `edit`
+- `later`
+
+## What each sets in motion
+
+The four asks are under "What Z2 is asked to decide" above. Ask 4 (corroboration weight as a Priority Queue input) is not offered: Z1 does not recommend it, and with one comparison at weight 0.0 there is nothing to calibrate against. It stays a later question and no option here adopts it.
+
+- `ratify 1-3`: the six alignment rows, the five divergences and `source_lineage` in `GRAPH_ALIGNMENT.yaml` are accepted as the Z2-ratified judgments, **and** `graph_convergence_v1_0.py render --check` joins CI. Z1 then opens the CI change as its own Tier 2 pull request. This is Z1's recommendation.
+- `ratify 1-2`: the same acceptance of the rows and `source_lineage`, with `render --check` left out of CI for now. No pull request follows; the question of CI can return as a new block.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block. The alignment stays Z1-proposed and unratified.
+
+**Checked on 2026-11-15, not carried from the block above:** `tools/graph_convergence_v1_0.py --smoke-test` passes 33/33 (the block says 27/27, written before later changes); `render --check` reports `GRAPH_CONVERGENCE.md` in sync; `grade` reports 6 aligned pairs and total corroboration weight 0.0, with coverage 6/15 for EVIDENCE and 6/29 for INTENT; no workflow under `.github/workflows` runs `graph_convergence`, so ask 3 is not already done.
+
+**What this ruling does not decide:** `Q-A11-ORDERING-INERT-01` (2026-09-22) says it is waiting on this block's rule set. A ruling here is the ratification it names, but that block is a separate decision and keeps its own ruling. `Q-EXTERNAL-JESTER-01` is also separate.
+
+**Review note on ask 1:** the alignment rows are judgments by one of the two agents about what the other meant, and the `FALSE_FRIEND` row is Z1 declaring another agent's node unalignable with its own. Z2 review is the only check on that; this ruling is where it happens.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
