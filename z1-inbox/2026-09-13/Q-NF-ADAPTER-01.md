@@ -238,3 +238,26 @@ One duplicate-file hazard was found and routed as a separate IC candidate rather
 than fixed here.
 
 **Ratification requested.**
+
+---
+
+## Options
+
+- `accept`
+- `edit`
+- `later`
+
+## What each sets in motion
+
+- `accept`: this block is accepted as the closure of `PRIORITY_QUEUE.md`'s `Q-NF-SCHEMA-01` row under that row's own narrower acceptance criteria, and `ledgers/NF_EVENT_SCHEMA.md` is the operative spec for that scope. It does **not** decide the older `Q-NF-SCHEMA-01` candidate (2026-09-10, the fuller rewrite): that one gets its own block and its own ruling. Z1's lean there is to defer, not reject, because the adapter leaves per-predictor Brier scoring for later. The duplicate `molt_cycle.py` hazard and the `tools/nf_ledger_cli_v1_0.py` / `prs_run.py` reconciliation stay open and are not decided here.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block. `PRIORITY_QUEUE.md`'s `Q-NF-SCHEMA-01` row stays open.
+
+Note on an earlier record: `z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md` lists this block as "SUCCESS … ratification confirmed". That handoff is itself marked "AWAITING Z2 DECISION", carries no ratification hash, and was filed in a Z1 commit. Z1 treats it as unsigned. The ruling on this block, signed by the merge, is the record that counts.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
