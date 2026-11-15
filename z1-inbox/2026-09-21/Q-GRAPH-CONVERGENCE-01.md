@@ -198,7 +198,7 @@ The four asks are under "What Z2 is asked to decide" above. Ask 4 (corroboration
 
 **Checked on 2026-11-15, not carried from the block above:** `tools/graph_convergence_v1_0.py --smoke-test` passes 33/33 (the block says 27/27, written before later changes); `render --check` reports `GRAPH_CONVERGENCE.md` in sync; `grade` reports 6 aligned pairs and total corroboration weight 0.0, with coverage 6/15 for EVIDENCE and 6/29 for INTENT; no workflow under `.github/workflows` runs `graph_convergence`, so ask 3 is not already done.
 
-**What this ruling does not decide:** `Q-A11-ORDERING-INERT-01` (2026-09-22) says it is waiting on this block's rule set. A ruling here is the ratification it names, but that block is a separate decision and keeps its own ruling. `Q-EXTERNAL-JESTER-01` is also separate.
+**What this ruling does not decide:** `Q-A11-ORDERING-INERT-01` (2026-09-22) says it is waiting on this block's rule set. Only a `ratify` ruling here could satisfy that wait; `edit` and `later` would not. Whether a `ratify` ruling covers what that block waits for is for that block's own ruling to confirm, so it stays a separate decision with its own ruling. `Q-EXTERNAL-JESTER-01` is also separate.
 
 **Review note on ask 1:** the alignment rows are judgments by one of the two agents about what the other meant, and the `FALSE_FRIEND` row is Z1 declaring another agent's node unalignable with its own. Z2 review is the only check on that; this ruling is where it happens.
 
