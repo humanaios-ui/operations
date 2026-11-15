@@ -239,3 +239,26 @@ The schema mismatch emerges from two independent design processes:
 
 _Proposal filed by Z1 (Claude) on 2026-09-21 at 10:15 UTC_  
 _Awaiting Z2 (Night) decision_
+
+---
+
+## Options
+
+- `option A`
+- `option B`
+- `later`
+
+## What each sets in motion
+
+- `option A`: expand `WITNESS_STATE_V0_1.schema.json` to v0.2 with the seven added fields named under Option A above. Z1 then opens the schema change as its own pull request; Z3 s2 and s3 proceed after it merges. This is the option Z1 recommended.
+- `option B`: create `calibration_profiles/ProfileSchema.json` and leave WITNESS_STATE at v0.1. Z1 then opens that as its own pull request.
+- `later`: this block closes with its bytes signed; the question returns only as a new block. Z3 s2 and s3 stay blocked.
+
+Note on an earlier record: `z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md` states "ACCEPT, Option A" for this block. It carries no ratification hash, was filed in a Z1 commit, and no v0.2 schema exists on `main`. Z1 treats it as unsigned. This block's own ruling, signed by the merge, is the record that counts. Naming `option A` here would agree with that file; it would not depend on it.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
