@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 124
-  records: 75
+  records: 76
 ratifiers:
 - Night
 candidates:
@@ -841,8 +841,12 @@ candidates:
   title: Calibration profile data violates WITNESS_STATE_V0_1 schema contract
   path: z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-15"
+  z2_ruling: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  z2_hash: "334a7fa9d7b2c1dde4812a3940b74a5ce4f386c470a7e2c93931bc72d636972c"
 - q_id: Q-SMAG-Z3-TASK-SEQUENCING-01
   title: Z3 executor task sequencing and dependency graph undefined for s1/s2/s3
   path: z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md
@@ -1027,6 +1031,9 @@ candidates:
   z2_ruling: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
   z2_hash: "c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa"
 records:
+- path: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  title: "Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: "z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md"
   title: "Z2 rulings 2026-11-14 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
