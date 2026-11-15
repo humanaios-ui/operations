@@ -107,6 +107,11 @@ class ProjectObservatoryBridgeHttpTests(unittest.TestCase):
                                  'src="changed-not-reviewed.js"'),
                 encoding="utf-8",
             )
+            # Supply the script so this case isolates TEMPLATE_DRIFT, not
+            # the separate missing-companion-script failure mode.
+            (path / "operations-observatory-e0.js").write_bytes(
+                (app.OBSERVATORY_UI / "operations-observatory-e0.js").read_bytes()
+            )
             with patch.object(app, "OBSERVATORY_UI", path):
                 err = self.error("/project-observatory")
                 self.assertEqual(err.code, 503)
