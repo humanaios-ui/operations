@@ -249,7 +249,7 @@ than fixed here.
 
 ## What each sets in motion
 
-- `accept`: this block is accepted as the closure of `PRIORITY_QUEUE.md`'s `Q-NF-SCHEMA-01` row under that row's own narrower acceptance criteria, and `ledgers/NF_EVENT_SCHEMA.md` is the operative spec for that scope. It does **not** decide the older `Q-NF-SCHEMA-01` candidate (2026-09-10, the fuller rewrite): that one gets its own block and its own ruling. Z1's lean there is to defer, not reject, because the adapter leaves per-predictor Brier scoring for later. The duplicate `molt_cycle.py` hazard and the `tools/nf_ledger_cli_v1_0.py` / `prs_run.py` reconciliation stay open and are not decided here.
+- `accept`: this block is accepted as the closure of `PRIORITY_QUEUE.md`'s `Q-NF-SCHEMA-01` row under that row's own narrower acceptance criteria, and `ledgers/NF_EVENT_SCHEMA.md` is the operative spec for that scope. It does **not** decide the older `Q-NF-SCHEMA-01` candidate (2026-09-10, the fuller rewrite): that one gets its own block and its own ruling. Z1's lean there is to defer, not reject, because this adapter does not persist a specimen's own continuous `brier_score`: the real ledger has no slot for one and scores only the binary revert-rule outcome, so a fuller schema may still be wanted. Per-predictor Brier scoring from PIN/RESOLVE pairs already exists in `molt_cycle.py` and is tested; that is not the gap. The duplicate `molt_cycle.py` hazard and the `tools/nf_ledger_cli_v1_0.py` / `prs_run.py` reconciliation stay open and are not decided here.
 - `edit`: Z1 revises the block and files it again.
 - `later`: this block closes with its bytes signed; the question returns only as a new block. `PRIORITY_QUEUE.md`'s `Q-NF-SCHEMA-01` row stays open.
 
