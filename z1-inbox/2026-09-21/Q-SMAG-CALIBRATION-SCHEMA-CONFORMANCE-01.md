@@ -258,7 +258,21 @@ Note on an earlier record: `z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md` stat
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: option A
+by: Z1-prepared (not an identity claim)
+at: 2026-11-15T01:47:40Z
+status: DECIDED
+block_hash: 315804517a5daa85fd7377aea1211e5fc5e6656f3afc503e41b781244c085963
+body_hash: b96db6126b568c3a6c1b76864d2b8c73ecf28437fd1ea5bbada8f7b265b35c91
+
+```
+RULING z1-smag-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Expand WITNESS_STATE to v0.2 (option A) or add a separate ProfileSchema.json (option B)?
+  choice: option A
+  note: 
+  at: 2026-11-15T01:47:40Z
+  status: DECIDED
+```
+
