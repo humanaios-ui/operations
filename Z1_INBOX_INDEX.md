@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**124 candidates** — ⏳ awaiting Z2 87 · ✅ ratified 37 · **76 records**
+**124 candidates** — ⏳ awaiting Z2 86 · ✅ ratified 38 · **76 records**
 
-## Awaiting Z2 (87)
+## Awaiting Z2 (86)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -23,7 +23,6 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-15 | **Q-DOCREVIEW-01** | The 39 overdue document reviews — lifecycle, not re-dating | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-02** | Findings from the first real document review pass (11 reviewed, 28 unreachable) | `z1-inbox/2026-09-13/Q-DOCREVIEW-02.md` |
 | 2026-09-15 | **Q-GOVGATE-01** | The Z2 gate never ran; z1-inbox conversion mechanism | `z1-inbox/2026-09-13/Q-GOVGATE-01.md` |
-| 2026-09-15 | **Q-NF-ADAPTER-01** | molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger | `z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md` |
 | 2026-09-15 | **Q-RBE-01** | Resource-based operations v0.1 — units, ledger, census, priced queue | `z1-inbox/2026-09-13/Q-RBE-01.md` |
 | 2026-09-15 | **Q-REGISTRY-AUDIT-01** | ZONE_REGISTRY.md reconciliation — classify 13 missing repos (planned, never created) | `z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-01.md` |
 | 2026-09-15 | **Q-REGISTRY-AUDIT-02** | ZONE_REGISTRY.md reconciliation — register 7 active repos missing from registry | `z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-02.md` |
@@ -100,7 +99,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
 
-## Decided (37)
+## Decided (38)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -140,6 +139,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-PILLOW-PYSEC-2026-4363-WAIVER-01** | Night | 2026-11-12 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md`<br>`c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa` |
 | ✅ ratified | **Q-ACAT-BENCHMARK-01** | Night | 2026-11-14 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md`<br>`4e08fe3fa0c8883d0bf16ba691745dc916ebda34cecbe1409dec44a5e1441cbd` |
 | ✅ ratified | **Q-PILLOW-TIFF-ADVISORIES-WAIVER-01** | Night | 2026-11-14 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md`<br>`710ef85dd69c5d23e999891d9fc8dea3361225e888af1b3d7354435e9eb044e4` |
+| ✅ ratified | **Q-NF-ADAPTER-01** | Night | 2026-11-15 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md`<br>`f43ec3e32c572024e7754b1284ffead8bd339600921ea45fa5982b5f5e908dd1` |
 | ✅ ratified | **Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01** | Night | 2026-11-15 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md`<br>`334a7fa9d7b2c1dde4812a3940b74a5ce4f386c470a7e2c93931bc72d636972c` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
@@ -153,7 +153,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (125)
+## Open questions for Z2 (120)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -339,16 +339,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Register IC-RATIFY-BYPASS-01 as stated (or edit the class / duration)
 - [ ] Accept the guard as the correction — a Tier 2 gate change carried in #409 — or ask instead for the alternative the review named: a Z2 ruling that keeps a by-hand exception and says how its review and provenance requirement is met
 - [ ] Accept, edit or refuse the prevention (a cross-tool self-test case)
-
-### Q-NF-ADAPTER-01 (5)
-
-`z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md`
-
-- [ ] **This block is accepted as `Q-NF-SCHEMA-01`'s closure instead of the 2026-09-10 `Q-NF-SCHEMA-01` candidate's fuller rewrite** — the two propose different implementations of the same queue row; ratifying this one should also resolve (accept/reject/defer) the older one rather than leaving both open
-- [ ] `ledgers/NF_EVENT_SCHEMA.md` is accepted as the operative spec for this row's scope (incumbent format, no rewrite of the 165 events on main)
-- [ ] The specimen-intake `reverted → NO/YES` mapping is accepted as adequate for now, pending a real predictor-Brier field if that gap matters later
-- [ ] The `tools/molt_cycle.py` duplicate is routed (delete, rename, or merge) — not decided here
-- [ ] `tools/nf_ledger_cli_v1_0.py` / `prs_run.py` reconciliation remains open, unaffected by this row closing
 
 ### Q-NF-SCHEMA-01 (6)
 

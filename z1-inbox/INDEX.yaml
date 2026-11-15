@@ -283,9 +283,13 @@ candidates:
   title: molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger
   path: z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: 'Closes PRIORITY_QUEUE.md''s Q-NF-SCHEMA-01 row (score 9) via PR #313, per that row''s own narrower acceptance criteria — not the fuller rewrite the 2026-09-10 Q-NF-SCHEMA-01 candidate above proposes. Given a distinct q_id to avoid a duplicate-key collision with that still-open candidate; Z2 ratifying this one should also resolve that one.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-11-15"
+  z2_ruling: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  z2_hash: "f43ec3e32c572024e7754b1284ffead8bd339600921ea45fa5982b5f5e908dd1"
 - q_id: Q-RBE-01
   title: Resource-based operations v0.1 — units, ledger, census, priced queue
   path: z1-inbox/2026-09-13/Q-RBE-01.md
