@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**124 candidates** — ⏳ awaiting Z2 88 · ✅ ratified 36 · **75 records**
+**124 candidates** — ⏳ awaiting Z2 87 · ✅ ratified 37 · **76 records**
 
-## Awaiting Z2 (88)
+## Awaiting Z2 (87)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -68,7 +68,6 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-23 | **Q-INTENT-GRAPH-01** | Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator | `z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md` |
 | 2026-09-23 | **Q-MOLT-TEMPORAL-PURITY-01** | Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01 | `z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md` |
 | 2026-09-23 | **Q-SEED-TRL-PROPAGATION-01** | Ratified TRL correction never reached SEED.md — identity anchor still states TRL 2–3 | `z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md` |
-| 2026-09-23 | **Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01** | Calibration profile data violates WITNESS_STATE_V0_1 schema contract | `z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md` |
 | 2026-09-23 | **Q-SMAG-Z3-TASK-SEQUENCING-01** | Z3 executor task sequencing and dependency graph undefined for s1/s2/s3 | `z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md` |
 | 2026-09-24 | **Q-A11-ORDERING-INERT-01** | A11 still enforces a property no grade depends on | `z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md` |
 | 2026-09-24 | **Q-ACCOUNT-HUB-01** | HumanAIOS Account Hub & Project Manager Cockpit | `z1-inbox/2026-09-22/ACCOUNT-HUB-PROPOSAL.md` |
@@ -101,7 +100,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
 
-## Decided (36)
+## Decided (37)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -141,6 +140,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-PILLOW-PYSEC-2026-4363-WAIVER-01** | Night | 2026-11-12 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md`<br>`c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa` |
 | ✅ ratified | **Q-ACAT-BENCHMARK-01** | Night | 2026-11-14 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md`<br>`4e08fe3fa0c8883d0bf16ba691745dc916ebda34cecbe1409dec44a5e1441cbd` |
 | ✅ ratified | **Q-PILLOW-TIFF-ADVISORIES-WAIVER-01** | Night | 2026-11-14 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md`<br>`710ef85dd69c5d23e999891d9fc8dea3361225e888af1b3d7354435e9eb044e4` |
+| ✅ ratified | **Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01** | Night | 2026-11-15 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md`<br>`334a7fa9d7b2c1dde4812a3940b74a5ce4f386c470a7e2c93931bc72d636972c` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -422,7 +422,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (75)
+## Records (76)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -502,6 +502,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md` | Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md` | Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md` | Z2 rulings 2026-11-14 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md` | Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
