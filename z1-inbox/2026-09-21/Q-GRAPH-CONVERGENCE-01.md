@@ -204,7 +204,21 @@ The four asks are under "What Z2 is asked to decide" above. Ask 4 (corroboration
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: ratify 1-3
+by: Z1-prepared (not an identity claim)
+at: 2026-11-15T13:16:37Z
+status: DECIDED
+block_hash: 900f3f3d1b88900dcf9e3464eaf6b08694213cb1cc4d9c1f4a5dc60f96585119
+body_hash: 64a79e02f3b04326d89c2231ef85623ce3cac9911ecfa8589a3512f357d4e28c
+
+```
+RULING z1-graphconv-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Ratify the graph-convergence alignment rows and source_lineage, and add render --check to CI (Q-GRAPH-CONVERGENCE-01)?
+  choice: ratify 1-3
+  note: 
+  at: 2026-11-15T13:16:37Z
+  status: DECIDED
+```
+
