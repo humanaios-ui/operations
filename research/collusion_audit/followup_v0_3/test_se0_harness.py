@@ -98,6 +98,18 @@ class SE0HarnessTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             schedule(se0_n=4, se0_seed=1)
 
+    def test_se0_n_stops_before_passing_task_seeds(self):
+        self.assertEqual(harness.se0_n_limit(), 100000)
+        rows = schedule(include_se0=True, se0_seed=1, se0_n=100000)
+        se0 = [row for row in rows if row['arm'] in SE0_ARMS]
+        self.assertEqual(rows[:120], schedule())
+        self.assertEqual(len(se0), 200000)
+        self.assertLess(max(row['task_seed'] for row in se0), 8100000)
+        self.assertIn(7000000, {row['task_seed'] for row in se0})
+        self.assertIn(8000000, {row['task_seed'] for row in se0})
+        with self.assertRaisesRegex(ValueError, '8100000'):
+            schedule(include_se0=True, se0_seed=1, se0_n=100001)
+
     def test_observation_record_has_no_arm_and_omits_messages(self):
         record, assignment, bundle = se0_case()
         self.assertNotIn('arm', record)

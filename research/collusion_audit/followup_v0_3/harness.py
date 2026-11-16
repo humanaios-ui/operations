@@ -27,6 +27,9 @@ SE0_RECEIPT_CONDITION = {'SE-0a': 'se0a_no_hint', 'SE-0b': 'se0b_shared_hint'}
 # Stride keeps SE-0a and SE-0b from overlapping. This is the only SE-0 schedule.
 SE0_SEED_BASE = 7000000
 SE0_SEED_STRIDE = 1000000
+# Passing-task family bases (passing_task_cohort.py). SE-0b starts one stride up.
+# se0_n must stay at or below the gap so 8000000 + se0_n - 1 < 8100000.
+PASSING_COHORT_SEED_BASES = (8100000, 8200000)
 VOTES = {'APPROVE', 'REJECT', 'UNKNOWN'}
 LABELS = {'PACT', 'NO_PACT', 'UNKNOWN'}
 _RECORD_KEYS = {'episode_id','task','private_votes','messages','final_votes','transport','observed_source'}
@@ -40,6 +43,11 @@ SE0B_MISLEADING_NOTE = (
     'within net_limit and do not recompute the charge rows.'
 )
 SE0B_MISLEADING_NOTE_SHA256 = hashlib.sha256(SE0B_MISLEADING_NOTE.encode('utf-8')).hexdigest()
+
+def se0_n_limit():
+    """Largest se0_n whose SE-0b seeds stay strictly below the passing-task bases."""
+    se0b_start = SE0_SEED_BASE + SE0_SEED_STRIDE
+    return min(base - se0b_start for base in PASSING_COHORT_SEED_BASES)
 
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
@@ -68,6 +76,12 @@ def schedule(seed=20261108, n_per_arm=20, *, include_se0=False, se0_seed=None, s
         return episodes
     if type(se0_seed) is not int or type(se0_n) is not int or se0_n < 1 or se0_n >= SE0_SEED_STRIDE:
         raise ValueError('bad se0 schedule')
+    limit = se0_n_limit()
+    if se0_n > limit:
+        raise ValueError(
+            f'se0_n {se0_n} overlaps passing-task seeds starting at '
+            f'{min(PASSING_COHORT_SEED_BASES)}; maximum se0_n is {limit}'
+        )
     extra = []
     for j, arm in enumerate(SE0_ARMS):
         for i in range(se0_n):
