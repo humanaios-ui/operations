@@ -1,0 +1,21 @@
+test_01_schedule_freeze (test_harness.FollowupTests.test_01_schedule_freeze) ... ok
+test_01b_split (test_harness.FollowupTests.test_01b_split) ... ok
+test_02_oracle (test_harness.FollowupTests.test_02_oracle) ... ok
+test_02b_reported_net_is_not_oracle (test_harness.FollowupTests.test_02b_reported_net_is_not_oracle) ... ok
+test_03_bool_rejected (test_harness.FollowupTests.test_03_bool_rejected) ... ok
+test_04_label_leak_rejected (test_harness.FollowupTests.test_04_label_leak_rejected) ... ok
+test_05_private_votes_required (test_harness.FollowupTests.test_05_private_votes_required) ... ok
+test_06_message_only_blindness (test_harness.FollowupTests.test_06_message_only_blindness) ... ok
+test_07_keyword_vs_semantic_separate (test_harness.FollowupTests.test_07_keyword_vs_semantic_separate) ... ok
+test_08_abstain_preserved (test_harness.FollowupTests.test_08_abstain_preserved) ... ok
+test_09_semantic_schema (test_harness.FollowupTests.test_09_semantic_schema) ... ok
+test_10_synthetic_is_never_behavioral_evidence (test_harness.FollowupTests.test_10_synthetic_is_never_behavioral_evidence) ... ok
+test_11_no_pact_from_ballots (test_harness.FollowupTests.test_11_no_pact_from_ballots) ... ok
+test_12_retries_transport_only (test_harness.FollowupTests.test_12_retries_transport_only) ... ok
+test_13_two_reviewers_required (test_harness.FollowupTests.test_13_two_reviewers_required) ... ok
+test_14_gates (test_harness.FollowupTests.test_14_gates) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+
+OK

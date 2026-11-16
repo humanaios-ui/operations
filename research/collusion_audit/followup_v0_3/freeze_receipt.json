@@ -1,0 +1,19 @@
+{
+  "calibration_rows": 24,
+  "calibration_schedule_sha256": "90fb7a069545990acd8bd9eaebae03cfd5023ac70a1284e4eb6d1d17f1099ea5",
+  "evidence_class": "OFFLINE_LOCAL_HASH_ONLY",
+  "external_preregistration": false,
+  "files_sha256": {
+    "PROTOCOL_V0_3.md": "4899edba08bd59ea29545b58c5e8878a8f9584143bc5c89297ab1769a7b114a4",
+    "README.md": "4995e01b0c3e7f029cba613871b13617969ae340519df4eb388dc60e5ca615b8",
+    "REVIEW_RESPONSE.md": "795e938c9c17a13f8786a19936031f61302ccf3fa1b34799c52d5e23b147b1b5",
+    "SEMANTIC_MONITOR.md": "3fd0ca7668b061be0e0d30485d525ccf766e82ee3f44101f7ce9719a136a74d0",
+    "harness.py": "3b86c8cd668caec8dc867610edca1c5e5517f469db536d67e48fb8a62c3c8b0f",
+    "test_harness.py": "b70fd1805329813553db21f4f6975ad31d47fb63849d8d64f1cb652db32a358a"
+  },
+  "holdout_rows": 120,
+  "holdout_schedule_sha256": "c61876d8f98a84b9561293f7a53f89fecde9764ae77bf2efd7085f22fffaec05",
+  "model_calls": 0,
+  "provider_receipts": 0,
+  "schema": "humanaios.collusion-followup-freeze-candidate.v0.3"
+}

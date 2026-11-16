@@ -1,0 +1,48 @@
+test_existing_harness_untouched_behaviour (test_harness_shared_mistake.Boundaries.test_existing_harness_untouched_behaviour) ... ok
+test_module_has_no_network_or_provider_imports (test_harness_shared_mistake.Boundaries.test_module_has_no_network_or_provider_imports) ... ok
+test_label_leak_rejected (test_harness_shared_mistake.Classification.test_label_leak_rejected) ... ok
+test_not_both_wrong_is_not_tier1 (test_harness_shared_mistake.Classification.test_not_both_wrong_is_not_tier1) ... ok
+test_self_declared_channel_state_is_not_trusted (test_harness_shared_mistake.Classification.test_self_declared_channel_state_is_not_trusted) ... ok
+test_tiers_and_structural_gate (test_harness_shared_mistake.Classification.test_tiers_and_structural_gate) ... ok
+test_f1 (test_harness_shared_mistake.Falsifiers.test_f1) ... ok
+test_f2 (test_harness_shared_mistake.Falsifiers.test_f2) ... ok
+test_f3_bounds_and_status (test_harness_shared_mistake.Falsifiers.test_f3_bounds_and_status) ... ok
+test_f3_coverage_cap_and_unknown_not_negative (test_harness_shared_mistake.Falsifiers.test_f3_coverage_cap_and_unknown_not_negative) ... ok
+test_f3_table_matches_design (test_harness_shared_mistake.Falsifiers.test_f3_table_matches_design) ... ok
+test_f4_code_token_excluded (test_harness_shared_mistake.Falsifiers.test_f4_code_token_excluded) ... ok
+test_f4_containment_alone_can_flag_echo (test_harness_shared_mistake.Falsifiers.test_f4_containment_alone_can_flag_echo) ... ok
+test_f4_evaluate (test_harness_shared_mistake.Falsifiers.test_f4_evaluate) ... ok
+test_f4_measures (test_harness_shared_mistake.Falsifiers.test_f4_measures) ... ok
+test_f5_examples_from_design (test_harness_shared_mistake.Falsifiers.test_f5_examples_from_design) ... ok
+test_f5_low_agreement_trips_even_when_kappa_is_high (test_harness_shared_mistake.Falsifiers.test_f5_low_agreement_trips_even_when_kappa_is_high) ... ok
+test_f5_unknown_rules_and_undefined_kappa (test_harness_shared_mistake.Falsifiers.test_f5_unknown_rules_and_undefined_kappa) ... ok
+test_differential_agreement (test_harness_shared_mistake.Oracle.test_differential_agreement) ... ok
+test_equality_is_valid (test_harness_shared_mistake.Oracle.test_equality_is_valid) ... ok
+test_ignores_reported_net_and_rejects_bool (test_harness_shared_mistake.Oracle.test_ignores_reported_net_and_rejects_bool) ... ok
+test_01_cross_delivery (test_harness_shared_mistake.Receipt.test_01_cross_delivery) ... ok
+test_02_echo_text (test_harness_shared_mistake.Receipt.test_02_echo_text) ... ok
+test_03_empty_messages_key_is_not_proof (test_harness_shared_mistake.Receipt.test_03_empty_messages_key_is_not_proof) ... ok
+test_04_session_reuse (test_harness_shared_mistake.Receipt.test_04_session_reuse) ... ok
+test_05_whitelist (test_harness_shared_mistake.Receipt.test_05_whitelist) ... ok
+test_06_canary_other_session (test_harness_shared_mistake.Receipt.test_06_canary_other_session) ... ok
+test_06b_canary_not_planted (test_harness_shared_mistake.Receipt.test_06b_canary_not_planted) ... ok
+test_07_shared_state (test_harness_shared_mistake.Receipt.test_07_shared_state) ... ok
+test_08_chain_tamper_and_reorder (test_harness_shared_mistake.Receipt.test_08_chain_tamper_and_reorder) ... ok
+test_08b_truncated_or_extended_chain_changes_root (test_harness_shared_mistake.Receipt.test_08b_truncated_or_extended_chain_changes_root) ... ok
+test_09_hint_mismatch (test_harness_shared_mistake.Receipt.test_09_hint_mismatch) ... ok
+test_10_sealed (test_harness_shared_mistake.Receipt.test_10_sealed) ... ok
+test_11_missing_field_fails_closed (test_harness_shared_mistake.Receipt.test_11_missing_field_fails_closed) ... ok
+test_provider_cache_default_flags_only_and_param_disqualifies (test_harness_shared_mistake.Receipt.test_provider_cache_default_flags_only_and_param_disqualifies) ... ok
+test_provider_cross_check (test_harness_shared_mistake.Receipt.test_provider_cross_check) ... ok
+test_shared_task_quote_in_output_is_not_flagged_as_echo (test_harness_shared_mistake.Receipt.test_shared_task_quote_in_output_is_not_flagged_as_echo) ... ok
+test_task_must_reach_both_sessions (test_harness_shared_mistake.Receipt.test_task_must_reach_both_sessions) ... ok
+test_text_missing_and_text_hash (test_harness_shared_mistake.Receipt.test_text_missing_and_text_hash) ... ok
+test_valid_se0a_and_se0b (test_harness_shared_mistake.Receipt.test_valid_se0a_and_se0b) ... ok
+test_no_default_size_and_bad_args (test_harness_shared_mistake.Schedule.test_no_default_size_and_bad_args) ... ok
+test_seeded_and_disjoint (test_harness_shared_mistake.Schedule.test_seeded_and_disjoint) ... ok
+test_sizing_rule_matches_design_table (test_harness_shared_mistake.Schedule.test_sizing_rule_matches_design_table) ... ok
+
+----------------------------------------------------------------------
+Ran 43 tests in 0.020s
+
+OK

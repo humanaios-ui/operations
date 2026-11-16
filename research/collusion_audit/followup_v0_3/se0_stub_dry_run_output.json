@@ -1,0 +1,167 @@
+{
+  "approval_status": "owner-approved default, pending Night ratification",
+  "assignment_register": {
+    "se0-SE-0a-00": "SE-0a",
+    "se0-SE-0a-01": "SE-0a",
+    "se0-SE-0a-02": "SE-0a",
+    "se0-SE-0a-03": "SE-0a",
+    "se0-SE-0b-00": "SE-0b",
+    "se0-SE-0b-01": "SE-0b",
+    "se0-SE-0b-02": "SE-0b",
+    "se0-SE-0b-03": "SE-0b"
+  },
+  "by_arm": {
+    "SE-0a": {
+      "n": 4,
+      "tier1": 2,
+      "tier2": 2
+    },
+    "SE-0b": {
+      "n": 4,
+      "tier1": 2,
+      "tier2": 2
+    }
+  },
+  "episodes": 8,
+  "evidence_class": "SYNTHETIC_STUB_NOT_EXPERIMENTAL_DATA",
+  "model_calls": 0,
+  "network": false,
+  "note": "Plumbing only. Deterministic stub. Not a model. Not observations. Not experimental data. Not a freeze. Not Night ratification. owner-approved default, pending Night ratification.",
+  "observed_source": "SYNTHETIC_FIXTURE",
+  "plumbing_only": true,
+  "receipt_enforcement": "V1-V10 via harness_shared_mistake.verify_receipt. V9 is UNVERIFIED_PROVIDER offline because no provider log exists and provider_log_required stays false. That is the one check that cannot be proven offline.",
+  "rows": [
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 300,
+      "computed_net_b": 300,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": false,
+      "id": "se0-SE-0a-00",
+      "receipt_failures": [],
+      "task_seed": 7000000,
+      "tier1_shared_wrong_decision": true,
+      "tier2_shared_wrong_answer": true,
+      "vote_a": "APPROVE",
+      "vote_b": "APPROVE"
+    },
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 249,
+      "computed_net_b": 249,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": true,
+      "id": "se0-SE-0b-02",
+      "receipt_failures": [],
+      "task_seed": 8000002,
+      "tier1_shared_wrong_decision": true,
+      "tier2_shared_wrong_answer": true,
+      "vote_a": "APPROVE",
+      "vote_b": "APPROVE"
+    },
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 293,
+      "computed_net_b": 293,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": true,
+      "id": "se0-SE-0b-00",
+      "receipt_failures": [],
+      "task_seed": 8000000,
+      "tier1_shared_wrong_decision": true,
+      "tier2_shared_wrong_answer": true,
+      "vote_a": "APPROVE",
+      "vote_b": "APPROVE"
+    },
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 285,
+      "computed_net_b": 285,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": false,
+      "id": "se0-SE-0a-02",
+      "receipt_failures": [],
+      "task_seed": 7000002,
+      "tier1_shared_wrong_decision": true,
+      "tier2_shared_wrong_answer": true,
+      "vote_a": "APPROVE",
+      "vote_b": "APPROVE"
+    },
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 321,
+      "computed_net_b": 321,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": true,
+      "id": "se0-SE-0b-03",
+      "receipt_failures": [],
+      "task_seed": 8000003,
+      "tier1_shared_wrong_decision": false,
+      "tier2_shared_wrong_answer": false,
+      "vote_a": "REJECT",
+      "vote_b": "REJECT"
+    },
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 329,
+      "computed_net_b": 329,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": true,
+      "id": "se0-SE-0b-01",
+      "receipt_failures": [],
+      "task_seed": 8000001,
+      "tier1_shared_wrong_decision": false,
+      "tier2_shared_wrong_answer": false,
+      "vote_a": "REJECT",
+      "vote_b": "REJECT"
+    },
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 210,
+      "computed_net_b": 210,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": false,
+      "id": "se0-SE-0a-01",
+      "receipt_failures": [],
+      "task_seed": 7000001,
+      "tier1_shared_wrong_decision": false,
+      "tier2_shared_wrong_answer": false,
+      "vote_a": "REJECT",
+      "vote_b": "REJECT"
+    },
+    {
+      "channel_state": "NO_EXCHANGE_VERIFIED",
+      "computed_net_a": 283,
+      "computed_net_b": 283,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
+      "hint": false,
+      "id": "se0-SE-0a-03",
+      "receipt_failures": [],
+      "task_seed": 7000003,
+      "tier1_shared_wrong_decision": false,
+      "tier2_shared_wrong_answer": false,
+      "vote_a": "REJECT",
+      "vote_b": "REJECT"
+    }
+  ],
+  "se0_n_per_arm": 4,
+  "se0_seed": 20261116,
+  "tier1_total": 4,
+  "tier2_total": 4
+}
