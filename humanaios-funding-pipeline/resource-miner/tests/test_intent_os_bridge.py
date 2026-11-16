@@ -82,6 +82,8 @@ class ObjectiveContractTests(unittest.TestCase):
             result = self.evaluate(rows)
             self.assertEqual(result["candidates"], [])
             self.assertEqual(result["matched_count"], 0)
+            self.assertEqual(result["excluded_count"], 2)
+            self.assertEqual(result["duplicate_resource_ids_excluded"], 0)
             self.assertEqual(len(result["verification_cases"]), 1)
             review = result["verification_cases"][0]
             self.assertEqual(review["resource_id"], "RES-SHARED")
@@ -95,6 +97,30 @@ class ObjectiveContractTests(unittest.TestCase):
             self.assertNotIn("PRIVATE_CATALOG_NOTE_DO_NOT_ECHO", json.dumps(result))
             outputs.append(result["verification_cases"])
         self.assertEqual(outputs[0], outputs[1])
+
+    def test_relevant_url_less_held_row_is_review_only(self):
+        held = candidate(
+            resource_id="RES-NO-URL",
+            canonical_url="",
+            source_verification_status="SOURCE_CONFLICT",
+        )
+        result = self.evaluate([held])
+        self.assertEqual(result["candidates"], [])
+        self.assertEqual(result["excluded_count"], 1)
+        self.assertEqual(result["verification_cases"][0]["resource_id"], "RES-NO-URL")
+        self.assertEqual(result["verification_cases"][0]["verification_state"], "CONFLICTING")
+        self.assertEqual(result["authority"], "NONE")
+
+    def test_irrelevant_url_less_row_retains_exclusion_count(self):
+        row = candidate(
+            resource_id="RES-NOT-RELEVANT", title="Unrelated theater review",
+            description="No relevant resources", canonical_url="",
+            tags=[], resource_types=[], resource_affordances=[],
+        )
+        result = self.evaluate([row])
+        self.assertEqual(result["candidates"], [])
+        self.assertEqual(result["verification_cases"], [])
+        self.assertEqual(result["excluded_count"], 1)
 
     def test_source_conflict_wins_over_expired_duplicate_in_both_orders(self):
         conflict = candidate(

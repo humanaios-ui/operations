@@ -79,7 +79,15 @@ def reconcile_snapshot_source_holds(
             continue
         if not isinstance(status, str) or status not in HELD_SOURCE_STATUSES:
             continue
-        holds[url] = "RECHECK_REQUIRED" if url in holds and holds[url] != status else status
+        # A direct source conflict is stronger than a generic recheck and
+        # cannot be erased by later, differently ordered held observations.
+        previous = holds.get(url)
+        if status == "SOURCE_CONFLICT" or previous == "SOURCE_CONFLICT":
+            holds[url] = "SOURCE_CONFLICT"
+        elif previous is not None and previous != status:
+            holds[url] = "RECHECK_REQUIRED"
+        else:
+            holds[url] = status
         if status in {"SOURCE_UNAVAILABLE", "LINK_FAILED_404"} and observed_on:
             negative_on.setdefault(url, set()).add(observed_on)
 

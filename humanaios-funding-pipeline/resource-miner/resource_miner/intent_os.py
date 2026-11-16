@@ -149,9 +149,8 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
                 "action": "Review the authoritative source before pursuing.",
             })
         url = _public_https(row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url"))
-        if not url:
-            omitted += 1
-            continue
+        # Do not discard a held source merely because its link is missing.
+        # Relevance is checked below, before deciding whether it may be linked.
         title = str(row.get("title") or "")[:180]
         desc = str(row.get("description") or "")[:550]
         tags = row.get("tags") if isinstance(row.get("tags"), list) else []
@@ -172,16 +171,23 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         if not has_exact_anchors(objective, " ".join(
             (candidate_id, title, desc, terms, labels)
         )):
+            if not url:
+                omitted += 1
             continue
         title_hits = wanted & _words(title)
         taxonomy_hits = wanted & _words(" ".join((terms, labels)))
         other_hits = wanted & _words(" ".join((candidate_id, desc, terms, labels)))
         hits = title_hits | other_hits
         if not hits:
+            if not url:
+                omitted += 1
             continue
         relevant_ids.add(candidate_id)
+        if not url:
+            omitted += 1
+            continue
         verification_state, reason_code = _verification_state(row)
-        if candidate_id in review_evidence or _is_expired(row) or verification_state == "STALE":
+        if _is_expired(row) or verification_state == "STALE":
             omitted += 1
             continue
         score = 3 * len(title_hits) + len(other_hits)
@@ -211,7 +217,11 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
     for match in matches:
         unique_matches.setdefault(match["resource_id"], match)
     duplicate_count = len(matches) - len(unique_matches)
-    # A stale or held observation blocks every candidate row for its identity.
+    # Suppress all alternate active rows when any held/stale evidence exists.
+    # Count suppressed rows after examining all inputs to avoid order-dependent
+    # excluded_count or inflated duplicate counts.
+    suppressed = [m for m in matches if m["resource_id"] in review_evidence]
+    omitted += len(suppressed)
     matches = fuse_rankings(
         [r for r in unique_matches.values() if r["resource_id"] not in review_evidence]
     )
