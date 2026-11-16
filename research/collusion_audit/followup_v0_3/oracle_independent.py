@@ -7,6 +7,10 @@ violates() check.
 
 A human must hand-check a printed sample before this oracle is trusted.
 Passing the cross-check is not a freeze, a second author, or permission to run.
+
+Spec note, owner-approved default, pending Night ratification: the dual-flag
+check of every holdout seed is generator coverage only. At freeze, each
+holdout id gets one pinned challenge flag, and only that flag is scored.
 """
 from __future__ import annotations
 
