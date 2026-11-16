@@ -55,7 +55,9 @@ PROPOSED_HOLDOUT_PER_CLASS = 20
 # Far-margin (d=8) has six families. Feasibility, not power.
 # Owner-approved default, pending Night ratification.
 
-# Above the failing-task bands (1..24, ~10000, ~20000) and the SE-0 band at 7000000.
+# Above the failing-task bands (1..24, ~10000, ~20000).
+# SE-0a is 7000000 + i. SE-0b is 8000000 + i.
+# Formula: 7000000 + arm_index * 1000000 + i. se0_n <= 100000 stays below 8100000.
 CALIBRATION_SAMPLE_BASE = 8100000
 HOLDOUT_SAMPLE_BASE = 8200000
 CALIBRATION_SHUFFLE_SEED = 20261117

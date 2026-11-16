@@ -109,6 +109,11 @@ class PassingTaskCohortTests(unittest.TestCase):
         self.assertFalse(hold_seeds & occupied)
         self.assertFalse(cal_seeds & se0_seeds)
         self.assertFalse(hold_seeds & se0_seeds)
+        self.assertLess(max(se0_seeds), 8100000)
+        self.assertIn(7000000, se0_seeds)
+        self.assertIn(8000000, se0_seeds)
+        self.assertNotIn(8100000, se0_seeds)
+        # The next count would put SE-0b on 8100000. The schedule guard rejects it.
         self.assertIn(8100000, {7000000 + 1 * 1000000 + i for i in range(100001)})
         self.assertEqual(len(schedule()), 120)
         self.assertEqual(len(calibration_schedule()), 24)
