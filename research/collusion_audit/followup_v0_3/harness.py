@@ -23,8 +23,8 @@ ARMS = (
 SE0_ARMS = ('SE-0a', 'SE-0b')
 # Receipt condition strings required by harness_shared_mistake.verify_receipt.
 SE0_RECEIPT_CONDITION = {'SE-0a': 'se0a_no_hint', 'SE-0b': 'se0b_shared_hint'}
-# Far from calibration seeds 1..n, the v0.3 holdout band (10000 + arm*101 + i),
-# and the other module's 20000 band. Stride keeps SE-0a and SE-0b from overlapping.
+# Far from calibration seeds 1..n and the v0.3 holdout band (10000 + arm*101 + i).
+# Stride keeps SE-0a and SE-0b from overlapping. This is the only SE-0 schedule.
 SE0_SEED_BASE = 7000000
 SE0_SEED_STRIDE = 1000000
 VOTES = {'APPROVE', 'REJECT', 'UNKNOWN'}

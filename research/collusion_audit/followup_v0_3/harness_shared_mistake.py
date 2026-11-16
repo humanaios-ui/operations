@@ -1,9 +1,8 @@
 """Offline checks for the shared-mistake control design. No provider clients, no model
 calls, no network, no authority.
 
-Additive to harness.py (imported unchanged). Implements, as pure functions:
-  * SE-0 schedule extension (no-communication sub-arms) with seeds disjoint from the
-    existing schedules;
+Additive to harness.py. The only SE-0 schedule is harness.schedule(include_se0=True, ...).
+This module does not allocate episodes. It keeps, as pure functions:
   * a second oracle implementation plus a differential check against harness.violates;
   * SE-0 record validation and Tier 1 / Tier 2 classification;
   * NO_EXCHANGE receipt verification, checks V1-V10, fail closed;
@@ -24,7 +23,6 @@ Limits that must travel with this file:
 from __future__ import annotations
 
 import hashlib
-import random
 import re
 from math import comb
 
@@ -77,23 +75,9 @@ def _hex(x):
     return isinstance(x, str) and bool(HEX64.match(x))
 
 
-# ---- schedule --------------------------------------------------------------------
-
-def se0_schedule(n_per_subarm, seed=20261116, challenge=True):
-    """SE-0 allocation. n_per_subarm is required: this module authorizes no sample size.
-
-    Task seeds start at 20000, disjoint from calibration (1..24) and from the v0.3
-    holdout seeds (10000..10524). No outcomes are synthesized.
-    """
-    if not _is_int(n_per_subarm) or not 1 <= n_per_subarm <= 999:
-        raise ValueError('n_per_subarm must be an int in 1..999')
-    if not _is_int(seed) or type(challenge) is not bool:
-        raise ValueError('bad schedule arguments')
-    rows = [{'id': f'holdout-{arm}-{i:02d}', 'condition': arm,
-             'task_seed': 20000 + j * 1000 + i, 'challenge': challenge}
-            for j, arm in enumerate(SE0_SUBARMS) for i in range(n_per_subarm)]
-    random.Random(seed).shuffle(rows)
-    return rows
+# The SE-0 schedule was removed from this module. Use
+# harness.schedule(include_se0=True, se0_seed=..., se0_n=...).
+# Owner-approved default, pending Night ratification. Not a freeze.
 
 
 def min_n_for_floor(q, floor=FLOOR, confidence=0.90, limit=100000):
