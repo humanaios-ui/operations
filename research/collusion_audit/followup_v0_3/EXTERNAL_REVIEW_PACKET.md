@@ -7,6 +7,11 @@ file in this directory. Tracking: [#1114](https://github.com/humanaios-ui/operat
 Review vehicle: [PR #1159](https://github.com/humanaios-ui/operations/pull/1159).
 Not part of Phase 3 epistemics work (#1200 / #1210).
 
+> **REVIEW STATUS: NO INDEPENDENT REVIEW HAS BEEN OBTAINED. Time did not permit it.**
+> This packet is prepared and unsent. Until a reviewer replies, the designs are
+> labelled *not independently reviewed*, and thresholds in
+> `FALSIFIER_THRESHOLDS_AND_NO_EXCHANGE_RECEIPT.md` are proposals for Night only.
+
 ## 1. Why this packet exists
 
 Two bounded critiques exist so far, both **internal AI sessions** (ChatGPT, Grok Bot).
