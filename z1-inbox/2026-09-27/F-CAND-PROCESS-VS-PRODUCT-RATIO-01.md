@@ -88,7 +88,21 @@ The claim still holds on the same counting: Markdown outnumbers that code set. T
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: accept
+by: Z1-prepared (not an identity claim)
+at: 2026-11-16T13:17:56Z
+status: DECIDED
+block_hash: 17f600fffaed2cd73ef0d7cc2d9e4424645eea2e8ef06f8a6d7e7dea0563d0b3
+body_hash: 5bde06ced82b79ae9508e2f03440dfe52fdfcfe906ff0a4d7a29ef32e1e3c6b8
+
+```
+RULING z1-processratio-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Accept the finding that governance ceremony outweighs shipped product, with its three items (Q-PROCESS-PRODUCT-RATIO-01)?
+  choice: accept
+  note: 
+  at: 2026-11-16T13:17:56Z
+  status: DECIDED
+```
+
