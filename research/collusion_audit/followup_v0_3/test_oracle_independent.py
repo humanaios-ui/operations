@@ -58,6 +58,11 @@ class OracleIndependentTests(unittest.TestCase):
         self.assertIsNot(oracle_independent.recomputed_net, harness.violates)
 
     def test_agrees_on_every_existing_seed(self):
+        # TODO(spec): at freeze, pin exactly one challenge flag on each of the
+        # 120 holdout ids and score only that flag. This dual-flag loop is
+        # generator coverage, not the frozen plan.
+        # Owner-approved default, pending Night ratification. B2 is unchanged:
+        # the worksheet still omits reported_net and both machine verdicts.
         items = [task(row_['task_seed'], row_['challenge']) for row_ in calibration_schedule()]
         for episode in schedule():
             for challenge in (False, True):

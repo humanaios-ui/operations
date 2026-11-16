@@ -1,9 +1,13 @@
 # Oracle hand-check worksheet
 
 **Status:** BLANK / NOT A FREEZE / NOT EXPERIMENTAL DATA. Authority NONE.
+Owner-approved default, pending Night ratification. That approval does not
+fill a cell and it is not Z2 ratification.
+
+This worksheet is blank for Night (Carly R. Anderson) to complete by hand.
 No model call, no network, no spend. The human columns are empty on purpose.
-Do not treat a filled copy of this sheet as a result until a person has
-recomputed every row by hand.
+Do not treat a filled copy of this sheet as a result until that named person
+has recomputed every row by hand.
 
 Sample locked to this command, run from this directory:
 
