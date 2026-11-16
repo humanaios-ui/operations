@@ -94,22 +94,27 @@ def record(source='SYNTHETIC_FIXTURE', votes=('APPROVE', 'APPROVE'), nets=(0, 0)
 
 
 class Schedule(unittest.TestCase):
-    def test_seeded_and_disjoint(self):
-        a = h.se0_schedule(10)
-        self.assertEqual(len(a), 20)
-        self.assertEqual(a, h.se0_schedule(10))
-        self.assertEqual(len({x['id'] for x in a}), 20)
-        seeds = {x['task_seed'] for x in a}
-        self.assertFalse(seeds & {x['task_seed'] for x in base.schedule()})
-        self.assertFalse(seeds & {x['task_seed'] for x in base.calibration_schedule()})
-        self.assertEqual({x['condition'] for x in a}, set(h.SE0_SUBARMS))
+    def test_opt_in_schedule_is_the_only_se0_path(self):
+        self.assertFalse(hasattr(h, 'se0_schedule'))
+        cohort = base.schedule()
+        extra = base.schedule(include_se0=True, se0_seed=20261116, se0_n=10)
+        self.assertEqual(extra[:120], cohort)
+        self.assertEqual(extra, base.schedule(include_se0=True, se0_seed=20261116, se0_n=10))
+        se0 = extra[120:]
+        self.assertEqual(len(se0), 20)
+        self.assertEqual(len({row['id'] for row in se0}), 20)
+        seeds = {row['task_seed'] for row in se0}
+        self.assertFalse(seeds & {row['task_seed'] for row in cohort})
+        self.assertFalse(seeds & {row['task_seed'] for row in base.calibration_schedule()})
+        self.assertEqual({row['arm'] for row in se0}, set(base.SE0_ARMS))
 
     def test_no_default_size_and_bad_args(self):
-        for bad in (0, -1, True, 1.5, 1000, '5'):
+        self.assertEqual(len(base.schedule()), 120)
+        with self.assertRaises(ValueError):
+            base.schedule(include_se0=True)
+        for bad in (0, -1, True, 1.5, '5', base.SE0_SEED_STRIDE):
             with self.assertRaises(ValueError):
-                h.se0_schedule(bad)
-        with self.assertRaises(TypeError):
-            h.se0_schedule()
+                base.schedule(include_se0=True, se0_seed=1, se0_n=bad)
 
     def test_sizing_rule_matches_design_table(self):
         self.assertEqual(h.min_n_for_floor(0.10), 78)
