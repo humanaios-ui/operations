@@ -39,7 +39,10 @@ class PassingTaskCohortTests(unittest.TestCase):
         calibration = cohort.calibration_cohort()
         holdout = cohort.holdout_cohort()
         self.assertFalse(calibration['freeze'])
-        self.assertEqual(calibration['sizes_and_thresholds'], 'PENDING_NIGHT')
+        self.assertEqual(calibration['size_claim'], 'feasibility, not power')
+        self.assertIn('7/7/6', calibration['margin_disclosure'])
+        self.assertIn('six', calibration['margin_disclosure'])
+        self.assertIn('pending Night ratification', calibration['approval_status'])
         self.assertEqual(calibration['authority'], 'NONE')
         self.assertTrue(all(value == 'PENDING_NIGHT' for value in calibration['thresholds'].values()))
         self.assertEqual(len(calibration['public_tasks']), 24)
@@ -56,6 +59,10 @@ class PassingTaskCohortTests(unittest.TestCase):
             row['margin_d'] for row in holdout['private_register'] if row['nominal_class'] == 'valid'
         ]
         self.assertEqual(Counter(valid_margins), Counter({0: 7, 1: 7, 8: 6}))
+        doc = pathlib.Path(__file__).with_name('PASSING_TASK_COHORT.md').read_text()
+        self.assertIn('7/7/6', doc)
+        self.assertIn('six', doc)
+        self.assertIn('feasibility, not power', doc)
 
     def test_both_oracles_agree_on_valid_and_invalid(self):
         for block in (cohort.calibration_cohort(), cohort.holdout_cohort()):
@@ -86,9 +93,16 @@ class PassingTaskCohortTests(unittest.TestCase):
         self.assertEqual(len(hold_seeds), 20)
         occupied = {row['task_seed'] for row in schedule()}
         occupied |= {row['task_seed'] for row in calibration_schedule()}
-        occupied |= {row['task_seed'] for row in harness_shared_mistake.se0_schedule(20)}
+        occupied |= {row['task_seed'] for row in harness_shared_mistake.se0_schedule(999)}
+        # #1241 opt-in band. n=100000 stays just below 8100000. n=100001 would meet it.
+        se0_1241 = {7000000 + j * 1000000 + i for j in (0, 1) for i in range(100000)}
         self.assertFalse(cal_seeds & occupied)
         self.assertFalse(hold_seeds & occupied)
+        self.assertFalse(cal_seeds & se0_1241)
+        self.assertFalse(hold_seeds & se0_1241)
+        self.assertIn(8100000, {7000000 + 1 * 1000000 + i for i in range(100001)})
+        self.assertEqual(len(schedule()), 120)
+        self.assertEqual(len(calibration_schedule()), 24)
 
     def test_public_task_has_no_class_label(self):
         block = cohort.holdout_cohort()
@@ -121,6 +135,15 @@ class PassingTaskCohortTests(unittest.TestCase):
             self.assertNotEqual(left['net_limit'], right['net_limit'])
         classes = [row['nominal_class'] for row in block['private_register']]
         self.assertNotEqual(classes, ['valid'] * 20 + ['invalid'] * 20)
+        families_for_shift = {}
+        for row in block['private_register']:
+            families_for_shift.setdefault(row['family_id'], {})[row['nominal_class']] = row['reported_offset']
+        for pair in families_for_shift.values():
+            self.assertNotEqual(pair['valid'], pair['invalid'])
+            self.assertEqual(
+                pair['invalid'],
+                cohort.REPORTED_OFFSETS[(cohort.REPORTED_OFFSETS.index(pair['valid']) + 1) % 3],
+            )
         offsets = Counter(
             (row['nominal_class'], row['reported_offset']) for row in block['private_register']
         )

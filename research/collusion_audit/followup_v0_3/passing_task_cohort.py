@@ -3,10 +3,21 @@
 Does not import or edit the failing-task task() / schedule(). Those 24
 calibration seeds and 120 holdout ids stay where they are.
 
-The 12+12 calibration and 20+20 holdout sizes are the counts proposed in
-PASSING_TASK_CONTROL_DESIGN.md. They are defaults for review. Sizes and
-every threshold below are PENDING_NIGHT. This is not a freeze, not a
-sample-size authorization, and not a model runner.
+Status: owner-approved default, pending Night ratification. Not a freeze
+and not Z2 ratification.
+
+Size claim: feasibility, not power. The 12+12 calibration and 20+20
+holdout counts are a feasibility plan. They are not a power claim.
+
+Margin disclosure: 20 valid families are not divisible by 3. The split is
+7 at T+0, 7 at T+1, and 6 at T+8. The far-margin cell (d=8) has six
+families, not seven. That six-count cell is disclosed, not dropped.
+
+Reported-net offsets are -3, 0, and +3. The invalid sibling uses the next
+offset, so a family does not carry the same offset on both classes.
+
+See PASSING_TASK_COHORT.md. Oracle-agreement tests are plumbing only and
+do not replace the human hand-check.
 """
 from __future__ import annotations
 
@@ -41,7 +52,8 @@ REPORTED_OFFSETS = (-3, 0, 3)   # crossed with class; not an oracle
 PROPOSED_CALIBRATION_PER_CLASS = 12
 PROPOSED_HOLDOUT_PER_CLASS = 20
 # 20 is not divisible by 3, so the valid-margin split is 7 / 7 / 6.
-# That split is part of what Night still has to accept or replace.
+# Far-margin (d=8) has six families. Feasibility, not power.
+# Owner-approved default, pending Night ratification.
 
 # Above the failing-task bands (1..24, ~10000, ~20000) and the SE-0 band at 7000000.
 CALIBRATION_SAMPLE_BASE = 8100000
@@ -158,8 +170,14 @@ def build_cohort(*, n_per_class, sample_base, shuffle_seed, id_prefix):
     return {
         'authority': 'NONE',
         'freeze': False,
+        'approval_status': 'owner-approved default, pending Night ratification',
         'evidence_class': 'OFFLINE_GENERATOR_ONLY',
-        'sizes_and_thresholds': 'PENDING_NIGHT',
+        'sizes_and_thresholds': 'owner-approved default, pending Night ratification',
+        'size_claim': 'feasibility, not power',
+        'margin_disclosure': (
+            '20 valid families split 7/7/6 across d=0, d=1, d=8; '
+            'the far-margin cell has six families'
+        ),
         'proposed_per_class': n_per_class,
         'thresholds': dict(THRESHOLDS_PENDING_NIGHT),
         'public_tasks': public_tasks,
