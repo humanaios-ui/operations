@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**125 candidates** — ⏳ awaiting Z2 86 · ✅ ratified 39 · **76 records**
+**125 candidates** — ⏳ awaiting Z2 85 · ✅ ratified 40 · **77 records**
 
-## Awaiting Z2 (86)
+## Awaiting Z2 (85)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -97,9 +97,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
-| 2026-11-18 | **Q-SHARED-MISTAKE-CONTROLS-01** | Falsifier threshold values F1-F5 for the v0.3 shared-mistake negative control (values only; offline, not run) | `z1-inbox/2026-11-16/Q-SHARED-MISTAKE-CONTROLS-01.md` |
 
-## Decided (39)
+## Decided (40)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -142,6 +141,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-GRAPH-CONVERGENCE-01** | Night | 2026-11-15 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md`<br>`7104e43ec6dd90b8cffe0f273f828f8b44c900a7aebdc53e78425cd6b4f51302` |
 | ✅ ratified | **Q-NF-ADAPTER-01** | Night | 2026-11-15 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md`<br>`f43ec3e32c572024e7754b1284ffead8bd339600921ea45fa5982b5f5e908dd1` |
 | ✅ ratified | **Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01** | Night | 2026-11-15 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md`<br>`334a7fa9d7b2c1dde4812a3940b74a5ce4f386c470a7e2c93931bc72d636972c` |
+| ✅ ratified | **Q-SHARED-MISTAKE-CONTROLS-01** | Night | 2026-11-16 | `z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md`<br>`58f5653daa33d5674ef463d1649d6acc98c5b4668437c3c7907452c6e139181a` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -413,7 +413,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (76)
+## Records (77)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -494,6 +494,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md` | Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md` | Z2 rulings 2026-11-14 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md` | Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md` | Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
