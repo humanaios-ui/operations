@@ -2,11 +2,22 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 124
-  records: 76
+  candidates: 125
+  records: 77
 ratifiers:
 - Night
 candidates:
+- q_id: Q-SHARED-MISTAKE-CONTROLS-01
+  title: Falsifier threshold values F1-F5 for the v0.3 shared-mistake negative control (values only; offline, not run)
+  path: z1-inbox/2026-11-16/Q-SHARED-MISTAKE-CONTROLS-01.md
+  submitted: '2026-11-16'
+  status: ratified
+  tier: 0
+  note: 'Ratifies the F1-F5 threshold values only; the NO_EXCHANGE receipt design and the harness are pinned for reference and sit outside the ratified scope. Pinned by sha256 to commit 79b0debc on the PR 1159 branch; that PR is not merged by this entry. Design NOT independently reviewed; second oracle has the same author; no live run, spend or outreach authorized. Signed 2026-11-16 by ratify.py run by Z1 on direct Z2 instruction in session; the hash pins content, not identity, and is bound by the owners merge of the PR that records it. Falsifier stated.'
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "58f5653daa33d5674ef463d1649d6acc98c5b4668437c3c7907452c6e139181a"
 - q_id: Q-PILLOW-TIFF-ADVISORIES-WAIVER-01
   title: Scoped audit waiver for CVE-2026-128067 and CVE-2026-128066 (pillow 12.3.0) on tools/Metaculus only, with an owner and an exit event
   path: z1-inbox/2026-11-13/Q-PILLOW-TIFF-ADVISORIES-WAIVER-01.md
@@ -711,9 +722,13 @@ candidates:
   title: Regenerate the data SSOT — contaminated v0.1 corpus retained as lesson artifact, not corrected figures
   path: z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Records a Z2 position stated in session (Night, 2026-09-21) reframing the corpus question: v0.1 is contaminated, that is the lesson, regenerate the SSOT rather than correct the numbers. Supersedes the Option A/B framing of Q-CORPUS-STATS-RECONCILE-01. Finds that submission_purity already stratifies the contamination, so clean derivation is a WHERE clause. Also answers pseudonymous login (did:key / anonymous token, both primitives already in the tree), bidirectional influence measurement as an H- candidate not a capability, and HA-000 as a milestone with a not-Z1 administrator. UNVERIFIED: Supabase connector needs authorization; live table not queried.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "842bc245987d30da8fcc74f6bea421c3c87fbf9c7d57c23a40ca52b8e692470a"
 - q_id: Q-GATE-PATHS-TEST-LOGIC-01
   title: A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2
   path: z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md
@@ -739,9 +754,13 @@ candidates:
   title: Grade agreement between agent-authored graphs by source disjointness, not similarity
   path: z1-inbox/2026-09-21/Q-GRAPH-CONVERGENCE-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Answers Night''s question about determining INDEPENDENT convergence. GRAPH_ALIGNMENT.yaml holds the judgments (which node means which, what sources, what access); tools/graph_convergence_v1_0.py computes the grade and has no field an author can use to assert its own independence. Result on the two real graphs: 6 pairs, 0 INDEPENDENT, corroboration weight 0.0. Also settles backfill (permitted, forced to BACKFILL_UNGRADED at weight 0) and divergence (the only part carrying information under shared sources). Retracts the independence claim in AGENT_GRAPH_COMPARISON.md.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-15"
+  z2_ruling: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  z2_hash: "7104e43ec6dd90b8cffe0f273f828f8b44c900a7aebdc53e78425cd6b4f51302"
 - q_id: Q-REFERENT-DECAY-01
   title: Five artifacts whose link to their referent died while the artifact stayed alive
   path: z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md
@@ -901,9 +920,13 @@ candidates:
   title: Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs
   path: z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md
   submitted: '2026-09-27'
-  status: awaiting_z2
+  status: ratified
   note: Surfaced incidentally during the ACAT distribution review. 777 of 1,752 tracked files are Markdown vs. ~520 code files; z2_ratification_gate.yml was invalid YAML from its first commit and ran 122 times with zero executed steps before being fixed.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "a9023076184b1351f6716b61bc1784e7921b63d17458f8447808f5d55e01e6ee"
 - q_id: Q-GATE-BYPASS-LEDGER-01
   title: Merges through non-required-but-meaningful gates leave no in-repo trace
   path: z1-inbox/2026-09-27/F-CAND-SILENT-GATE-BYPASS-01.md
@@ -1035,6 +1058,10 @@ candidates:
   z2_ruling: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
   z2_hash: "c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa"
 records:
+- path: z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md
+  title: "Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
 - path: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
   title: "Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."

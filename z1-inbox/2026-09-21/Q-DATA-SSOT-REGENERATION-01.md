@@ -288,3 +288,56 @@ would satisfy every check while proving nothing.
 Single-member override applies: with one board member, Night reviews, approves
 and merges her own ruling PR, recorded as an override per that ruling's `review`
 row.
+
+---
+
+## Options
+
+- `ratify 1`
+- `ratify 1-3`
+- `edit`
+- `reject`
+- `later`
+
+The numbers are the six asks in "What Z2 is asked to decide" (section 8) above.
+
+## What each sets in motion
+
+- `ratify 1`: ask 1 only. The v0.1 corpus is retained as a lesson artifact, and no corrected figure becomes the new claim. That supersedes the Option A / Option B framing of `Q-CORPUS-STATS-RECONCILE-01` for that one question. It does **not** close that block: its asks 2-4 (the interim citation rule, whether anything external went out on the unreproducible figures, whether the validator gates) stay for its own ruling. Asks 2-6 here stay open, neither ratified nor rejected. No file changes except this one: no `DATA_MANAGEMENT_PLAN.md`, no `INTENT_GRAPH.yaml` rows, no figure in `SEED.md`, no database write. Assigning a registry entry in `REGISTERED.md` is a Z2 act; Z1 does not write that file.
+- `ratify 1-3`: asks 1, 2 and 3. Ask 2 names the clean stratum. It is a name only: the 2026-09-21 check found 4 rows in that stratum, so nothing is derivable yet. Ask 3 approves the shape of `DATA_MANAGEMENT_PLAN.md` before it is drafted. Z1 would then draft it as a later pull request; the ruling drafts nothing. Asks 4-6 stay open.
+- Asks 4-6 are not offered as a ruling, because each needs something a ruling here cannot supply. Ask 4 is a choice between two designs (`did:key` or a server-minted token), and the block names both without picking one. Ask 5 is an H- candidate and needs its own block with its own falsifier. Ask 6 needs a named administrator who is not Z1, and Night names that person.
+- `edit`: Z1 revises the block and files it again.
+- `reject`: the block closes with its bytes signed and the reason Night records. Nothing is entered in `REGISTERED.md`.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
+## Checked on 2026-11-16 (not carried from the block above)
+
+- **The block says no `canonical_stats.json` exists in the tree. One does.** `acat/canonical_stats.json` was added on 2026-09-19 (#415), before the block was filed. It says it was generated 2026-07-02 from a form-responses archive: `n_total` 604, `raw_rows` 608, `n_li_scored` 274, `mean_li` 0.8532. The block's second falsifier line is "FALSE if a `canonical_stats.json` already exists **and reproduces the cited figures**". It exists and does not reproduce them, so that line does not trip. It is a further set beside the others: `SEED.md` still says N=629 and mean LI 0.8632; the July audit's 608 raw rows and 0.8431 raw / 0.8572 cleaned are as the `Q-CORPUS-STATS-RECONCILE-01` index note states them (Z1 did not re-open the audit today). The file's 608 raw rows match the audit's raw count.
+- **The live-table figures are from 2026-09-21 and were not re-checked.** Z1 did not query the database today. The 116 rows, the 4 clean `two_stage_verified` rows, and zero rows with `acknowledged_elicitation` true are as `audits/CORPUS_LIVE_VERIFICATION_S-092126.md` recorded them, and may have changed. The block's own falsifier is the live check, and it was only partly tripped then.
+- `DATA_MANAGEMENT_PLAN.md` does not exist. `O-DATA-SSOT` and `I-CANONICAL-STATS` are not in `INTENT_GRAPH.yaml`; only `O-CORPUS-INTEGRITY` is. The block says a ratification would add them. A ruling here would not add them; that would be a later change.
+- `Q-CORPUS-STATS-RECONCILE-01` is still `awaiting_z2` in the index.
+
+## Note on the "Z2 Ruling" section above
+
+That section is a transcription of what Night said in session on 2026-09-21. It carries no signature, and `INDEX.yaml` still reads `awaiting_z2`, so the `.z1-control/ratify.py` step was not completed for this block. It also says that merging this block's pull request ratifies nothing, because the file then had no `## Ruling` section. This file now has one, in the shape `tools/decision_relay.py` writes. Under the 2026-09-18 ruling the merge of the pull request that fills it is the ratification, and the `ratify.py` command in that section is not needed. Z1 left the earlier text unchanged. It does not count as a ruling, and nothing here treats it as one.
+
+## Ruling
+
+choice: ratify 1
+by: Z1-prepared (not an identity claim)
+at: 2026-11-16T13:35:23Z
+status: DECIDED
+block_hash: 910b8b2801580cf6cbeb71931bf4cfbafa59fa4dca218b6ae9774875c4756416
+body_hash: ddde24fbe54d1b4ff5cf5fb2cca84459c9e17fa887973370806e8ba3d225bd17
+
+```
+RULING z1-datassot-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Ratify ask 1 only of Q-DATA-SSOT-REGENERATION-01: keep the v0.1 corpus as a lesson artifact, and let no corrected figure become the new claim (asks 2-6 stay open)?
+  choice: ratify 1
+  note: 
+  at: 2026-11-16T13:35:23Z
+  status: DECIDED
+```
+
