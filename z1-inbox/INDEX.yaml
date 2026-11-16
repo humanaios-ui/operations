@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 124
+  candidates: 125
   records: 76
 ratifiers:
 - Night
 candidates:
+- q_id: Q-SHARED-MISTAKE-CONTROLS-01
+  title: Falsifier thresholds F1-F5 and NO_EXCHANGE receipt design for the v0.3 shared-mistake negative control (offline, not run)
+  path: z1-inbox/2026-11-16/Q-SHARED-MISTAKE-CONTROLS-01.md
+  submitted: '2026-11-16'
+  status: awaiting_z2
+  tier: 0
+  note: 'Ratifies threshold values only. Pinned by sha256 to commit 79b0debc on the PR 1159 branch; that PR is not merged by this entry. Design NOT independently reviewed; second oracle has the same author; no live run, spend or outreach authorized. The owner stated intent in session on 2026-11-16, which is not a signature; ratify.py has not been run. Falsifier stated. Not ratified.'
 - q_id: Q-PILLOW-TIFF-ADVISORIES-WAIVER-01
   title: Scoped audit waiver for CVE-2026-128067 and CVE-2026-128066 (pillow 12.3.0) on tools/Metaculus only, with an owner and an exit event
   path: z1-inbox/2026-11-13/Q-PILLOW-TIFF-ADVISORIES-WAIVER-01.md
