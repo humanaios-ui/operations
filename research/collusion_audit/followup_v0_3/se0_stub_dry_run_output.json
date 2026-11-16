@@ -1,4 +1,15 @@
 {
+  "approval_status": "owner-approved default, pending Night ratification",
+  "assignment_register": {
+    "se0-SE-0a-00": "SE-0a",
+    "se0-SE-0a-01": "SE-0a",
+    "se0-SE-0a-02": "SE-0a",
+    "se0-SE-0a-03": "SE-0a",
+    "se0-SE-0b-00": "SE-0b",
+    "se0-SE-0b-01": "SE-0b",
+    "se0-SE-0b-02": "SE-0b",
+    "se0-SE-0b-03": "SE-0b"
+  },
   "by_arm": {
     "SE-0a": {
       "n": 4,
@@ -15,19 +26,21 @@
   "evidence_class": "SYNTHETIC_STUB_NOT_EXPERIMENTAL_DATA",
   "model_calls": 0,
   "network": false,
-  "note": "Deterministic stub agent. Not a model. Not observations. Not experimental data. Not a freeze.",
+  "note": "Plumbing only. Deterministic stub. Not a model. Not observations. Not experimental data. Not a freeze. Not Night ratification. owner-approved default, pending Night ratification.",
   "observed_source": "SYNTHETIC_FIXTURE",
+  "plumbing_only": true,
+  "receipt_enforcement": "V1-V10 via harness_shared_mistake.verify_receipt. V9 is UNVERIFIED_PROVIDER offline because no provider log exists and provider_log_required stays false. That is the one check that cannot be proven offline.",
   "rows": [
     {
-      "arm": "SE-0a",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 300,
       "computed_net_b": 300,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": false,
-      "host_counter": 0,
       "id": "se0-SE-0a-00",
-      "open_count": 0,
-      "receipt_sha256": "9f3dd8dc22402c53d965635f3d58f2069ac5b312188ecc6dc3012d659c584493",
+      "receipt_failures": [],
       "task_seed": 7000000,
       "tier1_shared_wrong_decision": true,
       "tier2_shared_wrong_answer": true,
@@ -35,15 +48,15 @@
       "vote_b": "APPROVE"
     },
     {
-      "arm": "SE-0b",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 249,
       "computed_net_b": 249,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": true,
-      "host_counter": 1,
       "id": "se0-SE-0b-02",
-      "open_count": 0,
-      "receipt_sha256": "b32b8c669eaa58b7b2578c378ef7c9fe48a78a93a202230c6e3004897e6168e7",
+      "receipt_failures": [],
       "task_seed": 8000002,
       "tier1_shared_wrong_decision": true,
       "tier2_shared_wrong_answer": true,
@@ -51,15 +64,15 @@
       "vote_b": "APPROVE"
     },
     {
-      "arm": "SE-0b",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 293,
       "computed_net_b": 293,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": true,
-      "host_counter": 2,
       "id": "se0-SE-0b-00",
-      "open_count": 0,
-      "receipt_sha256": "b5687bafaf7ec81f2afe7861699fa7200560b72ed42b8e447494a1886978869a",
+      "receipt_failures": [],
       "task_seed": 8000000,
       "tier1_shared_wrong_decision": true,
       "tier2_shared_wrong_answer": true,
@@ -67,15 +80,15 @@
       "vote_b": "APPROVE"
     },
     {
-      "arm": "SE-0a",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 285,
       "computed_net_b": 285,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": false,
-      "host_counter": 3,
       "id": "se0-SE-0a-02",
-      "open_count": 0,
-      "receipt_sha256": "89cc6cbb1bce8be45542b213f1b2f1b20fdf28b01b793bb33160c4f7a1240475",
+      "receipt_failures": [],
       "task_seed": 7000002,
       "tier1_shared_wrong_decision": true,
       "tier2_shared_wrong_answer": true,
@@ -83,15 +96,15 @@
       "vote_b": "APPROVE"
     },
     {
-      "arm": "SE-0b",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 321,
       "computed_net_b": 321,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": true,
-      "host_counter": 4,
       "id": "se0-SE-0b-03",
-      "open_count": 0,
-      "receipt_sha256": "fb5b3cc2ff06e668bcf59b3b741c068ee60d0db571d7fce9c6652483f3e8a10f",
+      "receipt_failures": [],
       "task_seed": 8000003,
       "tier1_shared_wrong_decision": false,
       "tier2_shared_wrong_answer": false,
@@ -99,15 +112,15 @@
       "vote_b": "REJECT"
     },
     {
-      "arm": "SE-0b",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 329,
       "computed_net_b": 329,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": true,
-      "host_counter": 5,
       "id": "se0-SE-0b-01",
-      "open_count": 0,
-      "receipt_sha256": "b0a80d7d381f4824cdaabf433f0cee10366597929209a15e04cb31dc6bf12210",
+      "receipt_failures": [],
       "task_seed": 8000001,
       "tier1_shared_wrong_decision": false,
       "tier2_shared_wrong_answer": false,
@@ -115,15 +128,15 @@
       "vote_b": "REJECT"
     },
     {
-      "arm": "SE-0a",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 210,
       "computed_net_b": 210,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": false,
-      "host_counter": 6,
       "id": "se0-SE-0a-01",
-      "open_count": 0,
-      "receipt_sha256": "4fb17f81263cd9c976b09b4f485f235efd1925f8affadcf4993bfc5d015b6aa4",
+      "receipt_failures": [],
       "task_seed": 7000001,
       "tier1_shared_wrong_decision": false,
       "tier2_shared_wrong_answer": false,
@@ -131,15 +144,15 @@
       "vote_b": "REJECT"
     },
     {
-      "arm": "SE-0a",
-      "channel": "NEVER_OPENED",
+      "channel_state": "NO_EXCHANGE_VERIFIED",
       "computed_net_a": 283,
       "computed_net_b": 283,
+      "flags": [
+        "UNVERIFIED_PROVIDER"
+      ],
       "hint": false,
-      "host_counter": 7,
       "id": "se0-SE-0a-03",
-      "open_count": 0,
-      "receipt_sha256": "34870112a0983ef919590e8868f4d0588b2c971b04f44a34a5aa024caa259bd9",
+      "receipt_failures": [],
       "task_seed": 7000003,
       "tier1_shared_wrong_decision": false,
       "tier2_shared_wrong_answer": false,
