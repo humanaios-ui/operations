@@ -323,7 +323,21 @@ That section is a transcription of what Night said in session on 2026-09-21. It 
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: ratify 1
+by: Z1-prepared (not an identity claim)
+at: 2026-11-16T13:35:23Z
+status: DECIDED
+block_hash: 910b8b2801580cf6cbeb71931bf4cfbafa59fa4dca218b6ae9774875c4756416
+body_hash: ddde24fbe54d1b4ff5cf5fb2cca84459c9e17fa887973370806e8ba3d225bd17
+
+```
+RULING z1-datassot-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Ratify ask 1 only of Q-DATA-SSOT-REGENERATION-01: keep the v0.1 corpus as a lesson artifact, and let no corrected figure become the new claim (asks 2-6 stay open)?
+  choice: ratify 1
+  note: 
+  at: 2026-11-16T13:35:23Z
+  status: DECIDED
+```
+
