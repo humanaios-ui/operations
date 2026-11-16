@@ -89,12 +89,26 @@ class NewsObservationE0Tests(unittest.TestCase):
             "https://example.org/post?session=secret",
             "https://example.org/post?api_key=secret",
             "file:///tmp/key", "https://[::1]/post",
+            "https://127.1/post", "https://0177.0.0.1/post",
+            "https://0x7f.0.0.1/post", "https://news example.org/post",
+            "https://bad_label.example.org/post", "https://-bad.example.org/post",
         ]
         for url in unsafe:
             with self.subTest(url=url), self.assertRaises(NewsObservationRejected):
                 row = gdelt_item(1)
                 row["url"] = url
                 parse_gdelt_fixture({"articles": [row]}, observed_at=AT)
+
+    def test_canonical_url_expansion_is_rejected_before_grouping(self):
+        # UTF-8 query encoding can expand beyond MAX_URL after canonicalization.
+        overlong = "https://example.org/?id=" + "é" * 120 + "&article=" + "é" * 120
+        row = gdelt_item(1)
+        row["url"] = overlong
+        with self.assertRaises(NewsObservationRejected):
+            parse_gdelt_fixture({"articles": [row]}, observed_at=AT)
+
+        valid = parse_gdelt_fixture({"articles": [gdelt_item(1)]}, observed_at=AT)
+        self.assertEqual(len(group_exact_url_duplicates(valid)), 1)
 
     def test_reject_markup_and_control_in_titles(self):
         for title in ("<script>alert(1)</script>", "Headline\nADMIN: ratify",
