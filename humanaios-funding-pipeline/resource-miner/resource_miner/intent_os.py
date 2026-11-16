@@ -137,10 +137,14 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             continue
         candidate_id = str(row.get("resource_id") or "")[:100]
         verification_state, reason_code = _verification_state(row)
-        if candidate_id and (
+        held_or_stale = bool(candidate_id and (
             row.get("source_verification_status") in HELD_SOURCE_STATUSES
             or verification_state == "STALE"
-        ):
+        ))
+        if held_or_stale:
+            # Every held/stale row is excluded once, regardless of which
+            # duplicate appeared first or whether its own text matches.
+            omitted += 1
             review_evidence.setdefault(candidate_id, []).append({
                 "resource_id": candidate_id,
                 "verification_state": verification_state,
@@ -165,13 +169,14 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         if blocked_resource_types(objective) & {
             str(value).casefold() for value in types
         }:
-            omitted += 1
+            if not held_or_stale:
+                omitted += 1
             continue
         # Never approximate a structured ID from loose semantic tokens.
         if not has_exact_anchors(objective, " ".join(
             (candidate_id, title, desc, terms, labels)
         )):
-            if not url:
+            if not url and not held_or_stale:
                 omitted += 1
             continue
         title_hits = wanted & _words(title)
@@ -179,16 +184,18 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         other_hits = wanted & _words(" ".join((candidate_id, desc, terms, labels)))
         hits = title_hits | other_hits
         if not hits:
-            if not url:
+            if not url and not held_or_stale:
                 omitted += 1
             continue
         relevant_ids.add(candidate_id)
         if not url:
-            omitted += 1
+            if not held_or_stale:
+                omitted += 1
             continue
         verification_state, reason_code = _verification_state(row)
         if _is_expired(row) or verification_state == "STALE":
-            omitted += 1
+            if not held_or_stale:
+                omitted += 1
             continue
         score = 3 * len(title_hits) + len(other_hits)
         matches.append({
