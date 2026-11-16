@@ -29,7 +29,7 @@ Exact canonical URL matches are grouped only as EXACT_URL_MATCH; they do not pro
 
 From humanaios-funding-pipeline/resource-miner:
 
-    python3 -m unittest tests.test_news_observations_e0 -v
+    python3 -m unittest discover -s tests -p 'test_news_observations_e0.py' -v
 
 The synthetic tests generate **20 GDELT records and 20 Miniflux records**, then test URL-matching, no network, source/date handling, non-promotion, and rejection of hostile or oversized inputs.
 
