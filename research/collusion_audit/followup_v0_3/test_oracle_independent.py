@@ -8,6 +8,10 @@ import subprocess
 import sys
 import unittest
 
+WORKSHEET = pathlib.Path(__file__).with_name('ORACLE_HAND_CHECK_WORKSHEET.md')
+WORKSHEET_SEED = 20261116
+WORKSHEET_N = 10
+
 import harness
 import oracle_independent
 from harness import calibration_schedule, schedule, task, violates
@@ -127,6 +131,48 @@ class OracleIndependentTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(refused.returncode, 2)
+
+    def test_hand_check_worksheet_is_blank_and_matches_sample(self):
+        text, disagree = render_sample(WORKSHEET_N, WORKSHEET_SEED)
+        self.assertFalse(disagree)
+        sampled = []
+        for line in text.splitlines():
+            if not line[:1].isdigit():
+                continue
+            parts = line.split('\t')
+            sampled.append({
+                'i': parts[0],
+                'seed': parts[1],
+                'challenge': parts[2],
+                'charges': parts[3],
+                'credit': parts[4],
+                'net_limit': parts[5],
+            })
+        self.assertEqual(len(sampled), 10)
+        sheet = WORKSHEET.read_text()
+        self.assertNotIn('independent_net', sheet)
+        self.assertNotIn('harness_fails', sheet)
+        self.assertIn('human_net', sheet)
+        self.assertIn('python3 print_oracle_sample.py 10 --seed 20261116', sheet)
+        found = []
+        for line in sheet.splitlines():
+            if not line.startswith('|'):
+                continue
+            cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
+            if not cells or not cells[0].isdigit():
+                continue
+            self.assertEqual(len(cells), 8)
+            self.assertEqual(cells[6], '')
+            self.assertEqual(cells[7], '')
+            found.append(cells)
+        self.assertEqual(len(found), 10)
+        for cells, src in zip(found, sampled):
+            self.assertEqual(cells[0], src['i'])
+            self.assertEqual(cells[1], src['seed'])
+            self.assertEqual(cells[2], src['challenge'])
+            self.assertEqual(cells[3], src['charges'])
+            self.assertEqual(cells[4], src['credit'])
+            self.assertEqual(cells[5], src['net_limit'])
 
 
 if __name__ == '__main__':
