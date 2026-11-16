@@ -29,6 +29,17 @@ Review vehicle: [PR #1159](https://github.com/humanaios-ui/operations/pull/1159)
      raises the chance that a flaw survives into a run; the packet in
      `EXTERNAL_REVIEW_PACKET.md` stays available if time later allows.
 
+### Ratification record (added 2026-11-16)
+
+The repository owner stated in-session: "I ratify each value listed above", referring
+to the values in the §2 summary table (F1 to F5). This is recorded as **ratified by
+user instruction in session**. **No signed Z2 hash exists, and REGISTERED.md has not
+been touched.** The wording "proposed" elsewhere in this file is kept for the original
+text; the values are implemented as constants in `harness_shared_mistake.py`.
+Not covered by that statement and still open: §4 items 2 and 3 (provider cache
+unknown; provider log required). The code defaults to flag-only and not-required, as
+explicit parameters. The no-independent-review status in §0 is unchanged.
+
 ## 1. How to read a threshold
 
 A falsifier is a pre-declared observation that, if seen, means the design failed at a
