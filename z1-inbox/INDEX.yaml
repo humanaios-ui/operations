@@ -916,9 +916,13 @@ candidates:
   title: Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs
   path: z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md
   submitted: '2026-09-27'
-  status: awaiting_z2
+  status: ratified
   note: Surfaced incidentally during the ACAT distribution review. 777 of 1,752 tracked files are Markdown vs. ~520 code files; z2_ratification_gate.yml was invalid YAML from its first commit and ran 122 times with zero executed steps before being fixed.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "a9023076184b1351f6716b61bc1784e7921b63d17458f8447808f5d55e01e6ee"
 - q_id: Q-GATE-BYPASS-LEDGER-01
   title: Merges through non-required-but-meaningful gates leave no in-repo trace
   path: z1-inbox/2026-09-27/F-CAND-SILENT-GATE-BYPASS-01.md
