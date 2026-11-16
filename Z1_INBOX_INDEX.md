@@ -97,7 +97,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
-| 2026-11-18 | **Q-SHARED-MISTAKE-CONTROLS-01** | Falsifier thresholds F1-F5 and NO_EXCHANGE receipt design for the v0.3 shared-mistake negative control (offline, not run) | `z1-inbox/2026-11-16/Q-SHARED-MISTAKE-CONTROLS-01.md` |
+| 2026-11-18 | **Q-SHARED-MISTAKE-CONTROLS-01** | Falsifier threshold values F1-F5 for the v0.3 shared-mistake negative control (values only; offline, not run) | `z1-inbox/2026-11-16/Q-SHARED-MISTAKE-CONTROLS-01.md` |
 
 ## Decided (39)
 
