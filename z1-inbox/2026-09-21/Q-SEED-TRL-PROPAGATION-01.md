@@ -239,7 +239,21 @@ That section transcribes what Night said in session on 2026-09-21 ("ratify trl d
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: ratify 1
+by: Z1-prepared (not an identity claim)
+at: 2026-11-16T14:51:09Z
+status: DECIDED
+block_hash: eb8385cb456f2df0486701201fdf19f1b1210bde09ef96cadbfdfd359efea656
+body_hash: fd9272863bf30326453e1fd564b62f5be51a25f9fbefbd2a01052a87042ff250
+
+```
+RULING z1-seedtrl-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Ratify item 1 of the reshaped ask of Q-SEED-TRL-PROPAGATION-01: treat TRL as derived, and ratify a derivation (a named rubric and per-level evidence) before any TRL value is propagated again; the rubric is not named here and no existing TRL value is confirmed or revoked?
+  choice: ratify 1
+  note: 
+  at: 2026-11-16T14:51:09Z
+  status: DECIDED
+```
+
