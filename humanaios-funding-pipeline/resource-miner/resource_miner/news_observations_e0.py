@@ -93,6 +93,15 @@ def _public_url(value: object) -> str:
                 or host.endswith((".local", ".internal", ".localhost", ".test", ".invalid"))
                 or any(ord(c) < 32 for c in value)):
             raise NewsObservationRejected("Public HTTPS URL required")
+        # Reject malformed DNS labels and ambiguous legacy IPv4 spellings.
+        # Decimal/octal/hex host segments may resolve as loopback even when
+        # ipaddress.ip_address() does not recognize the spelling.
+        labels = host.split(".")
+        if (len(host) > 253 or any(
+            not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+            for label in labels
+        ) or all(re.fullmatch(r"(?:0x[0-9a-f]+|[0-9]+)", label) for label in labels)):
+            raise NewsObservationRejected("Invalid or IP-like source hostname")
         try:
             ipaddress.ip_address(host)
         except ValueError:
@@ -111,7 +120,10 @@ def _public_url(value: object) -> str:
                 raise NewsObservationRejected("URL query value too long")
             cleaned_query.append((key, val))
         safe = urlunsplit(("https", host, parts.path or "/", urlencode(cleaned_query), ""))
-        return canonicalize_url(safe)
+        canonical = canonicalize_url(safe)
+        if len(canonical) > MAX_URL:
+            raise NewsObservationRejected("Canonical URL exceeds limit")
+        return canonical
     except ValueError as exc:
         if isinstance(exc, NewsObservationRejected):
             raise
