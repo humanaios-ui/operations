@@ -33,9 +33,10 @@ reported net.
 ## Seeds
 
 Calibration families start at `8100000`. Holdout families start at `8200000`.
-They are disjoint from the 24 calibration seeds, the 120 holdout seeds, the
-`harness_shared_mistake` SE-0 band (around 20000, n up to 999), and the
-#1241 SE-0 band at `7000000` / `8000000` for n up to 100000.
+They are disjoint from the 24 calibration seeds, the 120 holdout seeds, and
+the SE-0 seed band at `7000000` / `8000000` for n up to 100000. That band is
+`harness.schedule(include_se0=True, ...)` when this tree has that parameter,
+and the same integers otherwise. The test does not call `se0_schedule()`.
 
 A #1241 SE-0b schedule with n greater than 100000 would reach `8100000`.
 No such size is proposed. The bases above are kept because they were the

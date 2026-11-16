@@ -2,17 +2,25 @@
 
 Sizes and thresholds are pending Night. Synthetic generator checks only.
 """
+import inspect
 import json
 import pathlib
 import unittest
 from collections import Counter
 
-import harness_shared_mistake
 import oracle_independent
 import passing_task_cohort as cohort
 from harness import calibration_schedule, schedule, sha, task, violates
 
 RECEIPT = json.loads(pathlib.Path(__file__).with_name('freeze_receipt.json').read_text())
+
+
+def _se0_task_seeds(n):
+    """Seeds for the single SE-0 schedule. Does not call se0_schedule()."""
+    if 'include_se0' in inspect.signature(schedule).parameters:
+        rows = schedule(include_se0=True, se0_seed=1, se0_n=n)
+        return {row['task_seed'] for row in rows if str(row.get('arm', '')).startswith('SE-0')}
+    return {7000000 + j * 1000000 + i for j in (0, 1) for i in range(n)}
 
 
 def _pairs(block):
@@ -93,13 +101,14 @@ class PassingTaskCohortTests(unittest.TestCase):
         self.assertEqual(len(hold_seeds), 20)
         occupied = {row['task_seed'] for row in schedule()}
         occupied |= {row['task_seed'] for row in calibration_schedule()}
-        occupied |= {row['task_seed'] for row in harness_shared_mistake.se0_schedule(999)}
-        # #1241 opt-in band. n=100000 stays just below 8100000. n=100001 would meet it.
-        se0_1241 = {7000000 + j * 1000000 + i for j in (0, 1) for i in range(100000)}
+        # One SE-0 schedule path: harness.schedule(include_se0=True) once that
+        # parameter is on this tree. Until then, the same integers #1241 uses:
+        # 7000000 + arm_index * 1000000 + i. n=100000 stays below 8100000.
+        se0_seeds = _se0_task_seeds(100000)
         self.assertFalse(cal_seeds & occupied)
         self.assertFalse(hold_seeds & occupied)
-        self.assertFalse(cal_seeds & se0_1241)
-        self.assertFalse(hold_seeds & se0_1241)
+        self.assertFalse(cal_seeds & se0_seeds)
+        self.assertFalse(hold_seeds & se0_seeds)
         self.assertIn(8100000, {7000000 + 1 * 1000000 + i for i in range(100001)})
         self.assertEqual(len(schedule()), 120)
         self.assertEqual(len(calibration_schedule()), 24)
