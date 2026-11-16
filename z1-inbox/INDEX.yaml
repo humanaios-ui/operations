@@ -722,9 +722,13 @@ candidates:
   title: Regenerate the data SSOT — contaminated v0.1 corpus retained as lesson artifact, not corrected figures
   path: z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Records a Z2 position stated in session (Night, 2026-09-21) reframing the corpus question: v0.1 is contaminated, that is the lesson, regenerate the SSOT rather than correct the numbers. Supersedes the Option A/B framing of Q-CORPUS-STATS-RECONCILE-01. Finds that submission_purity already stratifies the contamination, so clean derivation is a WHERE clause. Also answers pseudonymous login (did:key / anonymous token, both primitives already in the tree), bidirectional influence measurement as an H- candidate not a capability, and HA-000 as a milestone with a not-Z1 administrator. UNVERIFIED: Supabase connector needs authorization; live table not queried.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "842bc245987d30da8fcc74f6bea421c3c87fbf9c7d57c23a40ca52b8e692470a"
 - q_id: Q-GATE-PATHS-TEST-LOGIC-01
   title: A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2
   path: z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md
