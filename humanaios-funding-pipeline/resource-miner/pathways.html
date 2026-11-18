@@ -74,6 +74,31 @@ code{color:#bdf4e2;word-break:break-all}#empty{padding:16px}
 </div>
 <p id="stageInfo" aria-live="polite">Choose a stage to inspect its measured meaning.</p>
 </section>
+<section class="board" id="capabilityE1" aria-labelledby="e1Heading">
+<h2 id="e1Heading">Resource-to-Capability E1 · Witness-style review</h2>
+<p class="muted">Explore a possible route from a synthetic capability to an existing Miner need, a source observation and a future portfolio proof. No private profile is read. These are hypotheses, not credentials, market forecasts or eligibility findings.</p>
+<div class="filters">
+<label for="e1Focus">Example capability
+<select id="e1Focus">
+<option value="quality">Quality systems and audit operations</option>
+<option value="evaluation">AI evaluation and assurance</option>
+<option value="research">Scientific research and delivery</option>
+<option value="solo">Independent consulting and paid projects</option>
+</select></label>
+</div>
+<div class="flex">
+<section class="panel" aria-label="E1 candidate choices">
+<h3>Resource paths to inspect</h3>
+<div class="list" id="e1List"></div>
+</section>
+<section class="panel" aria-label="E1 evidence and limitations">
+<h3>Source, gates and possible proof</h3>
+<div id="e1Detail" aria-live="polite">Reading the existing resource snapshot…</div>
+</section>
+</div>
+<div class="branchwrap"><svg id="e1Graph" viewBox="0 0 1060 220" role="img" aria-label="Synthetic capability to Miner need, observed resource candidate, and unearned future proof"></svg></div>
+<p class="meta" id="e1Summary" role="status">Read-only · source status unknown.</p>
+</section>
 <div class="flex">
 <section class="panel" aria-labelledby="resourcesHeading">
 <h2 id="resourcesHeading">Candidate paths</h2>
@@ -116,6 +141,76 @@ const stageHelp=[
 "No independent beneficiary outcome source is connected. A dash means not measured here, not zero real-world benefit."
 ];
 const view={data:null,mode:"stored",selected:null,stage:0,limit:10,busy:false};
+// E1 uses existing /api/pathways observations and synthetic capability examples.
+// No transcripts, resumes, cookies, local storage or private files are read.
+const e1Foci=[
+{id:"quality",label:"Quality systems and audit operations",needs:["contracts-procurement","training-credentials","revenue-capital"]},
+{id:"evaluation",label:"AI evaluation and assurance",needs:["external-validation","research-collaboration","training-credentials"]},
+{id:"research",label:"Scientific research and delivery",needs:["research-collaboration","revenue-capital","visibility-dissemination"]},
+{id:"solo",label:"Independent consulting and paid projects",needs:["contracts-procurement","revenue-capital","training-credentials"]}
+];
+const e1Kinds={training:["TRAINING","Issuer-confirmed earned credential"],certification:["CERTIFICATION","Issuer-confirmed earned credential"],competition:["CHALLENGE","Accepted submission or reviewed work"],hackathon:["HACKATHON","Accepted submission or reviewed work"],grant:["GRANT","Award and accepted funded work"],bounty:["BOUNTY","Accepted report and payout"],paid_work:["GIG","Client acceptance and payment"],procurement:["CONTRACT","Executed contract and accepted work"],fellowship:["FELLOWSHIP","Provider-confirmed completion"],entitlement:["ENTITLEMENT","Official eligibility and benefit receipt"],rebate:["REIMBURSEMENT","Approved reimbursement receipt"],research_access:["RESEARCH ACCESS","Reviewed research artifact"]};
+const e1Order=Object.values(e1Kinds).map(x=>x[0]).concat("OTHER");
+let e1SelectedId=null;
+function e1Kind(p){
+ const raw=Array.isArray(p.resource_types)?p.resource_types:[];
+ const kind=Object.keys(e1Kinds).find(t=>raw.includes(t));
+ return kind?e1Kinds[kind]:["OTHER","External proof, not yet established"];
+}
+function e1Candidates(focus){
+ const ids=new Set(focus.needs),buckets=new Map();
+ for(const p of (view.data?.paths||[])){
+   if(!Array.isArray(p.need_ids)||!p.need_ids.some(n=>ids.has(n)))continue;
+   const kind=e1Kind(p)[0];if(!buckets.has(kind))buckets.set(kind,[]);
+   buckets.get(kind).push(p);
+ }
+ for(const a of buckets.values())a.sort((x,y)=>String(x.id).localeCompare(String(y.id)));
+ const out=[];
+ while(out.length<11 && [...buckets.values()].some(a=>a.length)){
+   for(const kind of e1Order){if(out.length===11)break;const a=buckets.get(kind);if(a?.length)out.push(a.shift());}
+ }
+ return out;
+}
+function e1Graph(focus,p){
+ const svg=$("e1Graph"),NS="http://www.w3.org/2000/svg";svg.replaceChildren();
+ const add=(tag,attrs,value)=>{const el=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));if(value!==undefined)el.textContent=String(value);svg.append(el);return el;};
+ const card=(x,label,value)=>{
+   add("rect",{x,y:52,width:228,height:112,rx:12,fill:"#213c42",stroke:"#7b9b9d","stroke-width":2});
+   add("text",{x:x+13,y:78,fill:"#bbe9dc","font-size":15,"font-weight":"bold"},label);
+   add("text",{x:x+13,y:111,fill:"#eaf7f3","font-size":16},String(value).slice(0,24));
+ };
+ const arrow=x=>{add("line",{x1:x,y1:107,x2:x+28,y2:107,stroke:"#b8c9c9","stroke-width":2,"stroke-dasharray":"5 6"});add("path",{d:"M"+(x+20)+" 101 L"+(x+28)+" 107 L"+(x+20)+" 113",fill:"none",stroke:"#b8c9c9","stroke-width":2});};
+ card(5,"SYNTHETIC CAPABILITY",focus.label);arrow(234);
+ card(266,"MINER NEED LINK",p?(p.need_ids.find(n=>focus.needs.includes(n))||"not linked"):"no observed link");arrow(495);
+ card(527,"RESOURCE CANDIDATE",p?p.title:"no observed candidate");arrow(756);
+ card(788,"FUTURE PORTFOLIO PROOF",p?e1Kind(p)[1]:"not observed");
+ add("text",{x:8,y:205,fill:"#ebcb90","font-size":13},"Dotted edges = proposed route, not eligibility, authorization, or earned proof.");
+}
+function renderCapabilityE1(){
+ const el=$("e1Focus"),focus=e1Foci.find(f=>f.id===el.value)||e1Foci[0];
+ const candidates=e1Candidates(focus),list=$("e1List"),detail=$("e1Detail");
+ if(!candidates.some(p=>p.id===e1SelectedId))e1SelectedId=candidates[0]?.id||null;
+ list.replaceChildren();
+ candidates.forEach(p=>{
+   const b=node("button","","row");b.type="button";b.setAttribute("aria-pressed",String(p.id===e1SelectedId));
+   b.append(node("strong",p.title),node("small",e1Kind(p)[0]+" · "+p.id));
+   b.addEventListener("click",()=>{e1SelectedId=p.id;renderCapabilityE1();});list.append(b);
+ });
+ const selected=candidates.find(p=>p.id===e1SelectedId);
+ detail.replaceChildren();
+ if(selected){
+   detail.append(node("h3",selected.title),node("p",e1Kind(selected)[0]+" · "+(selected.discovered_at||"observation date unknown"),"meta"));
+   detail.append(node("p","Possible proof: "+e1Kind(selected)[1]+". Not earned or verified.","muted"));
+   detail.append(node("p","Resource need links: "+selected.need_ids.filter(n=>focus.needs.includes(n)).join(", ")+". Matching is not eligibility.","meta"));
+   if(selected.source_url && !/[?#]/.test(selected.source_url)){
+     const a=document.createElement("a");a.href=selected.source_url;a.rel="noopener noreferrer";a.target="_blank";a.textContent="Check original source · no automatic action";detail.append(a);
+   }
+   detail.append(node("p","Next gate: confirm current source and exact requirements. Human approval required before any action.","muted"));
+ }else{detail.append(node("p","No candidate with an explicit matching need was found in this bounded snapshot. This does not mean no opportunities exist.","muted"));}
+ e1Graph(focus,selected);
+ $("e1Summary").textContent="E1 · "+candidates.length+" of at most 11 advisory paths · Synthetic capability only · Source mode: "+(view.data?.origin||"UNAVAILABLE")+" · No market forecast, eligibility, award, or outcome verified.";
+}
+
 const esc=s=>String(s??"");
 function node(tag,text,cls){const n=document.createElement(tag);if(cls)n.className=cls;n.textContent=esc(text);return n;}
 function spanValue(n){return n===null||n===undefined?"—":esc(n);}
@@ -213,13 +308,14 @@ const options=[...d.needs];const saved=$("need").value;$("need").replaceChildren
 const all=document.createElement("option");all.value="";all.textContent="All needs";$("need").append(all);
 options.forEach(n=>{const opt=document.createElement("option");opt.value=n.id;opt.textContent=n.label;$("need").append(opt);});
 if(options.some(x=>x.id===saved))$("need").value=saved;
-renderStages();renderList();renderCoverage();
+renderStages();renderList();renderCoverage();renderCapabilityE1();
 $("state").textContent="Read-only · "+d.origin.replaceAll("_"," ").toLowerCase();
 $("stamp").textContent="Read at "+d.sampled_at+" · Latest candidate observation: "+(d.observed_at_latest||"unknown")+" · "+d.refresh_semantics.replaceAll("_"," ").toLowerCase()+".";
 $("caveat").textContent=d.oldest_possible_warning+" "+(d.source_status?"Source state: "+d.source_status+". ":"")+"No eligibility, approval, acquisition or benefit is established by this graph.";
-}catch(e){$("state").textContent="Unavailable · "+e.message;$("stamp").textContent="No fresh observation was obtained. Do not treat previously drawn paths as current.";}
+}catch(e){view.data=null;renderCapabilityE1();$("state").textContent="Unavailable · "+e.message;$("stamp").textContent="No fresh observation was obtained. Do not treat previously drawn paths as current.";}
 finally{view.busy=false;$("stored").disabled=false;$("public").disabled=false;}
 }
+$("e1Focus").addEventListener("change",()=>{e1SelectedId=null;renderCapabilityE1();});
 $("stored").addEventListener("click",()=>load("stored"));
 $("public").addEventListener("click",()=>load("public"));
 $("query").addEventListener("input",()=>{view.limit=10;if(view.data)renderList();});
