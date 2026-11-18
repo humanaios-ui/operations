@@ -97,6 +97,11 @@ code{color:#bdf4e2;word-break:break-all}#empty{padding:16px}
 </section>
 </div>
 <div class="branchwrap"><svg id="e1Graph" viewBox="0 0 1060 220" role="img" aria-label="Synthetic capability to Miner need, observed resource candidate, and unearned future proof"></svg></div>
+<details id="interpretationLens" class="panel">
+<summary>Witness interpretation lens · philosophical inspiration, not evidence</summary>
+<p class="muted">The Principle of Mentalism appears in <a href="https://www.gutenberg.org/ebooks/14209" target="_blank" rel="noopener noreferrer">The Kybalion (1908)</a>. It is an attributed philosophical view, not a scientific finding or universal Masonic doctrine. Here, its practical analogy is intentional planning—not thought creating external events. Witness is a source-checking role; no conversational agent is called by this display.</p>
+<ol id="epistemicLens" aria-live="polite" aria-label="Belief, hypothesis, action, observed-result boundaries"></ol>
+</details>
 <p class="meta" id="e1Summary" role="status">Read-only · source status unknown.</p>
 </section>
 <div class="flex">
@@ -186,6 +191,20 @@ function e1Graph(focus,p){
  card(788,"FUTURE PORTFOLIO PROOF",p?e1Kind(p)[1]:"not observed");
  add("text",{x:8,y:205,fill:"#ebcb90","font-size":13},"Dotted edges = proposed route, not eligibility, authorization, or earned proof.");
 }
+function renderInterpretationLens(focus,selected){
+ const list=$("epistemicLens");list.replaceChildren();
+ const seen=selected ? "A Miner candidate record exists ("+(selected.discovered_at||"date unknown")+"); its currentness is not independently confirmed." : "No candidate record with a matching need was observed in this bounded view.";
+ const states=[
+ ["BELIEF / ATTRIBUTED PHILOSOPHY","Mentalism in The Kybalion (1908) is a philosophical claim. It is not an empirical claim about the selected resource or a statement of the operator's beliefs."],
+ ["HYPOTHESIS","A synthetic "+focus.label+" example might connect to "+(selected?selected.title:"an as-yet-unobserved resource")+". Relevance is not eligibility or guaranteed benefit."],
+ ["ACTION / PROPOSED","Human may review the original provider and its current terms. No application, grant, purchase, credential award or execution has happened here."],
+ ["OBSERVED RESULT / NOT ESTABLISHED",seen+" No independent action or benefit receipt exists in this E1 view; outcome is UNVERIFIED."]
+ ];
+ for(const [label,description] of states){
+   const item=node("li",""),head=node("strong",label),desc=node("p",description,"muted");
+   item.append(head,desc);list.append(item);
+ }
+}
 function renderCapabilityE1(){
  const el=$("e1Focus"),focus=e1Foci.find(f=>f.id===el.value)||e1Foci[0];
  const candidates=e1Candidates(focus),list=$("e1List"),detail=$("e1Detail");
@@ -208,6 +227,7 @@ function renderCapabilityE1(){
    detail.append(node("p","Next gate: confirm current source and exact requirements. Human approval required before any action.","muted"));
  }else{detail.append(node("p","No candidate with an explicit matching need was found in this bounded snapshot. This does not mean no opportunities exist.","muted"));}
  e1Graph(focus,selected);
+ renderInterpretationLens(focus,selected);
  $("e1Summary").textContent="E1 · "+candidates.length+" of at most 11 advisory paths · Synthetic capability only · Source mode: "+(view.data?.origin||"UNAVAILABLE")+" · No market forecast, eligibility, award, or outcome verified.";
 }
 
