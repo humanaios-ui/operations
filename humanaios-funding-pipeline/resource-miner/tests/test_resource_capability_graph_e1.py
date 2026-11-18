@@ -80,6 +80,32 @@ class E1ReadOnlyTests(unittest.TestCase):
         self.assertIn("out.length<11", page)
         self.assertIn('if(selected.source_url && !/[?#]/.test(selected.source_url))', page)
 
+    def test_philosophical_attribution_cannot_become_eligibility(self):
+        page = (ROOT / "pathways.html").read_text(encoding="utf-8")
+        self.assertIn('id="interpretationLens"', page)
+        self.assertIn('id="epistemicLens"', page)
+        self.assertIn("The Kybalion (1908)", page)
+        self.assertIn("not a scientific finding or universal Masonic doctrine", page)
+        self.assertIn("BELIEF / ATTRIBUTED PHILOSOPHY", page)
+        self.assertIn("HYPOTHESIS", page)
+        self.assertIn("ACTION / PROPOSED", page)
+        self.assertIn("OBSERVED RESULT / NOT ESTABLISHED", page)
+        self.assertIn("No independent action or benefit receipt exists", page)
+        self.assertIn("No conversational agent is called", page)
+        result = project([sample()])
+        self.assertEqual(result["paths"][0]["eligibility"], "NOT_ASSESSED")
+        self.assertEqual(result["paths"][0]["authority"], "NONE")
+        self.assertIsNone(result["counts"]["verified_human_outcomes"])
+
+    def test_philosophical_reference_is_separate_research_note(self):
+        note = (ROOT.parents[2] / "docs" / "research" / "MENTALISM_INTENT_ACTION_E0.md")
+        self.assertTrue(note.is_file())
+        content = note.read_text(encoding="utf-8")
+        self.assertIn("https://www.gutenberg.org/ebooks/14209", content)
+        self.assertIn("Scientific evidence state", content)
+        self.assertIn("doctrine", content)
+        self.assertIn("UNVERIFIED", content)
+
     def test_home_link_is_guarded_by_local_route(self):
         home = (ROOT / "intent-os.html").read_text(encoding="utf-8")
         self.assertIn('id="capabilityE1Link" hidden', home)
