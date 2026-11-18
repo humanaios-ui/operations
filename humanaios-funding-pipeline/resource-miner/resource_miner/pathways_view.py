@@ -13,6 +13,12 @@ from typing import Any
 from .intent_os import _public_https
 
 MAX_CANDIDATES = 200
+# Machine-readable mechanisms, not qualifications or eligibility decisions.
+E1_PUBLIC_RESOURCE_TYPES = frozenset({
+    "training", "certification", "competition", "hackathon", "grant",
+    "bounty", "paid_work", "procurement", "fellowship", "entitlement",
+    "rebate", "research_access",
+})
 
 
 def _text(value: Any, limit: int = 180) -> str:
@@ -113,6 +119,11 @@ def project_pathways(
             "mine_id": explicit_mine or None,
             "mine_binding": "EXPLICIT" if explicit_mine else "UNBOUND_SOURCE",
             "need_ids": need_ids,
+            # E1 uses only declared types, never title-based category guesses.
+            # This field preserves the existing private, local-only route boundary.
+            "resource_types": sorted({t for t in (row.get("resource_types") or [])
+                                       if isinstance(t, str) and t in E1_PUBLIC_RESOURCE_TYPES})[:8]
+                              if isinstance(row.get("resource_types"), list) else [],
             "requirement_ids": requirement_ids,
             "route": _text(row.get("route"), 35) or "UNKNOWN",
             "discovered_at": discovered_at,
