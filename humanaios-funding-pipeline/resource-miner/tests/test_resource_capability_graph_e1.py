@@ -98,7 +98,7 @@ class E1ReadOnlyTests(unittest.TestCase):
         self.assertIsNone(result["counts"]["verified_human_outcomes"])
 
     def test_philosophical_reference_is_separate_research_note(self):
-        note = (ROOT.parents[2] / "docs" / "research" / "MENTALISM_INTENT_ACTION_E0.md")
+        note = (ROOT.parents[1] / "docs" / "research" / "MENTALISM_INTENT_ACTION_E0.md")
         self.assertTrue(note.is_file())
         content = note.read_text(encoding="utf-8")
         self.assertIn("https://www.gutenberg.org/ebooks/14209", content)
