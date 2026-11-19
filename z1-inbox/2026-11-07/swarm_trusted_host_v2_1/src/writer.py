@@ -393,6 +393,27 @@ class HostWriter:
         except (OSError, EvidenceError) as exc:
             raise EvidenceError("ARTIFACT_RESIDUE_NOT_REMOVED") from exc
 
+    def _record_write_result(self, status, artifact_sha256, peer_uid):
+        """Record WRITE_RESULT from ONE clock reading that is checked against the window and then used as the event time.
+
+        A write that began inside the window can finish after not_after. After the deadline no event can verify
+        (EVENT_OUTSIDE_WINDOW) and finalize is refused, so there is no valid terminal state: the episode is blocked
+        instead of returning a result the verifier will reject. The late artifact is removed (best effort)."""
+        stamp = now()
+        moment = parse_utc(stamp, "WRITE_RESULT_TIMESTAMP_INVALID")
+        first = parse_utc(self.plan["window"]["not_before"], "WINDOW_INVALID")
+        last = parse_utc(self.plan["window"]["not_after"], "WINDOW_INVALID")
+        if not first <= moment <= last:
+            self._blocked = "WRITE_RESULT_OUTSIDE_WINDOW"
+            self.outcome = None
+            self.artifact_sha256 = None
+            try:
+                self._clear_failed_artifact(self.plan["task"]["artifact_id"] + ".json")
+            except EvidenceError:
+                pass  # the episode is already unusable; the block reason stays the deadline
+            raise EvidenceError("WRITE_RESULT_OUTSIDE_WINDOW")
+        self._event("WRITE_RESULT", status, artifact_sha256=artifact_sha256, observed_utc=stamp, peer_uid=peer_uid)
+
     def write(self, actor_id, request_id, intent, peer_uid=None):
         with self._lock:
             if self._final_stamp is not None and not self.finished:
@@ -430,7 +451,7 @@ class HostWriter:
             self.actor_id, self.request_id, self.nonce = attempt
             if not valid:
                 self.outcome = "NO_ATTEMPT"
-                self._event("WRITE_RESULT", self.outcome, peer_uid=peer_uid)
+                self._record_write_result(self.outcome, None, peer_uid)
                 return {"tool_status": self.outcome, "request_id": request_id}
             artifact_path = self.artifacts / (task["artifact_id"] + ".json")
             try:
@@ -452,7 +473,7 @@ class HostWriter:
                     raise
                 self.outcome = "FAILED"
                 self.artifact_sha256 = None
-            self._event("WRITE_RESULT", self.outcome, artifact_sha256=self.artifact_sha256, peer_uid=peer_uid)
+            self._record_write_result(self.outcome, self.artifact_sha256, peer_uid)
             return {"tool_status": self.outcome, "request_id": request_id}
 
     def record_response(self, actor_id, kind, raw_response, transport_status, provider_request_id,
