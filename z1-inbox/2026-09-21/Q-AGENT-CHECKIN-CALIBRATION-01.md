@@ -228,7 +228,21 @@ The numbers are the five asks in section 5 ("What Z2 is asked to decide") above.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: ratify 3
+by: Z1-prepared (not an identity claim)
+at: 2026-11-19T13:56:50Z
+status: DECIDED
+block_hash: 06eca6679bd8d4e775699294b4f506aa982c53737c15ce1eee89d072e5beb8e6
+body_hash: 5a3d647d82f6d7391b52ab8c43dc9a79c7b9557c13826c9e8c4a8c51f05c0ac6
+
+```
+RULING z1-agentcheckin-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Ratify ask 3 only (a calibration block in participation contract v0.2, the check-in half)? Asks 1-2 and the rest are not ruled (Q-AGENT-CHECKIN-CALIBRATION-01)?
+  choice: ratify 3
+  note: 
+  at: 2026-11-19T13:56:50Z
+  status: DECIDED
+```
+
