@@ -64,9 +64,11 @@ class TokenTests(unittest.TestCase):
         class FakeMCP:
             def __init__(self, name, instructions=""):
                 self.names = []
+                self.registered = {}
             def tool(self):
                 def register(func):
                     self.names.append(func.__name__)
+                    self.registered[func.__name__] = func
                     return func
                 return register
         sdk = types.ModuleType("mcp")
@@ -75,6 +77,11 @@ class TokenTests(unittest.TestCase):
         with patch.dict(sys.modules, {"mcp": sdk, "mcp.server": server}):
             result = create_server(types.SimpleNamespace(status=lambda: {}, read_document=lambda *_: {}, talk=lambda *_: {}))
         self.assertEqual(result.names, ["haios_status", "haios_read_document", "haios_self_model", "haios_find_resources", "haios_talk"])
+        # Missing or false consent must fail before the model client is called.
+        for supplied in ({}, {"consent": False}, {"consent": 1}):
+            with self.subTest(supplied=supplied), self.assertRaisesRegex(ValueError, "Explicit consent"):
+                result.registered["haios_talk"]("test request", **supplied)
+        self.assertEqual(result.registered["haios_talk"]("test request", consent=True), {})
 
 
 if __name__ == "__main__":
