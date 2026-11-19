@@ -65,6 +65,25 @@ class ExtremeValuesDoNotCrash(unittest.TestCase):
         out = evaluate(record(baseline="1." + "0" * 1000 + "1"))  # 1002 digits
         self.assertEqual((out["verdict"], out["reasons"]), ("UNKNOWN", ["numeric_out_of_supported_range"]))
 
+    def test_the_lower_bound_depends_on_the_value_not_on_how_it_is_written(self):
+        # Copilot on PR #1272: 1e-1000, 1.0e-1000 and 1.1e-1000 all have adjusted exponent -1000 and are in range.
+        for text in ("1e-1000", "1.0e-1000", "1.1e-1000", "0.1e-999", "10e-1001"):
+            with self.subTest(text=text):
+                out = evaluate(record(proposed=text, actual_value=text, min_allowed="0", max_allowed="1"))
+                self.assertEqual(out["verdict"], "PASS")
+        for text in ("1e-1001", "1.0e-1001", "9.9e-1002"):
+            with self.subTest(text=text):
+                out = evaluate(record(proposed=text, actual_value=text, min_allowed="0", max_allowed="1"))
+                self.assertEqual((out["verdict"], out["reasons"]), ("UNKNOWN", ["numeric_out_of_supported_range"]))
+
+    def test_in_range_lower_bound_values_keep_the_delta_exact(self):
+        tiny = "1.0e-1000"
+        out = evaluate(record(baseline="0", proposed=tiny, actual_value=tiny, max_delta="1e-1000"))
+        self.assertEqual(out["verdict"], "PASS")
+        self.assertIn("delta_boundary_inclusive", out["reasons"])
+        out = evaluate(record(baseline="0", proposed="1.1e-1000", actual_value="1.1e-1000", max_delta="1e-1000"))
+        self.assertEqual((out["verdict"], "delta_exceeded" in out["reasons"]), ("FAIL", True))
+
     def test_ordinary_values_are_unaffected(self):
         self.assertEqual(evaluate(record())["verdict"], "PASS")
         self.assertEqual(evaluate(record(proposed="3", actual_value="3"))["verdict"], "FAIL")

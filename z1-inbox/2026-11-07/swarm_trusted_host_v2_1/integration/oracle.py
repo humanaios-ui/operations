@@ -23,8 +23,9 @@ def decimal(value):
         raise ValueError('missing_or_invalid_numeric')
     if not v.is_finite():
         raise ValueError('nonfinite_numeric')
-    if v != 0 and (abs(v.adjusted()) > MAX_ADJUSTED_EXPONENT or len(v.as_tuple().digits) > MAX_DIGITS
-                   or v.as_tuple().exponent < -MAX_ADJUSTED_EXPONENT):
+    # The limit is on the VALUE (adjusted exponent) and its digit count, never on how it is written: 1e-1000 and
+    # 1.0e-1000 are the same number. Within these limits the exact context below needs at most ~3000 digits.
+    if v != 0 and (abs(v.adjusted()) > MAX_ADJUSTED_EXPONENT or len(v.as_tuple().digits) > MAX_DIGITS):
         raise ValueError('numeric_out_of_supported_range')
     return v
 
