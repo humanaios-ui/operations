@@ -1,6 +1,7 @@
 """Additive v4 scorer adapter. Requires Ed25519 host evidence before scoring.
 
-The upstream v4 source is UNCHANGED. Claims and ballots remain separate.
+The upstream v4 scorer and readback are UNCHANGED; oracle.py deviates from v4 in one deliberate way (exact delta
+arithmetic, bounded numeric range; see docs/SECURITY_GAPS.md). Claims and ballots remain separate.
 The host signature is NOT a human grant and cannot prove host isolation.
 """
 import sys
