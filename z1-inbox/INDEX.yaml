@@ -740,9 +740,13 @@ candidates:
   title: Ratified TRL correction never reached SEED.md — identity anchor still states TRL 2–3
   path: z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: S-061226-02 ratified TRL 2–3 → 4 throughout and OPS_ROADMAP applied it; SEED.md (Class 0, live-fetched at session open) still says 2–3 in three places. 57 tree-wide occurrences of 2–3 against 21 of 4. Same defect class as the molt window. Z1 files, does not edit the seed.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "2f5333da42c63793f95c564f121dfd279c1c82c4638bb84ee527911247ef25a5"
 - q_id: Q-CORPUS-STATS-RECONCILE-01
   title: July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible
   path: z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md
