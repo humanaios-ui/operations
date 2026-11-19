@@ -58,13 +58,6 @@
       "event_id": "RCSEVT-88EB99392AB13430",
       "objective_issue_number": null
     },
-    "PULL_REQUEST#1254": {
-      "admission_scope": "subject:PULL_REQUEST#1254",
-      "admitted_head_sha": "9955ad9f05608d38e6c229a764e3bf09093addd5",
-      "command_ref": "RCC-GITHUB-COMMENT-7011676234",
-      "event_id": "RCSEVT-C39966E263D7FC0D",
-      "objective_issue_number": null
-    },
     "PULL_REQUEST#1264": {
       "admission_scope": "subject:PULL_REQUEST#1264",
       "admitted_head_sha": "4f93f739049dd5ca85abc90bcb19836020583558",
@@ -83,7 +76,6 @@
     "PULL_REQUEST#1203": "RCSEVT-408681334C4B66A8",
     "PULL_REQUEST#1205": "RCSEVT-651F4CE833840521",
     "PULL_REQUEST#1211": "RCSEVT-88EB99392AB13430",
-    "PULL_REQUEST#1254": "RCSEVT-C39966E263D7FC0D",
     "PULL_REQUEST#1264": "RCSEVT-3A83C1053B9D6A89"
   },
   "admitted_issue_numbers": [
@@ -98,7 +90,6 @@
     1203,
     1205,
     1211,
-    1254,
     1264
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
@@ -421,14 +412,15 @@
     "RCC-GITHUB-RECONCILE-44538501251-PR-1252-MERGED",
     "RCC-GITHUB-RECONCILE-44543842500-PR-1264-HEAD-MOVED-4f93f739049dd5ca85abc90bcb19836020583558",
     "RCC-GITHUB-RECONCILE-44544033845-PR-1263-MERGED",
+    "RCC-GITHUB-RECONCILE-44544298401-PR-1254-CLOSED",
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "3a83c1053b9d6a891409efc9983c21620aa465c31410416f8ebd4b47170841fb",
-  "last_event_id": "RCSEVT-3A83C1053B9D6A89",
-  "last_sequence": 345,
-  "ledger_event_count": 345,
-  "ledger_sha256": "9dd02e5d49ae17fc3f5bd7f433b3864e62be9afb1b7cbde018a6253c233dd951",
+  "last_event_hash": "dcf26be779946f8949711359e8825037fc7c1a4c735c20ee6e969861c751ae1f",
+  "last_event_id": "RCSEVT-DCF26BE779946F89",
+  "last_sequence": 346,
+  "ledger_event_count": 346,
+  "ledger_sha256": "6f7713052d654b1b779b20f24184e68a7870a86296e8f2960f4b625b5a0f842c",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
