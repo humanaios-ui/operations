@@ -751,9 +751,13 @@ candidates:
   title: July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible
   path: z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: audits/CORPUS_RECONCILIATION_S-070226.md is a Zone 1 submission-blocking finding offering Option A/B; no selection recorded. SEED.md still canonicalises N=629 / N_LI=307 / mean LI 0.8632 against the audit's 608 / 0.8431 raw / 0.8572 cleaned. Three live statistic sets. Z2 selects the option; Z1 does not set published research figures.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-19"
+  z2_ruling: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  z2_hash: "5197f46860d8847540e4b03814bf7b17759d030f13739be2c9fb657f7e1851f7"
 - q_id: Q-GRAPH-CONVERGENCE-01
   title: Grade agreement between agent-authored graphs by source disjointness, not similarity
   path: z1-inbox/2026-09-21/Q-GRAPH-CONVERGENCE-01.md
@@ -769,9 +773,13 @@ candidates:
   title: Five artifacts whose link to their referent died while the artifact stayed alive
   path: z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md
   submitted: '2026-09-22'
-  status: awaiting_z2
+  status: ratified
   note: 'Reframes four open candidates as one class. A11 protecting a property A13 made irrelevant; a claim that molt closure was already solved when MOLT_STATE.md says PROPOSED; 0.8632 copied 38 times from a corpus that stopped reproducing it; Check principles (P19) reporting green without opening a file; the stop hook flagging a squash-merge as unshipped work. None was false when written. The repository checks assertions and checks sources and has nothing that checks the edge between them - a diagnosis already written in AGENT_GRAPH_COMPARISON.md before four of the five instances occurred. Names the asymmetry that makes an inert gate worst: wrong prose is neutral evidence, a green check is positive evidence. Five options ranked, none built; the falsifier concedes no single option catches all five and invites Z2 to split the class if that is too loose.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-19"
+  z2_ruling: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  z2_hash: "7392a2e7cd2b715de74573d614b805721dcf91633186ec19afb36809fe25a899"
 - q_id: Q-A11-ORDERING-INERT-01
   title: A11 still enforces a property no grade depends on
   path: z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md
