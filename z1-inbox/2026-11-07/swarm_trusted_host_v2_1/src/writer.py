@@ -160,8 +160,12 @@ def secure_dir(path):
     return path
 
 
-def _open_parent_fd(path):
+def _open_parent_fd(path, trusted_uids=frozenset()):
     """Pin the full parent chain before an evidence read/write.
+
+    trusted_uids is for READS by an independent verifier only: it adds UIDs (the host UID frozen into the plan) that
+    may own the containing directory and its ancestors besides the caller. It never relaxes the other checks (no
+    symlinks, nothing writable by others, no ACL). The writer's own paths pass nothing, so they stay strict.
 
     The leaf operation must be relative to this open directory handle; a rename
     after validation cannot redirect it through a substituted pathname.
@@ -172,6 +176,8 @@ def _open_parent_fd(path):
         raise EvidenceError("PATH_NOT_NORMALIZED")
     flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
     euid = os.geteuid()
+    parent_owners = {euid} | set(trusted_uids)
+    ancestor_owners = {0, euid} | set(trusted_uids)
     fd = os.open(path.parts[0], flags)
     try:
         for index, component in enumerate(path.parts[1:-1], start=1):
@@ -181,9 +187,9 @@ def _open_parent_fd(path):
             info = os.fstat(fd)
             is_parent = index == len(path.parts) - 2
             if is_parent:
-                if info.st_uid != euid:
+                if info.st_uid not in parent_owners:
                     raise EvidenceError("DIRECTORY_NOT_HOST_OWNED")
-            elif info.st_uid not in (0, euid):
+            elif info.st_uid not in ancestor_owners:
                 raise EvidenceError("ANCESTOR_NOT_HOST_OWNED")
             if info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX:
                 raise EvidenceError("ANCESTOR_WRITABLE_BY_OTHERS")
@@ -223,14 +229,24 @@ def new_file(path, contents):
     _new_file_fd(path, contents)
 
 
-def open_read_no_follow(path):
-    parent, name = _open_parent_fd(path)
+def open_read_no_follow(path, trusted_uids=frozenset()):
+    """Read one regular file relative to a pinned parent, never following a link.
+
+    O_NONBLOCK keeps a FIFO from hanging the open (it would wait for a writer before the type check could run), the
+    type is checked on the descriptor that is read, and the descriptor is closed on every path."""
+    parent, name = _open_parent_fd(path, trusted_uids)
     try:
-        fd = os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) |
-                     getattr(os, "O_CLOEXEC", 0), dir_fd=parent)
-        with os.fdopen(fd, "rb") as handle:
-            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+        fd = os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+                     | getattr(os, "O_NONBLOCK", 0), dir_fd=parent)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
                 raise EvidenceError("NOT_A_REGULAR_FILE")
+            handle = os.fdopen(fd, "rb")
+            fd = None                     # the file object owns it now
+        finally:
+            if fd is not None:
+                os.close(fd)
+        with handle:
             return handle.read()
     finally:
         os.close(parent)
