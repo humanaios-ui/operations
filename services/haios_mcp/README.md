@@ -8,7 +8,7 @@ This is an **installable MCP adapter** for the existing HumanAIOS **Unit Zero** 
 
 The intended transfer is **Unit Zero's conversational Witness role and bounded self-model**, not migration of Claude model state, consciousness, or old chat history. HumanAIOS-as-organism is a design metaphor; subjective awareness is **NOT_ESTABLISHED**. The local context files are *manually copied snapshots* and not live synchronized GitHub state. The Phase-0 Witness service obligations are authoritative for research interpretation; no production consent/data plane is authorized. See [`WITNESS_INTEGRATION_V0_2.md`](WITNESS_INTEGRATION_V0_2.md).
 
-The Anthropic Messages API now uses **streaming** after the operator verified that a full-context nonstreaming request raised `ReadError` while a streamed request succeeded on the Mac. This code has **not** yet been installed or exercised through a live MCP call. A response SHA-256 is an unsigned content digest, not an attestation.
+The Anthropic Messages API now uses **streaming** after the operator verified that a full-context nonstreaming request raised `ReadError` while a streamed request succeeded on the Mac. One isolated **operator-reported candidate E2** MCP call passed on 2026-11-19 using source commit `1c40658814853ff7a721567c524929d8b7795051`; it is **not** independent attestation, an installed service, or deployment. All three public documents were clipped to the bounded model context. See the receipt on PR #1012. A response SHA-256 is an unsigned content digest, not an attestation.
 
 **Resource Miner adapter:** Optional, disabled by default. Set `HAIOS_RESOURCE_MINER_ORIGIN=http://127.0.0.1:8766` **only after running and verifying a compatible public Resource Miner listener on that port**, then restart the LaunchAgent to load that nonsecret environment setting. Do not add private objectives, applicant identifiers or credentials to this public query. The tool issues snapshot-only public candidate queries; it will never run scans, private HackerOne API discovery or grant eligibility evaluation. Never expose the local listener publicly. No manual credential placement in plists is required.
 
@@ -32,7 +32,7 @@ The previous installer accidentally required `START_HERE.md`, which may be absen
 
 ## Requirements
 
-- Python 3.10+ and internet access to Anthropic API when calling `haios_talk`.
+- Python 3.13 on the operator's Intel Mac for the reviewed isolated pilot (Python 3.15 failed a `cryptography` source build); provider API access is used **only** after explicit per-request consent.
 - An existing operations checkout containing `CURRENT.md` and `REGISTERED.md` as regular files. `START_HERE.md` is optional.
 - Anthropic API key held **locally**, never in the repository.
 - Python MCP v2 and Anthropic SDK (installed with this package). `mcp>=2.2,<3` matches the operations repository's declared SDK major; consult `tools/requirements.txt` before a future upgrade.
@@ -53,11 +53,25 @@ export HAIOS_REPO_ROOT="$PWD"
 .venv-haios-mcp/bin/haios-mcp --transport stdio
 ```
 
-STDIO mode is designed to be **launched by an MCP client**, not chatted with manually. It emits protocol traffic to stdout. Run an MCP inspector/client against the executable to see its three tools. Configure your local MCP client with an explicit command and environment pointing to your operations checkout; do not put the API key in a world-readable settings file.
+STDIO mode is designed to be **launched by an MCP client**, not chatted with manually. It emits protocol traffic to stdout. Run an MCP inspector/client against the executable to see its five tools. Configure your local MCP client with an explicit command and environment pointing to your operations checkout; do not put the API key in a world-readable settings file.
 
-### macOS LaunchAgent (general background service)
+### Reversible INTENT-OS E0.3 pilot staging (preferred; no activation)
 
-A loopback-only HTTP service is also provided for user-owned, on-login operation:
+For the operator's **existing E0.3 checkout**, first inspect and then explicitly stage the v0.2 candidate. The staging command verifies Python 3.13 and the three pinned public document SHA-256 values from the operator's E2 receipt. It creates isolated Application Support directories only after `--stage`, installs an isolated venv, and **does not start a process**, register a LaunchAgent, change E0.3, fetch private data, or make an Anthropic call:
+
+```sh
+bash services/haios_mcp/scripts/stage_e03_pilot_macos.sh --preflight "$HOME/intent-os-e0-3-reconciled-test"
+# Separate human approval + independent review required before the next command:
+# bash services/haios_mcp/scripts/stage_e03_pilot_macos.sh --stage "$HOME/intent-os-e0-3-reconciled-test"
+# To remove only the pilot's two marked directories, with 8768 stopped:
+# bash services/haios_mcp/scripts/stage_e03_pilot_macos.sh --rollback
+```
+
+A staged copy cannot answer through INTENT-OS until a separate consented launch, Keychain/credential setup and E0.3 bridge integration have passed review. The existing bridge is off by default and currently does not supply the new `consent=True` MCP argument; **do not enable it** until a separate compatible bridge patch has passed tests. The `haios_talk` tool now rejects requests missing `consent=True` before any provider call; this flag is a client attestation, **not independent proof** of a human click. An approved client must show fresh explicit human consent before each call. No automatic retries or scheduled model calls are authorized.
+
+### macOS LaunchAgent (general background service; not for E0.3 pilot without separate approval)
+
+A loopback-only HTTP service is also provided for user-owned, on-login operation, but the legacy installer **requires explicit Python 3.13** and is **not the reversible E0.3 pilot path**. Do not run it until a separate human installation decision and macOS security review:
 
 ```sh
 # Run from the unpacked package, e.g. ~/Downloads/haios-mcp-service
