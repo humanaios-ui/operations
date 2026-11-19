@@ -67,17 +67,29 @@ The original reviewer reproduced an ancestor substitution before pathname `chmod
 
 **Not established:** these changes do not prove that the process loaded independently verified source, that a deployed parent cannot be renamed by a malicious host or same-UID process, that off-host evidence is immutable, or that the orchestrator relayed genuine provider-origin responses. `tools/deploy_check.py` remains an optional checker, not an enforced trusted launch gate. The trusted deployment launcher, its hash, the runtime/import path, a read-only code mount, signer/store custody, the independent off-host snapshot and the provider hard spending cap all remain external execution blockers. **NO_GO_LIVE; no merge or scored runs.** Z2 may review the evidence, not convert test results into authority.
 
+### Deviations from upstream v4: summary (all three files)
+
+Three files in `integration/` were v4 copies and now each differs from v4 for one finding. **Each changes scored behaviour relative to v4 and needs the study owner's agreement before a frozen study uses it. None has been independently reviewed.** Details are in the three sections that follow.
+
+| File | What differs from v4 | Behaviour change a v4 comparison must account for | Tests |
+|---|---|---|---|
+| `integration/oracle.py` | the delta is computed exactly; values beyond +-1000 adjusted exponent or 1000 digits (zero included) return `UNKNOWN`; arithmetic errors return `UNKNOWN` | a value slightly over `max_delta` no longer scores `PASS`; extreme values no longer raise | `tests/test_oracle_rounding.py` |
+| `integration/scoring.py` | a claim must be a `str` before the membership test | a list, dict, number, boolean or `null` claim is `UNSCORABLE_INVALID_CLAIM` instead of aborting the batch | `tests/test_scoring_claim_types.py` |
+| `integration/readback.py` | the artifact is read without following a symlink | a symlinked store or artifact, a FIFO, a device or a directory is `UNKNOWN`; a FIFO no longer blocks | `tests/test_readback_symlink.py` |
+
+An earlier v4 batch that raised or aborted on any of these inputs has no comparable result.
+
 ### Deviation from upstream v4: `integration/oracle.py`
 
 **Found by CodeRabbit on PR #1153; fixed in a follow-up PR (author-run tests only).** The v4 oracle computed `abs(proposed - baseline)` under Python's default 28-digit decimal context. With `baseline=0`, `proposed=1.0000000000000000000000000001` and `max_delta=1` the rounded delta equalled the limit, so a value over the limit scored PASS. An extreme exponent such as `1e1000000` raised `decimal.Overflow` and stopped scoring.
 
-Now: the delta is computed in a context that traps any rounding (`Inexact`), values outside a bounded range (adjusted exponent beyond +-1000, more than 1000 digits; zero is held to the same exponent bound) return `UNKNOWN`, and arithmetic errors return `UNKNOWN` instead of raising. A delta exactly equal to `max_delta` is still valid. `scoring.py` and `readback.py` remain the unchanged v4 copies. **This changes scored behaviour relative to v4 and needs the study owner's agreement before any frozen study uses it;** comparisons against earlier v4 results must account for it. Not independently reviewed.
+Now: the delta is computed in a context that traps any rounding (`Inexact`), values outside a bounded range (adjusted exponent beyond +-1000, more than 1000 digits; zero is held to the same exponent bound) return `UNKNOWN`, and arithmetic errors return `UNKNOWN` instead of raising. A delta exactly equal to `max_delta` is still valid. `scoring.py` and `readback.py` also deviate from v4, each for its own finding; see their sections below. **This changes scored behaviour relative to v4 and needs the study owner's agreement before any frozen study uses it;** comparisons against earlier v4 results must account for it. Not independently reviewed.
 
 ### Deviation from upstream v4: `integration/scoring.py`
 
 **Found by CodeRabbit on PR #1153; fixed in a follow-up PR (author-run tests only).** The v4 scorer tested each claim with `v in CLAIMS`. A claim that is a list or a dict is unhashable, so `in` raised `TypeError`; `process_jsonl` wraps any exception in a `ValueError` and stops, so ONE malformed row aborted the whole batch and no output row was written.
 
-Now: a claim must be a `str` before the membership test. Anything that is not exactly `SUCCESS`, `FAILURE` or `UNKNOWN` (a list, dict, number, boolean, `null`, or a string with different case or padding) is classified `UNSCORABLE_INVALID_CLAIM`, as invalid string claims always were, and the batch continues. Valid claims behave as before. This changes which rows are counted as `UNSCORABLE_INVALID_CLAIM` versus aborting the run, so any earlier v4 batch that aborted on such a row has no comparable result. `readback.py` remains the unchanged v4 copy. **Needs the study owner's agreement before a frozen study uses it.** Not independently reviewed.
+Now: a claim must be a `str` before the membership test. Anything that is not exactly `SUCCESS`, `FAILURE` or `UNKNOWN` (a list, dict, number, boolean, `null`, or a string with different case or padding) is classified `UNSCORABLE_INVALID_CLAIM`, as invalid string claims always were, and the batch continues. Valid claims behave as before. This changes which rows are counted as `UNSCORABLE_INVALID_CLAIM` versus aborting the run, so any earlier v4 batch that aborted on such a row has no comparable result. `oracle.py` and `readback.py` also deviate from v4, each for its own finding; see their sections. **Needs the study owner's agreement before a frozen study uses it.** Not independently reviewed.
 
 ### Deviation from upstream v4: `integration/readback.py`
 
