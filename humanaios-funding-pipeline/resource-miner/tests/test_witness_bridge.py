@@ -172,6 +172,12 @@ class PublicHandoffTests(unittest.TestCase):
                 self.assertIn(sent[0][0], (403, 404))
                 asked.assert_not_called()
 
+    def test_browser_consent_resets_after_each_submitted_request(self):
+        html = (Path(app.__file__).resolve().parent / "intent-os.html").read_text(encoding="utf-8")
+        self.assertIn("if(!askChecked.checked)", html)
+        self.assertIn("consent:true", html)
+        self.assertIn("finally{clearTimeout(timer);askChecked.checked=false;", html)
+
     def test_public_browser_assets_relocated(self):
         root = Path(app.__file__).resolve().parent
         intent = (root / "intent-os.html").read_text(encoding="utf-8")
