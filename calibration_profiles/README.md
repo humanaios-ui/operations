@@ -2,7 +2,7 @@
 
 **Purpose:** Per-substrate behavioral constraints derived from SMAG gap analysis and meta-feedback, wired into merge gates and Intent-OS runtime.
 
-**Schema:** `WITNESS_STATE_V0_1.schema.json` (extended with `calibration_profile` property)
+**Schema:** `WITNESS_STATE_V0_2.schema.json` (adds seven audit fields to each substrate; ruled `option A` in Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01). `WITNESS_STATE_V0_1.schema.json` stays for v0.1 consumers and does not accept those fields.
 
 **Authority:** Z2 ratification required; profiles expire 90 days and require renewal.
 
