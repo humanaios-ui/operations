@@ -7,6 +7,7 @@ The code here is a prototype, NOT proof of OS isolation or human approval.
 from __future__ import annotations
 
 import base64
+import copy
 import fcntl
 import hashlib
 import json
@@ -106,6 +107,8 @@ def secure_dir(path):
     others (a sticky directory such as /tmp is acceptable). The leaf must be ours and is set to 0700."""
     path = Path(path).absolute()
     parts = path.parts
+    if len(parts) < 2:
+        raise EvidenceError("ANCHOR_PATH_REJECTED")  # "/" alone: fchmod would set the filesystem root to 0700
     if any(part in (".", "..") for part in parts[1:]):
         raise EvidenceError("PATH_NOT_NORMALIZED")
     flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
@@ -291,6 +294,7 @@ def check_plan(plan, key):
 
 class HostWriter:
     def __init__(self, root: Path, private_key: Ed25519PrivateKey, plan: dict, pinned_plan_hash: str):
+        plan = copy.deepcopy(plan)  # a private snapshot: later edits by the caller cannot change what runs
         check_plan(plan, private_key)
         if digest(plan) != pinned_plan_hash:
             raise EvidenceError("PLAN_NOT_FROZEN")
@@ -325,6 +329,7 @@ class HostWriter:
         self.tip = GENESIS
         self.seq = 0
         self.finished = False
+        self._final_stamp = None   # set once SNAPSHOT_FINALIZED is committed; receipt publication may be retried
         self.started = False
         self.outcome = None
         self.artifact_sha256 = None
@@ -335,12 +340,24 @@ class HostWriter:
         self._slots = set()
         self._provider_ids = set()
 
+    def close(self):
+        """Release the host lock. Idempotent."""
+        fd, self.lock_fd = getattr(self, "lock_fd", None), None
+        if fd is not None:
+            os.close(fd)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
     def _event(self, kind, status, *, artifact_sha256=None, observed_utc=None, peer_uid=None,
                detail=None, identity=None):
-        self.seq += 1
+        seq = self.seq + 1  # published only after the file is committed, so a failed write leaves no gap
         actor_id, request_id, nonce = identity if identity is not None else (self.actor_id, self.request_id, self.nonce)
         event = {
-            "schema": "humanaios.tool_event.v4", "sequence": self.seq,
+            "schema": "humanaios.tool_event.v4", "sequence": seq,
             "run_id": self.plan["run_id"], "episode_id": self.plan["episode_id"],
             "plan_sha256": self.plan_hash, "kind": kind, "status": status,
             "actor_id": actor_id, "request_id": request_id,
@@ -352,11 +369,13 @@ class HostWriter:
         raw = canonical(event)
         event_hash = sha_bytes(raw)
         new_file(self.events / f"{event_hash}.json", raw)
-        self.tip = event_hash
+        self.seq, self.tip = seq, event_hash
         return event
 
     def write(self, actor_id, request_id, intent, peer_uid=None):
         with self._lock:
+            if self._final_stamp is not None and not self.finished:
+                raise EvidenceError("FINALIZE_PENDING")
             if self.started or self.finished:
                 raise EvidenceError("REPLAY_OR_ALREADY_STARTED")
             if actor_id != self.plan["allowed_actor"]:
@@ -376,15 +395,18 @@ class HostWriter:
                 raise
             if not first <= request_time <= last:
                 raise EvidenceError("WRITE_OUTSIDE_WINDOW")
-            self.started = True
-            self.actor_id, self.request_id, self.nonce = actor_id, request_id, secrets.token_hex(16)
+            attempt = (actor_id, request_id, secrets.token_hex(16))
             task = self.plan["task"]
             valid = (isinstance(intent, dict) and set(intent) == {"action", "artifact_id", "value"}
                      and intent["action"] == self.plan["action"]
                      and intent["artifact_id"] == task["artifact_id"]
                      and isinstance(intent["value"], str) and VALUE.fullmatch(intent["value"])
                      and self.plan["tool_policy"] == "ALLOW")
-            self._event("REQUEST_RECORDED", "ACCEPTED" if valid else "REJECTED", observed_utc=observed, peer_uid=peer_uid)
+            self._event("REQUEST_RECORDED", "ACCEPTED" if valid else "REJECTED", observed_utc=observed,
+                        peer_uid=peer_uid, identity=attempt)
+            # Only a recorded request starts the attempt; a failed first record can be retried.
+            self.started = True
+            self.actor_id, self.request_id, self.nonce = attempt
             if not valid:
                 self.outcome = "NO_ATTEMPT"
                 self._event("WRITE_RESULT", self.outcome, peer_uid=peer_uid)
@@ -414,6 +436,8 @@ class HostWriter:
         with self._lock:
             if self.finished:
                 raise EvidenceError("ALREADY_FINALIZED")
+            if self._final_stamp is not None:
+                raise EvidenceError("FINALIZE_PENDING")
             if actor_id not in ("A", "B"):
                 raise EvidenceError("RESPONSE_ACTOR_INVALID")
             if kind not in KINDS:
@@ -473,22 +497,25 @@ class HostWriter:
         with self._lock:
             if self.finished:
                 raise EvidenceError("ALREADY_FINALIZED")
-            # A receipt finalized outside the window can never verify, so refuse it BEFORE writing anything.
-            stamp = now()
-            moment = parse_utc(stamp, "FINALIZE_TIMESTAMP_INVALID")
-            if not (parse_utc(self.plan["window"]["not_before"], "WINDOW_INVALID") <= moment
-                    <= parse_utc(self.plan["window"]["not_after"], "WINDOW_INVALID")):
-                raise EvidenceError("FINALIZE_OUTSIDE_WINDOW")
-            if not self.started:
-                self.outcome = "NO_ATTEMPT"
-                self.actor_id = "A"
-                self.request_id = "NO_REQUEST"
-                self.nonce = secrets.token_hex(16)
-            if control_peer_uid is not None and (type(control_peer_uid) is not int or control_peer_uid < 0):
-                raise EvidenceError("PEER_UID_INVALID")
-            self._event("SNAPSHOT_FINALIZED", self.outcome,
-                        artifact_sha256=self.artifact_sha256, peer_uid=control_peer_uid,
-                        observed_utc=stamp)
+            if self._final_stamp is None:
+                # A receipt finalized outside the window can never verify, so refuse it BEFORE writing anything.
+                stamp = now()
+                moment = parse_utc(stamp, "FINALIZE_TIMESTAMP_INVALID")
+                if not (parse_utc(self.plan["window"]["not_before"], "WINDOW_INVALID") <= moment
+                        <= parse_utc(self.plan["window"]["not_after"], "WINDOW_INVALID")):
+                    raise EvidenceError("FINALIZE_OUTSIDE_WINDOW")
+                if control_peer_uid is not None and (type(control_peer_uid) is not int or control_peer_uid < 0):
+                    raise EvidenceError("PEER_UID_INVALID")
+                if not self.started:
+                    self.outcome = "NO_ATTEMPT"
+                    self.actor_id = "A"
+                    self.request_id = "NO_REQUEST"
+                    self.nonce = secrets.token_hex(16)
+                self._event("SNAPSHOT_FINALIZED", self.outcome,
+                            artifact_sha256=self.artifact_sha256, peer_uid=control_peer_uid,
+                            observed_utc=stamp)
+                self._final_stamp = stamp  # terminal event committed: from here only the receipt may be retried
+            stamp = self._final_stamp
             payload = {
                 "schema": "humanaios.tool_receipt.v3", "run_id": self.plan["run_id"],
                 "episode_id": self.plan["episode_id"], "plan_sha256": self.plan_hash,

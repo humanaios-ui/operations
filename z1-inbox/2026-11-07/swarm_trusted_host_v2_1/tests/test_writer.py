@@ -121,7 +121,8 @@ class ProofTests(unittest.TestCase):
 
     def test_existing_state_reuse_blocked(self):
         self.write_finalize()
-        with self.assertRaisesRegex(EvidenceError,'(EXISTING_EVIDENCE_REJECTED|WRITER_ALREADY_RUNNING)'):
+        self.host.close()  # release the first writer's lock so only the persisted evidence can refuse the second
+        with self.assertRaisesRegex(EvidenceError,'^EXISTING_EVIDENCE_REJECTED$'):
             HostWriter(self.root,self.key,self.plan,self.pin)
 
     def test_symlink_artifact_rejected(self):

@@ -102,7 +102,10 @@ class AclRefusal(Base):
             os.setxattr(probe, "system.posix_acl_access", acl_blob(12345))
             os.removexattr(probe, "system.posix_acl_access")
             probe.rmdir()
-        except OSError:
+        except OSError as exc:
+            import errno
+            if exc.errno not in (errno.ENOTSUP, errno.EOPNOTSUPP, errno.ENOSYS, errno.EINVAL):
+                raise  # e.g. ENOSPC on an ACL-capable filesystem is a real failure, not "unsupported"
             self.skipTest("filesystem has no POSIX ACL support")
 
     def test_access_acl_on_an_existing_leaf_refused_before_chmod(self):

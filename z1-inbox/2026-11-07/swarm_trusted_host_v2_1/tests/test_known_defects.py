@@ -293,10 +293,6 @@ class KD3(Base):
         self.assertLess(time.monotonic() - start, 2.5)
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 class Review1153(Base):
     """Independent review of PR #1153 (items 3 and 4). Written before the fixes."""
 
@@ -354,3 +350,7 @@ class PeerRefusalRace(Base):
             self.assertFalse(r['ok'])
             self.assertIn('PEER_NOT_AUTHORIZED', r['error'])
         self.assertFalse(w.started)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -107,6 +107,8 @@ class Handler(socketserver.StreamRequestHandler):
             else:
                 raise EvidenceError("NARROW_METHODS_ONLY")
             self._send({"ok": True, "reply": reply})
+        except RecursionError:  # json.loads on hostile nesting; reply instead of dropping the connection
+            self._send({"ok": False, "error": "REQUEST_TOO_DEEP"})
         except (EvidenceError, ValueError, TypeError, KeyError, OSError) as exc:
             self._send({"ok": False, "error": str(exc)})
 

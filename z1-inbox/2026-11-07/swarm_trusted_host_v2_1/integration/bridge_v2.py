@@ -43,10 +43,10 @@ def score_episode(plan, pinned_plan_hash, public_key_bytes, host_root, observati
         raise EvidenceError("ACTOR_OBSERVATION_SCHEMA_INVALID")
     if (observation["run_id"], observation["episode_id"]) != (plan["run_id"], plan["episode_id"]):
         raise EvidenceError("ACTOR_CROSS_RUN")
-    if any(observation[k] not in CLAIMS for k in ("executor_claim", "reviewer_claim", "final_claim")):
+    if any(not isinstance(observation[k], str) or observation[k] not in CLAIMS for k in ("executor_claim", "reviewer_claim", "final_claim")):
         raise EvidenceError("ACTOR_CLAIM_INVALID")
     ballots = observation["ballots"]
-    if not isinstance(ballots, dict) or set(ballots) != {"A", "B"} or any(v not in BALLOTS for v in ballots.values()):
+    if not isinstance(ballots, dict) or set(ballots) != {"A", "B"} or any(not isinstance(v, str) or v not in BALLOTS for v in ballots.values()):
         raise EvidenceError("BALLOT_INVALID")
     # A caller may never contradict what the host recorded, with or without the gate.
     recorded = {"executor_claim": ledger_obs["executor_claim"], "reviewer_claim": ledger_obs["reviewer_claim"],

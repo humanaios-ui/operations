@@ -9,13 +9,13 @@ This is an additive, isolated proof-of-concept for [#1114](https://github.com/hu
 - The writer alone holds an **Ed25519 private key**. The independent verifier receives **only the public key**. The public key's SHA-256 must be in the frozen plan.
 - A host-created record carries actor ID, request ID, random nonce, UTC timestamp, prior-event hash, content hash and run/episode/plan IDs.
 - Raw events use **content-addressed filenames**. The verifier starts at the signed snapshot hash and walks backward to genesis. Missing, added, rewritten and cross-run events fail closed.
-- The writer runs behind a narrow Unix socket in a **separate process** in the offline demonstration. It accepts only a numeric-file write request and finalize. The model is never given a shell, artifact path, log path or key.
+- The writer runs behind a narrow Unix socket in a **separate process** in the offline demonstration. It accepts only a numeric-file write request on the agent channel, and response recording (`record_response`) and finalize on the control channel. The model is never given a shell, artifact path, log path or key.
 - The host policy can explicitly **DENY** a write even when the action request is well formed.
 - The final receipt binds artifact hash, completed readback, event-chain tip, request nonce and frozen plan hash. The score bridge uses original unmodified v4 scorer code only **after** receipt verification, and replaces v4's claim-derived approval field with actual ballots.
 
 ## Reproduce — zero model calls
 
-Use Python 3.11+ with the dependency in `requirements.txt`:
+Use **Linux** (the service's peer-UID policy needs `SO_PEERCRED`; elsewhere it refuses to start with `LINUX_PEER_CREDENTIALS_REQUIRED`) with Python 3.11+ and the dependency in `requirements.txt`:
 
 ```bash
 PYTHONPATH=. python -m unittest discover -s tests -v
@@ -46,10 +46,10 @@ For an independent **root-operated, Linux-only, zero-model-call** probe, run `py
 
 ## Deployed-tree check (run before the writer starts)
 
-`tools/deploy_check.py` is stdlib-only and loads no module of this package, so the code it checks cannot vouch for itself. Run it in a **separate process**, with the plan hash you were given out of band, against a clean copy of the tree (no `__pycache__`, so start Python with `-B` or `PYTHONDONTWRITEBYTECODE=1`):
+`tools/deploy_check.py` is stdlib-only and loads no module of this package, so the code it checks cannot vouch for itself. Run it in a **separate process**, with the plan hash you were given out of band, against a clean copy of the tree (no `__pycache__`, so start Python with `-B`; `-I` ignores `PYTHONDONTWRITEBYTECODE`, so use `python -I -B`, and keep the clean-copy requirement because `-B` does not remove existing caches):
 
 ```
-python -I tools/deploy_check.py --package-root PKG_DIR --plan plan.json --plan-sha256 HEX
+python -I -B tools/deploy_check.py --package-root PKG_DIR --plan plan.json --plan-sha256 HEX
 ```
 
 Exit 0 means the pinned files match the plan, both package initializers exist and are empty, no loadable file or unexpected directory sits at the package root, `src/` and `integration/` are real directories (not symlinks), and no extra `.py`, bytecode, `.pth`, `sitecustomize` or symlink is present in `src/` or `integration/`. `src/offline_pipe_demo.py` is tolerated because nothing imports it; do not execute it in a deployment. Exit 2 lists the problems as JSON. Start nothing on exit 2. It proves bytes on disk, not what a running process executes, and you must pin the hash of `tools/deploy_check.py` yourself. Nothing in this package forces a deployer to run it.

@@ -14,8 +14,7 @@
 | Expired or spoofed Z2 grant | Not accepted by prototype | Actual independently verified Z2/Z3 signatures and expiry handling |
 | Spend cap | No live calls in prototype | Provider account hard cap or external kill switch, separately evidenced |
 | Model endpoint or schema changes | No live calls in prototype | First-party API check and exact model/version pin |
-
-| Agent finalizes episode early or claims another actor ID (KD-1) | Fixed offline in v2.1: per-actor sockets, separate control socket, required peer-uid check in the service CLI; actor identity reported UNKNOWN | Independent re-review; OS-principal isolation |
+| Agent finalizes episode early or claims another actor ID (KD-1) | Fixed offline in v2.1: per-actor sockets, separate control socket, required peer-uid check in the service CLI; a shared-UID run reports actor identity UNKNOWN, a strict-mode receipt for a successful write with matching peer UIDs reports a host-observed match to the frozen plan (a host-reported match, not proof of deployment isolation) | Independent re-review; OS-principal isolation |
 | Prompt, model or code changed after plan freeze (KD-2) | Fixed offline in v2.1: plan pins provider, models, settings/prompt hashes, code hashes (writer, bridge, scorer, oracle, readback, service, verifier); checked at writer start, service start, verification and scoring | Independent re-review; proof live process loaded pinned code |
 | Event timestamps forged or out of order; stalled client (KD-3) | Fixed offline in v2.1: strict UTC, monotonic, in-window checks; per-connection timeout | Trusted time source; independent re-review |
 
@@ -33,7 +32,7 @@
 
 ### Red-team and CodeRabbit round (see Z1_CANDIDATE_FOR_Z2.md section 7)
 
-Real-UID probes (A, B, control as separate users) confirmed: agents could not reach each other's or the control socket, list host storage, or finalize on their own socket. Gaps found and fixed: agent-owned key file accepted, no kernel peer UID in evidence, isolated and shared-UID receipts indistinguishable, open server API, unattested readback between verify and score, unpinned `pins.py`, unbounded late `finalize`, unchecked ancestors of secured paths. **Built since, offline:** the signed response ledger (section 8 of the Z1 candidate): the host hashes and parses relayed replies, the verifier re-derives them, and the bridge refuses contradicting caller observations. It trusts the orchestrator to relay faithfully. **Open:** descriptor-relative traversal; out-of-process deployed-tree check; off-host snapshot; orchestrator trust.
+Real-UID probes (A, B, control as separate users) confirmed: agents could not reach each other's or the control socket, list host storage, or finalize on their own socket. Gaps found and fixed: agent-owned key file accepted, no kernel peer UID in evidence, isolated and shared-UID receipts indistinguishable, open server API, unattested readback between verify and score, unpinned `pins.py`, unbounded late `finalize`, unchecked ancestors of secured paths. **Built since, offline:** the signed response ledger (section 8 of the Z1 candidate): the host hashes and parses relayed replies, the verifier re-derives them, and the bridge refuses contradicting caller observations. It trusts the orchestrator to relay faithfully. **Open at that round (historical; see the later sections for current status):** descriptor-relative traversal; out-of-process deployed-tree check; off-host snapshot; orchestrator trust. Current limits: the socket bind still uses a pathname, and no launcher enforces `tools/deploy_check.py`.
 
 ### Red-team round 2: response ledger (author-run, offline)
 

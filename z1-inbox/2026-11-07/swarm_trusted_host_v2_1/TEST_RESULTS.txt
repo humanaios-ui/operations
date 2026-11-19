@@ -1,7 +1,7 @@
 AUTHOR-RUN TEST LOG (Claude Code, Z1). NOT an independent reproduction. Authority: NONE.
-Built on branch head a56ec7e plus the uncommitted changes of the commit that adds this file.
+Historical working-tree result on branch head a56ec7e plus uncommitted changes. It is NOT bound to one exact commit and is NOT a result for the candidate head.
 Date: 2026-11-08T02:40:39Z   Host: Linux 6.18.44-fc-v310   euid: 0 (root: real-UID tests ran, they skip without root)
-Python: Python 3.13.18 (the same suite also passed, 183/183, on Python 3.11 in a separate venv)
+Python: Python 3.13.18 (author report, no captured transcript: the same suite was also reported as 183/183 on Python 3.11 in a separate venv)
 Command: python -I -m unittest discover -s tests -t . -v      (run from this directory)
 
 test_ancestor_owned_by_another_user_refused (tests.test_codereview_findings.AncestorsOfSecuredPaths.test_ancestor_owned_by_another_user_refused) ... ok

@@ -139,7 +139,9 @@ class PeerUidEvidence(Base):  # P8, P9, P11
             t = threading.Thread(target=srv.serve_forever, daemon=True); t.start(); self.addCleanup(srv.shutdown)
             socks[name] = p
         code = ("import socket,sys,json;s=socket.socket(socket.AF_UNIX);s.settimeout(3);s.connect(sys.argv[1]);"
-                "s.sendall(sys.argv[2].encode()+b'\\n');print(s.recv(9000).decode())")
+                "s.sendall(sys.argv[2].encode()+b'\\n');buf=b''\n"
+                "while not buf.endswith(b'\\n'):\n d=s.recv(9000)\n if not d: raise SystemExit('INCOMPLETE_REPLY')\n buf+=d\n"
+                "print(buf.decode())")
         def as_uid(uid, path, body):
             r = subprocess.run([sys.executable, "-c", code, str(path), json.dumps(body)], capture_output=True,
                                text=True, timeout=10, user=uid, group=uid, extra_groups=[])
