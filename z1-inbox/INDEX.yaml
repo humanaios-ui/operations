@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 125
-  records: 77
+  records: 78
 ratifiers:
 - Night
 candidates:
@@ -804,9 +804,13 @@ candidates:
   title: Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review comparison
   path: z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Builds on PR #431. PARTICIPATION_CONTRACT_V0_1 already specifies agent check-in (continuity_mode EPHEMERAL) but carries no calibration field for agent or human; H-ACAT HA-000 has never been run. Also analyses Copilot''s EVIDENCE_GRAPH.json against INTENT_GRAPH.yaml — see AGENT_GRAPH_COMPARISON.md. Recommends adopting Copilot''s edge-state grading.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-19"
+  z2_ruling: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  z2_hash: "9029baf16e6415ee1cab97558f8b1582945b38106049e40fc9136645b8b12744"
 - q_id: Q-INTENT-GRAPH-01
   title: Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator
   path: z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md
@@ -1062,6 +1066,9 @@ candidates:
   z2_ruling: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
   z2_hash: "c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa"
 records:
+- path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md
   title: "Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
