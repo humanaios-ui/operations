@@ -191,3 +191,44 @@ This candidate is FALSE if:
 ```yaml
 z2_decision: {status: awaiting_ratification, ratified_at: null, ratification_hash: null, z2_notes: ""}
 ```
+
+---
+
+## Options
+
+- `ratify 3`
+- `ratify 1-2`
+- `ratify 1-3`
+- `edit`
+- `reject`
+- `later`
+
+The numbers are the five asks in section 5 ("What Z2 is asked to decide") above. Asks 4 and 5 are not offered, because a ruling here cannot supply what each needs: ask 4 (HA-000) needs a named administrator who is not Z1, which Night names, and ask 5 (a review-finding ledger) is one the block itself recommends deferring until asks 1-4 are ruled on.
+
+## What each sets in motion
+
+- `ratify 3`: ask 3 only. A `calibration` block (`instrument` as `ACAT`, `H-ACAT` or `NONE_DECLARED`; references to the self-report and the demonstrated record; `learning_index` taken from an independent record, never asserted by the subject; `NONE_DECLARED` stays legal) is to be added to the participation contract as v0.2. It changes no file except this one. Z1 would then draft the v0.2 schema, its tests and the baseline entry as a later pull request, which Night rules on separately because it changes a merged Phase 0 contract. It does **not** run HA-000, and it declares no one calibrated.
+- `ratify 1-2`: asks 1 and 2 only. Edge-state grading (`CLAIMED`, `SPECIFIED`, `IMPLEMENTED`, `TESTED`, `OBSERVED`) and the `failure` / `defeats_if_unmitigated` vocabulary are to be adopted into `INTENT_GRAPH.yaml` v0.2, keeping `conflicts_with` and the source-resolution check, as the block says. It changes no file except this one. Z1 would draft v0.2 as a later pull request. The block's claim that the two graphs were independently authored (section 1 and falsifier 1) was retracted elsewhere, and this option does not rely on it; see below.
+- `ratify 1-3`: all three of the above, as separate later pull requests.
+- None of these options adopts the two review-process rules in section 3a, which are not among the five asks.
+- `edit`: Z1 revises the block and files it again.
+- `reject`: the block closes with its bytes signed and the reason Night records. Nothing is entered in `REGISTERED.md`.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
+## Checked on 2026-11-16 (not carried from the block above)
+
+- **Section 1 and falsifier 1 are superseded.** The block says the two graphs are the only uncontaminated sample and independently authored. `AGENT_GRAPH_COMPARISON.md` carries a "Correction, 2026-09-21" that retracts this: the test that mattered was source disjointness, not graph-to-graph exposure. As recorded there and in `Q-GRAPH-CONVERGENCE-01`, the graphs have 6 aligned pairs, 0 graded independent, total corroboration weight 0.0. Z1 did not re-run the tool today. The text above is left unchanged.
+- **The case for edge-state grading survives that correction.** It rests on the `G-Z2-RATIFY` contradiction, where `Q-GRAPH-CONVERGENCE-01` records that "the tree agrees with EVIDENCE", the graph that grades the edge. Still true on main today: in `.github/workflows/z2_ratification_gate.yml` the `ratify.py --verify` step has `continue-on-error: true` (line 143), and a search of that file for "anti-cascade" or "anti_cascade" finds nothing.
+- **The graph-convergence ruling did not adopt edge-state grading.** `Q-GRAPH-CONVERGENCE-01` was ruled `ratify 1-3` and reconciled. Its three asks were the alignment rows, `source_lineage` and `render --check` in CI. So asks 1 and 2 here are still open.
+- **`INTENT_GRAPH.yaml` is unchanged in the relevant way.** It is `version: 1`, its edges carry `from`, `to` and `rel` only, and a search finds no edge `state`, `failure` or `defeats_if_unmitigated` field.
+- **No v0.2 contract exists.** Only `PARTICIPATION_CONTRACT_V0_1.schema.json` is in the tree (added by #431), and it has no `calibration` field.
+- **HA-000.** `ACAT_MARKETPLACE_ROADMAP.md` still says "HA-000 not yet executed" (line 96) and "HA-000 not yet run" (line 165). Z1 found nothing in the tree showing it ran, and did not look outside the tree.
+- **A review-finding ledger does not exist.** The pattern does: `audits/molt_tier_gap_ledger.jsonl` and `audits/smag_pilot_ledger.jsonl`.
+- **Not re-checked:** the section 3 counts from PR #436 (20 findings, 20 of 20 verified, the nine summary-table findings).
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
