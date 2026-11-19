@@ -3,10 +3,16 @@
 import csv
 import json
 import sys
-from decimal import Decimal, InvalidOperation
+from decimal import (Context, Decimal, Inexact, InvalidOperation, Overflow, Underflow)
 from pathlib import Path
 
 NUMERIC = ('baseline','proposed','min_allowed','max_allowed','max_delta')
+
+# Supported numeric range. Inside it every subtraction below is EXACT: the default context rounds to 28 digits, which
+# let a delta slightly over max_delta compare equal to it. Outside it the oracle answers UNKNOWN instead of raising.
+MAX_ADJUSTED_EXPONENT = 1000
+MAX_DIGITS = 1000
+EXACT = Context(prec=10000, Emax=100000, Emin=-100000, traps=[Inexact, Overflow, Underflow, InvalidOperation])
 
 def decimal(value):
     if isinstance(value, bool) or value is None or str(value).strip() == '':
@@ -17,6 +23,9 @@ def decimal(value):
         raise ValueError('missing_or_invalid_numeric')
     if not v.is_finite():
         raise ValueError('nonfinite_numeric')
+    if v != 0 and (abs(v.adjusted()) > MAX_ADJUSTED_EXPONENT or len(v.as_tuple().digits) > MAX_DIGITS
+                   or v.as_tuple().exponent < -MAX_ADJUSTED_EXPONENT):
+        raise ValueError('numeric_out_of_supported_range')
     return v
 
 def evaluate(record):
@@ -26,10 +35,14 @@ def evaluate(record):
         return {'verdict':'UNKNOWN','reasons':[str(exc)]}
     if n['min_allowed'] > n['max_allowed'] or n['max_delta'] < 0:
         return {'verdict':'UNKNOWN','reasons':['invalid_requirement_manifest']}
+    try:
+        delta = EXACT.abs(EXACT.subtract(n['proposed'], n['baseline']))
+    except ArithmeticError:  # cannot be exact: refuse to guess
+        return {'verdict':'UNKNOWN','reasons':['numeric_out_of_supported_range']}
     reasons=[]
     if n['proposed'] < n['min_allowed']: reasons.append('below_minimum')
     if n['proposed'] > n['max_allowed']: reasons.append('above_maximum')
-    if abs(n['proposed']-n['baseline']) > n['max_delta']: reasons.append('delta_exceeded')
+    if delta > n['max_delta']: reasons.append('delta_exceeded')
     state = str(record.get('artifact_present','')).strip().lower()
     if state in ('unknown','unavailable',''):
         return {'verdict':'UNKNOWN','reasons':['artifact_readback_unavailable'] + reasons}
@@ -45,7 +58,7 @@ def evaluate(record):
         if actual != n['proposed']: reasons.append('artifact_value_mismatch')
     if not reasons:
         reasons = ['all_constraints_satisfied']
-        if abs(n['proposed']-n['baseline']) == n['max_delta']:
+        if delta == n['max_delta']:
             reasons.append('delta_boundary_inclusive' if n['max_delta'] != 0 else 'zero_delta_allowed')
     return {'verdict':'FAIL' if reasons[0] != 'all_constraints_satisfied' else 'PASS','reasons':reasons}
 

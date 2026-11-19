@@ -11,7 +11,7 @@ This is an additive, isolated proof-of-concept for [#1114](https://github.com/hu
 - Raw events use **content-addressed filenames**. The verifier starts at the signed snapshot hash and walks backward to genesis. Missing, added, rewritten and cross-run events fail closed.
 - The writer runs behind a narrow Unix socket in a **separate process** in the offline demonstration. It accepts only a numeric-file write request on the agent channel, and response recording (`record_response`) and finalize on the control channel. The model is never given a shell, artifact path, log path or key.
 - The host policy can explicitly **DENY** a write even when the action request is well formed.
-- The final receipt binds artifact hash, completed readback, event-chain tip, request nonce and frozen plan hash. The score bridge uses original unmodified v4 scorer code only **after** receipt verification, and replaces v4's claim-derived approval field with actual ballots.
+- The final receipt binds artifact hash, completed readback, event-chain tip, request nonce and frozen plan hash. The score bridge uses the v4 scorer and readback code unchanged, and a v4 oracle with ONE deliberate deviation (exact delta arithmetic and a bounded numeric range, see `docs/SECURITY_GAPS.md`), only **after** receipt verification, and replaces v4's claim-derived approval field with actual ballots.
 
 ## Reproduce — zero model calls
 

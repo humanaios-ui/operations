@@ -11,7 +11,7 @@
 - Prior independently reviewed E95 commit: `e95ac77bd6824a7f195737e6a7d4fdc5ec8fe2fe`. DeMarius reported 140/140 passing there on Python 3.13.5 and cryptography **46.0.4**, a dependency mismatch against pinned 50.0.1, plus a deterministic **same-UID** ancestor-substitution before pathname `chmod` (redirected permissions, distinct-UID exploitability not established).
 - Pre-round-4 author-run test evidence: `TEST_RESULTS.txt`, a historical **183/183** working-tree result recorded near `a56ec7e`/`ab39aa542eec8011df66f90d8e849111acea11d7` (not bound to one exact commit; no captured Python 3.11 transcript). Do **NOT** transfer that pass to the candidate head.
 - Round-4 changed: `src/writer.py`, `src/service.py`, `tests/test_descriptor_io_round4.py`, `README.md`, `docs/SECURITY_GAPS.md`, `MANIFEST.sha256`. Source changes were *not* run locally in this handoff.
-- Manifest: **34 entries**. Manifest file SHA-256 as computed during assembly: `eee7b893d0c8f9018507f86b4779e08c907d2ec907c738da4370e46f8ae46d27`. Recompute independently from the exact checkout; do not trust this line alone.
+- Manifest: **35 entries**. Manifest file SHA-256 as computed during assembly: `66ecd7ac97e9c149764a0a15af5c45ce87b8cdc0bddf1c90b1f3bc837ba9db3b`. Recompute independently from the exact checkout; do not trust this line alone.
 
 ## Repair claims to challenge, not assume
 
