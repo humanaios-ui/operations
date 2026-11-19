@@ -230,6 +230,8 @@ class HumanAIOSBridge:
             raise RuntimeError("Resource Miner reported inconsistent counts")
         if (unexamined > 0) != payload["status"].startswith("PARTIAL_"):
             raise RuntimeError("Resource Miner lost or misstated partial-search status")
+        if (matched > 0) != payload["status"].endswith("CANDIDATES_FOR_HUMAN_REVIEW"):
+            raise RuntimeError("Resource Miner status contradicts matched count")
         receipt_sha = payload.get("receipt_sha256")
         if not isinstance(receipt_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", receipt_sha):
             raise RuntimeError("Resource Miner returned a malformed unsigned digest")
