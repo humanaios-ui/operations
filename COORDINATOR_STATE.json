@@ -57,6 +57,13 @@
       "command_ref": "RCC-GITHUB-COMMENT-7018313748",
       "event_id": "RCSEVT-2BD0B51FC830363F",
       "objective_issue_number": null
+    },
+    "PULL_REQUEST#1273": {
+      "admission_scope": "subject:PULL_REQUEST#1273",
+      "admitted_head_sha": "b266edcb7d6096372830ea443e86153222f1b165",
+      "command_ref": "RCC-GITHUB-COMMENT-7023595151",
+      "event_id": "RCSEVT-F225DF7355E76C1D",
+      "objective_issue_number": null
     }
   },
   "active_event_ids": {
@@ -68,7 +75,8 @@
     "PULL_REQUEST#1183": "RCSEVT-DAEB44F68CFA8EF2",
     "PULL_REQUEST#1205": "RCSEVT-651F4CE833840521",
     "PULL_REQUEST#1211": "RCSEVT-88EB99392AB13430",
-    "PULL_REQUEST#1255": "RCSEVT-2BD0B51FC830363F"
+    "PULL_REQUEST#1255": "RCSEVT-2BD0B51FC830363F",
+    "PULL_REQUEST#1273": "RCSEVT-F225DF7355E76C1D"
   },
   "admitted_issue_numbers": [
     378,
@@ -81,7 +89,8 @@
     1183,
     1205,
     1211,
-    1255
+    1255,
+    1273
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
   "consumed_command_refs": [
@@ -275,6 +284,7 @@
     "RCC-GITHUB-COMMENT-7019192515",
     "RCC-GITHUB-COMMENT-7022036880",
     "RCC-GITHUB-COMMENT-7022934856",
+    "RCC-GITHUB-COMMENT-7023595151",
     "RCC-GITHUB-PR-LIFECYCLE-1013-703c989c905d69f254fd374957fcc1cc6336dca5-2026-10-31T22:47:18Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-1096-2ea2467d5fad32fb532a8e813153d612b912a532-2026-10-31T22:49:06Z-MERGED",
     "RCC-GITHUB-PR-LIFECYCLE-1100-1835e902d23ad58ae4e954f499befbf210095a5a-2026-10-31T23:21:24Z-MERGED",
@@ -433,11 +443,11 @@
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "7e4fd710f3f2e19d10645f511f00a2f0a276ca1c6006f71516a5726751d46001",
-  "last_event_id": "RCSEVT-7E4FD710F3F2E19D",
-  "last_sequence": 372,
-  "ledger_event_count": 372,
-  "ledger_sha256": "0d6e0dad80174380703147dcf155a0003e767df43cc8c0527489582e248bd829",
+  "last_event_hash": "f225df7355e76c1d5bc20cc75841480596a6e0f8eba9f6b100037d0daed58665",
+  "last_event_id": "RCSEVT-F225DF7355E76C1D",
+  "last_sequence": 373,
+  "ledger_event_count": 373,
+  "ledger_sha256": "2adb9782e49d16a07be057e988dd05c87328151793e263f51f3ae0964c524deb",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
