@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**125 candidates** — ⏳ awaiting Z2 81 · ✅ ratified 44 · **78 records**
+**126 candidates** — ⏳ awaiting Z2 82 · ✅ ratified 44 · **78 records**
 
-## Awaiting Z2 (81)
+## Awaiting Z2 (82)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -92,6 +92,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-26 | **Q-PR956-GOVERNANCE-ADMISSION-01** | Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff) | `z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md` |
 | 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
+| 2026-11-09 | **Q-SWARM-TRUSTED-HOST-V2-1-PREFLIGHT-01** | Admit Swarm Trusted Host v2.1 (Ed25519 writer, KD-1..KD-3 fixed offline) for independent review; non-scored two-agent preflight scope. Not an execution grant. | `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/Z1_CANDIDATE_FOR_Z2.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
 
 ## Decided (44)
@@ -497,6 +498,14 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md` | Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md` | Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
+
+## Excluded from the conversion record (3)
+
+Neither a candidate nor a record. Listed because an exclusion the index accepts must still be visible — silence is what the coverage rule exists to prevent.
+
+- `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/README.md`
+- `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/SECURITY_GAPS.md`
+- `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/evidence/ROUND4_INDEPENDENT_HANDOFF.md`
 
 ---
 
