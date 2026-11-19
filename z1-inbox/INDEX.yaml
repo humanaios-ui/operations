@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 126
-  records: 77
+  records: 78
 ratifiers:
 - Night
 candidates:
@@ -740,9 +740,13 @@ candidates:
   title: Ratified TRL correction never reached SEED.md — identity anchor still states TRL 2–3
   path: z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: S-061226-02 ratified TRL 2–3 → 4 throughout and OPS_ROADMAP applied it; SEED.md (Class 0, live-fetched at session open) still says 2–3 in three places. 57 tree-wide occurrences of 2–3 against 21 of 4. Same defect class as the molt window. Z1 files, does not edit the seed.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "2f5333da42c63793f95c564f121dfd279c1c82c4638bb84ee527911247ef25a5"
 - q_id: Q-CORPUS-STATS-RECONCILE-01
   title: July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible
   path: z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md
@@ -800,9 +804,13 @@ candidates:
   title: Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review comparison
   path: z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Builds on PR #431. PARTICIPATION_CONTRACT_V0_1 already specifies agent check-in (continuity_mode EPHEMERAL) but carries no calibration field for agent or human; H-ACAT HA-000 has never been run. Also analyses Copilot''s EVIDENCE_GRAPH.json against INTENT_GRAPH.yaml — see AGENT_GRAPH_COMPARISON.md. Recommends adopting Copilot''s edge-state grading.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-19"
+  z2_ruling: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  z2_hash: "9029baf16e6415ee1cab97558f8b1582945b38106049e40fc9136645b8b12744"
 - q_id: Q-INTENT-GRAPH-01
   title: Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator
   path: z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md
@@ -1065,6 +1073,9 @@ candidates:
   tier: 0
   note: 'Refs #1114. Z1 recommends admitting the specification for independent review only. Z2 and Z3 grants, provider model IDs, spend cap, OS or container isolation, read-only snapshot and the real two-agent preflight are all NOT granted or NOT done. KD-1..KD-3 and the later red-team and code-review findings are fixed offline; package test results are in TEST_RESULTS.txt (author-run) and an independent exact-head rerun is pending. Authority effect NONE. Not ratified.'
 records:
+- path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md
   title: "Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\
