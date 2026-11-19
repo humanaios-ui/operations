@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**228 registered tools** · 2 MCP servers · 4 excluded · 179 carrying Builder v1.7 markers
+**229 registered tools** · 2 MCP servers · 4 excluded · 180 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 228 |
-| — status `draft` | 227 |
+| Registered tools | 229 |
+| — status `draft` | 228 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 179 |
+| Builder v1.7 markers present | 180 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -152,7 +152,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.5.0 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
 | HAIOS-TOOL-151 | doc_review_scheduler | `.doc-control/review.py` | 1.0.0 | 1 | draft | no-builder-markers | Document review scheduler — record a review, derive the next one, triage the backlog. |
-| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.2.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
+| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.3.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
 | HAIOS-TOOL-154 | z1_inbox_renderer | `.z1-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render Z1_INBOX_INDEX.md from z1-inbox/INDEX.yaml. |
 | HAIOS-TOOL-155 | z1_inbox_validator | `.z1-control/validate.py` | 1.0.0 | 1 | draft | no-builder-markers | z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which of |
 | HAIOS-TOOL-157 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |
@@ -297,7 +297,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (34)
+## Validation — `validation_tool` (35)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -335,6 +335,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-236 | iew_witness_gate | `tools/iew/witness_gate.py` | 0.1.0 | 1 | draft | — | IEW-002: distinguish self-reported receipts from trusted execution observations. |
 | HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | 1.0.0 | 1 | draft | — | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
 | HAIOS-TOOL-241 | audit_protocol_gate_v3_1 | `tools/audit_protocol_gate_v3_1.py` | 3.1.1 | 1 | draft | — | Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md |
+| HAIOS-TOOL-242 | pre_submit | `tools/pre_submit.py` | 1.0.0 | 1 | draft | — | pre_submit.py — run the PR pre-submission checks in one command. |
 
 ## MCP servers (2)
 
@@ -379,7 +380,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 14 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 34 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 35 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 
