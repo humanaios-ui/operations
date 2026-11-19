@@ -84,6 +84,22 @@ class ExtremeValuesDoNotCrash(unittest.TestCase):
         out = evaluate(record(baseline="0", proposed="1.1e-1000", actual_value="1.1e-1000", max_delta="1e-1000"))
         self.assertEqual((out["verdict"], "delta_exceeded" in out["reasons"]), ("FAIL", True))
 
+    def test_zero_is_held_to_the_same_adjusted_exponent_bound(self):
+        # CodeRabbit on PR #1272: 0E+1001 equals zero, so it used to skip the range check that 1e1001 fails.
+        for text in ("0E+1001", "0E-1001", "0E-1000000", "0E+999999"):
+            for field in ("baseline", "proposed", "min_allowed", "max_allowed", "max_delta"):
+                with self.subTest(text=text, field=field):
+                    extra = {"actual_value": text} if field == "proposed" else {}
+                    out = evaluate(record(**{field: text}, **extra))
+                    self.assertEqual((out["verdict"], out["reasons"]), ("UNKNOWN", ["numeric_out_of_supported_range"]))
+
+    def test_ordinary_zero_spellings_still_pass(self):
+        for text in ("0", "0.0", "0E+1000", "0E-1000", "-0", "0.000"):
+            with self.subTest(text=text):
+                out = evaluate(record(baseline=text, proposed="0", min_allowed="0", max_allowed="1", max_delta="0",
+                                      actual_value="0"))
+                self.assertEqual(out["verdict"], "PASS")
+
     def test_ordinary_values_are_unaffected(self):
         self.assertEqual(evaluate(record())["verdict"], "PASS")
         self.assertEqual(evaluate(record(proposed="3", actual_value="3"))["verdict"], "FAIL")
