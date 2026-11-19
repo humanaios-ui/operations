@@ -58,13 +58,6 @@
       "event_id": "RCSEVT-88EB99392AB13430",
       "objective_issue_number": null
     },
-    "PULL_REQUEST#1261": {
-      "admission_scope": "subject:PULL_REQUEST#1261",
-      "admitted_head_sha": "28f4e357764751a2a929124fcedbdc23a4d5c00f",
-      "command_ref": "RCC-GITHUB-COMMENT-7012165309",
-      "event_id": "RCSEVT-EA12231FB30E8D6E",
-      "objective_issue_number": null
-    },
     "PULL_REQUEST#1264": {
       "admission_scope": "subject:PULL_REQUEST#1264",
       "admitted_head_sha": "4f93f739049dd5ca85abc90bcb19836020583558",
@@ -83,7 +76,6 @@
     "PULL_REQUEST#1203": "RCSEVT-408681334C4B66A8",
     "PULL_REQUEST#1205": "RCSEVT-651F4CE833840521",
     "PULL_REQUEST#1211": "RCSEVT-88EB99392AB13430",
-    "PULL_REQUEST#1261": "RCSEVT-EA12231FB30E8D6E",
     "PULL_REQUEST#1264": "RCSEVT-3A83C1053B9D6A89"
   },
   "admitted_issue_numbers": [
@@ -98,7 +90,6 @@
     1203,
     1205,
     1211,
-    1261,
     1264
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
@@ -425,17 +416,18 @@
     "RCC-GITHUB-RECONCILE-44544033845-PR-1263-MERGED",
     "RCC-GITHUB-RECONCILE-44544298401-PR-1254-CLOSED",
     "RCC-GITHUB-RECONCILE-44545282659-PR-1262-HEAD-MOVED-950324f935c6acb16458616046689aff18840ea7",
+    "RCC-GITHUB-RECONCILE-44577643546-PR-1261-MERGED",
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "4d51969cef405afef97eb55ad3a5dcbf90a724b8b51c70bb36e297467b3bc658",
-  "last_event_id": "RCSEVT-4D51969CEF405AFE",
-  "last_sequence": 349,
-  "ledger_event_count": 349,
-  "ledger_sha256": "74131b3945121e0b8c41b10048df76fe44f0e0aa698c931598ad0b95128c989f",
+  "last_event_hash": "5395d0029ec728358b4eb0e39afe47e0c190dbb6ed10d594ab08e533d1fd5fb1",
+  "last_event_id": "RCSEVT-5395D0029EC72835",
+  "last_sequence": 350,
+  "ledger_event_count": 350,
+  "ledger_sha256": "a80f6a65daf219fd95e08c2887d3e6834bd063c5508f97fc5b461224abd4a3cf",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
-  "source_policy_sha": "643b142d2d806ee59891ef8329e219bbefa21398",
+  "source_policy_sha": "745129ef2957cf9561dcdac10cd4b40e11bfe887",
   "state_branch": "repository-coordinator-state"
 }
