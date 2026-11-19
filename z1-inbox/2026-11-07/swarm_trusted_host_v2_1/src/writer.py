@@ -301,8 +301,8 @@ class HostWriter:
         # Only ONE writer instance per host root; a long-lived lock FD prevents concurrent writers.
         lock_parent, lock_name = _open_parent_fd(self.root / ".writer_lock")
         try:
-            self.lock_fd = os.open(lock_name, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0),
-                                   0o600, dir_fd=lock_parent)
+            self.lock_fd = os.open(lock_name, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0)
+                                   | getattr(os, "O_CLOEXEC", 0), 0o600, dir_fd=lock_parent)
         finally:
             os.close(lock_parent)
         try:
@@ -310,13 +310,17 @@ class HostWriter:
         except BlockingIOError as exc:
             os.close(self.lock_fd)
             raise EvidenceError("WRITER_ALREADY_RUNNING") from exc
-        self.ep = secure_dir(self.root / ident(plan["run_id"]) / ident(plan["episode_id"]))
-        self.events = secure_dir(self.ep / "events")
-        self.artifacts = secure_dir(self.ep / "artifacts")
-        self.responses = secure_dir(self.ep / "responses")
-        if (list(self.events.iterdir()) or list(self.artifacts.iterdir()) or list(self.responses.iterdir())
-                or (self.ep / "snapshot.json").exists()):
-            raise EvidenceError("EXISTING_EVIDENCE_REJECTED")
+        try:
+            self.ep = secure_dir(self.root / ident(plan["run_id"]) / ident(plan["episode_id"]))
+            self.events = secure_dir(self.ep / "events")
+            self.artifacts = secure_dir(self.ep / "artifacts")
+            self.responses = secure_dir(self.ep / "responses")
+            if (list(self.events.iterdir()) or list(self.artifacts.iterdir()) or list(self.responses.iterdir())
+                    or (self.ep / "snapshot.json").exists()):
+                raise EvidenceError("EXISTING_EVIDENCE_REJECTED")
+        except BaseException:
+            os.close(self.lock_fd)  # a writer that failed to start must not keep the host lock
+            raise
         self._lock = threading.Lock()
         self.tip = GENESIS
         self.seq = 0

@@ -21,6 +21,7 @@ import socket
 import socketserver
 import struct
 import threading
+import time
 from pathlib import Path
 
 from .pins import file_sha256
@@ -49,6 +50,27 @@ class Handler(socketserver.StreamRequestHandler):
         except (OSError, AttributeError):  # SO_PEERCRED is Linux-only
             return None
 
+    def _read_request_line(self, limit):
+        """Read one bounded line under an ABSOLUTE monotonic deadline: a client that sends a byte before every
+        per-recv timeout cannot keep this synchronous channel busy for longer than conn_timeout in total."""
+        deadline = time.monotonic() + self.server.conn_timeout
+        buf = b""
+        while len(buf) <= limit and b"\n" not in buf:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise EvidenceError("REQUEST_DEADLINE")
+            self.request.settimeout(remaining)
+            try:
+                chunk = self.request.recv(min(65536, limit + 1 - len(buf)))
+            except (socket.timeout, TimeoutError) as exc:
+                raise EvidenceError("REQUEST_DEADLINE") from exc
+            if not chunk:
+                break
+            buf += chunk
+        self.request.settimeout(self.server.conn_timeout)
+        cut = buf.find(b"\n")
+        return buf[:cut + 1] if cut >= 0 else buf
+
     def _send(self, obj):
         try:
             self.wfile.write(canonical(obj) + b"\n")
@@ -62,7 +84,7 @@ class Handler(socketserver.StreamRequestHandler):
             # connection with unread data (which resets it and can drop the error reply). The bytes of a
             # refused peer are read and discarded; they are never parsed or acted on.
             limit = srv.max_request
-            raw = self.rfile.readline(limit + 1)
+            raw = self._read_request_line(limit)
             if srv.allowed_uid is not None and self._peer_uid() != srv.allowed_uid:
                 raise EvidenceError("PEER_NOT_AUTHORIZED")
             if len(raw) > limit or not raw.endswith(b"\n"):

@@ -11,7 +11,7 @@
 - Prior independently reviewed E95 commit: `e95ac77bd6824a7f195737e6a7d4fdc5ec8fe2fe`. DeMarius reported 140/140 passing there on Python 3.13.5 and cryptography **46.0.4**, a dependency mismatch against pinned 50.0.1, plus a deterministic **same-UID** ancestor-substitution before pathname `chmod` (redirected permissions, distinct-UID exploitability not established).
 - Pre-round-4 author-run test evidence: `TEST_RESULTS.txt`, **183/183** at `ab39aa542eec8011df66f90d8e849111acea11d7`. Do **NOT** transfer that pass to the candidate head.
 - Round-4 changed: `src/writer.py`, `src/service.py`, `tests/test_descriptor_io_round4.py`, `README.md`, `docs/SECURITY_GAPS.md`, `MANIFEST.sha256`. Source changes were *not* run locally in this handoff.
-- Manifest: **32 entries**. Manifest file SHA-256 as computed during assembly: `035ddf6c83e21140c8362a0ad86d11972d63855a94e443ca747d351937d9cfd1`. Recompute independently from the exact checkout; do not trust this line alone.
+- Manifest: **33 entries**. Manifest file SHA-256 as computed during assembly: `589ae434afe90cede44755a5839e4b9f7c1f3aeb8e0df643a916a756858222c7`. Recompute independently from the exact checkout; do not trust this line alone.
 
 ## Repair claims to challenge, not assume
 
@@ -26,6 +26,7 @@
 **Freeze the full SHA before starting.** If any byte changes, label the old receipt historical and begin a new review.
 
 ```bash
+set -euo pipefail  # a failing test run must fail the gate; also check each log for the test count and privileged skips
 git checkout --detach <FULL_HANDOFF_COMMIT_SHA>
 cd z1-inbox/2026-11-07/swarm_trusted_host_v2_1
 sha256sum -c MANIFEST.sha256

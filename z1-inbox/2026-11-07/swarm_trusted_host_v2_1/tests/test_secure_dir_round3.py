@@ -136,6 +136,7 @@ class HostileConcurrentRename(Base):
         import os, sys, time
         parent, canary, end = sys.argv[1], sys.argv[2], float(sys.argv[3])
         target = os.path.join(parent, "run")
+        attacker_ops = 0
         while time.time() < end:
             for step in range(4):
                 try:
@@ -143,18 +144,21 @@ class HostileConcurrentRename(Base):
                     elif step == 1: os.rmdir(target)
                     elif step == 2: os.symlink(canary, target)
                     else: os.unlink(target)
+                    attacker_ops += 1
                 except OSError:
                     pass
+        print(attacker_ops)
     ''')
 
     def test_returned_directory_is_always_host_owned_and_the_canary_is_never_touched(self):
+        self.td.chmod(0o711)  # search-only for others: without it the attacker gets EACCES and the race never happens
         parent = self.td / "sticky"; parent.mkdir(); parent.chmod(0o1777)
         canary = self.td / "canary"; canary.mkdir(); canary.chmod(0o755)
         os.chown(canary, ATTACKER, ATTACKER)
         import time
         end = time.time() + 6
         proc = subprocess.Popen([sys.executable, "-I", "-c", self.ATTACK, str(parent), str(canary), str(end)],
-                                user=ATTACKER, group=ATTACKER, extra_groups=[])
+                                stdout=subprocess.PIPE, text=True, user=ATTACKER, group=ATTACKER, extra_groups=[])
         self.addCleanup(proc.kill)
         ok = refused = 0
         allowed = {"SYMLINK_PATH", "DIRECTORY_NOT_HOST_OWNED", "UNSAFE_DIRECTORY", "PATH_CHANGED_DURING_CHECK"}
@@ -174,7 +178,8 @@ class HostileConcurrentRename(Base):
                     os.rmdir(out)  # reset so the race continues
                 except OSError:
                     pass
-        proc.wait(timeout=10)
+        attacker_ops = int(proc.communicate(timeout=10)[0].strip() or 0)
+        self.assertGreater(attacker_ops, 50, "attacker made no progress: the race was never exercised")
         self.assertEqual(oct(canary.stat().st_mode & 0o777), "0o755", "host chmod-ed through a hostile symlink")
         self.assertGreater(ok + refused, 50)
 

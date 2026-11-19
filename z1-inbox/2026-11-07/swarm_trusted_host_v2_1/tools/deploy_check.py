@@ -45,7 +45,8 @@ BAD_TOP_LEVEL = {"sitecustomize.py", "usercustomize.py"}
 
 
 def _read_regular(path):
-    fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    # O_NONBLOCK: opening a FIFO with no writer would otherwise block before the type check below can run.
+    fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0))
     with os.fdopen(fd, "rb") as handle:
         if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
             raise OSError("not a regular file")
@@ -80,6 +81,9 @@ def check(package_root, plan_path, plan_sha256):
         except FileNotFoundError:
             problems.append("MISSING:" + name)
             continue
+        except OSError:  # NotADirectoryError, PermissionError ...: report, never crash the exit-2 contract
+            problems.append("UNREADABLE:" + name)
+            continue
         if not stat.S_ISREG(info.st_mode):
             problems.append("NOT_A_REGULAR_FILE:" + name)
             continue
@@ -98,7 +102,12 @@ def check(package_root, plan_path, plan_sha256):
         if os.path.islink(os.path.join(package_root, code_dir)):
             problems.append("SYMLINK_PRESENT:" + code_dir)
     pinned_paths = set(EXPECTED_FILES.values())
-    for top in sorted(os.listdir(package_root)) if os.path.isdir(package_root) else []:
+    try:
+        tops = sorted(os.listdir(package_root)) if os.path.isdir(package_root) else []
+    except OSError:
+        problems.append("PACKAGE_ROOT_UNREADABLE")
+        tops = []
+    for top in tops:
         if top in BAD_TOP_LEVEL or top.endswith(".py"):
             problems.append("UNEXPECTED_PYTHON_FILE:" + top)
         elif top == "__pycache__" or top.endswith((".pyc", ".pyo")):
@@ -116,7 +125,10 @@ def check(package_root, plan_path, plan_sha256):
         base = os.path.join(package_root, code_dir)
         if os.path.islink(base):
             continue  # already reported; os.walk would follow a symlink given as its starting point
-        for current, dirs, files in os.walk(base, followlinks=False):
+        def _walk_error(exc, code_dir=code_dir):
+            problems.append("UNREADABLE_DIRECTORY:" + code_dir)  # os.walk would otherwise skip it silently
+
+        for current, dirs, files in os.walk(base, followlinks=False, onerror=_walk_error):
             for entry in list(dirs) + files:
                 full = os.path.join(current, entry)
                 rel = os.path.relpath(full, package_root).replace(os.sep, "/")
