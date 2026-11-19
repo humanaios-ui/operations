@@ -228,7 +228,21 @@ The numbers are the five asks in section 5 ("What Z2 is asked to decide") above.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: ratify 1-3
+by: Z1-prepared (not an identity claim)
+at: 2026-11-19T14:26:32Z
+status: DECIDED
+block_hash: 210292e31a3637cd985050397ca81609cc481921490c95e54a691d7956d8e116
+body_hash: 5a3d647d82f6d7391b52ab8c43dc9a79c7b9557c13826c9e8c4a8c51f05c0ac6
+
+```
+RULING z1-agentcheckin-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Ratify asks 1-3 (edge-state grading, failure vocabulary, and a calibration block in participation contract v0.2), each as a later separate pull request? Asks 4-5 are not ruled (Q-AGENT-CHECKIN-CALIBRATION-01)?
+  choice: ratify 1-3
+  note: 
+  at: 2026-11-19T14:26:32Z
+  status: DECIDED
+```
+
