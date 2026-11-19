@@ -174,7 +174,21 @@ That section transcribes an ACCEPT that Night stated in session on 2026-09-21. I
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: neither
+by: Z1-prepared (not an identity claim)
+at: 2026-11-19T18:14:59Z
+status: DECIDED
+block_hash: 54f9a839f323346d6aff750a1f0e15a9401bea9b07ed085a1f8fd6d35e282916
+body_hash: 30a475d3ed9c24c31196b162356d4703698de81a211deaa500214db2646adbd6
+
+```
+RULING z1-corpusstats-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Close ask 1 as already answered by the ratified Q-DATA-SSOT-REGENERATION-01 (neither Option A nor Option B)? Asks 2-4 are not ruled and, once this block is ratified, can return only as a new block (Q-CORPUS-STATS-RECONCILE-01)?
+  choice: neither
+  note: 
+  at: 2026-11-19T18:14:59Z
+  status: DECIDED
+```
+
