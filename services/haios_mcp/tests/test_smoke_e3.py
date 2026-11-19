@@ -56,9 +56,9 @@ class E3Tests(unittest.TestCase):
             (root / "data").mkdir()
             (root / "app.py").write_text("# test stub")
             (root / "resource_miner/intent_os.py").write_text("# test stub")
-            with patch.dict("os.environ", {"HAIOS_E3_MINER_ROOT": str(root)}):
-                # The user's own custom root is checked first. Other known Mac
-                # locations may not exist in this hermetic unit-test environment.
+            with patch.dict("os.environ", {"HAIOS_E3_MINER_ROOT": str(root)}), \
+                    patch("pathlib.Path.home", return_value=Path(tmp) / "empty-home"):
+                # Isolate default home paths to avoid non-hermetic Mac checkouts.
                 selected, state = find_miner_checkout()
                 self.assertNotEqual(state, "FOUND_LOCAL_STORED_SNAPSHOT")
                 (root / "data/resources.snapshot.jsonl").write_text("{}\n")
