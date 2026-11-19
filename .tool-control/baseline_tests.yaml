@@ -36,6 +36,10 @@ baseline_tests:
     requires: []
     description: CI suite enumeration and consistency checks
 
+  - path: tools/tests/test_postmerge_workflow_contracts.py
+    requires: []
+    description: Post-merge workflow portability, immutability, and least-authority regressions
+
   - path: tools/tests/test_clone_sync_health.py
     requires: []
     description: Clone sync health checks
@@ -270,3 +274,7 @@ baseline_tests:
   - path: tests/test_risk_obs_001_contract.py
     requires: []
     description: Risk Observatory Z1 read-only evidence verifier and adversarial receipt regressions
+
+  - path: tests/test_witness_state_v0_2.py
+    requires: []
+    description: WITNESS_STATE v0.2 accepts the calibration baseline profile that v0.1 rejects (Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01, option A)

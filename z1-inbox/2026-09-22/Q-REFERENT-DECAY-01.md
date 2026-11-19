@@ -158,3 +158,58 @@ the branch tip and `main` at the moment the hook fired (5).
 ```yaml
 z2_decision: {status: awaiting_ratification, ratified_at: null, ratification_hash: null, z2_notes: ""}
 ```
+
+---
+
+## Options
+
+- `E`
+- `E, F`
+- `E, F, D`
+- `E, F, D, C`
+- `edit`
+- `later`
+
+The letters are the five options in "What Z2 is asked to decide" above. These four sets follow the order the block itself recommends: E first, F second, D third, C as a standing discipline. Option B stays deferred in every one of them, as the block recommends. Any other combination, such as F alone, is an `edit`.
+
+## What each sets in motion
+
+- Every `E` option: the options named are adopted as directions. It changes no file except this one, and Z1 builds nothing. Each adopted option would be a later pull request that Z1 drafts, and any that touches a workflow or a schema is ruled on separately. Entering a registry entry in `REGISTERED.md` is a Z2 act; Z1 does not write that file.
+- `E`: a check that finds sentences asserting a Q-ID's status and compares them with `z1-inbox/INDEX.yaml`. Z1 found no such tool in `tools/`.
+- `E, F`: adds the audit of whether gates ever fire. Part of this already exists, so adopting it would mean extending it, not starting it (see below).
+- `E, F, D`: adds generating the facts that get restated. The block leaves the scope open, so the list of facts to promote would come back to Night as its own question.
+- `E, F, D, C`: adds edge-state grading on claim-to-source links in prose as a standing discipline. It uses the same five-state scale as ask 1 of `Q-AGENT-CHECKIN-CALIBRATION-01`, but a different scope; see below.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
+## Checked on 2026-11-16 (not carried from the block above)
+
+- **Option F is already partly in place, and the block does not say so.** `.github/workflows/workflow-lint.yml` has an advisory step, "Has each gate ever actually fired?", that sorts every workflow by run history (`DEAD`, `NEVER RAN`, `NEVER GREEN`, `NEVER FAILED`, `FIRES BOTH`). It was added on 2026-09-19, three days before this block was filed on 2026-09-22, and the block never mentions `workflow-lint`. It is advisory, runs when workflow files change or on dispatch, and reads at most 100 workflows without paging and 100 runs each, while the tree now has 105 workflow files. Z1 did not read its output. It does not cover the block's scope note about workflows that re-derive logic another already has.
+- **Option C shares a scale with another open block, not its scope.** Option C grades claim-to-source links in argumentative prose. Ask 1 of `Q-AGENT-CHECKIN-CALIBRATION-01` adopts the same five-state grading into `INTENT_GRAPH.yaml` v0.2 edges (its ask 2 adds the `failure` vocabulary). A ruling here does not rule that graph-schema change, and the reverse; each is decided on its own, and schema changes stay separate rulings. Both would use one scale, so whichever is ruled first fixes it for the other.
+- **Option D.** Several workflows call a `--check` form of a generator (for example `tool-manifest.yml` and `z2_ratification_gate.yml`); Z1 did not map which gate covers which generated file. The `render --check` for the graph-convergence page, ratified in `Q-GRAPH-CONVERGENCE-01`, is in no workflow yet. The block says the TRL direction points the same way (a derivation reference in `SEED.md`). That ruling, `Q-SEED-TRL-PROPAGATION-01` `ratify 1`, was merged in #1253, but the index on main still read `awaiting_z2` when Z1 checked, because its reconcile record had not merged. It also names no rubric, so no derivation reference exists yet.
+- **Option E.** No status-claim check was found in `tools/` by name.
+- **The sixth item still holds.** `.z1-control/validate.py` still prints, for example, "awaiting Z2 for 4d past the 2d window (due 2026-11-15)", under the temporal-dissolution ruling the block says makes that output authoritative over nothing.
+- **Option B's ending condition is unconfirmed.** The block names "section-level anchoring exists" as the observation that would end Option B's deferral, under the proposed leg 3 of `Q-DEFERRAL-RULE-01`. It does not claim anchoring exists, and Z1 did not confirm that it does: `Q-DEFERRAL-RULE-01` is still `awaiting_z2`, and a search outside `z1-inbox/` finds no mention of section-level anchoring.
+- **Related blocks, by index status today:** `Q-P19-GATE-INERT-01`, `Q-DEFERRAL-RULE-01` and `Q-A11-ORDERING-INERT-01` are `awaiting_z2`; `Q-GRAPH-CONVERGENCE-01` is `ratified`.
+- **Not re-checked:** the five instances themselves and the greps in the falsifier.
+
+## Ruling
+
+choice: E, F
+by: Z1-prepared (not an identity claim)
+at: 2026-11-19T18:15:08Z
+status: DECIDED
+block_hash: c16cc398b189b1c2050c44fdca5df3ff804f2e34dd0525cb8cf7551eec610b50
+body_hash: ceb33c207e00a6ea94f4d278dac3f215c5219c22fafb1e9ffeb31af935e8e614
+
+```
+RULING z1-referentdecay-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Adopt options E and F as directions, each as a later separate pull request? Options D, C and B are not adopted and, once this block is ratified, can return only as a new block (Q-REFERENT-DECAY-01)?
+  choice: E, F
+  note: 
+  at: 2026-11-19T18:15:08Z
+  status: DECIDED
+```
+
