@@ -78,8 +78,14 @@ def create_server(bridge: HumanAIOSBridge):
         return bridge.find_resources(objective)
 
     @mcp.tool()
-    def haios_talk(message: str, session_id: str = "") -> dict:
-        """Ask Unit Zero using bounded, source-attributed context. Reuse session_id for follow-ups."""
+    def haios_talk(message: str, session_id: str = "", consent: bool = False) -> dict:
+        """Ask Unit Zero only when the operator-facing client attests fresh consent for this request.
+
+        A caller-supplied flag is not proof of human consent; hosts must show a
+        per-request consent UI. Missing consent is denied before any provider call.
+        """
+        if consent is not True:
+            raise ValueError("Explicit consent required for each provider request")
         return bridge.talk(message, session_id)
 
     return mcp
