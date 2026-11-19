@@ -7,6 +7,8 @@ import hmac
 import os
 from typing import Any
 
+from pydantic import StrictBool
+
 from haios_mcp.core import HumanAIOSBridge
 
 
@@ -78,11 +80,12 @@ def create_server(bridge: HumanAIOSBridge):
         return bridge.find_resources(objective)
 
     @mcp.tool()
-    def haios_talk(message: str, session_id: str = "", consent: bool = False) -> dict:
+    def haios_talk(message: str, session_id: str = "", consent: StrictBool = False) -> dict:
         """Ask Unit Zero only when the operator-facing client attests fresh consent for this request.
 
         A caller-supplied flag is not proof of human consent; hosts must show a
         per-request consent UI. Missing consent is denied before any provider call.
+        StrictBool matters: with a plain bool the SDK coerces 1, "true" and "yes" to True before this runs.
         """
         if consent is not True:
             raise ValueError("Explicit consent required for each provider request")

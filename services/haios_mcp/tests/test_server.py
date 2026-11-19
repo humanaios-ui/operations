@@ -84,5 +84,37 @@ class TokenTests(unittest.TestCase):
         self.assertEqual(result.registered["haios_talk"]("test request", consent=True), {})
 
 
+try:
+    import mcp.server as _real_mcp_server
+    HAVE_REAL_MCP = hasattr(_real_mcp_server, "MCPServer")
+except ImportError:  # the offline suite must still run where the SDK is absent
+    HAVE_REAL_MCP = False
+
+
+@unittest.skipUnless(HAVE_REAL_MCP, "needs the real MCP SDK to exercise its argument validation")
+class ConsentThroughTheRealSdk(unittest.TestCase):
+    """The SDK validates tool arguments BEFORE the function runs. A plain `bool` is coerced leniently, so 1, "true",
+    "yes" and "True" would become True and reach the provider. Calling the function directly (test above) skips that."""
+
+    @staticmethod
+    def call(**extra):
+        reached = []
+        bridge = types.SimpleNamespace(status=lambda: {}, read_document=lambda *_: {},
+                                       talk=lambda message, session_id="": reached.append(message) or {"ok": True})
+        server = create_server(bridge)
+        try:
+            asyncio.run(server.call_tool("haios_talk", {"message": "test request", **extra}))
+        except Exception:
+            pass  # a refusal is the expected outcome; what matters is whether the provider call happened
+        return bool(reached)
+
+    def test_only_a_literal_json_true_reaches_the_provider(self):
+        self.assertTrue(self.call(consent=True))
+        for supplied in ({}, {"consent": False}, {"consent": None}, {"consent": 1}, {"consent": 0},
+                         {"consent": "true"}, {"consent": "True"}, {"consent": "yes"}, {"consent": "1"}):
+            with self.subTest(supplied=supplied):
+                self.assertFalse(self.call(**supplied))
+
+
 if __name__ == "__main__":
     unittest.main()
