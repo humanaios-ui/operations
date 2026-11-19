@@ -195,7 +195,21 @@ The letters are the five options in "What Z2 is asked to decide" above. These fo
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: E, F
+by: Z1-prepared (not an identity claim)
+at: 2026-11-19T18:15:08Z
+status: DECIDED
+block_hash: c16cc398b189b1c2050c44fdca5df3ff804f2e34dd0525cb8cf7551eec610b50
+body_hash: ceb33c207e00a6ea94f4d278dac3f215c5219c22fafb1e9ffeb31af935e8e614
+
+```
+RULING z1-referentdecay-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Adopt options E and F as directions, each as a later separate pull request? Options D, C and B are not adopted and, once this block is ratified, can return only as a new block (Q-REFERENT-DECAY-01)?
+  choice: E, F
+  note: 
+  at: 2026-11-19T18:15:08Z
+  status: DECIDED
+```
+
