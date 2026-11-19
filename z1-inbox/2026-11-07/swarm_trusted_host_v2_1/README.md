@@ -11,7 +11,7 @@ This is an additive, isolated proof-of-concept for [#1114](https://github.com/hu
 - Raw events use **content-addressed filenames**. The verifier starts at the signed snapshot hash and walks backward to genesis. Missing, added, rewritten and cross-run events fail closed.
 - The writer runs behind a narrow Unix socket in a **separate process** in the offline demonstration. It accepts only a numeric-file write request on the agent channel, and response recording (`record_response`) and finalize on the control channel. The model is never given a shell, artifact path, log path or key.
 - The host policy can explicitly **DENY** a write even when the action request is well formed.
-- The final receipt binds artifact hash, completed readback, event-chain tip, request nonce and frozen plan hash. The score bridge uses the v4 scorer and readback code unchanged, and a v4 oracle with ONE deliberate deviation (exact delta arithmetic and a bounded numeric range, see `docs/SECURITY_GAPS.md`), only **after** receipt verification, and replaces v4's claim-derived approval field with actual ballots.
+- The final receipt binds artifact hash, completed readback, event-chain tip, request nonce and frozen plan hash. The score bridge uses the v4 readback code unchanged, and a v4 oracle and scorer with TWO deliberate deviations (oracle: exact delta arithmetic and a bounded numeric range; scorer: a non-string claim is classified `UNSCORABLE_INVALID_CLAIM` instead of raising; see `docs/SECURITY_GAPS.md`), only **after** receipt verification, and replaces v4's claim-derived approval field with actual ballots.
 
 ## Reproduce — zero model calls
 
@@ -22,7 +22,7 @@ PYTHONPATH=. python -m unittest discover -s tests -v
 PYTHONPATH=. python -m src.offline_pipe_demo
 ```
 
-The demo creates a disposable test key in a temporary directory, starts a separate local writer process, submits a scripted numeric write, finalizes the signed event log, verifies it with public key only, and passes the result to the unchanged v4 scorer. **It is synthetic and non-scored.** The demo process uses the same OS user; it does not demonstrate strong process isolation.
+The demo creates a disposable test key in a temporary directory, starts a separate local writer process, submits a scripted numeric write, finalizes the signed event log, verifies it with public key only, and passes the result to the v4 (two deliberate deviations, see `docs/SECURITY_GAPS.md`) scorer. **It is synthetic and non-scored.** The demo process uses the same OS user; it does not demonstrate strong process isolation.
 
 ## Trust chain and limits
 

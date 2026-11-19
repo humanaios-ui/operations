@@ -11,7 +11,7 @@ Authorize review of the **exact vetted source and host deployment**, not a blind
 
 ### 1. Cryptographic and isolation gates
 
-- [ ] Independent reviewer checks the package hash, source, unit tests, dependency versions and bridge against the pinned original v4 scorer (`integration/oracle.py` deliberately deviates: exact delta arithmetic and a bounded numeric range, see `docs/SECURITY_GAPS.md`).
+- [ ] Independent reviewer checks the package hash, source, unit tests, dependency versions and bridge against the pinned original v4 scorer (`integration/oracle.py` and `integration/scoring.py` each deliberately deviate, see `docs/SECURITY_GAPS.md`).
 - [ ] A dedicated OS user/container runs the host writer; all agent model workers lack mounts of `host_root`, evidence and private keys; a separate orchestrator mediates requests.
 - [ ] Operator generates an **Ed25519 signer key** inside the host vault. Only the public key leaves the host. The public-key SHA-256 is pinned in a frozen experiment plan **before** model calls.
 - [ ] Orchestrator peer authentication / Unix socket ownership and permissions audited, including an attempted unauthorized connection.
