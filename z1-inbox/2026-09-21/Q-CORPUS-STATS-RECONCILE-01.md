@@ -134,3 +134,47 @@ would satisfy every check while proving nothing.
 Single-member override applies: with one board member, Night reviews, approves
 and merges her own ruling PR, recorded as an override per that ruling's `review`
 row.
+
+---
+
+## Options
+
+- `neither`
+- `neither, no figure cited`
+- `option A`
+- `option B`
+- `edit`
+- `later`
+
+The block's four asks are in "What Z2 is asked to decide" above. Ask 1 is the choice between Option A and Option B, and a third answer now exists (see below). Asks 3 and 4 are not offered as choices. Ask 3 is a question of fact that only Night can answer: whether anything external went out on the figures that do not reproduce. Ask 4 (whether the corpus integrity validator should gate) would be a change to CI, and it is its own decision.
+
+## What each sets in motion
+
+- `neither`: ask 1 is closed as already answered by the ratified `Q-DATA-SSOT-REGENERATION-01` ruling, which keeps the v0.1 corpus as a lesson artifact and says no corrected figure becomes the new claim. So there is no recompute-and-correct (Option A) and no search for a 629-record corpus (Option B). Asks 2-4 stay open. It changes no file except this one: `SEED.md` still publishes N 629 and mean LI 0.8632. Entering a registry entry in `REGISTERED.md` is a Z2 act; Z1 does not write that file.
+- `neither, no figure cited`: the same as `neither`, **and** ask 2 is answered: until a new claim is ratified, no corpus statistic, from any of the sets, is cited externally. It is a rule and changes no file by itself. It differs from `deliverables/witness-stand-post-1.md` line 65, which tells authors to use the "canonical paper numbers" (LI 0.87) and not the 0.8632 draft figures; the block says that rule is not ratified anywhere. Asks 3 and 4 stay open.
+- `option A`: recompute from the archive and correct every citation. The block says that rewrites the headline numbers in the CV, two funding applications, `CURRENT.md` and `REGISTERED.md`. Z1 reads this as conflicting with the ratified DATA-SSOT ruling, since corrected figures would become the new claim. Night may rule otherwise, and a later ruling supersedes. The ruling itself changes no file; the correction would be separate, large work that Z1 does not start without Night's go.
+- `option B`: produce the real 629-record corpus and publish that. Nothing Z1 re-checked today shows such a corpus (see below), so this starts a search, not a result.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
+## Checked on 2026-11-16 (not carried from the block above)
+
+- **`Q-DATA-SSOT-REGENERATION-01` is ratified** (`INDEX.yaml` reads `ratified`). Its ruling, `ratify 1`, keeps the v0.1 corpus as a lesson artifact and says no corrected figure becomes the new claim. It does **not** close this block, and its text says asks 2-4 here stay for their own ruling.
+- **`SEED.md` is unchanged.** It still publishes N_total 629, N_Phase1 516, N_LI 307 and mean LI 0.8632 as canonical.
+- **The do-not-mix instruction is unchanged.** `deliverables/witness-stand-post-1.md` line 65 still says to use LI 0.87 and not the 0.8632 / N=629 draft figures. Z1 did not re-search for a ratification of that rule today.
+- **The counts are not comparable to the block's.** The block says 0.8632 appears 38 times, 0.8532 seven, 0.8431 twice and 0.8572 once, and does not state how it counted. Z1's count today, matching lines across the whole tree, is 170, 19, 12 and 13. Z1 cannot say whether use of any figure grew.
+- **A further figure set exists.** `acat/canonical_stats.json` (added 2026-09-19) records `n_total` 604, `raw_rows` 608 and mean LI 0.8532.
+- **Ask 3 cannot be answered from the tree.** Files under `deliverables/` that contain the string 0.8632 include `post-1-substack-final.md`, `post-1-linkedin-ready.md`, `post-1-linkedin-carousel.md`, `post-1-crosspost-execution.txt`, `p0-1-corpus-fix.md` and `p0-2-zenodo-submission-pack.md`. Z1 did not read them, so it does not know whether each states the figure as a claim or warns against it, and it cannot tell from the tree whether any was published.
+- **The validator gates nothing.** `tools/corpus_integrity_validator.py` is referenced by no workflow in `.github/workflows/`.
+- **Falsifier, not re-checked.** Z1 did not search for a 629-record corpus today beyond `acat/canonical_stats.json`, which records 604 rows (608 raw). The public dataset was not checked, and the live-table count (116 rows) is from 2026-09-21 and was not re-queried.
+
+## Note on the "Z2 Ruling" section above
+
+That section transcribes an ACCEPT that Night stated in session on 2026-09-21. It does not say what was accepted, it carries no signature, and `INDEX.yaml` still reads `awaiting_z2` for this block. It also says the merge ratifies nothing, because the file then had no `## Ruling` section. This file now has one, in the shape `tools/decision_relay.py` writes, so under the 2026-09-18 ruling the merge of the pull request that fills it is the ratification, and the `ratify.py` command in that section is not needed. Z1 left the earlier text unchanged. Because it names no ask, it is not treated as an answer to any of them, and nothing here treats it as a ruling.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
