@@ -15,6 +15,8 @@ Give the stop-hook an **offline** file it can query for machine (and dual-author
 - CLI: `tools/machine_capability_allowlist_v0.py`
 - Peer evidence: `ledgers/WITNESS_LEDGER.jsonl` (must verify before any ALLOW)
 
+Operator standing checks: `python3 tools/machine_capability_allowlist_v0.py --smoke-test` and `verify`.
+
 Hard constants on the allowlist document:
 
 - `schema`: `intentos/machine_capability_allowlist_v0`
