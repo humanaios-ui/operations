@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HumanAIOS OPD observational trace v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "trace_id",
+    "repository",
+    "head_sha",
+    "state",
+    "proposed_action",
+    "corrected_action",
+    "outcome",
+    "evidence"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.opd.trace.v0.1"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "const": "humanaios-ui/operations"
+    },
+    "head_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "state": {
+      "type": "object"
+    },
+    "proposed_action": {
+      "$ref": "#/$defs/action"
+    },
+    "corrected_action": {
+      "$ref": "#/$defs/action"
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "const": "verified"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "source",
+        "url"
+      ],
+      "properties": {
+        "source": {
+          "const": "protected_ci"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://github.com/humanaios-ui/operations/actions/runs/"
+        }
+      }
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  },
+  "$defs": {
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "category"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,64}$"
+        }
+      }
+    }
+  }
+}

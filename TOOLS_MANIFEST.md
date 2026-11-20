@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**229 registered tools** · 2 MCP servers · 4 excluded · 180 carrying Builder v1.7 markers
+**230 registered tools** · 2 MCP servers · 4 excluded · 181 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 229 |
-| — status `draft` | 228 |
+| Registered tools | 230 |
+| — status `draft` | 229 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 180 |
+| Builder v1.7 markers present | 181 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -118,7 +118,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-152 | strict_yaml | `.doc-control/strict_yaml.py` | unversioned | 1 | draft | no-builder-markers | A YAML loader that refuses duplicate mapping keys, for registry consumers. |
 
-## Diagnostics — `diagnostic_tool` (23)
+## Diagnostics — `diagnostic_tool` (24)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -145,6 +145,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-227 | azure_readiness | `tools/azure_readiness.py` | 0.1.0 | 1 | draft | — | — |
 | HAIOS-TOOL-234 | iew_witness_fixture | `tools/iew/fixtures/witness_fixture.py` | 0.1.0 | 1 | draft | — | Deterministic stdin/stdout smoke-test fixture for IEW-003. |
 | HAIOS-TOOL-235 | iew_runner | `tools/iew/iew_runner.py` | 0.1.0 | 1 | draft | — | IEW-003: runner captures subprocess output in place of author-reported outcomes. |
+| HAIOS-TOOL-243 | opd_offline_distiller | `tools/opd/offline_distiller.py` | 0.1.1 | 1 | draft | — | No GitHub credentials, network calls, execution, or authority effects. |
 
 ## Governance — `governance_tool` (26)
 
@@ -370,7 +371,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 18 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
-| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 23 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 24 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 26 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
