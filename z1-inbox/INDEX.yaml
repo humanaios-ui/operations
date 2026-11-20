@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 131
+  candidates: 132
   records: 80
 ratifiers:
 - Night
@@ -1122,6 +1122,12 @@ candidates:
   ratified_at: "2026-11-20"
   z2_ruling: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
   z2_hash: "3f5cac40f77f8970dc424cef998f2a713a267c4c2c696e512e48334c82b90b79"
+- q_id: Q-ADMISSION-GRAPH-TIER2-01
+  title: 'The registry entry and the ADV run that Tier 2 asks for, for the admission-graph workflow merged in #1291'
+  path: z1-inbox/2026-11-20/Q-ADMISSION-GRAPH-TIER2-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Candidate only. Z1 wrote no REGISTERED.md entry and ran no ADV. adv_eval_v2.py scores supplied values, it does not run a workflow. Z1 leans: leave #1291 merged while the entry and run are open.'
 records:
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
