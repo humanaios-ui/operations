@@ -19,6 +19,15 @@
 
 **Align INDEX and stale prose headers to the existing REGISTERED ACCEPT + CLAUDE append.** Stronger evidence is the ACCEPT block and CLAUDE append (same pattern as sibling `Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01`, whose REGISTERED header already reads `ACCEPTED`). Do **not** invent a new `ratify.py` hex digest.
 
+## Cited signature (existing; not newly issued)
+
+**z2_hash (verbatim from REGISTERED.md ACCEPT block):**  
+`sha256(Q-INTENT-OS-WITNESS-LEDGER-01 | carly.r.anderson@gmail.com | 2026-09-19T19:00:00Z | ACCEPT | witness-ledger-architecture)`
+
+Primary evidence locations (unchanged by this reconcile beyond REGISTERED candidate YAML header alignment):
+- `REGISTERED.md` — section `## Z2 Ratification — 2026-09-19` for this Q-ID
+- `CLAUDE.md` — appended events line dated 2026-09-19 19:00 UTC
+
 ## Changes in this PR
 
 1. `z1-inbox/INDEX.yaml` → `status: ratified`; cite existing REGISTERED formula as `z2_hash` string (not a new signature).

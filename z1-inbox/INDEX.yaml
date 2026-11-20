@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 131
-  records: 79
+  records: 80
 ratifiers:
 - Night
 candidates:
@@ -713,7 +713,7 @@ candidates:
   tier: 0
   ratified_by: Night
   ratified_at: "2026-09-19"
-  z2_ruling: "REGISTERED.md (Z2 Ratification — 2026-09-19 for Q-INTENT-OS-WITNESS-LEDGER-01); CLAUDE.md appended events 2026-09-19 19:00 UTC"
+  z2_ruling: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   z2_hash: "sha256(Q-INTENT-OS-WITNESS-LEDGER-01 | carly.r.anderson@gmail.com | 2026-09-19T19:00:00Z | ACCEPT | witness-ledger-architecture)"
 - q_id: Q-MOLT-TEMPORAL-PURITY-01
   title: Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01
@@ -1119,6 +1119,9 @@ candidates:
   status: awaiting_z2
   note: 'Candidate only. Live ledger is on the coordinator-state branch (390 rows), main has a stale 71-row copy. Z1 leans: page plus thin pointer issue; entryways updated in separate pull requests after ruling.'
 records:
+- path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
+  title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (cites pre-existing REGISTERED ACCEPT; not a new ratify.py signature)"
+  note: "Z1 consistency record. authority_effect NONE. Pins the existing REGISTERED.md ACCEPT formula hash so INDEX can cite a resolvable records: path without inventing a new Z2 signature."
 - path: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
   title: "Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
