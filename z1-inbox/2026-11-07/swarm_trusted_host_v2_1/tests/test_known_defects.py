@@ -209,10 +209,23 @@ class KD3(Base):
         self.assertEqual(list(w.events.iterdir()), [])
         self.assertEqual(list(w.artifacts.iterdir()), [])
 
-    def _run_with_clock(self, stamps):
+    def _run_with_clock(self, stamps, unchecked_result=False):
+        """unchecked_result=True forges what a writer WITHOUT the result-window guard would have recorded (the real
+        writer now refuses a late or malformed WRITE_RESULT time, see test_write_crosses_deadline.py). The verifier
+        must still reject such a chain on its own: defense in depth."""
         it = iter(stamps)
-        with mock.patch('src.writer.now', lambda: next(it)):
-            w = self.host(); w.write('A', 'R1', INTENT); w.finalize()
+
+        def legacy_record(self_, status, artifact_sha256, peer_uid):
+            self_._event('WRITE_RESULT', status, artifact_sha256=artifact_sha256, peer_uid=peer_uid)
+        patches = [mock.patch('src.writer.now', lambda: next(it))]
+        if unchecked_result:
+            patches.append(mock.patch.object(HostWriter, '_record_write_result', legacy_record))
+        with patches[0]:
+            if unchecked_result:
+                with patches[1]:
+                    w = self.host(); w.write('A', 'R1', INTENT); w.finalize()
+            else:
+                w = self.host(); w.write('A', 'R1', INTENT); w.finalize()
 
     def _times(self):
         t = datetime.now(timezone.utc)
@@ -233,7 +246,7 @@ class KD3(Base):
         s = self._times()
         # finalize now refuses an out-of-window time, so the late reading lands on the write-result event;
         # the verifier must still reject that chain (defense in depth).
-        self._run_with_clock([s[0], late, s[2], s[3]])
+        self._run_with_clock([s[0], late, s[2], s[3]], unchecked_result=True)
         with self.assertRaisesRegex(EvidenceError, 'EVENT_OUTSIDE_WINDOW'):
             verify(self.plan, self.pin, self.pub, self.root)
 
@@ -250,13 +263,13 @@ class KD3(Base):
 
     def test_unparseable_timestamp_blocked(self):
         s = self._times()
-        self._run_with_clock([s[0], 'yesterday', s[2], s[3], s[4]])
+        self._run_with_clock([s[0], 'yesterday', s[2], s[3], s[4]], unchecked_result=True)
         with self.assertRaisesRegex(EvidenceError, 'EVENT_TIMESTAMP_INVALID'):
             verify(self.plan, self.pin, self.pub, self.root)
 
     def test_naive_timestamp_blocked(self):
         s = self._times()
-        self._run_with_clock([s[0], '2026-11-07T12:00:00', s[2], s[3], s[4]])
+        self._run_with_clock([s[0], '2026-11-07T12:00:00', s[2], s[3], s[4]], unchecked_result=True)
         with self.assertRaisesRegex(EvidenceError, 'EVENT_TIMESTAMP_INVALID'):
             verify(self.plan, self.pin, self.pub, self.root)
 
