@@ -46,6 +46,28 @@ def test_repo_allowlist_get_payload():
     assert pending and pending[0]["decision"] == "DENY"
 
 
+def test_classify_error_uses_witness_ledger_prefix_not_path_substring():
+    # Default allowlist lives under ledgers/ — path text must not force LEDGER_*.
+    assert (
+        api.classify_error(
+            "allowlist missing (fail-closed): /repo/ledgers/MACHINE_CAPABILITY_ALLOWLIST.json"
+        )
+        == "ALLOWLIST_MISSING"
+    )
+    assert (
+        api.classify_error("witness ledger missing (fail-closed): /tmp/WITNESS_LEDGER.jsonl")
+        == "LEDGER_UNVERIFIABLE"
+    )
+    assert (
+        api.classify_error("witness ledger chain broken (fail-closed): hash mismatch")
+        == "LEDGER_UNVERIFIABLE"
+    )
+    assert (
+        api.classify_error("content_hash mismatch: file=00 recomputed=aa")
+        == "ALLOWLIST_UNVERIFIABLE"
+    )
+
+
 def test_fail_closed_missing_and_tampered(tmp_path):
     ledger = tmp_path / "WITNESS_LEDGER.jsonl"
     allowlist = tmp_path / "allowlist.json"
@@ -65,15 +87,14 @@ def test_fail_closed_missing_and_tampered(tmp_path):
     code_ok, body_ok = api.build_payload(allowlist, ledger)
     assert code_ok == 200 and body_ok["ok"] is True
 
-    code_miss, body_miss = api.build_payload(tmp_path / "nope.json", ledger)
+    # Path contains "ledgers/" but error is allowlist-missing.
+    nested_missing = tmp_path / "ledgers" / "MACHINE_CAPABILITY_ALLOWLIST.json"
+    nested_missing.parent.mkdir(parents=True, exist_ok=True)
+    code_miss, body_miss = api.build_payload(nested_missing, ledger)
     assert code_miss == 503
     assert body_miss["ok"] is False
     assert body_miss["authorized_identities"] == []
-    assert body_miss["error"]["code"] in (
-        "ALLOWLIST_MISSING",
-        "ALLOWLIST_UNVERIFIABLE",
-        "REGISTRY_UNVERIFIABLE",
-    )
+    assert body_miss["error"]["code"] == "ALLOWLIST_MISSING"
 
     tampered = json.loads(allowlist.read_text(encoding="utf-8"))
     tampered["content_hash"] = "0" * 64
@@ -82,6 +103,65 @@ def test_fail_closed_missing_and_tampered(tmp_path):
     assert code_bad == 503
     assert body_bad["authorized_identities"] == []
     assert body_bad["error"]["code"] == "ALLOWLIST_UNVERIFIABLE"
+
+
+def test_non_utf8_allowlist_returns_structured_503(tmp_path):
+    ledger = tmp_path / "WITNESS_LEDGER.jsonl"
+    assert (
+        wl.cmd_init(
+            wl.build_parser().parse_args(
+                ["init", "--ledger", str(ledger), "--timestamp", "2026-11-20T12:00:00Z"]
+            )
+        )
+        == 0
+    )
+    bad = tmp_path / "ledgers" / "MACHINE_CAPABILITY_ALLOWLIST.json"
+    bad.parent.mkdir(parents=True, exist_ok=True)
+    bad.write_bytes(b"\xff\xfe\x00not-utf8")
+    code, body = api.build_payload(bad, ledger)
+    assert code == 503
+    assert body["ok"] is False
+    assert body["authorized_identities"] == []
+    assert body["error"]["code"] == "ALLOWLIST_UNVERIFIABLE"
+    assert "UnicodeDecodeError" in body["error"]["message"] or "unreadable" in body["error"][
+        "message"
+    ].lower()
+
+
+def test_ipv6_loopback_uses_af_inet6():
+    import socket
+
+    handler = api.make_handler(REPO_ALLOWLIST, None)
+    server = api.make_server("::1", 0, handler)
+    try:
+        assert server.address_family == socket.AF_INET6
+        assert server.server_address[0] in ("::1", "::")
+    finally:
+        server.server_close()
+
+
+def test_input_alias_for_allowlist(tmp_path):
+    ledger = tmp_path / "WITNESS_LEDGER.jsonl"
+    allowlist = tmp_path / "allowlist.json"
+    assert (
+        wl.cmd_init(
+            wl.build_parser().parse_args(
+                ["init", "--ledger", str(ledger), "--timestamp", "2026-11-20T12:00:00Z"]
+            )
+        )
+        == 0
+    )
+    doc = mca.build_seed_doc()
+    doc["witness_ledger"] = str(ledger)
+    doc["content_hash"] = mca.compute_content_hash(doc)
+    allowlist.write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    parser = api.build_parser()
+    args = parser.parse_args(
+        ["get", "--input", str(allowlist), "--ledger", str(ledger)]
+    )
+    assert args.allowlist == str(allowlist)
+    assert api.cmd_get(args) == 0
 
 
 def test_cli_get_exit_codes(tmp_path, capsys):

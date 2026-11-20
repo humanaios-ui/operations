@@ -29,6 +29,7 @@ import argparse
 import contextlib
 import io
 import json
+import socket
 import sys
 import tempfile
 import threading
@@ -64,12 +65,30 @@ def _import_allowlist():
 
 
 def classify_error(message: str) -> str:
-    lower = message.lower()
-    if "ledger" in lower:
+    """Classify fail-closed errors from verifier message text.
+
+    Match the Phase C verifier prefix ``witness ledger ...`` — do not scan for
+    the substring ``ledger`` alone (default allowlist paths live under
+    ``ledgers/`` and would be misclassified).
+    """
+    lower = message.lower().lstrip()
+    # SPEC_LOAD_FAILED: may wrap the underlying verifier/load message.
+    if lower.startswith("spec_load_failed:"):
+        lower = lower.split(":", 1)[1].lstrip()
+    if lower.startswith("witness ledger"):
         return "LEDGER_UNVERIFIABLE"
-    if "allowlist missing" in lower or "missing (fail-closed)" in lower:
+    if lower.startswith("allowlist missing") or (
+        "allowlist missing" in lower and "(fail-closed)" in lower
+    ):
         return "ALLOWLIST_MISSING"
-    if "content_hash" in lower or "unreadable" in lower or "unverifiable" in lower:
+    if (
+        "content_hash" in lower
+        or "allowlist unreadable" in lower
+        or "allowlist unverifiable" in lower
+        or lower.startswith("cannot load")
+        or "unicodedecodeerror" in lower
+        or "codec can't decode" in lower
+    ):
         return "ALLOWLIST_UNVERIFIABLE"
     return "REGISTRY_UNVERIFIABLE"
 
@@ -108,6 +127,11 @@ def build_payload(
         return 503, deny_payload(str(exc))
     except mca.SpecLoadFailed as exc:
         return 503, deny_payload(f"SPEC_LOAD_FAILED: {exc}")
+    except UnicodeDecodeError as exc:
+        # Non-UTF-8 allowlist must not escape as a traceback / closed connection.
+        return 503, deny_payload(
+            f"allowlist unreadable/unverifiable (fail-closed): UnicodeDecodeError: {exc}"
+        )
 
     identities: List[Dict[str, Any]] = []
     authorized: List[str] = []
@@ -223,9 +247,43 @@ def cmd_get(args: argparse.Namespace) -> int:
     return 0 if body.get("ok") else 1
 
 
+def _is_ipv6_literal(host: str) -> bool:
+    """True when host is an IPv6 address literal (with or without brackets)."""
+    candidate = host.strip()
+    if candidate.startswith("[") and candidate.endswith("]"):
+        candidate = candidate[1:-1]
+    try:
+        socket.inet_pton(socket.AF_INET6, candidate)
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+class ThreadingHTTPServerV6(ThreadingHTTPServer):
+    """ThreadingHTTPServer bound with AF_INET6 for ``::1`` / other IPv6 hosts."""
+
+    address_family = socket.AF_INET6
+
+
+def make_server(host: str, port: int, handler: type) -> ThreadingHTTPServer:
+    """Construct an HTTP server with AF_INET6 when host is an IPv6 literal."""
+    bind_host = host.strip()
+    if bind_host.startswith("[") and bind_host.endswith("]"):
+        bind_host = bind_host[1:-1]
+    if _is_ipv6_literal(bind_host):
+        return ThreadingHTTPServerV6((bind_host, port), handler)
+    return ThreadingHTTPServer((bind_host, port), handler)
+
+
+def _is_loopback_host(host: str) -> bool:
+    if host in ("127.0.0.1", "localhost", "::1", "[::1]"):
+        return True
+    return False
+
+
 def cmd_serve(args: argparse.Namespace) -> int:
     host = args.host
-    if host not in ("127.0.0.1", "localhost", "::1") and not args.allow_non_loopback:
+    if not _is_loopback_host(host) and not args.allow_non_loopback:
         print(
             json.dumps(
                 {
@@ -242,7 +300,7 @@ def cmd_serve(args: argparse.Namespace) -> int:
     handler = make_handler(
         Path(args.allowlist), Path(args.ledger) if args.ledger else None
     )
-    server = ThreadingHTTPServer((host, args.port), handler)
+    server = make_server(host, args.port, handler)
     print(
         json.dumps(
             {
@@ -305,15 +363,27 @@ def run_smoke_test() -> int:
         assert "noreply@anthropic.com" not in body["authorized_identities"]
         assert body["error"] is None
 
-        # Fail-closed: missing allowlist
-        code2, body2 = build_payload(tmp_path / "missing.json", ledger)
+        # Fail-closed: missing allowlist under a path that contains "ledgers/"
+        # must classify as ALLOWLIST_MISSING (not LEDGER_*) — Copilot finding 1.
+        nested = tmp_path / "ledgers" / "missing.json"
+        nested.parent.mkdir(parents=True, exist_ok=True)
+        code2, body2 = build_payload(nested, ledger)
         assert code2 == 503 and body2["ok"] is False, body2
         assert body2["authorized_identities"] == []
-        assert body2["error"]["code"] in (
-            "ALLOWLIST_MISSING",
-            "ALLOWLIST_UNVERIFIABLE",
-            "REGISTRY_UNVERIFIABLE",
-        )
+        assert body2["error"]["code"] == "ALLOWLIST_MISSING", body2["error"]
+
+        # Non-UTF-8 allowlist → structured 503 (Copilot finding 2)
+        binary_allow = tmp_path / "binary_allowlist.json"
+        binary_allow.write_bytes(b"\xff\xfe{not-utf8")
+        code_bin, body_bin = build_payload(binary_allow, ledger)
+        assert code_bin == 503 and body_bin["ok"] is False, body_bin
+        assert body_bin["authorized_identities"] == []
+        assert body_bin["error"]["code"] == "ALLOWLIST_UNVERIFIABLE", body_bin["error"]
+
+        # IPv6 loopback server constructs (Copilot finding 3)
+        srv6 = make_server("::1", 0, make_handler(allowlist, ledger))
+        assert srv6.address_family == socket.AF_INET6
+        srv6.server_close()
 
         # Fail-closed: tampered allowlist
         bad = json.loads(allowlist.read_text(encoding="utf-8"))
@@ -420,7 +490,13 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="command")
 
     def add_common(p: argparse.ArgumentParser) -> None:
-        p.add_argument("--allowlist", default=str(DEFAULT_ALLOWLIST))
+        p.add_argument(
+            "--allowlist",
+            "--input",
+            dest="allowlist",
+            default=str(DEFAULT_ALLOWLIST),
+            help="Path to MACHINE_CAPABILITY_ALLOWLIST.json (--input is the tools/README alias)",
+        )
         p.add_argument(
             "--ledger",
             default=None,

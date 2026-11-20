@@ -185,6 +185,10 @@ def load_allowlist(path: Path) -> Dict[str, Any]:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
         raise SpecLoadFailed(f"Cannot load {path}: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise SpecLoadFailed(
+            f"allowlist unreadable/unverifiable (fail-closed): UnicodeDecodeError: {exc}"
+        ) from exc
     try:
         doc = json.loads(text)
     except json.JSONDecodeError as exc:
