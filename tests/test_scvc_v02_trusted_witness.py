@@ -170,6 +170,15 @@ class RestTransportRegressionTests(unittest.TestCase):
                     witness.GitHubReadOnly("synthetic-test-token").get(bad)
                 open_url.assert_not_called()
 
+    def test_double_encoded_and_malformed_paths_denied_without_network(self):
+        """Hardening ported from #814: double-encoded dot-segments, '#', and a second '?'."""
+        for bad in (PRE + "/%252e%252e/private", PRE + "/%252E%252E/private",
+                    PRE + "/x#frag", PRE + "/x?a=1?b=2"):
+            with self.subTest(path=bad), patch.object(witness.urllib.request, "urlopen") as open_url:
+                with self.assertRaises(witness.WitnessError):
+                    witness.GitHubReadOnly("synthetic-test-token").get(bad)
+                open_url.assert_not_called()
+
     def test_triple_dot_compare_reaches_transport(self):
         """A compare/{base}...{head} path reaches urlopen unchanged."""
         class Response:

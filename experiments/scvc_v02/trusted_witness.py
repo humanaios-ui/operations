@@ -87,10 +87,19 @@ class GitHubReadOnly:
         # Triple-dot compare ranges (compare/{base}...{head}) are valid and
         # must stay reachable. "#" ends the URL path for urllib, so it is a
         # segment terminator here too: "/..#x" would otherwise traverse.
+        # Hardening ported from #814: also reject a fragment or a second "?",
+        # and re-apply the dot-segment test after two rounds of percent-decoding
+        # so "%252e%252e" cannot slip past the single-encoding check.
         if (not isinstance(path, str)
                 or not (path == root or path.startswith(root + "/"))
                 or re.search(r"(?i)(^|/)(\.|%2e)(\.|%2e)?(/|\?|#|$)", path)
-                or "\\" in path or len(path) > 600):
+                or "\\" in path or len(path) > 600
+                or "#" in path or path.count("?") > 1):
+            raise WitnessError("API_PATH_DENIED")
+        decoded = path.partition("?")[0]
+        for _ in range(2):
+            decoded = urllib.parse.unquote(decoded)
+        if any(seg in (".", "..") for seg in decoded.split("/")):
             raise WitnessError("API_PATH_DENIED")
         req = urllib.request.Request(
             "https://api.github.com/" + path,
