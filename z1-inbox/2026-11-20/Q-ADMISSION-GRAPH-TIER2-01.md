@@ -10,7 +10,7 @@ This file decides nothing and changes no file other than itself and the index. I
 ## What Z2 is asked to decide
 
 1. **The registry entry.** Does Z2 want an entry in `REGISTERED.md` for the `admission-ruling-graph` workflow, entered after the merge? Z2 writes it. Z1 offers the facts below, not text to paste as signed. If Z2 does not want one, say so, and the gap is recorded as accepted.
-2. **The ADV run.** Does Z2 want an adversarial run against this workflow, and who runs it? Z1's proposed attacks and what is already known are in "The ADV run, what exists". Z1 did not run any ADV.
+2. **The ADV run.** Does Z2 want an adversarial run against this workflow, and who runs it? Z1's proposed attacks and what is already known are in "The ADV run, what exists". Z1 did not run any ADV. Z2 also settles A4: after a hand-edited subject drops the marker, is one extra draft pull request a pass (the known gap) or a failure? Until Z2 says, A4's outcome is not a pass or fail criterion.
 3. **What #1291 is meanwhile.** `MOLT_STATE.md` says the registry entry and the ADV run come before KEEP, and also says nothing enforces that yet ("measurement precedes enforcement"). Is #1291 left merged while those are open (Z1's lean), or reverted until both exist?
 
 ## The registry entry, facts only
@@ -35,10 +35,10 @@ This file decides nothing and changes no file other than itself and the index. I
 | A5 | Leave a refresh branch with no pull request, then rerun | no pull request is created |
 | A6 | Two merges to `main` in quick succession | more than one refresh pull request stays open |
 | A7 | Make the ledger branch unreadable | a pull request is opened from a stale or empty page |
-| A8 | Put markup or a long line in a merged pull request title that the page prints | the generated page carries it unescaped |
+| A8 | Put a pipe, a backtick or a line break in a candidate's Q-ID or status in `z1-inbox/INDEX.yaml`, which the page prints | the generated page breaks its own table or carries the text unescaped |
 
 - **Already known, not ADV:** A5, the rerun with a pull request open, and the closing of an older refresh pull request were run locally against a throwaway repository with a stand-in `gh` before the merge, and again for A5 after the review fix. Real GitHub was not used. The marker in the commit subject and pull request title (A3) is pinned by a structural test, not run on a real merge. Closing an older refresh pull request has not run live: only one refresh pull request exists so far.
-- **Not known:** A1, A2, A4, A6, A7 and A8 were not run in any form. Z1 did not check whether the page escapes markup in a pull request title (A8).
+- **Not known:** A1, A2, A4, A6, A7 and A8 were not run in any form. The page prints pull request links, Q-IDs, statuses and ledger decisions, and no pull request titles (`render_markdown` in the generator; `grep title` finds nothing there). It escapes the status with `_esc`; Z1 did not check whether it escapes a Q-ID, and A8 asks exactly that.
 
 ## Checked on 2026-11-20 (main `2b99a5c5`)
 
@@ -65,6 +65,6 @@ This file decides nothing and changes no file other than itself and the index. I
 Event-based, no clock. This block is wrong, and should be withdrawn in whole or in part, if any of these happens:
 
 - (a) an entry for the workflow is found in `REGISTERED.md`. Probe: `grep -n admission-ruling-graph REGISTERED.md`. Z1 found none today.
-- (b) a real run of `refresh` opens more than one open refresh pull request, or opens one for its own merge. Then #1291 failed its own falsifier and the question is a revert, not a registry entry.
+- (b) a real run of `refresh` opens more than one open refresh pull request, or opens one for the merge of a refresh pull request whose subject still carries the marker `admission-graph/refresh-`. Then #1291 failed its own falsifier and the question is a revert, not a registry entry. A merge whose subject was hand-edited to drop the marker is attack A4, not this falsifier; Z2 settles A4 under question 2.
 - (c) a run of `adv_eval_v2.py` is found to execute the workflow or a script, not score supplied values. Z1 read only its attack simulation.
-- (d) the molt classifier stops measuring `.github/workflows/` as Tier 2, so the obligation no longer applies.
+- (d) Z2 rules that the Tier 2 obligations of #1291 are removed or waived. A later change to the molt classifier does not remove them by itself: `MOLT_STATE.md` pins the tier measured at pull request open and does not re-measure after the classifier changes.
