@@ -6,8 +6,8 @@ HumanAIOS — Q-INTENT-OS-WITNESS-LEDGER-01 Phase C (local stop-hook allowlist)
 
 Offline registry a stop-hook can query. AUTHORITY_EFFECT is NONE. can_authorize is
 false. This tool does not grant merge authority, satisfy required review, sign a
-ruling, or replace a Z2 hash. HTTP /api/z2-authorized-machine-identities is out of
-scope (Phase D) and is never consulted.
+ruling, or replace a Z2 hash. HTTP /api/z2-authorized-machine-identities may exist as
+an optional Phase D local mirror; this stop-hook path never consults it.
 
 Fail-closed: missing/invalid allowlist, missing/broken witness ledger, missing or
 unbound machine capability_digest, revoked/unknown identity → DENY.
@@ -126,7 +126,10 @@ def validate_allowlist_shape(doc: Dict[str, Any]) -> None:
     if not isinstance(http, dict):
         refuse("http_api object required")
     if http.get("enabled") is not False:
-        refuse("http_api.enabled must be false (Phase D not landed)")
+        refuse(
+            "http_api.enabled must be false "
+            "(stop-hook must not consult HTTP; optional Phase D API is independent)"
+        )
     if http.get("path") != "/api/z2-authorized-machine-identities":
         refuse("http_api.path must be /api/z2-authorized-machine-identities")
     if not isinstance(http.get("note"), str) or not http["note"]:
@@ -435,7 +438,10 @@ def cmd_stop_hook(args: argparse.Namespace) -> int:
             "claude_code_stop": ".claude/settings.json hooks.Stop",
             "ci_hardcoded_z2": ".github/workflows/z2_ratification_gate.yml (advisory authorship check)",
             "local_query": "tools/machine_capability_allowlist_v0.py check|stop-hook",
-            "http_api": "not consulted (Phase D)",
+            "http_api": (
+                "not consulted — optional Phase D mirror "
+                "tools/z2_authorized_machine_identities_api_v0.py is stop-hook-independent"
+            ),
         },
         **result,
     }
@@ -463,7 +469,12 @@ def build_seed_doc() -> Dict[str, Any]:
         "http_api": {
             "enabled": False,
             "path": "/api/z2-authorized-machine-identities",
-            "note": "Phase D — local stop-hook must not depend on HTTP; fail closed offline.",
+            "note": (
+                "Phase D optional local mirror exists "
+                "(tools/z2_authorized_machine_identities_api_v0.py). "
+                "Stop-hook must not depend on HTTP; http_api.enabled stays false; "
+                "fail closed offline."
+            ),
         },
         "entries": [
             {

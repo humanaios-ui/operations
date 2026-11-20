@@ -2,7 +2,7 @@
   "advisory_only": true,
   "authority_effect": "NONE",
   "can_authorize": false,
-  "content_hash": "6d968b83b8de358a25ca8545e7a657db86c97eff9e4e73438d72021e275357d8",
+  "content_hash": "93d2c54dc3bc1434605550ba44b9b27fa46ae3843dae06ba91e8edf05b938234",
   "entries": [
     {
       "actor_type": "human",
@@ -31,7 +31,7 @@
   ],
   "http_api": {
     "enabled": false,
-    "note": "Phase D \u2014 local stop-hook must not depend on HTTP; fail closed offline.",
+    "note": "Phase D optional local mirror exists (tools/z2_authorized_machine_identities_api_v0.py). Stop-hook must not depend on HTTP; http_api.enabled stays false; fail closed offline.",
     "path": "/api/z2-authorized-machine-identities"
   },
   "require_ledger_verify": true,

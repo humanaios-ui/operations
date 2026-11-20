@@ -26,4 +26,13 @@ DENY when any of these hold:
 python3 tools/machine_capability_allowlist_v0.py --smoke-test
 python3 tools/machine_capability_allowlist_v0.py verify
 python3 tools/machine_capability_allowlist_v0.py check --identity carly.r.anderson@gmail.com --enforce
+
+Optional Phase D local mirror (does not grant authority; stop-hook does not call it):
+
+```bash
+python3 tools/z2_authorized_machine_identities_api_v0.py get
+python3 tools/z2_authorized_machine_identities_api_v0.py serve --port 8787
+```
+
+See `docs/INTENT_OS_Z2_AUTHORIZED_MACHINE_IDENTITIES_API_V0.md`.
 ```

@@ -146,7 +146,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-234 | iew_witness_fixture | `tools/iew/fixtures/witness_fixture.py` | 0.1.0 | 1 | draft | — | Deterministic stdin/stdout smoke-test fixture for IEW-003. |
 | HAIOS-TOOL-235 | iew_runner | `tools/iew/iew_runner.py` | 0.1.0 | 1 | draft | — | IEW-003: runner captures subprocess output in place of author-reported outcomes. |
 
-## Governance — `governance_tool` (29)
+## Governance — `governance_tool` (30)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -179,6 +179,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-243 | admission_ruling_graph | `tools/admission_ruling_graph_v1_0.py` | 1.0.0 | 1 | draft | — | admission_ruling_graph_v1_0.py — join the admission ledger to Z2 rulings and render one page. |
 | HAIOS-TOOL-244 | witness_ledger | `tools/witness_ledger_v0.py` | 0.1.0 | 1 | draft | — | witness_ledger_v0.py — local INTENT-OS witness ledger (append-only, hash-chained). |
 | HAIOS-TOOL-245 | machine_capability_allowlist | `tools/machine_capability_allowlist_v0.py` | 0.1.0 | 1 | draft | — | machine_capability_allowlist_v0.py — local INTENT-OS machine-capability allowlist. |
+| HAIOS-TOOL-246 | z2_authorized_machine_identities_api | `tools/z2_authorized_machine_identities_api_v0.py` | 0.1.0 | 1 | draft | — | z2_authorized_machine_identities_api_v0.py — optional read-only local /api/z2-authorized-machine-identities mirror. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
