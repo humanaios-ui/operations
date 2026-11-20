@@ -23,6 +23,14 @@ for required in CURRENT.md REGISTERED.md GOVERNANCE.md; do
     exit 2
   fi
 done
+# Fail closed before changing any existing files or keys. Default python3 on
+# operator Macs may be 3.15, which cannot install this dependency set.
+PYTHON_BIN="${HAIOS_MCP_PYTHON:-/Library/Frameworks/Python.framework/Versions/3.13/bin/python3.13}"
+if [[ ! -x "$PYTHON_BIN" ]] ||
+   ! "$PYTHON_BIN" -c 'import sys; assert sys.version_info[:2] == (3,13)' 2>/dev/null; then
+  echo 'STOP: Python 3.13 required; set HAIOS_MCP_PYTHON to its absolute path.' >&2
+  exit 2
+fi
 # Before any dependency, Keychain or filesystem mutation, refuse an active job.
 if launchctl print "gui/$(id -u)/ai.humanaios.mcp" >/dev/null 2>&1; then
   echo 'MCP LaunchAgent is already loaded; stop it with launchctl bootout before upgrading.' >&2
@@ -31,6 +39,14 @@ fi
 BASE="$HOME/Library/Application Support/HumanAIOS"
 INSTALL_DIR="$BASE/mcp"
 CONTEXT_DIR="$BASE/context"
+# Never upgrade or reuse a previous venv in-place. A failed 3.15 install may
+# preserve its bin/python alias when Python 3.13 runs "venv" over that folder.
+# Check before changing source/context, Keychain or LaunchAgent. Recovery is
+# a separate operator-reviewed operation, not an implicit installer deletion.
+if [[ -e "$INSTALL_DIR/.venv" || -L "$INSTALL_DIR/.venv" ]]; then
+  echo 'STOP: existing MCP virtualenv present; inspect and plan separate recovery. No changes made.' >&2
+  exit 3
+fi
 mkdir -p "$INSTALL_DIR" "$CONTEXT_DIR" "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
 chmod 700 "$BASE" "$INSTALL_DIR" "$CONTEXT_DIR"
 if [[ "$SOURCE_HOME" != "$INSTALL_DIR" ]]; then
@@ -40,8 +56,8 @@ fi
 # Explicit read-only source snapshot. This is never called live synced state.
 cp "$REPO_ROOT/CURRENT.md" "$REPO_ROOT/REGISTERED.md" "$REPO_ROOT/GOVERNANCE.md" "$CONTEXT_DIR/"
 chmod 600 "$CONTEXT_DIR/CURRENT.md" "$CONTEXT_DIR/REGISTERED.md" "$CONTEXT_DIR/GOVERNANCE.md"
-python3 -m venv "$INSTALL_DIR/.venv"
-"$INSTALL_DIR/.venv/bin/python" -m pip install --disable-pip-version-check -e "$INSTALL_DIR"
+"$PYTHON_BIN" -m venv "$INSTALL_DIR/.venv"
+"$INSTALL_DIR/.venv/bin/python" -m pip install --disable-pip-version-check --only-binary=:all: -e "$INSTALL_DIR"
 ACCOUNT="$(id -un)"
 if ! security find-generic-password -a "$ACCOUNT" -s ai.humanaios.anthropic -w >/dev/null 2>&1; then
   echo "Enter your Anthropic key privately into the macOS Keychain prompt."

@@ -92,6 +92,7 @@ async def test_e2(url: str, token: str, nonce: str) -> dict:
     ) as http:
         async with Client(streamable_http_client(url, http_client=http)) as client:
             result = await client.call_tool("haios_talk", {
+                "consent": True,
                 "message": (
                     f"E2 controlled test. Repeat nonce {nonce} on the first line. "
                     "In 120 words or fewer identify CURRENT.md, REGISTERED.md "
@@ -104,6 +105,10 @@ async def test_e2(url: str, token: str, nonce: str) -> dict:
 
 
 async def main() -> None:
+    # This operator-facing live test may make exactly one external model request.
+    # CLI opt-in prevents accidental provider calls during routine tests.
+    if sys.argv[1:] != ["--consent-one-provider-call"]:
+        raise RuntimeError("Pass --consent-one-provider-call for this live provider test")
     if sys.platform != "darwin":
         raise RuntimeError("Mac-only live E2")
     package = Path(__file__).resolve().parent.parent

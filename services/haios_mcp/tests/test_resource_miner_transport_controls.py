@@ -91,6 +91,18 @@ class NegativeResourceTransportTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "non-public candidate"):
             self.invoke(payload=payload)
 
+    def test_refuses_match_status_inconsistent_with_count(self):
+        payload = good_payload()
+        payload["status"] = "NO_SUPPORTED_MATCH"
+        with self.assertRaisesRegex(RuntimeError, "status contradicts matched count"):
+            self.invoke(payload=payload)
+        payload = good_payload()
+        payload["matched_count"] = 0
+        payload["shown_count"] = 0
+        payload["candidates"] = []
+        with self.assertRaisesRegex(RuntimeError, "status contradicts matched count"):
+            self.invoke(payload=payload)
+
     def test_does_not_follow_http_redirect(self):
         reached = []
         class Target(BaseHTTPRequestHandler):

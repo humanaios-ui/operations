@@ -51,3 +51,60 @@ jobs:
           python services/haios_mcp/scripts/smoke_e3_ci.py \
             --miner-root e3-miner/humanaios-funding-pipeline/resource-miner \
             --witness-root .
+
+  rollback-macos-fixture:
+    runs-on: macos-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout PR exact commit without credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            services/haios_mcp
+
+      - name: Use Python 3.13 for native macOS checks
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Run disposable ownership/process/rollback negative fixtures
+        run: |
+          python -m unittest discover \
+            -s services/haios_mcp/tests \
+            -p test_pilot_rollback_guard.py -v
+
+      - name: Check fail-closed macOS staging and installer negative fixtures
+        run: |
+          python -m unittest discover \
+            -s services/haios_mcp/tests \
+            -p test_pilot_stage_guard.py -v
+
+      - name: Native macOS process liveness and read-only rollback check
+        shell: bash
+        run: |
+          set -euo pipefail
+          TMP="$(cd "$(mktemp -d)" && pwd -P)"
+          child=""
+          trap 'if [[ -n "$child" ]]; then kill "$child" >/dev/null 2>&1 || true; wait "$child" >/dev/null 2>&1 || true; fi; /bin/rm -R "$TMP"' EXIT
+          BASE="$TMP/Library/Application Support/HumanAIOS"
+          PILOT="$BASE/witness-pilot-e03-z1"
+          CONTEXT="$BASE/witness-pilot-e03-context"
+          /bin/mkdir -p "$PILOT" "$CONTEXT"
+          printf 'E0.3 Witness pilot, not released\n' > "$PILOT/.witness-pilot-e03-z1"
+          printf 'E0.3 Witness public context snapshot\n' > "$CONTEXT/.witness-pilot-e03-z1"
+          SCRIPT="services/haios_mcp/scripts/pilot_rollback_guard.py"
+          HOME="$TMP" python "$SCRIPT"
+          (cd "$PILOT" && exec /bin/sleep 30) &
+          child=$!
+          /bin/sleep 1
+          if HOME="$TMP" python "$SCRIPT"; then
+            echo "FAIL: live process was not detected"; exit 1
+          fi
+          kill "$child" >/dev/null 2>&1 || true
+          wait "$child" >/dev/null 2>&1 || true
+          child=""
+          HOME="$TMP" python "$SCRIPT"
+          echo "MACOS FIXTURE PASS: live pilot refused; clean marker check passed."
