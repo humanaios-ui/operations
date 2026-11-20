@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**126 candidates** — ⏳ awaiting Z2 80 · ✅ ratified 46 · **78 records**
+**130 candidates** — ⏳ awaiting Z2 84 · ✅ ratified 46 · **78 records**
 
-## Awaiting Z2 (80)
+## Awaiting Z2 (84)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -92,6 +92,10 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 | 2026-11-09 | **Q-SWARM-TRUSTED-HOST-V2-1-PREFLIGHT-01** | Admit Swarm Trusted Host v2.1 (Ed25519 writer, KD-1..KD-3 fixed offline) for independent review; non-scored two-agent preflight scope. Not an execution grant. | `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/Z1_CANDIDATE_FOR_Z2.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
+| 2026-11-22 | **Q-AGENT-CHECKIN-HA000-LEDGER-01** | Who administers HA-000, and whether review-agent findings get a ledger (asks 4 and 5 that Q-AGENT-CHECKIN-CALIBRATION-01 left unruled) | `z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md` |
+| 2026-11-22 | **Q-CORPUS-STATS-FOLLOWON-01** | Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled) | `z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md` |
+| 2026-11-22 | **Q-PROJECT-DESK-BRIDGE-ADMISSION-01** | Open items of the Project Desk bridge merged in 1203 - admit as the issue 1126 E0 receipt, independent reviewer, how the tests run, the three accepted minors | `z1-inbox/2026-11-20/Q-PROJECT-DESK-BRIDGE-ADMISSION-01.md` |
+| 2026-11-22 | **Q-REFERENT-DECAY-FOLLOWON-01** | Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt) | `z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md` |
 
 ## Decided (46)
 
@@ -155,7 +159,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (120)
+## Open questions for Z2 (134)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -171,6 +175,15 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Stage 3 is accepted as requiring a trusted-base evaluator and ratified attack corpus
 - [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
+
+### Q-AGENT-CHECKIN-HA000-LEDGER-01 (4)
+
+`z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md`
+
+- [ ] Name an administrator for HA-000, or record that none is named yet.
+- [ ] Decide whether question 2 waits for question 1, as Z1 leans.
+- [ ] If question 2 is taken up, someone opens the two audits files named above first, to see whether a findings ledger already exists.
+- [ ] After that check, give question 2 a disposition: accept it, reject it, or defer it explicitly. If neither audit file holds a ledger and no disposition is recorded, question 2 stays unanswered.
 
 ### Q-BOARD-PUBLISH-01 (4)
 
@@ -297,6 +310,14 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Decide whether evidence/verification should be strengthened from "where applicable" / "permitted" to a firmer commitment (finding 7).
 - [ ] Findings 8–10 — acknowledge or explicitly accept as out of scope for a single-pilot experiment.
 
+### Q-CORPUS-STATS-FOLLOWON-01 (3)
+
+`z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md`
+
+- [ ] Question 1: pick a rule for external citation until a new claim is ratified.
+- [ ] Question 2: answer the fact question. If the answer is yes, say what and where, so an IC can be filed.
+- [ ] Question 3: decide whether the validator gates. A yes starts a separate Tier 2 pull request.
+
 ### Q-DOCREVIEW-01 (9)
 
 `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md`
@@ -363,6 +384,23 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] **Risk acceptable?** (mitigations sufficient?)
 - [ ] **Deployment feasible?** (Night can execute 6-step guide?)
 - [ ] **Ready to ratify?** (Sign with sha256 hash)
+
+### Q-PROJECT-DESK-BRIDGE-ADMISSION-01 (4)
+
+`z1-inbox/2026-11-20/Q-PROJECT-DESK-BRIDGE-ADMISSION-01.md`
+
+- [ ] Question 2: name an independent reviewer, or record that none is named.
+- [ ] Question 3: pick how the tests run.
+- [ ] Question 4: confirm the acceptance of the three minors in a Z2 record, or ask for the repair.
+- [ ] Question 1: decide admission only after the three above, and only once both of the issue's last prerequisites are recorded as done: the independent exact-head test and the human evaluation record. If no reviewer is named, or either is still pending, admission stays pending.
+
+### Q-REFERENT-DECAY-FOLLOWON-01 (3)
+
+`z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md`
+
+- [ ] Question 1: adopt D as a direction? If yes, say whether the list of facts to promote comes back as its own block.
+- [ ] Question 2: adopt C as a standing discipline for prose, knowing it shares a scale with the graph ruling but not its scope.
+- [ ] B stays deferred. Nothing to decide, unless Night wants it asked.
 
 ### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
 
