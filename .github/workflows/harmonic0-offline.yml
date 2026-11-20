@@ -1,0 +1,28 @@
+name: HARMONIC-0 offline governed router
+on:
+  pull_request:
+    paths:
+      - 'services/haios_mcp/src/haios_mcp/harmonic0.py'
+      - 'services/haios_mcp/tests/test_harmonic0.py'
+      - 'services/haios_mcp/scripts/harmonic0_demo.py'
+      - 'services/haios_mcp/HARMONIC0.md'
+      - '.github/workflows/harmonic0-offline.yml'
+permissions:
+  contents: read
+jobs:
+  bounded-offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run simulation and receipt replay regressions
+        env:
+          PYTHONPATH: services/haios_mcp/src
+        run: |
+          python -m unittest -v services/haios_mcp/tests/test_harmonic0.py
+          python services/haios_mcp/scripts/harmonic0_demo.py
