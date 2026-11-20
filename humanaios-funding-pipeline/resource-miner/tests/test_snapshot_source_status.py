@@ -133,6 +133,46 @@ class SnapshotSourceHoldTests(unittest.TestCase):
                 self.assertEqual(self.catalog.read_bytes(), corrected_catalog_bytes)
                 self.assertEqual(self.snapshot.read_bytes(), historical_snapshot_bytes)
 
+    def test_conflict_outweighs_unverified_recheck_in_either_catalog_order(self):
+        self.write_fixture()
+        snapshot = [{
+            "resource_id": "RES-CATALOG-CONFLICT",
+            "title": "Convergent Research Program Launch Manager",
+            "canonical_url": CONVERGENT_URL,
+            "source_name": "HumanAIOS Funding Pipeline",
+            "description": "compute credits for research",
+            "route": "VERIFY_NOW",
+        }]
+        entries = [
+            {"url": CONVERGENT_URL,
+             "source_verification_status": "SOURCE_CONFLICT"},
+            {"url": CONVERGENT_URL,
+             "source_verification_status": "UNVERIFIED_RECHECK"},
+        ]
+        for order in (entries, list(reversed(entries))):
+            with self.subTest(order=[r["source_verification_status"] for r in order]):
+                self.catalog.write_text(json.dumps(order), encoding="utf-8")
+                self.snapshot.write_text(
+                    json.dumps(snapshot[0]) + "\n", encoding="utf-8"
+                )
+                projected, count = reconcile_snapshot_source_holds(snapshot, self.catalog)
+                self.assertEqual(count, 1)
+                self.assertEqual(
+                    projected[0]["source_verification_status"], "SOURCE_CONFLICT"
+                )
+                with patch.object(app, "SNAPSHOT_OUT", self.snapshot), \
+                     patch.object(app, "DEFAULT_FUNDING", self.catalog):
+                    status, result = intent_request(
+                        "Convergent Research Program Launch Manager"
+                    )
+                self.assertEqual(status, 200)
+                self.assertEqual(result["candidates"], [])
+                self.assertEqual(
+                    result["verification_cases"][0]["verification_state"],
+                    "CONFLICTING",
+                )
+                self.assertEqual(result["authority"], "NONE")
+
     def test_unknown_source_status_does_not_suppress(self):
         self.write_fixture()
         self.catalog.write_text(json.dumps([{

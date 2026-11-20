@@ -65,6 +65,116 @@ class ObjectiveContractTests(unittest.TestCase):
         self.assertEqual(result["candidates"], [])
         self.assertEqual(result["excluded_count"], 2)
 
+    def test_irrelevant_held_duplicate_preserves_review_evidence_in_both_orders(self):
+        active = candidate(resource_id="RES-SHARED")
+        held = candidate(
+            resource_id="RES-SHARED",
+            title="Unrelated review-only record",
+            description="Unrelated archived entry",
+            tags=[],
+            resource_types=[],
+            resource_affordances=[],
+            source_verification_status="SOURCE_CONFLICT",
+            private_notes="PRIVATE_CATALOG_NOTE_DO_NOT_ECHO",
+        )
+        outputs = []
+        for rows in ([active, held], [held, active]):
+            result = self.evaluate(rows)
+            self.assertEqual(result["candidates"], [])
+            self.assertEqual(result["matched_count"], 0)
+            self.assertEqual(result["excluded_count"], 2)
+            self.assertEqual(result["duplicate_resource_ids_excluded"], 0)
+            self.assertEqual(len(result["verification_cases"]), 1)
+            review = result["verification_cases"][0]
+            self.assertEqual(review["resource_id"], "RES-SHARED")
+            self.assertEqual(review["verification_state"], "CONFLICTING")
+            self.assertEqual(review["reason_code"], "SOURCE_CONFLICT")
+            self.assertEqual(review["source_name"], "HumanAIOS Funding Pipeline")
+            self.assertEqual(
+                set(review),
+                {"resource_id", "verification_state", "reason_code", "source_name", "action"},
+            )
+            self.assertNotIn("PRIVATE_CATALOG_NOTE_DO_NOT_ECHO", json.dumps(result))
+            outputs.append(result["verification_cases"])
+        self.assertEqual(outputs[0], outputs[1])
+
+    def test_relevant_url_less_held_row_is_review_only(self):
+        held = candidate(
+            resource_id="RES-NO-URL",
+            canonical_url="",
+            source_verification_status="SOURCE_CONFLICT",
+        )
+        result = self.evaluate([held])
+        self.assertEqual(result["candidates"], [])
+        self.assertEqual(result["excluded_count"], 1)
+        self.assertEqual(result["verification_cases"][0]["resource_id"], "RES-NO-URL")
+        self.assertEqual(result["verification_cases"][0]["verification_state"], "CONFLICTING")
+        self.assertEqual(result["authority"], "NONE")
+
+    def test_irrelevant_url_less_row_retains_exclusion_count(self):
+        row = candidate(
+            resource_id="RES-NOT-RELEVANT", title="Unrelated theater review",
+            description="No relevant resources", canonical_url="",
+            tags=[], resource_types=[], resource_affordances=[],
+        )
+        result = self.evaluate([row])
+        self.assertEqual(result["candidates"], [])
+        self.assertEqual(result["verification_cases"], [])
+        self.assertEqual(result["excluded_count"], 1)
+
+    def test_source_conflict_wins_over_expired_duplicate_in_both_orders(self):
+        conflict = candidate(
+            resource_id="RES-HELD-PRIORITY",
+            source_name="DEV Community",
+            source_verification_status="SOURCE_CONFLICT",
+        )
+        expired = candidate(
+            resource_id="RES-HELD-PRIORITY",
+            status="CLOSED_OR_STALE",
+            deadline="2000-01-01",
+        )
+        outputs = []
+        for rows in ([conflict, expired], [expired, conflict]):
+            result = self.evaluate(rows)
+            self.assertEqual(result["candidates"], [])
+            self.assertEqual(
+                result["verification_cases"],
+                [{
+                    "resource_id": "RES-HELD-PRIORITY",
+                    "verification_state": "CONFLICTING",
+                    "reason_code": "SOURCE_CONFLICT",
+                    "source_name": "DEV Community",
+                    "action": "Review the authoritative source before pursuing.",
+                }],
+            )
+            outputs.append(result["verification_cases"])
+        self.assertEqual(outputs[0], outputs[1])
+
+    def test_stale_duplicate_suppresses_active_candidate_in_both_orders(self):
+        active = candidate(resource_id="RES-STALE-DUPLICATE")
+        stale = candidate(
+            resource_id="RES-STALE-DUPLICATE",
+            status="CLOSED_OR_STALE",
+            route="ARCHIVE",
+            deadline="2000-01-01",
+        )
+        outputs = []
+        for rows in ([active, stale], [stale, active]):
+            result = self.evaluate(rows)
+            self.assertEqual(result["candidates"], [])
+            self.assertEqual(
+                result["verification_cases"],
+                [{
+                    "resource_id": "RES-STALE-DUPLICATE",
+                    "verification_state": "STALE",
+                    "reason_code": "DEADLINE_PASSED",
+                    "source_name": "HumanAIOS Funding Pipeline",
+                    "action": "Review the authoritative source before pursuing.",
+                }],
+            )
+            outputs.append(result["verification_cases"])
+        self.assertEqual(outputs[0], outputs[1])
+
     def test_url_scheme_is_rejected(self):
         self.assertEqual(self.evaluate([candidate(canonical_url="javascript:alert(1)")])["candidates"], [])
         self.assertEqual(self.evaluate([candidate(canonical_url="http://127.0.0.1/")])["candidates"], [])

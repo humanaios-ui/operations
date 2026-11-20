@@ -68,8 +68,16 @@ class ResourceMinerFourStateExperiment(unittest.TestCase):
         self.rows = [
             record("ACATR-STALE", source_evidence_valid_until="2020-01-01"),
             record("ACATR-UNKNOWN"),
-            record("ACATR-CONFLICTING"),
-            record("ACATR-UNAVAILABLE"),
+            record(
+                "ACATR-CONFLICTING", status="ACTIVE",
+                source_verification_status="SOURCE_WORKING",
+                last_verified_at="2026-10-28T10:00:00Z",
+            ),
+            record(
+                "ACATR-UNAVAILABLE", status="ACTIVE",
+                source_verification_status="SOURCE_WORKING",
+                last_verified_at="2026-10-28T10:00:00Z",
+            ),
         ]
         self.save_rows(self.rows)
         self.save_catalog([
@@ -183,6 +191,24 @@ class ResourceMinerFourStateExperiment(unittest.TestCase):
                    if r["resource_id"] == "ACATR-UNKNOWN")
         self.assertEqual(row["verification_state"], "UNKNOWN")
         self.assertFalse(row["eligibility_assessed"])
+
+    def test_unverified_recheck_remains_unknown_review_case(self):
+        changed = copy.deepcopy(self.rows)
+        changed.append(record(
+            "ACATR-UNVERIFIED-RECHECK",
+            source_verification_status="UNVERIFIED_RECHECK",
+        ))
+        self.save_rows(changed)
+        status, result = self.invoke()
+        self.assertEqual(status, 200)
+        row = next(r for r in result["verification_cases"]
+                   if r["resource_id"] == "ACATR-UNVERIFIED-RECHECK")
+        self.assertEqual(row["verification_state"], "UNKNOWN")
+        self.assertEqual(row["reason_code"], "UNVERIFIED_RECHECK")
+        self.assertNotIn(
+            "ACATR-UNVERIFIED-RECHECK",
+            {r["resource_id"] for r in result["candidates"]},
+        )
 
     def test_private_source_with_similar_terms_never_reaches_review_cases(self):
         changed = copy.deepcopy(self.rows) + [
