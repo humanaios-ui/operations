@@ -159,7 +159,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (133)
+## Open questions for Z2 (134)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -176,13 +176,14 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
 
-### Q-AGENT-CHECKIN-HA000-LEDGER-01 (3)
+### Q-AGENT-CHECKIN-HA000-LEDGER-01 (4)
 
 `z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md`
 
 - [ ] Name an administrator for HA-000, or record that none is named yet.
 - [ ] Decide whether question 2 waits for question 1, as Z1 leans.
 - [ ] If question 2 is taken up, someone opens the two audits files named above first, to see whether a findings ledger already exists.
+- [ ] After that check, give question 2 a disposition: accept it, reject it, or defer it explicitly. If neither audit file holds a ledger and no disposition is recorded, question 2 stays unanswered.
 
 ### Q-BOARD-PUBLISH-01 (4)
 
@@ -391,7 +392,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Question 2: name an independent reviewer, or record that none is named.
 - [ ] Question 3: pick how the tests run.
 - [ ] Question 4: confirm the acceptance of the three minors in a Z2 record, or ask for the repair.
-- [ ] Question 1: decide admission only after the three above.
+- [ ] Question 1: decide admission only after the three above, and only once both of the issue's last prerequisites are recorded as done: the independent exact-head test and the human evaluation record. If no reviewer is named, or either is still pending, admission stays pending.
 
 ### Q-REFERENT-DECAY-FOLLOWON-01 (3)
 
