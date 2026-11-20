@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'humanaios-funding-pipeline/resource-miner/resource_miner/opportunity_journey.py'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/apart_sprints.py'
+      - 'humanaios-funding-pipeline/resource-miner/fixtures/apart_sprints_public_20261104.json'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_apart_sprints_e0.py'
       - 'humanaios-funding-pipeline/resource-miner/fixtures/opportunity_journey_apart_synthetic.json'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_journey_e0.py'
       - 'humanaios-funding-pipeline/resource-miner/tests/test_my_opportunities_http.py'
@@ -38,6 +41,8 @@ jobs:
           python-version: '3.11'
       - name: Test proof-scoped journey projection
         run: python3 -m unittest discover -s tests -p 'test_opportunity_journey_e0.py' -v
+      - name: Test isolated Apart sprint identity and evidence boundaries
+        run: python3 -m unittest discover -s tests -p 'test_apart_sprints_e0.py' -v
       - name: Verify real local HTTP endpoints and legacy bridge
         run: |
           python3 -m unittest discover -s tests -p 'test_my_opportunities_http.py' -v
