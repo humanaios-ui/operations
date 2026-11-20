@@ -322,7 +322,8 @@ def append_entry(path: Path, fields: Dict[str, Any]) -> Dict[str, Any]:
         if path.exists() and path.stat().st_size > 0:
             existing = path.read_text(encoding="utf-8")
             if existing and not existing.endswith("\n"):
-                # Preserve verifiable JSONL: never concatenate onto an unterminated last line.
+                # Preserve verifiable JSONL: insert a separator before an
+                # unterminated last line rather than concatenating objects.
                 path.write_text(existing + "\n" + line, encoding="utf-8")
             else:
                 with open(path, "a", encoding="utf-8") as fh:
