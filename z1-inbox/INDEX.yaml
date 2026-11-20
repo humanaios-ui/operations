@@ -1116,8 +1116,12 @@ candidates:
   title: 'A generated read-only page joining the admission ledger to Z2 rulings, a pointer issue, and telling contributors how admission works'
   path: z1-inbox/2026-11-20/Q-ADMISSION-RULING-GRAPH-01.md
   submitted: '2026-11-20'
-  status: awaiting_z2
+  status: ratified
   note: 'Candidate only. Live ledger is on the coordinator-state branch (390 rows), main has a stale 71-row copy. Z1 leans: page plus thin pointer issue; entryways updated in separate pull requests after ruling.'
+  ratified_by: Night
+  ratified_at: "2026-11-20"
+  z2_ruling: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  z2_hash: "3f5cac40f77f8970dc424cef998f2a713a267c4c2c696e512e48334c82b90b79"
 records:
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
