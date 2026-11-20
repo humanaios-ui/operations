@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - name: Offline defensive interpretation checks
@@ -27,7 +27,7 @@ jobs:
           python3 experiments/mode_publisher_influence_e0/analyze.py --source-checkout /tmp/mode-source --output mode-publisher-e0-receipt.json
       - name: Prepare balanced model comparison pairs (NO inference)
         run: python3 experiments/mode_publisher_influence_e0/paired_ollama.py --source-checkout /tmp/mode-source > mode-publisher-pairs-prepared.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mode-publisher-e0-evidence
           path: |

@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - name: Offline contract tests
@@ -33,7 +33,7 @@ jobs:
             --require-three
       - name: Preserve source receipts and selected candidates
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: three-source-readonly-evidence
           path: humanaios-funding-pipeline/resource-miner/evidence/three-source-observations.json
