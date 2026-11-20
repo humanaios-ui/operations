@@ -32,7 +32,7 @@ WHAT IT DOES NOT DO
   any ruling. authority_effect is NONE. A row on the page is evidence of what the ledger
   and the history say; it is not an admission and not a ruling.
   A pull request merged by squash or rebase has no merge commit, so it is invisible to
-  the merge join and is never flagged as a gap.
+  the merge join and is not flagged as a gap.
 
 TEMPORAL POSITION (Q-TEMPORAL-DISSOLUTION-01)
   This tool reads no clock and prints no timestamp. Rows are ordered by their position
@@ -294,7 +294,7 @@ def load_sources(ledger_ref: str, main_ref: str, ledger_path: str | None) -> dic
 def run_smoke_test() -> bool:
     ev = lambda n, d, kind="PULL_REQUEST": {"subject_kind": kind, "subject_number": n, "decision": d}
     events = [
-        ev(10, "ADMIT"), ev(10, "REVOKE"),            # admitted, then voided, never merged-terminal
+        ev(10, "ADMIT"), ev(10, "REVOKE"),            # admitted, then voided, no merged-terminal row
         ev(11, "ADMIT"), ev(11, "TERMINATE_MERGED"),  # clean
         ev(12, "ADMIT"), ev(12, "REVOKE"),            # merged on main, history ends in REVOKE: a gap
         ev(99, "ADMIT", kind="ISSUE"),                # issues are not pull requests
