@@ -1,0 +1,205 @@
+name: pr-sweep
+
+# Weekly conflict and stale sweep. Equivalent to actions/stale for the label
+# and the author ping, with two differences that actions/stale cannot express:
+# the author is pinged at 21 days rather than when the stale label is applied
+# at 14, and the only pull requests closed are superseded duplicates from a
+# bot. Human and owner pull requests are never closed.
+#
+# Exempt: the "do not merge" label, the experiment label, a title that says
+# experiment, and pull request #597.
+
+on:
+  schedule:
+    - cron: "23 7 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label stale PRs, ping authors, report conflicts, close superseded bot PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - << 'PY'
+          import json, os, subprocess
+          from datetime import datetime, timedelta, timezone
+
+          REPO = os.environ["REPO"]
+          EXEMPT_NUMBERS = {597}
+          EXEMPT_LABELS = {"do not merge", "experiment"}
+          PING = "<!-- pr-sweep:author-ping -->"
+          REPORT_TITLE = "Weekly PR conflict and behind report"
+          now = datetime.now(timezone.utc)
+
+          def run(args, check=True):
+              proc = subprocess.run(args, text=True, capture_output=True)
+              if check and proc.returncode != 0:
+                  raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "command failed")
+              return proc
+
+          def api(path):
+              return json.loads(run(["gh", "api", path]).stdout)
+
+          def graphql(query):
+              data = json.loads(run(["gh", "api", "graphql", "-f", f"query={query}"]).stdout)
+              if data.get("errors"):
+                  raise RuntimeError(json.dumps(data["errors"]))
+              return data["data"]
+
+          owner, name = REPO.split("/", 1)
+          nodes = []
+          cursor = None
+          while True:
+              after = f', after: "{cursor}"' if cursor else ""
+              query = f'''
+              query {{
+                repository(owner: "{owner}", name: "{name}") {{
+                  pullRequests(states: OPEN, first: 50{after}) {{
+                    pageInfo {{ hasNextPage endCursor }}
+                    nodes {{
+                      number title isDraft createdAt updatedAt url
+                      mergeStateStatus
+                      author {{ login __typename }}
+                      labels(first: 30) {{ nodes {{ name }} }}
+                    }}
+                  }}
+                }}
+              }}
+              '''
+              conn = graphql(query)["repository"]["pullRequests"]
+              nodes.extend(conn["nodes"])
+              if not conn["pageInfo"]["hasNextPage"]:
+                  break
+              cursor = conn["pageInfo"]["endCursor"]
+
+          def labels_of(node):
+              return {item["name"] for item in (node.get("labels") or {}).get("nodes") or []}
+
+          def exempt(node):
+              if node["number"] in EXEMPT_NUMBERS:
+                  return True
+              if labels_of(node) & EXEMPT_LABELS:
+                  return True
+              if "experiment" in (node.get("title") or "").lower():
+                  return True
+              return False
+
+          def author_login(node):
+              return ((node.get("author") or {}).get("login")) or "author"
+
+          def is_bot(node):
+              author = node.get("author") or {}
+              login = author.get("login") or ""
+              return author.get("__typename") == "Bot" or login.endswith("[bot]") or login.startswith("app/")
+
+          def add_label(number, label):
+              run(["gh", "pr", "edit", str(number), "--repo", REPO, "--add-label", label])
+
+          def remove_label(number, label):
+              run(["gh", "pr", "edit", str(number), "--repo", REPO, "--remove-label", label])
+
+          def has_ping(number):
+              comments = api(f"repos/{REPO}/issues/{number}/comments?per_page=100")
+              return any(PING in (comment.get("body") or "") for comment in comments)
+
+          for node in nodes:
+              number = node["number"]
+              present = labels_of(node)
+              if exempt(node):
+                  if "stale" in present:
+                      remove_label(number, "stale")
+                      print(f"#{number} exempt; removed stale")
+                  continue
+              updated = datetime.fromisoformat(node["updatedAt"].replace("Z", "+00:00"))
+              age = now - updated
+              if age < timedelta(days=14):
+                  if "stale" in present:
+                      remove_label(number, "stale")
+                      print(f"#{number} updated; removed stale")
+                  continue
+              if "stale" not in present:
+                  add_label(number, "stale")
+                  print(f"#{number} +stale ({age.days} days)")
+              if age >= timedelta(days=21) and not has_ping(number):
+                  login = author_login(node)
+                  body = (
+                      f"{PING}\n"
+                      f"@{login} this pull request has had no updates for {age.days} days. "
+                      "It was labeled `stale` after 14 days. "
+                      "This sweep does not close human or owner pull requests."
+                  )
+                  run(["gh", "pr", "comment", str(number), "--repo", REPO, "--body", body])
+                  print(f"#{number} pinged @{login}")
+
+          groups = {}
+          for node in nodes:
+              if exempt(node) or not is_bot(node):
+                  continue
+              key = (author_login(node), (node.get("title") or "").strip())
+              groups.setdefault(key, []).append(node)
+          for (login, title), group in groups.items():
+              if len(group) < 2:
+                  continue
+              group.sort(key=lambda item: item["createdAt"])
+              keep = group[-1]
+              for old in group[:-1]:
+                  body = (
+                      f"Superseded by #{keep['number']}. "
+                      "This sweep closes duplicate bot pull requests only. "
+                      "Human and owner pull requests are left open."
+                  )
+                  run(["gh", "pr", "close", str(old["number"]), "--repo", REPO, "--comment", body])
+                  print(f"closed bot PR #{old['number']} ({login}) superseded by #{keep['number']}")
+
+          lines = [
+              f"Generated {now.strftime('%Y-%m-%d %H:%M')} UTC by `pr-sweep.yml`.",
+              "",
+              "Conflicted (`DIRTY`) and behind (`BEHIND`) open pull requests. "
+              "Nothing in this report is closed by the sweep except a superseded bot duplicate.",
+              "",
+              "| PR | State | Author | Draft | Updated | Title |",
+              "| --- | --- | --- | --- | --- | --- |",
+          ]
+          interesting = [
+              node for node in nodes
+              if node.get("mergeStateStatus") in {"DIRTY", "BEHIND"}
+          ]
+          interesting.sort(key=lambda node: (node.get("mergeStateStatus") or "", node["number"]))
+          if not interesting:
+              lines.append("| — | — | — | — | — | none |")
+          for node in interesting:
+              updated = node["updatedAt"][:10]
+              title = (node.get("title") or "").replace("|", "\\|")
+              draft = "yes" if node.get("isDraft") else "no"
+              lines.append(
+                  f"| #{node['number']} | {node['mergeStateStatus']} | {author_login(node)} | {draft} | {updated} | {title} |"
+              )
+          body = "\n".join(lines) + "\n"
+          open_issues = json.loads(run([
+              "gh", "issue", "list", "--repo", REPO, "--state", "open", "--limit", "50",
+              "--search", "Weekly PR conflict and behind report in:title",
+              "--json", "number,title",
+          ]).stdout)
+          match = next((item for item in open_issues if item["title"] == REPORT_TITLE), None)
+          if match:
+              run(["gh", "issue", "edit", str(match["number"]), "--repo", REPO, "--body", body])
+              print(f"updated report issue #{match['number']}")
+          else:
+              created = run([
+                  "gh", "issue", "create", "--repo", REPO, "--title", REPORT_TITLE,
+                  "--label", "audit:auto", "--body", body,
+              ]).stdout.strip()
+              print(f"opened report issue {created}")
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a", encoding="utf-8") as handle:
+                  handle.write(body)
+          PY
