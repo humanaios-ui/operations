@@ -1,7 +1,7 @@
 # Q-INTENT-OS-WITNESS-LEDGER-01
 
 **Tier:** 2 (Architecture / Governance)  
-**Status:** Candidate (awaiting Z2 ratification)  
+**Status:** Ratified (architecture ACCEPT 2026-09-19T19:00:00Z — see REGISTERED.md Z2 Ratification block and CLAUDE.md append). Phase 1 ledger/API/CLI implementation remains open. INDEX `awaiting_z2` drift reconciled 2026-11-20 without inventing a new Z2 hash.  
 **Proposed by:** Claude (Z1 proposer)  
 **Date filed:** 2026-09-19  
 **Session:** https://claude.ai/code/session_012WCbNY31capoZ99NtXQuQC

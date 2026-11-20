@@ -4482,7 +4482,7 @@ superseded_by: null
 ---
 id: "Q-INTENT-OS-WITNESS-LEDGER-01"
 name: "intent-os-witness-ledger-architecture"
-status: CANDIDATE
+status: ACCEPTED
 class: Q
 date_registered: "2026-09-19"
 date_origin: "2026-09-19"
@@ -4491,7 +4491,7 @@ principles_triggered: ["P-governance", "P-authority", "P-intent-os", "P-audit"]
 substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
 tags: ["governance", "witness-ledger", "INTENT-OS", "audit-trail", "human-machine-collaboration", "authority"]
 related_finding: ["Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01"]
-zone2_ratification: null
+zone2_ratification: "2026-09-19T19:00:00Z"
 superseded_by: null
 ---
 ```

@@ -708,9 +708,13 @@ candidates:
   title: Intent-OS witness ledger — human-machine decision attribution ledger
   path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
   submitted: '2026-09-19'
-  status: awaiting_z2
-  note: Witness ledger architecture; human-machine decision attribution ledger; enables scalable Z3 executor onboarding. Phase 1–3 roadmap. Per CLAUDE.md, approved 2026-09-19 19:00 UTC pending formal INDEX entry.
+  status: ratified
+  note: 'AMBIGUITY reconcile (step A): INDEX was awaiting_z2 while REGISTERED.md ACCEPT (2026-09-19T19:00:00Z) and CLAUDE.md append already record Night ACCEPT of the architecture. No new Z2 hash invented — cites the existing REGISTERED formula. Phase 1 ledger/API/CLI implementation remains open (step B). Falsifier for this reconcile: INDEX status again disagrees with REGISTERED ACCEPT + CLAUDE append on the same Q-ID.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "REGISTERED.md (Z2 Ratification — 2026-09-19 for Q-INTENT-OS-WITNESS-LEDGER-01); CLAUDE.md appended events 2026-09-19 19:00 UTC"
+  z2_hash: "sha256(Q-INTENT-OS-WITNESS-LEDGER-01 | carly.r.anderson@gmail.com | 2026-09-19T19:00:00Z | ACCEPT | witness-ledger-architecture)"
 - q_id: Q-MOLT-TEMPORAL-PURITY-01
   title: Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01
   path: z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md

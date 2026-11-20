@@ -135,7 +135,7 @@ The gap between this and naive "failure → modify" is precisely the states this
 
 **Mechanism:** Distributed but real, not a single API: `NF_LEDGER.jsonl` entries hash-chain (`prior_hash` / `hash` fields per row); `ratification_hash = sha256(candidate | by | at | decision)` pins the exact ratified bytes (`.z1-control/ratify.py`); git SHAs pinned at session open (IC-030) are the version identifier RNOLA's own ten-concept cross-map names as "Provenance" (`docs/INTENT_OS_RNOLA_INTEGRATION.md` §2); `persist_or_void(record, ledger_path)` in `five_rings.py` is the code-level enactment of the doctrine "what is not in the ledger did not happen" — B.6 receipt reconciliation (`SESSION_RITUALS.md`, `BOOT_PROCESS_MAP.md` §B.1–B.2) is the same discipline applied to session claims specifically, walking claim against tree and filing **RECEIPT-GAP** on any mismatch.
 
-**Status: ANSWERED**, distributed across four mechanisms rather than one schema — worth a Z2 decision (§ Action Items) on whether that should stay distributed or consolidate once the Witness Ledger (still `Q-INTENT-OS-WITNESS-LEDGER-01`, **not yet ratified**) is decided.
+**Status: ANSWERED**, distributed across four mechanisms rather than one schema — worth a Z2 decision (§ Action Items) on whether that should stay distributed or consolidate once the Witness Ledger (`Q-INTENT-OS-WITNESS-LEDGER-01`, **architecture ratified** 2026-09-19; Phase 1 ledger/API implementation still pending) is implemented.
 
 ---
 
@@ -267,6 +267,6 @@ metadata:
   ratification_hash: "d44b986feb44aab056480650886575f98f011db35689a10b8be86f1f7e0fa23a"
   ratification_record: "REGISTERED.md, Q-AUTHORIZATION-EVIDENCE-MAPPING-01 / Z2 Ratification — 2026-09-28"
   cites_findings: ["F-62", "F-63", "F-64", "H-CAND-GOVERNANCE-CAPTURE-SURFACE-01"]
-  cites_open_items: ["IC-050", "Q-MOLT-TEMPORAL-PURITY-01", "Q-INTENT-OS-WITNESS-LEDGER-01 (not yet ratified)"]
-  last_updated: "2026-09-28T00:00:00Z"
+  cites_open_items: ["IC-050", "Q-MOLT-TEMPORAL-PURITY-01", "Q-INTENT-OS-WITNESS-LEDGER-01 (architecture ratified 2026-09-19; Phase 1 impl pending)"]
+  last_updated: "2026-11-20T00:00:00Z"
 ```
