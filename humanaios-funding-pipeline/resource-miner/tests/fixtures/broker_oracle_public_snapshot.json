@@ -1,0 +1,24 @@
+{
+  "schema": "humanaios.internal-repository-snapshot.v0.1",
+  "as_of": "2026-11-03T20:43:59Z",
+  "items": [{
+    "repository": "humanaios-ui/operations",
+    "kind": "PR",
+    "number": 1121,
+    "title": "Resource Miner: ingest Mozilla Human-Scale AI Incubator 2026 from official source",
+    "state": "DRAFT",
+    "head_sha": "739e267761e7991d0d3968811120f6a5a3d2bfd0",
+    "source_url": "https://github.com/humanaios-ui/operations/pull/1121",
+    "capabilities": ["source_verification", "resource_discovery"]
+  }],
+  "needs": [{
+    "need_id": "NEED-ORACLE-1123",
+    "label": "Independent review of Resource Miner source evidence",
+    "priority": "P1",
+    "capabilities": ["source_verification"],
+    "source_url": "https://github.com/humanaios-ui/operations/issues/1123",
+    "repository": "humanaios-ui/operations"
+  }],
+  "ci_observations": [],
+  "agent_events": []
+}
