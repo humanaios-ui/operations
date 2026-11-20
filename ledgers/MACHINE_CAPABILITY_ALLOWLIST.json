@@ -1,0 +1,45 @@
+{
+  "advisory_only": true,
+  "authority_effect": "NONE",
+  "can_authorize": false,
+  "content_hash": "6d968b83b8de358a25ca8545e7a657db86c97eff9e4e73438d72021e275357d8",
+  "entries": [
+    {
+      "actor_type": "human",
+      "capability_digest": null,
+      "identity": "carly.r.anderson@gmail.com",
+      "notes": "Canonical Z2 identity per Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 / CLAUDE.md",
+      "role": "Z2",
+      "status": "active"
+    },
+    {
+      "actor_type": "human",
+      "capability_digest": null,
+      "identity": "aioshuman@gmail.com",
+      "notes": "Authorized business Z2 identity per Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01",
+      "role": "Z2",
+      "status": "active"
+    },
+    {
+      "actor_type": "machine",
+      "capability_digest": null,
+      "identity": "noreply@anthropic.com",
+      "notes": "CLAUDE.md lists this machine identity as pending INTENT-OS Phase 1 binding. Stop-hook DENY until status=active and capability_digest set.",
+      "role": "Z3",
+      "status": "pending_capability_binding"
+    }
+  ],
+  "http_api": {
+    "enabled": false,
+    "note": "Phase D \u2014 local stop-hook must not depend on HTTP; fail closed offline.",
+    "path": "/api/z2-authorized-machine-identities"
+  },
+  "require_ledger_verify": true,
+  "schema": "intentos/machine_capability_allowlist_v0",
+  "source_decision_ids": [
+    "Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01",
+    "Q-INTENT-OS-WITNESS-LEDGER-01"
+  ],
+  "updated_utc": "2026-11-20T19:45:00Z",
+  "witness_ledger": "ledgers/WITNESS_LEDGER.jsonl"
+}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/intent_os_machine_capability_allowlist_v0.schema.json",
+  "title": "INTENT-OS Machine Capability Allowlist v0",
+  "$comment": "HARD CONSTRAINT: Local offline registry for stop-hook identity checks. This file is not a Z2 ratification, does not replace a Z2 hash, and does not grant merge authority. AUTHORITY_EFFECT remains NONE; can_authorize remains false. HTTP /api/z2-authorized-machine-identities is Phase D and must not be required for a decision.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority_effect",
+    "can_authorize",
+    "advisory_only",
+    "updated_utc",
+    "source_decision_ids",
+    "witness_ledger",
+    "require_ledger_verify",
+    "http_api",
+    "entries",
+    "content_hash"
+  ],
+  "properties": {
+    "schema": {
+      "const": "intentos/machine_capability_allowlist_v0"
+    },
+    "authority_effect": {
+      "const": "NONE",
+      "$comment": "REQUIRED: Allowlist document never authorizes. Never change this to a non-NONE value."
+    },
+    "can_authorize": {
+      "const": false,
+      "$comment": "REQUIRED: This registry cannot authorize any action by itself. Never change this to true."
+    },
+    "advisory_only": {
+      "const": true,
+      "$comment": "REQUIRED: Listing is evidence for a local gate; tree + Z2 hash remain merge truth."
+    },
+    "updated_utc": {
+      "type": "string",
+      "minLength": 10,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"
+    },
+    "source_decision_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "witness_ledger": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Repo-relative path to the append-only witness ledger used for verify."
+    },
+    "require_ledger_verify": {
+      "type": "boolean",
+      "const": true,
+      "$comment": "v0 always requires a verifiable local witness ledger before any ALLOW."
+    },
+    "http_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "path", "note"],
+      "properties": {
+        "enabled": {
+          "const": false,
+          "$comment": "Phase D only. Local gate must ignore network."
+        },
+        "path": {
+          "type": "string",
+          "const": "/api/z2-authorized-machine-identities"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "identity",
+          "actor_type",
+          "role",
+          "status",
+          "capability_digest",
+          "notes"
+        ],
+        "properties": {
+          "identity": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 320
+          },
+          "actor_type": {
+            "enum": ["human", "machine"]
+          },
+          "role": {
+            "enum": ["Z1", "Z2", "Z3"]
+          },
+          "status": {
+            "enum": ["active", "pending_capability_binding", "revoked"]
+          },
+          "capability_digest": {
+            "type": ["string", "null"],
+            "description": "sha256 hex of a capability record, or null when unbound."
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of canonical JSON of all fields except content_hash."
+    }
+  }
+}

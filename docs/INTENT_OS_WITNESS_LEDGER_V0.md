@@ -2,7 +2,7 @@
 
 **Status:** Z1 implementation substrate (schema + CLI + append-only jsonl).  
 **Authority effect:** `NONE` — evidence/attribution only; not merge authority.  
-**Out of scope:** stop-hook allowlist (Phase C), HTTP `/api/z2-authorized-*` (Phase D).
+**Out of scope for this file:** HTTP `/api/z2-authorized-*` (Phase D). Phase C local stop-hook allowlist lives in `docs/INTENT_OS_MACHINE_CAPABILITY_ALLOWLIST_V0.md`.
 
 ## Purpose
 

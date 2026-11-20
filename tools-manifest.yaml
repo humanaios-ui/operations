@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 231
+  tools: 232
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 182
+  builder_markers_present: 183
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2933,6 +2933,19 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: witness_ledger_v0.py — local INTENT-OS witness ledger (append-only, hash-chained).
+- tool_id: HAIOS-TOOL-245
+  name: machine_capability_allowlist
+  path: tools/machine_capability_allowlist_v0.py
+  version: 0.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: machine_capability_allowlist_v0.py — local INTENT-OS machine-capability allowlist.
+  session: S-112026-intent-os-capability-allowlist
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
