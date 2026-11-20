@@ -212,3 +212,49 @@ pytest -xvs tests/test_tool_sync_gate.py::test_catch_manual_edit
 
 _Proposal filed by Z1 (Claude) on 2026-09-20 at 00:50 UTC_  
 _Awaiting Z2 (Night) ratification_
+---
+
+## Options
+
+- `ratify 1`
+- `edit`
+- `reject`
+- `later`
+
+`ratify 1` is the consolidation as merged in #439: manifest drift is caught by the existing `tool-manifest.yml` gate
+(`scan.py --check` and `render.py --check`, with the controlled category vocabulary in `scan.py`), and no separate
+`tool-sync-gate.yml` exists. It does not ratify the original `tool-sync-gate.yml` design in this block.
+
+## What each sets in motion
+
+- `ratify 1`: the consolidation is ratified on record by merging the step 2 ruling PR (Z2 ruling of 2026-09-18: the merger and
+  the merge date sign a board ruling). The reconcile job on `main` then records the signature and the index update, so the
+  block's status stops contradicting `INDEX.yaml`. `ratify.py` is not used: it refuses a file that carries a `## Ruling`
+  section with a `choice:` line. It changes no workflow or tool.
+- `edit`: Z1 revises the block and files it again.
+- `reject`: the block closes with its bytes signed and the reason Night records. The merged consolidation stays on `main`
+  unratified; reverting it would be its own block.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
+## Checked (not carried from the block above)
+
+- `.github/workflows/tool-sync-gate.yml` is not on `main`. `.github/workflows/tool-manifest.yml` is, and its header says it runs
+  `scan --check`, `render --check` and the controlled-vocabulary check.
+- The block's three Z2 questions were never answered in the block. As built: (1) the gate fails when stale and the developer
+  regenerates, it does not auto-regenerate; (2) category vocabulary is checked, per the workflow header; (3) backward
+  compatibility was **not** checked by Z1.
+- The block header reads "RATIFIED (2026-09-21 by Z2 / Night)" and #439 says "Z2 signed". `INDEX.yaml` reads `awaiting_z2`, the
+  2026-09-30 Q-TIER-ASSIGNMENT-BATCH-01 result lists the candidate as awaiting, and `.z1-control/eco_ratify_ledger.jsonl` has no row
+  for it. Z1 did not run `ratify.py --verify`.
+
+## Note on the header
+
+The header line "Status: RATIFIED (2026-09-21 by Z2 / Night)" was written in #439 and is not backed by a signature. It carries no
+authority. If step 2 is merged, the ruling below is the record.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
