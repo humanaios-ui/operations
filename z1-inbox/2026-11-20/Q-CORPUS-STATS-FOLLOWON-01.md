@@ -35,4 +35,4 @@ Event-based, no clock. This block is wrong, and should be withdrawn in whole or 
 
 - (a) a ratified citation rule is found that already answers question 1. Probe: search `REGISTERED.md` and `z1-inbox/INDEX.yaml` for the 0.87 rule. The parent's check on 2026-11-16 found none; Z1 has not searched again today.
 - (b) a workflow that runs `tools/corpus_integrity_validator.py` is found. Probe: `grep -rn corpus_integrity_validator .github/workflows`. It returned nothing on 2026-11-20.
-- (c) the `deliverables/` files above are read and none states 0.8632 as a claim. Question 2 then has a clean answer from the tree and does not need Night.
+- (c) a publication record, or Night's answer, shows that nothing external went out on the unreproducible figures. Question 2 is then answered "no". Reading the current `deliverables/` files cannot establish that, because earlier versions, or material outside this tree, could have been sent; only a publication record or Night's answer closes question 2.
