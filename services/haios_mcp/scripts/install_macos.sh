@@ -39,6 +39,14 @@ fi
 BASE="$HOME/Library/Application Support/HumanAIOS"
 INSTALL_DIR="$BASE/mcp"
 CONTEXT_DIR="$BASE/context"
+# Never upgrade or reuse a previous venv in-place. A failed 3.15 install may
+# preserve its bin/python alias when Python 3.13 runs "venv" over that folder.
+# Check before changing source/context, Keychain or LaunchAgent. Recovery is
+# a separate operator-reviewed operation, not an implicit installer deletion.
+if [[ -e "$INSTALL_DIR/.venv" || -L "$INSTALL_DIR/.venv" ]]; then
+  echo 'STOP: existing MCP virtualenv present; inspect and plan separate recovery. No changes made.' >&2
+  exit 3
+fi
 mkdir -p "$INSTALL_DIR" "$CONTEXT_DIR" "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
 chmod 700 "$BASE" "$INSTALL_DIR" "$CONTEXT_DIR"
 if [[ "$SOURCE_HOME" != "$INSTALL_DIR" ]]; then
