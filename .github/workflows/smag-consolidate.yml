@@ -7,7 +7,11 @@
 # loop that previously captured but never consolidated.
 #
 # Read-only against GitHub except the ledger/report files it proposes via PR.
-# No credentials handled — uses the standard GITHUB_TOKEN.
+# Pushes and the rolling PR use SMAG_CONSOLIDATE_TOKEN when that secret is set
+# (a fine-grained PAT or GitHub App installation token). A GITHUB_TOKEN push
+# does not retrigger Actions, which left the consolidation PR with almost no
+# checks. Until the secret exists, the job falls back to GITHUB_TOKEN and the
+# PR still opens, but its workflows will not start on their own.
 name: smag-consolidate
 
 on:
@@ -32,13 +36,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+          # A non-github-actions credential is what makes the push start other
+          # workflows. Empty secret falls through to GITHUB_TOKEN.
+          token: ${{ secrets.SMAG_CONSOLIDATE_TOKEN || github.token }}
       - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
       - name: Consolidate #103 SMAG rows into the ledger
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SMAG_CONSOLIDATE_TOKEN || github.token }}
         run: |
           python3 tools/smag_consolidate_v1_0.py \
             --repo "${{ github.repository }}" --issue 103 \
@@ -61,7 +72,7 @@ jobs:
       - name: Consolidate molt-tier gap rows into their ledger
         if: env.MOLT_TIER_TRACKING_ISSUE != '0'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SMAG_CONSOLIDATE_TOKEN || github.token }}
         run: |
           python3 tools/smag_consolidate_v1_0.py \
             --repo "${{ github.repository }}" --issue "${MOLT_TIER_TRACKING_ISSUE}" \
@@ -70,7 +81,7 @@ jobs:
 
       - name: Resolve capture timing (record CI outcome after checks finish)
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SMAG_CONSOLIDATE_TOKEN || github.token }}
         run: |
           # Rows captured at merge-close may hold in_progress checks; re-query each
           # row's terminal state so `measured` reflects resolved pass/fail before we
@@ -93,7 +104,7 @@ jobs:
 
       - name: META FEED BACK — measure SMAG's own consolidation accuracy
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SMAG_CONSOLIDATE_TOKEN || github.token }}
         run: |
           # Wire SMAG's self-accuracy signal: how well did SMAG predict its own PRs?
           # This closes the loop on SMAG's own learning.
@@ -127,26 +138,33 @@ jobs:
           echo "Focus areas: $(jq -r '.summary.focus_areas[]' audits/smag_predictions.json | sed 's/^/  - /')"
         continue-on-error: true
 
-      - name: Open a PR if the ledger or report changed
+      - name: Update the rolling PR if the ledger or report changed
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SMAG_CONSOLIDATE_TOKEN || github.token }}
+          HAS_APP_TOKEN: ${{ secrets.SMAG_CONSOLIDATE_TOKEN != '' }}
         run: |
+          set -euo pipefail
           if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md \
                data/lessons_learned_ledger.json audits/molt_tier_gap_ledger.jsonl; then
             echo "No new SMAG rows — nothing to consolidate."
             exit 0
           fi
-          branch="smag-consolidate/$(date -u +%Y%m%d-%H%M%S)"
+          branch="smag-consolidate/rolling"
           git config user.name  "smag-consolidate[bot]"
           git config user.email "smag-consolidate@users.noreply.github.com"
-          git checkout -b "$branch"
+          git checkout -B "$branch"
           git add audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md \
                   data/lessons_learned_ledger.json audits/molt_tier_gap_ledger.jsonl
-          git commit -m "chore(smag): consolidate #103 + molt-tier rows, refresh gap report, FEED BACK cues"
-          git push origin "$branch"
-          gh pr create --base main --head "$branch" \
-            --title "SMAG: consolidate ledger + refresh gap report" \
-            --body "Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into audits/smag_pilot_ledger.jsonl AND new molt-tier gap rows from the molt-tier tracking issue into audits/molt_tier_gap_ledger.jsonl, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging.
+          git commit -s -m "chore(smag): consolidate #103 + molt-tier rows, refresh gap report, FEED BACK cues"
+          if git fetch origin "refs/heads/${branch}:refs/remotes/origin/${branch}"; then
+            git push --force-with-lease origin "HEAD:${branch}"
+          else
+            git push -u origin "HEAD:${branch}"
+          fi
+          body="$(cat <<'EOF' | sed 's/^[[:space:]]*//'
+          Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. This job keeps a single rolling branch, `smag-consolidate/rolling`, and updates this pull request in place. Older open pull requests with the same title are closed as superseded.
+
+          Drains new predicted-vs-measured rows from #103 into audits/smag_pilot_ledger.jsonl AND new molt-tier gap rows from the molt-tier tracking issue into audits/molt_tier_gap_ledger.jsonl, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging.
 
           ## Prediction (SMAG calibration)
 
@@ -155,4 +173,40 @@ jobs:
 
           Why 0.90 (author-SMAG)? Standard FEED BACK step is mostly mechanical; consolidated ledger and reports have few dependencies.
 
-          Why 0.85 (meta-SMAG self-prediction)? Consolidation is mostly mechanical (ledger dedup, gap report regeneration), but schema changes and edge cases carry risk. CI checks will validate before merge."
+          Why 0.85 (meta-SMAG self-prediction)? Consolidation is mostly mechanical (ledger dedup, gap report regeneration), but schema changes and edge cases carry risk. CI checks will validate before merge.
+
+          ## Molt Classification
+
+          **molt_tier_claimed:** `0`
+
+          ## Zone
+
+          - [x] **Z1** — AI-executable, no ratification needed
+          - [ ] **Z2** — needs operator ratification (canonical record / finding registration)
+          - [ ] **Z3** — involves credentials / billing / deploy (operator-run)
+          EOF
+          )"
+          existing="$(gh pr list --repo "${GITHUB_REPOSITORY}" --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --repo "${GITHUB_REPOSITORY}" --title "SMAG: consolidate ledger + refresh gap report" --body "$body"
+            rolling="$existing"
+          else
+            url="$(gh pr create --repo "${GITHUB_REPOSITORY}" --base main --head "$branch" \
+              --title "SMAG: consolidate ledger + refresh gap report" \
+              --body "$body")"
+            rolling="$(printf '%s\n' "$url" | sed -n 's#.*/pull/\([0-9][0-9]*\).*#\1#p')"
+          fi
+          echo "Rolling PR: #${rolling}"
+          # Close previous timestamped duplicates. Human PRs are not in this
+          # title from this job; only open PRs with this exact title on another head.
+          gh pr list --repo "${GITHUB_REPOSITORY}" --state open --limit 100 \
+            --json number,title,headRefName \
+            --jq '.[] | select(.title=="SMAG: consolidate ledger + refresh gap report" and .headRefName!="smag-consolidate/rolling") | .number' \
+            | while read -r old; do
+                [ -n "$old" ] || continue
+                gh pr close "$old" --repo "${GITHUB_REPOSITORY}" --comment \
+                  "Superseded by the rolling SMAG consolidation PR #${rolling} (\`smag-consolidate/rolling\`). This job now updates that pull request instead of opening a new one each week."
+              done
+          if [ "$HAS_APP_TOKEN" != "true" ]; then
+            echo "::warning::SMAG_CONSOLIDATE_TOKEN is not set. This push used GITHUB_TOKEN, so Actions on the rolling PR will not start until the secret is added or someone pushes an empty commit."
+          fi
