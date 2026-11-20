@@ -1113,5 +1113,33 @@
       "claim": "OFFICIAL_JOB_LISTING_NOT_FOUND_USER_REPORT_NOT_PROVIDER_CONFIRMED",
       "authority_effect": "NONE"
     }
+  },
+  {
+    "name": "Mozilla Foundation Human-Scale AI Incubator (2026)",
+    "category": "research_grant",
+    "sponsor": "Mozilla Foundation",
+    "url": "https://www.mozillafoundation.org/en/what-we-do/grantmaking/incubator/human-scale-ai/",
+    "eligibility_tags": [
+      "human_scale_ai",
+      "small_models",
+      "community_control",
+      "open_source",
+      "working_pilot",
+      "public_benefit"
+    ],
+    "award_size": "Up to $500,000 USD over three years ($300,000 initial; up to $200,000 conditional follow-on)",
+    "deadline": "2026-11-20",
+    "deadline_cadence": "one_time",
+    "native_eligible": null,
+    "ai_safety_relevant": true,
+    "trl_fit": "working_technology_or_early_pilot_required",
+    "status": "active",
+    "last_checked": "2026-11-03",
+    "url_ok": true,
+    "notes": "Official Mozilla Foundation Human-Scale AI Incubator, 7 total cohort projects (3 preselected anchors). Small, Intentional, Tailored AI with working technology and early product-community fit. Application due Nov 20, 2026 at 11:59 PM PST. Applicant-specific eligibility and available slots not adjudicated; grant not guaranteed. Official application: https://mozillafoundation.tfaforms.net/f/humanscaleai",
+    "source": "mozillafoundation.org",
+    "affordances": [
+      "project_funding"
+    ]
   }
 ]
