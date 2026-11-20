@@ -234,7 +234,7 @@ def find_entry(doc: Dict[str, Any], identity: str) -> Optional[Dict[str, Any]]:
 
 
 def decide(doc: Dict[str, Any], identity: str, *, ledger_info: Dict[str, Any]) -> Dict[str, Any]:
-    """Return a structured ALLOW/DENY decision. Never consults HTTP."""
+    """Return a structured ALLOW/DENY decision. Does not consult HTTP."""
     base = {
         "schema": SCHEMA_ID,
         "authority_effect": AUTHORITY_EFFECT,

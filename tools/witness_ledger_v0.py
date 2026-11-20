@@ -73,6 +73,12 @@ HASHED_FIELDS = (
     "rationale",
     "falsifier",
 )
+ALLOWED_ENTRY_KEYS = set(HASHED_FIELDS) | {"hash"}
+FIELD_MAX_LEN = {
+    "decision_id": 256,
+    "actor_email": 320,
+    "title": 512,
+}
 
 
 class SpecLoadFailed(Exception):
@@ -125,9 +131,27 @@ def load_rows(path: Path) -> List[Dict[str, Any]]:
         if not stripped:
             continue
         try:
-            rows.append(json.loads(stripped))
+            parsed = json.loads(stripped)
         except json.JSONDecodeError as exc:
             raise SpecLoadFailed(f"{path}:{number}: invalid JSON — {exc}") from exc
+        if not isinstance(parsed, dict):
+            raise SpecLoadFailed(
+                f"{path}:{number}: entry must be a JSON object, got {type(parsed).__name__}"
+            )
+        unknown = set(parsed) - ALLOWED_ENTRY_KEYS
+        if unknown:
+            raise SpecLoadFailed(
+                f"{path}:{number}: unknown fields {sorted(unknown)}; "
+                "schema additionalProperties=false"
+            )
+        missing = [key for key in HASHED_FIELDS if key not in parsed]
+        if "hash" not in parsed:
+            missing.append("hash")
+        if missing:
+            raise SpecLoadFailed(
+                f"{path}:{number}: missing required fields {sorted(missing)}"
+            )
+        rows.append(parsed)
     return rows
 
 
@@ -142,7 +166,8 @@ def write_report(output: Dict[str, Any], output_dir: str) -> str:
 
 
 def body_for_hash(row: Dict[str, Any]) -> Dict[str, Any]:
-    return {k: row[k] for k in HASHED_FIELDS if k in row}
+    """Hash body is every allowed field except `hash` (whole-row integrity)."""
+    return {k: row[k] for k in HASHED_FIELDS}
 
 
 def compute_hash(row: Dict[str, Any]) -> str:
@@ -151,6 +176,14 @@ def compute_hash(row: Dict[str, Any]) -> str:
 
 def validate_entry_shape(row: Dict[str, Any], *, require_hash: bool = True) -> None:
     """Stdlib structural checks mirroring the JSON Schema hard constraints."""
+    if not isinstance(row, dict):
+        refuse(f"entry must be an object, got {type(row).__name__}")
+
+    allowed = ALLOWED_ENTRY_KEYS if require_hash else set(HASHED_FIELDS)
+    unknown = set(row) - allowed
+    if unknown:
+        refuse(f"unknown fields {sorted(unknown)}; schema additionalProperties=false")
+
     if row.get("schema") != SCHEMA_ID:
         refuse(f"schema must be {SCHEMA_ID!r}, got {row.get('schema')!r}")
     if row.get("authority_effect") != AUTHORITY_EFFECT:
@@ -181,6 +214,9 @@ def validate_entry_shape(row: Dict[str, Any], *, require_hash: bool = True) -> N
         value = row.get(field)
         if not isinstance(value, str) or not value.strip():
             refuse(f"{field} must be a non-empty string")
+        max_len = FIELD_MAX_LEN.get(field)
+        if max_len is not None and len(value) > max_len:
+            refuse(f"{field} exceeds max length {max_len}")
 
     if not _TS_RE.match(row["timestamp_utc"]):
         refuse("timestamp_utc must be an ISO-8601 UTC timestamp starting YYYY-MM-DDT")
@@ -282,8 +318,17 @@ def append_entry(path: Path, fields: Dict[str, Any]) -> Dict[str, Any]:
         prev = ZERO_HASH if not rows else rows[-1]["hash"]
         row = build_entry(seq=seq, prev_hash=prev, **fields)
         path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "a", encoding="utf-8") as fh:
-            fh.write(json.dumps(row, sort_keys=True) + "\n")
+        line = json.dumps(row, sort_keys=True) + "\n"
+        if path.exists() and path.stat().st_size > 0:
+            existing = path.read_text(encoding="utf-8")
+            if existing and not existing.endswith("\n"):
+                # Preserve verifiable JSONL: never concatenate onto an unterminated last line.
+                path.write_text(existing + "\n" + line, encoding="utf-8")
+            else:
+                with open(path, "a", encoding="utf-8") as fh:
+                    fh.write(line)
+        else:
+            path.write_text(line, encoding="utf-8")
         return row
 
 
@@ -358,7 +403,11 @@ def cmd_verify(args: argparse.Namespace) -> int:
     path = Path(args.ledger)
     rows = load_rows(path)
     breaks = verify_chain(rows)
-    tip = rows[-1]["hash"] if rows else None
+    if not path.exists() or not rows:
+        breaks = list(breaks) + [
+            "ledger missing or empty; genesis row required (falsifier: deleted genesis)"
+        ]
+    tip = rows[-1].get("hash") if rows else None
     payload = {
         "ok": not breaks,
         "action": "verify",
