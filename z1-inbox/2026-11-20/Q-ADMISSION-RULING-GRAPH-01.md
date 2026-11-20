@@ -18,6 +18,30 @@ This file decides nothing and changes no file other than itself and the index. Z
    - The pull request body needs a `molt_tier_claimed` line.
    - Where to see admission status (the page, if question 1 is adopted).
 
+## Options
+
+- `page, both checks, issue, entryways`
+- `page, both checks, entryways`
+- `page, both checks, issue`
+- `page, both checks`
+- `entryways only`
+- `edit`
+- `later`
+
+The words are the four asks in "What Z2 is asked to decide" above. Every `page` option adopts question 1 and answers question 2 with Z1's lean, **both** (a workflow that refreshes the page by pull request, and a gate on the generator's own smoke test). Any other answer to question 2, such as refresh only, is an `edit`. `issue` answers question 3 yes. `entryways` answers question 4 yes for the six files that mention admission zero times: `README.md`, `CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md` and the three issue templates. Narrowing that list is an `edit`.
+
+## What each sets in motion
+
+Every option except `edit` and `later` rules this block, and a merged ruling marks the **whole block** `ratified`. The relay refuses a second ruling, so whatever an option leaves out can return only as a new block. Each adopted item is a direction: it changes no file except this one, and each is a later pull request that Z1 drafts. Any that touches a workflow is reviewed on its own.
+
+- `page, both checks, issue, entryways`: all four. A generator that reuses `tools/repository_coordinator_state_v1.py` (`parse_ledger`, `replay_events`), reads the ledger from the `repository-coordinator-state` branch and joins each admitted pull request to the ruling it carried. A workflow that refreshes the page by pull request after merges to `main`, and a gate on the generator's smoke test. One open issue that links to the page, holds no rows and says `authority_effect NONE`. Updates to the six entryway files, wording drafted by Z1 and reviewed in each pull request; this ruling does not fix the wording.
+- `page, both checks, entryways`: the same without the issue.
+- `page, both checks, issue`: the same without the entryway updates. Contributors are still not told how admission works.
+- `page, both checks`: the page and its checks only.
+- `entryways only`: no page. The six files say how admission works today (an exact-head admit from an authorized identity, a push voids it, a draft carries no weight, the `molt_tier_claimed` line) and omit the "where to see status" line. No generator reads the ledger, and the gap seen on #1277 stays unexplained.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
 ## Checked on 2026-11-20 (main `5d61dc97`)
 
 - **The live ledger is on the `repository-coordinator-state` branch, not on `main`.** The snapshot Z1 read there has 390 rows; the last is sequence 390 (pull request 1275). `main` carries `ADMISSION_LEDGER.jsonl` with 71 rows, the last sequence 71 (pull request 873). A page that read `main` would miss 319 rows.
@@ -32,6 +56,22 @@ This file decides nothing and changes no file other than itself and the index. Z
   - CI-min: B small and recurring. A none.
   - A hand-kept tracker restates facts by hand; `Q-REFERENT-DECAY-01` named that failure and its option D (generate restated facts) is the cure.
 - **Not checked:** whether CI can read the state branch; whether a new generated page must be registered with doc control; the active CODEOWNERS for the entryway files; the hash chain of the ledger.
+
+## Checked again on 2026-11-20 (main `51e16612`), for this ruling
+
+- **The ledger grew.** The state branch now has 395 rows (ADMIT 197, TERMINATE_MERGED 97, REVOKE 81, ACK_ALREADY_ADMITTED 11, TERMINATE_CLOSED 9), the last for pull request 1285. `main` still carries 71.
+- **The #1277 gap, now with evidence.** Row 382 is an ADMIT bound to head `0508601e`. Row 383 is a REVOKE recording that the live head had moved to `acd7e7e` (exact-head admission drift). There is no row for the admit that Night posted on the final head `f2dae4e`, and no merged row; the pull request merged within seconds of that comment. Z1's reading, unverified, is that it merged before the admit's state event committed. Z1 did not read the coordinator code. A page built on the ledger would show #1277 as an admit voided by drift and nothing after it.
+- **#1285 is the opposite case.** ADMIT (394) then TERMINATE_MERGED (395): the ledger recorded both.
+- **A reader still exists and nothing else does.** Only `tools/repository_coordinator_state_v1.py` and its test mention `ADMISSION_LEDGER`.
+- **Entryways unchanged:** `README.md`, `CONTRIBUTING.md`, the PR template and the three issue templates mention admission 0 times; `AGENTS.md` mentions it 3 times.
+- **Not checked:** CI access to the state branch, doc-control registration of a new page, the active CODEOWNERS for the entryway files, the ledger hash chain, and the proposed pull-request-to-Q-file join.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
 
 ## Z2 Review Checklist
 
