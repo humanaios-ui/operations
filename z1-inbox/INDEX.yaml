@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 126
-  records: 78
+  records: 81
 ratifiers:
 - Night
 candidates:
@@ -1081,6 +1081,15 @@ candidates:
   tier: 0
   note: 'Refs #1114. Z1 recommends admitting the specification for independent review only. Z2 and Z3 grants, provider model IDs, spend cap, OS or container isolation, read-only snapshot and the real two-agent preflight are all NOT granted or NOT done. KD-1..KD-3 and the later red-team and code-review findings are fixed offline; package test results are in TEST_RESULTS.txt (author-run) and an independent exact-head rerun is pending. Authority effect NONE. Not ratified.'
 records:
+- path: z1-inbox/2026-11-19/apart-collusion-publication/PUBLICATION_REVIEW_PACKET.md
+  title: 'Apart article editorial review packet and proposed GitHub to Buffer handoff (draft only)'
+  note: 'Research and editorial handoff record under issues #1114 and #1161. Not a Z2 candidate or authority to publish.'
+- path: z1-inbox/2026-11-19/apart-collusion-publication/REVIEWER_AUTOMATION_PROMPTS.md
+  title: 'Read-only reviewer prompt templates for the Apart article (not activated by this record)'
+  note: 'Reviewer templates only; no proof of agent execution, approval or Buffer access.'
+- path: z1-inbox/2026-11-19/apart-collusion-publication/article.md
+  title: 'Apart AI collusion editorial article draft (not an approved publication)'
+  note: 'Draft research article; evidence qualifications and release permission must be reviewed independently.'
 - path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
   title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
