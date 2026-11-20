@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**229 registered tools** · 2 MCP servers · 4 excluded · 180 carrying Builder v1.7 markers
+**230 registered tools** · 2 MCP servers · 4 excluded · 181 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 229 |
-| — status `draft` | 228 |
+| Registered tools | 230 |
+| — status `draft` | 229 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 180 |
+| Builder v1.7 markers present | 181 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -146,7 +146,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-234 | iew_witness_fixture | `tools/iew/fixtures/witness_fixture.py` | 0.1.0 | 1 | draft | — | Deterministic stdin/stdout smoke-test fixture for IEW-003. |
 | HAIOS-TOOL-235 | iew_runner | `tools/iew/iew_runner.py` | 0.1.0 | 1 | draft | — | IEW-003: runner captures subprocess output in place of author-reported outcomes. |
 
-## Governance — `governance_tool` (26)
+## Governance — `governance_tool` (27)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -176,6 +176,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-219 | leak_guard | `.z1-control/leak_guard.py` | 1.0.0 | 1 | draft | — | leak_guard.py — B6: bound the two Empirica session leaks. |
 | HAIOS-TOOL-220 | ratify_eco | `.z1-control/ratify_eco.py` | 1.0.0 | 1 | draft | — | ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact. |
 | HAIOS-TOOL-228 | coordinator_admission_sweep_dryrun | `tools/coordinator_admission_sweep_dryrun.py` | 1.0.0 | 1 | draft | — | coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml. |
+| HAIOS-TOOL-243 | z2_sign_governance | `tools/z2_sign_governance.py` | 1.0.0 | 2 | draft | — | Z2 Governance Signature Generator |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -371,7 +372,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 23 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 26 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 27 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |

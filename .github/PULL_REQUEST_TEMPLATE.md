@@ -55,6 +55,38 @@
 - [ ] **Z2** — needs operator ratification (canonical record / finding registration)
 - [ ] **Z3** — involves credentials / billing / deploy (operator-run)
 
+## Z2 Governance Signature (if modifying governance-layer files)
+
+<!-- REQUIRED if this PR modifies any governance-layer files:
+     - CLAUDE.md
+     - constitution.json
+     - tools/z2_sign_governance.py
+     - tools/agents/_shared/constitution_checker.py
+     - .github/workflows/z2_ratification_gate.yml or z2_admission_gate.yml
+     - MOLT_STATE.md, PRIORITY_QUEUE.md, ZONE_REGISTRY.md, REGISTERED.md
+     
+     If modifying governance files, you MUST obtain Z2 signature BEFORE merge.
+     
+     ⚠️  SIGNATURE MUST BE IN COMMIT MESSAGE, NOT PR DESCRIPTION
+     The CI gate checks commit messages only; PR description is for reference.
+     
+     To generate a signature request:
+     1. Run: python3 tools/z2_sign_governance.py <file_path>
+     2. Send output to Z2 (Night) with: "Please sign the governance change to <file>"
+     3. Z2 runs the script and provides signature: Z2-SIGN: <64-char-hash>
+     4. Add signature to COMMIT MESSAGE: "Fix governance | Z2-SIGN: <64-char-hash>"
+     5. Paste the same signature here for reference
+     
+     If NOT modifying governance files, delete this section.
+-->
+
+**Modifies governance files:** [ ] Yes [ ] No
+
+**Z2 Signature (if yes):**
+```
+Z2-SIGN: [paste 64-character signature here from commit message]
+```
+
 ## Checklist
 
 - [ ] **Claim matches behavior** — the description reflects what the diff actually does

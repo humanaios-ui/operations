@@ -4,13 +4,15 @@ Constitution Checker — P19: Detection beats compliance
 
 Validates decisions/artifacts against the 22-principle constitution.
 Used by: Principle Compliance Bot + governance audits.
+Governance-layer enforcement: Z2 signature required on governance-file changes.
 """
 
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 # TOOL_NAME and TOOL_VERSION for Builder v1.7 compliance
 TOOL_NAME = "constitution_checker"
@@ -19,6 +21,19 @@ TOOL_VERSION = "1.0.0"
 
 class ConstitutionChecker:
     """Check work against HumanAIOS constitution principles."""
+
+    GOVERNANCE_FILES = {
+        'CLAUDE.md',
+        'constitution.json',
+        'tools/z2_sign_governance.py',
+        'tools/agents/_shared/constitution_checker.py',
+        '.github/workflows/z2_ratification_gate.yml',
+        '.github/workflows/z2_admission_gate.yml',
+        'MOLT_STATE.md',
+        'PRIORITY_QUEUE.md',
+        'ZONE_REGISTRY.md',
+        'REGISTERED.md',
+    }
 
     def __init__(self, constitution_path: str = "constitution.json"):
         """Load constitution from JSON."""
@@ -31,6 +46,33 @@ class ConstitutionChecker:
 
         self.principles = {p["id"]: p for p in self.constitution["principles"]}
 
+    def has_governance_files(self, files_changed: List[str]) -> bool:
+        """Check if commit touches any governance-layer files."""
+        return any(f in self.GOVERNANCE_FILES for f in files_changed)
+
+    def has_z2_signature(self, commit_msg: str) -> bool:
+        """Check if commit message contains Z2 signature."""
+        z2_pattern = r'\| Z2-SIGN: [a-f0-9]{64}'
+        return bool(re.search(z2_pattern, commit_msg))
+
+    def verify_z2_signature(self, commit_msg: str, file_content: str) -> bool:
+        """Check if commit message contains Z2 fingerprint (content hash, not cryptographic signature).
+
+        ⚠️  This is NOT cryptographic verification. Real Z2 authentication requires asymmetric key verification.
+        This check only verifies that a fingerprint is present in the commit message.
+        Actual Z2 authorization is enforced by CI gate + INTENT-OS capability lookup.
+        """
+        sig_match = re.search(r'\| Z2-SIGN: ([a-f0-9]{64})', commit_msg)
+        if not sig_match:
+            return False
+
+        # Just verify that a 64-char hex hash is present
+        # Do NOT attempt to cryptographically verify against content (that's not possible without Z2's key)
+        provided_sig = sig_match.group(1)
+
+        # Basic format check only
+        return len(provided_sig) == 64 and all(c in '0123456789abcdef' for c in provided_sig)
+
     def check_commit(self, commit_msg: str, files_changed: List[str]) -> List[str]:
         """
         Check a commit for principle violations.
@@ -39,7 +81,14 @@ class ConstitutionChecker:
         violations = []
         msg_lower = commit_msg.lower()
 
-        # Merge commits are exempt from P19 per CLAUDE.md:
+        # Z2 GOVERNANCE ENFORCEMENT: Require Z2 signature on governance-layer changes
+        # This applies to ALL commits (merge or authored) that touch governance files
+        if self.has_governance_files(files_changed):
+            if not self.has_z2_signature(commit_msg):
+                violations.append("Z2-GOVERNANCE: Governance-layer change requires Z2 signature (| Z2-SIGN: <64-char-hash>) — submit to Z2 for signature")
+                return violations  # Block further checks if signature missing
+
+        # Merge commits are exempt from P19 (commit granularity) per CLAUDE.md:
         # "Merge Commits (git merge, rebase-merge, squash-merge): Exempt"
         is_merge = commit_msg.strip().startswith(("Merge ", "merge "))
         if is_merge:
