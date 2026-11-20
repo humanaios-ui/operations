@@ -7,7 +7,7 @@ HumanAIOS — Q-INTENT-OS-WITNESS-LEDGER-01 Phase C (local stop-hook allowlist)
 Offline registry a stop-hook can query. AUTHORITY_EFFECT is NONE. can_authorize is
 false. This tool does not grant merge authority, satisfy required review, sign a
 ruling, or replace a Z2 hash. HTTP /api/z2-authorized-machine-identities is out of
-scope (Phase D) and is never consulted.
+scope (Phase D) and is not consulted by this tool.
 
 Fail-closed: missing/invalid allowlist, missing/broken witness ledger, missing or
 unbound machine capability_digest, revoked/unknown identity → DENY.
@@ -231,7 +231,7 @@ def find_entry(doc: Dict[str, Any], identity: str) -> Optional[Dict[str, Any]]:
 
 
 def decide(doc: Dict[str, Any], identity: str, *, ledger_info: Dict[str, Any]) -> Dict[str, Any]:
-    """Return a structured ALLOW/DENY decision. Never consults HTTP."""
+    """Return a structured ALLOW/DENY decision. Does not consult HTTP."""
     base = {
         "schema": SCHEMA_ID,
         "authority_effect": AUTHORITY_EFFECT,
