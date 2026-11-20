@@ -63,9 +63,15 @@ For the operator's **existing E0.3 checkout**, first inspect and then explicitly
 bash services/haios_mcp/scripts/stage_e03_pilot_macos.sh --preflight "$HOME/intent-os-e0-3-reconciled-test"
 # Separate human approval + independent review required before the next command:
 # bash services/haios_mcp/scripts/stage_e03_pilot_macos.sh --stage "$HOME/intent-os-e0-3-reconciled-test"
-# To remove only the pilot's two marked directories, with 8768 stopped:
+# Read-only ownership and any-port process checks (safe on existing staged pilot):
+bash services/haios_mcp/scripts/stage_e03_pilot_macos.sh --rollback-check
+# After separate explicit approval, removes only two exact-marker pilot folders:
 # bash services/haios_mcp/scripts/stage_e03_pilot_macos.sh --rollback
 ```
+
+**Rollback safety on this review branch:** `--rollback-check` never removes files and requires Python 3.13. It checks exact marker bytes and rejects linked pilot paths. It asks macOS `lsof` for open files/working directories in either pilot folder (independent of TCP port), checks port 8768, and scans `ps` for any Witness or pilot path; unavailable or ambiguous checks fail closed. `--rollback` runs the guard twice before deleting only the two marked folders. It is **not atomic with process startup**, and still needs independent native-macOS validation before release. Never use `--rollback` to test on the operator's successful staged installation. The fixture regression suite uses disposable temporary HOME paths and must never touch production.
+
+**Partial staging:** if `--stage` stops after both ownership markers are written, rerunning `--stage` intentionally refuses; inspect and run `--rollback-check` first. If either marker is absent, the script refuses automatic deletion and requires manual review. The three public document SHA-256 pins intentionally bind only the recorded E2 snapshot; newer `REGISTERED.md` cannot be silently substituted. No automatic public-snapshot refresh is authorized.
 
 A staged copy cannot answer through INTENT-OS until a separate consented launch, Keychain/credential setup and E0.3 bridge integration have passed review. The existing bridge is off by default and currently does not supply the new `consent=True` MCP argument; **do not enable it** until a separate compatible bridge patch has passed tests. The `haios_talk` tool now rejects requests missing `consent=True` before any provider call; this flag is a client attestation, **not independent proof** of a human click. An approved client must show fresh explicit human consent before each call. No automatic retries or scheduled model calls are authorized.
 
