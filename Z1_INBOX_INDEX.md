@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**130 candidates** — ⏳ awaiting Z2 84 · ✅ ratified 46 · **78 records**
+**130 candidates** — ⏳ awaiting Z2 84 · ✅ ratified 46 · **81 records**
 
 ## Awaiting Z2 (84)
 
@@ -452,7 +452,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (78)
+## Records (81)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -535,6 +535,9 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md` | Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md` | Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md` | Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-19/apart-collusion-publication/PUBLICATION_REVIEW_PACKET.md` | Apart article editorial review packet and proposed GitHub to Buffer handoff (draft only) |
+| `z1-inbox/2026-11-19/apart-collusion-publication/REVIEWER_AUTOMATION_PROMPTS.md` | Read-only reviewer prompt templates for the Apart article (not activated by this record) |
+| `z1-inbox/2026-11-19/apart-collusion-publication/article.md` | Apart AI collusion editorial article draft (not an approved publication) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ## Excluded from the conversion record (12)
