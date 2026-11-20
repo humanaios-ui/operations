@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**131 candidates** — ⏳ awaiting Z2 83 · ✅ ratified 48 · **80 records**
+**131 candidates** — ⏳ awaiting Z2 82 · ✅ ratified 49 · **80 records**
 
-## Awaiting Z2 (83)
+## Awaiting Z2 (82)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -91,12 +91,11 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
 | 2026-11-09 | **Q-SWARM-TRUSTED-HOST-V2-1-PREFLIGHT-01** | Admit Swarm Trusted Host v2.1 (Ed25519 writer, KD-1..KD-3 fixed offline) for independent review; non-scored two-agent preflight scope. Not an execution grant. | `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/Z1_CANDIDATE_FOR_Z2.md` |
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
-| 2026-11-22 | **Q-ADMISSION-RULING-GRAPH-01** | A generated read-only page joining the admission ledger to Z2 rulings, a pointer issue, and telling contributors how admission works | `z1-inbox/2026-11-20/Q-ADMISSION-RULING-GRAPH-01.md` |
 | 2026-11-22 | **Q-AGENT-CHECKIN-HA000-LEDGER-01** | Who administers HA-000, and whether review-agent findings get a ledger (asks 4 and 5 that Q-AGENT-CHECKIN-CALIBRATION-01 left unruled) | `z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md` |
 | 2026-11-22 | **Q-CORPUS-STATS-FOLLOWON-01** | Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled) | `z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md` |
 | 2026-11-22 | **Q-REFERENT-DECAY-FOLLOWON-01** | Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt) | `z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md` |
 
-## Decided (48)
+## Decided (49)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -147,6 +146,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-AGENT-CHECKIN-CALIBRATION-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`9029baf16e6415ee1cab97558f8b1582945b38106049e40fc9136645b8b12744` |
 | ✅ ratified | **Q-CORPUS-STATS-RECONCILE-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`5197f46860d8847540e4b03814bf7b17759d030f13739be2c9fb657f7e1851f7` |
 | ✅ ratified | **Q-REFERENT-DECAY-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`7392a2e7cd2b715de74573d614b805721dcf91633186ec19afb36809fe25a899` |
+| ✅ ratified | **Q-ADMISSION-RULING-GRAPH-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`3f5cac40f77f8970dc424cef998f2a713a267c4c2c696e512e48334c82b90b79` |
 | ✅ ratified | **Q-PROJECT-DESK-BRIDGE-ADMISSION-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`a37b75a823ef1a1572454b55d6c307b3c545c46e2db3ece71bc101888ffa9759` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
@@ -160,18 +160,9 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (134)
+## Open questions for Z2 (130)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
-
-### Q-ADMISSION-RULING-GRAPH-01 (4)
-
-`z1-inbox/2026-11-20/Q-ADMISSION-RULING-GRAPH-01.md`
-
-- [ ] Question 1: adopt the generated read-only page as a direction? A yes starts a separate Tier 2 pull request.
-- [ ] Question 2: how the page is kept honest (workflow refresh, smoke-test gate, or both).
-- [ ] Question 3: open the thin pointer issue, yes or no.
-- [ ] Question 4: ratify updating the entryways, and say which of them.
 
 ### Q-ADVREVIEW-CALIB-01 (8)
 
