@@ -24,7 +24,9 @@ class RollbackGuardTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.home = pathlib.Path(self.tmp.name) / 'private-home'
+        # macOS tempfile may return /var/... while /var redirects to /private/var.
+        # Use the physical path for tests of unrelated lsof/ps failure cases.
+        self.home = pathlib.Path(self.tmp.name).resolve() / 'private-home'
         self.pilot, self.context = guard.pilot_paths(self.home)
         self.pilot.mkdir(parents=True)
         self.context.mkdir()
