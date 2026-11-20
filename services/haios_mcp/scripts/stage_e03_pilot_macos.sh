@@ -2,7 +2,8 @@
 # Witness E0.3 review-only staging: no LaunchAgent, no port bind, no provider call.
 # Modes: --preflight /ABSOLUTE/OPERATIONS/ROOT
 #        --stage     /ABSOLUTE/OPERATIONS/ROOT   (explicit operator choice)
-#        --rollback
+#        --rollback-check                    (read-only process/marker check)
+#        --rollback                          (requires clear checks; removes only pilot)
 set -euo pipefail
 umask 077
 
@@ -19,26 +20,38 @@ if [[ "$(uname -s)" != Darwin ]]; then
   echo 'STOP: this procedure supports macOS only.' >&2
   exit 2
 fi
-if [[ "$MODE" != --preflight && "$MODE" != --stage && "$MODE" != --rollback ]]; then
+if [[ "$MODE" != --preflight && "$MODE" != --stage && "$MODE" != --rollback-check && "$MODE" != --rollback ]]; then
   echo 'Usage: bash scripts/stage_e03_pilot_macos.sh --preflight|--stage /absolute/operations/root' >&2
-  echo 'Or: bash scripts/stage_e03_pilot_macos.sh --rollback' >&2
+  echo 'Or: bash scripts/stage_e03_pilot_macos.sh --rollback-check|--rollback' >&2
   exit 2
 fi
 
-if [[ "$MODE" == --rollback ]]; then
-  # Pilot owns only two marked directories. It never touches production mcp,
-  # E0.3 workspaces, credential stores, or LaunchAgent registrations.
-  if [[ -L "$PILOT" || -L "$CONTEXT" || ! -f "$PILOT/$MARKER" || ! -f "$CONTEXT/$MARKER" ]]; then
-    echo 'STOP: pilot ownership markers missing; refusing removal.' >&2
+if [[ "$MODE" == --rollback-check || "$MODE" == --rollback ]]; then
+  # The helper verifies exact ownership markers, denies symlink path redirects,
+  # and checks all pilot cwd/file references and MCP processes (ANY port) with
+  # lsof + ps. Any unavailable/ambiguous evidence refuses deletion.
+  # Run from the reviewed source checkout, not from inside the staged pilot.
+  if [[ ! -x "$PY313" ]] || ! "$PY313" -c 'import sys; assert sys.version_info[:2] == (3,13)' 2>/dev/null; then
+    echo 'STOP: explicit Python 3.13 is required for safe rollback inspection.' >&2
     exit 3
   fi
-  if /usr/sbin/lsof -nP -iTCP:8768 -sTCP:LISTEN >/dev/null 2>&1; then
-    echo 'STOP: port 8768 active. Stop the pilot manually and inspect the listener first.' >&2
+  GUARD="$SOURCE_HOME/scripts/pilot_rollback_guard.py"
+  if [[ ! -f "$GUARD" || -L "$GUARD" ]]; then
+    echo 'STOP: reviewed rollback guard missing or linked.' >&2
     exit 3
   fi
+  "$PY313" "$GUARD"
+  if [[ "$MODE" == --rollback-check ]]; then
+    echo 'NO FILES CHANGED. --rollback requires separate, explicit human approval.'
+    exit 0
+  fi
+  # Recheck immediately before removal, narrowing the inspection/delete gap.
+  # This is not an atomic process lock; new unexpected process starts remain a
+  # platform risk. The deletion action needs a separate human decision.
+  "$PY313" "$GUARD"
   /bin/rm -R "$PILOT"
   /bin/rm -R "$CONTEXT"
-  echo 'PILOT ROLLBACK COMPLETE: staged pilot directories removed only.'
+  echo 'PILOT ROLLBACK COMPLETE: only the two marked pilot folders removed.'
   exit 0
 fi
 
