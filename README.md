@@ -21,6 +21,10 @@ This repository is the canonical source for governance state, execution protocol
 - **Session orchestration surfaces** — governed via the active session protocol documents (`CURRENT.md`, `SESSION_RITUALS.md`, `GOVERNANCE.md`, and `OPERATOR_RUNBOOK.md`); no standalone `ACAT_SESSION_PROMPT.md` is checked in.
 
 
+## Contributing and admission
+
+A pull request is admitted separately, on its exact head commit, and a push after an admit voids it. See [How a pull request is admitted](./CONTRIBUTING.md#how-a-pull-request-is-admitted) before asking for review.
+
 ## Canonical documents and authority
 
 | File | Authority role |
