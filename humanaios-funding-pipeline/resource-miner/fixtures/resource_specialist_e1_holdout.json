@@ -1,0 +1,72 @@
+{
+  "schema": "humanaios.resource-specialist.e1.holdout.v0.1",
+  "evaluation": "FROZEN_ALTERNATIVE_NO_RULE_CHANGES",
+  "observed_date": "2026-10-31",
+  "labels": "INVESTIGATOR_AUTHORED_NOT_INDEPENDENT",
+  "authority_effect": "NONE",
+  "sources": [
+    {
+      "id": "H01",
+      "source_url": "https://github.com/humanaios-ui/operations/blob/2460a54d7c1c20d6ba030b5eb3bfa06efb420324/humanaios-funding-pipeline/resource-miner/resource_miner/normalize.py",
+      "title": "Existing Resource Miner normalizer module",
+      "description": "Python module for canonical URLs, mechanism types, and resource affordance derivation.",
+      "source_category": "",
+      "expected_form": "SOFTWARE_CODE",
+      "positive": true
+    },
+    {
+      "id": "H02",
+      "source_url": "https://huggingface.co/Qwen/Qwen3-4B",
+      "title": "Qwen3-4B pretrained language model",
+      "description": "Open-access language model weights and model documentation provided on Hugging Face under Apache 2.0 license.",
+      "source_category": "",
+      "expected_form": "MODEL_ARTIFACT",
+      "positive": true
+    },
+    {
+      "id": "H03",
+      "source_url": "https://github.com/google/osv-scanner",
+      "title": "OSV-Scanner dependency vulnerability scanner",
+      "description": "Open-source command-line tool to find vulnerabilities in package dependencies and software bill of materials.",
+      "source_category": "",
+      "expected_form": "SECURITY_TOOL",
+      "positive": true
+    },
+    {
+      "id": "H04",
+      "source_url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "title": "NIST Artificial Intelligence Risk Management Framework",
+      "description": "Public reference framework for identifying and managing trust risks in AI systems.",
+      "source_category": "",
+      "expected_form": "KNOWLEDGE_GUIDANCE",
+      "positive": true
+    },
+    {
+      "id": "H05",
+      "source_url": "https://data.gov/open-gov/index.html",
+      "title": "Data.gov open government data catalog",
+      "description": "Public portal that catalogs machine-readable datasets from federal and other government sources.",
+      "source_category": "",
+      "expected_form": "DATA_CATALOG",
+      "positive": true
+    },
+    {
+      "id": "H06",
+      "source_url": "https://seedfund.nsf.gov/our-program/",
+      "title": "America's Seed Fund NSF SBIR program overview",
+      "description": "Research and development grant support pathway for early stage startups; eligibility and open round not verified.",
+      "source_category": "research_grant",
+      "expected_form": "FUNDING_PATHWAY",
+      "positive": true
+    },
+    {
+      "id": "H07",
+      "source_url": "https://github.com/humanaios-ui/operations/issues/701",
+      "title": "Colorado resource registry test issue",
+      "description": "GitHub work item proposing an experiment with an unclaimed-property registry; not a confirmed resource acquired by the applicant.",
+      "source_category": "",
+      "expected_form": null,
+      "positive": false
+    }
+  ]
+}
