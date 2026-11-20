@@ -227,8 +227,10 @@ _Awaiting Z2 (Night) ratification_
 
 ## What each sets in motion
 
-- `ratify 1`: the consolidation is ratified on record. The block's status stops contradicting `INDEX.yaml` once `ratify.py`
-  signs it. It changes no workflow or tool.
+- `ratify 1`: the consolidation is ratified on record by merging the step 2 ruling PR (Z2 ruling of 2026-09-18: the merger and
+  the merge date sign a board ruling). The reconcile job on `main` then records the signature and the index update, so the
+  block's status stops contradicting `INDEX.yaml`. `ratify.py` is not used: it refuses a file that carries a `## Ruling`
+  section with a `choice:` line. It changes no workflow or tool.
 - `edit`: Z1 revises the block and files it again.
 - `reject`: the block closes with its bytes signed and the reason Night records. The merged consolidation stays on `main`
   unratified; reverting it would be its own block.
