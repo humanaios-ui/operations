@@ -1,0 +1,55 @@
+{
+  "protocol": "DHP-1.0",
+  "experiment_id": "HMBM-CYCLE-003",
+  "evidence_id": "C003-DHP-CONNECTOR-FILE-URI-001",
+  "bridge_version": "DHP-CONNECTOR-FILE-BRIDGE-1",
+  "result": "PASS",
+  "candidate_id": "C003-H01-CANDIDATE",
+  "generation_id": "C003-H01-GEN-003",
+  "predecessor_state_id": "C003-H0-ACCEPTED",
+  "source": {
+    "repository": "humanaios-ui/operations",
+    "commit_sha": "3fe388a911630b0f3f754fb363cf313e6c253550",
+    "path": "experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/candidate.json",
+    "blob_sha": "57bd97fab97d8a39d984234d0b4e31f22a0d9209",
+    "sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "byte_length": 808046
+  },
+  "github_actions_bridge": {
+    "workflow": "HMBM DHP invariants",
+    "run_id": 36771062611,
+    "head_sha": "612454bce58db695c292be50e6145c86e4c9fd60",
+    "artifact_id": 11124455445,
+    "artifact_name": "C003-H01-GEN-003-connector-bridge",
+    "provider": "experiments/hmbm/dhp/github_actions_file_provider.py",
+    "pinned_source_materialization": "PASS",
+    "artifact_publish": "PASS"
+  },
+  "connector_file_reference": {
+    "file_id": "file_0000000075e881f5843c9f2c07dc5fc6",
+    "mime_type": "application/json",
+    "file_name": "HMBM-CYCLE-003_C003-H01-GEN-003_candidate.json",
+    "reusable_file_uri_created": true,
+    "download_url_persisted": false
+  },
+  "staging": {
+    "surface": "GMAIL_DRAFT_UNSENT_FILE_HANDLE_STAGING",
+    "draft_id": "r7998310983741457366",
+    "message_id": "1a0f3f432cad0614",
+    "attachment_size_bytes": 808046,
+    "communicated": false
+  },
+  "readback_verification": {
+    "file_uri_original_attachment": true,
+    "byte_length": 808046,
+    "sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "byte_length_match": true,
+    "sha256_match": true,
+    "semantic_transformation": false
+  },
+  "state_before": "QUEUED",
+  "state_after": "QUEUED",
+  "canonical_state_after": "C003-H0-ACCEPTED",
+  "next_authorized_transition": "COURIER SEND -> SENT ATTACHMENT READ_BACK -> COMMUNICATION_RECEIPT -> COMMUNICATED",
+  "paper_only": true
+}
