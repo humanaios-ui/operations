@@ -278,3 +278,7 @@ baseline_tests:
   - path: tests/test_witness_state_v0_2.py
     requires: []
     description: WITNESS_STATE v0.2 accepts the calibration baseline profile that v0.1 rejects (Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01, option A)
+
+  - path: tools/tests/test_admission_ruling_graph.py
+    requires: []
+    description: Admission-to-ruling graph generator joins the ledger to rulings in ledger order, reads no clock, and flags a merged PR whose ledger history lacks a merged row
