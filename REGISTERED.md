@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only) | **STRUCTURAL REPAIR PENDING**
-**Last updated:** October 12, 2026 (Q-HCM-CORE-MACHINE-01 registered and Z2-ratified: HumanAIOS Core Machine v0.1, the machine-encoding layer; earlier the same day Q-CORE-CONCEPT-MAPPING-01, Layer 0 of the concept-to-code stack) — prior: October 9, 2026 (Registry structural audit; 162 entries, 127 defects identified; repair proposal Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01 filed) — See RFM-06/RFM-09/RFM-10/RFM-15/RFM-17 closure tasks in parallel governance channel.
+**Last updated:** November 20, 2026 (Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE append — INDEX AMBIGUITY close citing existing 2026-09-19 ACCEPT; original candidate header untouched) — prior: October 12, 2026 (Q-HCM-CORE-MACHINE-01 registered and Z2-ratified: HumanAIOS Core Machine v0.1, the machine-encoding layer; earlier the same day Q-CORE-CONCEPT-MAPPING-01, Layer 0 of the concept-to-code stack) — prior: October 9, 2026 (Registry structural audit; 162 entries, 127 defects identified; repair proposal Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01 filed) — See RFM-06/RFM-09/RFM-10/RFM-15/RFM-17 closure tasks in parallel governance channel.
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
