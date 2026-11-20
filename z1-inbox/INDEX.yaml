@@ -709,12 +709,12 @@ candidates:
   path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
   submitted: '2026-09-19'
   status: ratified
-  note: 'AMBIGUITY reconcile (step A): INDEX was awaiting_z2 while REGISTERED.md ACCEPT (2026-09-19T19:00:00Z) and CLAUDE.md append already record Night ACCEPT of the architecture. No new Z2 hash invented — cites the existing REGISTERED formula. Phase 1 ledger/API/CLI implementation remains open (step B). Falsifier for this reconcile: INDEX status again disagrees with REGISTERED ACCEPT + CLAUDE append on the same Q-ID.'
+  note: 'Z1 INDEX reconcile (step A) pending Night Z2 confirmation. INDEX was awaiting_z2 while REGISTERED.md carries ACCEPT prose (2026-09-19T19:00:00Z, formula-only) and CLAUDE.md appends the same. No 64-hex Night hash exists in-repo — z2_hash is PENDING_NIGHT_REPIN (not forged, not computed). This status change is a Z1 consistency proposal; it does not itself ratify. Phase 1 ledger/API/CLI remains open (step B). Falsifier: INDEX again disagrees with REGISTERED ACCEPT prose + CLAUDE append for this Q-ID after Night confirms or rejects the re-pin.'
   tier: 0
   ratified_by: Night
   ratified_at: "2026-09-19"
   z2_ruling: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
-  z2_hash: "sha256(Q-INTENT-OS-WITNESS-LEDGER-01 | carly.r.anderson@gmail.com | 2026-09-19T19:00:00Z | ACCEPT | witness-ledger-architecture)"
+  z2_hash: "PENDING_NIGHT_REPIN"
 - q_id: Q-MOLT-TEMPORAL-PURITY-01
   title: Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01
   path: z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md
@@ -1120,8 +1120,8 @@ candidates:
   note: 'Candidate only. Live ledger is on the coordinator-state branch (390 rows), main has a stale 71-row copy. Z1 leans: page plus thin pointer issue; entryways updated in separate pull requests after ruling.'
 records:
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
-  title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (cites pre-existing REGISTERED ACCEPT; not a new ratify.py signature)"
-  note: "Z1 consistency record. authority_effect NONE. Pins the existing REGISTERED.md ACCEPT formula hash so INDEX can cite a resolvable records: path without inventing a new Z2 signature."
+  title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
+  note: "Z1 consistency record. authority_effect NONE. z2_hash PENDING_NIGHT_REPIN — no verbatim 64-hex Night hash found in-repo; formula-only ACCEPT prose cited as evidence pending Night confirmation. Not a new Z2 signature."
 - path: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
   title: "Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
