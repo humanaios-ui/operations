@@ -19,6 +19,7 @@ Each line is one JSON object. `hash = sha256(canonical_json(row without hash))` 
 ```bash
 python3 tools/witness_ledger_v0.py --smoke-test
 python3 tools/witness_ledger_v0.py verify
+python3 tools/builder_compliance_scanner_v1.0.py --path tools/witness_ledger_v0.py
 ```
 
 Do not forge Z2 ratification hashes into this file. Seed only with honest attribution rows after Z2-scoped landing.
