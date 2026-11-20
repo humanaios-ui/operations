@@ -149,10 +149,13 @@ table{min-width:0}
 <!--@@EMBED_SNAPSHOT@@-->
 <script>
 "use strict";
-// Show the observatory link only when this instance serves it (loopback; assets present).
-fetch("/project-observatory",{cache:"no-store"})
- .then(r=>{if(r.ok)document.getElementById("observatoryLink").hidden=false;})
- .catch(()=>{});
+// The browser has fetch; the static On-Track VM harness deliberately does not.
+// Keep the preview hidden wherever availability cannot be checked.
+if (typeof fetch === "function") {
+ fetch("/project-observatory",{cache:"no-store"})
+  .then(r=>{if(r.ok)document.getElementById("observatoryLink").hidden=false;})
+  .catch(()=>{});
+}
 const find=id=>document.getElementById(id);
 const text=(id,value)=>{find(id).textContent=String(value??"");};
 function resetEvidence(){

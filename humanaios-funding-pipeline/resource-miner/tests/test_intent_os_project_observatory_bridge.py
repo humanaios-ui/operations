@@ -61,7 +61,7 @@ class ProjectObservatoryBridgeHttpTests(unittest.TestCase):
         self.assertIn('href="/on-track"', html)
         self.assertIn("Human Attention Queue", html)
         self.assertIn("not an approval queue", html)
-        self.assertNotIn("project-observatory", app.OBSERVATORY_UI.joinpath("operations-observatory-e0.html").read_text())
+        self.assertNotIn("project-observatory", app.OBSERVATORY_UI.joinpath("operations-observatory-e0.html").read_text(encoding="utf-8"))
         status, js_headers, script = self.read("/project-observatory.js")
         self.assertEqual(status, 200)
         self.assertIn("application/javascript", js_headers["Content-Type"])
@@ -101,16 +101,38 @@ class ProjectObservatoryBridgeHttpTests(unittest.TestCase):
                 self.assertEqual(json.load(err)["status"], "NOT_CONNECTED")
                 err = self.error("/project-observatory.js")
                 self.assertEqual(err.code, 503)
-            original = (app.OBSERVATORY_UI / "operations-observatory-e0.html").read_text()
+            original = (app.OBSERVATORY_UI / "operations-observatory-e0.html").read_text(encoding="utf-8")
             (path / "operations-observatory-e0.html").write_text(
                 original.replace('src="operations-observatory-e0.js"',
                                  'src="changed-not-reviewed.js"'),
                 encoding="utf-8",
             )
+            # Supply the script so this case isolates TEMPLATE_DRIFT, not
+            # the separate missing-companion-script failure mode.
+            (path / "operations-observatory-e0.js").write_bytes(
+                (app.OBSERVATORY_UI / "operations-observatory-e0.js").read_bytes()
+            )
             with patch.object(app, "OBSERVATORY_UI", path):
                 err = self.error("/project-observatory")
                 self.assertEqual(err.code, 503)
                 self.assertEqual(json.load(err)["status"], "TEMPLATE_DRIFT")
+
+    def test_html_present_without_script_fails_closed(self):
+        """Do not reveal an apparently working preview with broken telemetry."""
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)
+            (path / "operations-observatory-e0.html").write_text(
+                (app.OBSERVATORY_UI / "operations-observatory-e0.html").read_text(
+                    encoding="utf-8"),
+                encoding="utf-8",
+            )
+            # Only the HTML exists; no companion JavaScript. Both routes fail.
+            with patch.object(app, "OBSERVATORY_UI", path):
+                for route in ("/project-observatory", "/project-observatory.js"):
+                    with self.subTest(route=route):
+                        err = self.error(route)
+                        self.assertEqual(err.code, 503)
+                        self.assertEqual(json.load(err)["status"], "NOT_CONNECTED")
 
     def test_no_private_profile_or_decision_authority(self):
         status, _, body = self.read("/project-observatory")
