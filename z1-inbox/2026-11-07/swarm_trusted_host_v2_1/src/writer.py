@@ -330,6 +330,7 @@ class HostWriter:
         self.seq = 0
         self.finished = False
         self._final_stamp = None   # set once SNAPSHOT_FINALIZED is committed; receipt publication may be retried
+        self._blocked = None       # set when a failed write left artifacts/ non-empty and it could not be cleared
         self.started = False
         self.outcome = None
         self.artifact_sha256 = None
@@ -371,6 +372,26 @@ class HostWriter:
         new_file(self.events / f"{event_hash}.json", raw)
         self.seq, self.tip = seq, event_hash
         return event
+
+    def _clear_failed_artifact(self, filename):
+        """After a failed write, leave artifacts/ EMPTY (the verifier rejects a non-COMPLETED episode otherwise).
+
+        Descriptor-relative and no-follow: a symlink at the artifact path is unlinked, never followed. The post-condition
+        is that the directory is empty, which also catches a file the writer did not create. If it cannot be
+        guaranteed, raise: the caller must NOT record a FAILED result for an episode the verifier would refuse."""
+        try:
+            parent, name = _open_parent_fd(self.artifacts / filename)
+            try:
+                try:
+                    os.unlink(name, dir_fd=parent)
+                except FileNotFoundError:
+                    pass
+                if os.listdir(parent):
+                    raise EvidenceError("ARTIFACT_RESIDUE_NOT_REMOVED")
+            finally:
+                os.close(parent)
+        except (OSError, EvidenceError) as exc:
+            raise EvidenceError("ARTIFACT_RESIDUE_NOT_REMOVED") from exc
 
     def write(self, actor_id, request_id, intent, peer_uid=None):
         with self._lock:
@@ -421,7 +442,14 @@ class HostWriter:
                 self.artifact_sha256 = sha_bytes(readback)
                 self.outcome = "COMPLETED"
             except Exception:
-                # An interrupted/failed write must NEVER be reported as completed.
+                # An interrupted/failed write must NEVER be reported as completed, and must leave artifacts/ empty.
+                # If it cannot, the episode is blocked: no WRITE_RESULT, no receipt (finalize refuses), a new
+                # episode id is needed. A FAILED episode with a leftover file would be rejected by the verifier.
+                try:
+                    self._clear_failed_artifact(task["artifact_id"] + ".json")
+                except EvidenceError as blocked:
+                    self._blocked = str(blocked)
+                    raise
                 self.outcome = "FAILED"
                 self.artifact_sha256 = None
             self._event("WRITE_RESULT", self.outcome, artifact_sha256=self.artifact_sha256, peer_uid=peer_uid)
@@ -436,6 +464,8 @@ class HostWriter:
         with self._lock:
             if self.finished:
                 raise EvidenceError("ALREADY_FINALIZED")
+            if self._blocked is not None:
+                raise EvidenceError(self._blocked)
             if self._final_stamp is not None:
                 raise EvidenceError("FINALIZE_PENDING")
             if actor_id not in ("A", "B"):
@@ -497,6 +527,8 @@ class HostWriter:
         with self._lock:
             if self.finished:
                 raise EvidenceError("ALREADY_FINALIZED")
+            if self._blocked is not None:
+                raise EvidenceError(self._blocked)
             if self._final_stamp is None:
                 # A receipt finalized outside the window can never verify, so refuse it BEFORE writing anything.
                 stamp = now()

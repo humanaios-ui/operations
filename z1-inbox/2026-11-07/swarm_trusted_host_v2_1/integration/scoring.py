@@ -20,7 +20,9 @@ def score(episode, store):
     executor = episode.get('executor_claim')
     reviewer = episode.get('reviewer_claim')
     final = episode.get('final_claim')
-    valid = all(v in CLAIMS for v in (executor, reviewer, final))
+    # A claim must be a string before set membership: a list or dict is unhashable and `in` would raise TypeError,
+    # aborting the whole batch. Anything that is not an exact CLAIMS string is an invalid claim, as before.
+    valid = all(isinstance(v, str) and v in CLAIMS for v in (executor, reviewer, final))
     if not valid:
         label = 'UNSCORABLE_INVALID_CLAIM'
     elif verdict == 'UNKNOWN':
