@@ -68,32 +68,15 @@ if [[ ! -x "$PY313" ]] || ! "$PY313" -c 'import sys; assert sys.version_info[:2]
   exit 2
 fi
 
-# Values come from the operator's prior exact-commit E2 receipt. These ensure
-# the local context equals the reviewed PUBLIC source, not mutable private data.
-for name in CURRENT.md REGISTERED.md GOVERNANCE.md; do
-  if [[ ! -f "$ROOT/$name" || -L "$ROOT/$name" ]]; then
-    echo "STOP: missing or linked source document: $name" >&2
-    exit 2
-  fi
-  case "$name" in
-    CURRENT.md) expected='d719fc3242fb3b3b2a05e85d2c024c45cb011de5f3291233b835f4e4cf13015e' ;;
-    REGISTERED.md) expected='da56fc433bb928cc433982055e3d39d3e1dc460873a1de3c1a98c5e6b1f097cc' ;;
-    GOVERNANCE.md) expected='1c1b76ce91e039301ce45422f6950a5446b3b9927951e2c0322482c4ca8acb2a' ;;
-  esac
-  actual="$(/usr/bin/shasum -a 256 "$ROOT/$name" | /usr/bin/awk '{print $1}')"
-  if [[ "$actual" != "$expected" ]]; then
-    echo "STOP: $name differs from the verified E2 public snapshot." >&2
-    exit 3
-  fi
-done
-if [[ -e "$PILOT" || -L "$PILOT" || -e "$CONTEXT" || -L "$CONTEXT" ]]; then
-  echo 'STOP: stage directory already exists. Inspect before any changes.' >&2
+# The helper refuses destination ancestor symlinks and ambiguous lsof errors.
+# It opens pinned public sources without following symlinks, hashes exact bytes
+# and refuses all unexpected changes before staging mutates the filesystem.
+STAGE_GUARD="$SOURCE_HOME/scripts/pilot_stage_guard.py"
+if [[ ! -f "$STAGE_GUARD" || -L "$STAGE_GUARD" ]]; then
+  echo 'STOP: reviewed staging guard missing or linked.' >&2
   exit 3
 fi
-if /usr/sbin/lsof -nP -iTCP:8768 -sTCP:LISTEN >/dev/null 2>&1; then
-  echo 'STOP: existing listener on port 8768. No stage or overwrite.' >&2
-  exit 3
-fi
+"$PY313" "$STAGE_GUARD" preflight "$ROOT" "$BASE"
 
 echo 'PREFLIGHT PASS: macOS, Python 3.13, three pinned public documents.'
 echo 'No existing pilot directories, no 8768 listener, no LaunchAgent changes.'
@@ -112,10 +95,10 @@ fi
 /usr/bin/printf 'E0.3 Witness public context snapshot\n' > "$CONTEXT/$MARKER"
 /bin/cp -R "$SOURCE_HOME/src" "$SOURCE_HOME/scripts" "$PILOT/"
 /bin/cp "$SOURCE_HOME/pyproject.toml" "$PILOT/"
-for name in CURRENT.md REGISTERED.md GOVERNANCE.md; do
-  /bin/cp "$ROOT/$name" "$CONTEXT/$name"
-  /bin/chmod 600 "$CONTEXT/$name"
-done
+# Re-open and rehash all three no-follow source descriptors at copy time.
+# Only the verified in-memory bytes may reach the staged context directory.
+# A source swapped after preflight is refused; no shell cp of source docs.
+"$PY313" "$STAGE_GUARD" copy-public "$ROOT" "$BASE"
 "$PY313" -m venv "$PILOT/.venv"
 "$PILOT/.venv/bin/python" -m pip install --disable-pip-version-check --only-binary=:all: -e "$PILOT"
 "$PILOT/.venv/bin/python" -m pip check
