@@ -1,0 +1,70 @@
+{
+  "schema": "humanaios.opportunity_qualification_card.e0.v1",
+  "source": {
+    "issuer": "Molina Healthcare",
+    "job_id": "2040242",
+    "title": "National Quality Performance Manager",
+    "uri": "https://careers.molinahealthcare.com/job/united-states/national-quality-performance-manager-remote/21726/102561038192",
+    "posting_date": "2026-10-28",
+    "retrieved_at": "2026-11-05T23:42:05Z",
+    "rendered_main_text_sha256": "e447562a968c1c40c82b17b14b08e8da77eb5af022abd05592051a938847696a",
+    "snapshot_kind": "RENDERED_MAIN_TEXT_SHA256",
+    "freshness": "CURRENT_AS_OBSERVED",
+    "availability_status": "UNKNOWN",
+    "uncertainty": [
+      "The digest covers normalized rendered main-page text, not raw HTML.",
+      "Application availability and candidate-specific eligibility were not assessed.",
+      "Portfolio records are synthetic and do not describe a real person."
+    ]
+  },
+  "opportunity": {
+    "goal": "Healthcare quality and data transformation leadership",
+    "requirements": [
+      {
+        "label": "EHR data validation, analysis and reporting",
+        "kind": "DUTY",
+        "source_predicate": "DUTY",
+        "mapping_state": "DOCUMENTED",
+        "gap_type": "unknown",
+        "evidence_refs": [
+          "SYNTHETIC-EHR-REPORT"
+        ]
+      },
+      {
+        "label": "At least three years of quality program or project management",
+        "kind": "REQUIRED",
+        "source_predicate": "REQUIREMENT",
+        "mapping_state": "UNKNOWN",
+        "gap_type": "evidence",
+        "evidence_refs": []
+      },
+      {
+        "label": "Healthcare experience or demonstrated quality knowledge",
+        "kind": "REQUIRED",
+        "source_predicate": "REQUIREMENT",
+        "mapping_state": "UNKNOWN",
+        "gap_type": "evidence",
+        "evidence_refs": []
+      },
+      {
+        "label": "Preferred Microsoft Azure or SQL query familiarity",
+        "kind": "PREFERRED",
+        "source_predicate": "PREFERENCE",
+        "mapping_state": "UNKNOWN",
+        "gap_type": "evidence",
+        "evidence_refs": []
+      }
+    ]
+  },
+  "portfolio": {
+    "fixture_class": "SYNTHETIC_ONLY",
+    "evidence": [
+      {
+        "locator": "SYNTHETIC-EHR-REPORT",
+        "claim": "Synthetic practice artifact validates a fictional healthcare-style table and summarizes data-quality checks.",
+        "claim_state": "SOURCE_SUPPORTED",
+        "source_type": "SYNTHETIC_ARTIFACT"
+      }
+    ]
+  }
+}
