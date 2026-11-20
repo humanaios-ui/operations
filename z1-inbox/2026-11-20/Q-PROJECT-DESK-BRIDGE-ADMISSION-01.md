@@ -57,10 +57,23 @@ Every option except `edit` and `later` rules this block, and a merged ruling mar
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: minors accepted, private-only tests
+by: Z1-prepared (not an identity claim)
+at: 2026-11-20T02:52:49Z
+status: DECIDED
+block_hash: f111a1f2b1762e172877e16f84675340c2709f3b7aef976ebee51d9fab996c69
+body_hash: 83ae7661b954c1c42fcf91ceedd663d1c4313a8f70cbd9c8001dba90401f1c85
+
+```
+RULING z1-projectdesk-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Accept the three audit-7 minors as open (register item 31) and keep the bridge tests verifiable only with the two private files? Question 1 (admission as the issue 1126 E0 receipt) and question 2 (the independent reviewer) are not ruled and, once this block is ratified, can return only as a new block (Q-PROJECT-DESK-BRIDGE-ADMISSION-01)?
+  choice: minors accepted, private-only tests
+  note: 
+  at: 2026-11-20T02:52:49Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 
