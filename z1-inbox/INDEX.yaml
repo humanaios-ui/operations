@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 130
-  records: 78
+  records: 79
 ratifiers:
 - Night
 candidates:
@@ -1102,9 +1102,16 @@ candidates:
   title: 'Open items of the Project Desk bridge merged in 1203 - admit as the issue 1126 E0 receipt, independent reviewer, how the tests run, the three accepted minors'
   path: z1-inbox/2026-11-20/Q-PROJECT-DESK-BRIDGE-ADMISSION-01.md
   submitted: '2026-11-20'
-  status: awaiting_z2
+  status: ratified
   note: 'The bridge folder is a candidate on main, not a ruling. Its own README says not HUMAN_REVIEW_READY. Z1 leans: reviewer and test path first, admission last.'
+  ratified_by: Night
+  ratified_at: "2026-11-20"
+  z2_ruling: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  z2_hash: "a37b75a823ef1a1572454b55d6c307b3c545c46e2db3ece71bc101888ffa9759"
 records:
+- path: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  title: "Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
   title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."

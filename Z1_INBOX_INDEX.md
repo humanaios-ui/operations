@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**130 candidates** — ⏳ awaiting Z2 84 · ✅ ratified 46 · **78 records**
+**130 candidates** — ⏳ awaiting Z2 83 · ✅ ratified 47 · **79 records**
 
-## Awaiting Z2 (84)
+## Awaiting Z2 (83)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -94,10 +94,9 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
 | 2026-11-22 | **Q-AGENT-CHECKIN-HA000-LEDGER-01** | Who administers HA-000, and whether review-agent findings get a ledger (asks 4 and 5 that Q-AGENT-CHECKIN-CALIBRATION-01 left unruled) | `z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md` |
 | 2026-11-22 | **Q-CORPUS-STATS-FOLLOWON-01** | Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled) | `z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md` |
-| 2026-11-22 | **Q-PROJECT-DESK-BRIDGE-ADMISSION-01** | Open items of the Project Desk bridge merged in 1203 - admit as the issue 1126 E0 receipt, independent reviewer, how the tests run, the three accepted minors | `z1-inbox/2026-11-20/Q-PROJECT-DESK-BRIDGE-ADMISSION-01.md` |
 | 2026-11-22 | **Q-REFERENT-DECAY-FOLLOWON-01** | Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt) | `z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md` |
 
-## Decided (46)
+## Decided (47)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -147,6 +146,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-AGENT-CHECKIN-CALIBRATION-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`9029baf16e6415ee1cab97558f8b1582945b38106049e40fc9136645b8b12744` |
 | ✅ ratified | **Q-CORPUS-STATS-RECONCILE-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`5197f46860d8847540e4b03814bf7b17759d030f13739be2c9fb657f7e1851f7` |
 | ✅ ratified | **Q-REFERENT-DECAY-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`7392a2e7cd2b715de74573d614b805721dcf91633186ec19afb36809fe25a899` |
+| ✅ ratified | **Q-PROJECT-DESK-BRIDGE-ADMISSION-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`a37b75a823ef1a1572454b55d6c307b3c545c46e2db3ece71bc101888ffa9759` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -159,7 +159,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (134)
+## Open questions for Z2 (130)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -385,15 +385,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] **Deployment feasible?** (Night can execute 6-step guide?)
 - [ ] **Ready to ratify?** (Sign with sha256 hash)
 
-### Q-PROJECT-DESK-BRIDGE-ADMISSION-01 (4)
-
-`z1-inbox/2026-11-20/Q-PROJECT-DESK-BRIDGE-ADMISSION-01.md`
-
-- [ ] Question 2: name an independent reviewer, or record that none is named.
-- [ ] Question 3: pick how the tests run.
-- [ ] Question 4: confirm the acceptance of the three minors in a Z2 record, or ask for the repair.
-- [ ] Question 1: decide admission only after the three above, and only once both of the issue's last prerequisites are recorded as done: the independent exact-head test and the human evaluation record. If no reviewer is named, or either is still pending, admission stays pending.
-
 ### Q-REFERENT-DECAY-FOLLOWON-01 (3)
 
 `z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md`
@@ -452,7 +443,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (78)
+## Records (79)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -535,6 +526,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md` | Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md` | Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md` | Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md` | Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ## Excluded from the conversion record (12)
