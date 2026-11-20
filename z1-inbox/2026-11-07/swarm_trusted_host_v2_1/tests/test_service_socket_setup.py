@@ -122,6 +122,41 @@ class CleanupIsLimitedToTheSocketItCreated(Base):
                 self.server()
         self.assertEqual(os.lstat(self.sock).st_ino, ino)
 
+    def test_a_good_bind_followed_by_an_interrupted_address_lookup_removes_the_socket(self):
+        # PR #1274 re-review (CodeRabbit): server_bind() is bind() then getsockname(). An interrupt between them
+        # means the bind SUCCEEDED, so the file this process created must not be left behind.
+        with mock.patch.object(socket.socket, "getsockname", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                self.server()
+        self.assertFalse(os.path.lexists(self.sock))
+        srv = self.server()                                    # and a retry binds
+        self.addCleanup(srv.server_close)
+
+    def test_cleanup_never_unlinks_when_the_identity_is_unknown(self):
+        # If the post-bind stat failed, identity is None: leave the path alone rather than risk a replacement.
+        other = socket.socket(socket.AF_UNIX); other.bind(str(self.sock)); self.addCleanup(other.close)
+        ino = os.lstat(self.sock).st_ino
+        parent_fd = os.open(self.td, os.O_RDONLY | os.O_DIRECTORY); self.addCleanup(os.close, parent_fd)
+        service.Server._discard_socket(parent_fd, "ipc.sock", None)
+        self.assertEqual(os.lstat(self.sock).st_ino, ino)
+
+    def test_a_first_stat_failure_after_a_good_bind_does_not_remove_a_replacement(self):
+        # The post-bind stat fails (identity unknown) and someone else's socket sits at the path: it survives.
+        other = socket.socket(socket.AF_UNIX)
+        self.addCleanup(other.close)
+        real_stat = os.stat
+
+        def failing_stat(path, *a, **k):
+            if path == "ipc.sock" and k.get("dir_fd") is not None and not other.getsockname():
+                os.unlink(self.sock); other.bind(str(self.sock))     # a replacement arrives, then our stat fails
+                raise OSError(errno.EIO, "stat failed")
+            return real_stat(path, *a, **k)
+        with mock.patch("src.service.os.stat", failing_stat):
+            with self.assertRaises(OSError):
+                self.server()
+        self.assertTrue(stat.S_ISSOCK(os.lstat(self.sock).st_mode))
+        self.assertEqual(other.getsockname(), str(self.sock))     # still the replacement's own socket
+
     def test_server_close_removes_its_own_socket_and_is_idempotent(self):
         srv = self.server()
         self.assertTrue(os.path.lexists(self.sock))
