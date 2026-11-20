@@ -171,21 +171,20 @@ class Server(socketserver.UnixStreamServer):
         self._socket_identity = None            # (st_dev, st_ino) of the socket THIS server created
         parent_fd, leaf = _open_parent_fd(socket_path)
         try:
-            try:
-                os.stat(leaf, dir_fd=parent_fd, follow_symlinks=False)
-                pre_existing = True                 # someone else's file: bind will refuse; never delete it
-            except FileNotFoundError:
-                pre_existing = False
             # Create the socket private (0600) from the start instead of relying on a later no-follow chmod, which
             # older glibc does not support and which ran after the bind. The umask is process-wide, so it is held
             # only around the bind and restored on every path.
+            # Bind and listen are SEPARATE steps. A bind that fails created nothing, so it must unlink nothing: another
+            # server may have bound this path after any absence check (PR #1274 review). Only a bind that succeeded
+            # gives this server a socket to clean up, and only by the identity recorded right after it.
             old_umask = os.umask(0o177)
             try:
-                super().__init__(str(socket_path), Handler)
-            except BaseException:
-                if not pre_existing:
-                    self._discard_socket(parent_fd, leaf, None)
-                raise
+                super().__init__(str(socket_path), Handler, bind_and_activate=False)
+                try:
+                    self.server_bind()
+                except BaseException:
+                    super().server_close()              # close our own descriptor; the path is not ours
+                    raise
             finally:
                 os.umask(old_umask)
             try:
@@ -193,6 +192,7 @@ class Server(socketserver.UnixStreamServer):
                 if not stat.S_ISSOCK(info.st_mode):
                     raise EvidenceError("SOCKET_ROLE_PERMISSIONS_INVALID")
                 self._socket_identity = (info.st_dev, info.st_ino)
+                self.server_activate()
                 if enforce_isolation:
                     try:
                         os.chown(leaf, allowed_uid, allowed_uid, dir_fd=parent_fd, follow_symlinks=False)
