@@ -2,6 +2,7 @@
 """
 Builder v1.7 compliant
 witness_ledger_v0.py — local INTENT-OS witness ledger (append-only, hash-chained).
+HumanAIOS — Q-INTENT-OS-WITNESS-LEDGER-01 Phase B (local substrate)
 
 Evidence / attribution substrate only. AUTHORITY_EFFECT is NONE. can_authorize is
 false. This tool does not grant merge authority, satisfy required review, sign a
@@ -74,6 +75,10 @@ HASHED_FIELDS = (
 )
 
 
+class SpecLoadFailed(Exception):
+    """Raised when a ledger file cannot be loaded or parsed."""
+
+
 class LedgerError(RuntimeError):
     """Raised when a ledger cannot be read or its chain does not validate."""
 
@@ -110,16 +115,30 @@ def refuse(msg: str) -> None:
 def load_rows(path: Path) -> List[Dict[str, Any]]:
     if not path.exists():
         return []
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise SpecLoadFailed(f"Cannot load {path}: {exc}") from exc
     rows: List[Dict[str, Any]] = []
-    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    for number, line in enumerate(text.splitlines(), 1):
         stripped = line.strip()
         if not stripped:
             continue
         try:
             rows.append(json.loads(stripped))
         except json.JSONDecodeError as exc:
-            raise LedgerError(f"{path}:{number}: invalid JSON — {exc}") from exc
+            raise SpecLoadFailed(f"{path}:{number}: invalid JSON — {exc}") from exc
     return rows
+
+
+def write_report(output: Dict[str, Any], output_dir: str) -> str:
+    """Write a JSON report under output_dir. Returns the file path."""
+    dest = Path(output_dir)
+    dest.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = dest / f"{TOOL_NAME}_{ts}.json"
+    path.write_text(json.dumps(output, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return str(path)
 
 
 def body_for_hash(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -542,6 +561,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 2
     try:
         return args.fn(args)
+    except SpecLoadFailed as exc:
+        print(json.dumps({"ok": False, "error": f"SPEC_LOAD_FAILED: {exc}"}), file=sys.stderr)
+        return 2
     except LedgerError as exc:
         print(json.dumps({"ok": False, "error": str(exc)}), file=sys.stderr)
         return 1
