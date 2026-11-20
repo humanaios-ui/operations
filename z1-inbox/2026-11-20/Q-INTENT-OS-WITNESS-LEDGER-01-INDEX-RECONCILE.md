@@ -30,8 +30,8 @@ Primary evidence locations (unchanged by this reconcile beyond REGISTERED candid
 
 ## Changes in this PR
 
-1. `z1-inbox/INDEX.yaml` → `status: ratified`; cite existing REGISTERED formula as `z2_hash` string (not a new signature).
-2. `REGISTERED.md` candidate YAML header → `status: ACCEPTED`, `zone2_ratification: "2026-09-19T19:00:00Z"` (matches sibling dual-authority header shape; ACCEPT block unchanged).
+1. `z1-inbox/INDEX.yaml` → `status: ratified`; `z2_ruling` → this file (indexed under `records:`); `z2_hash` = existing REGISTERED ACCEPT formula string (not a new signature).
+2. `REGISTERED.md` — **append-only**: original candidate header left as `CANDIDATE` / `zone2_ratification: null`; new append entry `Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE` cites the existing ACCEPT block.
 3. `AUTHORIZATION_EVIDENCE_MAPPING.md` → replace “not yet ratified” with architecture-ratified / Phase-1-pending.
 4. Inbox candidate status line updated to match.
 5. `Z1_INBOX_INDEX.md` re-rendered from INDEX.

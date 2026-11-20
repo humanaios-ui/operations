@@ -4482,7 +4482,7 @@ superseded_by: null
 ---
 id: "Q-INTENT-OS-WITNESS-LEDGER-01"
 name: "intent-os-witness-ledger-architecture"
-status: ACCEPTED
+status: CANDIDATE
 class: Q
 date_registered: "2026-09-19"
 date_origin: "2026-09-19"
@@ -4491,7 +4491,7 @@ principles_triggered: ["P-governance", "P-authority", "P-intent-os", "P-audit"]
 substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
 tags: ["governance", "witness-ledger", "INTENT-OS", "audit-trail", "human-machine-collaboration", "authority"]
 related_finding: ["Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01"]
-zone2_ratification: "2026-09-19T19:00:00Z"
+zone2_ratification: null
 superseded_by: null
 ---
 ```
@@ -5844,4 +5844,42 @@ superseded_by: null
 - Comparison Engine Output: `Z2_REVIEW_PR465_ENGINE_OUTPUT.md` (AUDIT-3d1f49e5-0437-4c13-ba7b, 2026-09-24)
 - Original PR Decision: `Z2_REVIEW_PR465_COMPARISON.md`
 - Engine Code: `comparison_engine.py` (commit 0585135)
+
+-----
+
+## Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE — AMBIGUITY close (INDEX vs existing ACCEPT)
+
+```yaml
+---
+id: "Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE"
+name: "intent-os-witness-ledger-index-reconcile"
+status: REGISTERED
+class: Q
+date_registered: "2026-11-20"
+date_origin: "2026-09-19"
+session_registered: "S-112026-Z1-witness-ledger-index-reconcile"
+principles_triggered: ["P-governance", "P-authority", "P-intent-os", "P-audit"]
+substrate: "Cursor cloud agent (Z1 consistency reconcile; authority_effect NONE)"
+tags: ["governance", "witness-ledger", "INTENT-OS", "AMBIGUITY", "INDEX", "append-only"]
+related_finding: ["Q-INTENT-OS-WITNESS-LEDGER-01"]
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Closes the live AMBIGUITY where `z1-inbox/INDEX.yaml` still said `awaiting_z2` for `Q-INTENT-OS-WITNESS-LEDGER-01` while this file already carried a Night **ACCEPT** block (2026-09-19T19:00:00Z) and `CLAUDE.md` appended the same ratification. INDEX and related stale prose are aligned to that existing ACCEPT. **No new Z2 hash is invented.** The original candidate YAML header above remains untouched (`status: CANDIDATE`, `zone2_ratification: null`) because REGISTERED.md is append-only; the authoritative ACCEPT text is the existing `## Z2 Ratification — 2026-09-19` block for this Q-ID.
+
+- **Referenced existing ACCEPT (unchanged):**
+  - Candidate ID: `Q-INTENT-OS-WITNESS-LEDGER-01`
+  - Decision: ACCEPT
+  - Timestamp: 2026-09-19T19:00:00 UTC
+  - Ratification Hash: `sha256(Q-INTENT-OS-WITNESS-LEDGER-01 | carly.r.anderson@gmail.com | 2026-09-19T19:00:00Z | ACCEPT | witness-ledger-architecture)`
+
+- **Scope guard:** Consistency record only. Does not implement the witness ledger, API, or stop-hook (step B+). Does not claim a new ratification. Does not edit the prior REGISTERED entry body; this is an append.
+
+- **Artifacts:** PR #1293 (draft / WORKBENCH); `z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md` (indexed under `records:` and cited as INDEX `z2_ruling`).
+
+- **Falsifier:** After this append lands, if INDEX status for `Q-INTENT-OS-WITNESS-LEDGER-01` again disagrees with the existing ACCEPT block **and** the CLAUDE.md append for the same Q-ID, reopen as AMBIGUITY.
+
+**Status:** REGISTERED as Z1 consistency append · cites existing ACCEPT · `authority_effect: NONE` relative to inventing Z2 authority
 
