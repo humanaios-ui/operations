@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**232 registered tools** · 2 MCP servers · 4 excluded · 183 carrying Builder v1.7 markers
+**233 registered tools** · 2 MCP servers · 4 excluded · 184 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 232 |
-| — status `draft` | 231 |
+| Registered tools | 233 |
+| — status `draft` | 232 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 183 |
+| Builder v1.7 markers present | 184 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -375,7 +375,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 23 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 29 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 30 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |

@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 232
+  tools: 233
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 183
+  builder_markers_present: 184
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2957,7 +2957,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: z2_authorized_machine_identities_api_v0.py — optional read-only local /api/z2-authorized-machine-identities mirror.
+  purpose: z2_authorized_machine_identities_api_v0.py — optional read-only local /api/z2-authorized-machine-identities
+    mirror.
   session: S-112026-intent-os-machine-identity-api
 mcp_servers:
 - server_id: HAIOS-MCP-001

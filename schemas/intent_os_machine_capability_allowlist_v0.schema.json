@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://humanaios.ai/schemas/intent_os_machine_capability_allowlist_v0.schema.json",
   "title": "INTENT-OS Machine Capability Allowlist v0",
-  "$comment": "HARD CONSTRAINT: Local offline registry for stop-hook identity checks. This file is not a Z2 ratification, does not replace a Z2 hash, and does not grant merge authority. AUTHORITY_EFFECT remains NONE; can_authorize remains false. Optional Phase D local HTTP mirror may exist; http_api.enabled stays false so stop-hook decisions never require network.",
+  "$comment": "HARD CONSTRAINT: Local offline registry for stop-hook identity checks. This file is not a Z2 ratification, does not replace a Z2 hash, and does not grant merge authority. AUTHORITY_EFFECT remains NONE; can_authorize remains false. Optional Phase D local HTTP mirror may exist; http_api.enabled stays false so stop-hook decisions stay offline.",
   "type": "object",
   "additionalProperties": false,
   "required": [

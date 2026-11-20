@@ -121,7 +121,7 @@ def test_cli_get_exit_codes(tmp_path, capsys):
     assert out_bad["authorized_identities"] == []
 
 
-def test_authority_constants_and_stop_hook_never_requires_http():
+def test_authority_constants_and_stop_hook_stays_offline():
     assert api.AUTHORITY_EFFECT == "NONE"
     assert api.CAN_AUTHORIZE is False
     assert api.ADVISORY_ONLY is True

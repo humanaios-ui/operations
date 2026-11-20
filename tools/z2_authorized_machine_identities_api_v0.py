@@ -14,8 +14,9 @@ satisfy required review, sign a ruling, or replace a Z2 hash.
 Fail-closed: missing/invalid allowlist or broken witness ledger → empty
 authorized_identities with an explicit error object (HTTP 503).
 
-Stop-hook independence: Phase C never consults this API (allowlist
-http_api.enabled stays false). Offline gates keep working without HTTP.
+Stop-hook independence: Phase C reads local files only and does not consult
+this API (allowlist http_api.enabled stays false). Offline gates keep working
+without HTTP.
 
 Usage:
   python3 tools/z2_authorized_machine_identities_api_v0.py get

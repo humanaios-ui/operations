@@ -7,7 +7,8 @@ HumanAIOS — Q-INTENT-OS-WITNESS-LEDGER-01 Phase C (local stop-hook allowlist)
 Offline registry a stop-hook can query. AUTHORITY_EFFECT is NONE. can_authorize is
 false. This tool does not grant merge authority, satisfy required review, sign a
 ruling, or replace a Z2 hash. HTTP /api/z2-authorized-machine-identities may exist as
-an optional Phase D local mirror; this stop-hook path never consults it.
+an optional Phase D local mirror; this stop-hook path reads local files only and
+does not consult that HTTP surface.
 
 Fail-closed: missing/invalid allowlist, missing/broken witness ledger, missing or
 unbound machine capability_digest, revoked/unknown identity → DENY.

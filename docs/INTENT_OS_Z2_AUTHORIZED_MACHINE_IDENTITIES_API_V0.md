@@ -37,7 +37,7 @@ POST and unknown paths are refused (`405` / `404`). Default bind is loopback onl
 
 | Surface | Reads | Network |
 |---------|-------|---------|
-| `machine_capability_allowlist_v0.py stop-hook` / `check` | Local allowlist + ledger files | **Never** (Phase C) |
+| `machine_capability_allowlist_v0.py stop-hook` / `check` | Local allowlist + ledger files | Offline only (Phase C; no HTTP) |
 | This API (`serve` / `get`) | Same local files | Optional mirror only |
 
 Stop-hook keeps working offline with this API down, unstarted, or unreachable. Do not rewrite Stop hooks to call HTTP.
