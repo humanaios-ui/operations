@@ -91,7 +91,7 @@ jobs:
           printf 'E0.3 Witness public context snapshot\n' > "$CONTEXT/.witness-pilot-e03-z1"
           SCRIPT="services/haios_mcp/scripts/pilot_rollback_guard.py"
           HOME="$TMP" python "$SCRIPT"
-          (cd "$PILOT" && /bin/sleep 30) &
+          (cd "$PILOT" && exec /bin/sleep 30) &
           child=$!
           /bin/sleep 1
           if HOME="$TMP" python "$SCRIPT"; then
