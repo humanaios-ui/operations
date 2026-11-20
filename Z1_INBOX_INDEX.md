@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**131 candidates** — ⏳ awaiting Z2 83 · ✅ ratified 48 · **79 records**
+**131 candidates** — ⏳ awaiting Z2 83 · ✅ ratified 48 · **80 records**
 
 ## Awaiting Z2 (83)
 
@@ -121,7 +121,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-BOARD-RULING-13** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`fa83e8cad90de5979c733e1135369a540a10c164a56c1a05e0da77db8e8dceb6` |
 | ✅ ratified | **Q-BOARD-RULING-15** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`9a74fa65d8997015b091773db6f595d6210207a474973c59dd508ca5bd07b7ad` |
 | ✅ ratified | **Q-BOARD-RULING-16** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`4222c6c47c77b78f75528559d98ada6358da07dba025a4ea28c533e2152cf531` |
-| ✅ ratified | **Q-INTENT-OS-WITNESS-LEDGER-01** | Night | 2026-09-19 | `REGISTERED.md (Z2 Ratification — 2026-09-19 for Q-INTENT-OS-WITNESS-LEDGER-01); CLAUDE.md appended events 2026-09-19 19:00 UTC`<br>`sha256(Q-INTENT-OS-WITNESS-LEDGER-01 \| carly.r.anderson@gmail.com \| 2026-09-19T19:00:00Z \| ACCEPT \| witness-ledger-architecture)` |
+| ✅ ratified | **Q-INTENT-OS-WITNESS-LEDGER-01** | Night | 2026-09-19 | `z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md`<br>`sha256(Q-INTENT-OS-WITNESS-LEDGER-01 \| carly.r.anderson@gmail.com \| 2026-09-19T19:00:00Z \| ACCEPT \| witness-ledger-architecture)` |
 | ✅ ratified | **Q-MAIL-EVIDENCE-LEDGER-01** | Night | 2026-09-24 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md`<br>`d52a583d659c4230b1456042193748e2c4ec1d32c3aaf395e000aabfe6f40f78` |
 | ✅ ratified | **Q-HCM-CORE-MACHINE-01** | Night | 2026-10-14 | `z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md`<br>`9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd` |
 | ✅ ratified | **Q-MULTI-AGENT-QUEUE-PLAN-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md`<br>`a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573` |
@@ -453,7 +453,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (79)
+## Records (80)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -536,6 +536,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md` | Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md` | Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md` | Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md` | INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (cites pre-existing REGISTERED ACCEPT; not a new ratify.py signature) |
 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md` | Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
