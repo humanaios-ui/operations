@@ -294,3 +294,7 @@ baseline_tests:
   - path: tools/tests/test_admission_ruling_graph.py
     requires: []
     description: Admission-to-ruling graph generator joins the ledger to rulings in ledger order, reads no clock, and flags a merged PR whose ledger history lacks a merged row
+
+  - path: tools/tests/test_admission_ruling_graph_workflow.py
+    requires: []
+    description: Structural pin of the admission-ruling-graph workflow (event-driven, main only, no loop on its own merge, draft PR, two standard actions)
