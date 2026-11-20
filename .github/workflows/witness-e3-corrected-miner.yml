@@ -76,6 +76,12 @@ jobs:
             -s services/haios_mcp/tests \
             -p test_pilot_rollback_guard.py -v
 
+      - name: Check fail-closed macOS staging and installer negative fixtures
+        run: |
+          python -m unittest discover \
+            -s services/haios_mcp/tests \
+            -p test_pilot_stage_guard.py -v
+
       - name: Native macOS process liveness and read-only rollback check
         shell: bash
         run: |
