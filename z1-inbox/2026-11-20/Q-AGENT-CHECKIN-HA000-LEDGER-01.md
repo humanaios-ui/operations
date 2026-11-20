@@ -27,6 +27,7 @@ Z1's lean, not a decision: rule question 1 first, then question 2. Question 2 bu
 - [ ] Name an administrator for HA-000, or record that none is named yet.
 - [ ] Decide whether question 2 waits for question 1, as Z1 leans.
 - [ ] If question 2 is taken up, someone opens the two audits files named above first, to see whether a findings ledger already exists.
+- [ ] After that check, give question 2 a disposition: accept it, reject it, or defer it explicitly. If neither audit file holds a ledger and no disposition is recorded, question 2 stays unanswered.
 
 ## Falsifier
 

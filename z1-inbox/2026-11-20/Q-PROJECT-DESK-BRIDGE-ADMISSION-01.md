@@ -28,7 +28,7 @@ Z1's lean, not a decision: 2 and 3 first, then 1. Questions 2 and 3 are what the
 - [ ] Question 2: name an independent reviewer, or record that none is named.
 - [ ] Question 3: pick how the tests run.
 - [ ] Question 4: confirm the acceptance of the three minors in a Z2 record, or ask for the repair.
-- [ ] Question 1: decide admission only after the three above.
+- [ ] Question 1: decide admission only after the three above, and only once both of the issue's last prerequisites are recorded as done: the independent exact-head test and the human evaluation record. If no reviewer is named, or either is still pending, admission stays pending.
 
 ## Falsifier
 
