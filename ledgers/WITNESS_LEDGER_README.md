@@ -1,7 +1,7 @@
 # WITNESS_LEDGER v0 — local INTENT-OS attribution store
 
 **Authority:** evidence/registry substrate only. `authority_effect: NONE`. `can_authorize: false`.  
-**Not:** merge authority, stop-hook allowlist (Phase C), or HTTP API (Phase D).
+**Not:** merge authority. Phase C stop-hook reads this ledger via `tools/machine_capability_allowlist_v0.py`. Optional Phase D local HTTP mirror (`tools/z2_authorized_machine_identities_api_v0.py`) is stop-hook-independent.
 
 | Path | Role |
 |------|------|

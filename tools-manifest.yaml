@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 232
+  tools: 233
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 183
+  builder_markers_present: 184
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2946,6 +2946,20 @@ tools:
   builder_markers: true
   purpose: machine_capability_allowlist_v0.py — local INTENT-OS machine-capability allowlist.
   session: S-112026-intent-os-capability-allowlist
+- tool_id: HAIOS-TOOL-246
+  name: z2_authorized_machine_identities_api
+  path: tools/z2_authorized_machine_identities_api_v0.py
+  version: 0.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: z2_authorized_machine_identities_api_v0.py — optional read-only local /api/z2-authorized-machine-identities
+    mirror.
+  session: S-112026-intent-os-machine-identity-api
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

@@ -2,7 +2,7 @@
 
 **Status:** Z1 implementation substrate (schema + local JSON + CLI + Stop wiring).  
 **Authority effect:** `NONE` — registry/evidence for a local gate; not merge authority.  
-**Out of scope:** HTTP `/api/z2-authorized-machine-identities` (Phase D), merge, forged Z2 hashes.
+**Out of scope for this gate:** requiring HTTP `/api/z2-authorized-machine-identities` (optional Phase D mirror is stop-hook-independent), merge, forged Z2 hashes.
 
 ## Purpose
 
@@ -60,15 +60,15 @@ Identity resolution for `stop-hook` (first non-empty): `--identity`, `INTENTOS_A
 |------------------|------------|------------------------|
 | `.claude/settings.json` → `hooks.Stop` | Claude Code turn-end; previously only `.z1-control/board_monitor.py` | Second Stop command runs `tools/machine_capability_allowlist_v0.py stop-hook` (report-only by default) |
 | `.github/workflows/z2_ratification_gate.yml` | Hardcoded Z2 email authorship check (advisory `exit 0`) | Documented sibling; not rewritten in Phase C. Future consumers should call `check --enforce` instead of inventing a cloud call |
-| Cloud `/api/z2-authorized-machine-identities` | Not implemented | Phase D; local gate must not depend on it |
+| Optional local `/api/z2-authorized-machine-identities` | Phase D mirror via `tools/z2_authorized_machine_identities_api_v0.py` | Local gate must not depend on it; see `docs/INTENT_OS_Z2_AUTHORIZED_MACHINE_IDENTITIES_API_V0.md` |
 
-Do not invent cloud-only authority. Local file + verified witness ledger are the only inputs for ALLOW/DENY in v0.
+Do not invent cloud-only authority. Local file + verified witness ledger are the only inputs for ALLOW/DENY in the stop-hook path.
 
 ## Falsifiers
 
 1. ALLOW when allowlist or witness ledger is missing/unverifiable.
 2. ALLOW for `noreply@anthropic.com` while `status=pending_capability_binding` or `capability_digest` is null.
-3. Any code path that treats HTTP success as authority while `http_api.enabled` is false.
+3. Any code path that treats HTTP success as authority while `http_api.enabled` is false, or that requires the Phase D API for a stop-hook decision.
 4. Allowlist document with `can_authorize: true` or `authority_effect` other than `NONE` validating.
 
 ## References
