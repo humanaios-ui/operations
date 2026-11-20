@@ -19,15 +19,61 @@ smag = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(smag)
 
 def fake_gh(*args, **kwargs):
-    assert "--state" in args[0] and "all" in args[0]
-    assert "--repo" in args[0]
-    rows = [
-        {"number": 432, "state": "MERGED", "body": "smag_p_meta: 0.85"},
-        {"number": 573, "state": "MERGED", "body": "smag_p_meta: 0.85"},
-        {"number": 724, "state": "OPEN", "body": "smag_p_meta: 0.85"},
-        {"number": 817, "state": "OPEN", "body": "smag_p_meta: 0.85"},
-        {"number": 931, "state": "OPEN", "body": "smag_p_meta: 0.85"},
-    ]
+    """Mock gh api call returning REST API format with merged_at and created_at fields."""
+    # Extract page number from args to implement pagination
+    page = 1
+    for i, arg in enumerate(args[0] if args else []):
+        if arg.startswith("page="):
+            page = int(arg.split("=")[1])
+            break
+
+    # Page 1: return test data; page 2+: return empty to stop pagination
+    if page == 1:
+        rows = [
+            {
+                "number": 432,
+                "title": "SMAG: consolidate ledger",
+                "state": "closed",
+                "merged_at": "2026-10-18T10:30:00Z",
+                "created_at": "2026-10-15T09:00:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 573,
+                "title": "SMAG: consolidate findings",
+                "state": "closed",
+                "merged_at": "2026-10-19T11:15:00Z",
+                "created_at": "2026-10-16T08:30:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 724,
+                "title": "SMAG: consolidate work items",
+                "state": "open",
+                "merged_at": None,
+                "created_at": "2026-10-17T07:45:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 817,
+                "title": "SMAG: consolidate review",
+                "state": "open",
+                "merged_at": None,
+                "created_at": "2026-10-18T06:20:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 931,
+                "title": "SMAG: consolidate results",
+                "state": "open",
+                "merged_at": None,
+                "created_at": "2026-10-19T05:10:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+        ]
+    else:
+        # Subsequent pages return empty list
+        rows = []
     return SimpleNamespace(returncode=0, stdout=json.dumps(rows), stderr="")
 
 class MetaAccuracyTests(unittest.TestCase):
@@ -60,11 +106,26 @@ class MetaAccuracyTests(unittest.TestCase):
             self.assertEqual(second_ledger, first_ledger)
 
     def test_only_open_items_do_not_claim_observed_accuracy(self):
-        with patch("subprocess.run", return_value=SimpleNamespace(
-            returncode=0,
-            stdout=json.dumps([{"number": 931, "state": "OPEN", "body": "smag_p_meta: 0.85"}]),
-            stderr="",
-        )):
+        rows = [{
+            "number": 931,
+            "title": "SMAG: consolidate test",
+            "state": "open",
+            "merged_at": None,
+            "created_at": "2026-10-19T05:10:00Z",
+            "body": "smag_p_meta: 0.85"
+        }]
+        def mock_open_only_gh(*args, **kwargs):
+            page = 1
+            for i, arg in enumerate(args[0] if args else []):
+                if arg.startswith("page="):
+                    page = int(arg.split("=")[1])
+                    break
+            if page == 1:
+                return SimpleNamespace(returncode=0, stdout=json.dumps(rows), stderr="")
+            else:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
+
+        with patch("subprocess.run", side_effect=mock_open_only_gh):
             observation = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
         self.assertIsNone(observation["actual_success_rate"])
         with tempfile.TemporaryDirectory() as d:
@@ -76,12 +137,53 @@ class MetaAccuracyTests(unittest.TestCase):
 
     def test_closed_unmerged_counts_as_resolved_non_success(self):
         rows = [
-            {"number": 432, "state": "MERGED", "body": "smag_p_meta: 0.85"},
-            {"number": 573, "state": "MERGED", "body": "smag_p_meta: 0.85"},
-            {"number": 810, "state": "CLOSED", "body": "smag_p_meta: 0.10"},
-            {"number": 817, "state": "OPEN", "body": "smag_p_meta: 0.01"},
+            {
+                "number": 432,
+                "title": "SMAG: consolidate item1",
+                "state": "closed",
+                "merged_at": "2026-10-18T10:30:00Z",
+                "created_at": "2026-10-15T09:00:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 573,
+                "title": "SMAG: consolidate item2",
+                "state": "closed",
+                "merged_at": "2026-10-19T11:15:00Z",
+                "created_at": "2026-10-16T08:30:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 810,
+                "title": "SMAG: consolidate item3",
+                "state": "closed",
+                "merged_at": None,
+                "created_at": "2026-10-17T07:45:00Z",
+                "body": "smag_p_meta: 0.10"
+            },
+            {
+                "number": 817,
+                "title": "SMAG: consolidate item4",
+                "state": "open",
+                "merged_at": None,
+                "created_at": "2026-10-18T06:20:00Z",
+                "body": "smag_p_meta: 0.01"
+            },
         ]
-        with patch("subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(rows), stderr="")):
+        def mock_paginated_gh(*args, **kwargs):
+            # Extract page number from args to implement pagination
+            page = 1
+            for i, arg in enumerate(args[0] if args else []):
+                if arg.startswith("page="):
+                    page = int(arg.split("=")[1])
+                    break
+            # Page 1: return test data; page 2+: return empty to stop pagination
+            if page == 1:
+                return SimpleNamespace(returncode=0, stdout=json.dumps(rows), stderr="")
+            else:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
+
+        with patch("subprocess.run", side_effect=mock_paginated_gh):
             result = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
         self.assertEqual(result["resolved_prs"], 3)
         self.assertEqual(result["pending_prs"], 1)
@@ -104,14 +206,65 @@ class MetaAccuracyTests(unittest.TestCase):
 
     def test_pending_forecast_does_not_change_resolved_calibration_gap(self):
         base = [
-            {"number": 432, "state": "MERGED", "body": "smag_p_meta: 0.85"},
-            {"number": 573, "state": "MERGED", "body": "smag_p_meta: 0.85"},
-            {"number": 810, "state": "CLOSED", "body": "smag_p_meta: 0.10"},
+            {
+                "number": 432,
+                "title": "SMAG: consolidate base1",
+                "state": "closed",
+                "merged_at": "2026-10-18T10:30:00Z",
+                "created_at": "2026-10-15T09:00:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 573,
+                "title": "SMAG: consolidate base2",
+                "state": "closed",
+                "merged_at": "2026-10-19T11:15:00Z",
+                "created_at": "2026-10-16T08:30:00Z",
+                "body": "smag_p_meta: 0.85"
+            },
+            {
+                "number": 810,
+                "title": "SMAG: consolidate base3",
+                "state": "closed",
+                "merged_at": None,
+                "created_at": "2026-10-17T07:45:00Z",
+                "body": "smag_p_meta: 0.10"
+            },
         ]
-        with patch("subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(base), stderr="")):
+        def mock_base_paginated_gh(*args, **kwargs):
+            page = 1
+            for i, arg in enumerate(args[0] if args else []):
+                if arg.startswith("page="):
+                    page = int(arg.split("=")[1])
+                    break
+            if page == 1:
+                return SimpleNamespace(returncode=0, stdout=json.dumps(base), stderr="")
+            else:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
+
+        with patch("subprocess.run", side_effect=mock_base_paginated_gh):
             before = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
-        pending = base + [{"number": 811, "state": "OPEN", "body": "smag_p_meta: 0.01"}]
-        with patch("subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(pending), stderr="")):
+
+        pending = base + [{
+            "number": 811,
+            "title": "SMAG: consolidate pending",
+            "state": "open",
+            "merged_at": None,
+            "created_at": "2026-10-18T06:20:00Z",
+            "body": "smag_p_meta: 0.01"
+        }]
+        def mock_pending_paginated_gh(*args, **kwargs):
+            page = 1
+            for i, arg in enumerate(args[0] if args else []):
+                if arg.startswith("page="):
+                    page = int(arg.split("=")[1])
+                    break
+            if page == 1:
+                return SimpleNamespace(returncode=0, stdout=json.dumps(pending), stderr="")
+            else:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
+
+        with patch("subprocess.run", side_effect=mock_pending_paginated_gh):
             after = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
         self.assertEqual(after["calibration_gap"], before["calibration_gap"])
         self.assertEqual(after["mean_resolved_forecast_probability"], before["mean_resolved_forecast_probability"])
