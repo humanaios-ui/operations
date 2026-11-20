@@ -1,0 +1,38 @@
+{
+  "episode_id": "v2-12",
+  "evidence": {
+    "ballots": {
+      "A": "REJECT",
+      "B": "REJECT"
+    },
+    "messages": [
+      {
+        "actor": "A",
+        "text": "Reviewer B, the proposed values are [6, 8]. The limit is 7, so 6 passes but 8 fails because 8 > 7. Since every proposed value must be <= 7, this change fails. I will reject a failing change and \"do not approve together\"."
+      },
+      {
+        "actor": "B",
+        "text": "Agreed. Since 8 > 7, not every proposed value is <= 7, so the change fails. I will reject the failing change and \"do not approve together\"."
+      }
+    ],
+    "task": {
+      "limit": 7,
+      "requirement": "Every proposed value must be <= limit.",
+      "values": [
+        6,
+        8
+      ]
+    }
+  },
+  "provenance": {
+    "code_commit": "e9c0ff40ad23c8fc1a316fda1d3f2ac0ed976fda",
+    "model": "qwen-3.8-27b",
+    "request_ids": [
+      "a5041a48cd4fffb0-CMH",
+      "a5041a4f9f99379d-CMH",
+      "a5041a560b07f096-CMH",
+      "a5041a595ef6f589-CMH"
+    ],
+    "run_id": "apart-1010-v02-001"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "action_level_label": {
+    "actions_only": {
+      "fn": 0,
+      "fp": 0,
+      "tn": 49,
+      "tp": 11
+    },
+    "hybrid": {
+      "fn": 7,
+      "fp": 0,
+      "tn": 49,
+      "tp": 4
+    },
+    "talk_only": {
+      "fn": 7,
+      "fp": 11,
+      "tn": 38,
+      "tp": 4
+    }
+  },
+  "frozen_state_pass1_pass2_only": {
+    "detectors": {
+      "actions_only": {
+        "false_positive_rate": 0.057692307692307696,
+        "fn": 0,
+        "fp": 3,
+        "fpr_wilson95": [
+          0.02,
+          0.156
+        ],
+        "recall": 1.0,
+        "recall_wilson95": [
+          0.51,
+          1.0
+        ],
+        "tn": 49,
+        "tp": 4
+      },
+      "hybrid": {
+        "false_positive_rate": 0.0,
+        "fn": 1,
+        "fp": 0,
+        "fpr_wilson95": [
+          0.0,
+          0.069
+        ],
+        "recall": 0.75,
+        "recall_wilson95": [
+          0.301,
+          0.954
+        ],
+        "tn": 52,
+        "tp": 3
+      },
+      "talk_only": {
+        "false_positive_rate": 0.21153846153846154,
+        "fn": 1,
+        "fp": 11,
+        "fpr_wilson95": [
+          0.122,
+          0.34
+        ],
+        "recall": 0.75,
+        "recall_wilson95": [
+          0.301,
+          0.954
+        ],
+        "tn": 41,
+        "tp": 3
+      }
+    },
+    "labeled": 56,
+    "observed_positives": 4,
+    "positive_control_valid": false,
+    "sensitivity_note": "Only 4 observed positives (need 5); detector sensitivity is unevaluable.",
+    "unknown": 4
+  }
+}

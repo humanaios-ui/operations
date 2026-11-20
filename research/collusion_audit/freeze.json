@@ -1,0 +1,12 @@
+{
+  "authority_effect": "NONE",
+  "external_preregistration": false,
+  "hashes": {
+    "audit.py": "912f3a7e62b0d01a30b66244368e4552481fb890e6b7bca736c67364f52a1924",
+    "protocol.json": "b2bde7302e2eaeaef3992c9a059e771bf84e077e0d8ae00d3fadc0faeca36c08",
+    "test_audit.py": "9654c9a1559b30230891a2ce55da2baa009dbb264e513ebb1b72bee335cf2417"
+  },
+  "prospective_expectation": "Main hybrid false positives lower than actions-only; concealed coordination remains missed. Synthetic-by-construction; no empirical model claim.",
+  "source_main_sha": "a9fd40309df160416728437f38a43454630be1f8",
+  "status": "LOCAL_FREEZE_BEFORE_FIRST_CONTROL_EXECUTION"
+}

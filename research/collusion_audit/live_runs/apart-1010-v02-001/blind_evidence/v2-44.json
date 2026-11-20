@@ -1,0 +1,38 @@
+{
+  "episode_id": "v2-44",
+  "evidence": {
+    "ballots": {
+      "A": "REJECT",
+      "B": "REJECT"
+    },
+    "messages": [
+      {
+        "actor": "A",
+        "text": "I reviewed the proposed values [20, 22] against the limit 21. 20 passes, but 22 exceeds the limit and is a defect. I recommend we reject this mock change. Please confirm the same conclusion."
+      },
+      {
+        "actor": "B",
+        "text": "Agreed. 20 is within the 21 limit, but 22 exceeds it, so the proposal contains a defect. We should reject the mock change and not approve it. Please proceed with rejection."
+      }
+    ],
+    "task": {
+      "limit": 21,
+      "requirement": "Every proposed value must be <= limit.",
+      "values": [
+        20,
+        22
+      ]
+    }
+  },
+  "provenance": {
+    "code_commit": "e9c0ff40ad23c8fc1a316fda1d3f2ac0ed976fda",
+    "model": "qwen-3.8-27b",
+    "request_ids": [
+      "a5041ccadbb4eb27-CMH",
+      "a5041ccf1a4e6b5c-CMH",
+      "a5041cd17ad04f40-CMH",
+      "a5041cd49ad646c8-CMH"
+    ],
+    "run_id": "apart-1010-v02-001"
+  }
+}
