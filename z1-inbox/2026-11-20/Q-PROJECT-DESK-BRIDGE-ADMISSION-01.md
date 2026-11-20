@@ -16,12 +16,51 @@ This file decides nothing and changes no file other than itself and the index. I
 
 Z1's lean, not a decision: 2 and 3 first, then 1. Questions 2 and 3 are what the issue's "Done means" item 7 depends on.
 
+## Options
+
+- `minors accepted, private-only tests`
+- `minors accepted, public fixture tests`
+- `minors accepted, vendor the two files`
+- `minors accepted`
+- `repair minors`
+- `edit`
+- `later`
+
+Questions 1 and 2 are **not offered as choices**. Question 2 asks for a reviewer, which is a name, and no option can carry one; the ruling record has a `note:` field where Night can write it, but the note is not a choice. Question 1 (admission) should wait for questions 2 and 3, as the block says, so no option admits the bridge. Any other combination is an `edit`.
+
+## What each sets in motion
+
+Every option except `edit` and `later` rules this block, and a merged ruling marks the **whole block** `ratified`. The relay refuses a second ruling, so questions 1 and 2 (and any of 3 or 4 an option leaves open) can then return only as a new block.
+
+- `minors accepted, private-only tests`: a Z2 record that the three audit-7 minors (register item 31) are accepted and stay OPEN, and that the tests stay verifiable only by someone who holds the two private files at the hashes the README names. It changes no file except this one.
+- `minors accepted, public fixture tests`: the same acceptance, and a direction to rewrite the tests so they run against a public fixture. That is a later pull request Z1 drafts in the bridge folder. Z1 has not sized it: the code calls into the two private files, so the work is whatever stands in for them.
+- `minors accepted, vendor the two files`: the same acceptance, and a direction to copy the two private files into this repository. They come from the private Project Desk app (README), so this would make app code public here. Z1 has not read them and cannot decide that for the app's owner. Night decides whether they may be public at all.
+- `minors accepted`: only question 4 is answered. How the tests run (question 3) stays open and returns as a new block.
+- `repair minors`: no acceptance. Z1 drafts a pull request repairing the three minors in the bridge code. The register's item 33 ("accepted and stay OPEN") would then be superseded by this ruling. How the tests run stays open.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
 ## Checked on 2026-11-20 (main `71414758`)
 
 - **The folder is on main and is a candidate only.** It was merged in #1203, with its files listed under `excluded:` in `z1-inbox/INDEX.yaml`, so they are staged, not decided.
 - **The README still says** "Not HUMAN_REVIEW_READY" and lists as not done "any human-recorded outcome, independent human review, live Gmail beyond one small approved read-only sample, browser UI wiring".
 - **Other OPEN items stay in the register** and are not asked here: the browser UI is not wired and was not re-run (item 3); real report values are free text, so the adapter says UNCORROBORATED (item 4); plan output may carry private-looking text (item 5); the log-wide quantity bound is unit-agnostic (item 10); redaction does not catch names or phone numbers (item 14); a weak salt is accepted (item 15); a partial apply is not idempotent (item 18); `verify-history` can exit 0 with events dropped (item 19); grants match by grant id only (item 23). Z1 did not re-run any of the bridge's tests; they need the two private files.
 - **Not checked:** the live Desk and INTENT-OS were never touched by the bridge, per the register. Z1 did not verify that independently.
+
+## Checked again on 2026-11-20 (main `16ac24c0`), for this ruling
+
+- **The README is unchanged.** It still says "Not ratified. Not HUMAN_REVIEW_READY" and still names the two private files and their sha256 values.
+- **`vendor/` is not the two private files.** The bridge's `vendor/` folder holds one file, `resource-units.snapshot.json`. `dist/model.js` and `dist/intent-workspace.js` are not in the tree.
+- **The register is `docs/LIMITATION_REGISTER.md`.** Item 31 lists the three audit-7 minors (NEW-1 to NEW-3). Item 33 records a "HUMAN DECISION after audit 7" that they are accepted and stay OPEN. That is a line in the bridge's own register, not a Z2 ruling record; Z1 found none (searched `REGISTERED.md`, `z1-inbox/INDEX.yaml` and the `Z2_RULINGS_*.md` files for "project desk"; the only hits in the index are this block's own entry and the bridge's file list).
+- **Issue #1126 is still open.** It carries the label `proposal` and the status line "PROPOSED / WAITING FOR NIGHT". Its seventh "Done means" item is still the independent exact-head test and human evaluation record.
+- **Not re-run:** the bridge's tests (they need the two private files).
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
 
 ## Z2 Review Checklist
 
