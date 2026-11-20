@@ -1,0 +1,123 @@
+{
+  "schema": "humanaios.publication-review-e0.v1",
+  "status": "DRAFT_ONLY",
+  "authority_effect": "NONE",
+  "primary_issue": "https://github.com/humanaios-ui/operations/issues/1161",
+  "research_issue": "https://github.com/humanaios-ui/operations/issues/1114",
+  "draft_article": "z1-inbox/2026-11-19/apart-collusion-publication/article.md",
+  "article_git_blob_sha": "3786c82e4d533d075ef4aec336c0fc57cb2565e4",
+  "source_checked_at": "2026-11-19",
+  "sources": [
+    {
+      "url": "https://apartresearch.com/sprints/projects/talk-actions-and-planted-approval-pacts-an-exploratory-audit-d106",
+      "kind": "public_first_party_sprint_project"
+    },
+    {
+      "url": "https://github.com/humanaios-ui/operations/issues/1114",
+      "kind": "public_repository_research_evidence"
+    }
+  ],
+  "claims": [
+    {
+      "id": "C1",
+      "state": "SOURCE_SUPPORTED",
+      "review_required": true
+    },
+    {
+      "id": "C2",
+      "state": "SOURCE_SUPPORTED_IN_ISSUE",
+      "review_required": true
+    },
+    {
+      "id": "C3",
+      "state": "SOURCE_SUPPORTED",
+      "review_required": true
+    },
+    {
+      "id": "C4",
+      "state": "EXPLORATORY_ONLY",
+      "review_required": true
+    },
+    {
+      "id": "C5",
+      "state": "EXPLORATORY_ONLY",
+      "review_required": true
+    },
+    {
+      "id": "C6",
+      "state": "EXPLORATORY_ONLY",
+      "review_required": true
+    },
+    {
+      "id": "C7",
+      "state": "UNEVALUABLE",
+      "review_required": true
+    },
+    {
+      "id": "C8",
+      "state": "SOURCE_SUPPORTED_WITH_QUALIFICATION",
+      "review_required": true
+    },
+    {
+      "id": "C9",
+      "state": "PROPOSED_NOT_RUN",
+      "review_required": true
+    }
+  ],
+  "reviews": [
+    {
+      "reviewer_claimed": "ChatGPT",
+      "status": "NOT_RUN",
+      "source_head": null,
+      "review_receipt_url": null
+    },
+    {
+      "reviewer_claimed": "Claude",
+      "status": "NOT_RUN",
+      "source_head": null,
+      "review_receipt_url": null
+    },
+    {
+      "reviewer_claimed": "Grok",
+      "status": "NOT_RUN",
+      "source_head": null,
+      "review_receipt_url": null
+    }
+  ],
+  "human_editorial_ruling": {
+    "status": "NOT_GIVEN",
+    "content_sha256": null,
+    "platforms": [],
+    "expires_at": null,
+    "receipt_url": null
+  },
+  "repository_gate": {
+    "review": "HOLD",
+    "coordinator": "HOLD",
+    "ci": "NOT_VERIFIED",
+    "merge": "HOLD",
+    "merged_commit": null
+  },
+  "canonical_public_url": null,
+  "buffer": {
+    "access": "NOT_VERIFIED_IN_THIS_SESSION",
+    "draft_creation": "HOLD",
+    "draft_id": null,
+    "draft_status": null,
+    "release": "HOLD",
+    "public_url": null
+  },
+  "measurements": {
+    "prepublication_baseline": "NOT_RUN",
+    "day7": "NOT_RUN",
+    "day28": "NOT_RUN"
+  },
+  "invariants": [
+    "NO_AUTO_PUBLICATION",
+    "NO_AUTOMATIC_RATIFICATION",
+    "REVISIONS_INVALIDATE_APPROVAL",
+    "MISSING_PROOF_IS_HOLD",
+    "NO_PRIVATE_DATA_IN_PUBLIC_GITHUB",
+    "NO_FALSE_PEER_REVIEW_CLAIMS"
+  ]
+}
