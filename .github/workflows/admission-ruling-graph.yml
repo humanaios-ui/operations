@@ -20,7 +20,9 @@
 #
 # Event-driven only, no clock schedule (resource-based, RESOURCE_UNITS.yaml). The refresh job runs only
 # from main: a workflow_dispatch against any other ref is skipped, so changed code does not run with this
-# job's write token. Standard GITHUB_TOKEN. No expression from the pull request is interpolated into a script.
+# job's write token. Standard GITHUB_TOKEN: a pull request it opens does not start the pull-request workflows,
+# so a refresh pull request carries no CI (its body says so); the generator is gated on the pull request above.
+# No expression from the pull request is interpolated into a script.
 name: admission-ruling-graph
 
 on:
@@ -102,30 +104,37 @@ jobs:
           fi
           main_short=$(git rev-parse --short=12 HEAD)
           branch="admission-graph/refresh-${main_short}"
-          if [ -n "$(git ls-remote --heads origin "refs/heads/${branch}")" ]; then
-            echo "a refresh branch for this main already exists: ${branch}"
-            exit 0
+          # The marker is in the commit subject and the PR title, so a squash or rebase merge of a refresh
+          # (whose subject comes from the title or commit) is skipped by the job condition too.
+          subject="${branch}: refresh the admission graph page"
+          if [ -z "$(git ls-remote --heads origin "refs/heads/${branch}")" ]; then
+            git config user.name "admission-ruling-graph[bot]"
+            git config user.email "admission-ruling-graph@users.noreply.github.com"
+            git checkout -B "$branch"
+            git add ADMISSION_RULING_GRAPH.md
+            git commit -m "$subject"
+            git push origin "$branch"
+          else
+            echo "refresh branch already exists: ${branch}; checking its pull request"
           fi
-          git config user.name "admission-ruling-graph[bot]"
-          git config user.email "admission-ruling-graph@users.noreply.github.com"
-          git checkout -B "$branch"
-          git add ADMISSION_RULING_GRAPH.md
-          git commit -m "admission graph: refresh the page as of ${main_short}"
-          git push origin "$branch"
-          {
-            echo "Automated by \`.github/workflows/admission-ruling-graph.yml\` after a merge to main (${main_short}). Direction 2 of \`Q-ADMISSION-RULING-GRAPH-01\`."
-            echo
-            echo "Regenerated \`ADMISSION_RULING_GRAPH.md\` from the ledger on the \`repository-coordinator-state\` branch and the merge history. It changes that one file. \`authority_effect NONE\`: this admits nothing, rules nothing and writes nothing to the ledger. A merge's own terminal row reaches the ledger after this job read it, so the page can lag one merge behind."
-            echo
-            echo "Opened as a draft so it stays outside the operator queue. Merge it, or leave it: the next refresh closes it as superseded."
-            echo
-            echo "smag_p: 0.90"
-            echo
-            echo "molt_tier_claimed: 0"
-          } > refresh_body.md
-          gh pr create --draft --base main --head "$branch" \
-            --title "admission graph: refresh the page" \
-            --body-file refresh_body.md --label "audit:auto"
+          if [ -z "$(gh pr list --state open --head "$branch" --json number --jq '.[].number')" ]; then
+            {
+              echo "Automated by \`.github/workflows/admission-ruling-graph.yml\` after a merge to main (${main_short}). Direction 2 of \`Q-ADMISSION-RULING-GRAPH-01\`."
+              echo
+              echo "Regenerated \`ADMISSION_RULING_GRAPH.md\` from the ledger on the \`repository-coordinator-state\` branch and the merge history. It changes that one file. \`authority_effect NONE\`: this admits nothing, rules nothing and writes nothing to the ledger. A merge's own terminal row reaches the ledger after this job read it, so the page can lag one merge behind."
+              echo
+              echo "Opened as a draft so it stays outside the operator queue. Merge it, or leave it: the next refresh closes it as superseded."
+              echo
+              echo "Checks: a pull request opened with the repository token does not start the pull-request workflows, so no CI ran on this head. The page is generated and read-only; read the diff before any merge."
+              echo
+              echo "smag_p: 0.90"
+              echo
+              echo "molt_tier_claimed: 0"
+            } > refresh_body.md
+            gh pr create --draft --base main --head "$branch" \
+              --title "$subject" \
+              --body-file refresh_body.md --label "audit:auto"
+          fi
           for n in $(gh pr list --state open --limit 200 --json number,headRefName \
               --jq '.[] | select(.headRefName | startswith("admission-graph/refresh-")) | select(.headRefName != "'"$branch"'") | .number'); do
             gh pr close "$n" --comment "Superseded by the refresh on ${branch}."

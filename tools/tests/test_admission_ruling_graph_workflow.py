@@ -79,3 +79,17 @@ def test_refresh_touches_only_the_page():
     body = next(s["run"] for s in _steps("refresh") if s.get("name", "").startswith("Open the refresh"))
     assert "git add ADMISSION_RULING_GRAPH.md" in body
     assert body.count("git add ") == 1
+
+
+def test_refresh_marker_is_in_the_commit_and_the_title():
+    body = next(s["run"] for s in _steps("refresh") if s.get("name", "").startswith("Open the refresh"))
+    assert 'subject="${branch}:' in body
+    assert 'git commit -m "$subject"' in body
+    assert '--title "$subject"' in body
+
+
+def test_refresh_retries_a_missing_pull_request_on_an_existing_branch():
+    body = next(s["run"] for s in _steps("refresh") if s.get("name", "").startswith("Open the refresh"))
+    assert "gh pr list --state open --head" in body
+    assert "exit 0" in body and body.count("gh pr create") == 1
+    assert body.index("gh pr create") < body.index("gh pr close")
