@@ -48,9 +48,14 @@ python3 tools/witness_ledger_v0.py list --limit 20
 
 # Self-test (temp ledger; does not touch the repo file)
 python3 tools/witness_ledger_v0.py --smoke-test
+
+# Builder v1.7 compliance (HARD: HumanAIOS docstring tag)
+python3 tools/builder_compliance_scanner_v1.0.py --path tools/witness_ledger_v0.py
 ```
 
 Optional `--artifact key=value` may be repeated on `append`. Default ledger path is `ledgers/WITNESS_LEDGER.jsonl` (override with `--ledger`).
+
+Builder notes: the HARD gate previously failed with `BUILDER_NO_HUMANAIOS_TAG`; the tool also carries soft markers `write_report` and `SpecLoadFailed`.
 
 ## Falsifiers (from Q-INTENT-OS-WITNESS-LEDGER-01, local subset)
 
