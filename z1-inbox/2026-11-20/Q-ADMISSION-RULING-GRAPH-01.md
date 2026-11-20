@@ -68,10 +68,23 @@ Every option except `edit` and `later` rules this block, and a merged ruling mar
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: page, both checks, issue, entryways
+by: Z1-prepared (not an identity claim)
+at: 2026-11-20T17:08:58Z
+status: DECIDED
+block_hash: 207de639dcc4d1880bdced9938323feb4bfff8ec1c9405ded5d47a0c995ec1fd
+body_hash: dcd608832206669206938f3d8ab7ed9a7be8e9bce78d8be2836bccc5c6bc5f95
+
+```
+RULING z1-admissiongraph-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Adopt a generated read-only page joining the admission ledger to Z2 rulings (refreshed by a workflow, with a gate on the generator's smoke test), a thin pointer issue, and updates to the six entryway files? Each is a direction built later in its own pull request, and this ruling does not fix the entryway wording. Anything not named here can return only as a new block (Q-ADMISSION-RULING-GRAPH-01)?
+  choice: page, both checks, issue, entryways
+  note: 
+  at: 2026-11-20T17:08:58Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 
