@@ -75,9 +75,13 @@ jobs:
     permissions:
       contents: write
       pull-requests: read
-    concurrency:
-      group: repository-coordinator-state-mutation
-      queue: max
+    # Do not join repository-coordinator-state-mutation. That group is
+    # queue:max (100 pending) and every pull_request_target / review event
+    # used to occupy a slot even when reconciliation was a no-op. Once the
+    # queue filled, GitHub cancelled the job before any step with
+    # "Unable to acquire concurrency group" (run 43098236021, 2026-11-11).
+    # The predecessor lease below still refuses a stale push. Mutating jobs
+    # keep the shared queue.
     env:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
@@ -218,12 +222,13 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   gate:
-    needs: reconcile_active_prs
+    # Independent of reconcile_active_prs. Requiring that job made a full
+    # mutation queue, or a reconcile failure, skip this required check.
+    # The decision reads the receipted state branch; a moved admitted head
+    # still fails closed in the classifier (admission scope drift).
     if: >-
-      always() &&
-      needs.reconcile_active_prs.result == 'success' &&
-      ((github.event_name == 'pull_request_target' && github.event.action != 'closed') ||
-       github.event_name == 'pull_request_review')
+      (github.event_name == 'pull_request_target' && github.event.action != 'closed') ||
+      github.event_name == 'pull_request_review'
     name: Repository admission/backpressure gate
     runs-on: ubuntu-latest
     permissions:
@@ -274,17 +279,41 @@ jobs:
             let ledgerText = "";
             let projectionText = "";
             let admittedIssueNumbers = [];
+            let admittedPullNumbers = [];
+
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            const withBackoff = async (label, fn) => {
+              let wait = 2000;
+              for (let attempt = 1; attempt <= 5; attempt++) {
+                try {
+                  return await fn();
+                } catch (err) {
+                  const status = err && err.status ? err.status : 0;
+                  const message = String((err && err.message) || "");
+                  const rateLimited = status === 429 || /rate limit/i.test(message);
+                  if (!rateLimited || attempt === 5) throw err;
+                  core.warning(
+                    `${label} hit the installation rate limit (HTTP ${status}); ` +
+                    `retry ${attempt}/5 in ${wait}ms`
+                  );
+                  await sleep(wait);
+                  wait *= 2;
+                }
+              }
+            };
 
             if (stateBranch && ledgerPath && projectionPath) {
-              const branch = await github.rest.repos.getBranch({
-                owner, repo, branch: stateBranch
-              });
+              const branch = await withBackoff(
+                "state branch",
+                () => github.rest.repos.getBranch({ owner, repo, branch: stateBranch })
+              );
               stateSha = branch.data.commit.sha;
 
               const fetchText = async path => {
-                const response = await github.rest.repos.getContent({
-                  owner, repo, path, ref: stateSha
-                });
+                const response = await withBackoff(
+                  `state file ${path}`,
+                  () => github.rest.repos.getContent({ owner, repo, path, ref: stateSha })
+                );
                 if (Array.isArray(response.data) || response.data.type !== "file") {
                   throw new Error(`state path ${path} is not a file`);
                 }
@@ -306,6 +335,9 @@ jobs:
               admittedIssueNumbers = [
                 ...new Set((state.admitted_issue_numbers || []).map(Number))
               ];
+              admittedPullNumbers = [
+                ...new Set((state.admitted_pull_request_numbers || []).map(Number))
+              ];
             } else {
               // Bootstrap compatibility only: trusted main is still v0.2 while
               // the migration PR is under review. Delegate enforcement to the
@@ -322,14 +354,14 @@ jobs:
             core.setOutput("mode", stateMode);
             const referencedIssueNumbers = new Set(admittedIssueNumbers);
 
-            const maintenanceAuthors = new Set(
-              (((policy || {}).maintenance || {}).authors || []).map(String)
-            );
             const closingRefRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
 
-            const open = await github.paginate(
-              github.rest.pulls.list,
-              { owner, repo, state: "open", per_page: 100 }
+            const open = await withBackoff(
+              "open pull request list",
+              () => github.paginate(
+                github.rest.pulls.list,
+                { owner, repo, state: "open", per_page: 100 }
+              )
             );
 
             const payloadPr = context.payload.pull_request;
@@ -338,13 +370,31 @@ jobs:
               byNumber.set(payloadPr.number, payloadPr);
             }
             if (!byNumber.has(target)) {
-              core.setFailed(`PR #${target} is not open; refusing to evaluate admission.`);
+              // pull_request_review still fires after a merge. That is not an
+              // admission denial, and it must not paint a red check on the
+              // head SHA (run 42992433004: "PR #1158 is not open").
+              core.notice(
+                `PR #${target} is not open. Skipping admission evaluation; ` +
+                `a closed pull request is not a gate failure.`
+              );
+              core.setOutput("evaluate", "false");
               return;
             }
+            core.setOutput("evaluate", "true");
 
-            const listFiles = async number => github.paginate(
-              github.rest.pulls.listFiles,
-              { owner, repo, pull_number: number, per_page: 100 }
+            const listFiles = async number => withBackoff(
+              `files for #${number}`,
+              () => github.paginate(
+                github.rest.pulls.listFiles,
+                { owner, repo, pull_number: number, per_page: 100 }
+              )
+            );
+            const listReviews = async number => withBackoff(
+              `reviews for #${number}`,
+              () => github.paginate(
+                github.rest.pulls.listReviews,
+                { owner, repo, pull_number: number, per_page: 100 }
+              )
             );
             const chunk = (xs, size) => {
               const out = [];
@@ -352,15 +402,26 @@ jobs:
               return out;
             };
 
+            // File and review fan-out used to cover every ready, non-maintenance
+            // PR. With dozens of open PRs that is hundreds of REST calls per
+            // evaluation, and a burst returns HTTP 403 "API rate limit exceeded
+            // for installation" before any decision exists (runs 39693376011
+            // on #817, 39693396192 on #798, 39693907207 on #827, all
+            // 2026-10-21). The target's gate only needs full files and reviews
+            // for itself. Other open PRs contribute the list payload (author,
+            // draft, title, body, labels, head). Admitted PRs also get a file
+            // list so zero-diff and control-plane lanes stay accurate for the
+            // capacity count. files_complete stays false everywhere else, which
+            // keeps _control_plane and _zero_diff from guessing.
+            const admittedPullSet = new Set(admittedPullNumbers);
             const pullRequests = [];
-            for (const batch of chunk([...byNumber.values()], 6)) {
+            for (const batch of chunk([...byNumber.values()], 4)) {
               const rows = await Promise.all(batch.map(async brief => {
                 const author = brief.user && brief.user.login ? brief.user.login : "unknown";
                 const isDraft = Boolean(brief.draft);
-                const isMaintenance = maintenanceAuthors.has(author);
-                const needFiles = brief.number === target || (!isDraft && !isMaintenance);
-                const needReviews = brief.number === target || (!isDraft && !isMaintenance);
-                const needComments = brief.number === target;
+                const isTarget = brief.number === target;
+                const needFiles = isTarget || admittedPullSet.has(brief.number);
+                const needReviews = isTarget;
                 let files = [];
                 let reviews = [];
                 let comments = [];
@@ -371,15 +432,14 @@ jobs:
                   filesComplete = true;
                 }
                 if (needReviews) {
-                  reviews = await github.paginate(
-                    github.rest.pulls.listReviews,
-                    { owner, repo, pull_number: brief.number, per_page: 100 }
-                  );
+                  reviews = await listReviews(brief.number);
                 }
 
                 const body = brief.body || "";
-                for (const match of body.matchAll(closingRefRe)) {
-                  referencedIssueNumbers.add(Number(match[1]));
+                if (isTarget) {
+                  for (const match of body.matchAll(closingRefRe)) {
+                    referencedIssueNumbers.add(Number(match[1]));
+                  }
                 }
                 return {
                   number: brief.number,
@@ -418,12 +478,13 @@ jobs:
             }
 
             const referencedItems = {};
-            for (const batch of chunk([...referencedIssueNumbers], 6)) {
+            for (const batch of chunk([...referencedIssueNumbers], 4)) {
               const rows = await Promise.all(batch.map(async number => {
                 try {
-                  const issue = (await github.rest.issues.get({
-                    owner, repo, issue_number: number
-                  })).data;
+                  const issue = (await withBackoff(
+                    `issue #${number}`,
+                    () => github.rest.issues.get({ owner, repo, issue_number: number })
+                  )).data;
                   return { number, issue };
                 } catch (err) {
                   if (!err || err.status !== 404) throw err;
@@ -494,6 +555,7 @@ jobs:
           PY
 
       - name: Enforce admission standing (fail closed)
+        if: steps.collect.outputs.evaluate == 'true'
         env:
           TARGET_PR: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
@@ -585,12 +647,46 @@ jobs:
               "",
               "_Admission routing only; this receipt does not authorize merge._"
             ].join("\n");
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: Number(process.env.TARGET_PR),
-              body
-            });
+            // Comment delivery is not the admission decision. PR #809 recorded
+            // a PASS decision whose job then failed on
+            // HTTP 403 "Resource not accessible by integration" from this
+            // createComment call, so the required check was red by default.
+            // The same 403 is what a spent installation rate limit returns
+            // during a backlog burst. Retry, keep the receipt in the job
+            // summary, and do not fail the check when the comment cannot post.
+            // The enforce step already fails the job when the decision is FAIL.
+            let commentError = null;
+            const issueNumber = Number(process.env.TARGET_PR);
+            if (!issueNumber) {
+              core.warning("no pull request number on this event; receipt kept in the job summary");
+            } else {
+              for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    body
+                  });
+                  commentError = null;
+                  break;
+                } catch (err) {
+                  commentError = err;
+                  const status = err && err.status ? err.status : 0;
+                  const message = String((err && err.message) || "");
+                  const retryable = status === 429 || status >= 500 || /rate limit/i.test(message);
+                  if (!retryable || attempt === 3) break;
+                  await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+                }
+              }
+            }
+            if (commentError) {
+              core.warning(
+                "receipt comment was not posted (" + commentError.message + "). " +
+                "The check follows the admission decision, not comment delivery."
+              );
+            }
+            await core.summary.addRaw(body).write();
 
       - name: Upload gate evidence
         if: always()
