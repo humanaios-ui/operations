@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 130
+  candidates: 131
   records: 78
 ratifiers:
 - Night
@@ -1104,6 +1104,12 @@ candidates:
   submitted: '2026-11-20'
   status: awaiting_z2
   note: 'The bridge folder is a candidate on main, not a ruling. Its own README says not HUMAN_REVIEW_READY. Z1 leans: reviewer and test path first, admission last.'
+- q_id: Q-ADMISSION-RULING-GRAPH-01
+  title: 'A generated read-only page joining the admission ledger to Z2 rulings, a pointer issue, and telling contributors how admission works'
+  path: z1-inbox/2026-11-20/Q-ADMISSION-RULING-GRAPH-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Candidate only. Live ledger is on the coordinator-state branch (390 rows), main has a stale 71-row copy. Z1 leans: page plus thin pointer issue; entryways updated in separate pull requests after ruling.'
 records:
 - path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
   title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
