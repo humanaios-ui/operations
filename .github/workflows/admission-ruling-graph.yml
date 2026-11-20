@@ -1,0 +1,132 @@
+# admission-ruling-graph — keeps ADMISSION_RULING_GRAPH.md honest.
+#
+# Direction 2 of Q-ADMISSION-RULING-GRAPH-01 (ratified by the merge of #1287): the generated page
+# joins the admission ledger to Z2 rulings (tools/admission_ruling_graph_v1_0.py, built in #1290).
+# The ledger lives on the repository-coordinator-state branch and moves with every admit, so the page
+# cannot be checked against the tree the way INTENT_GRAPH.md is. This workflow does the two things
+# that were ruled instead:
+#
+#   check    on a pull request that touches the generator, its tests or this workflow: the generator's
+#            own smoke test and unit tests must pass. This is the gate. It reads no ledger.
+#   refresh  on a push to main (a merge) and by hand: regenerate the page from the ledger branch and the
+#            merge history; if it differs, open ONE draft pull request and close any older open refresh
+#            pull request as superseded. A draft sits in the WORKBENCH lane, outside the operator queue,
+#            so a refresh costs Night nothing until Night chooses to merge one.
+#
+# What it does NOT do: it admits nothing, merges nothing and writes nothing to the ledger, the index or
+# any ruling. The page carries authority_effect NONE. The merge of a refresh pull request is skipped
+# (its subject names the refresh branch), so the job cannot loop on its own output. A merge's own
+# terminal row reaches the ledger after this job reads it, so a refresh can lag one merge behind.
+#
+# Event-driven only, no clock schedule (resource-based, RESOURCE_UNITS.yaml). The refresh job runs only
+# from main: a workflow_dispatch against any other ref is skipped, so changed code does not run with this
+# job's write token. Standard GITHUB_TOKEN. No expression from the pull request is interpolated into a script.
+name: admission-ruling-graph
+
+on:
+  pull_request:
+    paths:
+      - 'tools/admission_ruling_graph_v1_0.py'
+      - 'tools/tests/test_admission_ruling_graph.py'
+      - 'tools/tests/test_admission_ruling_graph_workflow.py'
+      - '.github/workflows/admission-ruling-graph.yml'
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: admission-ruling-graph-check-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python3 -m pip install --quiet pyyaml pytest
+      - name: Generator smoke test and unit tests
+        run: |
+          python3 tools/admission_ruling_graph_v1_0.py --smoke-test
+          python3 -m pytest -q tools/tests/test_admission_ruling_graph.py tools/tests/test_admission_ruling_graph_workflow.py
+
+  refresh:
+    if: >-
+      github.event_name != 'pull_request'
+      && github.ref == 'refs/heads/main'
+      && !contains(github.event.head_commit.message, 'admission-graph/refresh-')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: admission-ruling-graph-refresh
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python3 -m pip install --quiet pyyaml pytest
+
+      - name: Tool self-tests (the job refuses to write with a tool that cannot tell a plant from a pass)
+        run: |
+          python3 tools/admission_ruling_graph_v1_0.py --smoke-test
+          python3 -m pytest -q tools/tests/test_admission_ruling_graph.py
+
+      - name: Fetch the ledger branch
+        run: git fetch --no-tags origin repository-coordinator-state:refs/remotes/origin/repository-coordinator-state
+
+      - name: Regenerate the page
+        run: python3 tools/admission_ruling_graph_v1_0.py render
+
+      - name: Open the refresh pull request, close the older ones
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- ADMISSION_RULING_GRAPH.md; then
+            echo "page unchanged: nothing to open"
+            exit 0
+          fi
+          main_short=$(git rev-parse --short=12 HEAD)
+          branch="admission-graph/refresh-${main_short}"
+          if [ -n "$(git ls-remote --heads origin "refs/heads/${branch}")" ]; then
+            echo "a refresh branch for this main already exists: ${branch}"
+            exit 0
+          fi
+          git config user.name "admission-ruling-graph[bot]"
+          git config user.email "admission-ruling-graph@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add ADMISSION_RULING_GRAPH.md
+          git commit -m "admission graph: refresh the page as of ${main_short}"
+          git push origin "$branch"
+          {
+            echo "Automated by \`.github/workflows/admission-ruling-graph.yml\` after a merge to main (${main_short}). Direction 2 of \`Q-ADMISSION-RULING-GRAPH-01\`."
+            echo
+            echo "Regenerated \`ADMISSION_RULING_GRAPH.md\` from the ledger on the \`repository-coordinator-state\` branch and the merge history. It changes that one file. \`authority_effect NONE\`: this admits nothing, rules nothing and writes nothing to the ledger. A merge's own terminal row reaches the ledger after this job read it, so the page can lag one merge behind."
+            echo
+            echo "Opened as a draft so it stays outside the operator queue. Merge it, or leave it: the next refresh closes it as superseded."
+            echo
+            echo "smag_p: 0.90"
+            echo
+            echo "molt_tier_claimed: 0"
+          } > refresh_body.md
+          gh pr create --draft --base main --head "$branch" \
+            --title "admission graph: refresh the page" \
+            --body-file refresh_body.md --label "audit:auto"
+          for n in $(gh pr list --state open --limit 200 --json number,headRefName \
+              --jq '.[] | select(.headRefName | startswith("admission-graph/refresh-")) | select(.headRefName != "'"$branch"'") | .number'); do
+            gh pr close "$n" --comment "Superseded by the refresh on ${branch}."
+          done
