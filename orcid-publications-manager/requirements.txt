@@ -1,4 +1,4 @@
 requests>=2.34.2
 python-dotenv>=1.2.4
-bibtexparser>=1.4,<2  # export_bibtex.py uses the 1.x bwriter API
+bibtexparser>=2.1.0,<3  # export_bibtex.py uses the 1.x bwriter API
 rich
