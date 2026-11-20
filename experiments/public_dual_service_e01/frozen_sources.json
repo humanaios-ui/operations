@@ -1,0 +1,44 @@
+{
+  "protocol": "humanaios.dual-service-e0.v0.1",
+  "frozen_at": "2026-11-18T12:00:00Z",
+  "provenance_note": "These are manually transcribed, bounded facts from first-party pages viewed on 2026-11-18, not byte-for-byte archival copies. The exact full-page source state and future freshness are not independently attested.",
+  "sources": {
+    "security": {
+      "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+      "source_url": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+      "source_class": "PUBLIC_ADVISORY",
+      "observed_at": "2026-11-18T12:00:00Z",
+      "source_modified_at": "2026-10-17T02:55:38Z",
+      "source_expires_for_experiment": "2026-12-18T12:00:00Z",
+      "advisory_id": "GHSA-35jh-r3h4-6jhm",
+      "alias": "CVE-2021-23337",
+      "ecosystem": "npm",
+      "package": "lodash",
+      "purl": "pkg:npm/lodash",
+      "affected_before": "4.17.21",
+      "details": "For this advisory, npm lodash versions before 4.17.21 are affected by a command injection vulnerability. The absence of this advisory does not mean a package version is free of other security flaws.",
+      "authority_effect": "NONE"
+    },
+    "resource": {
+      "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+      "source_urls": [
+        "https://skillsbuild.org/learning-catalog",
+        "https://skillsbuild.org/?topic=cybersecurity"
+      ],
+      "source_class": "FIRST_PARTY_TRAINING_CATALOG",
+      "observed_at": "2026-11-18T12:00:00Z",
+      "source_expires_for_experiment": "2026-12-18T12:00:00Z",
+      "provider": "IBM SkillsBuild",
+      "title": "Exploring Cybersecurity",
+      "subject": "cybersecurity",
+      "level": "foundational",
+      "duration_hours": [1, 3],
+      "course_price_usd": 0,
+      "access_eligibility_verified": false,
+      "course_registration_requirement_verified": false,
+      "credential_guaranteed": false,
+      "details": "First-party IBM SkillsBuild pages describe its learning as free and online, and list Exploring Cybersecurity as a foundational 1–3 hour course. They do not establish this synthetic user's access, completion, or credential.",
+      "authority_effect": "NONE"
+    }
+  }
+}

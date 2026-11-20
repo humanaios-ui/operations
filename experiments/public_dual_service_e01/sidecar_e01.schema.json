@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HumanAIOS E0.1 Test-Only Decision Sidecar",
+  "description": "Local experiment contract, not a canonical HumanAIOS state vocabulary.",
+  "type": "object", "additionalProperties": false,
+  "required": ["case_id", "service", "decision", "source_id", "source_snapshot_sha256", "evidence_count", "evidence_links", "rationale", "next_step", "action_class", "source_quality"],
+  "properties": {
+    "case_id": {"type": "string", "pattern": "^[SR][0-9]{2}$"},
+    "service": {"enum": ["integrity", "compass"]},
+    "decision": {"enum": ["SOURCE_UNAVAILABLE", "INVALID_SOURCE_TIME", "FUTURE_SOURCE_TIME", "STALE_SOURCE", "DISPUTED_SOURCE", "UNKNOWN_PACKAGE", "UNKNOWN_VERSION", "AFFECTED_BY_THIS_ADVISORY", "NOT_AFFECTED_BY_THIS_ADVISORY", "NOT_RELEVANT", "NEEDS_PROOF", "RELEVANT_NOT_ELIGIBILITY_ASSESSED"]},
+    "source_id": {"type": "string", "minLength": 1, "maxLength": 100},
+    "source_snapshot_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "evidence_count": {"type": "integer", "minimum": 0, "maximum": 2},
+    "evidence_links": {"type": "array", "maxItems": 2, "uniqueItems": true, "items": {"type": "string", "pattern": "^https://[^ ]+$"}},
+    "rationale": {"type": "string", "minLength": 8, "maxLength": 700},
+    "next_step": {"type": "string", "minLength": 5, "maxLength": 250},
+    "action_class": {"const": "READ_ONLY"},
+    "source_quality": {"const": "MANUALLY_TRANSCRIBED_UNATTESTED"}
+  },
+  "allOf": [
+    {"if": {"properties": {"service": {"const": "integrity"}}}, "then": {"properties": {"decision": {"not": {"enum": ["NOT_RELEVANT", "NEEDS_PROOF", "RELEVANT_NOT_ELIGIBILITY_ASSESSED"]}}}}},
+    {"if": {"properties": {"service": {"const": "compass"}}}, "then": {"properties": {"decision": {"not": {"enum": ["UNKNOWN_PACKAGE", "UNKNOWN_VERSION", "AFFECTED_BY_THIS_ADVISORY", "NOT_AFFECTED_BY_THIS_ADVISORY"]}}}}}
+  ]
+}
