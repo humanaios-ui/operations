@@ -1,7 +1,10 @@
 """Opt-in local Witness handoff: no implicit private-data export or authority."""
 from __future__ import annotations
+import asyncio
 import io
 import json
+import sys
+import types
 import unittest
 from unittest.mock import Mock, patch
 from pathlib import Path
@@ -62,6 +65,56 @@ class PublicHandoffTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             bridge.public_envelope(bad)
 
+    def test_invalid_consent_never_opens_keychain_or_provider(self):
+        for consent in (False, "true", None):
+            bad = payload()
+            bad["consent"] = consent
+            with self.subTest(consent=consent), \
+                 patch.object(bridge, "enabled", return_value=True), \
+                 patch.object(bridge, "_keychain_token") as keychain, \
+                 patch.object(bridge, "_ask_mcp") as call:
+                with self.assertRaises(ValueError):
+                    bridge.ask_resource(bad)
+                keychain.assert_not_called()
+                call.assert_not_called()
+
+    def test_mcp_request_relays_exact_explicit_consent_and_public_data(self):
+        sent = []
+        class FakeAsyncClient:
+            def __init__(self, *args, **kwargs): pass
+            async def __aenter__(self): return self
+            async def __aexit__(self, *args): pass
+        class FakeMCP:
+            def __init__(self, transport): pass
+            async def __aenter__(self): return self
+            async def __aexit__(self, *args): pass
+            async def list_tools(self):
+                return types.SimpleNamespace(tools=[types.SimpleNamespace(name="haios_talk")])
+            async def call_tool(self, name, args):
+                sent.append((name, args))
+                return types.SimpleNamespace(
+                    is_error=False,
+                    structured_content={"authority": "NONE", "answer": "public only",
+                                        "source_manifest": []})
+        http = types.ModuleType("httpx2")
+        http.AsyncClient = FakeAsyncClient
+        http.Timeout = lambda *a, **k: None
+        mcp = types.ModuleType("mcp")
+        mcp.Client = FakeMCP
+        mcp_client = types.ModuleType("mcp.client")
+        stream = types.ModuleType("mcp.client.streamable_http")
+        stream.streamable_http_client = lambda *a, **k: object()
+        with patch.dict(sys.modules, {
+                "httpx2": http, "mcp": mcp, "mcp.client": mcp_client,
+                "mcp.client.streamable_http": stream}):
+            record, question = bridge.public_envelope(payload())
+            result = asyncio.run(bridge._ask_mcp(record, question, "synthetic-token"))
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0][0], "haios_talk")
+        self.assertIs(sent[0][1]["consent"], True)
+        self.assertNotIn("SECRET-TRACKING", sent[0][1]["message"])
+        self.assertEqual(result["authority"], "NONE")
+
     def test_disabled_bridge_never_opens_keychain_or_provider(self):
         with patch.object(bridge, "enabled", return_value=False), \
              patch.object(bridge, "_keychain_token") as keychain, \
@@ -118,6 +171,12 @@ class PublicHandoffTests(unittest.TestCase):
                     handler.do_POST()
                 self.assertIn(sent[0][0], (403, 404))
                 asked.assert_not_called()
+
+    def test_browser_consent_resets_after_each_submitted_request(self):
+        html = (Path(app.__file__).resolve().parent / "intent-os.html").read_text(encoding="utf-8")
+        self.assertIn("if(!askChecked.checked)", html)
+        self.assertIn("consent:true", html)
+        self.assertIn("finally{clearTimeout(timer);askChecked.checked=false;", html)
 
     def test_public_browser_assets_relocated(self):
         root = Path(app.__file__).resolve().parent

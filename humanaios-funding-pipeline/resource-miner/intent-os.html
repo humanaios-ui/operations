@@ -407,7 +407,7 @@ function addCard(row){
   }catch(error){text(askOutput,error.name==="AbortError"?
    "Witness did not respond before the local timeout. No successful response was recorded.":
    "Witness unavailable: "+error.message);
-  }finally{clearTimeout(timer);askButton.disabled=false;}
+  }finally{clearTimeout(timer);askChecked.checked=false;askButton.disabled=false;}
  });
  askBox.append(askDisclosure,askQuestion,askConsent,askButton,askOutput);
  card.append(askBox);

@@ -134,7 +134,9 @@ async def _ask_mcp(envelope: dict[str, str], question: str, token: str) -> dict[
                 tools = {tool.name for tool in (await mcp.list_tools()).tools}
                 if "haios_talk" not in tools:
                     raise WitnessBridgeUnavailable("Witness conversation tool not available.")
-                result = await mcp.call_tool("haios_talk", {"message": request_text})
+                # public_envelope() already required fresh consent=True for this
+                # one browser request. Relay that exact grant to the MCP gate.
+                result = await mcp.call_tool("haios_talk", {"message": request_text, "consent": True})
     except WitnessBridgeUnavailable:
         raise
     except Exception:
