@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 133
+  candidates: 134
   records: 80
 ratifiers:
 - Night
@@ -1135,6 +1135,13 @@ candidates:
   status: awaiting_z2
   tier: 2
   note: 'Presentation and answering rules only; synthetic demo in experiments/witness-voice-texture. No likeness on the mask, no Hawkins mapping on public surfaces, no live data, no account or posting. Falsifier stated. Not ratified.'
+- q_id: Q-WITNESS-X-ACCOUNT-01
+  title: 'Witness X account: a 14-day, Z2-pre-read experiment testing whether visible receipts earn trust'
+  path: z1-inbox/2026-11-22/Q-WITNESS-X-ACCOUNT-01.md
+  submitted: '2026-11-22'
+  status: awaiting_z2
+  tier: 2
+  note: 'Depends on Q-WITNESS-FORM-01. No account, post, credential or automation authorized. Z2 approves every post text before it goes out; sha256 logged; a person posts. Platform rules not checked by Z1; Z3 must check. Falsifier stated. Not ratified.'
 records:
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
