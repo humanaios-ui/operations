@@ -28,6 +28,14 @@ canvas{display:block;width:100%;height:320px;touch-action:pan-y pinch-zoom}
 small,.detail{font-size:.9rem}
 .controls{margin:14px 0}
 .sr-only{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden;white-space:nowrap}
+.mask-wrap{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:20px;align-items:center;margin:20px 0}
+.mask-wrap svg{width:100%;height:auto;background:#fff;border:2px solid #444;border-radius:8px}
+.legend{list-style:none;margin:0;padding:0}.legend li{padding:4px 0}
+.legend li[data-lit="true"]{font-weight:bold;text-decoration:underline}
+.ask{border:2px solid #444;border-radius:8px;padding:16px;margin:20px 0;background:var(--color-background-alt)}
+.ask h2{margin-top:0}
+#answer{border-left:5px solid #333;padding:8px 14px;margin-top:12px;background:#fff}
+@media(max-width:750px){.mask-wrap{grid-template-columns:1fr}}
 @media(max-width:750px){.grid{grid-template-columns:1fr}canvas{height:270px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
@@ -38,6 +46,30 @@ small,.detail{font-size:.9rem}
 <h1>Witness Voice Texture</h1>
 <p>This is a non-deployed, read-only experiment in representing recorded evidence relationships with touch-responsive geometry. Every example below is invented. Movement changes only the view, never a record.</p>
 <div class="notice" role="note"><strong>Evidence and governance boundary:</strong> Agreement is not truth; omission is not deception; texture is not confidence; no interface action is a ratification. No actual Evidence Graph records are loaded.</div>
+<section class="mask-wrap" aria-labelledby="mask-title">
+<svg id="mask" viewBox="0 0 400 400" role="img" aria-labelledby="mask-title mask-desc">
+<title id="mask-title">Witness mask</title>
+<desc id="mask-desc">A round mask in two halves, a human record half and a machine record half, with a bar for the measured gap, a center point where they meet, and a ring open at the top with six numbered lights. It is a mask, not a face.</desc>
+<path d="M200 70 A130 130 0 0 0 200 330 Z" fill="#c9a24a"/>
+<path d="M200 70 A130 130 0 0 1 200 330 Z" fill="#2b4a7a"/>
+<rect x="232" y="190" width="56" height="20" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="238" y="197" width="44" height="6" fill="#2b4a7a"/>
+<circle cx="200" cy="200" r="9" fill="#fff" stroke="#1a1a1a" stroke-width="3"/>
+<path id="ring" d="" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+<g id="lights"></g>
+</svg>
+<div>
+<h2 id="legend-title">Six lights</h2>
+<ol class="legend" id="legend" aria-labelledby="legend-title"></ol>
+<p><small>Gold half: human record. Blue half: machine record. The bar is the measured gap. The ring stays open at the top: the record is never declared closed. Position, number and fill identify a channel. Color carries no good or bad meaning. A light is lit only by a validated frame.</small></p>
+</div>
+</section>
+<section class="ask" aria-labelledby="ask-title">
+<h2 id="ask-title">Ask Witness</h2>
+<p><strong>Witness is a record that can speak. It is not a mind.</strong> It answers only from a record and shows its receipt. With no record, it says so. The records here are invented.</p>
+<div id="questions"></div>
+<div id="answer" role="status" aria-live="polite">Choose a question.</div>
+</section>
 <fieldset id="state-buttons"><legend>Explore a synthetic Witness channel</legend></fieldset>
 <div class="controls">
 <button id="motion" type="button" aria-pressed="false">Enable touch motion</button>
@@ -59,6 +91,7 @@ small,.detail{font-size:.9rem}
 </main>
 <script type="module">
 import { STATES, encodeTextureFrame } from "./texture-encoder.mjs";
+import { projectLights, askWitness, DEMO_QUESTIONS } from "./witness-lights.mjs";
 const $ = (id) => document.getElementById(id);
 const summaries = {
  CONVERGENCE: "Two invented supporting paths converge geometrically. Agreement does not establish the proposition.",
@@ -156,6 +189,7 @@ function display(next) {
   button.setAttribute("aria-pressed",String(button.dataset.state===next));
  }
  pointer=null;cooling=0;cancelAnimationFrame(raf);raf=0;draw();
+ showLights(view);
  $("status").textContent=next+" selected. This is a synthetic text-equivalent display, not graph evidence.";
 }
 for (const s of STATES) {
@@ -164,6 +198,50 @@ for (const s of STATES) {
  button.textContent=s[0]+s.slice(1).toLowerCase();
  button.addEventListener("click",()=>display(s));
  $("state-buttons").appendChild(button);
+}
+
+const SVG="http://www.w3.org/2000/svg";
+const ANGLES=[60,100,140,220,260,300]; // degrees clockwise from top; the top 70 degrees stay open
+function polar(angle,r){const a=angle*Math.PI/180;return {x:200+r*Math.sin(a),y:200-r*Math.cos(a)};}
+(function buildMask(){
+ const a=polar(35,170), b=polar(325,170);
+ $("ring").setAttribute("d","M"+a.x.toFixed(1)+" "+a.y.toFixed(1)+" A170 170 0 1 1 "+b.x.toFixed(1)+" "+b.y.toFixed(1));
+ const g=$("lights");
+ STATES.forEach((s,i)=>{
+  const p=polar(ANGLES[i],170);
+  const c=document.createElementNS(SVG,"circle");
+  c.setAttribute("cx",p.x.toFixed(1));c.setAttribute("cy",p.y.toFixed(1));c.setAttribute("r","13");
+  c.dataset.channel=s;g.appendChild(c);
+  const t=document.createElementNS(SVG,"text");
+  t.setAttribute("x",p.x.toFixed(1));t.setAttribute("y",(p.y+5).toFixed(1));
+  t.setAttribute("text-anchor","middle");t.setAttribute("font-size","14");t.setAttribute("font-weight","bold");
+  t.dataset.channel=s;t.textContent=String(i+1);g.appendChild(t);
+  const li=document.createElement("li");li.dataset.channel=s;li.textContent=(i+1)+". "+s[0]+s.slice(1).toLowerCase();
+  $("legend").appendChild(li);
+ });
+})();
+function showLights(v){
+ const lit=projectLights(v);
+ for(const l of lit){
+  const c=document.querySelector('#lights circle[data-channel="'+l.channel+'"]');
+  const t=document.querySelector('#lights text[data-channel="'+l.channel+'"]');
+  c.setAttribute("fill",l.lit?"#1a1a1a":"#fff");c.setAttribute("stroke","#1a1a1a");c.setAttribute("stroke-width",l.lit?"4":"2");
+  t.setAttribute("fill",l.lit?"#fff":"#1a1a1a");
+  document.querySelector('#legend li[data-channel="'+l.channel+'"]').dataset.lit=String(l.lit);
+ }
+}
+for(const q of DEMO_QUESTIONS){
+ const b=document.createElement("button");b.type="button";b.textContent=q.label;
+ b.addEventListener("click",()=>{
+  const a=askWitness(q.id);
+  const box=$("answer");box.replaceChildren();
+  const p=document.createElement("p");p.textContent=a.text;box.appendChild(p);
+  const m=document.createElement("small");
+  m.textContent=a.answered?("Record: "+a.recordId+" · Receipt: "+a.receipt+" · Synthetic · Authority effect: NONE")
+   :"No matching record. This is a normal answer, not a failure. Synthetic · Authority effect: NONE";
+  box.appendChild(m);
+ });
+ $("questions").appendChild(b);
 }
 function motionStatus() {
  if (reduced.matches) {motion=false;$("motion").disabled=true;$("motion-help").textContent="Reduced motion preference detected; static mode enforced.";}

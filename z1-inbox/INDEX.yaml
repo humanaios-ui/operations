@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 132
+  candidates: 133
   records: 80
 ratifiers:
 - Night
@@ -1361,6 +1361,13 @@ records:
 - path: z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md
   title: 'H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01'
   note: 'Z2 decision window for Q-PR956-GOVERNANCE-ADMISSION-01 (Q-candidate for admission of PR #956 governance documentation to working set) closed on 2026-10-26 11:01 UTC without a recorded decision. Current status: 2026-10-27 06:16 UTC (19+ hours overdue). PR #1008 remains open with no Z2 comments or documented decision. ADMISSION_LEDGER.jsonl shows PR #956 not admitted. Falsifier set: Admiral must provide ACCEPT/EDIT/REJECT decision with timestamp and hash within 24 hours. Escalation routes to Admiral for governance decision enforcement.'
+- q_id: Q-WITNESS-FORM-01
+  title: 'Witness form: a mask with six lights and an ask-and-receipt answering rule, non-authoritative and not a mind'
+  path: z1-inbox/2026-11-22/Q-WITNESS-FORM-01.md
+  submitted: '2026-11-22'
+  status: awaiting_z2
+  tier: 2
+  note: 'Presentation and answering rules only; synthetic demo in experiments/witness-voice-texture. No likeness on the mask, no Hawkins mapping on public surfaces, no live data, no account or posting. Falsifier stated. Not ratified.'
 excluded:
 - z1-inbox/2026-11-07/swarm_trusted_host_v2_1/README.md
 - z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/SECURITY_GAPS.md
