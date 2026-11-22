@@ -238,3 +238,40 @@ One duplicate-file hazard was found and routed as a separate IC candidate rather
 than fixed here.
 
 **Ratification requested.**
+
+---
+
+## Options
+
+- `accept`
+- `edit`
+- `later`
+
+## What each sets in motion
+
+- `accept`: this block is accepted as the closure of the `Q-NF-SCHEMA-01` queue row under the narrower acceptance criteria this block names, and `ledgers/NF_EVENT_SCHEMA.md` is the operative spec for that scope. That row is not in `PRIORITY_QUEUE.md` on `main` today (other documents still cite it), and Z1 did not find where it is tracked now, so this ruling does not assert its present status. It does **not** decide the older `Q-NF-SCHEMA-01` candidate (the checklist above and the index note ask whether ratifying this block should also resolve it; a single ruling records one choice, so this one does not, and both are left as written) (2026-09-10, the fuller rewrite): that one gets its own block and its own ruling. Z1's lean there is to defer, not reject, because this adapter does not persist a specimen's own continuous `brier_score`: the real ledger has no slot for one and scores only the binary revert-rule outcome, so a fuller schema may still be wanted. Per-predictor Brier scoring from PIN/RESOLVE pairs already exists in `molt_cycle.py` and is tested; that is not the gap. The duplicate `molt_cycle.py` hazard and the `tools/nf_ledger_cli_v1_0.py` / `prs_run.py` reconciliation stay open and are not decided here.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block. nothing about the `Q-NF-SCHEMA-01` row changes.
+
+Note on an earlier record: `z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md` lists this block as "SUCCESS … ratification confirmed". That handoff is itself marked "AWAITING Z2 DECISION", carries no ratification hash, and was filed in a Z1 commit. Z1 treats it as unsigned. The ruling on this block, signed by the merge, is the record that counts.
+
+## Ruling
+
+choice: accept
+by: Z1-prepared (not an identity claim)
+at: 2026-11-15T07:01:58Z
+status: DECIDED
+block_hash: 7762e54ed3f047e5080e788d4567c3feef12760f9ef567a1600714e1374cfacd
+body_hash: d1be202a3c820b96237f0db95841179ee8fe7a571a90c3cb92bf3321af7008e5
+
+```
+RULING z1-nfadapter-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Accept Q-NF-ADAPTER-01 (molt_cycle.py and specimen_intake_evaluator.py onto the real NF ledger)?
+  choice: accept
+  note: 
+  at: 2026-11-15T07:01:58Z
+  status: DECIDED
+```
+

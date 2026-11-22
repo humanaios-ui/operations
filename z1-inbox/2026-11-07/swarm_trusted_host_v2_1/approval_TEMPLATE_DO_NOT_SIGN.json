@@ -1,0 +1,17 @@
+{
+  "purpose": "NON_SCORED_TWO_AGENT_PREFLIGHT",
+  "status": "NOT_APPROVED",
+  "z2_signed_grant": null,
+  "z3_signed_execution_grant": null,
+  "provider": null,
+  "model_a": null,
+  "model_b": null,
+  "source_sha256": null,
+  "frozen_plan_sha256": null,
+  "writer_public_key_sha256": null,
+  "provider_hard_cap_receipt_sha256": null,
+  "host_isolation_review_receipt_sha256": null,
+  "model_calls_allowed": 0,
+  "max_cost_usd_authorized": 0,
+  "live_execution_allowed": false
+}

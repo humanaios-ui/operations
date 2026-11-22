@@ -2,11 +2,40 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 122
-  records: 74
+  candidates: 132
+  records: 80
 ratifiers:
 - Night
 candidates:
+- q_id: Q-SHARED-MISTAKE-CONTROLS-01
+  title: Falsifier threshold values F1-F5 for the v0.3 shared-mistake negative control (values only; offline, not run)
+  path: z1-inbox/2026-11-16/Q-SHARED-MISTAKE-CONTROLS-01.md
+  submitted: '2026-11-16'
+  status: ratified
+  tier: 0
+  note: 'Ratifies the F1-F5 threshold values only; the NO_EXCHANGE receipt design and the harness are pinned for reference and sit outside the ratified scope. Pinned by sha256 to commit 79b0debc on the PR 1159 branch; that PR is not merged by this entry. Design NOT independently reviewed; second oracle has the same author; no live run, spend or outreach authorized. Signed 2026-11-16 by ratify.py run by Z1 on direct Z2 instruction in session; the hash pins content, not identity, and is bound by the owners merge of the PR that records it. Falsifier stated.'
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "58f5653daa33d5674ef463d1649d6acc98c5b4668437c3c7907452c6e139181a"
+- q_id: Q-PILLOW-TIFF-ADVISORIES-WAIVER-01
+  title: Scoped audit waiver for CVE-2026-128067 and CVE-2026-128066 (pillow 12.3.0) on tools/Metaculus only, with an owner and an exit event
+  path: z1-inbox/2026-11-13/Q-PILLOW-TIFF-ADVISORIES-WAIVER-01.md
+  submitted: '2026-11-13'
+  status: ratified
+  tier: 2
+  note: 'Found by the first main run after 1185 merged (the first waiver worked). Waiver, not a fix; two separate advisories, one a TIFF save trigger, one a parse trigger; reachability partial and carried forward, not end to end; the revisit note names an owner issue and an exit event; a third pillow advisory needs its own block. Falsifier stated. Not ratified.'
+  ratified_by: Night
+  ratified_at: "2026-11-14"
+  z2_ruling: "z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md"
+  z2_hash: "710ef85dd69c5d23e999891d9fc8dea3361225e888af1b3d7354435e9eb044e4"
+- q_id: Q-RATIFY-STALE-NOTE-01
+  title: 'ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate''s single-line index note'
+  path: z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md
+  submitted: '2026-11-13'
+  status: awaiting_z2
+  tier: 2
+  note: 'Found by a review comment on #1190. Nine new tests on a throwaway tree; six fail on the 1.2.0 tool. The hash, status, ruling and counts logic are unchanged. ADV run not done; REGISTERED.md entry is a Z2 act. Falsifier stated. Not ratified.'
 - q_id: Q-GRAPH-ORPHANS-B1-01
   title: Graph orphan wiring, batch one (GNER, TDG, CUST) with edges proven by code, plus the two nodes those edges need
   path: z1-inbox/2026-11-11/Q-GRAPH-ORPHANS-B1-01.md
@@ -167,8 +196,12 @@ candidates:
   title: ACAT ↔ market-benchmark map (H-BM-01..03)
   path: z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md
   submitted: '2026-09-08'
-  status: awaiting_z2
+  status: ratified
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-14"
+  z2_ruling: "z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md"
+  z2_hash: "4e08fe3fa0c8883d0bf16ba691745dc916ebda34cecbe1409dec44a5e1441cbd"
 - q_id: Q-DOC-LIFECYCLE-01
   title: docs/ lifecycle — disposition for 108 files
   path: z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md
@@ -261,9 +294,13 @@ candidates:
   title: molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger
   path: z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: 'Closes PRIORITY_QUEUE.md''s Q-NF-SCHEMA-01 row (score 9) via PR #313, per that row''s own narrower acceptance criteria — not the fuller rewrite the 2026-09-10 Q-NF-SCHEMA-01 candidate above proposes. Given a distinct q_id to avoid a duplicate-key collision with that still-open candidate; Z2 ratifying this one should also resolve that one.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-11-15"
+  z2_ruling: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  z2_hash: "f43ec3e32c572024e7754b1284ffead8bd339600921ea45fa5982b5f5e908dd1"
 - q_id: Q-RBE-01
   title: Resource-based operations v0.1 — units, ledger, census, priced queue
   path: z1-inbox/2026-09-13/Q-RBE-01.md
@@ -671,9 +708,13 @@ candidates:
   title: Intent-OS witness ledger — human-machine decision attribution ledger
   path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
   submitted: '2026-09-19'
-  status: awaiting_z2
-  note: Witness ledger architecture; human-machine decision attribution ledger; enables scalable Z3 executor onboarding. Phase 1–3 roadmap. Per CLAUDE.md, approved 2026-09-19 19:00 UTC pending formal INDEX entry.
+  status: ratified
+  note: 'Z1 INDEX reconcile (step A) pending Night Z2 confirmation. INDEX was awaiting_z2 while REGISTERED.md carries ACCEPT prose (2026-09-19T19:00:00Z, formula-only) and CLAUDE.md appends the same. No 64-hex Night hash exists in-repo — z2_hash is PENDING_NIGHT_REPIN (not forged, not computed). This status change is a Z1 consistency proposal; it does not itself ratify. Phase 1 ledger/API/CLI remains open (step B). Falsifier: INDEX again disagrees with REGISTERED ACCEPT prose + CLAUDE append for this Q-ID after Night confirms or rejects the re-pin.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
+  z2_hash: "PENDING_NIGHT_REPIN"
 - q_id: Q-MOLT-TEMPORAL-PURITY-01
   title: Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01
   path: z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md
@@ -685,9 +726,13 @@ candidates:
   title: Regenerate the data SSOT — contaminated v0.1 corpus retained as lesson artifact, not corrected figures
   path: z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Records a Z2 position stated in session (Night, 2026-09-21) reframing the corpus question: v0.1 is contaminated, that is the lesson, regenerate the SSOT rather than correct the numbers. Supersedes the Option A/B framing of Q-CORPUS-STATS-RECONCILE-01. Finds that submission_purity already stratifies the contamination, so clean derivation is a WHERE clause. Also answers pseudonymous login (did:key / anonymous token, both primitives already in the tree), bidirectional influence measurement as an H- candidate not a capability, and HA-000 as a milestone with a not-Z1 administrator. UNVERIFIED: Supabase connector needs authorization; live table not queried.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "842bc245987d30da8fcc74f6bea421c3c87fbf9c7d57c23a40ca52b8e692470a"
 - q_id: Q-GATE-PATHS-TEST-LOGIC-01
   title: A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2
   path: z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md
@@ -699,30 +744,46 @@ candidates:
   title: Ratified TRL correction never reached SEED.md — identity anchor still states TRL 2–3
   path: z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: S-061226-02 ratified TRL 2–3 → 4 throughout and OPS_ROADMAP applied it; SEED.md (Class 0, live-fetched at session open) still says 2–3 in three places. 57 tree-wide occurrences of 2–3 against 21 of 4. Same defect class as the molt window. Z1 files, does not edit the seed.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "2f5333da42c63793f95c564f121dfd279c1c82c4638bb84ee527911247ef25a5"
 - q_id: Q-CORPUS-STATS-RECONCILE-01
   title: July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible
   path: z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: audits/CORPUS_RECONCILIATION_S-070226.md is a Zone 1 submission-blocking finding offering Option A/B; no selection recorded. SEED.md still canonicalises N=629 / N_LI=307 / mean LI 0.8632 against the audit's 608 / 0.8431 raw / 0.8572 cleaned. Three live statistic sets. Z2 selects the option; Z1 does not set published research figures.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-19"
+  z2_ruling: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  z2_hash: "5197f46860d8847540e4b03814bf7b17759d030f13739be2c9fb657f7e1851f7"
 - q_id: Q-GRAPH-CONVERGENCE-01
   title: Grade agreement between agent-authored graphs by source disjointness, not similarity
   path: z1-inbox/2026-09-21/Q-GRAPH-CONVERGENCE-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Answers Night''s question about determining INDEPENDENT convergence. GRAPH_ALIGNMENT.yaml holds the judgments (which node means which, what sources, what access); tools/graph_convergence_v1_0.py computes the grade and has no field an author can use to assert its own independence. Result on the two real graphs: 6 pairs, 0 INDEPENDENT, corroboration weight 0.0. Also settles backfill (permitted, forced to BACKFILL_UNGRADED at weight 0) and divergence (the only part carrying information under shared sources). Retracts the independence claim in AGENT_GRAPH_COMPARISON.md.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-15"
+  z2_ruling: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  z2_hash: "7104e43ec6dd90b8cffe0f273f828f8b44c900a7aebdc53e78425cd6b4f51302"
 - q_id: Q-REFERENT-DECAY-01
   title: Five artifacts whose link to their referent died while the artifact stayed alive
   path: z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md
   submitted: '2026-09-22'
-  status: awaiting_z2
+  status: ratified
   note: 'Reframes four open candidates as one class. A11 protecting a property A13 made irrelevant; a claim that molt closure was already solved when MOLT_STATE.md says PROPOSED; 0.8632 copied 38 times from a corpus that stopped reproducing it; Check principles (P19) reporting green without opening a file; the stop hook flagging a squash-merge as unshipped work. None was false when written. The repository checks assertions and checks sources and has nothing that checks the edge between them - a diagnosis already written in AGENT_GRAPH_COMPARISON.md before four of the five instances occurred. Names the asymmetry that makes an inert gate worst: wrong prose is neutral evidence, a green check is positive evidence. Five options ranked, none built; the falsifier concedes no single option catches all five and invites Z2 to split the class if that is too loose.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-19"
+  z2_ruling: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  z2_hash: "7392a2e7cd2b715de74573d614b805721dcf91633186ec19afb36809fe25a899"
 - q_id: Q-A11-ORDERING-INERT-01
   title: A11 still enforces a property no grade depends on
   path: z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md
@@ -755,9 +816,13 @@ candidates:
   title: Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review comparison
   path: z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   note: 'Builds on PR #431. PARTICIPATION_CONTRACT_V0_1 already specifies agent check-in (continuity_mode EPHEMERAL) but carries no calibration field for agent or human; H-ACAT HA-000 has never been run. Also analyses Copilot''s EVIDENCE_GRAPH.json against INTENT_GRAPH.yaml — see AGENT_GRAPH_COMPARISON.md. Recommends adopting Copilot''s edge-state grading.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-19"
+  z2_ruling: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  z2_hash: "9029baf16e6415ee1cab97558f8b1582945b38106049e40fc9136645b8b12744"
 - q_id: Q-INTENT-GRAPH-01
   title: Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator
   path: z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md
@@ -819,8 +884,12 @@ candidates:
   title: Calibration profile data violates WITNESS_STATE_V0_1 schema contract
   path: z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md
   submitted: '2026-09-21'
-  status: awaiting_z2
+  status: ratified
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-15"
+  z2_ruling: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  z2_hash: "334a7fa9d7b2c1dde4812a3940b74a5ce4f386c470a7e2c93931bc72d636972c"
 - q_id: Q-SMAG-Z3-TASK-SEQUENCING-01
   title: Z3 executor task sequencing and dependency graph undefined for s1/s2/s3
   path: z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md
@@ -871,9 +940,13 @@ candidates:
   title: Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs
   path: z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md
   submitted: '2026-09-27'
-  status: awaiting_z2
+  status: ratified
   note: Surfaced incidentally during the ACAT distribution review. 777 of 1,752 tracked files are Markdown vs. ~520 code files; z2_ratification_gate.yml was invalid YAML from its first commit and ran 122 times with zero executed steps before being fixed.
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-16"
+  z2_ruling: "z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md"
+  z2_hash: "a9023076184b1351f6716b61bc1784e7921b63d17458f8447808f5d55e01e6ee"
 - q_id: Q-GATE-BYPASS-LEDGER-01
   title: Merges through non-required-but-meaningful gates leave no in-repo trace
   path: z1-inbox/2026-09-27/F-CAND-SILENT-GATE-BYPASS-01.md
@@ -1004,7 +1077,77 @@ candidates:
   ratified_at: "2026-11-12"
   z2_ruling: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
   z2_hash: "c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa"
+- q_id: Q-SWARM-TRUSTED-HOST-V2-1-PREFLIGHT-01
+  title: Admit Swarm Trusted Host v2.1 (Ed25519 writer, KD-1..KD-3 fixed offline) for independent review; non-scored two-agent preflight scope. Not an execution grant.
+  path: z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/Z1_CANDIDATE_FOR_Z2.md
+  submitted: '2026-11-07'
+  status: awaiting_z2
+  tier: 0
+  note: 'Refs #1114. Z1 recommends admitting the specification for independent review only. Z2 and Z3 grants, provider model IDs, spend cap, OS or container isolation, read-only snapshot and the real two-agent preflight are all NOT granted or NOT done. KD-1..KD-3 and the later red-team and code-review findings are fixed offline; package test results are in TEST_RESULTS.txt (author-run) and an independent exact-head rerun is pending. Authority effect NONE. Not ratified.'
+- q_id: Q-AGENT-CHECKIN-HA000-LEDGER-01
+  title: Who administers HA-000, and whether review-agent findings get a ledger (asks 4 and 5 that Q-AGENT-CHECKIN-CALIBRATION-01 left unruled)
+  path: z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Follow-on to a ratified block (ratify 1-3, signature 9029baf1...). Asks only. HA-000 needs an administrator who is not Z1; the ledger question waits on that. A findings-ledger docx and PR_REVIEW_REPLACEMENT.md exist under audits/ and were not opened.'
+- q_id: Q-CORPUS-STATS-FOLLOWON-01
+  title: Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled)
+  path: z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Follow-on to a ratified block (neither, signature 5197f468...). Question 2 is a fact only Night can answer. Question 3 would be a Tier 2 workflow change, ruled separately.'
+- q_id: Q-REFERENT-DECAY-FOLLOWON-01
+  title: Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt)
+  path: z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Follow-on to a ratified block (E, F, signature 7392a2e7...). C shares a scale with the ratified graph ruling, not its scope. B is recorded, not asked.'
+- q_id: Q-PROJECT-DESK-BRIDGE-ADMISSION-01
+  title: 'Open items of the Project Desk bridge merged in 1203 - admit as the issue 1126 E0 receipt, independent reviewer, how the tests run, the three accepted minors'
+  path: z1-inbox/2026-11-20/Q-PROJECT-DESK-BRIDGE-ADMISSION-01.md
+  submitted: '2026-11-20'
+  status: ratified
+  note: 'The bridge folder is a candidate on main, not a ruling. Its own README says not HUMAN_REVIEW_READY. Z1 leans: reviewer and test path first, admission last.'
+  ratified_by: Night
+  ratified_at: "2026-11-20"
+  z2_ruling: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  z2_hash: "a37b75a823ef1a1572454b55d6c307b3c545c46e2db3ece71bc101888ffa9759"
+- q_id: Q-ADMISSION-RULING-GRAPH-01
+  title: 'A generated read-only page joining the admission ledger to Z2 rulings, a pointer issue, and telling contributors how admission works'
+  path: z1-inbox/2026-11-20/Q-ADMISSION-RULING-GRAPH-01.md
+  submitted: '2026-11-20'
+  status: ratified
+  note: 'Candidate only. Live ledger is on the coordinator-state branch (390 rows), main has a stale 71-row copy. Z1 leans: page plus thin pointer issue; entryways updated in separate pull requests after ruling.'
+  ratified_by: Night
+  ratified_at: "2026-11-20"
+  z2_ruling: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  z2_hash: "3f5cac40f77f8970dc424cef998f2a713a267c4c2c696e512e48334c82b90b79"
+- q_id: Q-ADMISSION-GRAPH-TIER2-01
+  title: 'The registry entry and the ADV run that Tier 2 asks for, for the admission-graph workflow merged in #1291'
+  path: z1-inbox/2026-11-20/Q-ADMISSION-GRAPH-TIER2-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Candidate only. Z1 wrote no REGISTERED.md entry and ran no ADV. adv_eval_v2.py scores supplied values, it does not run a workflow. Z1 leans: leave #1291 merged while the entry and run are open.'
 records:
+- path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
+  title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
+  note: "Z1 consistency record. authority_effect NONE. z2_hash PENDING_NIGHT_REPIN — no verbatim 64-hex Night hash found in-repo; formula-only ACCEPT prose cited as evidence pending Night confirmation. Not a new Z2 signature."
+- path: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  title: "Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
+- path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
+  title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
+- path: z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md
+  title: "Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py)"
+  note: "Written by ratify.py --apply. One file per decision date; each\
+    \ signature appends a section carrying its own sha256."
+- path: "z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md"
+  title: "Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
+- path: "z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md"
+  title: "Z2 rulings 2026-11-14 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: "z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md"
   title: "Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
@@ -1218,4 +1361,16 @@ records:
 - path: z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md
   title: 'H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01'
   note: 'Z2 decision window for Q-PR956-GOVERNANCE-ADMISSION-01 (Q-candidate for admission of PR #956 governance documentation to working set) closed on 2026-10-26 11:01 UTC without a recorded decision. Current status: 2026-10-27 06:16 UTC (19+ hours overdue). PR #1008 remains open with no Z2 comments or documented decision. ADMISSION_LEDGER.jsonl shows PR #956 not admitted. Falsifier set: Admiral must provide ACCEPT/EDIT/REJECT decision with timestamp and hash within 24 hours. Escalation routes to Admiral for governance decision enforcement.'
-excluded: []
+excluded:
+- z1-inbox/2026-11-07/swarm_trusted_host_v2_1/README.md
+- z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/SECURITY_GAPS.md
+- z1-inbox/2026-11-07/swarm_trusted_host_v2_1/evidence/ROUND4_INDEPENDENT_HANDOFF.md
+- z1-inbox/2026-11-12/project-desk-bridge/README.md
+- z1-inbox/2026-11-12/project-desk-bridge/docs/AUDIT_HANDOFF.md
+- z1-inbox/2026-11-12/project-desk-bridge/docs/AUDIT_LOG.md
+- z1-inbox/2026-11-12/project-desk-bridge/docs/IMPLEMENTATION_NOTES.md
+- z1-inbox/2026-11-12/project-desk-bridge/docs/LIMITATION_REGISTER.md
+- z1-inbox/2026-11-12/project-desk-bridge/docs/RECONCILIATION_REPORT.md
+- z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_A_REPORT.md
+- z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_MANIFEST.md
+- z1-inbox/2026-11-12/Z2_BATCH_PACKET_B1-B3.md
