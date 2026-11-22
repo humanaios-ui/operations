@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 132
-  records: 80
+  records: 83
 ratifiers:
 - Night
 candidates:
@@ -1129,6 +1129,15 @@ candidates:
   status: awaiting_z2
   note: 'Candidate only. Z1 wrote no REGISTERED.md entry and ran no ADV. adv_eval_v2.py scores supplied values, it does not run a workflow. Z1 leans: leave #1291 merged while the entry and run are open.'
 records:
+- path: "z1-inbox/2026-11-19/apart-collusion-publication/article.md"
+  title: "Apart AI collusion editorial article draft (not an approved publication)"
+  note: "Research and editorial handoff record under issues #1114 and #1161. No Z2 candidate or authority to publish. Article blob sha256 pinned in manifest."
+- path: "z1-inbox/2026-11-19/apart-collusion-publication/PUBLICATION_REVIEW_PACKET.md"
+  title: "Apart article editorial review packet and proposed GitHub to Buffer handoff (draft only)"
+  note: "Research and editorial handoff record under issues #1114 and #1161. Not a Z2 candidate or authority to publish. Contains governance process, claim-control matrix, multi-agent review assignments."
+- path: "z1-inbox/2026-11-19/apart-collusion-publication/REVIEWER_AUTOMATION_PROMPTS.md"
+  title: "Read-only reviewer prompt templates for the Apart article (not activated by this record)"
+  note: "Reviewer templates only; no proof of agent execution, approval or Buffer access. Provided as reference fixtures for independent editorial reviews."
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
   note: "Z1 consistency record. authority_effect NONE. z2_hash PENDING_NIGHT_REPIN — no verbatim 64-hex Night hash found in-repo; formula-only ACCEPT prose cited as evidence pending Night confirmation. Not a new Z2 signature."
