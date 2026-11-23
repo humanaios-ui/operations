@@ -147,6 +147,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         all_prs = []
         page = 1
         max_pages = 10  # Safety limit to avoid infinite loops
+        data_incomplete = False  # Flag when pagination cap is reached without completeness
 
         while page <= max_pages:
             result = subprocess.run(
@@ -219,6 +220,10 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
                 page += 1
             else:
                 break
+
+        # Signal if pagination cap was reached without establishing completeness
+        if page > max_pages and page_prs:  # Hit max_pages with non-empty page
+            data_incomplete = True
 
         # Filter PRs by title and creation date
         prs_data = []
@@ -317,6 +322,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
             "focus_areas": sorted(list(focus_areas_set)),
             "meta_signal_available": predicted_count > 0,
             "lookback_days": lookback_days,
+            "data_incomplete": data_incomplete,
         }
     except Exception as e:
         return {

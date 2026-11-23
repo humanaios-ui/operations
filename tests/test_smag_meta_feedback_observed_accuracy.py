@@ -125,7 +125,9 @@ class MetaAccuracyTests(unittest.TestCase):
             else:
                 return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
 
-        with patch("subprocess.run", side_effect=mock_open_only_gh):
+        with patch.object(smag, "datetime") as dt, patch("subprocess.run", side_effect=mock_open_only_gh):
+            from datetime import datetime
+            dt.utcnow.return_value = datetime(2026, 10, 20)
             observation = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
         self.assertIsNone(observation["actual_success_rate"])
         with tempfile.TemporaryDirectory() as d:
@@ -183,7 +185,9 @@ class MetaAccuracyTests(unittest.TestCase):
             else:
                 return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
 
-        with patch("subprocess.run", side_effect=mock_paginated_gh):
+        with patch.object(smag, "datetime") as dt, patch("subprocess.run", side_effect=mock_paginated_gh):
+            from datetime import datetime
+            dt.utcnow.return_value = datetime(2026, 10, 20)
             result = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
         self.assertEqual(result["resolved_prs"], 3)
         self.assertEqual(result["pending_prs"], 1)
@@ -242,7 +246,9 @@ class MetaAccuracyTests(unittest.TestCase):
             else:
                 return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
 
-        with patch("subprocess.run", side_effect=mock_base_paginated_gh):
+        with patch.object(smag, "datetime") as dt, patch("subprocess.run", side_effect=mock_base_paginated_gh):
+            from datetime import datetime
+            dt.utcnow.return_value = datetime(2026, 10, 20)
             before = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
 
         pending = base + [{
@@ -264,7 +270,9 @@ class MetaAccuracyTests(unittest.TestCase):
             else:
                 return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
 
-        with patch("subprocess.run", side_effect=mock_pending_paginated_gh):
+        with patch.object(smag, "datetime") as dt, patch("subprocess.run", side_effect=mock_pending_paginated_gh):
+            from datetime import datetime
+            dt.utcnow.return_value = datetime(2026, 10, 20)
             after = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
         self.assertEqual(after["calibration_gap"], before["calibration_gap"])
         self.assertEqual(after["mean_resolved_forecast_probability"], before["mean_resolved_forecast_probability"])
