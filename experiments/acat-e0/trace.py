@@ -8,7 +8,7 @@ import hashlib
 import json
 from datetime import datetime
 
-SCHEMA = "humanaios.acat.e0.synthetic.v0.1"
+SCHEMA = "humanaios.acat.e0.synthetic.v0.2"
 PHASES = ("P1", "SOURCE_CHECK", "P2", "P3")
 ROLES = ("GROK", "CHATGPT", "CLAUDE", "GROK")
 DECISIONS = ("ACCEPT", "HOLD")
@@ -22,6 +22,19 @@ def digest(obj: object) -> str:
 def _require(ok: bool, reason: str) -> None:
     if not ok:
         raise ValueError(reason)
+
+
+def make_challenge_delivery(p2_event: dict, principal: str, controller: str, time: str) -> dict:
+    """Construct a *synthetic* delivery receipt, not proof of actual message delivery."""
+    record = {
+        "p2_event_id": p2_event["id"],
+        "p2_receipt_sha256": p2_event["receipt_sha256"],
+        "recipient_principal_claim": principal,
+        "recipient_controller_claim": controller,
+        "delivered_at": time,
+    }
+    record["receipt_sha256"] = digest(record)
+    return record
 
 
 def _when(value: str) -> datetime:
@@ -63,14 +76,37 @@ def validate(trace: dict) -> dict:
     times = []
     receipts = {}
     for i, event in enumerate(events):
-        _require(type(event) is dict and set(event) == {"id", "phase", "role", "principal_claim", "controller_claim", "time", "case_id", "packet_sha256", "decision", "evidence_ids", "peer_exposure", "receipt_sha256"}, "event contract mismatch")
+        expected_fields = {"id", "phase", "role", "principal_claim", "controller_claim", "time", "case_id", "packet_sha256", "decision", "evidence_ids", "peer_exposure", "receipt_sha256"}
+        if i == 3:
+            expected_fields.add("challenge_delivery")
+        _require(type(event) is dict and set(event) == expected_fields,
+                 "event contract mismatch")
         _require(event["id"] == f"DEMO-EVENT-{i+1}" and event["phase"] == PHASES[i] and event["role"] == ROLES[i], "phase/order/role mismatch")
         _require(event["case_id"] == packet["case_id"] and event["packet_sha256"] == trace["packet_sha256"], "cross-session or stale SHA")
         _require(type(event["principal_claim"]) is str and event["principal_claim"].startswith("fixture-") and len(event["principal_claim"]) < 80, "principal claim missing")
         _require(type(event["controller_claim"]) is str and event["controller_claim"].startswith("fixture-") and len(event["controller_claim"]) < 80, "controller claim missing")
         _require(event["decision"] in DECISIONS, "invalid decision")
         _require(type(event["evidence_ids"]) is list and event["evidence_ids"] and len(event["evidence_ids"]) <= 5 and all(type(x) is str and x in source_ids for x in event["evidence_ids"]), "missing or external source")
-        _require(event["peer_exposure"] is False if i == 0 else type(event["peer_exposure"]) is bool, "P1 exposure or flag invalid")
+        _require(event["peer_exposure"] is False if i == 0 else type(event["peer_exposure"]) is bool,
+                 "P1 exposure or flag invalid")
+        if i == 3:
+            _require(event["peer_exposure"] is True, "P3 must disclose challenge exposure")
+            delivery = event["challenge_delivery"]
+            expected_delivery = {"p2_event_id", "p2_receipt_sha256", "recipient_principal_claim",
+                                 "recipient_controller_claim", "delivered_at", "receipt_sha256"}
+            _require(type(delivery) is dict and set(delivery) == expected_delivery,
+                     "missing or malformed P2-to-P3 challenge delivery")
+            _require(delivery["p2_event_id"] == events[2]["id"]
+                     and delivery["p2_receipt_sha256"] == receipts[events[2]["id"]],
+                     "P3 challenge is not bound to the exact P2 event receipt")
+            _require(delivery["recipient_principal_claim"] == principals[0]
+                     and delivery["recipient_controller_claim"] == controllers[0],
+                     "P2 challenge recipient does not match original P1 actor")
+            _require(_when(events[2]["time"]) < _when(delivery["delivered_at"]) <= _when(event["time"]),
+                     "P2 challenge delivery not before P3")
+            _require(delivery["receipt_sha256"] ==
+                     digest({k: v for k, v in delivery.items() if k != "receipt_sha256"}),
+                     "P2 challenge delivery receipt mismatch")
         times.append(_when(event["time"]))
         principals.append(event["principal_claim"])
         controllers.append(event["controller_claim"])
@@ -84,6 +120,11 @@ def validate(trace: dict) -> dict:
     witness = trace["witness"]
     _require(type(witness) is dict and set(witness) == {"role", "principal_claim", "controller_claim", "packet_sha256", "event_receipts", "receipt_sha256", "authority_effect"}, "witness contract mismatch")
     _require(witness["role"] == "WITNESS" and witness["authority_effect"] == "NONE", "witness cannot authorize")
+    for key in ("principal_claim", "controller_claim"):
+        value = witness[key]
+        _require(type(value) is str and value.startswith("fixture-")
+                 and len("fixture-") < len(value) < 80,
+                 "witness identity shape invalid")
     _require(witness["principal_claim"] not in principals and witness["controller_claim"] not in controllers,
              "witness shares controller or principal")
     _require(witness["packet_sha256"] == trace["packet_sha256"] and witness["event_receipts"] == receipts, "witness readback drift")
@@ -125,6 +166,9 @@ def demo() -> dict:
                  "time": f"2026-11-22T15:{i*2:02d}:00Z", "case_id": packet["case_id"],
                  "packet_sha256": sha, "decision": decision, "evidence_ids": sources,
                  "peer_exposure": exposed}
+        if i == 3:
+            event["challenge_delivery"] = make_challenge_delivery(
+                events[2], principal, controller, "2026-11-22T15:05:00Z")
         event["receipt_sha256"] = digest(event)
         events.append(event)
     witness = {"role": "WITNESS", "principal_claim": "fixture-witness",
