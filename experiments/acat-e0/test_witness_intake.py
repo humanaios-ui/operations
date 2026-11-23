@@ -141,6 +141,22 @@ class TestWitnessIntake(unittest.TestCase):
         with self.assertRaises(ValueError):
             screen(case)
 
+    def test_malformed_kind_returns_controlled_value_error(self):
+        for invalid in ([], {}, None, 0, 1.5, True):
+            with self.subTest(kind=repr(invalid)):
+                case = specimen("GTA_SALES", {
+                    "issuer_estimate": True, "issuer_original_release": True,
+                    "independent_audit": False,
+                })
+                case["kind"] = invalid
+                with self.assertRaisesRegex(ValueError, "invalid case type"):
+                    screen(case)
+
+    def test_unknown_kind_returns_controlled_value_error(self):
+        case = specimen("UNKNOWN_TEST_KIND", {})
+        with self.assertRaisesRegex(ValueError, "invalid case type"):
+            screen(case)
+
     def test_denies_forged_authenticated_principal(self):
         case = specimen("AGENT_IDENTITY", {
             "human_label": "A", "agent_self_label": "A",
