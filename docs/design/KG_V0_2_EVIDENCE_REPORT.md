@@ -18,7 +18,7 @@
 
 The uploaded proposal is unchanged. Nothing in this commit edits it. `tests/test_kg_v0_2_check.py` pins its bytes.
 
-Later commits on the branch are not part of this audit: `2ed90f29` and `20aa7c5d` (pushed under the Carly R. Anderson account: `tools/kg_v0_2_review.py` and tests) and `4e647ace` (same account: the 358-node receipt). The audit covers `7426e6bd` and my own files. The PR head moves as commits land; read the head SHA from the PR.
+Later commits on the branch are not part of this audit. They were pushed under the Carly R. Anderson account: a second structural checker and its tests (`2ed90f29`, `20aa7c5d`), the 358-node receipt (`4e647ace`), a second opinion (`962d7a22`), and the removal of that second checker (`758011a9`, `5a6cc6b9`). Only the receipt and the second opinion remain. The audit covers `7426e6bd` and my own files. The PR head moves as commits land; read the head SHA from the PR.
 
 ## 2. Confirmed
 
@@ -121,7 +121,7 @@ Run as a gate: `python3 kg/kg_v0_2_check.py` exits 1 on the raw proposal (one er
 **None.**
 
 - The proposal was written by a Claude chat session. This audit was written by a Claude Code session. Same model family. Not independent.
-- Three commits were pushed under the Carly R. Anderson account: a checker, 15 negative-control tests and the 358-node receipt. The CI provenance bot classed them `SHARED_ACCOUNT_ORIGIN_UNKNOWN`, so who or what wrote them is not established. They are not a review of the proposal, and I did not audit them. The receipt does not authorize anything.
+- Three commits were pushed under the Carly R. Anderson account: a second checker with 15 tests (since removed), the 358-node receipt and a second opinion. The CI provenance bot classed them `SHARED_ACCOUNT_ORIGIN_UNKNOWN`, so who or what wrote them is not established. They are not a review of the proposal, and I did not audit them. The receipt does not authorize anything.
 - No human has reviewed the PR. CodeRabbit skipped it (draft). No review event was received.
 - At the audited head 7426e6bd, 14 completed checks passed and 6 were skipped. That is automated evidence only. It is not review.
 - Night has not seen or ratified anything here.
@@ -137,6 +137,6 @@ Run as a gate: `python3 kg/kg_v0_2_check.py` exits 1 on the raw proposal (one er
 | `kg/humanaios_kg_v0_2_crosswalk_proposal.json` | Pinned crosswalk proposal, zero rows |
 | `docs/design/KG_V0_2_EVIDENCE_REPORT.md` | This report |
 
-Files pushed under the Carly R. Anderson account, not audited here: `tools/kg_v0_2_review.py`, `tools/tests/test_kg_v0_2_review.py`, `kg/KG_RESEARCH_GRAPH_358_BOUNDARY_RECEIPT.json`.
+Files pushed under the Carly R. Anderson account, not audited here: `kg/KG_RESEARCH_GRAPH_358_BOUNDARY_RECEIPT.json`, `kg/KG_V0_2_SECOND_OPINION_2026-11-23.md`.
 
 Night ratifies. This PR must not be merged until Night does.
