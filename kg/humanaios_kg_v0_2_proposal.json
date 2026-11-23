@@ -1,0 +1,1263 @@
+{
+ "graph_id": "humanaios-kg-v0.2-proposal",
+ "extends": "humanaios-kg-v0.1",
+ "description": "Proposed link completion for the HumanAIOS knowledge graph: dependency, evidence, decision and outcome links for 24 constructs. Additive; v0.1 nodes and edges are unchanged and not repeated here.",
+ "as_of": "2026-11-23",
+ "authority_effect": "NONE",
+ "proposed_by": "Z1 (Claude, chat session)",
+ "requires": "Z2 ratification before any edge is treated as accepted",
+ "relation_vocabulary": {
+  "depends_on": "source cannot work as described without target",
+  "supported_by": "target is a dated record that the source exists or ran",
+  "approved_by": "target is a recorded decision by the ratifying authority",
+  "resulted_in": "target is a recorded consequence of the source"
+ },
+ "link_state_vocabulary": {
+  "recorded": "the link is stated in a dated repository record read on the as_of date: a registry field, a commit subject, or a file path",
+  "candidate": "inferred from timing, shared terms, or a statement made only in chat; not to be counted as support"
+ },
+ "edge_status": "all edges unratified",
+ "new_nodes": [
+  {
+   "id": "C01",
+   "kind": "construct",
+   "label": "Receipt reconciliation (SESSION_RITUALS B.0 / B.6)",
+   "first_dated": "2026-05-19",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C02",
+   "kind": "construct",
+   "label": "SESSION_RITUALS",
+   "first_dated": "2026-04-24",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C03",
+   "kind": "construct",
+   "label": "Self-report vs observed behavior",
+   "first_dated": "2026-02-14",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C04",
+   "kind": "construct",
+   "label": "Outcome symmetry checker",
+   "first_dated": "2026-07-14",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C05",
+   "kind": "construct",
+   "label": "Submission purity / blind coding provenance gate",
+   "first_dated": "2026-07-20",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C06",
+   "kind": "construct",
+   "label": "Corpus integrity check",
+   "first_dated": "2026-05-28",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C07",
+   "kind": "construct",
+   "label": "Red-team runner",
+   "first_dated": "2026-05-19",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C08",
+   "kind": "construct",
+   "label": "Pre-registered blind rating",
+   "first_dated": "2026-09-11",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C09",
+   "kind": "construct",
+   "label": "ACAT-X sycophancy task",
+   "first_dated": "2026-08-02",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C10",
+   "kind": "construct",
+   "label": "Harmonization crosswalk",
+   "first_dated": "2026-08-04",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C11",
+   "kind": "construct",
+   "label": "ACAT-R tool-call capture",
+   "first_dated": "2026-10-30",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C12",
+   "kind": "construct",
+   "label": "Agent containment research, phase 0",
+   "first_dated": "2026-10-22",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C13",
+   "kind": "construct",
+   "label": "OpenTimestamps anchoring",
+   "first_dated": "2026-02-20",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C14",
+   "kind": "construct",
+   "label": "Substrate capability registry / cross-substrate review",
+   "first_dated": "2026-05-11",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C15",
+   "kind": "construct",
+   "label": "Wardens / Witness",
+   "first_dated": "2026-10-18",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C16",
+   "kind": "construct",
+   "label": "Kill switch and fail-closed tests",
+   "first_dated": "2026-06-27",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C17",
+   "kind": "construct",
+   "label": "ADF-R measurement engine",
+   "first_dated": "2026-08-11",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C18",
+   "kind": "construct",
+   "label": "Evidence classes",
+   "first_dated": "2026-10-30",
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": "C19",
+   "kind": "construct",
+   "label": "Graph convergence method",
+   "first_dated": "",
+   "as_of": "2026-11-23"
+  }
+ ],
+ "edges": [
+  {
+   "id": 17,
+   "source": "C01",
+   "target": "C02",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-031",
+    "note": "Fix is written as SESSION_RITUALS v6.4 sections B.0 and B.6"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 18,
+   "source": "C01",
+   "target": "registry:F-45",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-031",
+    "note": "Parent finding F-45 gives the rationale for a protocol-level fix"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 19,
+   "source": "C02",
+   "target": "A04",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-030",
+    "note": "Session ritual step requires fetching the live registry"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 20,
+   "source": "A04",
+   "target": "A03",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-031",
+    "note": "Registry entries carry a zone2_ratification field; 64 of 139 parsed entries have one"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 21,
+   "source": "A05",
+   "target": "A03",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "8a93ea0d",
+    "note": "Commit subject: comparison engine v1.0 + Z2 review for PR #465"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 22,
+   "source": "A10",
+   "target": "C17",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-foundation-evaluator",
+    "ref": "e9d75eb",
+    "note": "Commit subject: Port ADF-R measurement engine"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 23,
+   "source": "C10",
+   "target": "A04",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-autonomy",
+    "ref": "543358d",
+    "note": "Commit subject: IC taxonomy to regulatory frameworks"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 24,
+   "source": "C11",
+   "target": "A04",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "eb1528f0",
+    "note": "Commit subject: state-independent registry tests"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 25,
+   "source": "C11",
+   "target": "C18",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "b0bd041d",
+    "note": "evidence_classes.json sits under experiments/acat_r_comparison/"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 26,
+   "source": "C05",
+   "target": "A01",
+   "relation": "depends_on",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-046",
+    "note": "Scorer Purity Exclusion Gap extends the IC-044 submission-purity class"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 27,
+   "source": "A05",
+   "target": "C01",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "inference",
+    "ref": "",
+    "note": "Both compare a stated claim with an observed outcome; no record ties them"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 28,
+   "source": "C12",
+   "target": "C01",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "515b59fe",
+    "note": "Shared term only: trial_receipt.json fixture"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 29,
+   "source": "C15",
+   "target": "C01",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "f83c3cab",
+    "note": "Shared term only: genesis-witness-receipt.schema.json"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 30,
+   "source": "C04",
+   "target": "A03",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "eab4cba",
+    "note": "File sits under autonomy/gates/; gate relationship not stated"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 31,
+   "source": "C09",
+   "target": "A01",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/acat-x",
+    "ref": "aa96609",
+    "note": "Name only: ACAT-X extends ACAT"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 32,
+   "source": "C03",
+   "target": "A01",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "inference",
+    "ref": "",
+    "note": "Self-report is collected through ACAT; not stated in a record read here"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 33,
+   "source": "C19",
+   "target": "C14",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "inference",
+    "ref": "",
+    "note": "Both concern independence across substrates"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 34,
+   "source": "C08",
+   "target": "C05",
+   "relation": "depends_on",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "inference",
+    "ref": "",
+    "note": "Blind rating and blind coding share the blinding rule"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 35,
+   "source": "A01",
+   "target": "evidence:625ada4",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "LastingLightAI/lastinglightai",
+    "ref": "625ada4",
+    "note": "ACAT browser tool and self-assessment, 2026-02-14"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 36,
+   "source": "A03",
+   "target": "evidence:894b436f",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "894b436f",
+    "note": "z2_ratification_gate.yml, 2026-09-10"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 37,
+   "source": "A03",
+   "target": "evidence:dbb57c8a",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "dbb57c8a",
+    "note": ".z1-control/ratify.py, 2026-09-13"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 38,
+   "source": "A03",
+   "target": "evidence:.z1-control/eco_ratify_ledger.jsonl",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "file",
+    "repo": "humanaios-ui/operations",
+    "ref": ".z1-control/eco_ratify_ledger.jsonl",
+    "note": "Ledger seq 0: ACCEPT by Night, 2026-10-09, hash-chained"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 39,
+   "source": "A04",
+   "target": "evidence:94ab438",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "94ab438",
+    "note": "REGISTERED.md first commit, 2026-04-24"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 40,
+   "source": "A05",
+   "target": "evidence:8a93ea0d",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "8a93ea0d",
+    "note": "comparison_engine.py, 2026-09-24"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 41,
+   "source": "A10",
+   "target": "evidence:ee3ce81",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-foundation-evaluator",
+    "ref": "ee3ce81",
+    "note": "Log-only audit logging persistence layer"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 42,
+   "source": "A10",
+   "target": "evidence:8d5b699",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-foundation-evaluator",
+    "ref": "8d5b699",
+    "note": "Cryptographic ledger"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 43,
+   "source": "C01",
+   "target": "evidence:4af54bc",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "4af54bc",
+    "note": "RECEIPT_S-051926-01.md, 2026-05-19"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 44,
+   "source": "C01",
+   "target": "registry:IC-031",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-031",
+    "note": "Receipt claimed contents not in the push; detected by git diff"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 45,
+   "source": "C02",
+   "target": "evidence:94ab438",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "94ab438",
+    "note": "SESSION_RITUALS.md first commit"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 46,
+   "source": "C02",
+   "target": "registry:IC-029",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-029",
+    "note": "Canonical fetch block semantics missing from SESSION_RITUALS"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 47,
+   "source": "C03",
+   "target": "registry:IC-056",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-056",
+    "note": "p1-introspective-reliability-unweighted"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 48,
+   "source": "C03",
+   "target": "registry:H-SELF-01",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "H-SELF-01",
+    "note": "Self-Administration LI Inflation, status CANDIDATE"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 49,
+   "source": "C04",
+   "target": "evidence:eab4cba",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "eab4cba",
+    "note": "outcome_symmetry_checker_v1_0.py, 2026-07-14"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 50,
+   "source": "C05",
+   "target": "evidence:6271c83",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-autonomy",
+    "ref": "6271c83",
+    "note": "blind_coding_provenance_gate_v1_0.py, 2026-07-20"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 51,
+   "source": "C06",
+   "target": "evidence:2b5ffd4",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "2b5ffd4",
+    "note": "haios-corpus-integrity.yml, 2026-05-28"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 52,
+   "source": "C07",
+   "target": "evidence:4af54bc",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "4af54bc",
+    "note": "tools/red_team_runner_v1_0.py, 2026-05-19"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 53,
+   "source": "C08",
+   "target": "evidence:5d5aad5",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-analytics",
+    "ref": "5d5aad5",
+    "note": "Receipt-only packet builder, pre-registered test, 2026-09-11"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 54,
+   "source": "C09",
+   "target": "evidence:aa96609",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/acat-x",
+    "ref": "aa96609",
+    "note": "src/acat_x/sycophancy.py, 2026-08-02"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 55,
+   "source": "C10",
+   "target": "evidence:543358d",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-autonomy",
+    "ref": "543358d",
+    "note": "Harmonization crosswalk v0.3, 2026-08-04"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 56,
+   "source": "C11",
+   "target": "evidence:8481574a",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "8481574a",
+    "note": "acat-r-second-runtime-comparison.yml, 2026-10-30"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 57,
+   "source": "C12",
+   "target": "evidence:0d3a4752",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "0d3a4752",
+    "note": "Synthetic phase 0 scenario fixture, 2026-10-22"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 58,
+   "source": "C13",
+   "target": "evidence:06019c5",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "LastingLightAI/lastinglightai",
+    "ref": "06019c5",
+    "note": "METHODS.md.ots, 2026-02-20"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 59,
+   "source": "C14",
+   "target": "evidence:1a66042",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-outreach",
+    "ref": "1a66042",
+    "note": "SUBSTRATE_CAPABILITY_REGISTRY.md, 2026-05-11"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 60,
+   "source": "C14",
+   "target": "registry:F-50",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-50",
+    "note": "Parallel Instrument Independence as Convergent Validity Prerequisite"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 61,
+   "source": "C15",
+   "target": "evidence:7a4d00e1",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "7a4d00e1",
+    "note": "Wardens Council governance spec, 2026-10-18"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 62,
+   "source": "C16",
+   "target": "evidence:9c2a96e4",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "9c2a96e4",
+    "note": "Pause kill-switch and API-key gate, 2026-06-27"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 63,
+   "source": "C17",
+   "target": "evidence:e9d75eb",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/empirica-foundation-evaluator",
+    "ref": "e9d75eb",
+    "note": "ADF-R engine port, 11 components"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 64,
+   "source": "C18",
+   "target": "evidence:b0bd041d",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "b0bd041d",
+    "note": "evidence_classes.json, 2026-10-30"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 65,
+   "source": "C19",
+   "target": "evidence:GRAPH_ALIGNMENT.yaml",
+   "relation": "supported_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "file",
+    "repo": "humanaios-ui/operations",
+    "ref": "GRAPH_ALIGNMENT.yaml",
+    "note": "Declared correspondence between two agent-authored graphs"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 66,
+   "source": "A01",
+   "target": "registry:F-21",
+   "relation": "supported_by",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-21",
+    "note": "Humility Gap Confirmed, 2026-04-05; body not read, so support is assumed"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 67,
+   "source": "C03",
+   "target": "registry:F-54",
+   "relation": "supported_by",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-54",
+    "note": "Title names a self-report gap; entry has no structured fields"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 68,
+   "source": "C01",
+   "target": "decision:IC-031",
+   "relation": "approved_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-031",
+    "note": "zone2_ratification: Night, 2026-05-19"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 69,
+   "source": "A03",
+   "target": "decision:87d187fa",
+   "relation": "approved_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "87d187fa",
+    "note": "Commit subject: Record Night's Z2 ratification of .z1-control/ratify.py"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 70,
+   "source": "A05",
+   "target": "decision:2e51c50f",
+   "relation": "approved_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "commit",
+    "repo": "humanaios-ui/operations",
+    "ref": "2e51c50f",
+    "note": "Commit subject: Z2: ratify IC-064 from comparison-engine-v1.0-analysis; registry files the entry as IC-065"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 71,
+   "source": "C04",
+   "target": "decision:IC-058",
+   "relation": "approved_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-058",
+    "note": "zone2_ratification: Carly (operator), 2026-07-14"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 72,
+   "source": "C14",
+   "target": "decision:F-50",
+   "relation": "approved_by",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-50",
+    "note": "zone2_ratification: Night, 2026-06-10; approves the finding, not the registry file"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 73,
+   "source": "A04",
+   "target": "decision:IC-020",
+   "relation": "approved_by",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-020",
+    "note": "Operating Process No Canonical Home, 2026-04-25; first registry commit names it as the fix; no ratification field"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 74,
+   "source": "A05",
+   "target": "decision:unrecorded",
+   "relation": "approved_by",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "inference",
+    "ref": "",
+    "note": "Framework ratification on 2026-09-23 is stated in chat; no repository record found"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 75,
+   "source": "A10",
+   "target": "decision:unrecorded",
+   "relation": "approved_by",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "inference",
+    "ref": "",
+    "note": "Ratification as a product is stated in chat; no repository record found"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 76,
+   "source": "C01",
+   "target": "outcome:IC-031",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-031",
+    "note": "SESSION_RITUALS v6.4: verification block before receipts, reconciliation at close"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 77,
+   "source": "C01",
+   "target": "registry:H-RCO-01",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "H-RCO-01",
+    "note": "Hypothesis registered: 80% fewer overstatements over N=20; status CANDIDATE, no result recorded"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 78,
+   "source": "A03",
+   "target": "registry:F-62",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-62",
+    "note": "Ratification queue oversubscribed: 130 open items, about 26 hours of Z2 work"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 79,
+   "source": "A04",
+   "target": "outcome:IC-030",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-030",
+    "note": "Two entries misfiled under held numbers on 2026-09-20; corrected on Z2 ratification"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 80,
+   "source": "A05",
+   "target": "registry:IC-065",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-065",
+    "note": "Evidence Ledger Gap (PR #465)"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 81,
+   "source": "C04",
+   "target": "registry:IC-058",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-058",
+    "note": "Outcome-Symmetry Corpus Gap"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 82,
+   "source": "C05",
+   "target": "registry:IC-044",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-044",
+    "note": "Submission Purity Constraint Collapse Recurrence"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 83,
+   "source": "A01",
+   "target": "registry:F-56",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-56",
+    "note": "Scorer missing exclusion and hierarchy stages, 2026-07-10"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 84,
+   "source": "C03",
+   "target": "registry:IC-056",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-056",
+    "note": "Introspective reliability unweighted, 2026-07-11"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 85,
+   "source": "C19",
+   "target": "outcome:GRAPH_CONVERGENCE.md",
+   "relation": "resulted_in",
+   "link_state": "recorded",
+   "status": "unratified",
+   "basis": {
+    "type": "file",
+    "repo": "humanaios-ui/operations",
+    "ref": "GRAPH_CONVERGENCE.md",
+    "note": "6 aligned pairs, 0 graded independent, weight 0.0; status PROPOSED"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 86,
+   "source": "A03",
+   "target": "registry:H-CAND-GOVERNANCE-CAPTURE-SURFACE-01",
+   "relation": "resulted_in",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "H-CAND-GOVERNANCE-CAPTURE-SURFACE-01",
+    "note": "Sole-Ratifier Capture Surface; causal link to the gate is assumed"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 87,
+   "source": "A04",
+   "target": "registry:F-64",
+   "relation": "resulted_in",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-64",
+    "note": "Assurance Is Accumulating; Evidence Is Not; link to the registry is assumed"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 88,
+   "source": "C13",
+   "target": "registry:F-CAND-PROVENANCE-VALIDITY-ORTHOGONALITY-01",
+   "relation": "resulted_in",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "F-CAND-PROVENANCE-VALIDITY-ORTHOGONALITY-01",
+    "note": "Tamper-evidence guarantees attribution, never truth; link is thematic"
+   },
+   "as_of": "2026-11-23"
+  },
+  {
+   "id": 89,
+   "source": "C15",
+   "target": "registry:IC-060",
+   "relation": "resulted_in",
+   "link_state": "candidate",
+   "status": "unratified",
+   "basis": {
+    "type": "registry",
+    "ref": "IC-060",
+    "note": "Q-WITNESS Phase 0 Resource Allocation Gap; Witness-to-Wardens link assumed"
+   },
+   "as_of": "2026-11-23"
+  }
+ ],
+ "gaps": {
+  "no_decision_record": [
+   "A01",
+   "A04",
+   "A10",
+   "C02",
+   "C03",
+   "C05",
+   "C06",
+   "C07",
+   "C08",
+   "C09",
+   "C10",
+   "C11",
+   "C12",
+   "C13",
+   "C15",
+   "C16",
+   "C17",
+   "C18",
+   "C19"
+  ],
+  "no_outcome_record": [
+   "A10",
+   "C02",
+   "C06",
+   "C07",
+   "C08",
+   "C09",
+   "C10",
+   "C11",
+   "C12",
+   "C13",
+   "C14",
+   "C15",
+   "C16",
+   "C17",
+   "C18"
+  ]
+ },
+ "known_issues": [
+  "Commit 2e51c50f names IC-064; the registry files the PR #465 evidence-ledger gap as IC-065.",
+  "H-RCO-01 has no recorded result.",
+  "A02 (ACAT-NUM) and A06 (CBDV) receive no links: no dated artifact was found for either.",
+  "Bases were read from commit subjects, file paths and registry fields; file bodies other than REGISTERED.md and the graph files were not read."
+ ]
+}
