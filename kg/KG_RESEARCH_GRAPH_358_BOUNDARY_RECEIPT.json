@@ -1,0 +1,45 @@
+{
+  "manifest_id": "kg-rg358-source-receipt-2026-11-23",
+  "as_of": "2026-11-23",
+  "authority_effect": "NONE",
+  "can_authorize": false,
+  "source_scope": "separate conversation-derived research graph; NOT GitHub KG v0.1 or KG v0.2",
+  "status": "LOCAL_BYTES_CHECKED; NOT_PUBLISHED; NOT_ADMITTED",
+  "latest_observed_local_artifact": {
+    "filename": "humanaios_evidence_linked_graph_E0_2026-11-23.json",
+    "sha256": "2109ab9e2fe3801bf05aafd721e21ec2e417a93e3e4c1eae5431b3b70073b253",
+    "node_count": 358,
+    "edge_count": 83,
+    "json_parsed": true,
+    "note": "Local container read verified these counts and SHA-256; source rows have not been independently authenticated."
+  },
+  "preceding_local_snapshot": {
+    "filename": "humanaios_merged_knowledge_graph_2026-11-23.json",
+    "sha256": "f8ddceaba538c58c68799fd87099b6917915810104e8f5ad59c1c0379dc58dac",
+    "node_count": 358,
+    "edge_count": 53,
+    "json_parsed": true
+  },
+  "github_kg": {
+    "namespace": "kg:",
+    "v0_1_blob": "1a1e2aa2693724ba4803d2bf5961e18fcc6b3acb",
+    "v0_2_proposal_blob": "aec9d323c8d1c4fe198f809c99fbc9a92377f323",
+    "separate": true
+  },
+  "crosswalk": {
+    "namespace": "rg:",
+    "admitted_rows": 0,
+    "permitted_relation": "candidate only after private-data review and immutable two-sided source pins",
+    "merge_permitted": false
+  },
+  "data_boundary": {
+    "publish_full_graph": false,
+    "reason": "Cross-chat research data may include private references; the raw graph is not privacy-cleared for a public repository.",
+    "publication_precondition": "Human Z2 authorizes a privacy-reviewed release with a safe artifact location and digest; no raw PII, private paths or credentials."
+  },
+  "limitations": [
+    "A SHA-256 digest pins local bytes, not their accuracy, authority or GitHub availability.",
+    "This record does not claim the separate graph is in GitHub, Supabase, or a production system.",
+    "No KG v0.2 edge is promoted; original draft remains unratified."
+  ]
+}
