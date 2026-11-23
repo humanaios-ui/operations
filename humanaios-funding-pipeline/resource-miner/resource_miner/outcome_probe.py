@@ -14,7 +14,9 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .combinations import evaluate_combinations, load_snapshot
+from urllib.parse import urlsplit
+
+from .combinations import _evidence_matches_source, evaluate_combinations, load_snapshot
 
 
 def _digest(value: Any) -> str:
@@ -35,13 +37,28 @@ def verify_source_queue(snapshot: list[dict[str, Any]], selected_ids: list[str])
     items = []
     for rid in sorted(selected_ids):
         row = by_id[rid]
+        source_url = row.get("source_url") or row.get("canonical_url") or ""
+        try:
+            source = urlsplit(source_url)
+            valid_source = (
+                source.scheme == "https" and bool(source.hostname)
+                and not source.username and not source.password
+            )
+        except ValueError:
+            valid_source = False
+        if not valid_source:
+            raise ValueError("Missing valid HTTPS source")
         evidence = row.get("evidence") or []
-        urls = sorted({ref["url"] for ref in evidence if isinstance(ref, dict) and isinstance(ref.get("url"), str)})
+        urls = sorted({
+            ref["url"] for ref in evidence
+            if isinstance(ref, dict) and isinstance(ref.get("url"), str)
+            and _evidence_matches_source(source_url, ref["url"])
+        })
         if not urls:
-            raise ValueError("Missing evidence references")
+            raise ValueError("Missing source-bound evidence references")
         items.append({
             "resource_id": rid,
-            "source_url": row.get("source_url"),
+            "source_url": source_url,
             "affordances_claimed": sorted(set(row.get("resource_affordances") or [])),
             "evidence_urls": urls,
             "source_currentness": "NOT_INDEPENDENTLY_VERIFIED",
