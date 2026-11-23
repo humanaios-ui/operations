@@ -204,3 +204,56 @@ would satisfy every check while proving nothing.
 Single-member override applies: with one board member, Night reviews, approves
 and merges her own ruling PR, recorded as an override per that ruling's `review`
 row.
+
+---
+
+## Options
+
+- `ratify 1`
+- `edit`
+- `reject`
+- `later`
+
+The number is item 1 of the reshaped ask ("Ratify a derivation, not a value"). Items 2, 3 and 4 of the reshaped ask are not offered as separate choices, because this block says they follow from item 1: per-layer recording is answered by the rubric chosen, re-derivation cannot run before a rubric exists, and propagation comes last.
+
+## What each sets in motion
+
+- `ratify 1`: the direction is ratified. TRL is treated as derived, not set. A derivation, meaning a named rubric and the evidence each level requires, is to be ratified before any TRL value is propagated again. It does **not** name the rubric; that stays Night's. It does **not** confirm or revoke the existing "TRL 4 throughout" row or the per-layer split. It changes no file except this one: `SEED.md` still says TRL 2-3 and `OPS_ROADMAP_V1.2.md` still says TRL 4, and the many other occurrences are untouched. Z1 builds nothing until a rubric is named; on that naming, Z1 builds the derivation as a tool with the evidence mapping as data. Assigning a registry entry in `REGISTERED.md` is a Z2 act; Z1 does not write that file.
+- Not asked here, and left open: what `SEED.md` and funder-facing text say in the meantime, and whether the existing "TRL 4 throughout" row stays in force until a derivation exists. Each would need its own block.
+- `edit`: Z1 revises the block and files it again.
+- `reject`: the block closes with its bytes signed and the reason Night records. Nothing is entered in `REGISTERED.md`.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
+
+## Checked on 2026-11-16 (not carried from the block above)
+
+- **Unchanged since the block:** `OPS_ROADMAP_V1.2.md` line 18 still reads "TRL corrected from 2-3 to 4 throughout | RATIFIED · Night | S-061226-02", and `SEED.md` lines 33, 231 and 318 still say TRL 2-3. Those are the only three TRL statements in `SEED.md`, and none refers to a later ratification.
+- **The ratification the block cites is not in `REGISTERED.md`.** The block's falsifier says to check `S-061226-02` against `REGISTERED.md`. That id does not appear there at all. The row is restated in `OPS_ROADMAP_V1.2.md`, `MARKET_HARMONIC_RESEARCH_PRINCIPLE_SEED.md` and `INTENT_GRAPH.yaml` (which quotes the roadmap). Z1 did not look outside the tree, such as session logs, so this does not show the ratification did not happen. It shows the tree cannot confirm it.
+- **Two sessions are cited, with ids a day apart.** The per-layer split (chat-mode ACAT TRL 4; agentic, ICS and H-ACAT TRL 1-2) is cited to `S-061126-02` ("canvas") in `ACAT_MARKETPLACE_ROADMAP.md` and in the Longview verification audit. The single figure ("TRL 4 throughout") is cited to `S-061226-02`. `S-061126-02` appears once in `REGISTERED.md`, in an unrelated note about a "4 days to Charter close" error. From the tree alone, Z1 cannot tell whether the later row was meant to replace the earlier split.
+- **Occurrence counts are not comparable to the block's.** The block says 57 occurrences of TRL 2-3 against 21 of TRL 4 and does not state how it counted. Z1's count today is 114 matching lines for "TRL 2-3" against 32 for "TRL 4" (outside `z1-inbox/` and `audits/`: 100 lines in 54 files against 25 lines). Z1 cannot say whether the gap moved.
+- **No reproducible derivation exists.** There is no tool, no named rubric, and no evidence threshold per level in the tree. The only tracked file whose name mentions TRL is this block. A partial, prose mapping does exist: `humanaios-funding-pipeline/reports/ACAT_MARKETPLACE_ROADMAP.md` section 2.1 pairs nine assets with an evidence base and a TRL level each (for example chat-mode ACAT, N=604 published plus N=95 live, TRL 4; human operator calibration, "HA-000 not yet executed", TRL 1-2). That table is not a derivation. Its "N=95 live" is not the 116 rows the 2026-09-21 audit measured, and Z1 did not work out why. A derivation should assess it, not overlook it.
+- **Not re-checked:** the live-corpus figures (116 rows, 4 in the strictest clean stratum) are from 2026-09-21; Z1 did not query the database today.
+
+## Note on the "Z2 Ruling" section above
+
+That section transcribes what Night said in session on 2026-09-21 ("ratify trl derivation"). It carries no signature, and `INDEX.yaml` still reads `awaiting_z2`, so the `.z1-control/ratify.py` step was not completed for this block. It also says the merge ratifies nothing, because the file then had no `## Ruling` section. This file now has one, in the shape `tools/decision_relay.py` writes. Under the 2026-09-18 ruling, the merge of the pull request that fills it is the ratification, and the `ratify.py` command in that section is not needed. Z1 left the earlier text unchanged. It does not count as a ruling, and nothing here treats it as one.
+
+## Ruling
+
+choice: ratify 1
+by: Z1-prepared (not an identity claim)
+at: 2026-11-16T14:51:09Z
+status: DECIDED
+block_hash: eb8385cb456f2df0486701201fdf19f1b1210bde09ef96cadbfdfd359efea656
+body_hash: fd9272863bf30326453e1fd564b62f5be51a25f9fbefbd2a01052a87042ff250
+
+```
+RULING z1-seedtrl-01
+  by: Z1-prepared (not an identity claim) (tagline)
+  project: humanaios
+  question: Ratify item 1 of the reshaped ask of Q-SEED-TRL-PROPAGATION-01: treat TRL as derived, and ratify a derivation (a named rubric and per-level evidence) before any TRL value is propagated again; the rubric is not named here and no existing TRL value is confirmed or revoked?
+  choice: ratify 1
+  note: 
+  at: 2026-11-16T14:51:09Z
+  status: DECIDED
+```
+

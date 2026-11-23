@@ -1,7 +1,7 @@
 # Q-INTENT-OS-WITNESS-LEDGER-01
 
 **Tier:** 2 (Architecture / Governance)  
-**Status:** Candidate (awaiting Z2 ratification)  
+**Status:** REGISTERED ACCEPT prose present (2026-09-19T19:00:00Z, formula-only — see REGISTERED.md Z2 Ratification block and CLAUDE.md append). INDEX status change is a **Z1 reconcile pending Night Z2 confirmation** (`z2_hash: PENDING_NIGHT_REPIN`; no 64-hex Night hash in-repo). Phase 1 ledger/API/CLI implementation remains open.  
 **Proposed by:** Claude (Z1 proposer)  
 **Date filed:** 2026-09-19  
 **Session:** https://claude.ai/code/session_012WCbNY31capoZ99NtXQuQC

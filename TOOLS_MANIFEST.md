@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**228 registered tools** · 2 MCP servers · 4 excluded · 179 carrying Builder v1.7 markers
+**233 registered tools** · 2 MCP servers · 4 excluded · 184 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 228 |
-| — status `draft` | 227 |
+| Registered tools | 233 |
+| — status `draft` | 232 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 179 |
+| Builder v1.7 markers present | 184 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -146,13 +146,13 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-234 | iew_witness_fixture | `tools/iew/fixtures/witness_fixture.py` | 0.1.0 | 1 | draft | — | Deterministic stdin/stdout smoke-test fixture for IEW-003. |
 | HAIOS-TOOL-235 | iew_runner | `tools/iew/iew_runner.py` | 0.1.0 | 1 | draft | — | IEW-003: runner captures subprocess output in place of author-reported outcomes. |
 
-## Governance — `governance_tool` (26)
+## Governance — `governance_tool` (30)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.5.0 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
 | HAIOS-TOOL-151 | doc_review_scheduler | `.doc-control/review.py` | 1.0.0 | 1 | draft | no-builder-markers | Document review scheduler — record a review, derive the next one, triage the backlog. |
-| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.2.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
+| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.3.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
 | HAIOS-TOOL-154 | z1_inbox_renderer | `.z1-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render Z1_INBOX_INDEX.md from z1-inbox/INDEX.yaml. |
 | HAIOS-TOOL-155 | z1_inbox_validator | `.z1-control/validate.py` | 1.0.0 | 1 | draft | no-builder-markers | z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which of |
 | HAIOS-TOOL-157 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |
@@ -176,6 +176,10 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-219 | leak_guard | `.z1-control/leak_guard.py` | 1.0.0 | 1 | draft | — | leak_guard.py — B6: bound the two Empirica session leaks. |
 | HAIOS-TOOL-220 | ratify_eco | `.z1-control/ratify_eco.py` | 1.0.0 | 1 | draft | — | ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact. |
 | HAIOS-TOOL-228 | coordinator_admission_sweep_dryrun | `tools/coordinator_admission_sweep_dryrun.py` | 1.0.0 | 1 | draft | — | coordinator_admission_sweep_dryrun.py — preview coordinator-admission-sweep.yml. |
+| HAIOS-TOOL-243 | admission_ruling_graph | `tools/admission_ruling_graph_v1_0.py` | 1.0.0 | 1 | draft | — | admission_ruling_graph_v1_0.py — join the admission ledger to Z2 rulings and render one page. |
+| HAIOS-TOOL-244 | witness_ledger | `tools/witness_ledger_v0.py` | 0.1.0 | 1 | draft | — | witness_ledger_v0.py — local INTENT-OS witness ledger (append-only, hash-chained). |
+| HAIOS-TOOL-245 | machine_capability_allowlist | `tools/machine_capability_allowlist_v0.py` | 0.1.0 | 1 | draft | — | machine_capability_allowlist_v0.py — local INTENT-OS machine-capability allowlist. |
+| HAIOS-TOOL-246 | z2_authorized_machine_identities_api | `tools/z2_authorized_machine_identities_api_v0.py` | 0.1.0 | 1 | draft | — | z2_authorized_machine_identities_api_v0.py — optional read-only local /api/z2-authorized-machine-identities mirror. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -297,7 +301,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (34)
+## Validation — `validation_tool` (35)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -335,6 +339,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-236 | iew_witness_gate | `tools/iew/witness_gate.py` | 0.1.0 | 1 | draft | — | IEW-002: distinguish self-reported receipts from trusted execution observations. |
 | HAIOS-TOOL-240 | mutual_learning_e0 | `tools/mutual_learning_e0.py` | 1.0.0 | 1 | draft | — | INTENT-OS Mutual Learning E0: strict, read-only collaboration record checker. |
 | HAIOS-TOOL-241 | audit_protocol_gate_v3_1 | `tools/audit_protocol_gate_v3_1.py` | 3.1.1 | 1 | draft | — | Contract-completeness check for docs/audit/SYSTEM_AUDIT_PROMPT_v3_1.md |
+| HAIOS-TOOL-242 | pre_submit | `tools/pre_submit.py` | 1.0.0 | 1 | draft | — | pre_submit.py — run the PR pre-submission checks in one command. |
 
 ## MCP servers (2)
 
@@ -370,7 +375,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 23 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 26 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 30 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
@@ -379,7 +384,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 14 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 34 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 35 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 
