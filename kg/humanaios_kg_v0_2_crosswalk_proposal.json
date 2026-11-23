@@ -3,8 +3,8 @@
  "as_of": "2026-11-23",
  "authority_effect": "NONE",
  "proposed_by": "Z1 (Claude)",
- "status": "proposal; no rows; one required pin is missing",
- "requires": "Z2 decision, and Night or the operator must supply the location and digest of the 358-node research graph",
+ "status": "proposal; no rows; rg_358 pin is recorded in a receipt but the bytes are not in this repository",
+ "requires": "Z2 decision, and a privacy-reviewed release (or a verified private store) of the 358-node research graph before any row can be checked",
  "purpose": "Keep the GitHub knowledge graph (v0.1, v0.2 proposal) separate from the 358-node research graph. Link them only through pinned, row-by-row crosswalk entries. Never merge node sets.",
  "namespaces": {
   "kg": "GitHub graph: humanaios-kg-v0.1 and the v0.2 proposal. Ids A01-A12, C01-C19.",
@@ -29,13 +29,24 @@
    "edges_added": 73
   },
   "rg_358": {
-   "status": "UNPINNED",
-   "expected_nodes": 358,
-   "path": null,
-   "git_blob": null,
-   "sha256": null,
-   "search_done": "No graph with 358 nodes exists in the operations checkout (all JSON files with a nodes list were counted). Supabase public has no table holding it (kg_nodes 22, registry_entry 0 rows). A code search of the accessible repositories for '358 nodes' found no graph file.",
-   "needed": "The repository, path, commit and sha256 of the 358-node file, or the table and snapshot time if it lives in a database."
+   "status": "RECEIPT_ONLY_BYTES_NOT_AVAILABLE",
+   "receipt": "kg/KG_RESEARCH_GRAPH_358_BOUNDARY_RECEIPT.json",
+   "receipt_added_in_commit": "4e647aceb8494422f96b81770fbe74dd74e8b7ed",
+   "latest_observed_local_artifact": {
+    "filename": "humanaios_evidence_linked_graph_E0_2026-11-23.json",
+    "sha256": "2109ab9e2fe3801bf05aafd721e21ec2e417a93e3e4c1eae5431b3b70073b253",
+    "nodes": 358,
+    "edges": 83
+   },
+   "preceding_local_snapshot": {
+    "filename": "humanaios_merged_knowledge_graph_2026-11-23.json",
+    "sha256": "f8ddceaba538c58c68799fd87099b6917915810104e8f5ad59c1c0379dc58dac",
+    "nodes": 358,
+    "edges": 53
+   },
+   "verified_by_this_audit": false,
+   "why_not_verified": "The file is not in the repository and the receipt says it is not published or admitted. This audit could not read it, so the digests and counts are the receipt's claim, not a check.",
+   "earlier_search": "Before the receipt, a search of the operations checkout, Supabase public tables and code search found no 358-node graph. That search result still holds: the file is private and local."
   }
  },
  "not_the_358_node_graph": {
@@ -48,21 +59,42 @@
   "id": "XW-<n>",
   "left": "kg:<node id>@<pin name>",
   "right": "rg:<node id>@<pin name>",
-  "relation": ["same_as", "related_to", "false_friend"],
-  "link_state": ["recorded", "candidate"],
-  "basis": {"type": ["file", "commit", "registry", "inference"], "ref": "path, sha or registry id", "note": "why"},
-  "independence": ["shared_source", "unrecorded_provenance", "independent_recorded"],
+  "relation": [
+   "same_as",
+   "related_to",
+   "false_friend"
+  ],
+  "link_state": [
+   "recorded",
+   "candidate"
+  ],
+  "basis": {
+   "type": [
+    "file",
+    "commit",
+    "registry",
+    "inference"
+   ],
+   "ref": "path, sha or registry id",
+   "note": "why"
+  },
+  "independence": [
+   "shared_source",
+   "unrecorded_provenance",
+   "independent_recorded"
+  ],
   "status": "unratified"
  },
  "rules": [
-  "A row names both graph pins by sha256. A row whose pin is UNPINNED is invalid.",
+  "A row names both graph pins by sha256. A row whose pin is not checkable by the checker is invalid.",
   "same_as and related_to need a recorded basis. A shared name or a shared term is candidate only.",
   "A pair that shares a source, or whose provenance is unrecorded, never counts as independent agreement. This follows GRAPH_ALIGNMENT.yaml and GRAPH_CONVERGENCE.md, which grade 0 of 6 pairs independent.",
   "Declared false friends are kept as rows, not dropped.",
   "No row edits either graph. The crosswalk is a third file.",
   "A retracted row stays in the file with status retracted.",
-  "A02 (ACAT-NUM) and A06 (CBDV) get no rows until a dated artifact exists."
+  "A02 (ACAT-NUM) and A06 (CBDV) get no rows until a dated artifact exists.",
+  "Admission needs private-data review and a Z2-authorized release, as the boundary receipt says. Until then rows stay at 0."
  ],
  "rows": [],
- "verification_plan": "When the rg_358 pin exists: a checker loads both pinned files, refuses any row whose sha256 differs, checks both ids exist, and reports rows by independence class. It runs offline."
+ "verification_plan": "When the rg_358 file is released or reachable by a verifier: a checker loads both pinned files, refuses any row whose sha256 differs, checks both ids exist, and reports rows by independence class. It runs offline."
 }

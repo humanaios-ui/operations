@@ -18,6 +18,8 @@
 
 The uploaded proposal is unchanged. Nothing in this commit edits it. `tests/test_kg_v0_2_check.py` pins its bytes.
 
+Later commits on the branch are not part of this audit: `2ed90f29` and `20aa7c5d` (pushed under the Carly R. Anderson account: `tools/kg_v0_2_review.py` and tests) and `4e647ace` (same account: the 358-node receipt). The audit covers `7426e6bd` and my own files. The PR head moves as commits land; read the head SHA from the PR.
+
 ## 2. Confirmed
 
 - 19 new construct nodes (C01 to C19).
@@ -35,7 +37,7 @@ The uploaded proposal is unchanged. Nothing in this commit edits it. `tests/test
 | 2 | Audit the 56 recorded links. Separate four things. | Done. See section 5. File: `kg/humanaios_kg_v0_2_recorded_link_audit.json`. |
 | 3 | A registered hypothesis is not an outcome. | One violation found (edge 77). Proposed fix in the overlay. Section 6. |
 | 4 | Validate external reference targets. | 38 of 56 verified. 18 cannot be checked from here. Section 7. |
-| 5 | Keep the GitHub graph apart from the 358-node research graph. Propose a pinned crosswalk. | Crosswalk written. The 358-node graph could not be found, so it has no pin. Section 8. |
+| 5 | Keep the GitHub graph apart from the 358-node research graph. Propose a pinned crosswalk. | Crosswalk written, zero rows. A later commit by Carly supplies a receipt with digests for the private files. This audit could not read them. Section 8. |
 | 6 | Keep C19's unknown date. Keep A02 and A06 without evidence. | Kept. A test enforces it. |
 | 7 | Offline tests. | 26 tests. Section 9. |
 
@@ -84,9 +86,11 @@ Edge 77 says C01 `resulted_in` `registry:H-RCO-01`, `recorded`. H-RCO-01 is a re
 ## 8. Two graphs, kept apart
 
 - **GitHub graph:** `kg/humanaios_kg_v0_1.json` (22 nodes, 16 edges) plus the v0.2 proposal (19 nodes, 73 edges). Namespace `kg:`.
-- **358-node research graph:** namespace `rg:`. **Not found.** No file with 358 nodes in this checkout. Supabase has no table for it. A search of the accessible repositories found none.
-- `chat_graph/` has 195 nodes and 213 edges. It is a third graph. It is named in the crosswalk only so nobody mistakes it for the missing one.
-- `kg/humanaios_kg_v0_2_crosswalk_proposal.json` sets the rules: pin both sides by sha256, one row per link, no merging, a shared source never counts as independent. It has **zero rows**. A row cannot be written until the `rg` file has a path and a digest.
+- **358-node research graph:** namespace `rg:`. This audit first searched for it and found nothing: no file with 358 nodes in the checkout, no Supabase table, no code-search hit.
+- **Update, commit `4e647ace` (pushed under the Carly R. Anderson account):** `kg/KG_RESEARCH_GRAPH_358_BOUNDARY_RECEIPT.json` records two private local files with 358 nodes. Latest: `humanaios_evidence_linked_graph_E0_2026-11-23.json`, 358 nodes, 83 edges, sha256 `2109ab9e…b253`. Earlier: `humanaios_merged_knowledge_graph_2026-11-23.json`, 358 nodes, 53 edges, sha256 `f8ddceab…dac`. The receipt says they are not published and not admitted, and that merge is not permitted.
+- **What this audit can say:** the digests and counts are the receipt's claim. This audit could not read the files, so it did not check them. The crosswalk records the pin as `RECEIPT_ONLY_BYTES_NOT_AVAILABLE`.
+- `chat_graph/` has 195 nodes and 213 edges. It is a third graph. It is named so nobody mistakes it for the 358-node one.
+- `kg/humanaios_kg_v0_2_crosswalk_proposal.json` sets the rules: pin both sides by sha256, one row per link, no merging, a shared source never counts as independent. It has **zero rows**, which matches the receipt (`admitted_rows: 0`). A row needs the private file to be releasable or checkable by a verifier.
 
 ## 9. Tests
 
@@ -103,7 +107,7 @@ Run as a gate: `python3 kg/kg_v0_2_check.py` exits 1 on the raw proposal (one er
 ## 10. Remaining gaps
 
 1. 18 recorded edges cannot be checked from here. Someone with access must read those commits.
-2. The 358-node research graph has no pin. The crosswalk is empty until Night or the operator supplies it.
+2. The 358-node research graph has a receipt (commit `4e647ace`) but its bytes are private and unreadable here. Its digests are unchecked. The crosswalk stays empty until a Z2-authorized release or a verifier can read it.
 3. PR #482 was not read. The claim that it holds IC-064 is unchecked.
 4. File bodies were not read except `REGISTERED.md`, the Z2 ruling file, and the graph files. Most "stated in record" judgments come from commit subjects, paths and registry fields.
 5. The count in edge 20 was tested with a naive parse, not the registry's own parser.
@@ -117,6 +121,7 @@ Run as a gate: `python3 kg/kg_v0_2_check.py` exits 1 on the raw proposal (one er
 **None.**
 
 - The proposal was written by a Claude chat session. This audit was written by a Claude Code session. Same model family. Not independent.
+- Three commits were pushed under the Carly R. Anderson account: a checker, 15 negative-control tests and the 358-node receipt. The CI provenance bot classed them `SHARED_ACCOUNT_ORIGIN_UNKNOWN`, so who or what wrote them is not established. They are not a review of the proposal, and I did not audit them. The receipt does not authorize anything.
 - No human has reviewed the PR. CodeRabbit skipped it (draft). No review event was received.
 - At the audited head 7426e6bd, 14 completed checks passed and 6 were skipped. That is automated evidence only. It is not review.
 - Night has not seen or ratified anything here.
@@ -131,5 +136,7 @@ Run as a gate: `python3 kg/kg_v0_2_check.py` exits 1 on the raw proposal (one er
 | `kg/humanaios_kg_v0_2_corrections_overlay.json` | Five proposed corrections, not applied |
 | `kg/humanaios_kg_v0_2_crosswalk_proposal.json` | Pinned crosswalk proposal, zero rows |
 | `docs/design/KG_V0_2_EVIDENCE_REPORT.md` | This report |
+
+Files pushed under the Carly R. Anderson account, not audited here: `tools/kg_v0_2_review.py`, `tools/tests/test_kg_v0_2_review.py`, `kg/KG_RESEARCH_GRAPH_358_BOUNDARY_RECEIPT.json`.
 
 Night ratifies. This PR must not be merged until Night does.
