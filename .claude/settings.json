@@ -43,6 +43,10 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.z1-control/board_monitor.py\""
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/tools/machine_capability_allowlist_v0.py\" stop-hook"
           }
         ]
       }

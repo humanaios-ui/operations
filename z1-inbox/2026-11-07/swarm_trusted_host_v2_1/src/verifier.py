@@ -16,20 +16,28 @@ from .responses import KINDS, MAX_RAW, TRANSPORT, derive_observation, parse_resp
 from .writer import GENESIS, canonical, digest, ident, sha_bytes, parse_utc, EvidenceError
 
 
-def _safe_bytes(path):
+def _trusted_host_uids(plan):
+    """The host UID frozen into the (hash-pinned) plan, if any. An independent verifier running as another user may
+    read directories that UID owns; with no role_uids in the plan the strict rule stands (verifier or root only)."""
+    roles = plan.get("role_uids") if isinstance(plan, dict) else None
+    host = roles.get("host") if isinstance(roles, dict) else None
+    return frozenset({host}) if type(host) is int and host >= 0 else frozenset()
+
+
+def _safe_bytes(path, trusted_uids=frozenset()):
     from .writer import open_read_no_follow
     p = Path(path).absolute()
     for seg in (p, *p.parents):
         if seg.is_symlink():
             raise EvidenceError("SYMLINK_EVIDENCE_REJECTED")
     try:
-        return open_read_no_follow(p)
+        return open_read_no_follow(p, trusted_uids)
     except OSError as exc:
         raise EvidenceError("EVIDENCE_READ_FAILURE") from exc
 
 
-def _json_file(path):
-    raw = _safe_bytes(path)
+def _json_file(path, trusted_uids=frozenset()):
+    raw = _safe_bytes(path, trusted_uids)
     try:
         item = json.loads(raw)
     except (ValueError, UnicodeDecodeError) as exc:
@@ -76,7 +84,7 @@ def _check_responses(ep, events, plan):
             path = ep / "responses" / (sha + ".bin")
             if not path.is_file() or path.is_symlink():
                 raise EvidenceError("RESPONSE_FILE_MISSING")
-            raw = _safe_bytes(path)
+            raw = _safe_bytes(path, _trusted_host_uids(plan))
             if len(raw) != size or sha_bytes(raw) != sha:
                 raise EvidenceError("RESPONSE_BYTES_TAMPERED")
         else:
@@ -116,7 +124,8 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
         raise EvidenceError("EPISODE_NOT_TRUSTED")
     if {p.name for p in ep.iterdir()} != {"events", "artifacts", "responses", "snapshot.json"}:
         raise EvidenceError("EPISODE_CONTAINS_UNEXPECTED_FILES")
-    snapshot, _ = _json_file(ep / "snapshot.json")
+    trusted = _trusted_host_uids(plan)
+    snapshot, _ = _json_file(ep / "snapshot.json", trusted)
     if not isinstance(snapshot, dict) or set(snapshot) != {"payload", "signature_ed25519_b64"}:
         raise EvidenceError("RECEIPT_SCHEMA_INVALID")
     payload = snapshot["payload"]
@@ -161,7 +170,7 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
         filename = cursor + ".json"
         if filename not in names or filename in visited:
             raise EvidenceError("EVENT_CHAIN_GAP_OR_EXTRA_EVENT")
-        item, raw = _json_file(events_dir / filename)
+        item, raw = _json_file(events_dir / filename, trusted)
         if sha_bytes(raw) != cursor:
             raise EvidenceError("CONTENT_ADDRESS_HASH_MISMATCH")
         if not isinstance(item, dict) or set(item) != keys:
@@ -229,7 +238,7 @@ def verify(plan: dict, pinned_plan_sha256: str, public_key_bytes: bytes, root: P
     if payload["tool_status"] == "COMPLETED":
         if artifact_names != [filename]:
             raise EvidenceError("ATTESTED_ARTIFACT_MISSING_OR_EXTRA")
-        file_content = _safe_bytes(artifact_dir / filename)
+        file_content = _safe_bytes(artifact_dir / filename, trusted)
         if sha_bytes(file_content) != payload["artifact_sha256"]:
             raise EvidenceError("ARTIFACT_TAMPER_DETECTED")
         try:

@@ -54,6 +54,12 @@ python -I -B tools/deploy_check.py --package-root PKG_DIR --plan plan.json --pla
 
 Exit 0 means the pinned files match the plan, both package initializers exist and are empty, no loadable file or unexpected directory sits at the package root, `src/` and `integration/` are real directories (not symlinks), and no extra `.py`, bytecode, `.pth`, `sitecustomize` or symlink is present in `src/` or `integration/`. `src/offline_pipe_demo.py` is tolerated because nothing imports it; do not execute it in a deployment. Exit 2 lists the problems as JSON. Start nothing on exit 2. It proves bytes on disk, not what a running process executes, and you must pin the hash of `tools/deploy_check.py` yourself. Nothing in this package forces a deployer to run it.
 
+## Package manifest
+
+`MANIFEST.sha256` lists every file in this package except itself (source, tests, documents and the `evidence/` records), one SHA-256 per file. Check it from this directory with `sha256sum -c MANIFEST.sha256`. `tests/test_manifest_coverage.py` also fails if a file is unlisted, missing, listed twice, or has a stale digest.
+
+What it proves, and what it does not: it shows the checkout holds the files that were listed. It cannot bind itself. Its own digest (`sha256sum MANIFEST.sha256`) is not inside it, so a reviewer who needs the manifest tied to one exact head must record that digest at review time somewhere out of band (the review receipt or the pull request) and compare it. The `evidence/` records are historical: listing their digest shows they have not changed since, not that what they say is true. `evidence/ROUND4_INDEPENDENT_HANDOFF.md` records the manifest as of its own commit and is not updated for later commits.
+
 ## Round 4: independent challenge handoff
 
 **Status: security hold; candidate repair has NOT been independently validated.** After the earlier 183/183 author-run log, the draft branch added descriptor-relative, no-follow evidence reads/writes and writer-lock creation; `src/service.py` now changes socket-entry ownership and mode relative to a checked parent descriptor. Six new deterministic regression tests are in `tests/test_descriptor_io_round4.py`.
