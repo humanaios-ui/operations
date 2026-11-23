@@ -1,0 +1,68 @@
+{
+ "crosswalk_id": "humanaios-kg-crosswalk-proposal-v0.1",
+ "as_of": "2026-11-23",
+ "authority_effect": "NONE",
+ "proposed_by": "Z1 (Claude)",
+ "status": "proposal; no rows; one required pin is missing",
+ "requires": "Z2 decision, and Night or the operator must supply the location and digest of the 358-node research graph",
+ "purpose": "Keep the GitHub knowledge graph (v0.1, v0.2 proposal) separate from the 358-node research graph. Link them only through pinned, row-by-row crosswalk entries. Never merge node sets.",
+ "namespaces": {
+  "kg": "GitHub graph: humanaios-kg-v0.1 and the v0.2 proposal. Ids A01-A12, C01-C19.",
+  "rg": "358-node research graph. Ids are whatever that graph uses, always written as rg:<id>@<pin>."
+ },
+ "pins": {
+  "kg_v0_1": {
+   "status": "PINNED",
+   "path": "kg/humanaios_kg_v0_1.json",
+   "git_blob": "1a1e2aa2693724ba4803d2bf5961e18fcc6b3acb",
+   "sha256": "406ab833ff58578323d1ea8b9c9d4e7d45c04ce115ed9acb84fc53cf071e984f",
+   "nodes": 22,
+   "edges": 16,
+   "live_counterpart": "Supabase ksinisdzgtnqzsymhfya public.kg_nodes (22 rows) and public.kg_edges (16 rows), counted read-only on 2026-11-23"
+  },
+  "kg_v0_2_proposal": {
+   "status": "PINNED",
+   "path": "kg/humanaios_kg_v0_2_proposal.json",
+   "git_blob": "aec9d323c8d1c4fe198f809c99fbc9a92377f323",
+   "sha256": "b842f692c3f56f4649747c671e752a7d000c1abf226b114c62cec6bf6a96a5e3",
+   "nodes_added": 19,
+   "edges_added": 73
+  },
+  "rg_358": {
+   "status": "UNPINNED",
+   "expected_nodes": 358,
+   "path": null,
+   "git_blob": null,
+   "sha256": null,
+   "search_done": "No graph with 358 nodes exists in the operations checkout (all JSON files with a nodes list were counted). Supabase public has no table holding it (kg_nodes 22, registry_entry 0 rows). A code search of the accessible repositories for '358 nodes' found no graph file.",
+   "needed": "The repository, path, commit and sha256 of the 358-node file, or the table and snapshot time if it lives in a database."
+  }
+ },
+ "not_the_358_node_graph": {
+  "note": "chat_graph/source/humanaios_cross_chat_knowledge_graph.v0.1.json has 195 nodes and 213 edges. It is a different graph. It is listed so nobody mistakes it for the missing pin.",
+  "path": "chat_graph/source/humanaios_cross_chat_knowledge_graph.v0.1.json",
+  "git_blob": "235b4199c0b865233be0ab554bddec5e36414ec9",
+  "sha256": "b36d387e844ccea1ca56c993300a152bea550123a5229e5fc9fc7d12a2ed46d9"
+ },
+ "row_schema": {
+  "id": "XW-<n>",
+  "left": "kg:<node id>@<pin name>",
+  "right": "rg:<node id>@<pin name>",
+  "relation": ["same_as", "related_to", "false_friend"],
+  "link_state": ["recorded", "candidate"],
+  "basis": {"type": ["file", "commit", "registry", "inference"], "ref": "path, sha or registry id", "note": "why"},
+  "independence": ["shared_source", "unrecorded_provenance", "independent_recorded"],
+  "status": "unratified"
+ },
+ "rules": [
+  "A row names both graph pins by sha256. A row whose pin is UNPINNED is invalid.",
+  "same_as and related_to need a recorded basis. A shared name or a shared term is candidate only.",
+  "A pair that shares a source, or whose provenance is unrecorded, never counts as independent agreement. This follows GRAPH_ALIGNMENT.yaml and GRAPH_CONVERGENCE.md, which grade 0 of 6 pairs independent.",
+  "Declared false friends are kept as rows, not dropped.",
+  "No row edits either graph. The crosswalk is a third file.",
+  "A retracted row stays in the file with status retracted.",
+  "A02 (ACAT-NUM) and A06 (CBDV) get no rows until a dated artifact exists."
+ ],
+ "rows": [],
+ "verification_plan": "When the rg_358 pin exists: a checker loads both pinned files, refuses any row whose sha256 differs, checks both ids exist, and reports rows by independence class. It runs offline."
+}

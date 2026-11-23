@@ -1,0 +1,32 @@
+{
+ "overlay_id": "humanaios-kg-v0.2-corrections-overlay",
+ "applies_to": "kg/humanaios_kg_v0_2_proposal.json",
+ "applies_to_git_blob": "aec9d323c8d1c4fe198f809c99fbc9a92377f323",
+ "applies_to_sha256": "b842f692c3f56f4649747c671e752a7d000c1abf226b114c62cec6bf6a96a5e3",
+ "as_of": "2026-11-23",
+ "authority_effect": "NONE",
+ "proposed_by": "Z1 (Claude)",
+ "status": "proposed, not applied; the uploaded proposal is unchanged",
+ "requires": "Z2 decision before any correction is folded into a successor graph",
+ "identifier_policy": {
+  "pr_465_evidence_ledger_finding": {
+   "recommended_registry_id": "IC-065",
+   "historical_commit_subject_id": "IC-064",
+   "commit": "2e51c50f10751cd93b6e3bc386d5a985eea10562",
+   "rule": "Keep IC-065 as the registry identifier. Keep IC-064 in the commit subject as history. Overwrite neither. REGISTERED.md carries no IC-064 entry at this head; the registry note says IC-064 was already claimed by PR #482, which this audit did not read."
+  }
+ },
+ "corrections": [
+  {"edge": 18, "action": "downgrade_to_candidate", "new_note": "IC-031 names F-45 as the rationale for a protocol-level fix. That is rationale, not a dependency. Needs a vocabulary term such as rationale_from before it can be recorded.", "finding": "relation does not match the record"},
+  {"edge": 20, "action": "downgrade_to_candidate", "new_note": "Cited ref IC-031 does not contain the count. A naive parse of REGISTERED.md at this head gives 95 of 153 front-matter blocks with a non-null zone2_ratification, not 64 of 139. The dependency is inferred from field presence.", "finding": "count not reproduced; ref does not support the note"},
+  {"edge": 70, "action": "note_correction", "new_note": "Commit 2e51c50f subject, quoted exactly: 'Z2: ratify IC-064 evidence-ledger-gap-pr465 from comparison-engine-v1.0-analysis'. REGISTERED.md files the entry as IC-065. Keep both; recommended registry id is IC-065. The commit was authored by Claude; approval evidence is agent-transcribed.", "finding": "note paraphrased the subject"},
+  {"edge": 77, "action": "downgrade_to_candidate", "new_note": "H-RCO-01 is a registered hypothesis with status CANDIDATE and no result. It is a plan to measure the effect of the fix, not an outcome of it.", "finding": "registered hypothesis classified as an outcome"},
+  {"edge": 79, "action": "retarget_ref", "new_ref": "REGISTERED.md", "new_type": "file", "new_note": "The misfile correction for IC-060 and IC-061 (filed 2026-09-20 under held numbers, corrected 2026-09-21) is in the REGISTERED.md preamble, about line 40. The IC-030 entry cited does not contain it; IC-030 is the fetch-skipped condition the preamble names as the cause.", "finding": "ref points at an entry that does not contain the statement"}
+ ],
+ "not_changed_on_purpose": [
+  "C19 first_dated stays empty. The date is unknown.",
+  "A02 (ACAT-NUM) and A06 (CBDV) stay unlinked. No dated artifact was found.",
+  "All edges stay unratified. No edge is promoted.",
+  "18 recorded edges whose commits live in repositories outside this session's scope stay recorded in the proposal. This audit marks them UNVERIFIABLE_OUT_OF_SCOPE and does not count them as verified."
+ ]
+}
