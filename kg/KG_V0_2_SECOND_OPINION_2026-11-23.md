@@ -7,7 +7,7 @@
 - v0.1 graph blob: `1a1e2aa2693724ba4803d2bf5961e18fcc6b3acb`; 22 declared nodes, 16 edges.
 - v0.2 uploaded/committed graph blob: `aec9d323c8d1c4fe198f809c99fbc9a92377f323`; 19 additional constructs, 73 edges (56 `recorded`, 17 `candidate`), all `unratified`.
 - The **separate 358-node research graph** was located in the conversation working container, not in the repository. Read-only metadata and SHA-256 are in `kg/KG_RESEARCH_GRAPH_358_BOUNDARY_RECEIPT.json`. No source rows have been published or mapped. Claude's crosswalk proposal correctly has **zero admitted crosswalk rows**.
-- The local Python `tools/kg_v0_2_review.py` is a *second structural checker* (15 synthetic negative tests in `tools/tests/test_kg_v0_2_review.py`). It is not a replacement for Claude's semantic checker `kg/kg_v0_2_check.py` and 26-case test suite. A green structural check says nothing about scientific or operational validation.
+- A separate **temporary local** structural review exercised 15 synthetic negative cases. Its duplicate checker and tests were removed from this PR after CI surfaced Builder/tool-manifest failures; the maintained repository checker is Claude's `kg/kg_v0_2_check.py` with its 26-case suite. No second validation tool is installed or claimed.
 
 ## 2. Independent cross-repository source check
 
@@ -28,14 +28,13 @@ The existence check improves on the earlier audit's `UNVERIFIABLE_OUT_OF_SCOPE` 
 
 ## 4. Reproducible checks
 
-Local advisory checker invocation on a checkout containing both graphs:
+The maintained repository tests can be invoked in a checkout as follows:
 
 ```bash
-python3 tools/kg_v0_2_review.py kg/humanaios_kg_v0_1.json kg/humanaios_kg_v0_2_proposal.json --report /tmp/kg-v0-2-z1-report.json
-python3 -m unittest discover -s tools/tests -p 'test_kg_v0_2_review.py' -v
+python3 -m unittest tests.test_kg_v0_2_check -v
 ```
 
-Initial local synthetic run: **15/15 pass** and `PASS_STRUCTURE_ONLY`; zero verified human outcomes, 56 external locator references marked unverified by the structural checker. This run uses a verified ID/count skeleton for the v0.1 baseline; exact remote CI and full v0.1-file replay are still separate verification tasks. Underlying checker source was read back from GitHub at blob `aeb50ada71a3ef8eabea631ea3b55f59d6c4a4a5`.
+Claude's checker and its fixtures are the retained implementation. The independent temporary local exercise passed **15/15** synthetic structural tests, but the duplicate source was removed from the PR and does not provide a second maintained validation system. That exercise does not establish a verified human outcome. Exact-head CI and the retained 26-test suite remain the controlling code evidence.
 
 The semantic checker and its separate overlay may surface additional evidence defects. Neither checker authorizes agent action, canonical graph promotion or a GitHub merge.
 
