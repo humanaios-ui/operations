@@ -128,6 +128,18 @@ baseline_tests:
     requires: []
     description: NF ledger CLI tests
 
+  - path: tools/tests/test_witness_ledger_v0.py
+    requires: []
+    description: INTENT-OS witness ledger v0 hash-chain and authority-boundary tests
+
+  - path: tools/tests/test_machine_capability_allowlist_v0.py
+    requires: []
+    description: INTENT-OS machine capability allowlist v0 fail-closed stop-hook registry tests
+
+  - path: tools/tests/test_z2_authorized_machine_identities_api_v0.py
+    requires: []
+    description: INTENT-OS optional read-only machine-identity API v0 fail-closed and stop-hook-independence tests
+
   - path: tools/tests/test_ci_predict.py
     requires: []
     description: CI prediction tests
@@ -278,3 +290,11 @@ baseline_tests:
   - path: tests/test_witness_state_v0_2.py
     requires: []
     description: WITNESS_STATE v0.2 accepts the calibration baseline profile that v0.1 rejects (Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01, option A)
+
+  - path: tools/tests/test_admission_ruling_graph.py
+    requires: []
+    description: Admission-to-ruling graph generator joins the ledger to rulings in ledger order, reads no clock, and flags a merged PR whose ledger history lacks a merged row
+
+  - path: tools/tests/test_admission_ruling_graph_workflow.py
+    requires: []
+    description: Structural pin of the admission-ruling-graph workflow (event-driven, main only, no loop on its own merge, draft PR, two standard actions)

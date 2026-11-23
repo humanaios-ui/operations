@@ -2,8 +2,8 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 126
-  records: 78
+  candidates: 132
+  records: 80
 ratifiers:
 - Night
 candidates:
@@ -708,9 +708,13 @@ candidates:
   title: Intent-OS witness ledger — human-machine decision attribution ledger
   path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
   submitted: '2026-09-19'
-  status: awaiting_z2
-  note: Witness ledger architecture; human-machine decision attribution ledger; enables scalable Z3 executor onboarding. Phase 1–3 roadmap. Per CLAUDE.md, approved 2026-09-19 19:00 UTC pending formal INDEX entry.
+  status: ratified
+  note: 'Z1 INDEX reconcile (step A) pending Night Z2 confirmation. INDEX was awaiting_z2 while REGISTERED.md carries ACCEPT prose (2026-09-19T19:00:00Z, formula-only) and CLAUDE.md appends the same. No 64-hex Night hash exists in-repo — z2_hash is PENDING_NIGHT_REPIN (not forged, not computed). This status change is a Z1 consistency proposal; it does not itself ratify. Phase 1 ledger/API/CLI remains open (step B). Falsifier: INDEX again disagrees with REGISTERED ACCEPT prose + CLAUDE append for this Q-ID after Night confirms or rejects the re-pin.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-09-19"
+  z2_ruling: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
+  z2_hash: "PENDING_NIGHT_REPIN"
 - q_id: Q-MOLT-TEMPORAL-PURITY-01
   title: Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01
   path: z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md
@@ -1080,7 +1084,57 @@ candidates:
   status: awaiting_z2
   tier: 0
   note: 'Refs #1114. Z1 recommends admitting the specification for independent review only. Z2 and Z3 grants, provider model IDs, spend cap, OS or container isolation, read-only snapshot and the real two-agent preflight are all NOT granted or NOT done. KD-1..KD-3 and the later red-team and code-review findings are fixed offline; package test results are in TEST_RESULTS.txt (author-run) and an independent exact-head rerun is pending. Authority effect NONE. Not ratified.'
+- q_id: Q-AGENT-CHECKIN-HA000-LEDGER-01
+  title: Who administers HA-000, and whether review-agent findings get a ledger (asks 4 and 5 that Q-AGENT-CHECKIN-CALIBRATION-01 left unruled)
+  path: z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Follow-on to a ratified block (ratify 1-3, signature 9029baf1...). Asks only. HA-000 needs an administrator who is not Z1; the ledger question waits on that. A findings-ledger docx and PR_REVIEW_REPLACEMENT.md exist under audits/ and were not opened.'
+- q_id: Q-CORPUS-STATS-FOLLOWON-01
+  title: Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled)
+  path: z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Follow-on to a ratified block (neither, signature 5197f468...). Question 2 is a fact only Night can answer. Question 3 would be a Tier 2 workflow change, ruled separately.'
+- q_id: Q-REFERENT-DECAY-FOLLOWON-01
+  title: Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt)
+  path: z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Follow-on to a ratified block (E, F, signature 7392a2e7...). C shares a scale with the ratified graph ruling, not its scope. B is recorded, not asked.'
+- q_id: Q-PROJECT-DESK-BRIDGE-ADMISSION-01
+  title: 'Open items of the Project Desk bridge merged in 1203 - admit as the issue 1126 E0 receipt, independent reviewer, how the tests run, the three accepted minors'
+  path: z1-inbox/2026-11-20/Q-PROJECT-DESK-BRIDGE-ADMISSION-01.md
+  submitted: '2026-11-20'
+  status: ratified
+  note: 'The bridge folder is a candidate on main, not a ruling. Its own README says not HUMAN_REVIEW_READY. Z1 leans: reviewer and test path first, admission last.'
+  ratified_by: Night
+  ratified_at: "2026-11-20"
+  z2_ruling: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  z2_hash: "a37b75a823ef1a1572454b55d6c307b3c545c46e2db3ece71bc101888ffa9759"
+- q_id: Q-ADMISSION-RULING-GRAPH-01
+  title: 'A generated read-only page joining the admission ledger to Z2 rulings, a pointer issue, and telling contributors how admission works'
+  path: z1-inbox/2026-11-20/Q-ADMISSION-RULING-GRAPH-01.md
+  submitted: '2026-11-20'
+  status: ratified
+  note: 'Candidate only. Live ledger is on the coordinator-state branch (390 rows), main has a stale 71-row copy. Z1 leans: page plus thin pointer issue; entryways updated in separate pull requests after ruling.'
+  ratified_by: Night
+  ratified_at: "2026-11-20"
+  z2_ruling: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  z2_hash: "3f5cac40f77f8970dc424cef998f2a713a267c4c2c696e512e48334c82b90b79"
+- q_id: Q-ADMISSION-GRAPH-TIER2-01
+  title: 'The registry entry and the ADV run that Tier 2 asks for, for the admission-graph workflow merged in #1291'
+  path: z1-inbox/2026-11-20/Q-ADMISSION-GRAPH-TIER2-01.md
+  submitted: '2026-11-20'
+  status: awaiting_z2
+  note: 'Candidate only. Z1 wrote no REGISTERED.md entry and ran no ADV. adv_eval_v2.py scores supplied values, it does not run a workflow. Z1 leans: leave #1291 merged while the entry and run are open.'
 records:
+- path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
+  title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
+  note: "Z1 consistency record. authority_effect NONE. z2_hash PENDING_NIGHT_REPIN — no verbatim 64-hex Night hash found in-repo; formula-only ACCEPT prose cited as evidence pending Night confirmation. Not a new Z2 signature."
+- path: "z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md"
+  title: "Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
   title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
@@ -1319,3 +1373,4 @@ excluded:
 - z1-inbox/2026-11-12/project-desk-bridge/docs/RECONCILIATION_REPORT.md
 - z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_A_REPORT.md
 - z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_MANIFEST.md
+- z1-inbox/2026-11-12/Z2_BATCH_PACKET_B1-B3.md

@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only) | **STRUCTURAL REPAIR PENDING**
-**Last updated:** October 12, 2026 (Q-HCM-CORE-MACHINE-01 registered and Z2-ratified: HumanAIOS Core Machine v0.1, the machine-encoding layer; earlier the same day Q-CORE-CONCEPT-MAPPING-01, Layer 0 of the concept-to-code stack) — prior: October 9, 2026 (Registry structural audit; 162 entries, 127 defects identified; repair proposal Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01 filed) — See RFM-06/RFM-09/RFM-10/RFM-15/RFM-17 closure tasks in parallel governance channel.
+**Last updated:** November 20, 2026 (Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE append — Z1 INDEX reconcile pending Night confirmation; z2_hash PENDING_NIGHT_REPIN; original candidate header untouched) — prior: October 12, 2026 (Q-HCM-CORE-MACHINE-01 registered and Z2-ratified: HumanAIOS Core Machine v0.1, the machine-encoding layer; earlier the same day Q-CORE-CONCEPT-MAPPING-01, Layer 0 of the concept-to-code stack) — prior: October 9, 2026 (Registry structural audit; 162 entries, 127 defects identified; repair proposal Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01 filed) — See RFM-06/RFM-09/RFM-10/RFM-15/RFM-17 closure tasks in parallel governance channel.
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -5844,4 +5844,43 @@ superseded_by: null
 - Comparison Engine Output: `Z2_REVIEW_PR465_ENGINE_OUTPUT.md` (AUDIT-3d1f49e5-0437-4c13-ba7b, 2026-09-24)
 - Original PR Decision: `Z2_REVIEW_PR465_COMPARISON.md`
 - Engine Code: `comparison_engine.py` (commit 0585135)
+
+-----
+
+## Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE — Z1 INDEX reconcile pending Night confirmation
+
+```yaml
+---
+id: "Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE"
+name: "intent-os-witness-ledger-index-reconcile"
+status: PENDING_ZONE2
+class: Q
+date_registered: "2026-11-20"
+date_origin: "2026-09-19"
+session_registered: "S-112026-Z1-witness-ledger-index-reconcile"
+principles_triggered: ["P-governance", "P-authority", "P-intent-os", "P-audit"]
+substrate: "Cursor cloud agent (Z1 consistency reconcile; authority_effect NONE)"
+tags: ["governance", "witness-ledger", "INTENT-OS", "AMBIGUITY", "INDEX", "append-only", "PENDING_NIGHT_REPIN"]
+related_finding: ["Q-INTENT-OS-WITNESS-LEDGER-01"]
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Z1 proposes closing the AMBIGUITY where `z1-inbox/INDEX.yaml` still said `awaiting_z2` for `Q-INTENT-OS-WITNESS-LEDGER-01` while this file already carries ACCEPT **prose** (2026-09-19T19:00:00Z, formula-only — not a 64-hex digest) and `CLAUDE.md` appends the same. **This status change is a Z1 reconcile pending Night’s Z2 confirmation.** No Night-issued sha256 hex was found in-repo; INDEX `z2_hash` is set to `PENDING_NIGHT_REPIN` (not forged, not computed). The original candidate YAML header remains untouched (`status: CANDIDATE`, `zone2_ratification: null`); the ACCEPT prose is the existing `## Z2 Ratification — 2026-09-19` block for this Q-ID.
+
+- **Referenced existing ACCEPT prose (unchanged; formula-only):**
+  - Candidate ID: `Q-INTENT-OS-WITNESS-LEDGER-01`
+  - Decision: ACCEPT
+  - Timestamp: 2026-09-19T19:00:00 UTC
+  - Formula string (not hex): `sha256(Q-INTENT-OS-WITNESS-LEDGER-01 | carly.r.anderson@gmail.com | 2026-09-19T19:00:00Z | ACCEPT | witness-ledger-architecture)`
+  - INDEX `z2_hash`: `PENDING_NIGHT_REPIN`
+
+- **Scope guard:** Consistency proposal only. Does not implement the witness ledger, API, or stop-hook (step B+). Does not ratify. Does not edit the prior REGISTERED entry body; this is an append. Z2 box left for Night.
+
+- **Artifacts:** PR #1293 (draft / WORKBENCH); `z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md` (indexed under `records:` and cited as INDEX `z2_ruling`).
+
+- **Falsifier:** After this append lands, if INDEX status for `Q-INTENT-OS-WITNESS-LEDGER-01` again disagrees with the existing ACCEPT prose **and** the CLAUDE.md append for the same Q-ID without an intervening Night confirm/reject, reopen as AMBIGUITY.
+
+**Status:** PENDING_ZONE2 — Z1 consistency append · pending Night confirmation · `z2_hash: PENDING_NIGHT_REPIN` · `authority_effect: NONE`
 
