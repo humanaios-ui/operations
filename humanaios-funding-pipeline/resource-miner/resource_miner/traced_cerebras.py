@@ -61,27 +61,34 @@ def call_with_trace(
         ) as gen:
             start = time.perf_counter()
             failure = None
-            response = None
+            answer = ""
+            amounts: dict[str, int] = {}
             try:
                 response = cerebras.chat.completions.create(
                     messages=[{"role": "user", "content": prompt}],
                     model=model, max_completion_tokens=max_tokens,
                 )
-            except Exception as exc:  # do not send unredacted provider errors into traces
+                choices = getattr(response, "choices", None)
+                if not choices:
+                    raise ValueError("Provider response missing choices")
+                message = getattr(choices[0], "message", None)
+                content = getattr(message, "content", None)
+                if not isinstance(content, str):
+                    raise ValueError("Provider response missing text content")
+                answer = content
+                usage = getattr(response, "usage", None)
+                for source, target in (("prompt_tokens", "input_tokens"),
+                                       ("completion_tokens", "output_tokens")):
+                    value = getattr(usage, source, None)
+                    if type(value) is int and value >= 0:
+                        amounts[target] = value
+            except Exception as exc:  # never export raw provider errors or malformed content
                 failure = type(exc).__name__
             elapsed_ms = round((time.perf_counter() - start) * 1000, 3)
             if failure:
                 gen.update(level="ERROR", status_message="CEREBRAS_CALL_FAILED",
                            metadata={"error_type": failure, "latency_ms": elapsed_ms})
             else:
-                answer = getattr(response.choices[0].message, "content", None) or ""
-                usage = getattr(response, "usage", None)
-                amounts = {}
-                for source, target in (("prompt_tokens", "input_tokens"),
-                                       ("completion_tokens", "output_tokens")):
-                    value = getattr(usage, source, None)
-                    if type(value) is int and value >= 0:
-                        amounts[target] = value
                 gen.update(
                     output={"response_sha256": digest(answer), "response_characters": len(answer)},
                     usage_details=amounts or None,
