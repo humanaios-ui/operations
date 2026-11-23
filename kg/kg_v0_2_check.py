@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Offline checker for kg/humanaios_kg_v0_2_proposal.json (Z1 proposal, authority_effect NONE).
 
-Reads local files and local git only. No network. Never edits the proposal.
+Reads local files and local git only. No network. Does not edit the proposal.
 
 What it separates, per recorded edge:
   source_existence     does the cited record exist where we can look?
@@ -9,7 +9,7 @@ What it separates, per recorded edge:
   approval_evidence    is there a ratification field, who wrote it, is it authenticated?
   observed_outcome     is the target an observed consequence, or only a registered one?
 
-Out-of-scope repositories are reported UNVERIFIABLE_OUT_OF_SCOPE. They are never counted as pass.
+Out-of-scope repositories are reported UNVERIFIABLE_OUT_OF_SCOPE. They are not counted as pass.
 """
 import argparse
 import json
@@ -129,7 +129,7 @@ def edge_local(edge):
 
 
 def supporting_edges(proposal):
-    """Only recorded edges count as support. Candidates never do. Nothing here is ratified."""
+    """Only recorded edges count as support. Candidates do not. Nothing here is ratified."""
     return [e for e in proposal["edges"] if e.get("link_state") == "recorded"]
 
 
@@ -167,7 +167,7 @@ def validate(proposal, ctx):
 
         b = e.get("basis", {})
         rec = e.get("link_state") == "recorded"
-        # candidate promotion: a recorded edge must point at a dated record, never at an inference
+        # candidate promotion: a recorded edge must point at a dated record, not at an inference
         if rec and (b.get("type") == "inference" or not b.get("ref")):
             add(eid, "E_CANDIDATE_PROMOTION", "error", "recorded edge has inference basis or empty ref")
         if not rec and not b.get("note"):
@@ -216,7 +216,7 @@ def validate(proposal, ctx):
                 if not (has_field or has_commit):
                     add(eid, "E_MISSING_APPROVAL", "error", "approved_by has neither a zone2_ratification field nor a ratification commit")
             if e.get("status") != "unratified":
-                add(eid, "E_MISSING_APPROVAL", "error", "approved_by never makes an edge ratified")
+                add(eid, "E_MISSING_APPROVAL", "error", "approved_by does not make an edge ratified")
 
     # same registry entry used four ways for one source inflates support
     by = {}
@@ -290,7 +290,7 @@ def audit_recorded(proposal, ctx):
 
 
 def apply_overlay(proposal, overlay):
-    """Return a corrected COPY. The proposal file is never touched."""
+    """Return a corrected COPY. The proposal file is left as it is."""
     out = json.loads(json.dumps(proposal))
     by = {e["id"]: e for e in out["edges"]}
     for c in overlay["corrections"]:
