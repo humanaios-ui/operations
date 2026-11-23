@@ -28,8 +28,10 @@ def screen(case: dict) -> dict:
              and case["case_id"].startswith("DEMO-")
              and len(case["case_id"]) <= 70, "only DEMO cases allowed")
     kind, facts = case["kind"], case["facts"]
-    _require(kind in KINDS and type(facts) is dict
-             and set(facts) == KINDS[kind], "invalid case type or fields")
+    _require(type(kind) is str and kind in KINDS,
+             "invalid case type")
+    _require(type(facts) is dict and set(facts) == KINDS[kind],
+             "invalid case fields")
 
     if kind == "AGENT_IDENTITY":
         _require(all(type(facts[k]) is str and 0 < len(facts[k]) < 80
