@@ -49,6 +49,8 @@ def verify_source_queue(snapshot: list[dict[str, Any]], selected_ids: list[str])
         if not valid_source:
             raise ValueError("Missing valid HTTPS source")
         evidence = row.get("evidence") or []
+        if not evidence:
+            raise ValueError("Missing evidence references")
         urls = sorted({
             ref["url"] for ref in evidence
             if isinstance(ref, dict) and isinstance(ref.get("url"), str)
