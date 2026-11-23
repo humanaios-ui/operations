@@ -6,6 +6,8 @@ labels: []
 assignees: []
 ---
 
+_An issue is not admitted work, and assigning it does not admit a pull request. Pull requests are admitted separately, on their exact head commit. See [CONTRIBUTING.md](https://github.com/humanaios-ui/operations/blob/main/CONTRIBUTING.md#how-a-pull-request-is-admitted)._
+
 <!-- Two or three sentences are enough. Delete any section that does not apply. -->
 
 ## What happened or what is missing
