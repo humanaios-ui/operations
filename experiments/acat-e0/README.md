@@ -11,13 +11,14 @@ The multi-agent email workflow already demonstrates message delivery, partial so
 From the repository root:
 
     python3 experiments/acat-e0/trace.py --demo
-    cd experiments/acat-e0 && python3 -m unittest -v test_trace.py
+    cd experiments/acat-e0 && PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v test_trace.py test_witness_intake.py
 
-The code uses only Python standard library and no network, credentials, GitHub access, Gmail, model sessions, timers or file writes. It accepts **no external dataset** in its CLI. The fixed source packet is fictional. One Grok fixture starts with an unsupported ACCEPT judgment; a ChatGPT fixture checks the controlling evidence; a Claude fixture issues P2; the original Grok fixture revises P3 to HOLD. The Witness fixture records internal SHA-256 receipts over packet and stage payloads. The separately frozen fictional answer key allows observing that P1 was wrong and P3 correct without treating reviewer agreement as truth. The negative P2 test shows that P3 may correctly **disagree** with a bad challenge.
+The code uses only the Python standard library. The `--demo` CLI has **no external dataset input** and does not call a model, network, Gmail, GitHub, or privileged service. The library validator is callable with arbitrary in-process Python data and checks only the declared synthetic schema, allowed fields, and declared fixture-label shapes; it **cannot detect real, private, or confidential content** masquerading as synthetic input. No real-data intake, storage, or release is authorized. The fixed source packet is fictional. One Grok fixture starts with an unsupported ACCEPT judgment; a ChatGPT fixture checks the controlling evidence; a Claude fixture issues P2; the original Grok fixture revises P3 to HOLD. P3 includes a **synthetic, self-declared P2-to-P3 challenge-delivery receipt** bound to the exact P2 event digest, recipient fixture label, and ordered times. The validator requires P3 to declare challenge exposure. This proves **internal consistency of fictional events only**, not that a real independent delivery occurred. The Witness fixture records SHA-256 digests over packet, event, and delivery payloads. The separately frozen fictional answer key allows observing that P1 was wrong and P3 correct without treating reviewer agreement as truth. The negative P2 test shows that P3 may correctly **disagree** with a bad challenge.
 
 ## What the gates actually prove
 
-- **Internally testable**: exact packet bytes are stable under canonical JSON, immutable stage receipts detect alterations, phase order and role claims match a restricted synthetic contract, declared P1 exposure fails closed, one claimed controller cannot grade itself, witness does not authorize, and unrecognized/private/real input cannot enter this test.
+- **Internally testable**: packet/event/delivery digests are reproducible with this project's deterministic, sorted, ASCII-escaped JSON serialization (not a general RFC 8785 JCS implementation). The validator rejects stale or inconsistent digests, unknown fields, non-synthetic declarations, invalid claimed fixture identity shape, claimed controller collisions, unsafe chronology, absent or misbound P2-to-P3 *synthetic* delivery, and unauthorized authority labels. The demo CLI offers no external-data intake.
+- **IMPORTANT LIMIT**: These receipts are not immutable or independently signed. A party able to alter the payloads and recompute every digest can fabricate an internally consistent record. Labels cannot prove content is fictional or privacy-safe. Real-data admission would require a separately approved privacy gate, authenticated controllers, source freeze and custody.
 - **NOT authenticated**: fixture agent names and controller_claim values, independent real-world model control, source reliability, externally signed proof of custody, github comments (editable/deletable), sealed blind exposures, protected CI, user benefit, human consent, or production containment.
 - **NOT science**: no canonical ACAT dimensions, validated scoring, Brier metric, Learning Index, self-awareness claim, causal human-outcome estimate or live participant evaluation. p1_answer_matches_fictional_key and p3_answer_matches_fictional_key are deterministic test assertions only.
 
@@ -30,7 +31,7 @@ The code uses only Python standard library and no network, credentials, GitHub a
 
 ## Falsifier
 
-If the checker accepts a same-controller P2, P3 before P2, a stale source packet, edited event, forged Witness digest, private extra field, or any authority-changing payload, the E0 integrity claim fails. If a future live claim equates self-report changes or review agreement with independently observed skill/human benefit, the research claim fails.
+If the checker accepts a same-controller P2, P3 without a correctly linked P2-delivery receipt and declared exposure, P3 before P2, a stale source packet, a changed event without resealing, a changed Witness receipt without resealing, a private *extra field*, or an authority-changing payload, the E0 **fixture-consistency** claim fails. These checks do not promise detection of private information embedded within otherwise allowed text. If a future live claim equates self-report changes or review agreement with independently observed skill/human benefit, the research claim fails.
 
 ## Rollback
 
