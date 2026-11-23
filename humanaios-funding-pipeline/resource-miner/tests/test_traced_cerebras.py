@@ -64,6 +64,23 @@ class TracedCerebrasTests(unittest.TestCase):
         self.assertEqual(lf.entries[1]["level"], "ERROR")
         self.assertNotIn("PRIVATE PROVIDER RESPONSE", str(lf.entries))
 
+    def test_malformed_provider_reply_is_sanitized_and_does_not_claim_success(self):
+        replies = (
+            NS(choices=[]),
+            NS(choices=[NS()]),
+            NS(choices=[NS(message=NS(content=None))]),
+            NS(choices=[NS(message=NS(content={"private": "do not trace"}))]),
+        )
+        for reply in replies:
+            with self.subTest(reply=type(reply).__name__):
+                lf, cc = FakeLangfuse(), CompletionStub()
+                cc.create = lambda **kwargs: reply
+                with self.assertRaisesRegex(RuntimeError, "^CEREBRAS_CALL_FAILED$"):
+                    call_with_trace(cerebras=cc, langfuse=lf)
+                self.assertEqual(lf.entries[1]["level"], "ERROR")
+                self.assertEqual(lf.entries[0]["output"]["completed"], False)
+                self.assertNotIn("do not trace", str(lf.entries))
+
     def test_public_prompt_only(self):
         lf, cc = FakeLangfuse(), CompletionStub()
         with self.assertRaisesRegex(ValueError, "pinned public"):
