@@ -78,6 +78,47 @@ class OutcomeShadowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Missing evidence"):
             verify_source_queue(rows, [rid])
 
+    def test_foreign_or_other_account_evidence_fails_closed(self):
+        record = {
+            "resource_id": "SYNTH",
+            "source_url": "https://github.com/provider/program",
+            "resource_affordances": ["compute"],
+        }
+        for evidence_url in (
+            "https://unrelated.example/provider/program",
+            "https://github.com/other/program",
+            "https://github.com/provider/program-other",
+            "https://github.com/provider/program/../../other/program",
+        ):
+            with self.subTest(evidence_url=evidence_url):
+                record["evidence"] = [{"url": evidence_url}]
+                with self.assertRaisesRegex(ValueError, "source-bound evidence"):
+                    verify_source_queue([record], ["SYNTH"])
+
+    def test_review_queue_keeps_only_source_bound_evidence(self):
+        record = {
+            "resource_id": "SYNTH",
+            "source_url": "https://github.com/provider/program",
+            "evidence": [
+                {"url": "https://unrelated.example/outside"},
+                {"url": "https://github.com/provider/program/docs"},
+            ],
+        }
+        out = verify_source_queue([record], ["SYNTH"])
+        self.assertEqual(out["items"][0]["evidence_urls"],
+                         ["https://github.com/provider/program/docs"])
+        self.assertEqual(out["verified_task_outcomes"], 0)
+
+    def test_review_queue_requires_https_public_source(self):
+        for source in ("http://provider.example/program",
+                       "https://user:password@provider.example/program",
+                       "https://[invalid"):
+            with self.subTest(source=source):
+                record = {"resource_id": "SYNTH", "source_url": source,
+                          "evidence": [{"url": "https://provider.example/program"}]}
+                with self.assertRaisesRegex(ValueError, "valid HTTPS source"):
+                    verify_source_queue([record], ["SYNTH"])
+
     def test_missing_ids_are_denied(self):
         with self.assertRaisesRegex(ValueError, "missing"):
             verify_source_queue(self.rows, ["DOES_NOT_EXIST"])
