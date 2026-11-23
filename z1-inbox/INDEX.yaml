@@ -1374,3 +1374,6 @@ excluded:
 - z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_A_REPORT.md
 - z1-inbox/2026-11-12/project-desk-bridge/docs/TEST_MANIFEST.md
 - z1-inbox/2026-11-12/Z2_BATCH_PACKET_B1-B3.md
+- z1-inbox/2026-11-23/gpcs001-chatgpt-review-e0/README.md
+- z1-inbox/2026-11-23/gpcs001-chatgpt-review-e0/adversarial_review.md
+- z1-inbox/2026-11-23/gpcs001-chatgpt-review-e0/repair_plan.md
