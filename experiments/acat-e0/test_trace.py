@@ -51,8 +51,8 @@ class TestSyntheticACATTrace(unittest.TestCase):
     def test_good_fixture_is_not_certified(self):
         r = validate(self.t)
         self.assertEqual(r["status"], "SYNTHETIC_TRACE_COMPLETE_NOT_ACAT_QUALIFIED")
-        self.assertFalse(r["p1_answer_matches_fictional_key"])
-        self.assertTrue(r["p3_answer_matches_fictional_key"])
+        self.assertFalse(r["p1_decision_matches_key"])
+        self.assertTrue(r["p3_decision_matches_key"])
         self.assertFalse(r["human_benefit_verified"])
         self.assertEqual(r["authority_effect"], "NONE")
 
@@ -106,6 +106,23 @@ class TestSyntheticACATTrace(unittest.TestCase):
     def test_unauthorized_real_world_case(self):
         self.fail_change(lambda t: t["packet"].update(source_kind="REAL"))
 
+    def test_fictional_packet_cannot_claim_public_freeze(self):
+        self.fail_change(lambda t: t["packet"].update(source_kind="PUBLIC_EXCERPT_FROZEN"))
+
+    def test_answer_key_edit_fails(self):
+        self.fail_change(lambda t: t["key"].update(case_id="DEMO-OTHER"))
+
+    def test_assertion_without_frozen_proposition_fails(self):
+        t = copy.deepcopy(self.t)
+        t["events"][0]["assertions"] = {"UNFROZEN": "YES"}
+        self.reseal_event(t, 0)
+        self.reseal_delivery(t)
+        with self.assertRaisesRegex(ValueError, "assertion outside frozen propositions"):
+            validate(t)
+
+    def test_fallback_fixture_has_no_proposition_key(self):
+        self.assertIsNone(validate(self.t)["p3_matches_proposition_key"])
+
     def test_unknown_private_record(self):
         self.fail_change(lambda t: t.update(private_email="private@example.invalid"))
 
@@ -116,7 +133,7 @@ class TestSyntheticACATTrace(unittest.TestCase):
         self.reseal_delivery(t)
         r = validate(t)
         self.assertFalse(r["p2_challenge_agreed_with_p3"])
-        self.assertTrue(r["p3_answer_matches_fictional_key"])
+        self.assertTrue(r["p3_decision_matches_key"])
 
     def test_p3_no_challenge_exposure_fails_even_if_resealed(self):
         t = copy.deepcopy(self.t)
