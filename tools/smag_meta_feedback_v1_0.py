@@ -145,6 +145,7 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         # Fetch all PRs page-by-page within the lookback window
         cutoff_timestamp = (datetime.utcnow() - timedelta(days=lookback_days)).isoformat()
         all_prs = []
+        seen_pr_numbers = set()  # Track seen PR numbers to deduplicate across pages
         page = 1
         max_pages = 10  # Safety limit to avoid infinite loops
         data_incomplete = False  # Flag when pagination cap is reached without completeness
@@ -213,7 +214,12 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
             # Check if this page has PRs older than cutoff
             if page_prs:
                 oldest_created = min((pr.get("created_at", "") for pr in page_prs), default="")
-                all_prs.extend(page_prs)
+                # Deduplicate by PR number to handle page boundary shifts
+                for pr in page_prs:
+                    pr_number = pr.get("number")
+                    if pr_number and pr_number not in seen_pr_numbers:
+                        seen_pr_numbers.add(pr_number)
+                        all_prs.append(pr)
                 if oldest_created and oldest_created < cutoff_timestamp:
                     # This page has PRs older than cutoff; stop fetching
                     break
