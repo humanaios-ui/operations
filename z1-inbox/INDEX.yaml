@@ -2,8 +2,8 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 133
-  records: 83
+  candidates: 135
+  records: 81
 ratifiers:
 - Night
 candidates:
@@ -1135,7 +1135,22 @@ candidates:
   submitted: '2026-11-20'
   status: awaiting_z2
   note: 'Candidate only. Z1 wrote no REGISTERED.md entry and ran no ADV. adv_eval_v2.py scores supplied values, it does not run a workflow. Z1 leans: leave #1291 merged while the entry and run are open.'
+- q_id: Q-CATCH-BIG-TALK-RULES-01
+  title: 'Catch the Big Talk game rules v0.1 inside Wardens - GTA 6 packet as practice round, cross-machine audit round, board, tiers, Gateway known-answer checks'
+  path: z1-inbox/2026-11-24/Q-CATCH-BIG-TALK-RULES-01.md
+  submitted: '2026-11-24'
+  status: awaiting_z2
+  note: 'Rules only; nothing built, posted or run. Records three choices Night made in session on 2026-11-24 (practice only, machines-only practice board, tier line). Falsifier stated. Not ratified.'
+- q_id: Q-REPO-GRAPH-SORT-01
+  title: 'One file-level list of the repository graphs (5S Sort) - path, blob, question, builder, size; clashes flagged'
+  path: z1-inbox/2026-11-25/Q-REPO-GRAPH-SORT-01.md
+  submitted: '2026-11-25'
+  status: awaiting_z2
+  note: 'List only; no graph, tool or gate changed. Adds a file-level section to docs/graph_integration/INVENTORY.md, keeping the PR #896 design table below it. Night asked for it in session on 2026-11-25. Falsifier stated. Not ratified.'
 records:
+- path: "z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md"
+  title: "Z2 ruling — the merge ratifies every candidate, not only board rulings (Night, 2026-11-25)"
+  note: "Extends z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md to candidates with no board relay block merged since 2026-09-18; merger must map to a declared ratifier; open board questions excepted. Executed by tools/intent_os_reconcile_v1_0.py 1.1.0."
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
   note: "Z1 consistency record. authority_effect NONE. z2_hash PENDING_NIGHT_REPIN — no verbatim 64-hex Night hash found in-repo; formula-only ACCEPT prose cited as evidence pending Night confirmation. Not a new Z2 signature."
@@ -1145,15 +1160,6 @@ records:
 - path: "z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md"
   title: "Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
-- path: "z1-inbox/2026-11-19/apart-collusion-publication/article.md"
-  title: "Apart AI collusion evidence-bounded editorial draft"
-  note: "Publication source file for the Apart AI article. Governance-registered as records/ entry; no Z2 decision requested; indexed to satisfy coverage rule."
-- path: "z1-inbox/2026-11-19/apart-collusion-publication/PUBLICATION_REVIEW_PACKET.md"
-  title: "Publication review packet for Apart collusion article"
-  note: "Source/claim matrix C1–C9 and pipeline stages (GitHub→proof→review→Buffer draft→release). Indexed as a records/ entry per governance coverage rule."
-- path: "z1-inbox/2026-11-19/apart-collusion-publication/REVIEWER_AUTOMATION_PROMPTS.md"
-  title: "Reviewer automation prompts for multi-agent review"
-  note: "Read-only reviewer task prompts for ChatGPT/Claude/Grok independent reviews of the article. Indexed as a records/ entry per governance coverage rule."
 - path: z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md
   title: "Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py)"
   note: "Written by ratify.py --apply. One file per decision date; each\

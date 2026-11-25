@@ -26,7 +26,8 @@ name: coordinator-admission-sweep
 #       - workflow_dispatch with dry_run=false, OR
 #       - schedule with repository variable COORDINATOR_AUTOSWEEP_ENABLED == 'true'
 #     Z2 flips that variable to activate after ratification; reverting is setting
-#     it false (no code change, no ledger rewrite).
+#     it false stops scheduled admissions. Manual dry_run=false runs remain
+#     available (no code change, no ledger rewrite).
 #
 # PREVIEW: `python3 tools/coordinator_admission_sweep_dryrun.py` reproduces this
 # selection locally (live gh/git) without dispatching; `--smoke-test` is the
@@ -117,6 +118,9 @@ jobs:
             const mainTree = await github.rest.git.getTree({
               owner, repo, tree_sha: mainCommit.data.tree.sha, recursive: "true"
             });
+            if (mainTree.data.truncated) {
+              throw new Error("default-branch tree is truncated; refusing incomplete artifact checks");
+            }
             const mainPaths = (mainTree.data.tree || [])
               .filter(x => x.type === "blob" && x.path)
               .map(x => x.path);
@@ -183,10 +187,19 @@ jobs:
                 if (need) {
                   // Per-PR get supplies mergeable_state so dirty/behind PRs are
                   // routed REBASE_RETEST (not ADVANCE) — matching the advisory index.
-                  const full = (await github.rest.pulls.get({
-                    owner, repo, pull_number: brief.number
-                  })).data;
-                  mergeableState = full.mergeable_state || "unknown";
+                  let full;
+                  for (let attempt = 0; attempt < 4; attempt++) {
+                    full = (await github.rest.pulls.get({
+                      owner, repo, pull_number: brief.number
+                    })).data;
+                    if (full.mergeable !== null && full.mergeable_state &&
+                        full.mergeable_state !== "unknown") break;
+                    if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 2000));
+                  }
+                  mergeableState = full.mergeable === null ? "unknown" : (full.mergeable_state || "unknown");
+                  // Bind classification to the head returned with mergeability.
+                  // The dispatch step checks this head again before sending.
+                  brief = { ...brief, ...full };
                   files = await listFiles(brief.number);
                   filesComplete = true;
                   reviews = await github.paginate(
@@ -321,15 +334,35 @@ jobs:
             let headroom = Math.max(0, limit - admittedReady);
             const hardCap = Math.max(0, Number(process.env.MAX_ADMITS || "10"));
 
+            const objectives = it => [
+              ...((it.admission || {}).objectives || []),
+              ...((it.admission || {}).declared_objectives || [])
+            ];
+            const claimed = new Set((index.items || [])
+              .filter(it => ["ACTIVE", "CAPACITY_CONTENTION"].includes(it.lane))
+              .flatMap(objectives));
             const eligible = (index.items || []).filter(it =>
               it.lane === "ADMISSION_REVIEW" &&
               (it.guidance || {}).action === "ADVANCE" &&
+              ((it.merge_surface || {}).mergeable_state || "unknown") !== "unknown" &&
+              !objectives(it).some(objective => claimed.has(objective)) &&
               !(it.findings || []).some(f => f.severity === "HIGH")
             ).sort((a, b) => a.number - b.number);
 
             const budget = Math.min(headroom, hardCap);
-            const selected = eligible.slice(0, budget);
-            const deferred = eligible.slice(budget);
+            const selected = [];
+            const deferred = [];
+            const conflicting = [];
+            for (const it of eligible) {
+              if (objectives(it).some(objective => claimed.has(objective))) {
+                conflicting.push(it);
+              } else if (selected.length < budget) {
+                selected.push(it);
+                objectives(it).forEach(objective => claimed.add(objective));
+              } else {
+                deferred.push(it);
+              }
+            }
 
             const lines = [];
             lines.push("## Coordinator admission sweep");
@@ -344,9 +377,43 @@ jobs:
             if (deferred.length) {
               lines.push(`- deferred (over capacity/cap): ${deferred.map(x => "#" + x.number).join(", ")}`);
             }
+            if (conflicting.length) {
+              lines.push(`- skipped (objective selected in this batch): ${conflicting.map(x => "#" + x.number).join(", ")}`);
+            }
             lines.push("");
 
+            // A dispatch response only acknowledges delivery. Correlate the
+            // resulting gate run and require its mutation job to succeed.
+            const waitForGate = async (dispatchId, created) => {
+              let runId;
+              for (let attempt = 0; attempt < 120; attempt++) {
+                let run;
+                if (runId) {
+                  run = (await github.rest.actions.getWorkflowRun({owner, repo, run_id: runId})).data;
+                } else {
+                  const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                    owner, repo, workflow_id: "repository-admission-gate.yml",
+                    event: "workflow_dispatch", branch: "main", created: `>=${created}`, per_page: 100
+                  });
+                  run = runs.find(r => r.display_title === `Admission dispatch ${dispatchId}`);
+                  if (run) runId = run.id;
+                }
+                if (run && run.status === "completed") {
+                  const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                    owner, repo, run_id: run.id, per_page: 100
+                  });
+                  if (run.conclusion !== "success" || !jobs.some(j =>
+                    j.name === "Append coordinator state event" && j.conclusion === "success")) {
+                    throw new Error(`admission gate rejected dispatch: ${run.html_url}`);
+                  }
+                  return run.html_url;
+                }
+                if (attempt < 119) await new Promise(resolve => setTimeout(resolve, 5000));
+              }
+              throw new Error(`timed out waiting for admission gate (${dispatchId})`);
+            };
             let admitted = 0;
+            let failures = 0;
             for (const it of selected) {
               const evidence =
                 `coordinator-admission-sweep run ${process.env.RUN_ID}: PR #${it.number} ` +
@@ -357,11 +424,22 @@ jobs:
                 continue;
               }
               try {
+                const current = (await github.rest.pulls.get({
+                  owner, repo, pull_number: it.number
+                })).data;
+                if (!it.head_sha || current.head.sha !== it.head_sha ||
+                    current.state !== "open" || current.draft) {
+                  lines.push(`  - skipped #${it.number}: head or ready state changed since classification`);
+                  continue;
+                }
+                const dispatchId = require("crypto").randomUUID();
+                const created = new Date().toISOString();
                 await github.rest.actions.createWorkflowDispatch({
                   owner, repo,
                   workflow_id: "repository-admission-gate.yml",
                   ref: "main",
                   inputs: {
+                    dispatch_id: dispatchId,
                     decision: "ADMIT",
                     subject_kind: "PULL_REQUEST",
                     subject_number: String(it.number),
@@ -369,16 +447,19 @@ jobs:
                     evidence
                   }
                 });
+                const gateUrl = await waitForGate(dispatchId, created);
                 admitted += 1;
-                lines.push(`  - dispatched ADMIT for #${it.number}`);
+                lines.push(`  - ADMIT dispatch accepted by gate for #${it.number}: ${gateUrl}`);
               } catch (err) {
-                lines.push(`  - FAILED to dispatch #${it.number}: ${err.message}`);
+                failures += 1;
+                lines.push(`  - FAILED dispatch/gate for #${it.number}: ${err.message}`);
               }
             }
             lines.push("");
-            lines.push(`_${doAdmit ? admitted + " ADMIT dispatch(es) issued" : "dry-run; no dispatches"}. ` +
-              `The hash-chained ledger write is performed by repository-admission-gate.yml, not by this sweep._`);
+            lines.push(`_${doAdmit ? admitted + " successful ADMIT dispatch(es) accepted by the gate" : "dry-run; no dispatches"}. ` +
+              `Admitted counts successful dispatches, not ledger writes. The hash-chained ledger write is performed by repository-admission-gate.yml, not by this sweep._`);
 
             const summary = lines.join("\n") + "\n";
             await core.summary.addRaw(summary).write();
             core.info(summary);
+            if (failures) core.setFailed(`${failures} admission dispatch/gate failure(s)`);

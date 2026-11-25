@@ -1,0 +1,38 @@
+{
+  "schema": "HAIOS-RISK-OBS-001-CONTRACT-v0.1",
+  "related_issue": 1109,
+  "research_node": "HAIOS-MM-ACAT-002",
+  "status": "Z1_DRAFT_REVIEW_ONLY",
+  "authority_effect": "NONE",
+  "source_custody": "QUALIFIED_ANALYST_PARAPHRASE",
+  "source_cutoff": "2026-11-06",
+  "artifacts": {
+    "packet": {
+      "filename": "research_packet_candidate_v0.1.md",
+      "bytes": 9412,
+      "sha256": "ee27322c0437d1bd34d1de1875b35b2014916f75326f8111287dd38265e11170"
+    },
+    "prompt": {
+      "filename": "P1_prompt_from_packet_v0.1.txt",
+      "bytes": 1540,
+      "sha256": "0b998971f94161fb91edc0ae2bf86a098eed48a87fbab9a01db31641680df16d"
+    },
+    "rubric": {
+      "filename": "scoring_rubric_PROPOSED_v0.1.md",
+      "bytes": 4234,
+      "sha256": "9f46be51a7a0f4320a5ca491906ff129a66b0e547666ee062346576e585c64b6"
+    }
+  },
+  "source_ids": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6",
+    "S7"
+  ],
+  "p1_execution_authorized": false,
+  "p2_qualified": false,
+  "public_release_authorized": false
+}

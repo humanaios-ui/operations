@@ -1,0 +1,201 @@
+{
+  "default_state": "UNKNOWN_ROUTE_FACTS",
+  "effective_through": null,
+  "facts": {
+    "citizenship_qualifier": {
+      "type": "bool"
+    },
+    "county": {
+      "type": "str"
+    },
+    "disconnection_notice": {
+      "type": "bool"
+    },
+    "energy_bill_responsibility": {
+      "type": "bool"
+    },
+    "fuel": {
+      "type": "str"
+    },
+    "gross_income_annual": {
+      "type": "money"
+    },
+    "household_size": {
+      "type": "int"
+    },
+    "resident": {
+      "type": "bool"
+    }
+  },
+  "income_cap": {
+    "fact": "gross_income_annual",
+    "max_size": 8,
+    "size_fact": "household_size",
+    "table": {
+      "1": 32155,
+      "2": 42049,
+      "3": 51943,
+      "4": 61837,
+      "5": 71730,
+      "6": 81624,
+      "7": 83479,
+      "8": 85335
+    }
+  },
+  "lists": {},
+  "next_steps": {
+    "CRISIS_FUNDING_UNCONFIRMED": "Crisis funding availability is unconfirmed; ask the county provider",
+    "FACT_UNKNOWN": "Verify the missing applicant fact privately; do not infer",
+    "NO_ROUTE_SHOWN": "Water only is not a LIHEAP-covered heating/cooling bill",
+    "OVER_PUBLISHED_LIMIT": "Agency may check countability, time period or exceptions",
+    "REVIEW_REQUIRED": "Check responsibility for eligible home energy bills",
+    "SCOPE_REVIEW": "Check the actual county's authorized agency and intake rules",
+    "UNKNOWN_ROUTE_FACTS": "Obtain consented current household size and gross income evidence",
+    "WITHIN_PUBLISHED_LIMIT_ONLY": "Verify documents, local funding, intake, and agency decision"
+  },
+  "note": "Frozen from FloridaCommerce web page as observed on rule_observed_at. Screening reference only; the county provider decides. Funding period and rule version must be rechecked before reliance.",
+  "pack_digest": "ee4c857adaf4fb003e7e450dbd4e318d51d901bcc62706e0f80264f704316135",
+  "pack_id": "fl-liheap-ffy2027",
+  "program": "Florida LIHEAP (Okaloosa County scope)",
+  "rule_observed_at": "2026-11-06",
+  "rule_source_attribution": "AUTHOR_ASSERTED_NOT_REVIEWED",
+  "rule_version": "FFY2027-web-2026-11-06",
+  "rules": [
+    {
+      "all": [
+        {
+          "fact": "county",
+          "op": "is_null"
+        }
+      ],
+      "id": "county_unknown",
+      "sources": [
+        1
+      ],
+      "state": "FACT_UNKNOWN"
+    },
+    {
+      "all": [
+        {
+          "fact": "county",
+          "op": "ne",
+          "value": "Okaloosa"
+        }
+      ],
+      "id": "county_scope",
+      "sources": [
+        1
+      ],
+      "state": "SCOPE_REVIEW"
+    },
+    {
+      "all": [
+        {
+          "fact": "resident",
+          "op": "ne",
+          "value": true
+        }
+      ],
+      "id": "residency_unproven",
+      "sources": [
+        0
+      ],
+      "state": "FACT_UNKNOWN"
+    },
+    {
+      "all": [
+        {
+          "fact": "citizenship_qualifier",
+          "op": "ne",
+          "value": true
+        }
+      ],
+      "id": "status_unknown",
+      "sources": [
+        0
+      ],
+      "state": "FACT_UNKNOWN"
+    },
+    {
+      "all": [
+        {
+          "fact": "energy_bill_responsibility",
+          "op": "ne",
+          "value": true
+        }
+      ],
+      "id": "bill_responsibility",
+      "sources": [
+        0
+      ],
+      "state": "REVIEW_REQUIRED"
+    },
+    {
+      "all": [
+        {
+          "fact": "fuel",
+          "op": "eq",
+          "value": "water_only"
+        }
+      ],
+      "id": "water_only",
+      "sources": [
+        0
+      ],
+      "state": "NO_ROUTE_SHOWN"
+    },
+    {
+      "all": [
+        {
+          "fact": "gross_income_annual",
+          "op": "gt_cap"
+        }
+      ],
+      "id": "over_limit",
+      "sources": [
+        0
+      ],
+      "state": "OVER_PUBLISHED_LIMIT"
+    },
+    {
+      "all": [
+        {
+          "fact": "disconnection_notice",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "fact": "gross_income_annual",
+          "op": "le_cap"
+        }
+      ],
+      "id": "crisis_unconfirmed",
+      "sources": [
+        1
+      ],
+      "state": "CRISIS_FUNDING_UNCONFIRMED"
+    },
+    {
+      "all": [
+        {
+          "fact": "gross_income_annual",
+          "op": "le_cap"
+        }
+      ],
+      "id": "within_limit",
+      "sources": [
+        0
+      ],
+      "state": "WITHIN_PUBLISHED_LIMIT_ONLY"
+    }
+  ],
+  "schema": "humanaios.entitlement-rulepack.v1",
+  "sources": [
+    {
+      "url": "https://www.floridajobs.org/community-development/Low-Income-Home-Energy-Assistance-Program"
+    },
+    {
+      "url": "https://tricountycommunitycouncil.com/?page_id=85"
+    }
+  ]
+}

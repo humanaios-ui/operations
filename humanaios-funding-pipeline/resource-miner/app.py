@@ -12,15 +12,27 @@ from time import monotonic
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from resource_miner.ats_readiness import public_specimen_readiness
 from resource_miner.miner import enrich
+from resource_miner.mines import load_mines
+from resource_miner.pathways_view import project_pathways
 from resource_miner.intent_os import evaluate_objective
+from resource_miner.verified_intent import project_verified_intent
+from datetime import datetime, timezone
 from resource_miner.opportunity_journey import project_journey
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements
 from resource_miner.sources import devto, funding_pipeline, github, rss
 from resource_miner.store import write_jsonl
+from resource_miner.snapshot_status import reconcile_snapshot_source_holds
+from resource_miner.witness_bridge import ask_resource, enabled as witness_enabled, WitnessBridgeUnavailable
 
 ROOT = Path(__file__).resolve().parent
+# Reuse the existing read-only GitHub Observatory. May be absent from a lean container;
+# absence is a visible 503, never a fabricated dashboard or fetched replacement.
+OBSERVATORY_UI = ROOT.parents[1] / "ui"
+DEFAULT_MINES = ROOT / "data" / "mines.seed.json"
+DEFAULT_RECEIPTS = ROOT / "data" / "resource_state.receipts.jsonl"
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
 DEFAULT_REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
 DEFAULT_OUT = ROOT / "data" / "resources.jsonl"
@@ -141,7 +153,7 @@ class Handler(BaseHTTPRequestHandler):
                         HTTPStatus.FORBIDDEN)
         return False
 
-    def _headers(self, status: int, content_type: str, length: int) -> None:
+    def _headers(self, status: int, content_type: str, length: int, *, csp_override: str | None = None) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(length))
@@ -151,8 +163,11 @@ class Handler(BaseHTTPRequestHandler):
         if content_type.startswith("text/html"):
             self.send_header(
                 "Content-Security-Policy",
-                "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
-                "connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+                csp_override or (
+                    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
+                    "connect-src 'self'; manifest-src 'self'; base-uri 'none'; "
+                    "form-action 'self'; frame-ancestors 'none'"
+                ),
             )
         self.end_headers()
 
@@ -165,6 +180,64 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path in ("/project-observatory", "/project-observatory.js"):
+                # Local-only readback of EXISTING public GitHub telemetry. No new
+                # collector, task queue, user profile, GitHub write or authorization.
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."},
+                                           HTTPStatus.NOT_FOUND)
+                is_script = parsed.path.endswith(".js")
+                filename = ("operations-observatory-e0.js" if is_script
+                            else "operations-observatory-e0.html")
+                source_file = OBSERVATORY_UI / filename
+                if not source_file.is_file():
+                    return self._send_json(
+                        {"error": "Existing Observatory assets not available in this runtime.",
+                         "status": "NOT_CONNECTED"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                if is_script:
+                    data = source_file.read_bytes()
+                    self._headers(200, "application/javascript; charset=utf-8", len(data))
+                else:
+                    # Adapt navigation only. Original Observatory files stay
+                    # unchanged, and all data logic remains in the existing JS.
+                    html = source_file.read_text(encoding="utf-8")
+                    redirects = {
+                        'src="operations-observatory-e0.js"':
+                            'src="/project-observatory.js"',
+                        '<a class="brand" href="living-operations-canvas.html">✦ HumanAIOS / Operations Observatory</a>':
+                            '<a class="brand" href="/intent-os">✦ HumanAIOS / Operations Observatory</a>',
+                        '<a href="living-operations-canvas.html">Living Operations Canvas</a>':
+                            '<a href="/on-track">On-Track</a>',
+                        '<a href="../graph_timeline/system_graph_timeline.html">Graph Timeline</a>':
+                            '<a href="https://github.com/humanaios-ui/operations/blob/main/graph_timeline/system_graph_timeline.html" target="_blank" rel="noopener noreferrer">Graph Timeline source</a>',
+                        '<a href="../docs/OPERATIONS_OBSERVATORY_E0.md">method &amp; tests</a>':
+                            '<a href="https://github.com/humanaios-ui/operations/blob/main/docs/OPERATIONS_OBSERVATORY_E0.md" target="_blank" rel="noopener noreferrer">method &amp; tests</a>',
+                    }
+                    if any(original not in html for original in redirects):
+                        return self._send_json(
+                            {"error": "Observatory template changed; integration needs re-review.",
+                             "status": "TEMPLATE_DRIFT"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                    for original, adjusted in redirects.items():
+                        html = html.replace(original, adjusted)
+                    data = html.encode("utf-8")
+                    # Tight exception for existing browser GETs to public GitHub.
+                    # No broad relaxation of the core INTENT-OS CSP.
+                    self._headers(
+                        200, "text/html; charset=utf-8", len(data),
+                        csp_override=(
+                            "default-src 'none'; style-src 'unsafe-inline'; "
+                            "script-src 'self'; connect-src https://api.github.com; "
+                            "base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+                        ),
+                    )
+                self.wfile.write(data)
+                return
+            if parsed.path == "/app.webmanifest":
+                # Only public app identity. No service worker or private caching.
+                body = (ROOT / "app.webmanifest").read_bytes()
+                self._headers(200, "application/manifest+json; charset=utf-8", len(body))
+                self.wfile.write(body)
+                return
             if parsed.path == "/my-opportunities":
                 if not self._local_opportunities_allowed():
                     return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
@@ -184,6 +257,42 @@ class Handler(BaseHTTPRequestHandler):
                     "journeys": [project_journey(source)],
                     "authority": "NONE",
                 })
+            if parsed.path == "/pathways":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                page = (ROOT / "pathways.html").read_bytes()
+                self._headers(200, "text/html; charset=utf-8", len(page))
+                self.wfile.write(page)
+                return
+            if parsed.path == "/api/pathways":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                mode = (params.get("mode") or ["stored"])[0]
+                if mode not in {"stored", "public"}:
+                    return self._send_json({"error": "mode must be stored or public."}, HTTPStatus.BAD_REQUEST)
+                if mode == "public":
+                    rows, source_status, warning = _intent_scan()
+                    origin = "PUBLIC_REFRESH"
+                    if warning:
+                        source_status += " · " + warning
+                else:
+                    source_file = DEFAULT_OUT if DEFAULT_OUT.is_file() else SNAPSHOT_OUT
+                    if not source_file.is_file():
+                        return self._send_json({"error": "No stored Resource Miner data available."},
+                                               HTTPStatus.SERVICE_UNAVAILABLE)
+                    rows = _read_jsonl(source_file)
+                    origin = "PERSISTED_RUNTIME" if source_file == DEFAULT_OUT else "STORED_SNAPSHOT"
+                    source_status = "LOCAL_FILE_READ_ONLY_NO_EXTERNAL_PROVIDER_REFRESH"
+                projection = project_pathways(
+                    [m.to_dict() for m in load_mines(DEFAULT_MINES)],
+                    load_needs(DEFAULT_NEEDS),
+                    load_requirements(DEFAULT_REQUIREMENTS),
+                    rows,
+                    _read_jsonl(DEFAULT_RECEIPTS) if mode == "stored" else [],
+                    origin=origin,
+                    source_status=source_status,
+                )
+                return self._send_json(projection)
             if parsed.path in ("/", "/intent-os"):
                 page = (ROOT / "intent-os.html").read_bytes()
                 self._headers(200, "text/html; charset=utf-8", len(page))
@@ -194,6 +303,21 @@ class Handler(BaseHTTPRequestHandler):
                 self._headers(200, "text/html; charset=utf-8", len(page))
                 self.wfile.write(page)
                 return
+            if parsed.path == "/api/ats/readiness":
+                # Redacted E0 case only. No resume upload, source fetch, or application.
+                if parsed.query not in ("", "specimen=convergent-2026-10-22"):
+                    return self._send_json({"error": "Unknown public ATS specimen."},
+                                           HTTPStatus.NOT_FOUND)
+                return self._send_json(public_specimen_readiness())
+            if parsed.path == "/api/witness/status":
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
+                return self._send_json({
+                    "enabled": witness_enabled(),
+                    "mode": "LOCAL_OPERATOR_OPT_IN_MCP",
+                    "shared_candidate_data": "PUBLIC_RESOURCE_SUMMARY_AND_TYPED_QUESTION_ONLY",
+                    "authority": "NONE",
+                })
             if parsed.path == "/api/health":
                 return self._send_json({
                     "ok": True,
@@ -244,6 +368,44 @@ class Handler(BaseHTTPRequestHandler):
             )
 
     def do_POST(self) -> None:
+        if urlparse(self.path).path == "/api/witness/ask-resource":
+            # Read-only model conversation. Never expose this endpoint on a
+            # public bind or accept cross-origin/browser-forged POSTs.
+            if not self._local_opportunities_allowed():
+                return self._send_json({"error": "Local-only Witness route unavailable."},
+                                       HTTPStatus.NOT_FOUND)
+            port = self.server.server_address[1]
+            origin = self.headers.get("Origin")
+            if origin not in (f"http://127.0.0.1:{port}",
+                              f"http://localhost:{port}",
+                              f"http://[::1]:{port}"):
+                return self._send_json({"error": "Same-origin browser consent required."},
+                                       HTTPStatus.FORBIDDEN)
+            if not witness_enabled():
+                return self._send_json({"error": "Local Witness MCP integration is disabled."},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("JSON request required.")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 4096:
+                    raise ValueError("Witness request must be 1–4096 bytes.")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                self.connection.settimeout(90)
+                return self._send_json(ask_resource(body))
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Witness request body deadline exceeded."},
+                                       HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+                return self._send_json({"error": "Invalid public resource or missing explicit consent."},
+                                       HTTPStatus.BAD_REQUEST)
+            except WitnessBridgeUnavailable:
+                return self._send_json({"error": "Witness MCP not available; no model response recorded."},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
+            except Exception:
+                return self._send_json({"error": "Local Witness bridge failed."},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path == "/api/my-opportunities/project":
             if not self._local_opportunities_allowed():
                 return self._send_json({"error": "Local-only route unavailable."}, HTTPStatus.NOT_FOUND)
@@ -267,6 +429,36 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send_json({"error": "Invalid or unauthorized journey data."}, HTTPStatus.BAD_REQUEST)
             except Exception:
                 return self._send_json({"error": "Journey projection unavailable."}, HTTPStatus.SERVICE_UNAVAILABLE)
+        if urlparse(self.path).path == "/api/intent/verified":
+            # Z1 shadow endpoint. Snapshot-only; never scans, persists, or acts.
+            try:
+                if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                    raise ValueError("JSON request required")
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 4096:
+                    raise ValueError("Bounded JSON request required")
+                body = json.loads(self._read_intent_body(length).decode("utf-8"))
+                from resource_miner.verified_intent import validate_intent
+                validate_intent(body)  # Reject before any snapshot read.
+                if not SNAPSHOT_OUT.is_file():
+                    return self._send_json({"error": "Stored snapshot unavailable"},
+                                           HTTPStatus.SERVICE_UNAVAILABLE)
+                rows, held = reconcile_snapshot_source_holds(
+                    _read_jsonl(SNAPSHOT_OUT), DEFAULT_FUNDING)
+                warning = "Historical discovery snapshot; no live independent official readback."
+                if held:
+                    warning += f" {held} source(s) withheld for recheck."
+                return self._send_json(project_verified_intent(
+                    body, rows, now=datetime.now(timezone.utc), source_warning=warning))
+            except TimeoutError:
+                self.close_connection = True
+                return self._send_json({"error": "Request body deadline exceeded"},
+                                       HTTPStatus.REQUEST_TIMEOUT)
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                return self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception:
+                return self._send_json({"error": "Verified-intent shadow route unavailable"},
+                                       HTTPStatus.SERVICE_UNAVAILABLE)
         if urlparse(self.path).path == "/api/intent":
             try:
                 content_type = self.headers.get("Content-Type", "").lower()
@@ -292,9 +484,19 @@ class Handler(BaseHTTPRequestHandler):
                             {"error": "Stored snapshot unavailable"},
                             HTTPStatus.SERVICE_UNAVAILABLE,
                         )
-                    rows = _read_jsonl(SNAPSHOT_OUT)
+                    # Historical candidates can predate later source-review feedback.
+                    # Overlay only reviewed exact-URL source holds in memory; never
+                    # modify the snapshot or infer permanent closure from a report.
+                    rows, held_count = reconcile_snapshot_source_holds(
+                        _read_jsonl(SNAPSHOT_OUT), DEFAULT_FUNDING,
+                    )
                     source_status, warning = ("CURATED_SNAPSHOT_NOT_LIVE",
                         "Snapshot captured previously. Dates, eligibility and availability are unverified.")
+                    if held_count:
+                        warning += (
+                            f" {held_count} catalog-matched source(s) withheld pending"
+                            " independent source re-verification."
+                        )
                 result = evaluate_objective(
                     objective, rows, source_mode=mode,
                     source_status=source_status, source_warning=warning,

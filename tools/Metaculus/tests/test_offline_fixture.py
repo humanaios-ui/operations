@@ -1,0 +1,127 @@
+"""Zero-dependency E0 Metaculus offline/no-CP and live-mode guard regressions."""
+from __future__ import annotations
+
+import ast
+import json
+import pathlib
+import subprocess
+import sys
+import unittest
+from unittest import mock
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from mode_gate import ExternalWritesNotApproved, require_explicit_live_approval
+from offline_fixture import FixtureError, run_fixture
+
+
+class OfflineFixtureTests(unittest.TestCase):
+    def setUp(self):
+        self.fixture = json.loads((ROOT / "fixtures" / "synthetic_binary.json").read_text())
+
+    def test_synthetic_binary_baseline(self):
+        receipt = run_fixture(self.fixture)
+        self.assertEqual(receipt["mean_probability"], 0.5)
+        self.assertEqual(receipt["brier"], 0.25)
+        self.assertEqual(receipt["external_api_calls"], 0)
+        self.assertEqual(receipt["database_writes"], 0)
+        self.assertFalse(receipt["live_submission"])
+
+    def test_forbid_community_aggregate_even_nested(self):
+        self.fixture["question"]["community_prediction"] = 0.5
+        with self.assertRaises(FixtureError):
+            run_fixture(self.fixture)
+
+    def test_no_unapproved_access_tier(self):
+        self.fixture["access_tier"] = "FULL_CP"
+        with self.assertRaises(FixtureError):
+            run_fixture(self.fixture)
+
+    def test_bad_probabilities(self):
+        for value in (-0.2, 1.2, float("nan"), "0.5", True):
+            with self.subTest(value=value):
+                self.fixture["samples"] = [value]
+                with self.assertRaises(FixtureError):
+                    run_fixture(self.fixture)
+
+    def test_bounded_samples(self):
+        self.fixture["samples"] = [0.5] * 6
+        with self.assertRaises(FixtureError):
+            run_fixture(self.fixture)
+
+    def test_is_deterministic_and_does_not_call_network(self):
+        with mock.patch("socket.socket", side_effect=AssertionError("network forbidden")):
+            self.assertEqual(run_fixture(self.fixture), run_fixture(self.fixture))
+
+    def test_cli_has_no_network_and_no_secrets(self):
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "offline_fixture.py")],
+            check=True, capture_output=True, text=True, env={"PATH": ""},
+        )
+        self.assertEqual(json.loads(result.stdout)["external_api_calls"], 0)
+
+
+class EntryPointWiringTests(unittest.TestCase):
+    def test_live_guard_runs_before_metaculus_client_creation(self):
+        tree = ast.parse((ROOT / "main.py").read_text(encoding="utf-8"))
+        # The class __init__ defines a MetaculusClient call before the CLI
+        # block in source order, but it executes only upon HumanAIOSBotV2().
+        # Assert entrypoint invocation order, not global line order.
+        entrypoints = [
+            node for node in tree.body if isinstance(node, ast.If)
+            and isinstance(node.test, ast.Compare)
+            and isinstance(node.test.left, ast.Name)
+            and node.test.left.id == "__name__"
+        ]
+        self.assertEqual(len(entrypoints), 1)
+        calls = [n for n in ast.walk(entrypoints[0]) if isinstance(n, ast.Call)]
+        def calls_to(name):
+            return [n.lineno for n in calls if isinstance(n.func, ast.Name)
+                    and n.func.id == name]
+        gated = calls_to("require_explicit_live_approval")
+        first_bot = calls_to("HumanAIOSBotV2")
+        explicit_clients = calls_to("MetaculusClient")
+        self.assertEqual(len(gated), 1)
+        self.assertEqual(len(first_bot), 1)
+        self.assertEqual(len(explicit_clients), 1)
+        self.assertLess(gated[0], first_bot[0])
+        self.assertLess(gated[0], explicit_clients[0])
+        all_client_calls = [
+            n for n in ast.walk(tree) if isinstance(n, ast.Call)
+            and isinstance(n.func, ast.Name) and n.func.id == "MetaculusClient"
+        ]
+        self.assertEqual(len(all_client_calls), 2)
+
+    def test_docker_image_includes_write_gate(self):
+        text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn("COPY main.py mode_gate.py ./", text)
+
+
+class LiveModeGateTests(unittest.TestCase):
+    def test_all_live_modes_refuse_without_both_optins(self):
+        for mode in ("test_questions", "tournament", "metaculus_cup"):
+            for env, publish in (({}, False), ({}, True), ({"METACULUS_LIVE_WRITES": "APPROVED"}, False)):
+                with self.subTest(mode=mode, env=env, publish=publish):
+                    with self.assertRaises(ExternalWritesNotApproved):
+                        require_explicit_live_approval(mode=mode, publish=publish, environ=env)
+
+    def test_test_questions_requires_explicit_approval(self):
+        require_explicit_live_approval(
+            mode="test_questions", publish=True,
+            environ={"METACULUS_LIVE_WRITES": "APPROVED"},
+        )
+
+    def test_scored_tournament_requires_separate_approval(self):
+        with self.assertRaises(ExternalWritesNotApproved):
+            require_explicit_live_approval(
+                mode="tournament", publish=True,
+                environ={"METACULUS_LIVE_WRITES": "APPROVED"},
+            )
+        require_explicit_live_approval(
+            mode="tournament", publish=True,
+            environ={"METACULUS_LIVE_WRITES": "APPROVED", "METACULUS_SCORED_WRITES": "APPROVED"},
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

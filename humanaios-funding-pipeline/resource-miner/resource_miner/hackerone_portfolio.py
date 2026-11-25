@@ -56,13 +56,23 @@ def scan_portfolio(
 ) -> HackerOnePortfolioSnapshot:
     """Hydrate HackerOne metadata only. No program asset is contacted."""
     observed_at = utcnow_iso()
+    if max_programs is not None:
+        max_programs = max(0, int(max_programs))
+
     if handles:
         seeds = [{"attributes": {"handle": handle}} for handle in handles]
     else:
-        seeds = client.list_programs(page_size=page_size)
+        # Pass the bound into the client so pagination stops requesting
+        # further pages once max_programs results have been collected,
+        # instead of enumerating the full authenticated portfolio first.
+        # max_results is omitted (rather than passed as None) so clients
+        # that predate this bound keep working unchanged.
+        list_programs_kwargs: dict[str, Any] = {"page_size": page_size}
+        if max_programs is not None:
+            list_programs_kwargs["max_results"] = max_programs
+        seeds = client.list_programs(**list_programs_kwargs)
 
     if max_programs is not None:
-        max_programs = max(0, int(max_programs))
         seeds = list(seeds)[:max_programs]
 
     snapshot = HackerOnePortfolioSnapshot(observed_at=observed_at)

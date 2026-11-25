@@ -1,0 +1,57 @@
+{
+  "cases": [
+    {
+      "baseline_input": {
+        "arrival_per_hour": 8,
+        "engine": "queue",
+        "service_per_hour": 10
+      },
+      "baseline_oracle": {
+        "atol": 1e-12,
+        "expected": 0.8,
+        "kind": "numeric",
+        "path": "rho"
+      },
+      "challenge_input": {
+        "arrival_per_hour": 12,
+        "engine": "queue",
+        "service_per_hour": 10
+      },
+      "challenge_oracle": {
+        "kind": "refusal"
+      },
+      "id": "queue-overload",
+      "reference_id": "M/M/1 utilization rho=lambda/mu; no stationary regime for rho >=1"
+    },
+    {
+      "baseline_input": {
+        "diameter_m": 2,
+        "geometry": "sphere",
+        "pressure_bar": 20,
+        "thickness_m": 0.01
+      },
+      "baseline_oracle": {
+        "atol": 1e-09,
+        "expected": 100,
+        "kind": "numeric",
+        "path": "membrane_MPa"
+      },
+      "challenge_input": {
+        "declared": "sphere",
+        "diameter_m": 2,
+        "mesh": "synthetic-closed-cylinder-fixture"
+      },
+      "challenge_oracle": {
+        "kind": "refusal"
+      },
+      "id": "sphere-as-cylinder",
+      "reference_id": "Thin-wall sphere stress pD/4t; geometry-declaration mismatch requires refusal"
+    }
+  ],
+  "provenance": {
+    "authorization_ref": "synthetic:in-repo",
+    "description": "Fully synthetic demonstration; not DASE output"
+  },
+  "schema": "humanaios.acat-r.protocol.v0.1",
+  "system_id": "synthetic-runtime-demo"
+}

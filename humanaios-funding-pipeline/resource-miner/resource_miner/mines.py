@@ -139,7 +139,25 @@ def _resolve_hackerone(mine: ResourceMine) -> list[ResourceCandidate]:
             "HackerOne scope-hydrated resolver dependency is not present"
         ) from exc
 
-    snapshot = scan_portfolio(HackerOneClient())
+    # Bound scans on demand. Handles must be supplied privately by the caller;
+    # never add invitation-only handles to the public seed registry.
+    config = mine.config or {}
+    handles = config.get("handles")
+    if handles is not None:
+        if not isinstance(handles, list) or not handles or any(
+            not isinstance(handle, str) or not handle.strip() for handle in handles
+        ):
+            raise ValueError("hackerone handles must be a non-empty list of strings")
+        handles = [handle.strip() for handle in handles]
+    max_programs = config.get("max_programs")
+    if max_programs is not None and (
+        isinstance(max_programs, bool) or not isinstance(max_programs, int)
+        or max_programs < 1
+    ):
+        raise ValueError("hackerone max_programs must be a positive integer")
+    snapshot = scan_portfolio(
+        HackerOneClient(), handles=handles, max_programs=max_programs
+    )
     out: list[ResourceCandidate] = []
     from .normalize import normalize_generic
 

@@ -1,0 +1,12 @@
+{
+  "schema": "humanaios.metaculus.synthetic-fixture.v1",
+  "access_tier": "NO_CP",
+  "source_kind": "SYNTHETIC",
+  "question": {
+    "id": "synthetic-forecast-001",
+    "type": "binary",
+    "text": "Synthetic event for deterministic harness only",
+    "resolved_as": 1
+  },
+  "samples": [0.4, 0.5, 0.6]
+}

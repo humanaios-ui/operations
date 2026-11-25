@@ -82,3 +82,24 @@ test("a coherent report is labeled unsigned, not a human success",async()=>{
   assert.equal(d.document.getElementById("work").children.length,1);
   assert.match(d.document.getElementById("status").textContent,/Unsigned/);
 });
+test("reports include all candidates beyond the first browser page",async()=>{
+  for (const count of [18, 500]) {
+    const d=boot(), report=example();
+    report.technical_execution.candidate_count=count;
+    await importFile(d, JSON.stringify(report));
+    assert.match(d.document.getElementById("technical").textContent,/REPORTED/);
+    assert.match(d.document.getElementById("detail").textContent,new RegExp(`returned ${count} `));
+    assert.equal(d.document.getElementById("human").textContent,"UNVERIFIED");
+  }
+});
+test("invalid candidate counts clear previously accepted evidence",async()=>{
+  for (const count of [0, -1, 501, true, 1.5]) {
+    const d=boot();
+    await importFile(d, JSON.stringify(example()));
+    const bad=example();bad.technical_execution.candidate_count=count;
+    await importFile(d, JSON.stringify(bad));
+    assert.equal(d.document.getElementById("technical").textContent,"UNVERIFIED");
+    assert.equal(d.document.getElementById("work").children.length,0);
+    assert.match(d.document.getElementById("status").textContent,/Refused imported/);
+  }
+});

@@ -23,6 +23,111 @@ EVENT_SOURCE = {
 }
 MAX_EVENTS = 64
 TOKEN = re.compile(r"[A-Za-z0-9_-]{1,100}\Z")
+SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+
+
+def project_preparation(payload: object) -> dict:
+    """Validate declared versions/checks, without reading files or attesting claims."""
+    if not isinstance(payload, dict) or set(payload) != {
+        "required_files", "required_checks", "files", "checks",
+    }:
+        raise ValueError("Unexpected preparation fields")
+
+    def items(key, limit):
+        value = payload[key]
+        if not isinstance(value, list) or len(value) > limit:
+            raise ValueError("Invalid preparation " + key)
+        return value
+
+    required_files = [_token(x, "required file") for x in items("required_files", 16)]
+    if len(set(required_files)) != len(required_files):
+        raise ValueError("Duplicate required file")
+    required_checks = {}
+    for requirement in items("required_checks", 16):
+        if not isinstance(requirement, dict) or set(requirement) != {"check_id", "file_ids"}:
+            raise ValueError("Unexpected check requirement")
+        check_id = _token(requirement["check_id"], "required check")
+        ids = requirement["file_ids"]
+        if (not isinstance(ids, list) or not 1 <= len(ids) <= 16
+                or any(not isinstance(x, str) or x not in required_files for x in ids)
+                or len(set(ids)) != len(ids) or check_id in required_checks):
+            raise ValueError("Invalid check file requirements")
+        required_checks[check_id] = sorted(ids)
+
+    versions = {}
+    current = {}
+    for file in items("files", 32):
+        if not isinstance(file, dict) or set(file) != {"file_id", "version", "sha256", "role"}:
+            raise ValueError("Unexpected/private file fields")
+        file_id = _token(file["file_id"], "file ID")
+        version, digest, role = file["version"], file["sha256"], file["role"]
+        if (type(version) is not int or not 1 <= version <= 1000000
+                or not isinstance(digest, str) or not SHA256.fullmatch(digest)
+                or role not in ("INPUT", "METADATA", "OUTPUT", "ARTIFACT", "INSTRUCTIONS")):
+            raise ValueError("Invalid file version")
+        key = (file_id, version)
+        if key in versions or (file_id in current and current[file_id]["role"] != role):
+            raise ValueError("Conflicting/duplicate file version or role")
+        versions[key] = dict(file)
+        if file_id not in current or current[file_id]["version"] < version:
+            current[file_id] = dict(file)
+
+    checks = {}
+    for check in items("checks", 16):
+        if not isinstance(check, dict) or set(check) != {
+            "check_id", "status", "evidence_ref", "observed_at", "files",
+        }:
+            raise ValueError("Unexpected/private preparation check fields")
+        check_id = _token(check["check_id"], "check ID")
+        if check_id not in required_checks or check_id in checks:
+            raise ValueError("Undeclared/duplicate preparation check")
+        status = check["status"]
+        if status not in ("PASS", "FAIL", "UNKNOWN"):
+            raise ValueError("Unknown preparation check status")
+        refs = check["files"]
+        if not isinstance(refs, list) or not 1 <= len(refs) <= 16:
+            raise ValueError("Invalid checked file versions")
+        checked = {}
+        for ref in refs:
+            if not isinstance(ref, dict) or set(ref) != {"file_id", "version", "sha256"}:
+                raise ValueError("Unexpected checked file fields")
+            fid = _token(ref["file_id"], "checked file ID")
+            ver = ref["version"]
+            if type(ver) is not int or not isinstance(ref["sha256"], str):
+                raise ValueError("Invalid checked file version")
+            known = versions.get((fid, ver))
+            if fid in checked or not known or known["sha256"] != ref["sha256"]:
+                raise ValueError("Unknown/conflicting checked file version")
+            checked[fid] = ref
+        if sorted(checked) != required_checks[check_id]:
+            raise ValueError("Check must cover its exact required file set")
+        stale = any(current[fid]["version"] != ref["version"]
+                    for fid, ref in checked.items())
+        checks[check_id] = {
+            "check_id": check_id, "reported_status": status,
+            "standing": "STALE" if stale else status,
+            "evidence_ref": _token(check["evidence_ref"], "opaque check evidence reference"),
+            "observed_at": _timestamp(check["observed_at"]),
+            "files": [dict(checked[fid]) for fid in sorted(checked)],
+        }
+
+    missing_files = sorted(set(required_files) - set(current))
+    check_results = [checks.get(cid, {
+        "check_id": cid, "reported_status": "UNVERIFIED", "standing": "MISSING",
+    }) for cid in sorted(required_checks)]
+    covered = {fid for ids in required_checks.values() for fid in ids}
+    unchecked_files = sorted(set(required_files) - covered)
+    ready = (bool(required_files) and bool(required_checks) and not missing_files
+             and not unchecked_files and all(c["standing"] == "PASS" for c in check_results))
+    return {
+        "standing": "READY_FOR_HUMAN_REVIEW" if ready else "NEEDS_PREPARATION",
+        "verification": "USER_SUPPLIED_METADATA_AND_CHECK_REPORTS_NOT_INDEPENDENTLY_VERIFIED",
+        "required_files": sorted(required_files),
+        "missing_files": missing_files, "files_without_required_checks": unchecked_files,
+        "file_versions": [versions[k] for k in sorted(versions)],
+        "current_files": [current[k] for k in sorted(current)], "checks": check_results,
+        "can_record": False, "can_submit": False, "authority_effect": "NONE",
+    }
 
 
 def _token(value: object, label: str) -> str:
@@ -49,7 +154,10 @@ def project_journey(payload: dict) -> dict:
     Authentication of the person/provider and durable storage are separate
     future connector-broker concerns. This reducer cannot grant authority.
     """
-    if not isinstance(payload, dict) or set(payload) != {"schema", "opportunity", "events"}:
+    if not isinstance(payload, dict) or set(payload) not in (
+        {"schema", "opportunity", "events"},
+        {"schema", "opportunity", "events", "preparation"},
+    ):
         raise ValueError("Unexpected journey envelope")
     if payload["schema"] != SCHEMA:
         raise ValueError("Unsupported journey version")
@@ -148,7 +256,13 @@ def project_journey(payload: dict) -> dict:
         "authority_effect": "NONE",
         "receipt_kind": "UNSIGNED_LOCAL_PROJECTION_NOT_INDEPENDENT_ATTESTATION",
     }
-    # Source IDs are intentionally excluded; only the count and stable digest are exported.
+    if "preparation" in payload:
+        result["preparation"] = project_preparation(payload["preparation"])
+        result["next_action_codes"].insert(0, (
+            "REVIEW_PREPARATION_PACKAGE" if result["preparation"]["standing"] == "READY_FOR_HUMAN_REVIEW"
+            else "COMPLETE_PREPARATION_CHECKS"
+        ))
+    # Raw evidence/source contents are excluded. Preparation uses opaque IDs and hashes only.
     result["digest_sha256"] = hashlib.sha256(
         json.dumps(result, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()

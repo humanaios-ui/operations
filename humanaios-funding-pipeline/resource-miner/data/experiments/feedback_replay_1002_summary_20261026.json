@@ -1,0 +1,39 @@
+{
+  "schema": "humanaios.resource_feedback_replay_summary.v0.1",
+  "experiment_id": "E1-1002-FIRST-SOURCE-REPLAY-20261026",
+  "observed_on": "2026-10-26",
+  "ci_run": "https://github.com/humanaios-ui/operations/actions/runs/40414248960",
+  "ci_job_id": 121892418535,
+  "ci_result": "SUCCESS",
+  "test_suite": {
+    "regression_count": 416,
+    "new_replay_tests": 6,
+    "result": "PASS"
+  },
+  "source_snapshot_git_blob": "e7fba397546cbb6b97117a80ede245ecdb55af3b",
+  "ranker_git_blob": "94b2590754ea209db2b3bcba9698e78b6311c8f3",
+  "shadow_after_projection_sha256": "77223e2bcc82c7c76401473bff9068e9984e7e49304dc609d1bea2c258fa948a",
+  "original_candidate": "RES-26D48CDE47BB2BB0",
+  "results": {
+    "matched_before": 10,
+    "matched_after": 9,
+    "source_exposure_before_top10": 1,
+    "source_exposure_after_top10": 0,
+    "unrelated_heldout_objective_unchanged": true,
+    "deterministic_same_run": true,
+    "unsupported_closure_claims": 0
+  },
+  "full_receipt_sha256": "43b3b2494fec7b8c277ddaf9d9024e43adb09e7c120d7e4afb8b8db7b995c06a",
+  "verification_limits": {
+    "authenticated_independent_reviewer": "NOT_YET",
+    "shared_human_approved_catalog_revision": "NOT_YET",
+    "independent_relevance_labels": "NOT_YET",
+    "false_closure_count": "NOT_ESTABLISHED",
+    "acat": "NOT_RUN_BLOCKED_BY_750",
+    "model_training": "NOT_PERFORMED"
+  },
+  "authority_effect": "NONE",
+  "execution": "DISABLED",
+  "as_of_date": "2026-10-26",
+  "replay_date_control": "PINNED_IN_ISOLATED_OFFLINE_RUN"
+}

@@ -1,0 +1,47 @@
+name: INTENT-OS E1 pinned source-feedback replay
+
+# Research-only replay. The workflow does not mutate source catalogs,
+# authorize actions, or change the repository's governance/admission gates.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/feedback-replay-1002.yml'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/feedback_replay_1002.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_feedback_replay_1002.py'
+      - 'humanaios-funding-pipeline/resource-miner/fixtures/feedback_replay_1002*'
+      - 'humanaios-funding-pipeline/resource-miner/reports/FEEDBACK_REPLAY_1002_FIRST_BASELINE_20261026.md'
+      - 'humanaios-funding-pipeline/resource-miner/data/experiments/feedback_replay_1002_summary_20261026.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-shadow-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # A PR merge preview may import an unreviewed ranker version from main.
+          # Pin to the actual proposed E1 head instead.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Run E1 historical pinned regression tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          RUN_PINNED_E1_1002: '1'
+        run: python3 -m unittest discover -s tests -p 'test_feedback_replay_1002.py' -v
+      - name: Generate non-authorizing E1 shadow receipt
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: python3 -m resource_miner.feedback_replay_1002 --output ../../outputs/feedback-replay-1002/first-shadow-replay.json
+      - name: Keep unsigned E1 evidence for independent review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e1-feedback-replay-${{ github.sha }}
+          path: outputs/feedback-replay-1002/first-shadow-replay.json
+          if-no-files-found: warn
+          retention-days: 90

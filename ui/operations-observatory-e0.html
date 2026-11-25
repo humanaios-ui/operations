@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HumanAIOS | Operations Observatory E0</title>
+<meta name="description" content="Source-backed, read-only 28-day activity and kinetics across three public HumanAIOS GitHub repositories.">
+<style>
+:root{color-scheme:dark;--bg:#080e18;--panel:#102133;--border:#284861;--text:#f1eee7;--muted:#b5cad8;--gold:#e4b566;--cyan:#6bd6ff;--green:#78dac0;--red:#ffb5a7}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 2%,#16314a 0%,#080e18 62%);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1480px;margin:auto;padding:20px 24px 64px}h1,h2,h3{font-family:Georgia,serif;font-weight:500;line-height:1.2}
+h1{font-size:clamp(30px,4.2vw,55px);color:var(--gold);margin:4px 0 10px}
+h2{font-size:27px;margin:0;color:var(--gold)}h3{font-size:18px;color:var(--gold);margin:18px 0 10px}
+p{margin:0 0 12px}a{color:#a8e5ff}a:hover{color:#fff}a:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.top{display:flex;gap:20px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:10px 0 22px}
+.brand{font-family:Georgia,serif;letter-spacing:.06em;color:#f6cc83;text-decoration:none;font-size:20px}
+.nav{display:flex;flex-wrap:wrap;gap:14px}.nav a{font-size:14px}
+.eyebrow{text-transform:uppercase;color:var(--gold);font-size:11px;letter-spacing:.2em;font-weight:700}
+.lead{max-width:850px;color:#d1e0e8;font-size:16px}
+.hero{padding:25px;border:1px solid #426381;border-radius:18px;background:linear-gradient(110deg,#142940,#0c1725);box-shadow:0 20px 60px #03060980}
+.actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
+button{background:linear-gradient(#efc680,#c38d3b);color:#100f10;border:0;border-radius:999px;padding:11px 22px;font-weight:750;cursor:pointer;font:inherit}
+button:disabled{opacity:.5;cursor:wait}
+#status{font-size:13px;color:#d1dce6;max-width:950px}
+.sub{font-size:12px;color:#b4c8d6;line-height:1.5}
+.warning{margin-top:14px;border-left:3px solid #e6ad62;padding:10px 14px;background:#2d231a;color:#f0d7b7;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:22px}
+.card,.attention-panel,.principles{background:linear-gradient(180deg,#102236,#0d1a2a);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 12px 24px #0004;min-width:0}
+.card:nth-child(1){border-top:3px solid #6bd6ff}.card:nth-child(2){border-top:3px solid #78dac0}.card:nth-child(3){border-top:3px solid var(--gold)}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.coverage{font-size:10px;letter-spacing:.05em;font-weight:700;border:1px solid #618996;padding:3px 9px;border-radius:20px}
+.coverage.good{color:#9ef1d0;border-color:#478b70}.coverage.warn{color:#ffcf9e;border-color:#b97845}
+.repo-id{color:var(--muted);font-size:12px;word-break:break-all;margin:4px 0 16px}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.metric{background:#091725;border:1px solid #24435b;border-radius:10px;padding:10px;display:flex;flex-direction:column;min-width:0}
+.metric strong{font:700 28px/1.1 Georgia,serif;color:#8edff5}.metric span{font-size:11px;color:#c1d2de}
+.kinetics{margin-top:22px;padding-top:14px;border-top:1px solid #315065}
+.kinetics>strong{font-size:13px;color:#f2cd8d}
+.bars{height:80px;display:flex;align-items:flex-end;gap:2px;margin-top:14px;border-bottom:1px solid #42627e;overflow:hidden}
+.bar{min-width:2px;flex:1;background:linear-gradient(#79e0f3,#258bb7);border-radius:2px 2px 0 0;opacity:.9}
+.card:nth-child(2) .bar{background:linear-gradient(#9cead1,#327d79)}
+.card:nth-child(3) .bar{background:linear-gradient(#fad18d,#b28a44)}
+.hint{font-size:12px;color:#b8c7d5;line-height:1.5}
+.source-row{border-top:1px solid #29445a;padding:10px 0;display:grid;gap:2px;font-size:13px;overflow-wrap:anywhere}
+.source-row a,.attention-row a{font-weight:600;text-decoration:none}
+.source-row a:hover,.attention-row a:hover{text-decoration:underline}
+.lower{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;margin-top:18px}
+.attention-panel h2,.principles h2{font-size:26px}
+.attention-row{padding:12px 0;border-bottom:1px solid #29445a;overflow-wrap:anywhere}
+.attention-row:last-child{border-bottom:0}.attention-row p{margin:3px 0 0}
+.status{border-left:3px solid var(--gold);background:#14293a;padding:10px 13px;margin-top:14px;font-size:12px}
+.note-list{padding-left:20px;margin:12px 0;color:#c8d9e1}
+.note-list li{margin:6px 0}.warn-text{color:var(--red);font-size:12px}
+footer{border-top:1px solid #31516b;margin-top:28px;padding-top:17px;font-size:12px;color:#b0c8d8}
+@media(max-width:1020px){.grid{grid-template-columns:1fr}.lower{grid-template-columns:1fr}}
+@media(max-width:600px){main{padding:12px 12px 35px}.card,.hero,.attention-panel,.principles{padding:14px}.metrics{grid-template-columns:repeat(2,1fr)}h2{font-size:23px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<script src="operations-observatory-e0.js" defer></script>
+</head>
+<body>
+<main>
+  <header class="top">
+    <a class="brand" href="living-operations-canvas.html">✦ HumanAIOS / Operations Observatory</a>
+    <nav class="nav" aria-label="Related views">
+      <a href="living-operations-canvas.html">Living Operations Canvas</a>
+      <a href="../graph_timeline/system_graph_timeline.html">Graph Timeline</a>
+      <a href="https://github.com/humanaios-ui/operations" target="_blank" rel="noopener noreferrer">GitHub evidence ↗</a>
+    </nav>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">Z1 · Read-only observation · Authority effect: none</div>
+    <h1>Three repositories. One evidence window.</h1>
+    <p class="lead">A rolling 28-day view of public GitHub issue and pull-request <em>last updates</em>. Find source records, notice changing work, and propose what deserves human attention. This is not a production health monitor.</p>
+    <div class="actions">
+      <button type="button" id="refresh">Refresh public evidence</button>
+      <span id="status" aria-live="polite" role="status">Not checked yet. No telemetry values available.</span>
+    </div>
+    <p class="warning"><strong>Evidence boundary:</strong> GitHub timestamps show source activity, not agent runtime, verified task completion, merge approval, resource acquisition, or human benefit. A closed PR is not necessarily merged. No item below grants authority.</p>
+  </section>
+
+  <section class="grid" aria-label="Read-only repository telemetry">
+    <article class="card" id="repo-humanaios"><h2>HumanAIOS</h2><p class="sub">Reading source…</p></article>
+    <article class="card" id="repo-operations"><h2>Operations</h2><p class="sub">Reading source…</p></article>
+    <article class="card" id="repo-lasting-light-ai"><h2>Lasting Light AI</h2><p class="sub">Reading source…</p></article>
+  </section>
+
+  <section class="lower">
+    <div class="attention-panel">
+      <div class="eyebrow">Human decision support · Proposed only</div>
+      <h2>Human Attention Queue</h2>
+      <p class="hint">Open records touched during the window. Source label matches appear first, then other open candidates. This is a <strong>suggestion list</strong>, not an approval queue or Project Desk sync. Missing older untouched work is not evidence of completion.</p>
+      <div id="attention" aria-live="polite"><p class="hint">No source data loaded.</p></div>
+    </div>
+    <aside class="principles">
+      <div class="eyebrow">Interpretation &amp; limits</div>
+      <h2>What the signal means</h2>
+      <ul class="note-list">
+        <li><strong>Updated:</strong> Each record is counted once at its latest GitHub update time, not once per comment or commit.</li>
+        <li><strong>Kinetics:</strong> Bars are 28 rolling 24-hour last-update buckets; seven-day comparisons show touched items, not event throughput.</li>
+        <li><strong>Coverage:</strong> Public API pages are capped. Partial fetches and malformed records require visible caveats; totals may be lower bounds.</li>
+        <li><strong>Authority:</strong> Reading data never admits a PR, assigns a task, approves a claim, or changes an issue.</li>
+        <li><strong>Privacy:</strong> No keys, cookies, private data imports, analytics beacons, or browser storage. Public GitHub GET only.</li>
+        <li><strong>Cross-system:</strong> Project Desk, authenticated INTENT-OS, and real-world outcome evidence are <strong>not connected</strong> in E0.</li>
+      </ul>
+      <div id="source-details" class="status" aria-live="polite">Source status not checked.</div>
+    </aside>
+  </section>
+  <footer>HumanAIOS Operations Observatory · Z1 workbench / read-only · GitHub public API · No merge, deployment, or human admission implied. See <a href="../docs/OPERATIONS_OBSERVATORY_E0.md">method &amp; tests</a>.</footer>
+</main>
+</body>
+</html>

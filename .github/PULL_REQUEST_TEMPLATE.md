@@ -94,6 +94,7 @@ Z2-SIGN: [paste 64-character signature here from commit message]
 - [ ] **Immune memory** — if this fixes or reveals a failure mode, it's registered in `REGISTERED.md` (F / H / IC) — link it: <!-- IC-000 -->
 - [ ] **No secrets** — no credentials, tokens, or keys added (even placeholders)
 - [ ] **Health** — ran `python3 tools/repo_health.py`; vitality not regressed
+- [ ] **Admission** — the head is final: a push after `/coordinator admit <SHA>` voids that admit (see CONTRIBUTING.md, "How a pull request is admitted")
 
 ## Notes
 

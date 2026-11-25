@@ -139,6 +139,32 @@ class PortfolioTests(unittest.TestCase):
         self.assertEqual(snapshot.execution_capability, "NONE")
         self.assertEqual(snapshot.authority_effect, "NONE")
 
+    def test_max_programs_is_forwarded_to_client_as_a_pagination_bound(self):
+        class RecordingClient(FakeClient):
+            def __init__(self):
+                super().__init__()
+                self.list_programs_kwargs = None
+
+            def list_programs(self, page_size=100, max_results=None):
+                self.list_programs_kwargs = {
+                    "page_size": page_size,
+                    "max_results": max_results,
+                }
+                return [program_fixture()]
+
+        client = RecordingClient()
+        snapshot = scan_portfolio(client, max_programs=2)
+        self.assertEqual(client.list_programs_kwargs["max_results"], 2)
+        self.assertEqual(len(snapshot.programs), 1)
+
+    def test_scan_without_max_programs_does_not_require_client_support_for_it(self):
+        # FakeClient.list_programs predates the max_results bound and only
+        # accepts page_size; scan_portfolio must not pass max_results=None
+        # to clients that have no such parameter.
+        client = FakeClient()
+        snapshot = scan_portfolio(client, max_programs=None)
+        self.assertEqual(len(snapshot.programs), 1)
+
     def test_explicit_handle_resolves_from_authenticated_portfolio_list(self):
         client = FakeClient()
         snapshot = scan_portfolio(client, handles=["fixture"])

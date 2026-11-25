@@ -8,6 +8,10 @@
 #            [gh_cli] = GitHub CLI must be available and authenticated
 
 baseline_tests:
+  - path: tests/test_mutual_learning_e0.py
+    requires: []
+    description: Source-pinned two-loop RNOLA mutual learning E0 and non-authority falsifiers
+
   - path: tests/test_opportunity_surface.py
     requires: []
     description: OSA v0.1 passive Resource Miner and Guiding Light cross-contract regression
@@ -31,6 +35,10 @@ baseline_tests:
   - path: tools/tests/test_ci_suite_enumeration.py
     requires: []
     description: CI suite enumeration and consistency checks
+
+  - path: tools/tests/test_postmerge_workflow_contracts.py
+    requires: []
+    description: Post-merge workflow portability, immutability, and least-authority regressions
 
   - path: tools/tests/test_clone_sync_health.py
     requires: []
@@ -100,6 +108,10 @@ baseline_tests:
     requires: []
     description: Molt tier classifier tests
 
+  - path: tools/tests/test_pre_submit.py
+    requires: []
+    description: PR pre-submission check parsing and policy tests
+
   - path: tools/tests/test_ratify_index_write.py
     requires: []
     description: Ratify index write tests
@@ -115,6 +127,18 @@ baseline_tests:
   - path: tools/tests/test_nf_ledger_cli.py
     requires: []
     description: NF ledger CLI tests
+
+  - path: tools/tests/test_witness_ledger_v0.py
+    requires: []
+    description: INTENT-OS witness ledger v0 hash-chain and authority-boundary tests
+
+  - path: tools/tests/test_machine_capability_allowlist_v0.py
+    requires: []
+    description: INTENT-OS machine capability allowlist v0 fail-closed stop-hook registry tests
+
+  - path: tools/tests/test_z2_authorized_machine_identities_api_v0.py
+    requires: []
+    description: INTENT-OS optional read-only machine-identity API v0 fail-closed and stop-hook-independence tests
 
   - path: tools/tests/test_ci_predict.py
     requires: []
@@ -188,6 +212,14 @@ baseline_tests:
     requires: []
     description: Graph capture lint tests
 
+  - path: tools/tests/test_system_graph_generator.py
+    requires: []
+    description: System graph generator validity and freshness tests
+
+  - path: tools/tests/test_operations_observatory_e0.py
+    requires: []
+    description: Read-only three-repository observatory and offline projection regressions
+
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
@@ -238,3 +270,31 @@ baseline_tests:
   - path: tests/test_smag_meta_feedback_observed_accuracy.py
     requires: []
     description: Meta-SMAG observed outcome versus predicted confidence isolation regressions
+
+  - path: tools/tests/test_b4_admission.py
+    requires: []
+    description: B4 controlled admission contract regressions
+
+  - path: tools/tests/test_living_operations_canvas.py
+    requires: []
+    description: Living operations canvas read-only UI contract checks
+
+  - path: tools/tests/test_workflow_path_validator.py
+    requires: []
+    description: Workflow path filter validator glob semantics (paths and paths-ignore)
+
+  - path: tests/test_risk_obs_001_contract.py
+    requires: []
+    description: Risk Observatory Z1 read-only evidence verifier and adversarial receipt regressions
+
+  - path: tests/test_witness_state_v0_2.py
+    requires: []
+    description: WITNESS_STATE v0.2 accepts the calibration baseline profile that v0.1 rejects (Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01, option A)
+
+  - path: tools/tests/test_admission_ruling_graph.py
+    requires: []
+    description: Admission-to-ruling graph generator joins the ledger to rulings in ledger order, reads no clock, and flags a merged PR whose ledger history lacks a merged row
+
+  - path: tools/tests/test_admission_ruling_graph_workflow.py
+    requires: []
+    description: Structural pin of the admission-ruling-graph workflow (event-driven, main only, no loop on its own merge, draft PR, two standard actions)

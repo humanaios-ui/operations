@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/resource-intent/v0.1",
+  "title": "HumanAIOS Resource Discovery Intent E0",
+  "description": "Z1 typed interpretation proposal only. A valid document grants no authority, source verification, eligibility, or semantic fidelity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "objective",
+    "operation",
+    "source_mode",
+    "claim_scope",
+    "authority_effect",
+    "execution"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.resource_intent.v0.1"
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 500
+    },
+    "operation": {
+      "const": "DISCOVER"
+    },
+    "source_mode": {
+      "const": "snapshot"
+    },
+    "claim_scope": {
+      "const": "CURRENT_AVAILABILITY"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "execution": {
+      "const": "DISABLED"
+    }
+  }
+}

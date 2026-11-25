@@ -482,8 +482,11 @@ class TestEpistemicBoundary:
 
 
 class TestAuthorityBoundary:
-    def test_current_repository_policy_drives_the_full_chain(self):
+    def test_current_repository_policy_without_actor_list_halts_closed(self):
+        # Production policy currently does not name authorized evaluation actors.
+        # A synthetic authorization receipt must not fill that gap.
         current = json.loads((TOOLS.parent / "REPOSITORY_COORDINATOR_POLICY.json").read_text())
+        assert "authorized_actors" not in current["evaluation_admission"]
         program = source(full=True)
         digest = machine.policy_sha256(current)
         program["policy_sha256"] = digest
@@ -491,7 +494,12 @@ class TestAuthorityBoundary:
         result = machine.run_program(
             compile_source(program), trust(policy_document=current)
         )
-        assert result["status"] == "OUTCOME_OBSERVED"
+        assert result["status"] == "HALTED"
+        assert "POLICY_SHAPE_UNSUPPORTED" in result["reason_codes"]
+        assert result["authority_effect"] == "NONE"
+        assert result["can_authorize"] is False
+        assert result["can_execute"] is False
+        assert result["merge_authority"] is False
 
     def test_runtime_pins_are_required_for_authority_import(self):
         result = machine.run_program(compile_source(source(full=True)))

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from ..models import HELD_SOURCE_STATUSES
 from ..normalize import normalize_generic, utcnow_iso
 
 
@@ -31,6 +32,9 @@ def discover(path: str | Path):
             raw=row,
             source_category=category,
         )
+        source_status = row.get("source_verification_status")
+        if isinstance(source_status, str) and source_status in HELD_SOURCE_STATUSES:
+            candidate.source_verification_status = source_status
         candidate.deadline = row.get("deadline") or candidate.deadline
         candidate.status = str(row.get("status") or candidate.status).upper()
         explicit_affordances = {

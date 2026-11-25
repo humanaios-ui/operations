@@ -1,6 +1,6 @@
 {
-  "pr": 983,
-  "actor_origin_claim": "Claude Code session; Z1 re-sign of Q-REPO-GRAPH-LOOKUP-01 and index fix, index and candidate-file edits only",
+  "pr": 1213,
+  "actor_origin_claim": "Claude Code session; ratify.py stale-note fix for PR 1190 review finding",
   "checks": {
     "quality": {
       "conclusion": "success",
@@ -10,22 +10,34 @@
       "conclusion": "success",
       "p": 0.95
     },
+    "Check principles (P19)": {
+      "conclusion": "success",
+      "p": 0.92
+    },
+    "Reject unauthorized internal deadline semantics": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "freshness": {
+      "conclusion": "success",
+      "p": 0.93
+    },
     "Secret scanning (gitleaks)": {
       "conclusion": "success",
       "p": 0.97
     },
     "Python dependency vulnerability scan": {
       "conclusion": "success",
-      "p": 0.92
-    },
-    "Verify Z2 Ratification Requirements": {
-      "conclusion": "success",
-      "p": 0.6
+      "p": 0.95
     },
     "Repository admission/backpressure gate": {
+      "conclusion": "failure",
+      "p": 0.85
+    },
+    "Build repository coordination index (ADVISORY)": {
       "conclusion": "success",
-      "p": 0.3
+      "p": 0.8
     }
   },
-  "note": "Declared in commit 2e4f7dd5's follow-up commit (first commit on this PR to add this file). Predictions were not revised after CI results. Changes: z1-inbox index and candidate-file hash clear, one new dated re-ratification record. No constants, gates, or workflow files touched. Admission and Z2 ratification checks are not fully in Z1 control."
+  "note": "Not a blind prediction. The previous head (1d0a48c5) failed only jobs that hit a GitHub installation API rate limit (403) plus the admission gate, which needs an admit. This head answers two CodeRabbit findings (the tool quotes a remainder that would read as a non-string; the guard test no longer requires the candidate's note to keep a sentence that signing removes) and updates the tool docstring, candidate text and test counts. The 19-test ratify file (also run against a simulated signing of this candidate), ratify.py smoke test, --verify, z1-inbox validate and render, the tool manifest checks, the baseline suite and the P19 script (merge-message form) passed locally. The PR is ready for review and this exact head has not been admitted, so I predict the admission gate fails until the operator posts a new admit, then a stale-state race that one re-run clears. Jobs that read the GitHub API may fail again until the limit resets at 05:55 UTC. Z2 ratification is not predicted here."
 }

@@ -1,0 +1,91 @@
+name: system-graph-freshness
+
+# Keeps system_graph.json from going stale silently (it sat unregenerated from
+# 2026-09-13 while the generator itself failed validation).
+#   - PR/push: generator must be valid and committed JSON must equal generator output.
+#   - Weekly schedule: also fail if generated_at is older than 45 days, and open
+#     (or comment on) a tracking issue. It does NOT auto-commit: system_graph.json
+#     is a Z2-ratified file, so regeneration goes through a Z1 PR.
+
+on:
+  pull_request:
+    paths:
+      - 'system_graph_generator.py'
+      - 'system_graph.json'
+      - 'docs/SYSTEM_GRAPH.md'
+      - 'tools/system_graph_render_v1_0.py'
+      - 'tools/tests/test_system_graph_generator.py'
+      - '.github/workflows/system-graph-freshness.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'system_graph_generator.py'
+      - 'system_graph.json'
+      - 'docs/SYSTEM_GRAPH.md'
+      - 'tools/system_graph_render_v1_0.py'
+  # temporal_class: OBSERVATIONAL — the weekly tick only samples the age of
+  # system_graph.json and files a tracking issue. It grants no internal priority,
+  # deadline, authority or obligation to act (TEMPORAL_DISSOLUTION_POLICY.md).
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+# Least privilege: every job that runs code from the PR branch (tests, generator,
+# renderer) gets a read-only token. Only the tracking-issue job below holds
+# issues: write, and it runs on the schedule alone, from the default branch.
+permissions:
+  contents: read
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: python3 -m pip install --quiet pytest pyyaml
+
+      - name: Unit tests
+        run: python3 -m pytest tools/tests/test_system_graph_generator.py -q
+
+      - name: Graph valid and equal to generator output
+        run: python3 system_graph_generator.py --check
+
+      - name: Rendered view in sync
+        run: python3 tools/system_graph_render_v1_0.py --check docs/SYSTEM_GRAPH.md
+
+      - name: Age limit (scheduled runs only)
+        id: age
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python3 system_graph_generator.py --check --max-age-days 45
+
+  report-stale:
+    # Scheduled runs only. Reads the freshness result; does not check out or run PR code.
+    needs: freshness
+    if: ${{ always() && github.event_name == 'schedule' && needs.freshness.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write  # create or comment on the tracking issue
+    steps:
+      - name: Open or update the tracking issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'system_graph.json is stale — regenerate via Z1 PR';
+            const open = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100 });
+            const body = `Scheduled freshness check failed: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\n` +
+              'Fix: `python3 system_graph_generator.py --write && python3 tools/system_graph_render_v1_0.py --out docs/SYSTEM_GRAPH.md`, ' +
+              'add nodes for work that landed since the last generation, open a Z1 PR for Z2 ratification.';
+            const existing = open.find(i => i.title === title && !i.pull_request);
+            if (existing) {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body });
+            } else {
+              await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body });
+            }

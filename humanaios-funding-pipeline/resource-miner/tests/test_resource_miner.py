@@ -2,6 +2,7 @@ import json
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest import mock
 
 from resource_miner.miner import enrich
 from resource_miner.entitlement_handoff import build_entitlement_handoff
@@ -10,7 +11,7 @@ from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_
 from resource_miner.planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan, validate_resource_plan
 from resource_miner.reconcile import apply_receipt, reconcile_rows, validate_receipt
 from resource_miner.routing import route_candidate
-from resource_miner.sources import funding_pipeline
+from resource_miner.sources import devto, funding_pipeline
 from resource_miner.sources.rss import FeedRejected, MAX_FEED_BYTES, _parse_feed
 from resource_miner.store import dedupe
 
@@ -20,6 +21,27 @@ ROOT = Path(__file__).resolve().parents[1]
 class ResourceMinerTests(unittest.TestCase):
     def test_cash_extraction(self):
         self.assertEqual(cash_mentions("$2,500 pool; five at $500 each"), [2500.0, 500.0])
+
+    def test_devto_devteam_posts_no_longer_bypass_keyword_filter(self):
+        # Regression: any devteam-authored article was yielded regardless of title.
+        listing = [
+            {"id": 1, "title": "Introducing our new editor feature", "url": "https://dev.to/devteam/a-1",
+             "organization": {"username": "devteam", "name": "The DEV Team"}, "tag_list": ["devchallenge"]},
+            {"id": 2, "title": "Join the Benchmark Challenge", "url": "https://dev.to/devteam/b-2",
+             "organization": {"username": "devteam", "name": "The DEV Team"}, "tag_list": ["devchallenge"]},
+        ]
+        with mock.patch.object(devto, "_get_json", return_value=listing):
+            found = list(devto.discover(tags=["devchallenge"], hydrate=False))
+        self.assertEqual([c.title for c in found], ["Join the Benchmark Challenge"])
+
+    def test_devto_non_devteam_keyword_filter_unchanged(self):
+        listing = [
+            {"id": 3, "title": "My weekend project write-up", "url": "https://dev.to/someone/c-3",
+             "organization": {}, "tag_list": ["devchallenge"]},
+        ]
+        with mock.patch.object(devto, "_get_json", return_value=listing):
+            found = list(devto.discover(tags=["devchallenge"], hydrate=False))
+        self.assertEqual(found, [])
 
     def test_kaggle_maps_to_validation_and_revenue(self):
         fixture = json.loads((ROOT / "fixtures" / "devto_kaggle_article.json").read_text())
@@ -419,6 +441,51 @@ class ResourceMinerTests(unittest.TestCase):
         route_candidate(candidate, today=date(2026, 9, 24))
         self.assertEqual(candidate.route, "VERIFY_NOW")
         self.assertFalse(candidate.eligibility_assessed)
+
+    def test_outcome_announcement_does_not_route_verify_now(self):
+        # Regression: DEV.to "Congrats to the Sanity Challenge Winners!" was
+        # routed VERIFY_NOW with no deadline. A result is not an open call.
+        candidate = normalize_generic(
+            title="Congrats to the Sanity Challenge Winners!",
+            url="https://dev.to/devteam/congrats-to-the-sanity-challenge-winners-1140",
+            source_name="DEV Community", discovery_method="test",
+            description="We are thrilled to announce the winners of the Sanity Challenge.",
+            tags=["devchallenge", "sanity", "challenge"],
+        )
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        self.assertGreaterEqual(max(m.score for m in candidate.need_matches), 0.55)
+        route_candidate(candidate, today=date(2026, 10, 22))
+        self.assertEqual(candidate.route, "WATCH")
+
+    def test_open_call_mentioning_winners_still_routes_verify_now(self):
+        candidate = normalize_generic(
+            title="Benchmark Challenge: prizes for the winners",
+            url="https://example.com/open-challenge",
+            source_name="Example", discovery_method="test",
+            description="Submit benchmark results. Deadline December 1, 2026.",
+            tags=["benchmark", "challenge"],
+        )
+        self.assertEqual(candidate.deadline, "2026-12-01")
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        route_candidate(candidate, today=date(2026, 10, 22))
+        self.assertEqual(candidate.route, "VERIFY_NOW")
+
+    def test_invitation_with_winners_in_title_stays_verify_now_without_dates(self):
+        # Review of #988: a participation invitation whose deadline lives only
+        # in the article body (detail fetch failed) must not be demoted.
+        candidate = normalize_generic(
+            title="Join the Kaggle Benchmarking Challenge: $2,500 in Prizes for FIVE Winners!",
+            url="https://example.com/kaggle-benchmark",
+            source_name="DEV Community", discovery_method="test",
+            description="Benchmark models. Open to all participants.",
+            tags=["benchmark", "challenge"],
+        )
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        route_candidate(candidate, today=date(2026, 10, 22))
+        self.assertEqual(candidate.route, "VERIFY_NOW")
 
     def test_entitlement_handoff_preserves_unassessed_boundary(self):
         candidate = normalize_generic(

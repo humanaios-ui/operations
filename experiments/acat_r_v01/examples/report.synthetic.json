@@ -1,0 +1,68 @@
+{
+  "admission": "HOLD_FOR_INDEPENDENT_REVIEW",
+  "artifact_sha256": {
+    "P1": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "P2": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "P3": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "authority_effect": "NONE",
+  "can_authorize": false,
+  "capture_class": "SYNTHETIC",
+  "cases_total": 2,
+  "challenge_replay_gain": 0.5,
+  "evidence_state": "SYNTHETIC_ONLY",
+  "limitations": [
+    "No runtime is invoked by this evaluator.",
+    "A local SHA-256 commitment does not prove chronological capture or authorship.",
+    "Observed data and reference independence have not been externally authenticated.",
+    "This is a runtime score, not the original ACAT Learning Index.",
+    "P3 improvement is not causally attributable to a patch without external controls."
+  ],
+  "p3_artifact_changed": true,
+  "passes": {
+    "P1": 2,
+    "P2": 1,
+    "P3": 2
+  },
+  "phase_sha256": {
+    "P1": "773bf1bd5e037349b4375fd0e096c7377c456425ea79b402d4af3fb634d15baf",
+    "P2": "f45c0e3b1af3e066eb793c452f2840162598f49b6af4582492ba1bdbdb92f9ba",
+    "P3": "b4e231d9064f72b1604ee4ff7b83cb033968a6a353cad3ee4a9730718dda6d33"
+  },
+  "protocol_sha256": "8888d7863ce63815e92061a981335b2913868465505c2d881fabb63bff0c1ccd",
+  "recovered_cases": 1,
+  "regressed_cases": 0,
+  "rows": [
+    {
+      "case_id": "queue-overload",
+      "messages": {
+        "P1": "numeric reference and tolerance check",
+        "P2": "expected refusal, got success",
+        "P3": "structured refusal"
+      },
+      "p1_baseline_pass": true,
+      "p2_challenge_pass": false,
+      "p2_to_p3_recovered": true,
+      "p2_to_p3_regressed": false,
+      "p3_replay_pass": true,
+      "reference_id": "M/M/1 utilization rho=lambda/mu; no stationary regime for rho >=1"
+    },
+    {
+      "case_id": "sphere-as-cylinder",
+      "messages": {
+        "P1": "numeric reference and tolerance check",
+        "P2": "structured refusal",
+        "P3": "structured refusal"
+      },
+      "p1_baseline_pass": true,
+      "p2_challenge_pass": true,
+      "p2_to_p3_recovered": false,
+      "p2_to_p3_regressed": false,
+      "p3_replay_pass": true,
+      "reference_id": "Thin-wall sphere stress pD/4t; geometry-declaration mismatch requires refusal"
+    }
+  ],
+  "schema": "humanaios.acat-r.report.v0.1",
+  "subject_type": "GENERAL_MACHINE_RUNTIME",
+  "system_id": "synthetic-runtime-demo"
+}

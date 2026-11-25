@@ -1,0 +1,585 @@
+{
+  "schema": "humanaios.internal-resource-intelligence.v0.1",
+  "as_of": "2026-10-23T18:46:00-05:00",
+  "authority_effect": "NONE",
+  "source_authentication": "NOT_ESTABLISHED",
+  "board_role": "NON_AUTHORITATIVE_DERIVED_PROJECTION",
+  "coverage": "BOUNDED_CALLER_SNAPSHOT",
+  "resources": [
+    {
+      "resource_id": "RES-INT-E1E24254850A5BDF",
+      "title": "Assigned agent entry/exit reflex (merged, review gaps remain)",
+      "source_name": "humanaios-ui/operations",
+      "source_url": "https://github.com/humanaios-ui/operations/pull/987",
+      "canonical_url": "https://github.com/humanaios-ui/operations/pull/987",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "agent_coordination",
+        "behavioral_calibration"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/operations/pull/987",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/operations/PR#987",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-C5C3894D8A081536",
+      "mine_name": "humanaios-ui/operations",
+      "mine_url": "https://github.com/humanaios-ui/operations",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-7C261830D9994759",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-7C261830D9994759",
+      "item_ref": "humanaios-ui/operations/PR#987",
+      "item_state": "MERGED",
+      "head_sha": "476d7aec1d937a93710779b2a5cc3efc68c6aada",
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    },
+    {
+      "resource_id": "RES-INT-00D51CAAD71A3009",
+      "title": "Synthetic containment Evidence Graph projection",
+      "source_name": "humanaios-ui/operations",
+      "source_url": "https://github.com/humanaios-ui/operations/pull/978",
+      "canonical_url": "https://github.com/humanaios-ui/operations/pull/978",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "evidence_provenance",
+        "runtime_isolation"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/operations/pull/978",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/operations/PR#978",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-C5C3894D8A081536",
+      "mine_name": "humanaios-ui/operations",
+      "mine_url": "https://github.com/humanaios-ui/operations",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-9CD60F7E34929938",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-9CD60F7E34929938",
+      "item_ref": "humanaios-ui/operations/PR#978",
+      "item_state": "OPEN",
+      "head_sha": "81bda6aad305a809e01139f809781097a062e6c0",
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    },
+    {
+      "resource_id": "RES-INT-0F30B9C45D15D9F9",
+      "title": "Hold broken ATS source in INTENT-OS",
+      "source_name": "humanaios-ui/operations",
+      "source_url": "https://github.com/humanaios-ui/operations/pull/993",
+      "canonical_url": "https://github.com/humanaios-ui/operations/pull/993",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "source_verification",
+        "resource_discovery",
+        "operator_interface"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/operations/pull/993",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/operations/PR#993",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-C5C3894D8A081536",
+      "mine_name": "humanaios-ui/operations",
+      "mine_url": "https://github.com/humanaios-ui/operations",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-91FE14A978E02EB0",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-91FE14A978E02EB0",
+      "item_ref": "humanaios-ui/operations/PR#993",
+      "item_state": "OPEN",
+      "head_sha": "1ec3cfa0ffc38bb79ad113dc735154dfc3f9f42e",
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": [
+        {
+          "run_id": 39907375654,
+          "reported_conclusion": "FAILURE",
+          "source_url": "https://github.com/humanaios-ui/operations/actions/runs/39907375654",
+          "head_alignment": "HEAD_MATCH",
+          "independently_authenticated": false
+        }
+      ]
+    },
+    {
+      "resource_id": "RES-INT-04E361C5FF495116",
+      "title": "Authorized agent coordination reflex research",
+      "source_name": "humanaios-ui/operations",
+      "source_url": "https://github.com/humanaios-ui/operations/issues/986",
+      "canonical_url": "https://github.com/humanaios-ui/operations/issues/986",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "agent_coordination"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/operations/issues/986",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/operations/ISSUE#986",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-C5C3894D8A081536",
+      "mine_name": "humanaios-ui/operations",
+      "mine_url": "https://github.com/humanaios-ui/operations",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-7BB2929D6BB9574E",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-7BB2929D6BB9574E",
+      "item_ref": "humanaios-ui/operations/ISSUE#986",
+      "item_state": "OPEN",
+      "head_sha": null,
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    },
+    {
+      "resource_id": "RES-INT-1F9A0C326320BC19",
+      "title": "On-track opportunity impact reflex",
+      "source_name": "humanaios-ui/operations",
+      "source_url": "https://github.com/humanaios-ui/operations/issues/928",
+      "canonical_url": "https://github.com/humanaios-ui/operations/issues/928",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "recovery_outcome",
+        "operator_interface"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/operations/issues/928",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/operations/ISSUE#928",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-C5C3894D8A081536",
+      "mine_name": "humanaios-ui/operations",
+      "mine_url": "https://github.com/humanaios-ui/operations",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-0044A0F0121E5466",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-0044A0F0121E5466",
+      "item_ref": "humanaios-ui/operations/ISSUE#928",
+      "item_state": "OPEN",
+      "head_sha": null,
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    },
+    {
+      "resource_id": "RES-INT-C293CFEDC8EDD785",
+      "title": "Scoped offline bridge security prototype",
+      "source_name": "humanaios-ui/humanaios",
+      "source_url": "https://github.com/humanaios-ui/humanaios/pull/123",
+      "canonical_url": "https://github.com/humanaios-ui/humanaios/pull/123",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "privacy_boundary",
+        "offline_witness"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/humanaios/pull/123",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/humanaios/PR#123",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-2655DDA2B52D4F61",
+      "mine_name": "humanaios-ui/humanaios",
+      "mine_url": "https://github.com/humanaios-ui/humanaios",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-78D3B502C4AE422B",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-78D3B502C4AE422B",
+      "item_ref": "humanaios-ui/humanaios/PR#123",
+      "item_state": "DRAFT",
+      "head_sha": "c1e7486f39a0fd708596b9464caa41a688e30ce8",
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    },
+    {
+      "resource_id": "RES-INT-8A9C307A27547899",
+      "title": "Synthetic read-only offline Witness",
+      "source_name": "humanaios-ui/humanaios",
+      "source_url": "https://github.com/humanaios-ui/humanaios/pull/124",
+      "canonical_url": "https://github.com/humanaios-ui/humanaios/pull/124",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "offline_witness",
+        "evidence_provenance"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/humanaios/pull/124",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/humanaios/PR#124",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-2655DDA2B52D4F61",
+      "mine_name": "humanaios-ui/humanaios",
+      "mine_url": "https://github.com/humanaios-ui/humanaios",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-12F2A0175F2DFA06",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-12F2A0175F2DFA06",
+      "item_ref": "humanaios-ui/humanaios/PR#124",
+      "item_state": "DRAFT",
+      "head_sha": "f532ea0a8c31e6240eff04aab2e516c32e280d54",
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    },
+    {
+      "resource_id": "RES-INT-0878E9F8EC5C82CD",
+      "title": "ACAT X-ray programming behavior research",
+      "source_name": "humanaios-ui/lasting-light-ai",
+      "source_url": "https://github.com/humanaios-ui/lasting-light-ai/issues/58",
+      "canonical_url": "https://github.com/humanaios-ui/lasting-light-ai/issues/58",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "behavioral_calibration",
+        "research_method"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/lasting-light-ai/issues/58",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/lasting-light-ai/ISSUE#58",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-1C8BE8AC13A0AF78",
+      "mine_name": "humanaios-ui/lasting-light-ai",
+      "mine_url": "https://github.com/humanaios-ui/lasting-light-ai",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-E2EDAFB73CFD2769",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-E2EDAFB73CFD2769",
+      "item_ref": "humanaios-ui/lasting-light-ai/ISSUE#58",
+      "item_state": "OPEN",
+      "head_sha": null,
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    },
+    {
+      "resource_id": "RES-INT-076FD377F98E4B3E",
+      "title": "Historical JWT trust exposure investigation",
+      "source_name": "humanaios-ui/lasting-light-ai",
+      "source_url": "https://github.com/humanaios-ui/lasting-light-ai/issues/57",
+      "canonical_url": "https://github.com/humanaios-ui/lasting-light-ai/issues/57",
+      "discovery_method": "caller_supplied_snapshot_read_only",
+      "discovered_at": "2026-10-23T18:46:00-05:00",
+      "resource_types": [
+        "internal_capability_candidate"
+      ],
+      "resource_affordances": [
+        "privacy_boundary",
+        "evidence_provenance"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/humanaios-ui/lasting-light-ai/issues/57",
+          "kind": "source_pointer_not_authenticated",
+          "observed_at": "2026-10-23T18:46:00-05:00",
+          "claim": "Caller referenced this repository item; requires independent readback"
+        }
+      ],
+      "eligibility_status": "UNASSESSED",
+      "route": "VERIFY_NOW",
+      "status": "UNKNOWN",
+      "opportunity_identity": "humanaios-ui/lasting-light-ai/ISSUE#57",
+      "opportunity_kind": "internal_capability_candidate",
+      "mine_id": "MINE-1C8BE8AC13A0AF78",
+      "mine_name": "humanaios-ui/lasting-light-ai",
+      "mine_url": "https://github.com/humanaios-ui/lasting-light-ai",
+      "opportunity_source_kind": "internal_repository_record",
+      "opportunity_id": "OPP-9B0E14746612EFF8",
+      "opportunity_token": "urn:humanaios:resource-opportunity:OPP-9B0E14746612EFF8",
+      "item_ref": "humanaios-ui/lasting-light-ai/ISSUE#57",
+      "item_state": "OPEN",
+      "head_sha": null,
+      "source_authentication": "NOT_ESTABLISHED",
+      "authority_effect": "NONE",
+      "evidence_provenance": "UNAUTHENTICATED_SOURCE_SNAPSHOT",
+      "ci_observations": []
+    }
+  ],
+  "brokerage": [
+    {
+      "need_id": "NEED-PRIVACY-TRUST",
+      "label": "Review private identity and secret-trust boundaries",
+      "priority": "P0",
+      "attractor": {
+        "classes": [
+          "DECLARED_CAPABILITY_DEPENDENCY"
+        ],
+        "source_ref": "https://github.com/humanaios-ui/lasting-light-ai/issues/57",
+        "expected_capabilities": [
+          "privacy_boundary"
+        ],
+        "search_intent": "SATISFY_DEPENDENCY"
+      },
+      "candidates": [
+        {
+          "resource_id": "RES-INT-C293CFEDC8EDD785",
+          "item_ref": "humanaios-ui/humanaios/PR#123",
+          "capability_codes": [
+            "privacy_boundary"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        },
+        {
+          "resource_id": "RES-INT-076FD377F98E4B3E",
+          "item_ref": "humanaios-ui/lasting-light-ai/ISSUE#57",
+          "capability_codes": [
+            "privacy_boundary"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        }
+      ],
+      "state": "CANDIDATES_REQUIRE_HUMAN_REVIEW",
+      "coverage": "BOUNDED_SNAPSHOT_NOT_EXHAUSTIVE",
+      "roi": "NOT_MEASURED",
+      "authority_effect": "NONE"
+    },
+    {
+      "need_id": "NEED-AGENT-WITNESS",
+      "label": "Observe authorized agents without granting authority",
+      "priority": "P1",
+      "attractor": {
+        "classes": [
+          "DECLARED_CAPABILITY_DEPENDENCY"
+        ],
+        "source_ref": "https://github.com/humanaios-ui/operations/issues/986",
+        "expected_capabilities": [
+          "agent_coordination",
+          "offline_witness",
+          "behavioral_calibration"
+        ],
+        "search_intent": "SATISFY_DEPENDENCY"
+      },
+      "candidates": [
+        {
+          "resource_id": "RES-INT-E1E24254850A5BDF",
+          "item_ref": "humanaios-ui/operations/PR#987",
+          "capability_codes": [
+            "agent_coordination",
+            "behavioral_calibration"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        },
+        {
+          "resource_id": "RES-INT-04E361C5FF495116",
+          "item_ref": "humanaios-ui/operations/ISSUE#986",
+          "capability_codes": [
+            "agent_coordination"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        },
+        {
+          "resource_id": "RES-INT-C293CFEDC8EDD785",
+          "item_ref": "humanaios-ui/humanaios/PR#123",
+          "capability_codes": [
+            "offline_witness"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        },
+        {
+          "resource_id": "RES-INT-8A9C307A27547899",
+          "item_ref": "humanaios-ui/humanaios/PR#124",
+          "capability_codes": [
+            "offline_witness"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        },
+        {
+          "resource_id": "RES-INT-0878E9F8EC5C82CD",
+          "item_ref": "humanaios-ui/lasting-light-ai/ISSUE#58",
+          "capability_codes": [
+            "behavioral_calibration"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        }
+      ],
+      "state": "CANDIDATES_REQUIRE_HUMAN_REVIEW",
+      "coverage": "BOUNDED_SNAPSHOT_NOT_EXHAUSTIVE",
+      "roi": "NOT_MEASURED",
+      "authority_effect": "NONE"
+    },
+    {
+      "need_id": "NEED-REAL-BENEFIT",
+      "label": "Verify mission resource acquisition and recovery impact",
+      "priority": "P1",
+      "attractor": {
+        "classes": [
+          "DECLARED_CAPABILITY_DEPENDENCY"
+        ],
+        "source_ref": "https://github.com/humanaios-ui/operations/issues/928",
+        "expected_capabilities": [
+          "recovery_outcome"
+        ],
+        "search_intent": "SATISFY_DEPENDENCY"
+      },
+      "candidates": [
+        {
+          "resource_id": "RES-INT-1F9A0C326320BC19",
+          "item_ref": "humanaios-ui/operations/ISSUE#928",
+          "capability_codes": [
+            "recovery_outcome"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        }
+      ],
+      "state": "CANDIDATES_REQUIRE_HUMAN_REVIEW",
+      "coverage": "BOUNDED_SNAPSHOT_NOT_EXHAUSTIVE",
+      "roi": "NOT_MEASURED",
+      "authority_effect": "NONE"
+    },
+    {
+      "need_id": "NEED-VERIFY-SOURCE",
+      "label": "Preserve broken-source status through INTENT-OS",
+      "priority": "P1",
+      "attractor": {
+        "classes": [
+          "DECLARED_CAPABILITY_DEPENDENCY"
+        ],
+        "source_ref": "https://github.com/humanaios-ui/operations/issues/928",
+        "expected_capabilities": [
+          "source_verification"
+        ],
+        "search_intent": "SATISFY_DEPENDENCY"
+      },
+      "candidates": [
+        {
+          "resource_id": "RES-INT-0F30B9C45D15D9F9",
+          "item_ref": "humanaios-ui/operations/PR#993",
+          "capability_codes": [
+            "source_verification"
+          ],
+          "readiness": "REQUIRES_INDEPENDENT_VALIDATION",
+          "may_execute": false
+        }
+      ],
+      "state": "CANDIDATES_REQUIRE_HUMAN_REVIEW",
+      "coverage": "BOUNDED_SNAPSHOT_NOT_EXHAUSTIVE",
+      "roi": "NOT_MEASURED",
+      "authority_effect": "NONE"
+    }
+  ],
+  "agent_sessions": [],
+  "quarantine": [],
+  "oracle": {
+    "role": "CONTESTABLE_SYNTHESIS_ONLY",
+    "claims_status": "INFERRED",
+    "unknowns": [
+      "Independent source readback not performed by projector",
+      "Agent account is not model identity",
+      "CI reported by input is not authenticated by projector",
+      "No verified acquisition, revenue, or recovery benefit"
+    ],
+    "can_authorize": false,
+    "can_execute": false
+  },
+  "mission_outcomes": {
+    "resource_acquisition": "NOT_ESTABLISHED",
+    "revenue": "NOT_ESTABLISHED",
+    "recovery_benefit": "NOT_ESTABLISHED"
+  }
+}

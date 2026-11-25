@@ -1,0 +1,24 @@
+name: ODIN E1 Opportunity Task Projection
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/opportunity_tasks_e1.py'
+      - 'humanaios-funding-pipeline/resource-miner/fixtures/odin_tasks_e1.json'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_tasks_e1.py'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/opportunity_journey.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_opportunity_journey_e0.py'
+      - '.github/workflows/odin-opportunity-e1.yml'
+  workflow_dispatch:
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: humanaios-funding-pipeline/resource-miner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: E0 and E1 exact-head regressions
+        run: python -m unittest discover -s tests -p 'test_opportunity_*e*.py' -v
