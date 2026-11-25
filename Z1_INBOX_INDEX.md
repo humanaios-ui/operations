@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**133 candidates** — ⏳ awaiting Z2 84 · ✅ ratified 49 · **80 records**
+**134 candidates** — ⏳ awaiting Z2 85 · ✅ ratified 49 · **80 records**
 
-## Awaiting Z2 (84)
+## Awaiting Z2 (85)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -96,6 +96,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-11-22 | **Q-CORPUS-STATS-FOLLOWON-01** | Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled) | `z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md` |
 | 2026-11-22 | **Q-REFERENT-DECAY-FOLLOWON-01** | Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt) | `z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md` |
 | 2026-11-26 | **Q-CATCH-BIG-TALK-RULES-01** | Catch the Big Talk game rules v0.1 inside Wardens - GTA 6 packet as practice round, cross-machine audit round, board, tiers, Gateway known-answer checks | `z1-inbox/2026-11-24/Q-CATCH-BIG-TALK-RULES-01.md` |
+| 2026-11-27 | **Q-DIGEST-COORD-LAYER-01** | HAIOS-MM-ACAT-003 daily digest as the multi-model coordination layer (layout, workload and integrity measures, two-week trial 2026-11-26 to 2026-12-09) | `z1-inbox/2026-11-25/Q-DIGEST-COORD-LAYER-01.md` |
 
 ## Decided (49)
 
