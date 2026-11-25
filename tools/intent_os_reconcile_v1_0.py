@@ -122,7 +122,19 @@ def ratifier_map() -> dict:
     return out
 
 
+_GH_CACHE: dict = {}
+
+
 def gh_get(path: str, token: str):
+    """GET with a per-run cache: many candidates share a commit or a pull request (1.1.0 reads every
+    awaiting candidate, so repeated lookups would spend the repository's API budget for nothing)."""
+    if path in _GH_CACHE:
+        return _GH_CACHE[path]
+    _GH_CACHE[path] = _gh_get(path, token)
+    return _GH_CACHE[path]
+
+
+def _gh_get(path: str, token: str):
     req = urllib.request.Request(f"https://api.github.com{path}", headers={
         "Authorization": f"token {token}", "Accept": "application/vnd.github+json"})
     with urllib.request.urlopen(req) as r:
