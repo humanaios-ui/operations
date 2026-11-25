@@ -29,15 +29,15 @@ This is the one file-level graph list. It answers step 1 of "Mapping and deploym
 
 | Graph | Where | Question it answers | Size and state |
 |---|---|---|---|
-| Knowledge graph v0.2 proposal | PR #1310, `kg/humanaios_kg_v0_2_proposal.json` | Which links finish the KG: dependency, evidence, decision, outcome? | 19 new nodes, 73 edges; all edges unratified |
-| Repository knowledge graph | PR #630, `tools/repository_knowledge_graph_v0_1.py` | What is in the repo, with a citation for every edge? | Compiler plus schema; not on main |
+| Knowledge graph v0.2 proposal | PR #1310, `kg/humanaios_kg_v0_2_proposal.json` | Which links finish the KG: dependency, evidence, decision, outcome? | 19 new nodes, 73 edges; open draft PR, all edges unratified |
+| Repository knowledge graph | PR #630, `tools/repository_knowledge_graph_v0_1.py` | What is in the repo, with a citation for every edge? | Compiler plus schema; PR closed without merge 2026-10-16 |
 | 358-node research graph | Private; pinned by a receipt in PR #1310 | Research graph behind the KG work | Two snapshots, 358 nodes each, 53 and 83 edges; not published |
 
 ### Clashes
 
 - **Shared labels.** "v0.2" names the system graph, the KG v0.2 proposal and an older hand-written `system_graph_v0.2.md` on Drive (19 nodes, 44 edges, per `PROGRAM_GRAPH_MAPPING.md`). "73 edges" names the system graph and the KG v0.2 proposal. "22 nodes" names KG v0.1 and the system graph timeline. "19 nodes" names the KG v0.2 new nodes and the old Drive system graph.
 - **Stale counts.** The timeline is 22 nodes and 53 edges against 60 and 73 in `system_graph.json`. `AGENT_GRAPH_COMPARISON.md` gives the intent graph 26 nodes; the file has 29. `docs/WORKFLOW_DEPENDENCY_GRAPH.md` counts 49 workflows; `.github/workflows/` holds 106 workflow files.
-- **Reader without its graph.** `tools/graph_lookup_v0_1.py` is on main; the graph it reads comes from PR #630, which is not.
+- **Reader without its graph.** `tools/graph_lookup_v0_1.py` is on main; the graph it reads comes from PR #630, which was closed without merge.
 - **Status clash.** `system_graph.json` marks Intent-OS OPERATED and cites `INTENT_GRAPH.yaml`, which says PROPOSED.
 - **Other lists.** `PROGRAM_GRAPH_MAPPING.md` (7 layers) and the canonical set in `tools/graph_capture_lint_v1_0.py` (5 graphs) also list graphs. The lint set does not cover KG v0.1, the cross-chat graph, the timeline or the admission ruling graph.
 

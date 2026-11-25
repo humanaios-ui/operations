@@ -35,4 +35,4 @@ The list fails if any of these is observed at the pinned commit:
 
 - Whether `PROGRAM_GRAPH_MAPPING.md` and the canonical set in `tools/graph_capture_lint_v1_0.py` should point at this list.
 - Whether the stale timeline and the stale counts in `AGENT_GRAPH_COMPARISON.md` and `docs/WORKFLOW_DEPENDENCY_GRAPH.md` are rebuilt or marked superseded.
-- Open or merged state of PRs #630 and #1310 was not read; their branch heads were.
+- What to do with `tools/graph_lookup_v0_1.py`, which reads the output of PR #630, closed without merge on 2026-10-16.
