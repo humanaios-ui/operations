@@ -1,0 +1,20 @@
+{
+ "schema": "humanaios.haios-mm-acat-003.coordination-layer.manifest.e0",
+ "q_id": "Q-DIGEST-COORD-LAYER-01",
+ "observed_date": "2026-11-25",
+ "agent_role_claim": "Claude",
+ "identity_verified": false,
+ "authority_effect": "NONE",
+ "status": "AWAITING_Z2",
+ "privacy": "COUNTS_AND_RULES_ONLY",
+ "sha256": {
+  "baseline_metrics.json": "4b590e080af577ae6ababbcc5c7132898c771e5e565dfe1bfd85b19e01f2b48c",
+  "score_digest.py": "fda9a9eb65a90a207277f6790b51d0987e5193265c9862e39fbd87318522b169",
+  "../Q-DIGEST-COORD-LAYER-01.md": "05853ecd613f52a1e6f6a61aaed7a3545b9bf9aaa1def53802716d184d59e4e2"
+ },
+ "sha256_note": "manifest.json is not self-hashed. Digests pin bytes, not correctness.",
+ "baseline_window": "2026-11-18..2026-11-25",
+ "trial_window": "2026-11-26..2026-12-09",
+ "original_private_bytes_included": false,
+ "merging_authorized": false
+}
