@@ -1,0 +1,25 @@
+test_01_frozen (test_public_evidence.EvidenceTests.test_01_frozen) ... ok
+test_02_digest (test_public_evidence.EvidenceTests.test_02_digest) ... ok
+test_03_none_authority (test_public_evidence.EvidenceTests.test_03_none_authority) ... ok
+test_04_no_execution (test_public_evidence.EvidenceTests.test_04_no_execution) ... ok
+test_05_references_unretrieved (test_public_evidence.EvidenceTests.test_05_references_unretrieved) ... ok
+test_06_no_verification_promotion (test_public_evidence.EvidenceTests.test_06_no_verification_promotion) ... ok
+test_07_required_not_existing (test_public_evidence.EvidenceTests.test_07_required_not_existing) ... ok
+test_08_duplicate_dedup (test_public_evidence.EvidenceTests.test_08_duplicate_dedup) ... ok
+test_09_conflict_rejected (test_public_evidence.EvidenceTests.test_09_conflict_rejected) ... ok
+test_10_host_spoof (test_public_evidence.EvidenceTests.test_10_host_spoof) ... ok
+test_11_extra_fields (test_public_evidence.EvidenceTests.test_11_extra_fields) ... ok
+test_12_future_dates (test_public_evidence.EvidenceTests.test_12_future_dates) ... ok
+test_13_forged_reference_origin (test_public_evidence.EvidenceTests.test_13_forged_reference_origin) ... ok
+test_14_injected_instructions_inert (test_public_evidence.EvidenceTests.test_14_injected_instructions_inert) ... ok
+test_15_oversized (test_public_evidence.EvidenceTests.test_15_oversized) ... ok
+test_16_duplicate_json_keys (test_public_evidence.EvidenceTests.test_16_duplicate_json_keys) ... ok
+test_17_provenance (test_public_evidence.EvidenceTests.test_17_provenance) ... ok
+test_18_planning_shape (test_public_evidence.EvidenceTests.test_18_planning_shape) ... ok
+test_19_no_future_record (test_public_evidence.EvidenceTests.test_19_no_future_record) ... ok
+test_20_order_invariance (test_public_evidence.EvidenceTests.test_20_order_invariance) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.007s
+
+OK

@@ -1,0 +1,20 @@
+{
+  "expected_ids": [
+    "ER-001",
+    "ER-002",
+    "ER-003",
+    "ER-004",
+    "ER-005",
+    "ER-006",
+    "ER-007",
+    "ER-008",
+    "ER-009"
+  ],
+  "expected_required": [
+    "ER-009"
+  ],
+  "expected_conflict": "UNRESOLVED",
+  "expected_exposure": "UNKNOWN",
+  "expected_authority": "NONE",
+  "note": "Provisional author key. Reviewers must rederive IDs and locators before accepting."
+}

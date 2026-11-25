@@ -1,0 +1,111 @@
+{
+  "schema": "humanaios.public_evidence.fixture.v1",
+  "as_of": "2026-11-25",
+  "sources": [
+    {
+      "id": "EPA-PERMIT",
+      "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+      "kind": "primary_regulatory",
+      "document_date": "2026-11-13",
+      "note": "EPA issued an emergency permit, with required final reporting by expiration and a modification pathway if incomplete. Pages 2–3 and Appendix A identify decision, engagement and sampling records. References are transcribed from the public redacted permit, not underlying records. The permit is not evidence that environmental exposure occurred or did not occur.",
+      "references": [
+        {
+          "id": "ER-001",
+          "title": "Army alternatives correspondence (August)",
+          "topic": "alternatives",
+          "locator": "p. 2",
+          "state": "REFERENCED",
+          "record_date": "2026-08-12"
+        },
+        {
+          "id": "ER-002",
+          "title": "Army alternatives correspondence (September)",
+          "topic": "alternatives",
+          "locator": "p. 2",
+          "state": "REFERENCED",
+          "record_date": "2026-09-04"
+        },
+        {
+          "id": "ER-003",
+          "title": "Alternative Treatment Technology Assessment",
+          "topic": "alternatives",
+          "locator": "pp. 2–3, §1.4",
+          "state": "REFERENCED",
+          "record_date": null
+        },
+        {
+          "id": "ER-004",
+          "title": "Community Engagement Plan",
+          "topic": "engagement",
+          "locator": "p. 20, Appendix A",
+          "state": "REFERENCED",
+          "record_date": "2026-09-04"
+        },
+        {
+          "id": "ER-005",
+          "title": "Environmental Sampling and Analysis Plan",
+          "topic": "monitoring",
+          "locator": "p. 20, Appendix A",
+          "state": "REFERENCED",
+          "record_date": "2026-09-11"
+        },
+        {
+          "id": "ER-006",
+          "title": "Amended sampling plan",
+          "topic": "monitoring",
+          "locator": "p. 20, Appendix A",
+          "state": "REFERENCED",
+          "record_date": "2026-10-13"
+        },
+        {
+          "id": "ER-007",
+          "title": "EPA sampling-plan comments",
+          "topic": "monitoring",
+          "locator": "p. 20, Appendix A",
+          "state": "REFERENCED",
+          "record_date": "2026-10-09"
+        },
+        {
+          "id": "ER-008",
+          "title": "Approved quality assurance project plan",
+          "topic": "monitoring",
+          "locator": "p. 3",
+          "state": "REFERENCED",
+          "record_date": "2026-11-05"
+        },
+        {
+          "id": "ER-009",
+          "title": "Final report with validated laboratory results",
+          "topic": "reporting",
+          "locator": "p. 18, V.G–H",
+          "state": "REQUIRED",
+          "record_date": null
+        }
+      ]
+    },
+    {
+      "id": "ARMY",
+      "url": "https://www.army.mil/article/297069/army_announces_controlled_detonation_of_degraded_explosive_material_at_iowa_army_ammunition_plant",
+      "kind": "agency_statement",
+      "document_date": "2026-11-24",
+      "note": "Army says alternative handling or treatment posed unacceptable safety risks. This is an agency position, not independent scientific verification.",
+      "references": []
+    },
+    {
+      "id": "IPR",
+      "url": "https://www.iowapublicradio.org/environment/2026-11-24/army-blast-unstable-lead-azide-contractor-chemical-treatment-plan",
+      "kind": "independent_reporting",
+      "document_date": "2026-11-24",
+      "note": "Independent reporting questions the timeline and describes an earlier contractor proposal for chemical treatment. This challenges the completeness of the public decision explanation; it does not by itself establish an unsafe or unlawful decision.",
+      "references": []
+    },
+    {
+      "id": "ILLINOIS",
+      "url": "https://epa.illinois.gov/about-us/illinois-epa-news/illinois-state-agencies-issue-updates-regarding-the-iowa-ammunit.html",
+      "kind": "state_notice",
+      "document_date": "2026-11-20",
+      "note": "Illinois agencies issued a public update on interstate coordination. This is a notice, not a laboratory result.",
+      "references": []
+    }
+  ]
+}
