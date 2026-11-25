@@ -41,7 +41,7 @@ DECISIONS = {
     "ACK_ALREADY_REVOKED",
     # Re-binds a head-bound PR admission to a new head when every commit
     # between the admitted head and the new head is a clean merge of main.
-    # Written only by reconcile_pr_snapshots; never accepted from the CLI.
+    # Written only by reconcile_pr_snapshots; the CLI append command rejects it.
     "CARRY_FORWARD",
 }
 CLI_APPEND_DECISIONS = DECISIONS - {"CARRY_FORWARD"}

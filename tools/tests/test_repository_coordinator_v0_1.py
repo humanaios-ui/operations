@@ -1582,9 +1582,9 @@ def _git_repo(tmp_path):
     repo = tmp_path / "repo"
     repo.mkdir()
 
-    def git(*args):
+    def git(*args, check=True):
         return _subprocess.run(
-            ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True,
+            ["git", "-C", str(repo), *args], check=check, capture_output=True, text=True,
             env={"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.invalid",
                  "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.invalid",
                  "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_NOSYSTEM": "1",
@@ -1677,7 +1677,7 @@ def test_v11_conflict_resolution_push_still_revokes_admission(tmp_path):
     git("checkout", "-q", "main")
     commit("index.md", "count: 3\n", "main bumps count")
     git("checkout", "-q", "feature")
-    _subprocess.run(["git", "-C", str(repo), "merge", "-q", "main"], capture_output=True)
+    git("merge", "-q", "main", check=False)  # stops on the count-line conflict
     (repo / "index.md").write_text("count: 4\n", encoding="utf-8")
     git("add", "index.md")
     git("-c", "core.editor=true", "commit", "-q", "--no-edit")
