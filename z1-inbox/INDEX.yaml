@@ -1138,7 +1138,7 @@ candidates:
 records:
 - path: "z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md"
   title: "Z2 ruling — the merge ratifies every candidate, not only board rulings (Night, 2026-11-25)"
-  note: "Extends z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md to candidates with no board relay block, from 2026-11-25, merger must map to a declared ratifier. Executed by tools/intent_os_reconcile_v1_0.py 1.1.0."
+  note: "Extends z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md to candidates with no board relay block merged since 2026-09-18; merger must map to a declared ratifier; open board questions excepted. Executed by tools/intent_os_reconcile_v1_0.py 1.1.0."
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
   note: "Z1 consistency record. authority_effect NONE. z2_hash PENDING_NIGHT_REPIN — no verbatim 64-hex Night hash found in-repo; formula-only ACCEPT prose cited as evidence pending Night confirmation. Not a new Z2 signature."
