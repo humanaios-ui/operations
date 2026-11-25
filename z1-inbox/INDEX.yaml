@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 134
+  candidates: 135
   records: 81
 ratifiers:
 - Night
@@ -1135,6 +1135,12 @@ candidates:
   submitted: '2026-11-20'
   status: awaiting_z2
   note: 'Candidate only. Z1 wrote no REGISTERED.md entry and ran no ADV. adv_eval_v2.py scores supplied values, it does not run a workflow. Z1 leans: leave #1291 merged while the entry and run are open.'
+- q_id: Q-CATCH-BIG-TALK-RULES-01
+  title: 'Catch the Big Talk game rules v0.1 inside Wardens - GTA 6 packet as practice round, cross-machine audit round, board, tiers, Gateway known-answer checks'
+  path: z1-inbox/2026-11-24/Q-CATCH-BIG-TALK-RULES-01.md
+  submitted: '2026-11-24'
+  status: awaiting_z2
+  note: 'Rules only; nothing built, posted or run. Records three choices Night made in session on 2026-11-24 (practice only, machines-only practice board, tier line). Falsifier stated. Not ratified.'
 - q_id: Q-REPO-GRAPH-SORT-01
   title: 'One file-level list of the repository graphs (5S Sort) - path, blob, question, builder, size; clashes flagged'
   path: z1-inbox/2026-11-25/Q-REPO-GRAPH-SORT-01.md
