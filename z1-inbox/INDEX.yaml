@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 132
+  candidates: 133
   records: 80
 ratifiers:
 - Night
 candidates:
+- q_id: Q-DIGEST-COORD-LAYER-01
+  title: HAIOS-MM-ACAT-003 daily digest as the multi-model coordination layer (layout, workload and integrity measures, two-week trial 2026-11-26 to 2026-12-09)
+  path: z1-inbox/2026-11-25/Q-DIGEST-COORD-LAYER-01.md
+  submitted: '2026-11-25'
+  status: awaiting_z2
+  tier: 0
+  note: 'Baseline from 8 digest threads (2026-11-18 to 25), counts only. Paired verdict rule: any integrity loss fails the trial whatever the workload result. Trial routines run outside this repository. Claude-leg posting gap left for Z2. Falsifier stated. Not ratified.'
 - q_id: Q-SHARED-MISTAKE-CONTROLS-01
   title: Falsifier threshold values F1-F5 for the v0.3 shared-mistake negative control (values only; offline, not run)
   path: z1-inbox/2026-11-16/Q-SHARED-MISTAKE-CONTROLS-01.md
