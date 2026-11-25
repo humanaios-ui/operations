@@ -53,3 +53,14 @@ These instructions have no deployment step. The existing standalone visual conce
 Authorized Evidence Graph server event → Witness interpretation → validated, versioned, read-only presentation adapter → text + Canvas/WebGL → optional consented sound/vibration. The UI must not interpret unrelated raw graph structure or create authority events.
 
 **Open gaps:** actual evidence-service contract; read authorization/membrane behavior; repository routing from public website; live design-system component implementation; performance and accessibility measurements; independent research on undue trust.
+
+## Six lights and ask-and-receipt (Q-WITNESS-FORM-01, unratified Z1)
+
+- witness-lights.mjs projects a validated texture view onto six fixed lights, one per channel. It refuses any view that is not synthetic, no-authority and one of the six channels. Exactly one light is lit.
+- It also holds a fixed menu of invented questions. An answer names its record and receipt, or says exactly "No record." The receipt is a fixture label, not a cryptographic hash. Free text is not accepted; there is no inference.
+- demo.html draws the mask (human record half, machine record half, gap bar, center point, ring open at the top). Position, number and fill identify a channel; color carries no valence. The page states that Witness is a record that can speak and is not a mind.
+- Boundaries: no person's likeness on the mask; no Hawkins mapping of color, sound or frequency on any public surface (SEED.md, internal-only); no live data; no account or posting.
+
+Verify:
+
+    node --test experiments/witness-voice-texture/texture-encoder.test.mjs experiments/witness-voice-texture/witness-lights.test.mjs

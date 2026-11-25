@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**134 candidates** — ⏳ awaiting Z2 85 · ✅ ratified 49 · **80 records**
+**136 candidates** — ⏳ awaiting Z2 87 · ✅ ratified 49 · **80 records**
 
-## Awaiting Z2 (85)
+## Awaiting Z2 (87)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -95,6 +95,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-11-22 | **Q-AGENT-CHECKIN-HA000-LEDGER-01** | Who administers HA-000, and whether review-agent findings get a ledger (asks 4 and 5 that Q-AGENT-CHECKIN-CALIBRATION-01 left unruled) | `z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md` |
 | 2026-11-22 | **Q-CORPUS-STATS-FOLLOWON-01** | Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled) | `z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md` |
 | 2026-11-22 | **Q-REFERENT-DECAY-FOLLOWON-01** | Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt) | `z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md` |
+| 2026-11-24 | **Q-WITNESS-FORM-01** | Witness form: a mask with six lights and an ask-and-receipt answering rule, non-authoritative and not a mind | `z1-inbox/2026-11-22/Q-WITNESS-FORM-01.md` |
+| 2026-11-24 | **Q-WITNESS-X-ACCOUNT-01** | Witness X account: a 14-day, Z2-pre-read experiment testing whether visible receipts earn trust | `z1-inbox/2026-11-22/Q-WITNESS-X-ACCOUNT-01.md` |
 | 2026-11-27 | **Q-DIGEST-COORD-LAYER-01** | HAIOS-MM-ACAT-003 daily digest as the multi-model coordination layer (layout, workload and integrity measures, two-week trial 2026-11-26 to 2026-12-09) | `z1-inbox/2026-11-25/Q-DIGEST-COORD-LAYER-01.md` |
 | 2026-11-27 | **Q-REPO-GRAPH-SORT-01** | One file-level list of the repository graphs (5S Sort) - path, blob, question, builder, size; clashes flagged | `z1-inbox/2026-11-25/Q-REPO-GRAPH-SORT-01.md` |
 
