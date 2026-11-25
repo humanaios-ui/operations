@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 133
+  candidates: 134
   records: 81
 ratifiers:
 - Night
@@ -1135,6 +1135,12 @@ candidates:
   submitted: '2026-11-20'
   status: awaiting_z2
   note: 'Candidate only. Z1 wrote no REGISTERED.md entry and ran no ADV. adv_eval_v2.py scores supplied values, it does not run a workflow. Z1 leans: leave #1291 merged while the entry and run are open.'
+- q_id: Q-REPO-GRAPH-SORT-01
+  title: 'One file-level list of the repository graphs (5S Sort) - path, blob, question, builder, size; clashes flagged'
+  path: z1-inbox/2026-11-25/Q-REPO-GRAPH-SORT-01.md
+  submitted: '2026-11-25'
+  status: awaiting_z2
+  note: 'List only; no graph, tool or gate changed. Adds a file-level section to docs/graph_integration/INVENTORY.md, keeping the PR #896 design table below it. Night asked for it in session on 2026-11-25. Falsifier stated. Not ratified.'
 records:
 - path: "z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md"
   title: "Z2 ruling — the merge ratifies every candidate, not only board rulings (Night, 2026-11-25)"
