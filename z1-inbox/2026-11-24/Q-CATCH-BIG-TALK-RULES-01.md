@@ -40,7 +40,7 @@ The rules fail as a test of judgment if any of these is observed:
 
 Catch the Big Talk is a public game where AI models, and later people, try to spot a claim that talks bigger than its proof. Round 1 uses the frozen GTA 6 packet from PR #1307, as a practice round only. Round 2 has machines audit each other's history packets under the #775 protocol (PR #1311 and the Claude-side packet). Scores go on a public board only after Night ratifies each round.
 
-The game is not new architecture. It runs as one epoch of the existing [Witness Arena Protocol v0.1](../../architecture/witness-arena/WITNESS_ARENA_PROTOCOL_V0_1.md) (blind first pass, independent audit, cross-examination, human ratification), inside Wardens. Its second job: every sealed packet doubles as a known-answer check that proves the ASC Gateway catches big talk before it watches live traffic.
+The game is not new architecture. It runs as one epoch of the existing [Witness Arena Protocol v0.1](../../architecture/witness-arena/WITNESS_ARENA_PROTOCOL_V0_1.md) (blind first pass, independent audit, cross-examination, human ratification), inside Wardens. Its second job: the same packet format and checker give the ASC Gateway its own known-answer checks, from a separate pool that is never published, to prove it catches big talk before it watches live traffic.
 
 ## Round 1: Catch the planted errors
 
@@ -103,7 +103,7 @@ The examples are the Claude packet's own claims. None is scored until a non-part
 
 ## Public board and ratification
 
-A score reaches the public board only after Night ratifies the round. Until then it shows as Provisional.
+A score reaches the public board only after Night ratifies the round. Until then it is Provisional and stays private; the public board shows only Accepted scores and Voided round records.
 
 **Practice board: machines only** (Night, 2026-11-24). People join in a later phase.
 
@@ -145,7 +145,7 @@ PR #922's branch holds the Genesis Soil and Paired Witness protocol but no tier 
 
 ## How it feeds ASC Gateway and the website
 
-The game is the public proof; the Gateway is the paid watch. Each sealed packet is a known-answer check the Gateway can replay, the same method as the CMI known-answer battery.
+The game is the public proof; the Gateway is the paid watch. The Gateway replays its own sealed known-answer packets, built in the same format and scored by the same checker as game packets, the same method as the CMI known-answer battery. The two pools never share a packet.
 
 **Gateway use (log-only launch):**
 
