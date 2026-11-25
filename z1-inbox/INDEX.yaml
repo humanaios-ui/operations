@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 134
+  candidates: 135
   records: 80
 ratifiers:
 - Night
@@ -1141,6 +1141,12 @@ candidates:
   submitted: '2026-11-24'
   status: awaiting_z2
   note: 'Rules only; nothing built, posted or run. Records three choices Night made in session on 2026-11-24 (practice only, machines-only practice board, tier line). Falsifier stated. Not ratified.'
+- q_id: Q-REPO-GRAPH-SORT-01
+  title: 'One file-level list of the repository graphs (5S Sort) - path, blob, question, builder, size; clashes flagged'
+  path: z1-inbox/2026-11-25/Q-REPO-GRAPH-SORT-01.md
+  submitted: '2026-11-25'
+  status: awaiting_z2
+  note: 'List only; no graph, tool or gate changed. Adds a file-level section to docs/graph_integration/INVENTORY.md, keeping the PR #896 design table below it. Night asked for it in session on 2026-11-25. Falsifier stated. Not ratified.'
 records:
 - path: "z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md"
   title: "INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN)"
