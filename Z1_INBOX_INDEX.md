@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**133 candidates** — ⏳ awaiting Z2 84 · ✅ ratified 49 · **80 records**
+**133 candidates** — ⏳ awaiting Z2 84 · ✅ ratified 49 · **81 records**
 
 ## Awaiting Z2 (84)
 
@@ -454,7 +454,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (80)
+## Records (81)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -539,6 +539,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md` | Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md` | INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN) |
 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md` | Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md` | Z2 ruling — the merge ratifies every candidate, not only board rulings (Night, 2026-11-25) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ## Excluded from the conversion record (12)

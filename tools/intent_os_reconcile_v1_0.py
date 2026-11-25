@@ -27,6 +27,21 @@ main, after the fact, from what the tree and GitHub already say:
        is regenerated with .z1-control/render.py's renderer. The candidate file is NOT touched: the
        bytes Z2 merged are the bytes that are signed.
 
+1.1.0 — EVERY CANDIDATE, NOT ONLY BOARD RULINGS (Z2, 2026-11-25)
+-----------------------------------------------------------------
+Z2 on 2026-11-25: "the whole point of the merge is to ratify ... I want it changed now"
+(z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md). Until 1.1.0 this tool signed only
+candidates carrying a board relay block, so a Z1 candidate filed by its own pull request stayed
+`awaiting_z2` after Z2 merged it. From 1.1.0 an `awaiting_z2` candidate with no relay block is also
+signed when:
+    a. it was submitted on or after RECONCILE_MERGE_FROM (default 2026-11-25), and
+    b. the last commit that touched its file belongs to a pull request merged into main on or after
+       that date, and
+    c. the merger maps to a declared ratifier (same check as above; a bot, CI or agent login does not).
+Same signature, same ruling file, same index write, candidate file untouched. Candidates submitted
+before the date are left exactly as they are: widening to them is a separate Z2 call, because it
+would sign dozens of old merges at once.
+
 Idempotent: a second run finds nothing awaiting. A ruling file that already records the candidate
 under a different hash is a refusal, never an overwrite. The index shapes are imported from
 tools/decision_relay.py so the job writes on main exactly what the relay would have written on a
@@ -65,7 +80,7 @@ import urllib.error
 import urllib.request
 
 TOOL_NAME = "intent_os_reconcile"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091826-01"
 TOOL_ZONE = 1  # 1=execute, 2=ratify, 3=night — records a Z2 act already made (the merge); makes none
@@ -73,7 +88,14 @@ TOOL_ZONE = 1  # 1=execute, 2=ratify, 3=night — records a Z2 act already made 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RELAY = os.path.join("tools", "decision_relay.py")
 REPO = os.environ.get("GITHUB_REPO", "humanaios-ui/operations")
-ACCEPTED_BLOCK_STATUS = ("DECIDED", "PENDING")  # PENDING: relay 0.4.x, before the merge was the ratification
+ACCEPTED_BLOCK_STATUS = ("DECIDED", "PENDING")
+MERGE_BLOCK_STATUS = "MERGE"  # 1.1.0: no relay block; the candidate's own pull request was the ruling
+
+
+def merge_from() -> str:
+    """First day on which merging any candidate's pull request ratifies it (Z2, 2026-11-25)."""
+    v = os.environ.get("RECONCILE_MERGE_FROM", "2026-11-25").strip()
+    return v if re.fullmatch(r"\d{4}-\d{2}-\d{2}", v) else "2026-11-25"  # PENDING: relay 0.4.x, before the merge was the ratification
 
 
 def load_relay(root: str):
@@ -150,6 +172,7 @@ def plan(root: str, lookup=github_lookup) -> dict:
     index = yaml.load(idx_text, Loader=v.StrictLoader)
     ratifiers = set(str(r) for r in (index.get("ratifiers") or []))
     logins = ratifier_map()
+    since = merge_from()
     rows = []
     for c in index.get("candidates") or []:
         if c.get("status") != "awaiting_z2":
@@ -160,20 +183,28 @@ def plan(root: str, lookup=github_lookup) -> dict:
             continue
         text = open(full, encoding="utf-8").read()
         f = relay.ruling_fields(text)
-        if not f or not f.get("block") or f.get("status") not in ACCEPTED_BLOCK_STATUS:
-            continue  # an open question, or a section the relay did not write
-        row = {"q_id": qid, "path": rel, "block_status": f["status"], "choice": f.get("choice"), "block_hash": f.get("block_hash")}
-        m = re.search(r"^  question: (.*)$", f["block"], re.M)
-        row["question"] = m.group(1) if m else ""
-        m = re.search(r"^RULING (\S+)", f["block"])
-        row["id"] = m.group(1) if m else ""
-        m = re.search(r"^  choice: (.*)$", f["block"], re.M)
-        if relay.sha(f["block"].encode()) != f.get("block_hash") or relay.body_hash(text) != f.get("body_hash") \
-                or not m or m.group(1) != f.get("choice"):
-            row.update(outcome="UNVERIFIED", why="the Ruling section does not hash to what the relay landed — edited after the tap")
-            rows.append(row)
-            continue
+        merge_path = not f or not f.get("block") or f.get("status") not in ACCEPTED_BLOCK_STATUS
+        if merge_path:
+            # 1.1.0: a candidate with no relay block; its own pull request's merge is the ruling
+            if str(c.get("submitted", "")) < since:
+                continue  # filed before Z2's 2026-11-25 extension; left as it is
+            row = {"q_id": qid, "path": rel, "block_status": MERGE_BLOCK_STATUS, "choice": "ACCEPT", "block_hash": None,
+                   "question": str(c.get("title") or ""), "id": ""}
+        else:
+            row = {"q_id": qid, "path": rel, "block_status": f["status"], "choice": f.get("choice"), "block_hash": f.get("block_hash")}
+            m = re.search(r"^  question: (.*)$", f["block"], re.M)
+            row["question"] = m.group(1) if m else ""
+            m = re.search(r"^RULING (\S+)", f["block"])
+            row["id"] = m.group(1) if m else ""
+            m = re.search(r"^  choice: (.*)$", f["block"], re.M)
+            if relay.sha(f["block"].encode()) != f.get("block_hash") or relay.body_hash(text) != f.get("body_hash") \
+                    or not m or m.group(1) != f.get("choice"):
+                row.update(outcome="UNVERIFIED", why="the Ruling section does not hash to what the relay landed — edited after the tap")
+                rows.append(row)
+                continue
         pr = lookup(root, rel)
+        if merge_path and not pr.get("error") and str(pr.get("merged_at", ""))[:10] < since:
+            continue  # merged before the extension; not this tool's to sign
         if pr.get("error"):
             row.update(outcome="NO-PR", why=pr["error"])
             rows.append(row)
@@ -203,11 +234,17 @@ def ruling_section(relay, row: dict) -> str:
     pr = row["pr"]
     who = (f"single-member override — the author reviewed and merged their own pull request (d7's bypass, recorded as such)"
            if row["override"] else f"approved by {', '.join(pr['approvers'])}, merged by {pr['merged_by']}")
+    merged = row.get("block_status") == MERGE_BLOCK_STATUS
+    decision = ("ACCEPT (ratified) · candidate filed and merged by its own pull request"
+                if merged else f"ACCEPT (ratified) · board ruling {row['id']}: `{row['choice']}`")
+    landed = (f"no board relay block; the merge of its own pull request is the ruling (Z2, 2026-11-25, "
+              f"z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md)"
+              if merged else f"tools/decision_relay.py (`{row['block_status']}` block, hash `{str(row['block_hash'])[:16]}…`)")
     return (f"\n## {row['q_id']} — ACCEPT\n\nHash: `{row['signature']}`\n\n"
-            f"- **Decision:** ACCEPT (ratified) · board ruling {row['id']}: `{row['choice']}`\n"
+            f"- **Decision:** {decision}\n"
             f"- **By:** {row['by']}\n- **At:** {row['at']}\n- **Candidate:** `{row['path']}`\n"
             f"- **Ratified by merge:** pull request #{pr['number']} ({pr['html_url']}) merged by {pr['merged_by']} at {pr['merged_at']}; {who}\n"
-            f"- **Landed by:** tools/decision_relay.py (`{row['block_status']}` block, hash `{str(row['block_hash'])[:16]}…`); recorded by {TOOL_NAME} v{TOOL_VERSION} on main at commit {pr.get('sha', '')[:12]}\n"
+            f"- **Landed by:** {landed}; recorded by {TOOL_NAME} v{TOOL_VERSION} on main at commit {pr.get('sha', '')[:12]}\n"
             f"- **Signature:** `sha256(candidate | by={row['by']} | at={row['at']} | decision=ACCEPT)`, computed over the candidate's bytes as merged — the merge is the ratification (Z2, 2026-09-18).\n")
 
 
@@ -352,6 +389,35 @@ def selftest() -> int:
         apply(td, p6)
         ok &= p6["rows"][0]["outcome"] == "REFUSED" and "different hash" in p6["rows"][0]["why"] and "status: awaiting_z2" in open(os.path.join(td, "z1-inbox", "INDEX.yaml")).read()
         print("a ruling file that already carries the candidate under another hash → REFUSED, index untouched →", ok)
+        # 1.1.0: a candidate with no relay block, filed on/after the extension date, merged by a ratifier → RECONCILE;
+        # merged before the date, or filed before it → not listed; merged by a bot → NOT-RATIFIER
+        os.makedirs(os.path.join(td, "z1-inbox", "2026-11-25"), exist_ok=True)
+        mrel = "z1-inbox/2026-11-25/Q-PLAIN-CANDIDATE-01.md"
+        open(os.path.join(td, mrel), "w").write("# Q-PLAIN-CANDIDATE-01\n\n## Falsifier\n\nIf it fails.\n")
+        it = re.sub(r"(?m)^records:", "- q_id: Q-PLAIN-CANDIDATE-01\n  title: Plain Z1 candidate\n  path: z1-inbox/2026-11-25/Q-PLAIN-CANDIDATE-01.md\n  submitted: '2026-11-25'\n  status: awaiting_z2\nrecords:", open(os.path.join(td, "z1-inbox", "INDEX.yaml")).read(), count=1)
+        it = re.sub(r"candidates: \d+", lambda m: f"candidates: {int(m.group(0).split()[1]) + 1}", it, count=1)
+        open(os.path.join(td, "z1-inbox", "INDEX.yaml"), "w").write(it)
+        subprocess.run([sys.executable, os.path.join(td, ".z1-control", "render.py")], cwd=td, capture_output=True, text=True)
+        MPR = {**PR, "number": 1317, "merged_at": "2026-11-25T22:54:25Z"}
+        def only(p, q):
+            return [r for r in p["rows"] if r["q_id"] == q]
+        pm = plan(td, lambda root, rel: MPR if rel == mrel else {"error": "x"})
+        rm = only(pm, "Q-PLAIN-CANDIDATE-01")
+        ok &= len(rm) == 1 and rm[0]["outcome"] == "RECONCILE" and rm[0]["by"] == "Night" and rm[0]["at"] == "2026-11-25" \
+            and rm[0]["block_status"] == "MERGE" and rm[0]["signature"] == relay.signature(open(os.path.join(td, mrel), "rb").read(), "Night", "2026-11-25")
+        ok &= only(plan(td, lambda root, rel: {**MPR, "merged_at": "2026-11-24T10:00:00Z"} if rel == mrel else {"error": "x"}), "Q-PLAIN-CANDIDATE-01") == []
+        bot = only(plan(td, lambda root, rel: {**MPR, "merged_by": "github-actions[bot]"} if rel == mrel else {"error": "x"}), "Q-PLAIN-CANDIDATE-01")
+        ok &= len(bot) == 1 and bot[0]["outcome"] == "NOT-RATIFIER"
+        os.environ["RECONCILE_MERGE_FROM"] = "2026-11-26"
+        ok &= only(plan(td, lambda root, rel: MPR if rel == mrel else {"error": "x"}), "Q-PLAIN-CANDIDATE-01") == []
+        del os.environ["RECONCILE_MERGE_FROM"]
+        mbefore = open(os.path.join(td, mrel)).read()
+        pm2 = {**pm, "rows": [r for r in pm["rows"] if r["q_id"] == "Q-PLAIN-CANDIDATE-01"]}
+        apply(td, pm2)
+        mruling = open(os.path.join(td, "z1-inbox", "2026-11-25", "Z2_RULINGS_2026-11-25.md")).read()
+        ok &= "Q-PLAIN-CANDIDATE-01 — ACCEPT" in mruling and "own pull request" in mruling and open(os.path.join(td, mrel)).read() == mbefore
+        ok &= re.search(r"Q-PLAIN-CANDIDATE-01\n(?:  .*\n)*?  status: ratified", open(os.path.join(td, "z1-inbox", "INDEX.yaml")).read()) is not None
+        print("1.1.0 merge path: plain candidate merged by a ratifier on/after 2026-11-25 → signed; earlier merge or earlier date → not listed; bot merger → NOT-RATIFIER →", ok)
         # the ratifier map is env-driven and case-insensitive on the login; a bad entry is ignored
         os.environ["RECONCILE_RATIFIERS"] = "HumanAIOS-UI=Night, broken, x=Y"
         ok &= ratifier_map() == {"humanaios-ui": "Night", "x": "Y"}
