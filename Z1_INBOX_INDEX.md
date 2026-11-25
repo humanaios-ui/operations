@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**135 candidates** — ⏳ awaiting Z2 86 · ✅ ratified 49 · **81 records**
+**135 candidates** — ⏳ awaiting Z2 37 · ✅ ratified 98 · **95 records**
 
-## Awaiting Z2 (86)
+## Awaiting Z2 (37)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -34,10 +34,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-16 | **Q-BOOT-FINDINGS-SCAN-01** | Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch | `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md` |
 | 2026-09-16 | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
 | 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
-| 2026-09-19 | **Q-INTENTOS-BUS-01** | Agent bus policy — d27 model endpoint none/local/hosted · d28 issue mirror · d29 smoke contract in the manifest · d30 squash-merge read pointer | `z1-inbox/2026-09-17/Q-INTENTOS-BUS-01.md` |
-| 2026-09-19 | **Q-INTENTOS-REFRESH-01** | Automated Intent-OS refresh — re-seal what a job may, file what a human must; d23 enable · d24 rev by job · d25 local copies · KNOWN_RED list | `z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md` |
 | 2026-09-20 | **Q-BOARD-PUBLISH-01** | Board ruling d31 — board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities), replacing d17's local-only? | `z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md` |
-| 2026-09-20 | **Q-IC-RATIFY-BYPASS-01** | IC candidate — a by-hand signature path (ratify.py --apply) stayed executable for board rulings after the merge-is-ratification ruling; guarded in #409 (a Tier 2 gate change) | `z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md` |
 | 2026-09-21 | **Q-BOARD-RULING-20** | Board ruling d20 — Test harness as §A step 3 | `z1-inbox/2026-09-19/Q-BOARD-RULING-20.md` |
 | 2026-09-21 | **Q-BOARD-RULING-21** | Board ruling d21 — Dashboard: commit the rendered receipt | `z1-inbox/2026-09-19/Q-BOARD-RULING-21.md` |
 | 2026-09-21 | **Q-BOARD-RULING-22** | Board ruling d22 — Scale-out order for the test surface | `z1-inbox/2026-09-19/Q-BOARD-RULING-22.md` |
@@ -51,55 +48,9 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-21 | **Q-BOARD-RULING-30** | Board ruling d30 — Squash-merge read pointer | `z1-inbox/2026-09-19/Q-BOARD-RULING-30.md` |
 | 2026-09-21 | **Q-BOARD-RULING-32** | Board ruling d32 — KNOWN_RED list in the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-32.md` |
 | 2026-09-21 | **Q-BOARD-RULING-33** | Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19's freeze), keep the frozen path, or later | `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` |
-| 2026-09-21 | **Q-INTENTOS-PAGES-GATE-01** | Gates for the board's page set — intent_os_pages --check as a pre-merge step (G1), the d33 rename-hold test pre-merge (G2), the runbook card sealed or not (G3): a Tier 2 proposal | `z1-inbox/2026-09-19/Q-INTENTOS-PAGES-GATE-01.md` |
-| 2026-09-21 | **Q-PHASE-2-BOARD-MOLT-01** | Z2 Board Decisions & Molt Events Ingestion | `z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md` |
 | 2026-09-21 | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
-| 2026-09-22 | **Q-TOOL-MANIFEST-DRIFT-PREVENTION-01** | Tool manifest drift prevention — validation gate (Tier 0 infrastructure) | `z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md` |
-| 2026-09-23 | **Q-DEFERRAL-RULE-01** | A deferral needs an ending condition, not just a better home | `z1-inbox/2026-09-21/Q-DEFERRAL-RULE-01.md` |
-| 2026-09-23 | **Q-EXTERNAL-JESTER-01** | The ratified Jester's independence rule is the wrong rule, and we can now measure that | `z1-inbox/2026-09-21/Q-EXTERNAL-JESTER-01.md` |
-| 2026-09-23 | **Q-GATE-PATHS-TEST-LOGIC-01** | A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2 | `z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md` |
-| 2026-09-23 | **Q-GOVDRIFT-01** | Derived-artifact convention, and four items only Z2 can close | `z1-inbox/2026-09-21/Q-GOVDRIFT-01.md` |
-| 2026-09-23 | **Q-INTENT-GRAPH-01** | Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator | `z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md` |
-| 2026-09-23 | **Q-MOLT-TEMPORAL-PURITY-01** | Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01 | `z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md` |
-| 2026-09-23 | **Q-SMAG-Z3-TASK-SEQUENCING-01** | Z3 executor task sequencing and dependency graph undefined for s1/s2/s3 | `z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md` |
-| 2026-09-24 | **Q-A11-ORDERING-INERT-01** | A11 still enforces a property no grade depends on | `z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md` |
-| 2026-09-24 | **Q-ACCOUNT-HUB-01** | HumanAIOS Account Hub & Project Manager Cockpit | `z1-inbox/2026-09-22/ACCOUNT-HUB-PROPOSAL.md` |
-| 2026-09-24 | **Q-P19-GATE-INERT-01** | The principle-compliance gate reported green without opening a file | `z1-inbox/2026-09-22/Q-P19-GATE-INERT-01.md` |
-| 2026-09-24 | **Q-Z2-BLOCK-UNFILLABLE-01** | The candidate template promises z2_decision is auto-filled; nothing fills it, and the signature makes filling it later impossible | `z1-inbox/2026-09-22/Q-Z2-BLOCK-UNFILLABLE-01.md` |
-| 2026-09-25 | **Q-BUZZ-COLLAB-EVAL-01** | Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance on self-hosted Nostr relay) | `z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md` |
-| 2026-09-25 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** ⚠️ falsifier waived | Falsifiable Self-Assessment Window — Design E + A | `z1-inbox/2026-09-23/falsifiable_self_assessment.md` |
-| 2026-09-25 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** ⚠️ falsifier waived | Phase 2a interrogation approvals + Design E/A ratification record awaiting canonical signature | `z1-inbox/2026-09-23/interrogation_approvals.md` |
-| 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
-| 2026-09-27 | **Q-CRB-COMPILE-01** | Computational Review Board — portable adjudication institution | `z1-inbox/2026-09-25/COMPUTATIONAL_REVIEW_BOARD_PROPOSAL.md` |
-| 2026-09-29 | **Q-ACAT-DISTRIBUTION-PLAYS-01** | ACAT distribution plays — applying an externally-sourced growth playbook | `z1-inbox/2026-09-27/Q-ACAT-DISTRIBUTION-PLAYS-01.md` |
-| 2026-09-29 | **Q-GATE-BYPASS-LEDGER-01** | Merges through non-required-but-meaningful gates leave no in-repo trace | `z1-inbox/2026-09-27/F-CAND-SILENT-GATE-BYPASS-01.md` |
-| 2026-09-29 | **Q-WITNESS-LEDGER-TIER0-EXTENSION-01** | Extend the INTENT-OS witness ledger with a Tier 0 (anonymous public participant) actor class | `z1-inbox/2026-09-27/Q-WITNESS-LEDGER-TIER0-EXTENSION-01.md` |
-| 2026-10-02 | **Q-588-CONVERGENCE-MATRIX-01** | Resource System Convergence Matrix — component landscape & composition framework | `z1-inbox/2026-09-30/Q-588-CONVERGENCE-MATRIX-01.md` |
-| 2026-10-02 | **Q-TIER-ASSIGNMENT-BATCH-01** | Tier assignment for 90 awaiting_z2 governance candidates | `z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md` |
-| 2026-10-03 | **Q-GRAPH-CAPTURE-LINT-01** | graph_capture_lint — score every graph file against the nine properties of a self-sealing graph; block on the three that make a graph unauditable | `z1-inbox/2026-10-01/Q-GRAPH-CAPTURE-LINT-01.md` |
-| 2026-10-03 | **Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01** | Phase 2B telemetry & workflow path validator — dual-layer IC-032 prevention | `z1-inbox/2026-10-01/Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01.md` |
-| 2026-10-03 | **Q-RBE-OPS-TIER-RANKING-01** | RBE-OPS Tier Ranking - Benefit/Cost Density Within Tiers | `z1-inbox/2026-10-01/Q-RBE-OPS-TIER-RANKING-01.md` |
-| 2026-10-03 | **Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01** | Z3 executor assignments and execution plan for 90 tier-assigned candidates | `z1-inbox/2026-10-01/Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01.md` |
-| 2026-10-10 | **Q-SYSTEM-GRAPH-TEMPORAL-01** | Temporal sequencing for system_graph.json schema | `z1-inbox/2026-10-08/SYSTEM_GRAPH_TEMPORAL_SCHEMA_PROPOSAL.md` |
-| 2026-10-11 | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Governance registry structural repair — 162 entries, 127 defects | `z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md` |
-| 2026-10-16 | **Q-ISSUE-TRIAGE-CONVENTION-01** | Labels, assignees, and triage for repository issues | `z1-inbox/2026-10-14/Q-ISSUE-TRIAGE-CONVENTION-01.md` |
-| 2026-10-24 | **Q-EXTERNAL-ADVISORY-INTAKE-01** | Finding — no intake or callout route for external vulnerability advisories (PHP2Shell passed unrecorded) | `z1-inbox/2026-10-22/Q-EXTERNAL-ADVISORY-INTAKE-01.md` |
-| 2026-10-24 | **Q-HOST-INVENTORY-01** | Finding — no ratified host/runtime inventory, so "not applicable" claims about live infrastructure cannot be checked | `z1-inbox/2026-10-22/Q-HOST-INVENTORY-01.md` |
-| 2026-10-24 | **Q-WITNESS-DATA-PLANE-01** | Witness self-scan data plane — user-held key in browser, identifiers sent per scan over TLS, server plaintext in memory for one scan only | `z1-inbox/2026-10-22/Q-WITNESS-DATA-PLANE-01.md` |
-| 2026-10-26 | **Q-PR956-GOVERNANCE-ADMISSION-01** | Admission Request — PR #956 governance documentation (M009 audit, remediation, execution handoff) | `z1-inbox/2026-10-24/Q-PR956-GOVERNANCE-ADMISSION-01.md` |
-| 2026-10-26 | **Q-PRINCIPLES-CROSSWALK-01** | Proposal — Seed Constitution v0.1 nine-principle crosswalk (file ID, test, owner, known gap) with draft amendments for holes 1, 2, 4 | `z1-inbox/2026-10-24/Q-PRINCIPLES-CROSSWALK-01.md` |
-| 2026-10-27 | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Finding — hidden AI-directed instruction embedded in Governing Engines (MODE partner) published pages | `z1-inbox/2026-10-25/Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01.md` |
-| 2026-11-09 | **Q-SWARM-TRUSTED-HOST-V2-1-PREFLIGHT-01** | Admit Swarm Trusted Host v2.1 (Ed25519 writer, KD-1..KD-3 fixed offline) for independent review; non-scored two-agent preflight scope. Not an execution grant. | `z1-inbox/2026-11-07/swarm_trusted_host_v2_1/docs/Z1_CANDIDATE_FOR_Z2.md` |
-| 2026-11-15 | **Q-RATIFY-STALE-NOTE-01** | ratify.py 1.3.0: on ACCEPT, remove the stale "Not ratified." sentence from the candidate's single-line index note | `z1-inbox/2026-11-13/Q-RATIFY-STALE-NOTE-01.md` |
-| 2026-11-22 | **Q-ADMISSION-GRAPH-TIER2-01** | The registry entry and the ADV run that Tier 2 asks for, for the admission-graph workflow merged in #1291 | `z1-inbox/2026-11-20/Q-ADMISSION-GRAPH-TIER2-01.md` |
-| 2026-11-22 | **Q-AGENT-CHECKIN-HA000-LEDGER-01** | Who administers HA-000, and whether review-agent findings get a ledger (asks 4 and 5 that Q-AGENT-CHECKIN-CALIBRATION-01 left unruled) | `z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md` |
-| 2026-11-22 | **Q-CORPUS-STATS-FOLLOWON-01** | Interim citation rule, whether anything external went out on the unreproducible figures, and whether the corpus validator gates (asks 2-4 that Q-CORPUS-STATS-RECONCILE-01 left unruled) | `z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md` |
-| 2026-11-22 | **Q-REFERENT-DECAY-FOLLOWON-01** | Generate restated facts (D) and grade claim-to-source links in prose (C); B stays deferred (options Q-REFERENT-DECAY-01 did not adopt) | `z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md` |
-| 2026-11-26 | **Q-CATCH-BIG-TALK-RULES-01** | Catch the Big Talk game rules v0.1 inside Wardens - GTA 6 packet as practice round, cross-machine audit round, board, tiers, Gateway known-answer checks | `z1-inbox/2026-11-24/Q-CATCH-BIG-TALK-RULES-01.md` |
-| 2026-11-27 | **Q-DIGEST-COORD-LAYER-01** | HAIOS-MM-ACAT-003 daily digest as the multi-model coordination layer (layout, workload and integrity measures, two-week trial 2026-11-26 to 2026-12-09) | `z1-inbox/2026-11-25/Q-DIGEST-COORD-LAYER-01.md` |
-| 2026-11-27 | **Q-REPO-GRAPH-SORT-01** | One file-level list of the repository graphs (5S Sort) - path, blob, question, builder, size; clashes flagged | `z1-inbox/2026-11-25/Q-REPO-GRAPH-SORT-01.md` |
 
-## Decided (49)
+## Decided (98)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -124,20 +75,61 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-BOARD-RULING-13** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`fa83e8cad90de5979c733e1135369a540a10c164a56c1a05e0da77db8e8dceb6` |
 | ✅ ratified | **Q-BOARD-RULING-15** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`9a74fa65d8997015b091773db6f595d6210207a474973c59dd508ca5bd07b7ad` |
 | ✅ ratified | **Q-BOARD-RULING-16** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`4222c6c47c77b78f75528559d98ada6358da07dba025a4ea28c533e2152cf531` |
+| ✅ ratified | **Q-IC-RATIFY-BYPASS-01** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`e55cc0066e99e6b5ce8a785a1212fd874b5a9ce62c6191a3a4a9702e4cde5ac6` |
 | ✅ ratified | **Q-INTENT-OS-WITNESS-LEDGER-01** | Night | 2026-09-19 | `z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md`<br>`PENDING_NIGHT_REPIN` |
+| ✅ ratified | **Q-INTENTOS-BUS-01** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`1ecb7427980c61ac9e10762b93ddee184578181586978f2025559f30da953dd5` |
+| ✅ ratified | **Q-INTENTOS-PAGES-GATE-01** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`7295313ceefa43cb87bd44d802ef18c0987d296a0f63ce1c89e1feb76e7d3d7d` |
+| ✅ ratified | **Q-INTENTOS-REFRESH-01** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`72af1d74b1e8a35bb7516a05f0032bc45c64e1f967affc4713d5ec27f5fcde4e` |
+| ✅ ratified | **Q-PHASE-2-BOARD-MOLT-01** | Night | 2026-09-19 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md`<br>`6d6e757732b1f68177467acf9707e5bdf94bcdd8edad97affb36342560fab154` |
+| ✅ ratified | **Q-DEFERRAL-RULE-01** | Night | 2026-09-21 | `z1-inbox/2026-09-21/Z2_RULINGS_2026-09-21.md`<br>`d94a4559f1fff11a21077661bd732345c846c7b5c4a3da82f03f0f80b24df7ea` |
+| ✅ ratified | **Q-EXTERNAL-JESTER-01** | Night | 2026-09-21 | `z1-inbox/2026-09-21/Z2_RULINGS_2026-09-21.md`<br>`2c45665f54592dce809f5d9fa968fd9fbf47a00aa77941ab57adca69ac25a3bc` |
+| ✅ ratified | **Q-GATE-PATHS-TEST-LOGIC-01** | Night | 2026-09-21 | `z1-inbox/2026-09-21/Z2_RULINGS_2026-09-21.md`<br>`9b1f182e3f0b584fe5091808668da927acbf82751e1f3f7b85c0f07cd9a8a1a9` |
+| ✅ ratified | **Q-INTENT-GRAPH-01** | Night | 2026-09-21 | `z1-inbox/2026-09-21/Z2_RULINGS_2026-09-21.md`<br>`13c8cf5517180412b4ff60cc2ecdf980150acb22f06f15a8208ee67d6f4d2346` |
+| ✅ ratified | **Q-MOLT-TEMPORAL-PURITY-01** | Night | 2026-09-21 | `z1-inbox/2026-09-21/Z2_RULINGS_2026-09-21.md`<br>`ba3072e06803b9b0576b57b554ff9f1e3086e596bc5d444e5a1b0a1ca082497a` |
+| ✅ ratified | **Q-A11-ORDERING-INERT-01** | Night | 2026-09-22 | `z1-inbox/2026-09-22/Z2_RULINGS_2026-09-22.md`<br>`10314a8eac5114e3fb217f75543b14b159bcdb9effcee372d52bc544962b7bb5` |
+| ✅ ratified | **Q-GOVDRIFT-01** | Night | 2026-09-22 | `z1-inbox/2026-09-22/Z2_RULINGS_2026-09-22.md`<br>`7c341213752905a5201c179ef78789cca4f534e66d0b9d7eb3dedcfd9566e0be` |
+| ✅ ratified | **Q-P19-GATE-INERT-01** | Night | 2026-09-22 | `z1-inbox/2026-09-22/Z2_RULINGS_2026-09-22.md`<br>`3c3e1cdb30dcc955586d562a23bf8f585bf4799175263a787f4c54b5d602fcd4` |
+| ✅ ratified | **Q-ACCOUNT-HUB-01** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`3232238159e82308cecff220d3a3d0c847c27c4fbb7dbb830b44c59c31c10162` |
+| ✅ ratified | **Q-BUZZ-COLLAB-EVAL-01** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`3a1c238fd5a25421df599453b6fafea2962dff6ebb57a0ad6c81ba7cf95da07c` |
+| ✅ ratified | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`9a3d54e6c9967cdb02192fcc4b9fabfd1334445674e583b434d6da983155d8c7` |
+| ✅ ratified | **Q-SMAG-Z3-TASK-SEQUENCING-01** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`b450d4c75dc5979b7c351771700678968046bd95f2a6e871e5f512cb48f709bb` |
+| ✅ ratified | **Q-TOOL-MANIFEST-DRIFT-PREVENTION-01** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`bbbeb3de3fead9065a0f02c6471ddeb04c6348c209a6cec460d8e064b799e369` |
+| ✅ ratified | **Q-Z2-BLOCK-UNFILLABLE-01** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`a9b01819691f950c3d569fcd9f93487b344c0c15279973cae7f9c1c85d95777b` |
+| ✅ ratified | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`f9e514b7d2b8ba30cfbce5eff9ed08f9d87d3a647fc21c022ce82cff0d4936bf` |
+| ✅ ratified | **Q-Z2RATIF-MECH-32** | Night | 2026-09-23 | `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md`<br>`5701d6fab8331640e5c2f4a4d0b9ae7d825a4506d32fab6feb6955471bd06771` |
 | ✅ ratified | **Q-MAIL-EVIDENCE-LEDGER-01** | Night | 2026-09-24 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md`<br>`d52a583d659c4230b1456042193748e2c4ec1d32c3aaf395e000aabfe6f40f78` |
+| ✅ ratified | **Q-CRB-COMPILE-01** | Night | 2026-09-25 | `z1-inbox/2026-09-25/Z2_RULINGS_2026-09-25.md`<br>`3973ae36b2d6d7cc5d4d0568e9ab10b4b00d59718d2c04dc80140aa44fa322b5` |
+| ✅ ratified | **Q-ACAT-DISTRIBUTION-PLAYS-01** | Night | 2026-09-27 | `z1-inbox/2026-09-27/Z2_RULINGS_2026-09-27.md`<br>`8a554118303f61dc18de2f3ee8e60361c7f96b92074363dd5727f65924ff8a6f` |
+| ✅ ratified | **Q-GATE-BYPASS-LEDGER-01** | Night | 2026-09-28 | `z1-inbox/2026-09-28/Z2_RULINGS_2026-09-28.md`<br>`12f72d426b18fe37a9514d038e62f77726547337b3b58350d2ffeb77a912fe85` |
+| ✅ ratified | **Q-WITNESS-LEDGER-TIER0-EXTENSION-01** | Night | 2026-09-28 | `z1-inbox/2026-09-28/Z2_RULINGS_2026-09-28.md`<br>`9fe935bd180c75631d1c34d9de09dc9eed5b695e80ee25880f2b361a38d2b21f` |
+| ✅ ratified | **Q-588-CONVERGENCE-MATRIX-01** | Night | 2026-10-01 | `z1-inbox/2026-10-01/Z2_RULINGS_2026-10-01.md`<br>`8e85e6a2a3664928f33e470f42864829a1c3b55e173a53667ffebf413a0d04e7` |
+| ✅ ratified | **Q-GRAPH-CAPTURE-LINT-01** | Night | 2026-10-01 | `z1-inbox/2026-10-01/Z2_RULINGS_2026-10-01.md`<br>`d77a50d5b3df37e7918f7987ac27cdfa9066788e1631163b263d8b8443a2ad2d` |
+| ✅ ratified | **Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01** | Night | 2026-10-01 | `z1-inbox/2026-10-01/Z2_RULINGS_2026-10-01.md`<br>`3778f919299fb9186c2ad50154c594016b02dc31ae5211cbfd3fc1b81bb2862c` |
+| ✅ ratified | **Q-RBE-OPS-TIER-RANKING-01** | Night | 2026-10-01 | `z1-inbox/2026-10-01/Z2_RULINGS_2026-10-01.md`<br>`156a0c91c2393fa911d05bf695d2fe32bfeeca55c1a0fead9ef86729e3fa3044` |
+| ✅ ratified | **Q-TIER-ASSIGNMENT-BATCH-01** | Night | 2026-10-01 | `z1-inbox/2026-10-01/Z2_RULINGS_2026-10-01.md`<br>`e38243ad6c1d0fc1615e6b78ab4bf6ccb10697993871f45af04e231c97f92ee5` |
+| ✅ ratified | **Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01** | Night | 2026-10-01 | `z1-inbox/2026-10-01/Z2_RULINGS_2026-10-01.md`<br>`e66e267b7505cb6037d4fe458539e60590f71cc9352c78e8896509b462a5a0d8` |
+| ✅ ratified | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Night | 2026-10-09 | `z1-inbox/2026-10-09/Z2_RULINGS_2026-10-09.md`<br>`ad373723fa2107868dd7a78f4b34c5eb7fa2255e132b556530777d78cc47b66c` |
+| ✅ ratified | **Q-SYSTEM-GRAPH-TEMPORAL-01** | Night | 2026-10-09 | `z1-inbox/2026-10-09/Z2_RULINGS_2026-10-09.md`<br>`e2a875a2dacba854001df61fd25b37450acf21b589211e8d1cad1e374aebc383` |
 | ✅ ratified | **Q-HCM-CORE-MACHINE-01** | Night | 2026-10-14 | `z1-inbox/2026-10-14/Z2_RULINGS_2026-10-14.md`<br>`9d31eeb4bb7eebd2732d3dfe09e4bf46f01e71a67f4e1b30d6894042e336e1bd` |
 | ✅ ratified | **Q-MULTI-AGENT-QUEUE-PLAN-01** | Night | 2026-10-15 | `z1-inbox/2026-10-15/Z2_RULINGS_2026-10-15.md`<br>`a04cd27e6b9621a02afce42960575db8c93fa5f7f055fc34c9f8d23def653573` |
 | ✅ ratified | **Q-LEDGER-GROUNDING-STUB-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`8537eca961308aa4e93c0cdacb0cd412f90c0afd7e40ba8dcdcdb7ef96195b6c` |
 | ✅ ratified | **Q-MESH-LOCAL-COORDINATION-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`2c62341e03c880942e71b2b1b3f6ea85fc99feac0f032b665adb9048f4eae926` |
 | ✅ ratified | **Q-QUEUE-SWEEP-PIN-SPEC-01** | Night | 2026-10-21 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md`<br>`3823b1ed565652db123cfa2f519c72fe5ae13c194085ff539b7596c782793dc4` |
+| ✅ ratified | **Q-EXTERNAL-ADVISORY-INTAKE-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Z2_RULINGS_2026-10-22.md`<br>`563369ff69f95601304340707395bd03ba07b8571c09e5cd19430589bf5e782a` |
+| ✅ ratified | **Q-HOST-INVENTORY-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Z2_RULINGS_2026-10-22.md`<br>`cb1dd413aa869909056e414eea6dcf5cb4df21098385c7f956046e247a6ff9a9` |
 | ✅ ratified | **Q-REPO-GRAPH-LOOKUP-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md`<br>`3d9fd60e45ad381233420f6086dcfee37da3b44d657c6ba6986ea9286d63e800` |
+| ✅ ratified | **Q-WITNESS-DATA-PLANE-01** | Night | 2026-10-22 | `z1-inbox/2026-10-22/Z2_RULINGS_2026-10-22.md`<br>`03d05d10ca71eab7e459b4f178f7c380a52d1dc9c812cf419f9774533df9f9bc` |
+| ✅ ratified | **Q-PRINCIPLES-CROSSWALK-01** | Night | 2026-10-24 | `z1-inbox/2026-10-24/Z2_RULINGS_2026-10-24.md`<br>`9f2d417c443bc510feb04389e0acd5b7ae4da54238b35147da89f320d3676af5` |
 | ✅ ratified | **Q-HIAE-001-ASSIGNMENT-RECEIPTS-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`462f6a9c2487c31add6dfcdda2c6ce861cfbb9345877ba49307299e8cbe014e0` |
 | ✅ ratified | **Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`ce40510fa97b6df060aa5cdc4fc12809dd80dfe282a2a17f93d2169513788c83` |
 | ✅ ratified | **Q-ZONE-Z011-RESEARCH-CAP-01** | Night | 2026-10-31 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md`<br>`a33a0e63d9f7a3709ba96e2cea0e69a143bf9103732840a26cfd8b6d4d6a2b57` |
+| ✅ ratified | **Q-ISSUE-TRIAGE-CONVENTION-01** | Night | 2026-11-02 | `z1-inbox/2026-11-02/Z2_RULINGS_2026-11-02.md`<br>`b42c53ce8f0721a7c81fe7c09ce3abf0b19026c9dad18b923d3391533767daf7` |
+| ✅ ratified | **Q-GOVERNING-ENGINES-HIDDEN-INSTRUCTION-01** | Night | 2026-11-04 | `z1-inbox/2026-11-04/Z2_RULINGS_2026-11-04.md`<br>`3aafdddd10203649ae3638002efeb5956cc771670cc37e6aa5bbd9320fedcf99` |
+| ✅ ratified | **Q-PR956-GOVERNANCE-ADMISSION-01** | Night | 2026-11-04 | `z1-inbox/2026-11-04/Z2_RULINGS_2026-11-04.md`<br>`fb3392dac95d3518b3704be189827c5666a230ff8b4e111ba7806a5d8ae9525b` |
 | ✅ ratified | **Q-GRAPH-ORPHANS-B1-01** | Night | 2026-11-11 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md`<br>`0f1ebdbcb2fd823a439390d02c952d522e90a2503860d32dca2dfdbbbb97dbb0` |
 | ✅ ratified | **Q-SYSTEM-GRAPH-REGEN-01** | Night | 2026-11-11 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md`<br>`308fb698a1fb1dc569e4bf6ebe1fe8b413b2ae3d8fe32dd79601a2efd0a0cbbc` |
 | ✅ ratified | **Q-PILLOW-PYSEC-2026-4363-WAIVER-01** | Night | 2026-11-12 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md`<br>`c10a2884f19ff4eb32501d2eddd99a582395d0a6669d25067d92cd09334772fa` |
+| ✅ ratified | **Q-RATIFY-STALE-NOTE-01** | Night | 2026-11-13 | `z1-inbox/2026-11-13/Z2_RULINGS_2026-11-13.md`<br>`73c7b805fa6a1eea3da0afda823818fbd340377aa0a5953886fe5ef666dc402a` |
 | ✅ ratified | **Q-ACAT-BENCHMARK-01** | Night | 2026-11-14 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md`<br>`4e08fe3fa0c8883d0bf16ba691745dc916ebda34cecbe1409dec44a5e1441cbd` |
 | ✅ ratified | **Q-PILLOW-TIFF-ADVISORIES-WAIVER-01** | Night | 2026-11-14 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md`<br>`710ef85dd69c5d23e999891d9fc8dea3361225e888af1b3d7354435e9eb044e4` |
 | ✅ ratified | **Q-GRAPH-CONVERGENCE-01** | Night | 2026-11-15 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md`<br>`7104e43ec6dd90b8cffe0f273f828f8b44c900a7aebdc53e78425cd6b4f51302` |
@@ -150,8 +142,16 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-AGENT-CHECKIN-CALIBRATION-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`9029baf16e6415ee1cab97558f8b1582945b38106049e40fc9136645b8b12744` |
 | ✅ ratified | **Q-CORPUS-STATS-RECONCILE-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`5197f46860d8847540e4b03814bf7b17759d030f13739be2c9fb657f7e1851f7` |
 | ✅ ratified | **Q-REFERENT-DECAY-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`7392a2e7cd2b715de74573d614b805721dcf91633186ec19afb36809fe25a899` |
+| ✅ ratified | **Q-SWARM-TRUSTED-HOST-V2-1-PREFLIGHT-01** | Night | 2026-11-19 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md`<br>`99d4e259366031dd6c15de5259a52a6ca4d2dacab8a676d2acec3219ad0fe2cc` |
+| ✅ ratified | **Q-ADMISSION-GRAPH-TIER2-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`9fb2af9c602b1cacf34adc5080c5f0c51edfe421554c26de7a7e537b4972221a` |
 | ✅ ratified | **Q-ADMISSION-RULING-GRAPH-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`3f5cac40f77f8970dc424cef998f2a713a267c4c2c696e512e48334c82b90b79` |
+| ✅ ratified | **Q-AGENT-CHECKIN-HA000-LEDGER-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`9849e2ea88025a5102cca16ed75f063253793e12834faca8fe00117e07445ed7` |
+| ✅ ratified | **Q-CORPUS-STATS-FOLLOWON-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`73f7b84c73e9c0827d2bed86ee730daa1dfe9eb243f55eef26c91465f15a5476` |
 | ✅ ratified | **Q-PROJECT-DESK-BRIDGE-ADMISSION-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`a37b75a823ef1a1572454b55d6c307b3c545c46e2db3ece71bc101888ffa9759` |
+| ✅ ratified | **Q-REFERENT-DECAY-FOLLOWON-01** | Night | 2026-11-20 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md`<br>`6d7a31980ce273e2fb3984c10ddb2a70d55c96ea0cc4bb60f017e25e8c1af14b` |
+| ✅ ratified | **Q-CATCH-BIG-TALK-RULES-01** | Night | 2026-11-25 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md`<br>`00a7bc0a4129b5f085d57bf7e3f4ec67172e363bade4dc77e12e62c5e328e2c8` |
+| ✅ ratified | **Q-DIGEST-COORD-LAYER-01** | Night | 2026-11-25 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md`<br>`570ffe296b88c049446206fe5c5d7ff9e7cbece382be97442606915fa1cdee29` |
+| ✅ ratified | **Q-REPO-GRAPH-SORT-01** | Night | 2026-11-25 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md`<br>`50d27729d923587ef8e433fd826d901b22dba58a826a9bfb2efed79f48cd8efa` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -164,17 +164,9 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (133)
+## Open questions for Z2 (111)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
-
-### Q-ADMISSION-GRAPH-TIER2-01 (3)
-
-`z1-inbox/2026-11-20/Q-ADMISSION-GRAPH-TIER2-01.md`
-
-- [ ] Question 1: write a `REGISTERED.md` entry for the workflow, or accept the gap.
-- [ ] Question 2: run an ADV against it, say who runs it, and confirm or edit A1 to A8.
-- [ ] Question 3: leave #1291 merged while those are open, or revert.
 
 ### Q-ADVREVIEW-CALIB-01 (8)
 
@@ -188,15 +180,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Stage 3 is accepted as requiring a trusted-base evaluator and ratified attack corpus
 - [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
-
-### Q-AGENT-CHECKIN-HA000-LEDGER-01 (4)
-
-`z1-inbox/2026-11-20/Q-AGENT-CHECKIN-HA000-LEDGER-01.md`
-
-- [ ] Name an administrator for HA-000, or record that none is named yet.
-- [ ] Decide whether question 2 waits for question 1, as Z1 leans.
-- [ ] If question 2 is taken up, someone opens the two audits files named above first, to see whether a findings ledger already exists.
-- [ ] After that check, give question 2 a disposition: accept it, reject it, or defer it explicitly. If neither audit file holds a ledger and no disposition is recorded, question 2 stays unanswered.
 
 ### Q-BOARD-PUBLISH-01 (4)
 
@@ -323,14 +306,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Decide whether evidence/verification should be strengthened from "where applicable" / "permitted" to a firmer commitment (finding 7).
 - [ ] Findings 8–10 — acknowledge or explicitly accept as out of scope for a single-pilot experiment.
 
-### Q-CORPUS-STATS-FOLLOWON-01 (3)
-
-`z1-inbox/2026-11-20/Q-CORPUS-STATS-FOLLOWON-01.md`
-
-- [ ] Question 1: pick a rule for external citation until a new claim is ratified.
-- [ ] Question 2: answer the fact question. If the answer is yes, say what and where, so an IC can be filed.
-- [ ] Question 3: decide whether the validator gates. A yes starts a separate Tier 2 pull request.
-
 ### Q-DOCREVIEW-01 (9)
 
 `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md`
@@ -368,14 +343,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
 - [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
 
-### Q-IC-RATIFY-BYPASS-01 (3)
-
-`z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md`
-
-- [ ] Register IC-RATIFY-BYPASS-01 as stated (or edit the class / duration)
-- [ ] Accept the guard as the correction — a Tier 2 gate change carried in #409 — or ask instead for the alternative the review named: a Z2 ruling that keeps a by-hand exception and says how its review and provenance requirement is met
-- [ ] Accept, edit or refuse the prevention (a cross-tool self-test case)
-
 ### Q-NF-SCHEMA-01 (6)
 
 `z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md`
@@ -386,25 +353,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Brier calculation is mathematically sound (review formula)
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
-
-### Q-PHASE-2-BOARD-MOLT-01 (6)
-
-`z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md`
-
-- [ ] **Falsifier acceptable?** (data persistence + 5-min SLA)
-- [ ] **Molt tier matches claim?** (0 claimed = 0 measured, no constants changed)
-- [ ] **Governance compliance?** (Temporal dissolution, RLS, audit trail)
-- [ ] **Risk acceptable?** (mitigations sufficient?)
-- [ ] **Deployment feasible?** (Night can execute 6-step guide?)
-- [ ] **Ready to ratify?** (Sign with sha256 hash)
-
-### Q-REFERENT-DECAY-FOLLOWON-01 (3)
-
-`z1-inbox/2026-11-20/Q-REFERENT-DECAY-FOLLOWON-01.md`
-
-- [ ] Question 1: adopt D as a direction? If yes, say whether the list of facts to promote comes back as its own block.
-- [ ] Question 2: adopt C as a standing discipline for prose, knowing it shares a scale with the graph ruling but not its scope.
-- [ ] B stays deferred. Nothing to decide, unless Night wants it asked.
 
 ### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
 
@@ -456,7 +404,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (81)
+## Records (95)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -501,9 +449,12 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-19/PHASE-2B-SPECIFICATION.md` | Phase 2B specification |
 | `z1-inbox/2026-09-19/Z2_RULINGS_2026-09-19.md` | Z2 rulings 2026-09-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md` | Z2 Ratification: SMAG Calibration & Sequencing Blockers |
+| `z1-inbox/2026-09-21/Z2_RULINGS_2026-09-21.md` | Z2 rulings 2026-09-21 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-09-22/HANDOFF.md` | Session Close Handoff — OI-BRIDGE-01 v0.2 Specification & IC-063 Mitigation |
 | `z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md` | Measurement Scope Audit — Blockchain Trading Pilot (Z-012) |
+| `z1-inbox/2026-09-22/Z2_RULINGS_2026-09-22.md` | Z2 rulings 2026-09-22 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md` | Buzz Integration Specification — Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances |
+| `z1-inbox/2026-09-23/Z2_RULINGS_2026-09-23.md` | Z2 rulings 2026-09-23 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md` | Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt |
 | `z1-inbox/2026-09-25/DEPLOYMENT-FREQUENCY-VERIFICATION.md` | Deployment Frequency Improvement Verification Report |
 | `z1-inbox/2026-09-25/HANDOFF-PHASE-1-CI-CONSOLIDATION.md` | Z1 Handoff: Phase 1 CI/CD Consolidation (PR #538) |
@@ -513,15 +464,20 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-25/PHASE-2A-MONITORING-IMPLEMENTATION.md` | Phase 2A: Monitoring & Validation — Implementation Plan |
 | `z1-inbox/2026-09-25/PHASE-2B-PROCESS-IMPROVEMENT-IMPLEMENTATION.md` | Phase 2B: Process Improvement & Behavioral Data Capture — Implementation Plan |
 | `z1-inbox/2026-09-25/SESSION-CLOSURE-HANDOFF.md` | Z1 Session Closure Handoff — Phase 1 CI Consolidation & Corrective Fix |
+| `z1-inbox/2026-09-25/Z2_RULINGS_2026-09-25.md` | Z2 rulings 2026-09-25 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-09-27/MOLT-MEASUREMENT-MANUAL-EXTRACTION.md` | MOLT Measurement Manual Extraction Procedure — Blockchain Trading Pilot (Z-012) |
+| `z1-inbox/2026-09-27/Z2_RULINGS_2026-09-27.md` | Z2 rulings 2026-09-27 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md` | IC-065 — Evidence Ledger Gap (PR #465) |
+| `z1-inbox/2026-09-28/Z2_RULINGS_2026-09-28.md` | Z2 rulings 2026-09-28 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md` | Phase 3 credential deployment guide |
 | `z1-inbox/2026-10-01/HANDOFF.md` | Z1 Session Handoff — Phase 2B Salvage Complete |
 | `z1-inbox/2026-10-01/PR-630-REMEDIATION-PATCHES.md` | PR #630 Remediation Patches — 6 Actionable Fixes |
 | `z1-inbox/2026-10-01/PR-630-WARRANT.md` | WARRANT: PR #630 Admissions Approval & Credential Deployment |
 | `z1-inbox/2026-10-01/RED-TEAM-AUDIT-PR-630.md` | Red-Team Audit Report — PR #630 Credential Deployment Findings |
+| `z1-inbox/2026-10-01/Z2_RULINGS_2026-10-01.md` | Z2 rulings 2026-10-01 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-10-01/Z3-EXECUTION-CYCLE-1-HANDOFF.md` | Z3 Execution Cycle 1 Handoff — Results & Verification Gaps |
 | `z1-inbox/2026-10-02/SESSION_FINDINGS.md` | Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop |
+| `z1-inbox/2026-10-09/Z2_RULINGS_2026-10-09.md` | Z2 rulings 2026-10-09 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-10-10/HANDOFF.md` | Session Handoff — Manifest Integrity Fix (GNER E0/E1/E2) |
 | `z1-inbox/2026-10-14/HANDOFF.md` | Session Handoff — Multi-agent queue plan (Q-MULTI-AGENT-QUEUE-PLAN-01) |
 | `z1-inbox/2026-10-14/QUEUE_MAP_2026-10-14.md` | QUEUE_MAP — open PRs and issues of operations, 2026-10-14 |
@@ -531,16 +487,22 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-10-21/CAPACITY_CONTROL_PLANE_REVIEW_RECORD.md` | Record of the Z2-directed capacity change (4 to 9) and what is still unsigned |
 | `z1-inbox/2026-10-21/Z2_RULINGS_2026-10-21.md` | Z2 rulings — 2026-10-21 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-10-22/Q-REPO-GRAPH-LOOKUP-01-RE-RATIFICATION.md` | Night re-ratification record for Q-REPO-GRAPH-LOOKUP-01 (supersedes the 2026-10-15 record) |
+| `z1-inbox/2026-10-22/Z2_RULINGS_2026-10-22.md` | Z2 rulings 2026-10-22 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-10-24/Z2_RULINGS_2026-10-24.md` | Z2 rulings 2026-10-24 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-10-27/H-GOVERNANCE-OVERDUE-Z2-DECISION-01.md` | H-GOVERNANCE-OVERDUE-Z2-DECISION-01 — Escalation: Overdue Z2 Governance Decision on Q-PR956-GOVERNANCE-ADMISSION-01 |
 | `z1-inbox/2026-10-31/Z2_RULINGS_2026-10-31.md` | Z2 rulings — 2026-10-31 (signed via .z1-control/ratify.py) |
+| `z1-inbox/2026-11-02/Z2_RULINGS_2026-11-02.md` | Z2 rulings 2026-11-02 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-04/Z2_RULINGS_2026-11-04.md` | Z2 rulings 2026-11-04 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-11/Z2_RULINGS_2026-11-11.md` | Z2 rulings — 2026-11-11 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-12/Z2_RULINGS_2026-11-12.md` | Z2 rulings 2026-11-12 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-13/Z2_RULINGS_2026-11-13.md` | Z2 rulings 2026-11-13 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-14/Z2_RULINGS_2026-11-14.md` | Z2 rulings 2026-11-14 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-15/Z2_RULINGS_2026-11-15.md` | Z2 rulings 2026-11-15 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-16/Z2_RULINGS_2026-11-16.md` | Z2 rulings — 2026-11-16 (signed via .z1-control/ratify.py) |
 | `z1-inbox/2026-11-19/Z2_RULINGS_2026-11-19.md` | Z2 rulings 2026-11-19 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-20/Q-INTENT-OS-WITNESS-LEDGER-01-INDEX-RECONCILE.md` | INDEX reconcile record for Q-INTENT-OS-WITNESS-LEDGER-01 (Z1 pending Night; z2_hash PENDING_NIGHT_REPIN) |
 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md` | Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md` | Z2 rulings 2026-11-25 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md` | Z2 ruling — the merge ratifies every candidate, not only board rulings (Night, 2026-11-25) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
