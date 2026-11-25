@@ -171,6 +171,22 @@ A published packet cannot stay a fair check, because models can read it. So the 
 
 One hash across all four is what makes the thread line up. Every public post waits on Night's yes.
 
+## The same checks in code
+
+Big talk is a type error, and code already has names for each way to catch it. Each trap in the game maps to one programming idea:
+
+| Game trap | Code idea | What the checker does |
+| --- | --- | --- |
+| Estimate called revenue | Type error | Rejects a value of one kind passed off as another |
+| SEC copy as second proof | Aliasing | Counts two names for one object once, not twice |
+| "Sensor Tower proves lying" | Untrusted input | Does not act on an input just because it arrived |
+| HOLD | Maybe / Option value | Keeps unknown as unknown, neither true nor false |
+| Right answer, wrong reason | Test that passes by luck | Checks each step, not only the final result |
+| Hidden key plus published hash | Checksum, commit then reveal | Locks the answer before play, shows it after |
+| Stale finding in Round 2 | Reading an old version | Pins the baseline commit, like a lockfile |
+
+**How the experiment applies it.** The packet labels are fixed types, and the scorer is a type checker. Every machine gets the same packet and the same checker, so the comparison is direct: type errors caught per machine. The ASC Gateway is the same checker running on live traffic; the game is its test suite.
+
 ## What breaks the test
 
 The biggest risk is a leaked key: a test whose answer is public measures search, not judgment.
