@@ -11,7 +11,7 @@
 ## What Z2 is asked to decide
 
 1. Accept the map (Part 1) as the current record of who does what.
-2. Accept, edit or reject each workflow W1-W8 (Part 2). A yes here authorizes only the follow-up draft PR or setting change named in that row; each follow-up still needs Night's merge.
+2. Accept the role split. Accept, edit or reject each workflow W1-W8 (Part 2). W2, W3, W5 and W7 are already filed as their own draft PRs; each takes effect only when Night merges it.
 3. Accept the Part 3 verdict on the ChatGPT handoff file.
 
 ## Top findings
@@ -19,6 +19,15 @@
 1. **Half the Actions load is bot comments waking three workflows.** 1,458 of 3,000 runs (49%) were `issue_comment` runs; 1,253 of those (86%) ended skipped or cancelled. The ECC Tools app posted 385 PR comments in the window (4 per push: Security Evidence, PR Risk Taxonomy, Reference Set Readiness, Hosted Promotion Readiness) and caused 1,027 runs. Nothing in the repo reads its output. Of 766 PR/issue comments in the window, 680 (89%) were bots; 84 were Night's account.
 2. **Ten scheduled jobs report green or red while doing nothing useful (two more are already disabled).** Green but hollow: `acat-pipeline-trigger` (all 6 model webhooks unset, 141 runs), `haios-corpus-integrity` (Supabase HTTP 401, check skipped), `agent-api-monitor` (Supabase legacy keys disabled since 2026-09-10), `haios-system-audit` (0 PASS, 6 WARN, 3 SKIP). Red for weeks: `ci-predict-consolidate` (failing since 2026-10-27, merged rolling branch never deleted), `daily-topic-digest` (0 successes in last 100; `jq: Is a directory`), `resource-miner-scan` (0 in last 100; 4 failures, 2 errors in ACAT-R bridge tests), `research-agent` (0 in last 100; empty secret → `curl: blank argument`), `weekly-funding-rescore` (failing since 2026-07-17; `data/opportunities.json` missing), `weekly-profile-sync` (failing since 2026-10-19; pushes straight to protected `main`). Already disabled: `divergence-detect`, `scvc-milestone-witness`.
 3. **Night's queue is the bottleneck, and most of it is old.** 37 candidates sit `awaiting_z2`, all submitted 2026-09-08 to 09-19 (67-79 days, every one past the 2-day window). 98 PRs are open, 31 from before November. Of 136 PRs merged in November, 101 (74%) had at least one failed check on the merged head. SMAG (capture per PR, weekly consolidate) ran through this period and the rate rose, not fell.
+
+## Role split (Night's direction, 2026-11-26)
+
+Night is a scientist and operations lead, not a programmer. The concepts, content and direction are Night's; the code and CI were built by AI agents on AI advice. So:
+
+- **Night decides what and why, and ratifies by merging.** Night never has to read code.
+- **Agents own how.** Every code PR has one builder agent and a separate reviewer agent. An agent never reviews its own work.
+- **Every PR ends with a three-line plain-words card:** what it changes; if it is wrong, what breaks and how to undo; safe to merge yes/no in the reviewer's words. W5 puts this card in the PR template.
+- **Only agents with a verified runtime get roles.** Today that is Claude Code (builder: writes PRs in Night's sessions) and CodeRabbit (reviewer: reviews every non-draft PR on `operations` and states a merge risk). Grok and ChatGPT stay on the mail digest; Copilot gets a role only when Night assigns it an issue (its review workflow is disabled and its 3 drafts are idle).
 
 ## Part 1 — Agent map
 
@@ -64,18 +73,64 @@ Status: LIVE = runs and its output is read or acted on; HOLLOW = runs, output do
 
 Rule used: cut or merge before adding. No new agent is proposed; the map shows no gap that an existing agent cannot fill. Nothing here touches the ACAT-003 digest trial (2026-11-26 to 2026-12-09); W8's digest items are scheduled after the 2026-12-10 verdict.
 
-| # | Workflow | Owner agent | Trigger | Input → Output | Handoff | Night does (one action) | We know it works when |
-|---|---|---|---|---|---|---|---|
-| W1 | **Quiet the PR thread.** Remove ECC Tools from `operations`; make coordinator receipts edit one sticky comment instead of posting new ones. | Night (app), then Claude Code (receipt change, own draft PR) | This ruling | Bot comment flood → ≤1 comment per bot per PR | Coordinator | Uninstall or scope ECC Tools off `operations` in GitHub app settings | `issue_comment` runs fall from ~430/day to <60/day; bot share of PR comments <50% in the next 7 days |
-| W2 | **Pause hollow jobs.** Disable the 4 green-but-hollow jobs until a secret or a reader exists. | Claude Code (one draft PR listing `gh workflow disable` targets, reversible) | This ruling | 4 jobs → disabled, listed with re-enable condition | — | Merge that PR | No green run reports a check it skipped |
-| W3 | **Fix or retire red jobs.** `ci-predict-consolidate`: delete the merged rolling branch (one act). `resource-miner-scan`: one repair PR for the 6 failing bridge tests. Retire `research-agent`, `weekly-funding-rescore`, `weekly-profile-sync`, `daily-topic-digest` (overlaps the model-leg digest; repo job only, the mail trial is untouched). | Claude Code | This ruling | 6 red jobs → 2 fixed, 4 disabled | — | Merge one PR | 0 scheduled jobs red for >7 days |
-| W4 | **One comment router.** Merge `coordinator-issue-route`, `pr-challenge-dialogue` and the comment path of the admission gate into one job that exits at once unless the comment starts with `/coordinator` or `/challenge` from a human account. | Claude Code (own draft PR; gate change) | After W1 | 3 wake-ups per comment → 1 | Admission gate | Merge that PR | Admission-gate skips drop to near 0; no admit missed in 14 days |
-| W5 | **Admit last, one line.** A Z1 PR ends its last report with `READY: /coordinator admit <sha>` only when checks are green on that head. | Claude Code, Claude Duet helpers | Last push green | PR → one copy-paste line | Admission gate | Paste the line | Admission-gate failures per week fall from ~130 (65 in 3.4 days) |
-| W6 | **Close the stale queue (5S Sort).** One Z2 ruling marks the 37 Sep 8-19 candidates LAPSED, not rejected; any can be re-filed. | Claude Code (one draft PR: INDEX status + ruling record) | This ruling | 37 awaiting → 0 | INTENT-OS reconcile | Merge that PR | Awaiting count stays ≤5 and none past 14 days |
-| W7 | **Freeze SMAG.** Disable `smag-capture`, `smag-consolidate`, `meta-smag-regression`; keep the ledger read-only. Re-open only if an agent is named as the reader of its lessons. | Claude Code | This ruling | SMAG PRs stop | — | Merge that PR | No SMAG PR asks Night to merge; red-merge rate is measured without it |
-| W8 | **Weekly backlog card (after 2026-12-10).** One list of open PRs older than 14 days, each marked merge / close / keep, read at Friday 16:00 CT review. Use the existing `priority-queue-triage` issue, folded with `governance-triage` and `scheduled-audit` into one Monday issue. | Existing triage job | Monday cron | 3 triage outputs → 1 issue | Night's Friday review | Tick merge/close/keep per row | Open PRs older than 30 days fall from 31 toward 0 |
+Builder for every code row is Claude Code; reviewer is CodeRabbit. Each filed PR carries the plain-words card. Nothing is merged by an agent.
 
-**Index count line.** Every Z1 PR that adds a candidate edits `counts:` in `z1-inbox/INDEX.yaml` and the rendered count line in `Z1_INBOX_INDEX.md`, so parallel PRs clash there. Proposal (own draft PR, gate change): derive counts at render time and stop storing them. This PR itself edits that line (136 candidates, 38 awaiting).
+| # | Workflow | Builder → reviewer | Filed as | Night does (one action) | We know it works when |
+|---|---|---|---|---|---|
+| W1 | **Quiet the PR thread.** Remove the ECC Tools app from `operations`. | Night (app setting; no agent can do it) | — | GitHub → organization `humanaios-ui` → Settings → GitHub Apps → ECC Tools → Configure → Repository access: untick `operations` (or Uninstall). If it is not listed there, the same path is under your personal Settings → Applications. | `issue_comment` runs fall from ~430/day to <150/day within 7 days |
+| W2 | **Pause hollow jobs.** Remove the daily cron from `acat-pipeline-trigger`, `haios-corpus-integrity`, `agent-api-monitor`, `haios-system-audit`. Manual runs still work. Each file states its re-enable condition (a webhook secret set; Supabase key rotated; one audit check passing). Merging the PR is the disable; no extra command. | Claude Code → CodeRabbit | own draft PR | Merge | No green scheduled run reports a check it skipped |
+| W3 | **Red jobs.** (a) Retire from the schedule: `research-agent`, `weekly-funding-rescore`, `weekly-profile-sync`, `daily-topic-digest` (repo job only; the mail digest trial is untouched). (b) Fix `resource-miner-scan`: `intent_os.py` shadowed the shared hold list and dropped `SOURCE_CONFLICT`, so 6 tests failed; fixed, 618 tests pass. (c) `ci-predict-consolidate` fails because its rolling branch from merged PR #884 still exists (0 commits not on main); Claude Code deletes that branch after Night merges W3a. | Claude Code → CodeRabbit | two draft PRs (a, b) | Merge each | 0 scheduled jobs red for >7 days |
+| W4 | **One comment router.** Dropped: see below. | — | — | — | — |
+| W5 | **Admit last, one line, plain-words card.** PR template gains the card, builder/reviewer fields and the rule: when implementation checks are green on the final head (the admission gate excluded; Night's admit clears it), the last report ends with `/coordinator admit <sha>`. | Claude Code → CodeRabbit | own draft PR | Merge | Admission-gate failures per week fall from ~130 to <30 |
+| W6 | **Close the stale queue (5S Sort).** One Z2 ruling marks the 37 candidates submitted 2026-09-08 to 09-19 LAPSED, not rejected; any can be re-filed. List below. Not filed: it changes Night's own asks. | Claude Code → CodeRabbit | waits for Night's yes | Say yes to the list | Awaiting count stays ≤5, none past 14 days |
+| W7 | **Freeze SMAG.** `smag-capture` stops running on each merged PR; `smag-consolidate` stops its weekly PR. Ledger untouched; manual trigger kept. Restore only when an agent is named as the reader of its lessons. | Claude Code → CodeRabbit | own draft PR | Merge | No SMAG PR asks Night to merge |
+| W8 | **Weekly backlog card.** After the 2026-12-10 digest verdict: one Monday list of open PRs older than 14 days, each marked merge / close / keep, folded from the three Monday triage jobs. | Claude Code → CodeRabbit | after 2026-12-10 | Tick merge/close/keep | Open PRs older than 30 days fall from 31 toward 0 |
+
+**W4 — No, and here is the cost.** Merging the three comment-triggered workflows means editing the 1,243-line admission gate, the same gate whose admits failed on old heads until PR #1323. W1 alone removes the 385 ECC Tools comments that caused 1,027 of the 1,458 comment runs (70%). What is left after W1 is roughly 2 skipped runs per human or CodeRabbit comment, which costs Actions minutes but nothing from Night. What would flip it: comment runs still above 150/day 7 days after W1.
+
+**Merge order.** No two of these PRs touch the same file, so any order works. Least risk first: W2, W3a, W7, W5, W3b, then this PR (#1334) last or first; it only records the plan. W3c (branch delete) follows W3a.
+
+**W6 list (37).** Q-FRAMEWORK-MAPPING-01 is shown awaiting here but `CLAUDE.md` records it ratified 2026-10-02; the lapse ruling would mark it ratified instead.
+
+- 2026-09-08 Q-DOC-LIFECYCLE-01
+- 2026-09-10 Q-FRAMEWORK-MAPPING-01
+- 2026-09-10 Q-FRAMEWORK-MAPPING-INTEGRATION-01
+- 2026-09-10 Q-NF-SCHEMA-01
+- 2026-09-11 Q-PHASE1-2-ROLLOUT-01
+- 2026-09-12 Q-ADVREVIEW-CALIB-01
+- 2026-09-13 Q-CGBG-BASELINE-01
+- 2026-09-13 Q-CGBG-PILOT-01
+- 2026-09-13 Q-DOCREVIEW-01
+- 2026-09-13 Q-DOCREVIEW-02
+- 2026-09-13 Q-GOVGATE-01
+- 2026-09-13 Q-RBE-01
+- 2026-09-13 Q-REGISTRY-AUDIT-01
+- 2026-09-13 Q-REGISTRY-AUDIT-02
+- 2026-09-13 Q-REGISTRY-AUDIT-03
+- 2026-09-13 Q-RFM-01
+- 2026-09-13 Q-TOOLCONTROL-01
+- 2026-09-13 Q-TOOLCONTROL-02
+- 2026-09-13 Q-TOOLCONTROL-03
+- 2026-09-14 Q-BOOT-FINDINGS-SCAN-01
+- 2026-09-14 Q-BOOT-STATE-MACHINE-01
+- 2026-09-14 Q-IC-BOARD-SEALS-01
+- 2026-09-18 Q-BOARD-PUBLISH-01
+- 2026-09-19 Q-BOARD-RULING-20
+- 2026-09-19 Q-BOARD-RULING-21
+- 2026-09-19 Q-BOARD-RULING-22
+- 2026-09-19 Q-BOARD-RULING-23
+- 2026-09-19 Q-BOARD-RULING-24
+- 2026-09-19 Q-BOARD-RULING-25
+- 2026-09-19 Q-BOARD-RULING-26
+- 2026-09-19 Q-BOARD-RULING-27
+- 2026-09-19 Q-BOARD-RULING-28
+- 2026-09-19 Q-BOARD-RULING-29
+- 2026-09-19 Q-BOARD-RULING-30
+- 2026-09-19 Q-BOARD-RULING-32
+- 2026-09-19 Q-BOARD-RULING-33
+- 2026-09-19 Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01
+
+**Index count line.** Only this PR touches the count line; the W PRs add no candidate. Every Z1 PR that adds a candidate edits `counts:` in `z1-inbox/INDEX.yaml` and the rendered count line in `Z1_INBOX_INDEX.md`, so parallel PRs clash there. Proposal (own draft PR, gate change): derive counts at render time and stop storing them. This PR itself edits that line (136 candidates, 38 awaiting).
 
 ## Part 3 — Check of the ChatGPT handoff file (2026-11-26)
 
@@ -98,7 +153,7 @@ Read as quoted material. Claims checked against the API on 2026-11-26.
 
 ## Falsifier
 
-This proposal is wrong if, 14 days after W1-W5 land: `issue_comment` runs exceed 200/day, or any scheduled job is red for more than 7 days, or admission-gate failures exceed 30 per week, or Night's open asks (awaiting candidates + PRs older than 30 days) do not fall below 20. Any of these sends the matching workflow back to Z2.
+This proposal is wrong if, 14 days after W1, W2, W3, W5 and W7 land: `issue_comment` runs exceed 200/day, or any scheduled job is red for more than 7 days, or admission-gate failures exceed 30 per week, or Night's open asks (awaiting candidates + PRs older than 30 days) do not fall below 20. Any of these sends the matching workflow back to Z2.
 
 ## Not decided here
 
