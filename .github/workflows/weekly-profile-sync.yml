@@ -1,9 +1,8 @@
 name: Weekly Profile Sync
 
 on:
-  schedule:
-    # Run every Monday at 09:00 UTC
-    - cron: '0 9 * * 1'
+  # Retired from the schedule by Q-AGENT-WORKFLOWS-01 W3 (2026-11-26): fails since 2026-10-19 (it pushes straight to protected main, which is refused).
+  # Manual runs still work. Restore the cron only with a fix that passes a manual run.
   workflow_dispatch:  # Allow manual trigger
 
 permissions:

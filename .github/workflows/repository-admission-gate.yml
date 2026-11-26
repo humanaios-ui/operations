@@ -150,11 +150,35 @@ jobs:
           )
           PY
 
+      # A head-bound admission survives a push only when every new commit is a
+      # clean merge of main (identical to git's conflict-free merge). This
+      # step fetches main and each admitted PR head for that check. If it
+      # fails for any reason the check is skipped and moved heads are
+      # revoked exactly as before (fail closed).
+      - name: Fetch main and admitted PR heads for the clean-merge check
+        if: steps.reconcile_support.outputs.supported == 'true'
+        id: pr_history
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git clone --quiet --filter=blob:none --no-checkout \
+            "https://github.com/$REPO" pr-history
+          while IFS= read -r number; do
+            [ -n "$number" ] || continue
+            git -C pr-history fetch --quiet --filter=blob:none origin \
+              "+refs/pull/$number/head:refs/remotes/pull/$number"
+          done < coordinator-state/.active-pr-numbers
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
       - name: Reconcile terminal and moved-head admissions
         if: steps.reconcile_support.outputs.supported == 'true'
         id: reconcile
         run: |
           set -euo pipefail
+          GIT_DIR_ARGS=()
+          if [ "${{ steps.pr_history.outputs.ready }}" = "true" ]; then
+            GIT_DIR_ARGS=(--git-dir pr-history --main-ref refs/remotes/origin/main)
+          fi
           POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
           PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
           RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -169,6 +193,7 @@ jobs:
             --actor "github-actions[bot]" \
             --recorded-at "$RECORDED_AT" \
             --source-policy-sha "$POLICY_SHA" \
+            "${GIT_DIR_ARGS[@]}" \
             | tee coordinator-state/.reconcile-result.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
