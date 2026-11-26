@@ -42,8 +42,8 @@
 name: HAIOS Corpus Integrity
 
 on:
-  schedule:
-    - cron: '0 2 * * *'       # Daily at 02:00 UTC
+  # Schedule paused by Q-AGENT-WORKFLOWS-01 W2 (2026-11-26): the Supabase read returns HTTP 401, so the check is skipped.
+  # Re-enable the daily cron when SUPABASE_KEY is rotated to a current key. Manual runs still work.
   workflow_dispatch:           # Manual trigger for on-demand validation
     inputs:
       row_limit:

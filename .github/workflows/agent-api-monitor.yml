@@ -2,8 +2,8 @@ name: agent-api-monitor
 
 # Run daily at 09:00 UTC
 on:
-  schedule:
-    - cron: "0 9 * * *"
+  # Schedule paused by Q-AGENT-WORKFLOWS-01 W2 (2026-11-26): Supabase legacy API keys were disabled 2026-09-10.
+  # Re-enable the daily cron when SUPABASE_KEY is rotated to a current key. Manual runs still work.
   workflow_dispatch:
 
 permissions:

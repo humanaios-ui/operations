@@ -5,9 +5,12 @@ name: smag-capture
 # SMAG pilot ledger tracking issue (conflict-free, append-only, no main push).
 # The optional LLM-review layer (claude-review.yml) enriches the `gap` field later.
 
+# Frozen by Q-AGENT-WORKFLOWS-01 W7 (2026-11-26): red merges rose from 26% (Sep)
+# to 74% (Nov) while SMAG ran, and no agent reads its lessons. The ledger stays
+# as read-only history. Restore `pull_request: types: [closed]` only when an
+# agent is named as the reader of SMAG lessons.
 on:
-  pull_request:
-    types: [closed]
+  workflow_dispatch: {}
 
 permissions:
   contents: read
