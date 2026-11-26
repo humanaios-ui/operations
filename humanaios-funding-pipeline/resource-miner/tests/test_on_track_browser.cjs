@@ -26,7 +26,10 @@ function boot(){
     createElement() { return makeElement(); },
     createDocumentFragment() { const f=makeElement(); f.isFragment=true; return f; },
   };
-  vm.runInNewContext(chunks[1], {document});
+  // The page fetches the observatory on load; this offline test never answers,
+  // so only the import paths under test can change the DOM.
+  const fetch = () => new Promise(() => {});
+  vm.runInNewContext(chunks[1], {document, fetch});
   return {dom, document};
 }
 function example(){
