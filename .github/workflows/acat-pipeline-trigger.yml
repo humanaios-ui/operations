@@ -1,8 +1,8 @@
 name: ACAT Research Pipeline
 
 on:
-  schedule:
-    - cron: '0 8 * * *'
+  # Schedule paused by Q-AGENT-WORKFLOWS-01 W2 (2026-11-26): all six N8N_WEBHOOK_* secrets are unset, so every job skips.
+  # Re-enable the daily cron when at least one N8N_WEBHOOK_* secret is set. Manual runs still work.
   workflow_dispatch:
     inputs:
       agent_name:
