@@ -2,12 +2,13 @@
 
 ## Plain-words card (for Night; no code reading needed)
 
-<!-- Q-AGENT-WORKFLOWS-01 W5. Three lines, plain words. Night decides what and why;
+<!-- Q-AGENT-WORKFLOWS-01 W5. Four lines, plain words. Night decides what and why;
      agents own how. The reviewer must be a different agent from the builder. -->
 
 - **What it changes:**
 - **If it is wrong, what breaks and how to undo:**
 - **Safe to merge (reviewer's word):** yes / no — reviewer: <!-- agent name; never the builder -->
+- **What this teaches:** <!-- one programming idea, plain words, tied to this change; it becomes a row in Night's Code learning log -->
 
 **Builder:** <!-- agent that wrote this -->  ·  **Reviewer:** <!-- different agent -->
 
