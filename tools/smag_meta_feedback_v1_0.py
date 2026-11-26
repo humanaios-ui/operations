@@ -234,8 +234,8 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         # Filter PRs by title and creation date
         prs_data = []
         for pr in all_prs:
-            # Check title matches consolidation prefix
-            if prefix not in pr.get("title", ""):
+            # Check title matches consolidation prefix (case-insensitive)
+            if prefix.casefold() not in pr.get("title", "").casefold():
                 continue
             # Check creation date is within lookback window
             created_at = pr.get("created_at")

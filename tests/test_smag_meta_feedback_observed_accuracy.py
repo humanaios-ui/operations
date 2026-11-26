@@ -278,5 +278,68 @@ class MetaAccuracyTests(unittest.TestCase):
         self.assertEqual(after["mean_resolved_forecast_probability"], before["mean_resolved_forecast_probability"])
         self.assertNotEqual(after["predicted_accuracy"], before["predicted_accuracy"])
 
+    def test_pagination_deduplication(self):
+        """Pagination mock returns a duplicate on page 2 and a new PR. Each contributes once."""
+        def mock_paginated_gh(*args, **kwargs):
+            page = 1
+            for i, arg in enumerate(args[0] if args else []):
+                if arg.startswith("page="):
+                    page = int(arg.split("=")[1])
+                    break
+            if page == 1:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([
+                    {
+                        "number": 432,
+                        "title": "SMAG: consolidate ledger",
+                        "state": "closed",
+                        "merged_at": "2026-10-18T10:30:00Z",
+                        "created_at": "2026-10-15T09:00:00Z",
+                        "body": "smag_p_meta: 0.85"
+                    },
+                    {
+                        "number": 573,
+                        "title": "SMAG: consolidate findings",
+                        "state": "closed",
+                        "merged_at": "2026-10-19T11:15:00Z",
+                        "created_at": "2026-10-16T08:30:00Z",
+                        "body": "smag_p_meta: 0.85"
+                    },
+                ]), stderr="")
+            elif page == 2:
+                # Page 2: duplicate PR 432 and new PR 999
+                return SimpleNamespace(returncode=0, stdout=json.dumps([
+                    {
+                        "number": 432,
+                        "title": "SMAG: consolidate ledger",
+                        "state": "closed",
+                        "merged_at": "2026-10-18T10:30:00Z",
+                        "created_at": "2026-10-15T09:00:00Z",
+                        "body": "smag_p_meta: 0.85"
+                    },
+                    {
+                        "number": 999,
+                        "title": "smag: consolidate cache",
+                        "state": "closed",
+                        "merged_at": "2026-10-19T14:30:00Z",
+                        "created_at": "2026-10-14T10:00:00Z",
+                        "body": "smag_p_meta: 0.90"
+                    },
+                ]), stderr="")
+            else:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([]), stderr="")
+
+        with patch.object(smag, "datetime") as dt, patch("subprocess.run", side_effect=mock_paginated_gh):
+            from datetime import datetime
+            dt.utcnow.return_value = datetime(2026, 10, 20)
+            result = smag.measure_consolidation_pr_outcomes("humanaios-ui/operations", "SMAG: consolidate", 44)
+        # 3 unique PRs: 432, 573, 999 (432 appears on both pages but counts once)
+        self.assertEqual(result["predicted_prs"], 3)
+        # 3 merged (432, 573, 999 all have merged_at set)
+        self.assertEqual(result["resolved_prs"], 3)
+        # 0 pending
+        self.assertEqual(result["pending_prs"], 0)
+        # All 3 merged = 100% success rate
+        self.assertAlmostEqual(result["actual_success_rate"], 1.0)
+
 if __name__ == "__main__":
     unittest.main()
