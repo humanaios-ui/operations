@@ -1,0 +1,32 @@
+{
+  "title": "Can AI agents cooperate without taking control? (draft E0 episode script)",
+  "authorityEffect": "NONE",
+  "release": { "state": "HOLD", "autoPublish": false, "requires": ["independent replay", "human review of script and render", "separate Z2 release decision"] },
+  "disclosure": "This is a synthetic, scripted test, not live AI agents and not people. Rules were enforced by construction.",
+  "evidenceRepoPath": "experiments/haios_video_e0/grok_audit/observed_v2.json",
+  "claims": [
+    { "id": "E1C01", "status": "observed", "text": "We ran 1000 scripted runs: 200 random seeds, each replayed under 5 designs.", "limitations": "Scripted agents with fixed request rules; no learning, no language model.", "humanDecision": "HOLD", "evidence": { "file": "observed_v2.json", "pointers": [ { "path": "scriptedRuns", "value": 1000 } ] } },
+    { "id": "E1C02", "status": "observed", "text": "The human-gated design kept the 25-unit reserve in 200 of 200 runs; the unrestricted design kept it in 0 of 200.", "limitations": "True by construction: the gate refuses any grant that would breach the reserve. This shows the plumbing works, not that live agents would comply.", "humanDecision": "HOLD", "evidence": { "file": "observed_v2.json", "pointers": [ { "path": "resource.pool.C.reservePreserved", "value": 200 }, { "path": "resource.pool.A.reservePreserved", "value": 0 } ] } },
+    { "id": "E1C03", "status": "observed", "text": "Mean useful work was 591.98 with the gate, 609.72 unrestricted and 609.42 with a cap only.", "limitations": "Useful work is a scripted proxy (granted units up to stated need for consenting agents).", "humanDecision": "HOLD", "evidence": { "file": "observed_v2.json", "pointers": [ { "path": "resource.pool.C.useful", "value": 591.98 }, { "path": "resource.pool.A.useful", "value": 609.72 }, { "path": "resource.pool.B.useful", "value": 609.42 } ] } },
+    { "id": "E1C04", "status": "observed", "text": "Negative result: compared seed by seed with the cap-only design, the gate produced less useful work in 200 of 200 seeds.", "limitations": "Cost is specific to these parameters (reserve 25, cap 4, shortage cycles 20 to 34).", "humanDecision": "HOLD", "evidence": { "file": "observed_v2.json", "pointers": [ { "path": "resource.pairedUsefulDelta.C-B gate cost vs cap-only.seedsWhereFirstLower", "value": 200 } ] } },
+    { "id": "E1C05", "status": "observed", "text": "In every run, one scripted rule-breaking agent made 300 bypass attempts, and the gate blocked 300 of 300.", "limitations": "Five fixed attack types only; not an open-ended adversary and not a security proof.", "humanDecision": "HOLD", "evidence": { "file": "observed_v2.json", "pointers": [ { "path": "resource.pool.E.attacks", "value": 300 }, { "path": "resource.pool.E.attacksBlocked", "value": 300 } ] } },
+    { "id": "E1C06", "status": "observed", "text": "The smallest agent share rose from 140.01 to 155.28 when we changed who goes first, with the same gate.", "limitations": "Shows an earlier draft credited the gate for a fairness effect that came from ordering.", "humanDecision": "HOLD", "evidence": { "file": "observed_v2.json", "pointers": [ { "path": "resource.pool.C.minAgent", "value": 140.01 }, { "path": "resource.pool.D.minAgent", "value": 155.28 } ] } },
+    { "id": "E1C07", "status": "hypothesis", "text": "A human approval gate might let real agents share a resource without any one of them taking control.", "limitations": "Untested with live agents; this run cannot support it.", "humanDecision": "HOLD" },
+    { "id": "E1C08", "status": "source-reported", "text": "Researchers at the Cooperative AI Foundation have discussed how agents can persuade, deceive and coerce each other.", "limitations": "Talk-level summary; original papers not re-verified here.", "humanDecision": "HOLD", "source": { "url": "https://youtu.be/vQBvi5_LVss", "channel": "Cooperative AI Foundation" } },
+    { "id": "E1C09", "status": "unknown", "text": "Whether any of this transfers to live AI agents is unknown.", "limitations": "Requires a separate, reviewed study.", "humanDecision": "HOLD" }
+  ],
+  "segments": [
+    { "start": 0, "end": 8, "narration": "This is a synthetic test, not live AI. Every number you will see comes from a script anyone can rerun.", "claimIds": [] },
+    { "start": 8, "end": 20, "narration": "Four scripted agents share one pool of 100 units for 60 rounds, with a shortage in the middle.", "claimIds": ["E1C01"] },
+    { "start": 20, "end": 34, "narration": "Three designs: no limits, a cap of 4 per request, and a cap plus a human approval gate that protects a 25-unit reserve.", "claimIds": ["E1C01"] },
+    { "start": 34, "end": 48, "narration": "The gated design kept the reserve every time. That is by construction: the gate refuses anything that would breach it.", "claimIds": ["E1C02"] },
+    { "start": 48, "end": 62, "narration": "It cost something. Useful work fell, and seed by seed it was lower than the cap-only design every time.", "claimIds": ["E1C03", "E1C04"] },
+    { "start": 62, "end": 74, "narration": "We let one scripted agent try to cheat: replaying approvals, forging them, borrowing another agent's. All attempts were refused.", "claimIds": ["E1C05"] },
+    { "start": 74, "end": 88, "narration": "A correction: an earlier draft credited the gate with fairer shares. Most of that came from changing who goes first.", "claimIds": ["E1C06"] },
+    { "start": 88, "end": 100, "narration": "Other researchers have studied how agents influence each other. We have not tested any of this with live agents.", "claimIds": ["E1C08", "E1C09", "E1C07"] },
+    { "start": 100, "end": 112, "narration": "What would falsify this? Rerun the script, change the parameters, and tell us where it breaks. Every claim links to its receipt.", "claimIds": [] }
+  ],
+  "corrections": [
+    { "date": "2026-11-26", "note": "v1 credited the gate with balance effects that partly came from agent ordering; v1 'corrected' fixture was a no-op. See AUDIT_1329.md." }
+  ]
+}
