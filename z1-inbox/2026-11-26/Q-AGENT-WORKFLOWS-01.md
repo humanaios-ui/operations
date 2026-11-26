@@ -88,7 +88,9 @@ Builder for every code row is Claude Code; reviewer is CodeRabbit. Each filed PR
 
 **W4 — No, and here is the cost.** Merging the three comment-triggered workflows means editing the 1,243-line admission gate, the same gate whose admits failed on old heads until PR #1323. W1 alone removes the 385 ECC Tools comments that caused 1,027 of the 1,458 comment runs (70%). What is left after W1 is roughly 2 skipped runs per human or CodeRabbit comment, which costs Actions minutes but nothing from Night. What would flip it: comment runs still above 150/day 7 days after W1.
 
-**Merge order.** No two of these PRs touch the same file, so any order works. Least risk first: W2, W3a, W7, W5, W3b, then this PR (#1334) last or first; it only records the plan. W3c (branch delete) follows W3a.
+**Filed (2026-11-26):** W2 #1335, W3a #1336, W3b #1337, W7 #1338, W5 #1339.
+
+**Merge order.** No two of these PRs touch the same file, so any order works. Least risk first: #1335 (W2), #1336 (W3a), #1338 (W7), #1339 (W5), #1337 (W3b). This PR (#1334) only records the plan and can go first. W3c (branch delete) follows #1336.
 
 **W6 list (37).** Q-FRAMEWORK-MAPPING-01 is shown awaiting here but `CLAUDE.md` records it ratified 2026-10-02; the lapse ruling would mark it ratified instead.
 
