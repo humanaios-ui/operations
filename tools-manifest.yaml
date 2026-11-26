@@ -2031,7 +2031,7 @@ tools:
 - tool_id: HAIOS-TOOL-168
   name: intent_os_reconcile
   path: tools/intent_os_reconcile_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: governance_tool
   zone: 1
   status: draft
@@ -2515,7 +2515,7 @@ tools:
 - tool_id: HAIOS-TOOL-211
   name: repository_coordinator_state_v1_1
   path: tools/repository_coordinator_state_v1_1.py
-  version: 1.1.0
+  version: 1.2.0
   category: governance_tool
   zone: 1
   status: draft

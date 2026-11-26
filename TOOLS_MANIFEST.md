@@ -161,7 +161,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-163 | smag_meta_feedback | `tools/smag_meta_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy. |
 | HAIOS-TOOL-166 | intent_os_board_reseal | `tools/intent_os_board_reseal_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse the rest. |
 | HAIOS-TOOL-167 | intent_os_requests | `tools/intent_os_requests_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage. |
-| HAIOS-TOOL-168 | intent_os_reconcile | `tools/intent_os_reconcile_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_reconcile — after a decided candidate merges, record the ratification the merge was. |
+| HAIOS-TOOL-168 | intent_os_reconcile | `tools/intent_os_reconcile_v1_0.py` | 1.1.0 | 1 | draft | — | intent_os_reconcile — after a decided candidate merges, record the ratification the merge was. |
 | HAIOS-TOOL-181 | graph_convergence | `tools/graph_convergence_v1_0.py` | 1.0.0 | 1 | draft | — | graph_convergence_v1_0.py — grade convergence between two agent-authored graphs. |
 | HAIOS-TOOL-182 | intent_graph | `tools/intent_graph_v1_0.py` | 1.0.0 | 1 | draft | — | intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it. |
 | HAIOS-TOOL-183 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | Receipt Reconciliation Script — Validates claims against NF_LEDGER |
@@ -169,7 +169,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-191 | lint_canonical_skills | `scripts/lint_canonical_skills.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs are thin redirects, not divergent implementations. |
 | HAIOS-TOOL-204 | pr_challenge_dialogue_router | `tools/pr_challenge_dialogue_router_v0_1.py` | 0.1.0 | 1 | draft | — | Finite idempotent routing of head-bound red-team challenge conversations without authority effects. |
 | HAIOS-TOOL-210 | repository_coordinator_state | `tools/repository_coordinator_state_v1.py` | 1.1.0 | 1 | draft | — | Repository Coordinator state ledger + deterministic projection. |
-| HAIOS-TOOL-211 | repository_coordinator_state_v1_1 | `tools/repository_coordinator_state_v1_1.py` | 1.1.0 | 1 | draft | — | Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives. |
+| HAIOS-TOOL-211 | repository_coordinator_state_v1_1 | `tools/repository_coordinator_state_v1_1.py` | 1.2.0 | 1 | draft | — | Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives. |
 | HAIOS-TOOL-215 | b4_fold_execute | `.z1-control/b4_fold_execute.py` | 1.0.0 | 1 | draft | — | b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification. |
 | HAIOS-TOOL-216 | b4_migrate | `.z1-control/b4_migrate.py` | 2.0.0 | 1 | draft | — | b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store. |
 | HAIOS-TOOL-218 | candidate_bundle | `.z1-control/candidate_bundle.py` | 1.0.0 | 1 | draft | — | candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle. |
