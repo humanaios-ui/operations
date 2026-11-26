@@ -12,7 +12,7 @@ import json
 import re
 from urllib.parse import urlsplit
 
-from .models import HELD_SOURCE_STATUSES
+from .models import HELD_SOURCE_STATUSES as MODEL_HELD_SOURCE_STATUSES
 from .source_risk import promotional_claim_flags
 from .query_quality import (
     blocked_resource_types, fuse_rankings, has_exact_anchors, query_terms,
@@ -22,10 +22,7 @@ MAX_OBJECTIVE = 500
 MAX_ROWS = 500
 PUBLIC_SOURCES = {"HumanAIOS Funding Pipeline", "DEV Community"}
 # These source states are holds, NOT proof the program is closed or the applicant is ineligible.
-HELD_SOURCE_STATUSES = frozenset({
-    "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE",
-    "RECHECK_REQUIRED", "UNVERIFIED_RECHECK",
-})
+HELD_SOURCE_STATUSES = MODEL_HELD_SOURCE_STATUSES | frozenset({"UNVERIFIED_RECHECK"})
 
 
 def _words(value: str) -> set[str]:
@@ -89,7 +86,7 @@ def _verification_state(row: dict) -> tuple[str, str]:
         return "CONFLICTING", "SOURCE_CONFLICT"
     if source in {"SOURCE_UNAVAILABLE", "LINK_FAILED_404"}:
         return "UNAVAILABLE", source
-    if source in {"ROLE_NOT_LISTED", "RECHECK_REQUIRED"}:
+    if source in {"ROLE_NOT_LISTED", "RECHECK_REQUIRED", "UNVERIFIED_RECHECK"}:
         return "UNKNOWN", source
 
     # A declared validity end is a negative freshness boundary, not proof
@@ -139,11 +136,8 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         if not isinstance(row, dict) or row.get("source_name") not in PUBLIC_SOURCES:
             omitted += 1
             continue
-        # Preserve a negative source correction through the user-facing search.
-        # A proposed official recheck cannot self-release a held lead.
-        if row.get("source_verification_status") in HELD_SOURCE_STATUSES:
-            omitted += 1
-            continue
+        # Held rows still need a bounded verification-case projection
+        # when they match the objective. Never surface them as actionable.
         url = _public_https(row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url"))
         if not url:
             omitted += 1
@@ -177,7 +171,9 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         if not hits:
             continue
         verification_state, reason_code = _verification_state(row)
-        if _is_expired(row) or verification_state == "STALE":
+        if (row.get("source_verification_status") in HELD_SOURCE_STATUSES
+                or _is_expired(row)
+                or verification_state in {"STALE", "CONFLICTING", "UNAVAILABLE"}):
             # Keep a bounded reason code in the public response, never raw
             # source notes, evidence text, or application authority.
             verification_cases.append({
@@ -221,9 +217,19 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
     matches = fuse_rankings(
         [r for r in unique_matches.values() if r["resource_id"] not in held_ids]
     )
-    verification_cases = list({
-        r["resource_id"]: r for r in verification_cases
-    }.values())
+    # Preserve the strongest adverse source signal for each identity.
+    # A later RECHECK_REQUIRED observation cannot erase SOURCE_CONFLICT.
+    # Ties use bounded reason codes, never input order or private notes.
+    case_priority = {"CONFLICTING": 0, "UNAVAILABLE": 1, "STALE": 2, "UNKNOWN": 3}
+    case_by_resource: dict[str, dict] = {}
+    for case in verification_cases:
+        rid = case["resource_id"]
+        previous = case_by_resource.get(rid)
+        def key(item: dict) -> tuple[int, str]:
+            return (case_priority.get(item["verification_state"], 4), item["reason_code"])
+        if previous is None or key(case) < key(previous):
+            case_by_resource[rid] = case
+    verification_cases = list(case_by_resource.values())
     verification_cases.sort(key=lambda r: (r["resource_id"], r["reason_code"]))
     shown = matches  # Bounded by MAX_ROWS; browser reveals ten at a time.
     receipt_input = json.dumps({
