@@ -1,0 +1,839 @@
+{
+  "experiment": "WITNESS-CONTEXT-INTEGRITY-E0",
+  "scope": "synthetic structured receipt routing only",
+  "tests": 31,
+  "passed": 31,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "camera can record staged event",
+      "expected": {
+        "media": "CAMERA",
+        "event": "STAGED"
+      },
+      "observed": {
+        "media": "CAMERA",
+        "alteration": "UNKNOWN",
+        "event": "STAGED",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 3,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "synthetic illustration can support true claim",
+      "expected": {
+        "media": "SYNTHETIC",
+        "interpretation": "SUPPORTED",
+        "event": "UNKNOWN"
+      },
+      "observed": {
+        "media": "SYNTHETIC",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "SUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 3,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "real event can receive false interpretation",
+      "expected": {
+        "media": "CAMERA",
+        "event": "CORROBORATED",
+        "interpretation": "CONTRADICTED"
+      },
+      "observed": {
+        "media": "CAMERA",
+        "alteration": "UNKNOWN",
+        "event": "CORROBORATED",
+        "interpretation": "CONTRADICTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 5,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "real footage old context",
+      "expected": {
+        "media": "CAMERA",
+        "interpretation": "CONTEXT_MISMATCH"
+      },
+      "observed": {
+        "media": "CAMERA",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "CONTEXT_MISMATCH",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 3,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "hybrid",
+      "expected": {
+        "media": "HYBRID"
+      },
+      "observed": {
+        "media": "HYBRID",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 1,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "edited camera independent of event",
+      "expected": {
+        "media": "CAMERA",
+        "alteration": "EDITED",
+        "event": "UNKNOWN"
+      },
+      "observed": {
+        "media": "CAMERA",
+        "alteration": "EDITED",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 2,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "missing credentials do not establish fake",
+      "expected": {
+        "media": "UNKNOWN"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE",
+          "MISSING_CREDENTIAL"
+        ],
+        "accepted_receipts": 1,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "detector alone cannot classify",
+      "expected": {
+        "media": "UNKNOWN"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "DETECTOR_FLAG",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 1,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "transcript alone cannot classify",
+      "expected": {
+        "media": "UNKNOWN",
+        "event": "UNKNOWN"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE",
+          "TRANSCRIPT_ONLY"
+        ],
+        "accepted_receipts": 1,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "conflicting origins",
+      "expected": {
+        "media": "DISPUTED"
+      },
+      "observed": {
+        "media": "DISPUTED",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_CONFLICT"
+        ],
+        "accepted_receipts": 2,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "conflicting event",
+      "expected": {
+        "event": "DISPUTED"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "DISPUTED",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_CONFLICT",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 2,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "conflicting claim",
+      "expected": {
+        "interpretation": "DISPUTED"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "DISPUTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_CONFLICT",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 2,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "conflicting edits",
+      "expected": {
+        "alteration": "DISPUTED"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "DISPUTED",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_CONFLICT",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 2,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "same root repost",
+      "expected": {
+        "event": "UNKNOWN",
+        "reason": "EVENT_INSUFFICIENT_ROOTS"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_INSUFFICIENT_ROOTS",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 2,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "duplicate not independent",
+      "expected": {
+        "event": "UNKNOWN",
+        "accepted_receipts": 1,
+        "reason": "DUPLICATE_RECEIPT"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "DUPLICATE_RECEIPT",
+          "EVENT_INSUFFICIENT_ROOTS",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 1,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "unknown forged ID",
+      "expected": {
+        "media": "UNKNOWN",
+        "rejected_receipts": 1
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE",
+          "RECEIPT_REJECTED"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 1
+      },
+      "pass": true
+    },
+    {
+      "name": "unverified assertion",
+      "expected": {
+        "media": "UNKNOWN",
+        "rejected_receipts": 1
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE",
+          "RECEIPT_REJECTED"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 1
+      },
+      "pass": true
+    },
+    {
+      "name": "stale revision",
+      "expected": {
+        "media": "UNKNOWN",
+        "rejected_receipts": 1
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE",
+          "RECEIPT_REJECTED"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 1
+      },
+      "pass": true
+    },
+    {
+      "name": "wrong asset",
+      "expected": {
+        "media": "UNKNOWN",
+        "rejected_receipts": 1
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE",
+          "RECEIPT_REJECTED"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 1
+      },
+      "pass": true
+    },
+    {
+      "name": "wrong clip range",
+      "expected": {
+        "media": "UNKNOWN",
+        "rejected_receipts": 1
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE",
+          "RECEIPT_REJECTED"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 1
+      },
+      "pass": true
+    },
+    {
+      "name": "wrong claim",
+      "expected": {
+        "interpretation": "UNSUPPORTED",
+        "rejected_receipts": 1
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_INSUFFICIENT_ROOTS",
+          "MEDIA_NO_EVIDENCE",
+          "RECEIPT_REJECTED"
+        ],
+        "accepted_receipts": 1,
+        "rejected_receipts": 1
+      },
+      "pass": true
+    },
+    {
+      "name": "replay can be real",
+      "expected": {
+        "media": "CAMERA",
+        "delivery": "REPLAY"
+      },
+      "observed": {
+        "media": "CAMERA",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "REPLAY",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 3,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "one live assertion insufficient",
+      "expected": {
+        "delivery": "UNKNOWN"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_INSUFFICIENT_ROOTS",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 1,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "independent live fixtures",
+      "expected": {
+        "delivery": "LIVE_CAPTURE"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "LIVE_CAPTURE",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 2,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "unknown empty evidence",
+      "expected": {
+        "media": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "EVENT_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE",
+          "MEDIA_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "unexpected authority field rejected",
+      "expected": {
+        "media": "UNKNOWN",
+        "reason": "INVALID_PACKET"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "INVALID_PACKET"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "free text rejected",
+      "expected": {
+        "reason": "INVALID_PACKET"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "INVALID_PACKET"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "oversize rejected",
+      "expected": {
+        "reason": "INVALID_PACKET"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "INVALID_PACKET"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "invalid clip range",
+      "expected": {
+        "reason": "INVALID_PACKET"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "INVALID_PACKET"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "unapproved raw field rejected",
+      "expected": {
+        "reason": "INVALID_PACKET"
+      },
+      "observed": {
+        "media": "UNKNOWN",
+        "alteration": "UNKNOWN",
+        "event": "UNKNOWN",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "INVALID_PACKET"
+        ],
+        "accepted_receipts": 0,
+        "rejected_receipts": 0
+      },
+      "pass": true
+    },
+    {
+      "name": "receipt order invariance",
+      "pass": true,
+      "expected": "identical results",
+      "observed": {
+        "media": "CAMERA",
+        "alteration": "UNKNOWN",
+        "event": "CORROBORATED",
+        "interpretation": "UNSUPPORTED",
+        "delivery": "UNKNOWN",
+        "authority_effect": "NONE",
+        "can_authorize": false,
+        "review_only": true,
+        "disposition": "HUMAN_REVIEW_REQUIRED",
+        "reason_codes": [
+          "ALTERATION_NO_EVIDENCE",
+          "DELIVERY_NO_EVIDENCE",
+          "INTERPRETATION_NO_EVIDENCE"
+        ],
+        "accepted_receipts": 3,
+        "rejected_receipts": 0
+      }
+    }
+  ]
+}
