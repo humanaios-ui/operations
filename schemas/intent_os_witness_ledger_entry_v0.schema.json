@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/intent_os_witness_ledger_entry_v0.schema.json",
+  "title": "INTENT-OS Witness Ledger Entry v0",
+  "$comment": "HARD CONSTRAINT: This record is append-only evidence/attribution substrate. It cannot approve a PR, satisfy required review, sign a ruling, ratify a candidate, change a merge gate, authorize deployment, or substitute for a Z2 hash. AUTHORITY_EFFECT remains NONE; can_authorize remains false. Stop-hook allowlists and HTTP APIs are out of scope for v0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority_effect",
+    "can_authorize",
+    "advisory_only",
+    "seq",
+    "prev_hash",
+    "hash",
+    "decision_id",
+    "timestamp_utc",
+    "actor_type",
+    "actor_email",
+    "actor_role",
+    "decision_class",
+    "title",
+    "context",
+    "authority_level",
+    "artifacts",
+    "rationale",
+    "falsifier"
+  ],
+  "properties": {
+    "schema": {
+      "const": "intentos/witness_ledger_entry_v0"
+    },
+    "authority_effect": {
+      "const": "NONE",
+      "$comment": "REQUIRED: Ledger entries never authorize. Never change this to a non-NONE value."
+    },
+    "can_authorize": {
+      "const": false,
+      "$comment": "REQUIRED: This record cannot authorize any action. Never change this to true."
+    },
+    "advisory_only": {
+      "const": true,
+      "$comment": "REQUIRED: Attribution evidence only. Never change this to false."
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "prev_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "minLength": 10,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"
+    },
+    "actor_type": {
+      "enum": ["human", "machine"]
+    },
+    "actor_email": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 320
+    },
+    "actor_role": {
+      "enum": ["Z1", "Z2", "Z3"]
+    },
+    "decision_class": {
+      "enum": ["propose", "approve", "execute", "ratify", "record"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "context": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_level": {
+      "enum": ["NONE", "Z1", "Z2", "Z3"],
+      "$comment": "Describes the claimed role context of the act being attributed; does not grant that authority."
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "falsifier": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

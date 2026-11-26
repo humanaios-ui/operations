@@ -28,6 +28,9 @@ from resource_miner.snapshot_status import reconcile_snapshot_source_holds
 from resource_miner.witness_bridge import ask_resource, enabled as witness_enabled, WitnessBridgeUnavailable
 
 ROOT = Path(__file__).resolve().parent
+# Reuse the existing read-only GitHub Observatory. May be absent from a lean container;
+# absence is a visible 503, never a fabricated dashboard or fetched replacement.
+OBSERVATORY_UI = ROOT.parents[1] / "ui"
 DEFAULT_MINES = ROOT / "data" / "mines.seed.json"
 DEFAULT_RECEIPTS = ROOT / "data" / "resource_state.receipts.jsonl"
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
@@ -150,7 +153,7 @@ class Handler(BaseHTTPRequestHandler):
                         HTTPStatus.FORBIDDEN)
         return False
 
-    def _headers(self, status: int, content_type: str, length: int) -> None:
+    def _headers(self, status: int, content_type: str, length: int, *, csp_override: str | None = None) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(length))
@@ -160,9 +163,11 @@ class Handler(BaseHTTPRequestHandler):
         if content_type.startswith("text/html"):
             self.send_header(
                 "Content-Security-Policy",
-                "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
-                "connect-src 'self'; manifest-src 'self'; base-uri 'none'; "
-                "form-action 'self'; frame-ancestors 'none'",
+                csp_override or (
+                    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
+                    "connect-src 'self'; manifest-src 'self'; base-uri 'none'; "
+                    "form-action 'self'; frame-ancestors 'none'"
+                ),
             )
         self.end_headers()
 
@@ -175,6 +180,58 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         try:
+            if parsed.path in ("/project-observatory", "/project-observatory.js"):
+                # Local-only readback of EXISTING public GitHub telemetry. No new
+                # collector, task queue, user profile, GitHub write or authorization.
+                if not self._local_opportunities_allowed():
+                    return self._send_json({"error": "Local-only route unavailable."},
+                                           HTTPStatus.NOT_FOUND)
+                is_script = parsed.path.endswith(".js")
+                filename = ("operations-observatory-e0.js" if is_script
+                            else "operations-observatory-e0.html")
+                source_file = OBSERVATORY_UI / filename
+                if not source_file.is_file():
+                    return self._send_json(
+                        {"error": "Existing Observatory assets not available in this runtime.",
+                         "status": "NOT_CONNECTED"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                if is_script:
+                    data = source_file.read_bytes()
+                    self._headers(200, "application/javascript; charset=utf-8", len(data))
+                else:
+                    # Adapt navigation only. Original Observatory files stay
+                    # unchanged, and all data logic remains in the existing JS.
+                    html = source_file.read_text(encoding="utf-8")
+                    redirects = {
+                        'src="operations-observatory-e0.js"':
+                            'src="/project-observatory.js"',
+                        '<a class="brand" href="living-operations-canvas.html">✦ HumanAIOS / Operations Observatory</a>':
+                            '<a class="brand" href="/intent-os">✦ HumanAIOS / Operations Observatory</a>',
+                        '<a href="living-operations-canvas.html">Living Operations Canvas</a>':
+                            '<a href="/on-track">On-Track</a>',
+                        '<a href="../graph_timeline/system_graph_timeline.html">Graph Timeline</a>':
+                            '<a href="https://github.com/humanaios-ui/operations/blob/main/graph_timeline/system_graph_timeline.html" target="_blank" rel="noopener noreferrer">Graph Timeline source</a>',
+                        '<a href="../docs/OPERATIONS_OBSERVATORY_E0.md">method &amp; tests</a>':
+                            '<a href="https://github.com/humanaios-ui/operations/blob/main/docs/OPERATIONS_OBSERVATORY_E0.md" target="_blank" rel="noopener noreferrer">method &amp; tests</a>',
+                    }
+                    if any(original not in html for original in redirects):
+                        return self._send_json(
+                            {"error": "Observatory template changed; integration needs re-review.",
+                             "status": "TEMPLATE_DRIFT"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                    for original, adjusted in redirects.items():
+                        html = html.replace(original, adjusted)
+                    data = html.encode("utf-8")
+                    # Tight exception for existing browser GETs to public GitHub.
+                    # No broad relaxation of the core INTENT-OS CSP.
+                    self._headers(
+                        200, "text/html; charset=utf-8", len(data),
+                        csp_override=(
+                            "default-src 'none'; style-src 'unsafe-inline'; "
+                            "script-src 'self'; connect-src https://api.github.com; "
+                            "base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+                        ),
+                    )
+                self.wfile.write(data)
+                return
             if parsed.path == "/app.webmanifest":
                 # Only public app identity. No service worker or private caching.
                 body = (ROOT / "app.webmanifest").read_bytes()

@@ -1,9 +1,8 @@
 name: Daily Topic-to-Mitigation Digest
 
 on:
-  schedule:
-    # Run daily at 9:00 UTC (adjustable based on timezone)
-    - cron: '0 9 * * *'
+  # Retired from the schedule by Q-AGENT-WORKFLOWS-01 W3 (2026-11-26): fails every run (jq reads a directory); the multi-model mail digest covers this job.
+  # Manual runs still work. Restore the cron only with a fix that passes a manual run.
   workflow_dispatch:
     inputs:
       trigger:
