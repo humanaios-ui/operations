@@ -1,5 +1,20 @@
 <!-- START_HERE.md has the map; CONTRIBUTING.md has the rules. This checklist keeps a PR honest. -->
 
+## Plain-words card (for Night; no code reading needed)
+
+<!-- Q-AGENT-WORKFLOWS-01 W5. Three lines, plain words. Night decides what and why;
+     agents own how. The reviewer must be a different agent from the builder. -->
+
+- **What it changes:**
+- **If it is wrong, what breaks and how to undo:**
+- **Safe to merge (reviewer's word):** yes / no — reviewer: <!-- agent name; never the builder -->
+
+**Builder:** <!-- agent that wrote this -->  ·  **Reviewer:** <!-- different agent -->
+
+<!-- When implementation checks are green on the final head, end the last report with
+     one line Night can paste: `/coordinator admit <full head sha>`.
+     The admission gate itself is red until that line is pasted; that is expected. -->
+
 ## What & why
 
 <!-- One or two sentences: what this changes and the reason. -->
