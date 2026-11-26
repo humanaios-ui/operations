@@ -76,12 +76,12 @@ Trigger counts are file counts, not mutually exclusive.
 
 | Trigger | Files |
 | --- | ---: |
-| `workflow_dispatch` | 87 |
+| `workflow_dispatch` | 89 |
 | `pull_request` | 66 |
-| `push` | 38 |
-| `schedule` | 28 |
-| `issue_comment` | 3 |
+| `push` | 39 |
+| `schedule` | 19 |
 | `pull_request_target` | 3 |
+| `issue_comment` | 2 |
 | `branch_protection_rule` | 1 |
 | `check_suite` | 1 |
 | `issues` | 1 |
@@ -90,11 +90,12 @@ Trigger counts are file counts, not mutually exclusive.
 
 | File | Name | Triggers | Schedule |
 | --- | --- | --- | --- |
-| `acat-pipeline-trigger.yml` | ACAT Research Pipeline | `schedule`, `workflow_dispatch` | `0 8 * * *` |
+| `acat-pipeline-trigger.yml` | ACAT Research Pipeline | `workflow_dispatch` | — |
 | `acat-r-noninjected.yml` | ACAT-R Existing Non-Injected Runtime Reference Pilot | `pull_request`, `workflow_dispatch` | — |
 | `acat-r-second-runtime-comparison.yml` | ACAT-R Second Runtime Fair Comparison | `pull_request`, `workflow_dispatch` | — |
 | `acat-r-v01.yml` | ACAT-R v0.1 Offline Contract Tests | `pull_request`, `workflow_dispatch` | — |
-| `agent-api-monitor.yml` | agent-api-monitor | `schedule`, `workflow_dispatch` | `0 9 * * *` |
+| `admission-ruling-graph.yml` | admission-ruling-graph | `pull_request`, `push`, `workflow_dispatch` | — |
+| `agent-api-monitor.yml` | agent-api-monitor | `workflow_dispatch` | — |
 | `agent-coordination-reflex-pilot.yml` | Agent coordination reflex pilot | `pull_request`, `push` | — |
 | `agent-principle-compliance-check.yml` | agent-principle-compliance-check | `push`, `pull_request` | — |
 | `audit-protocol-v3-1-regression.yml` | Audit Protocol v3.1 Synthetic Gates | `pull_request`, `workflow_dispatch` | — |
@@ -111,10 +112,9 @@ Trigger counts are file counts, not mutually exclusive.
 | `claim-intersection-e0.yml` | claim-intersection-e0 | `pull_request`, `workflow_dispatch` | — |
 | `codebase-atlas.yml` | codebase-atlas | `pull_request`, `push`, `workflow_dispatch` | — |
 | `coordinator-admission-sweep.yml` | coordinator-admission-sweep | `schedule`, `workflow_dispatch` | `17 */6 * * *` |
-| `coordinator-issue-route.yml` | coordinator-issue-route | `issue_comment` | — |
 | `copilot-base-guard.yml` | copilot-base-guard | `pull_request_target` | — |
 | `daily-deadline-alerts.yml` | Daily Deadline Alerts | `schedule`, `workflow_dispatch` | `0 8 * * *` |
-| `daily-topic-digest.yml` | Daily Topic-to-Mitigation Digest | `schedule`, `workflow_dispatch` | `0 9 * * *` |
+| `daily-topic-digest.yml` | Daily Topic-to-Mitigation Digest | `workflow_dispatch` | — |
 | `deploy-acat-api-azure.yml` | Deploy ACAT API to Azure Container Apps | `pull_request`, `push`, `workflow_dispatch` | — |
 | `divergence-detect.yml` | divergence-detect | `schedule`, `workflow_dispatch` | `0 0 * * *` |
 | `document-control.yml` | document-control | `pull_request`, `push`, `workflow_dispatch` | — |
@@ -128,10 +128,10 @@ Trigger counts are file counts, not mutually exclusive.
 | `governance-triage.yml` | governance-triage | `schedule`, `workflow_dispatch` | `0 7 * * 1` |
 | `gpcs-contract.yml` | GPCS contract tests | `pull_request`, `workflow_dispatch` | — |
 | `graph-capture-lint.yml` | graph-capture-lint | `pull_request`, `push`, `workflow_dispatch` | — |
-| `haios-corpus-integrity.yml` | HAIOS Corpus Integrity | `schedule`, `workflow_dispatch` | `0 2 * * *` |
+| `haios-corpus-integrity.yml` | HAIOS Corpus Integrity | `workflow_dispatch` | — |
 | `haios-harmonizer-pulse.yml` | HAIOS Harmonizer Pulse | `schedule`, `workflow_dispatch` | `0 0,8,16 * * *` |
 | `haios-standing-audit.yml` | HumanAIOS Standing Audit | `push`, `schedule`, `workflow_dispatch` | `0 9 * * *` |
-| `haios-system-audit.yml` | HAIOS System Audit | `schedule`, `workflow_dispatch` | `0 6 * * *` |
+| `haios-system-audit.yml` | HAIOS System Audit | `workflow_dispatch` | — |
 | `iew-001-admission-negative-controls.yml` | iew-001-admission-negative-controls | `pull_request`, `push`, `workflow_dispatch` | — |
 | `industry-telemetry.yml` | industry-telemetry | `schedule`, `workflow_dispatch`, `pull_request` | `30 9 * * 1` |
 | `intake-pipeline.yml` | intake-pipeline | `schedule`, `workflow_dispatch`, `push` | `0 3 * * 1` |
@@ -163,7 +163,7 @@ Trigger counts are file counts, not mutually exclusive.
 | `receipt-reconciliation-post-merge.yml` | Post-Merge Receipt Reconciliation | `push`, `workflow_dispatch` | — |
 | `repository-admission-gate.yml` | repository-admission-gate | `pull_request_target`, `pull_request_review`, `issue_comment`, `workflow_dispatch` | — |
 | `repository-coordinator.yml` | repository-coordinator | `pull_request`, `push`, `workflow_dispatch` | — |
-| `research-agent.yml` | HAIOS Research Agent | `schedule`, `workflow_dispatch` | `0 6 * * 1` |
+| `research-agent.yml` | HAIOS Research Agent | `workflow_dispatch` | — |
 | `research-validation.yml` | Research Validation | `workflow_dispatch`, `pull_request` | — |
 | `resource-miner-azure-readiness.yml` | Resource Miner Azure Container Readiness | `pull_request`, `push` | — |
 | `resource-miner-pr.yml` | Resource Miner PR | `pull_request` | — |
@@ -178,8 +178,8 @@ Trigger counts are file counts, not mutually exclusive.
 | `security-gates.yml` | security-gates | `pull_request`, `push`, `workflow_dispatch` | — |
 | `seed-satellite-ci.yml` | Seed Satellite CI | `workflow_dispatch` | — |
 | `semgrep-review.yml` | semgrep-review | `pull_request`, `workflow_dispatch` | — |
-| `smag-capture.yml` | smag-capture | `pull_request` | — |
-| `smag-consolidate.yml` | smag-consolidate | `schedule`, `workflow_dispatch` | `17 6 * * 1` |
+| `smag-capture.yml` | smag-capture | `workflow_dispatch` | — |
+| `smag-consolidate.yml` | smag-consolidate | `workflow_dispatch` | — |
 | `sonarcloud-baseline-auto.yml` | SonarCloud Baseline Auto-Capture | `pull_request`, `push`, `workflow_dispatch` | — |
 | `system-graph-freshness.yml` | system-graph-freshness | `pull_request`, `push`, `schedule`, `workflow_dispatch` | `17 6 * * 1` |
 | `temporal-dissolution-gate.yml` | temporal-dissolution-gate | `pull_request` | — |
@@ -188,8 +188,8 @@ Trigger counts are file counts, not mutually exclusive.
 | `verified-receipts-tests.yml` | verified-receipts-tests | `pull_request`, `workflow_dispatch` | — |
 | `wardens-council-prototype.yml` | Wardens Council Prototype Tests | `pull_request`, `push`, `workflow_dispatch` | — |
 | `wardens-lineage-prototype.yml` | Wardens persistent lineage + Discord prototype tests | `pull_request`, `workflow_dispatch` | — |
-| `weekly-funding-rescore.yml` | Weekly Funding Rescore | `schedule`, `workflow_dispatch` | `30 9 * * 1` |
-| `weekly-profile-sync.yml` | Weekly Profile Sync | `schedule`, `workflow_dispatch` | `0 9 * * 1` |
+| `weekly-funding-rescore.yml` | Weekly Funding Rescore | `workflow_dispatch` | — |
+| `weekly-profile-sync.yml` | Weekly Profile Sync | `workflow_dispatch` | — |
 | `workflow-lint.yml` | workflow-lint | `pull_request`, `push`, `workflow_dispatch` | — |
 | `workflow-path-validation.yml` | workflow-path-validation | `pull_request`, `push`, `workflow_dispatch` | — |
 | `workspace-evidence-bus-roundtrip.yml` | Workspace Evidence Bus Roundtrip | `workflow_dispatch`, `pull_request` | — |
