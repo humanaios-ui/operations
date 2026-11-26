@@ -77,6 +77,7 @@
 - [ ] **Document control** — if this adds/changes a controlled document, `document-registry.yaml` and frontmatter are updated (the CI gate will check)
 - [ ] **Immune memory** — if this fixes or reveals a failure mode, it's registered in `REGISTERED.md` (F / H / IC) — link it: <!-- IC-000 -->
 - [ ] **No secrets** — no credentials, tokens, or keys added (even placeholders)
+- [ ] **Running list** — if this starts, stops or re-times anything that runs on its own (timer, server, routine, bot, cloud machine), `docs/RUNNING.md` is updated in this PR
 - [ ] **Health** — ran `python3 tools/repo_health.py`; vitality not regressed
 - [ ] **Admission** — the head is final: a push after `/coordinator admit <SHA>` voids that admit (see CONTRIBUTING.md, "How a pull request is admitted")
 
