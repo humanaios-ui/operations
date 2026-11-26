@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 135
+  candidates: 136
   records: 95
 ratifiers:
 - Night
@@ -1343,6 +1343,13 @@ candidates:
   ratified_at: "2026-11-25"
   z2_ruling: "z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md"
   z2_hash: "50d27729d923587ef8e433fd826d901b22dba58a826a9bfb2efed79f48cd8efa"
+- q_id: Q-AGENT-WORKFLOWS-01
+  title: Agent map and workflows - cut hollow and red jobs, merge comment wake-ups, one action per Night ask (W1-W8; ChatGPT handoff file checked)
+  path: z1-inbox/2026-11-26/Q-AGENT-WORKFLOWS-01.md
+  submitted: '2026-11-26'
+  status: awaiting_z2
+  tier: 0
+  note: 'Map and proposals only; no workflow, gate, app or setting changed. Each W-row change is its own follow-up draft PR. Counts read live from the GitHub API 2026-11-26. Night asked for it in session on 2026-11-26 (scope ALL). Falsifier stated.'
 records:
 - path: "z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md"
   title: "Z2 rulings 2026-11-25 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
