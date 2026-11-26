@@ -8,7 +8,7 @@ Issue #1329; parent #1230; draft PR #1330. No authority or deployment.
 All links are public; transcript retrieval is not original-paper verification. First two captions were returned in Arabic; numerical claims need original source recheck. No third-party transcript reproduced. No claim of novelty or partnership.
 
 ## Replay
-From this directory: `node replay.mjs > replay-output.json`, then `diff observed.json replay-output.json`. The workflow `.github/workflows/haios-video-e0.yml` runs the same diff on every PR that touches this folder.
+From this directory: `node replay.mjs > replay-output.json`, then `diff observed.json replay-output.json`. A CI workflow that runs this diff is offered separately, because any workflow file is a Tier 2 gate change here.
 
 Replay record: the first run was in ChatGPT's JS runtime. On 2026-11-26 Claude replayed head 167e0ae in Node v22.23.5 and got byte-identical output. Two runtimes run by agents on one account is not independent human review.
 
