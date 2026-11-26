@@ -1,0 +1,489 @@
+{
+  "experiment": "HAIOS-VIDEO-E0",
+  "version": "v2-audit",
+  "audits": "v1 replay.mjs at PR #1330 head 167e0ae (byte-identical copy in v1_snapshot/; findings in AUDIT_1329.md)",
+  "seedRange": [
+    1,
+    200
+  ],
+  "cycles": 60,
+  "agents": 4,
+  "scriptedRuns": 1000,
+  "policy": {
+    "cap": 4,
+    "reserve": 25,
+    "initial": 100,
+    "maxStock": 100,
+    "revision": 2
+  },
+  "scope": "scripted synthetic; not live AI, not human participants, not a security proof; principal binding is a harness-held single-use approval map, not cryptographic authentication",
+  "byConstruction": "In arms C/D/E the client asks only for policy-allowed amounts and the gate re-checks; zero reserve/cap/consent violations are therefore expected by construction. The informative outputs are the useful-work cost, the ordering effect and the adversary block count.",
+  "resource": {
+    "pool": {
+      "A": {
+        "design": "unrestricted",
+        "runs": 200,
+        "reservePreserved": 0,
+        "zeroViolations": 0,
+        "stock": 16.17,
+        "min": 0,
+        "violations": 149.67,
+        "useful": 609.72,
+        "raw": 814.49,
+        "withdrawal": 7.7,
+        "capViol": 76.76,
+        "reserveViol": 106.78,
+        "gateRejects": 0,
+        "attacks": 0,
+        "attacksBlocked": 0,
+        "minAgent": 181.11,
+        "maxAgent": 227.93
+      },
+      "B": {
+        "design": "cap-only",
+        "runs": 200,
+        "reservePreserved": 0,
+        "zeroViolations": 0,
+        "stock": 73.65,
+        "min": 0,
+        "violations": 53.59,
+        "useful": 609.42,
+        "raw": 715.4,
+        "withdrawal": 8.6,
+        "capViol": 0,
+        "reserveViol": 47.04,
+        "gateRejects": 0,
+        "attacks": 0,
+        "attacksBlocked": 0,
+        "minAgent": 167.88,
+        "maxAgent": 190.34
+      },
+      "C": {
+        "design": "human gate, fixed order (same order as A/B)",
+        "runs": 200,
+        "reservePreserved": 200,
+        "zeroViolations": 200,
+        "stock": 86.72,
+        "min": 25,
+        "violations": 0,
+        "useful": 591.98,
+        "raw": 668.36,
+        "withdrawal": 0,
+        "capViol": 0,
+        "reserveViol": 0,
+        "gateRejects": 0,
+        "attacks": 0,
+        "attacksBlocked": 0,
+        "minAgent": 140.01,
+        "maxAgent": 188.08
+      },
+      "D": {
+        "design": "human gate + least-allocated-first order (= v1 arm C)",
+        "runs": 200,
+        "reservePreserved": 200,
+        "zeroViolations": 200,
+        "stock": 86.72,
+        "min": 25,
+        "violations": 0,
+        "useful": 591.68,
+        "raw": 668.36,
+        "withdrawal": 0,
+        "capViol": 0,
+        "reserveViol": 0,
+        "gateRejects": 0,
+        "attacks": 0,
+        "attacksBlocked": 0,
+        "minAgent": 155.28,
+        "maxAgent": 175.84
+      },
+      "E": {
+        "design": "human gate, fixed order, agent 2 attempts 5 bypasses per cycle",
+        "runs": 200,
+        "reservePreserved": 200,
+        "zeroViolations": 200,
+        "stock": 86.72,
+        "min": 25,
+        "violations": 0,
+        "useful": 591.98,
+        "raw": 668.36,
+        "withdrawal": 0,
+        "capViol": 0,
+        "reserveViol": 0,
+        "gateRejects": 0,
+        "attacks": 300,
+        "attacksBlocked": 300,
+        "minAgent": 140.01,
+        "maxAgent": 188.08
+      }
+    },
+    "pairedUsefulDelta": {
+      "C-A gate cost vs unrestricted": {
+        "mean": -17.74,
+        "min": -49,
+        "max": 20,
+        "seedsWhereFirstLower": 178
+      },
+      "C-B gate cost vs cap-only": {
+        "mean": -17.44,
+        "min": -23,
+        "max": -11,
+        "seedsWhereFirstLower": 200
+      },
+      "D-C ordering effect": {
+        "mean": -0.29,
+        "min": -9,
+        "max": 7,
+        "seedsWhereFirstLower": 91
+      },
+      "E-C adversary effect": {
+        "mean": 0,
+        "min": 0,
+        "max": 0,
+        "seedsWhereFirstLower": 0
+      }
+    }
+  },
+  "controls": [
+    {
+      "name": "valid single-use approval",
+      "expected": "ok",
+      "observed": "ok",
+      "pass": true
+    },
+    {
+      "name": "duplicate: same approval used twice",
+      "expected": "reject",
+      "observed": "approval already used",
+      "pass": true
+    },
+    {
+      "name": "forged approval id",
+      "expected": "reject",
+      "observed": "no such approval",
+      "pass": true
+    },
+    {
+      "name": "self-asserted principal string",
+      "expected": "reject",
+      "observed": "unknown field",
+      "pass": true
+    },
+    {
+      "name": "approval bound to another agent",
+      "expected": "reject",
+      "observed": "approval bound to another agent",
+      "pass": true
+    },
+    {
+      "name": "stale revision (request)",
+      "expected": "reject",
+      "observed": "stale revision",
+      "pass": true
+    },
+    {
+      "name": "stale revision (policy bumped after approval)",
+      "expected": "reject",
+      "observed": "stale revision",
+      "pass": true
+    },
+    {
+      "name": "consent withdrawn after approval issued",
+      "expected": "reject",
+      "observed": "consent withdrawn",
+      "pass": true
+    },
+    {
+      "name": "over cap",
+      "expected": "reject",
+      "observed": "over cap",
+      "pass": true
+    },
+    {
+      "name": "reserve floor",
+      "expected": "reject",
+      "observed": "reserve",
+      "pass": true
+    },
+    {
+      "name": "bad amount: negative",
+      "expected": "reject",
+      "observed": "bad amount",
+      "pass": true
+    },
+    {
+      "name": "bad amount: zero",
+      "expected": "reject",
+      "observed": "bad amount",
+      "pass": true
+    },
+    {
+      "name": "bad amount: fraction",
+      "expected": "reject",
+      "observed": "bad amount",
+      "pass": true
+    },
+    {
+      "name": "bad amount: NaN",
+      "expected": "reject",
+      "observed": "bad amount",
+      "pass": true
+    },
+    {
+      "name": "bad amount: string '4'",
+      "expected": "reject",
+      "observed": "bad amount",
+      "pass": true
+    },
+    {
+      "name": "bad amount: Infinity",
+      "expected": "reject",
+      "observed": "bad amount",
+      "pass": true
+    },
+    {
+      "name": "prototype key as approval id",
+      "expected": "reject",
+      "observed": "no such approval",
+      "pass": true
+    },
+    {
+      "name": "null request",
+      "expected": "reject",
+      "observed": "malformed",
+      "pass": true
+    },
+    {
+      "name": "out-of-band mutation: audit passes clean ledger",
+      "expected": true,
+      "observed": true,
+      "pass": true
+    },
+    {
+      "name": "out-of-band mutation: audit flags mutated stock (detect, not prevent)",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    }
+  ],
+  "media": {
+    "uniqueBaseFixtures": 12,
+    "mutations": 15,
+    "note": "Media differ only in channel count (structural surface). This is deterministic contract QA, not comprehension, persuasion or answer-engine performance.",
+    "media": {
+      "article": {
+        "cases": 180,
+        "channels": 1,
+        "byPolicy": {
+          "raw": {
+            "correctRelease": 48,
+            "falseRelease": 132,
+            "holdValid": 0,
+            "holdInvalid": 0
+          },
+          "naive": {
+            "correctRelease": 24,
+            "falseRelease": 48,
+            "holdValid": 24,
+            "holdInvalid": 84
+          },
+          "strict": {
+            "correctRelease": 24,
+            "falseRelease": 0,
+            "holdValid": 24,
+            "holdInvalid": 132
+          }
+        },
+        "missesByMutation": {
+          "raw": {
+            "falseRelease: stale: still revision 1 everywhere": 12,
+            "falseRelease: correction dropped in last channel": 12,
+            "falseRelease: correction note missing": 12,
+            "falseRelease: omitted caveat (all channels)": 12,
+            "falseRelease: omitted caveat (last channel only)": 12,
+            "falseRelease: false authority": 12,
+            "falseRelease: citation mismatch": 12,
+            "falseRelease: receipt hash mismatch": 12,
+            "falseRelease: unsupported claim appended": 12,
+            "falseRelease: smuggled extra field": 12,
+            "falseRelease: authority via alternate key": 12
+          },
+          "naive": {
+            "falseRelease: correction note missing": 12,
+            "falseRelease: receipt hash mismatch": 12,
+            "holdValid: missing receipt (content correct)": 12,
+            "falseRelease: smuggled extra field": 12,
+            "falseRelease: authority via alternate key": 12,
+            "holdValid: caveat case/space variant (meaning intact)": 12
+          },
+          "strict": {
+            "holdValid: missing receipt (content correct)": 12,
+            "holdValid: caveat case/space variant (meaning intact)": 12
+          }
+        },
+        "correctionRetained": {
+          "raw": {
+            "corrected": 36,
+            "released": 36,
+            "releasedAtLatestAllChannels": 12
+          },
+          "naive": {
+            "corrected": 36,
+            "released": 12,
+            "releasedAtLatestAllChannels": 12
+          },
+          "strict": {
+            "corrected": 36,
+            "released": 12,
+            "releasedAtLatestAllChannels": 12
+          }
+        }
+      },
+      "conventional_video_script": {
+        "cases": 180,
+        "channels": 2,
+        "byPolicy": {
+          "raw": {
+            "correctRelease": 48,
+            "falseRelease": 132,
+            "holdValid": 0,
+            "holdInvalid": 0
+          },
+          "naive": {
+            "correctRelease": 24,
+            "falseRelease": 72,
+            "holdValid": 24,
+            "holdInvalid": 60
+          },
+          "strict": {
+            "correctRelease": 24,
+            "falseRelease": 0,
+            "holdValid": 24,
+            "holdInvalid": 132
+          }
+        },
+        "missesByMutation": {
+          "raw": {
+            "falseRelease: stale: still revision 1 everywhere": 12,
+            "falseRelease: correction dropped in last channel": 12,
+            "falseRelease: correction note missing": 12,
+            "falseRelease: omitted caveat (all channels)": 12,
+            "falseRelease: omitted caveat (last channel only)": 12,
+            "falseRelease: false authority": 12,
+            "falseRelease: citation mismatch": 12,
+            "falseRelease: receipt hash mismatch": 12,
+            "falseRelease: unsupported claim appended": 12,
+            "falseRelease: smuggled extra field": 12,
+            "falseRelease: authority via alternate key": 12
+          },
+          "naive": {
+            "falseRelease: correction dropped in last channel": 12,
+            "falseRelease: correction note missing": 12,
+            "falseRelease: omitted caveat (last channel only)": 12,
+            "falseRelease: receipt hash mismatch": 12,
+            "holdValid: missing receipt (content correct)": 12,
+            "falseRelease: smuggled extra field": 12,
+            "falseRelease: authority via alternate key": 12,
+            "holdValid: caveat case/space variant (meaning intact)": 12
+          },
+          "strict": {
+            "holdValid: missing receipt (content correct)": 12,
+            "holdValid: caveat case/space variant (meaning intact)": 12
+          }
+        },
+        "correctionRetained": {
+          "raw": {
+            "corrected": 36,
+            "released": 36,
+            "releasedAtLatestAllChannels": 12
+          },
+          "naive": {
+            "corrected": 36,
+            "released": 24,
+            "releasedAtLatestAllChannels": 12
+          },
+          "strict": {
+            "corrected": 36,
+            "released": 12,
+            "releasedAtLatestAllChannels": 12
+          }
+        }
+      },
+      "witness_video_script": {
+        "cases": 180,
+        "channels": 3,
+        "byPolicy": {
+          "raw": {
+            "correctRelease": 48,
+            "falseRelease": 132,
+            "holdValid": 0,
+            "holdInvalid": 0
+          },
+          "naive": {
+            "correctRelease": 24,
+            "falseRelease": 72,
+            "holdValid": 24,
+            "holdInvalid": 60
+          },
+          "strict": {
+            "correctRelease": 24,
+            "falseRelease": 0,
+            "holdValid": 24,
+            "holdInvalid": 132
+          }
+        },
+        "missesByMutation": {
+          "raw": {
+            "falseRelease: stale: still revision 1 everywhere": 12,
+            "falseRelease: correction dropped in last channel": 12,
+            "falseRelease: correction note missing": 12,
+            "falseRelease: omitted caveat (all channels)": 12,
+            "falseRelease: omitted caveat (last channel only)": 12,
+            "falseRelease: false authority": 12,
+            "falseRelease: citation mismatch": 12,
+            "falseRelease: receipt hash mismatch": 12,
+            "falseRelease: unsupported claim appended": 12,
+            "falseRelease: smuggled extra field": 12,
+            "falseRelease: authority via alternate key": 12
+          },
+          "naive": {
+            "falseRelease: correction dropped in last channel": 12,
+            "falseRelease: correction note missing": 12,
+            "falseRelease: omitted caveat (last channel only)": 12,
+            "falseRelease: receipt hash mismatch": 12,
+            "holdValid: missing receipt (content correct)": 12,
+            "falseRelease: smuggled extra field": 12,
+            "falseRelease: authority via alternate key": 12,
+            "holdValid: caveat case/space variant (meaning intact)": 12
+          },
+          "strict": {
+            "holdValid: missing receipt (content correct)": 12,
+            "holdValid: caveat case/space variant (meaning intact)": 12
+          }
+        },
+        "correctionRetained": {
+          "raw": {
+            "corrected": 36,
+            "released": 36,
+            "releasedAtLatestAllChannels": 12
+          },
+          "naive": {
+            "corrected": 36,
+            "released": 24,
+            "releasedAtLatestAllChannels": 12
+          },
+          "strict": {
+            "corrected": 36,
+            "released": 12,
+            "releasedAtLatestAllChannels": 12
+          }
+        }
+      }
+    }
+  },
+  "accept": {
+    "gatedArmsZeroViolations": true,
+    "adversaryFullyBlocked": true,
+    "controlsAllPass": true,
+    "strictNoFalseRelease": true
+  }
+}
