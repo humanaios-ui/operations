@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**136 candidates** — ⏳ awaiting Z2 38 · ✅ ratified 98 · **95 records**
+**136 candidates** — ⏳ awaiting Z2 37 · ✅ ratified 99 · **96 records**
 
-## Awaiting Z2 (38)
+## Awaiting Z2 (37)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -49,9 +49,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-21 | **Q-BOARD-RULING-32** | Board ruling d32 — KNOWN_RED list in the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-32.md` |
 | 2026-09-21 | **Q-BOARD-RULING-33** | Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19's freeze), keep the frozen path, or later | `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` |
 | 2026-09-21 | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
-| 2026-11-28 | **Q-AGENT-WORKFLOWS-01** | Agent map and workflows - cut hollow and red jobs, merge comment wake-ups, one action per Night ask (W1-W8; ChatGPT handoff file checked) | `z1-inbox/2026-11-26/Q-AGENT-WORKFLOWS-01.md` |
 
-## Decided (98)
+## Decided (99)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -153,6 +152,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-CATCH-BIG-TALK-RULES-01** | Night | 2026-11-25 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md`<br>`00a7bc0a4129b5f085d57bf7e3f4ec67172e363bade4dc77e12e62c5e328e2c8` |
 | ✅ ratified | **Q-DIGEST-COORD-LAYER-01** | Night | 2026-11-25 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md`<br>`570ffe296b88c049446206fe5c5d7ff9e7cbece382be97442606915fa1cdee29` |
 | ✅ ratified | **Q-REPO-GRAPH-SORT-01** | Night | 2026-11-25 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md`<br>`50d27729d923587ef8e433fd826d901b22dba58a826a9bfb2efed79f48cd8efa` |
+| ✅ ratified | **Q-AGENT-WORKFLOWS-01** | Night | 2026-11-26 | `z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md`<br>`c3ad71ad4a60226a26a2208d19f27422b5da1ffe9e9a3abc17672fa2dadcee17` |
 
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
@@ -405,7 +405,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (95)
+## Records (96)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -505,6 +505,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-11-20/Z2_RULINGS_2026-11-20.md` | Z2 rulings 2026-11-20 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md` | Z2 rulings 2026-11-25 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/2026-11-25/Z2_RULING_MERGE_RATIFIES_ALL_CANDIDATES.md` | Z2 ruling — the merge ratifies every candidate, not only board rulings (Night, 2026-11-25) |
+| `z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md` | Z2 rulings 2026-11-26 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ## Excluded from the conversion record (12)
