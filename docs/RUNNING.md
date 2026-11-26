@@ -60,10 +60,11 @@ Started by: merged PRs over time. Why: see each file and `.github/WORKFLOWS.md`.
 | ACAT-003 digest trial scorer | 11:04 AM daily | Trial Nov 26-Dec 9 | Stops itself Dec 10 |
 | Code learning log rows | 7:23 PM daily | One merge, one lesson | Stops itself after 14 quiet days or when task closes |
 | Monday running-list check | Mondays 10:37 AM | Compares this page with what is live; posts only when something is off. Read-only, $0. Night said yes Nov 26. | Off 2027-03-01 |
-| Watch for Grok's PR on findlocaltattooartists | hourly 8 AM-9 PM | Notices Grok's M1-M9 PR for issue 1 of `findlocaltattooartists`. Read-only, $0. Night asked Nov 26. | Off 2026-12-03 or when the PR is found |
 | ACAT-002 leg, Weekly Checker | see section 1 | | Until stopped |
 
 Off (kept, not running): Foundation Audit Aggregator, Monitor Collab Responses, m2r3-hourly-sync.
+
+Ended and deleted: Watch for Grok's PR on findlocaltattooartists (hourly, read-only, $0; ran Nov 26 only, stopped when Grok's PR 3 arrived).
 
 ## 4. Stopped or idle (listed so nobody wonders)
 
