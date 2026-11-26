@@ -42,8 +42,8 @@
 name: HAIOS System Audit
 
 on:
-  schedule:
-    - cron: '0 6 * * *'       # Daily at 06:00 UTC
+  # Schedule paused by Q-AGENT-WORKFLOWS-01 W2 (2026-11-26): runs report 0 PASS, 6 WARN, 3 SKIP (missing credentials).
+  # Re-enable the daily cron when its credentials are set and one check passes. Manual runs still work.
   workflow_dispatch:           # Manual trigger — on-demand pre-ratification gate
     inputs:
       mode:
