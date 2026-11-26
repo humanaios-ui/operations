@@ -60,9 +60,9 @@
     },
     "PULL_REQUEST#1352": {
       "admission_scope": "subject:PULL_REQUEST#1352",
-      "admitted_head_sha": "ef354183b332e1603b84fbe93b2e1f14527b5d7b",
-      "command_ref": "RCC-GITHUB-COMMENT-7195963698",
-      "event_id": "RCSEVT-123D6C6316A857E2",
+      "admitted_head_sha": "fa0a0fc361227b3b30c179d7bcd0aa478a28cd2e",
+      "command_ref": "RCC-GITHUB-RECONCILE-45848252429-PR-1352-CARRY-FORWARD-fa0a0fc361227b3b30c179d7bcd0aa478a28cd2e",
+      "event_id": "RCSEVT-26874C75AE8E530C",
       "objective_issue_number": null
     }
   },
@@ -76,7 +76,7 @@
     "PULL_REQUEST#1211": "RCSEVT-88EB99392AB13430",
     "PULL_REQUEST#1275": "RCSEVT-20B1831999939DDC",
     "PULL_REQUEST#1333": "RCSEVT-645F929088C48458",
-    "PULL_REQUEST#1352": "RCSEVT-123D6C6316A857E2"
+    "PULL_REQUEST#1352": "RCSEVT-26874C75AE8E530C"
   },
   "admitted_issue_numbers": [
     378,
@@ -526,17 +526,18 @@
     "RCC-GITHUB-RECONCILE-45804644194-PR-1334-CARRY-FORWARD-70bc2b63db50e1263136bdb566be2e69c669da66",
     "RCC-GITHUB-RECONCILE-45805423438-PR-1334-MERGED",
     "RCC-GITHUB-RECONCILE-45847426508-PR-1183-HEAD-MOVED-b2047aac912fd1f0bc7d15e906f3e0dda92a4b65",
+    "RCC-GITHUB-RECONCILE-45848252429-PR-1352-CARRY-FORWARD-fa0a0fc361227b3b30c179d7bcd0aa478a28cd2e",
     "RCC-Z2-INSTRUCTION-2026-10-15",
     "RCC-Z2-INSTRUCTION-2026-10-15-PR843"
   ],
-  "last_event_hash": "645f929088c48458bbfc649f24ce97b392e4c61bf12b68bfe0fcc538e84f1cac",
-  "last_event_id": "RCSEVT-645F929088C48458",
-  "last_sequence": 459,
-  "ledger_event_count": 459,
-  "ledger_sha256": "7774da85f105ec23d79bd3439e7116a7b2a80c3535eebc8de3aefc3b6517522a",
+  "last_event_hash": "26874c75ae8e530c9c3b7cba72c07299c028ec6fa696f827c839c616b957fecb",
+  "last_event_id": "RCSEVT-26874C75AE8E530C",
+  "last_sequence": 460,
+  "ledger_event_count": 460,
+  "ledger_sha256": "8930b5ac56329038d7044be65aafc391bcdb83aaeffb32f8b8202c334fa61d6d",
   "merge_authority": false,
   "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
-  "source_policy_sha": "7ea29e2fa2ce1acb091a05dad69c97f02dfa1dda",
+  "source_policy_sha": "42bd62ff8904bb36bd1a4604ae43e9623cce16e8",
   "state_branch": "repository-coordinator-state"
 }
