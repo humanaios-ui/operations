@@ -2,8 +2,8 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 135
-  records: 95
+  candidates: 136
+  records: 96
 ratifiers:
 - Night
 candidates:
@@ -1343,7 +1343,21 @@ candidates:
   ratified_at: "2026-11-25"
   z2_ruling: "z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md"
   z2_hash: "50d27729d923587ef8e433fd826d901b22dba58a826a9bfb2efed79f48cd8efa"
+- q_id: Q-AGENT-WORKFLOWS-01
+  title: Agent map and workflows - cut hollow and red jobs, merge comment wake-ups, one action per Night ask (W1-W8; ChatGPT handoff file checked)
+  path: z1-inbox/2026-11-26/Q-AGENT-WORKFLOWS-01.md
+  submitted: '2026-11-26'
+  status: ratified
+  tier: 0
+  note: 'Map and proposals only; no workflow, gate, app or setting changed. Each W-row change is its own follow-up draft PR. Counts read live from the GitHub API 2026-11-26. Night asked for it in session on 2026-11-26 (scope ALL). Falsifier stated.'
+  ratified_by: Night
+  ratified_at: "2026-11-26"
+  z2_ruling: "z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md"
+  z2_hash: "c3ad71ad4a60226a26a2208d19f27422b5da1ffe9e9a3abc17672fa2dadcee17"
 records:
+- path: "z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md"
+  title: "Z2 rulings 2026-11-26 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: "z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md"
   title: "Z2 rulings 2026-11-25 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
