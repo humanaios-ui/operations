@@ -1573,6 +1573,192 @@ def test_v11_snapshot_reconciliation_retains_open_legacy_and_matching_head(tmp_p
     assert ledger.read_bytes() == before
 
 
+import subprocess as _subprocess
+
+from repository_coordinator_state_v1_1 import clean_main_merge_chain
+
+
+def _git_repo(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+
+    def git(*args, check=True):
+        return _subprocess.run(
+            ["git", "-C", str(repo), *args], check=check, capture_output=True, text=True,
+            env={"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.invalid",
+                 "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.invalid",
+                 "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_NOSYSTEM": "1",
+                 "HOME": str(tmp_path), "PATH": "/usr/bin:/bin:/usr/local/bin"},
+        ).stdout.strip()
+
+    def commit(path, text, message):
+        (repo / path).write_text(text, encoding="utf-8")
+        git("add", path)
+        git("commit", "-q", "-m", message)
+        return git("rev-parse", "HEAD")
+
+    git("init", "-q", "-b", "main")
+    commit("index.md", "count: 1\n", "base")
+    return repo, git, commit
+
+
+def _carry_setup(tmp_path, admitted_sha, number=1313):
+    seed = state_event(kind="PULL_REQUEST", number=570, objective=None)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    append_event_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=number,
+        objective_issue_number=None,
+        admission_scope=f"subject:PULL_REQUEST#{number}",
+        command_ref_value=f"RCC-GITHUB-COMMENT-admit-{number}",
+        source_locator=f"github:pull:{number}:comment:1",
+        actor="humanaios-ui",
+        evidence=["pr-head:" + admitted_sha],
+        recorded_at="2026-11-25T09:00:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    return ledger, state_file
+
+
+def _reconcile_with_git(ledger, state_file, repo, number, live_sha):
+    return reconcile_pr_snapshots_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        pr_snapshots=[
+            {"number": 570, "state": "open", "merged": False, "head": {"sha": "e" * 40}},
+            {"number": number, "state": "open", "merged": False, "head": {"sha": live_sha}},
+        ],
+        command_ref_prefix="RCC-GITHUB-RECONCILE-200",
+        source_locator_prefix="github:humanaios-ui/operations:actions-run:200",
+        actor="github-actions[bot]",
+        recorded_at="2026-11-25T09:05:00Z",
+        source_policy_sha=POLICY_SHA,
+        head_move_check=lambda old, new: clean_main_merge_chain(repo, old, new, "main"),
+    )
+
+
+def test_v11_clean_merge_of_main_carries_admission_to_new_head(tmp_path):
+    repo, git, commit = _git_repo(tmp_path)
+    git("checkout", "-q", "-b", "feature")
+    admitted = commit("feature.md", "work\n", "feature work")
+    git("checkout", "-q", "main")
+    commit("other.md", "main moved\n", "main moves on")
+    git("checkout", "-q", "feature")
+    git("merge", "-q", "--no-edit", "main")
+    git("checkout", "-q", "main")
+    commit("third.md", "again\n", "main moves again")
+    git("checkout", "-q", "feature")
+    git("merge", "-q", "--no-edit", "main")
+    live = git("rev-parse", "HEAD")
+
+    ledger, state_file = _carry_setup(tmp_path, admitted)
+    result = _reconcile_with_git(ledger, state_file, repo, 1313, live)
+
+    assert [row["decision"] for row in result["reconciled"]] == ["CARRY_FORWARD"]
+    state = verify_projection(ledger, state_file)
+    assert 1313 in state["admitted_pull_request_numbers"]
+    admission = state["active_admissions"]["PULL_REQUEST#1313"]
+    assert admission["admitted_head_sha"] == live
+    assert result["merge_authority"] is False
+
+    # A second pass at the same head is a no-op.
+    again = _reconcile_with_git(ledger, state_file, repo, 1313, live)
+    assert again["should_mutate"] is False
+    assert 1313 in again["retained_pr_numbers"]
+
+
+def test_v11_conflict_resolution_push_still_revokes_admission(tmp_path):
+    repo, git, commit = _git_repo(tmp_path)
+    git("checkout", "-q", "-b", "feature")
+    admitted = commit("index.md", "count: 2\n", "feature bumps count")
+    git("checkout", "-q", "main")
+    commit("index.md", "count: 3\n", "main bumps count")
+    git("checkout", "-q", "feature")
+    git("merge", "-q", "main", check=False)  # stops on the count-line conflict
+    (repo / "index.md").write_text("count: 4\n", encoding="utf-8")
+    git("add", "index.md")
+    git("-c", "core.editor=true", "commit", "-q", "--no-edit")
+    live = git("rev-parse", "HEAD")
+
+    ledger, state_file = _carry_setup(tmp_path, admitted)
+    result = _reconcile_with_git(ledger, state_file, repo, 1313, live)
+
+    assert [row["decision"] for row in result["reconciled"]] == ["REVOKE"]
+    assert 1313 not in verify_projection(ledger, state_file)["admitted_pull_request_numbers"]
+
+
+def test_v11_new_commit_or_edited_merge_still_revokes_admission(tmp_path):
+    repo, git, commit = _git_repo(tmp_path)
+    git("checkout", "-q", "-b", "feature")
+    admitted = commit("feature.md", "work\n", "feature work")
+    git("checkout", "-q", "main")
+    commit("other.md", "main moved\n", "main moves on")
+    git("checkout", "-q", "feature")
+    git("merge", "-q", "--no-commit", "main")
+    (repo / "feature.md").write_text("work, plus a hidden edit\n", encoding="utf-8")
+    git("add", "feature.md")
+    git("-c", "core.editor=true", "commit", "-q", "--no-edit")
+    edited_merge = git("rev-parse", "HEAD")
+    ok, why = clean_main_merge_chain(repo, admitted, edited_merge, "main")
+    assert ok is False and "beyond the clean merge" in why
+
+    plain = commit("feature.md", "more work\n", "ordinary new commit")
+    ok, why = clean_main_merge_chain(repo, edited_merge, plain, "main")
+    assert ok is False and "not a two-parent merge" in why
+
+    ledger, state_file = _carry_setup(tmp_path, admitted)
+    result = _reconcile_with_git(ledger, state_file, repo, 1313, plain)
+    assert [row["decision"] for row in result["reconciled"]] == ["REVOKE"]
+
+
+def test_v11_merge_of_unmerged_branch_is_not_a_main_merge(tmp_path):
+    repo, git, commit = _git_repo(tmp_path)
+    git("checkout", "-q", "-b", "side")
+    commit("side.md", "side\n", "side work not on main")
+    git("checkout", "-q", "main")
+    git("checkout", "-q", "-b", "feature")
+    admitted = commit("feature.md", "work\n", "feature work")
+    git("merge", "-q", "--no-edit", "side")
+    live = git("rev-parse", "HEAD")
+    ok, why = clean_main_merge_chain(repo, admitted, live, "main")
+    assert ok is False and "not on main" in why
+
+
+def test_v11_carry_forward_replay_rejects_wrong_predecessor_head(tmp_path):
+    ledger, state_file = _carry_setup(tmp_path, "a" * 40)
+    with pytest.raises(Exception, match="CARRY_FORWARD must move"):
+        append_event_v2(
+            ledger_path=ledger,
+            state_path=state_file,
+            decision="CARRY_FORWARD",
+            subject_kind="PULL_REQUEST",
+            subject_number=1313,
+            objective_issue_number=None,
+            admission_scope="subject:PULL_REQUEST#1313",
+            command_ref_value="RCC-GITHUB-RECONCILE-300-PR-1313-CARRY-FORWARD-x",
+            source_locator="github:run:300",
+            actor="github-actions[bot]",
+            evidence=["pr-head:" + "b" * 40, "carried-from:" + "c" * 40],
+            recorded_at="2026-11-25T09:10:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+
+
+def test_v11_cli_append_cannot_write_carry_forward():
+    from repository_coordinator_state_v1_1 import _parser
+    with pytest.raises(SystemExit):
+        _parser().parse_args([
+            "append", "--ledger", "l", "--state", "s", "--decision", "CARRY_FORWARD",
+            "--subject-kind", "PULL_REQUEST", "--subject-number", "1",
+            "--admission-scope", "x", "--command-ref", "RCC-x", "--source-locator", "x",
+            "--actor", "x", "--evidence", "x", "--recorded-at", "x",
+            "--source-policy-sha", "x",
+        ])
+
+
 def test_v11_snapshot_reconciliation_fails_closed_when_snapshot_is_missing(tmp_path):
     seed = state_event(kind="PULL_REQUEST", number=570, objective=None)
     ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
