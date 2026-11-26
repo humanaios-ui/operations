@@ -13,13 +13,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import repository_coordinator_state_v1 as legacy
 
 TOOL_NAME = "repository_coordinator_state_v1_1"
-TOOL_VERSION = "1.1.0"
+TOOL_VERSION = "1.2.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_ZONE = 1
 TOOL_SESSION = "REPOSITORY-COORDINATOR-STATE-02"
@@ -38,7 +39,12 @@ DECISIONS = {
     "TERMINATE_CLOSED",
     "ACK_ALREADY_ADMITTED",
     "ACK_ALREADY_REVOKED",
+    # Re-binds a head-bound PR admission to a new head when every commit
+    # between the admitted head and the new head is a clean merge of main.
+    # Written only by reconcile_pr_snapshots; the CLI append command rejects it.
+    "CARRY_FORWARD",
 }
+CLI_APPEND_DECISIONS = DECISIONS - {"CARRY_FORWARD"}
 TERMINAL_DECISIONS = {"TERMINATE_MERGED", "TERMINATE_CLOSED"}
 SUBJECT_KINDS = legacy.SUBJECT_KINDS
 
@@ -295,6 +301,29 @@ def _replay_context(events: list[dict[str, Any]]) -> dict[str, Any]:
             _require(key in active, f"line {index}: ACK_ALREADY_ADMITTED requires active {key}")
         elif decision == "ACK_ALREADY_REVOKED":
             _require(key not in active, f"line {index}: ACK_ALREADY_REVOKED requires inactive {key}")
+        elif decision == "CARRY_FORWARD":
+            _require(key in active, f"line {index}: cannot CARRY_FORWARD inactive {key}")
+            prior_sha = str(active[key].get("admitted_head_sha") or "")
+            _require(
+                bool(prior_sha),
+                f"line {index}: CARRY_FORWARD requires a head-bound admission",
+            )
+            evidence = [str(v) for v in (event.get("evidence") or [])]
+            new_heads = [v[len("pr-head:"):] for v in evidence if v.startswith("pr-head:")]
+            old_heads = [
+                v[len("carried-from:"):] for v in evidence if v.startswith("carried-from:")
+            ]
+            _require(
+                len(new_heads) == 1
+                and legacy.SHA40_RE.fullmatch(new_heads[0]) is not None
+                and old_heads == [prior_sha]
+                and new_heads[0] != prior_sha,
+                f"line {index}: CARRY_FORWARD must move {key} from its admitted head "
+                "to one new exact head",
+            )
+            active[key]["admitted_head_sha"] = new_heads[0]
+            active[key]["event_id"] = eid
+            active[key]["command_ref"] = event.get("command_ref")
         else:
             _require(key in active, f"line {index}: cannot {decision} inactive subject {key}")
             active.pop(key)
@@ -788,6 +817,61 @@ def reconcile_pr_lifecycle(
     }
 
 
+def _git(git_dir: Path, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["git", "-C", str(git_dir), *args],
+        capture_output=True, text=True, timeout=300, check=False,
+    )
+
+
+def clean_main_merge_chain(
+    git_dir: Path,
+    admitted_sha: str,
+    live_sha: str,
+    main_ref: str,
+    *,
+    max_steps: int = 50,
+) -> tuple[bool, str]:
+    """Return True only when live_sha is admitted_sha plus clean merges of main.
+
+    Walks first parents from the live head back to the admitted head. Every
+    step must be a two-parent merge whose second parent is already on
+    ``main_ref`` and whose tree is byte-identical to the tree git computes for
+    a conflict-free merge of the same two parents. Any edit made inside a
+    merge (including a conflict resolution), any non-merge commit, a missing
+    object, or any git error returns False, so the caller revokes as before.
+    """
+    try:
+        for value in (admitted_sha, live_sha):
+            if legacy.SHA40_RE.fullmatch(value) is None:
+                return False, "invalid head SHA"
+        current = live_sha
+        for _ in range(max_steps):
+            if current == admitted_sha:
+                return True, "every new commit is a clean merge of main"
+            listed = _git(git_dir, "rev-list", "--parents", "-n", "1", current)
+            if listed.returncode != 0:
+                return False, f"commit {current} not available"
+            parents = listed.stdout.split()[1:]
+            if len(parents) != 2:
+                return False, f"commit {current} is not a two-parent merge"
+            first, second = parents
+            on_main = _git(git_dir, "merge-base", "--is-ancestor", second, main_ref)
+            if on_main.returncode != 0:
+                return False, f"merge {current} brings in {second}, which is not on main"
+            merged = _git(git_dir, "merge-tree", "--write-tree", first, second)
+            if merged.returncode != 0:
+                return False, f"merge {current} needed conflict resolution"
+            expected_tree = (merged.stdout.splitlines() or [""])[0].strip()
+            tree = _git(git_dir, "rev-parse", current + "^{tree}")
+            if tree.returncode != 0 or tree.stdout.strip() != expected_tree:
+                return False, f"merge {current} changes content beyond the clean merge"
+            current = first
+        return False, "too many commits between admitted and live head"
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, f"git check failed: {exc}"
+
+
 def reconcile_pr_snapshots(
     *,
     ledger_path: Path,
@@ -798,6 +882,7 @@ def reconcile_pr_snapshots(
     actor: str,
     recorded_at: str,
     source_policy_sha: str,
+    head_move_check: Callable[[str, str], tuple[bool, str]] | None = None,
 ) -> dict[str, Any]:
     """Remove terminal or moved-head PRs from the active projection.
 
@@ -805,7 +890,9 @@ def reconcile_pr_snapshots(
     Missing snapshots fail closed: absence is not evidence that a pull request
     closed.  Legacy open admissions without an exact-head pin remain
     grandfathered, while every head-bound admission is revoked as soon as its
-    live head differs.
+    live head differs, unless ``head_move_check(admitted_sha, live_sha)``
+    confirms the move is only clean merges of main; then the admission is
+    carried forward to the live head instead of revoked.
     """
     verified = verify_projection(ledger_path, state_path)
     active_numbers = {
@@ -874,6 +961,40 @@ def reconcile_pr_snapshots(
         admitted_sha = str(admission.get("admitted_head_sha") or "")
         if not admitted_sha or admitted_sha == live_sha:
             retained.append(number)
+            continue
+
+        carry, why = (
+            head_move_check(admitted_sha, live_sha) if head_move_check else (False, "")
+        )
+        if carry:
+            result = append_event(
+                ledger_path=ledger_path,
+                state_path=state_path,
+                decision="CARRY_FORWARD",
+                subject_kind="PULL_REQUEST",
+                subject_number=number,
+                objective_issue_number=admission.get("objective_issue_number"),
+                admission_scope=str(
+                    admission.get("admission_scope") or f"subject:PULL_REQUEST#{number}"
+                ),
+                command_ref_value=f"{command}-CARRY-FORWARD-{live_sha}",
+                source_locator=locator,
+                actor=actor,
+                evidence=[
+                    f"pr-head:{live_sha}",
+                    f"carried-from:{admitted_sha}",
+                    f"clean-main-merge: {why}",
+                    locator,
+                ],
+                recorded_at=recorded_at,
+                source_policy_sha=source_policy_sha,
+            )
+            if result.get("should_mutate"):
+                reconciled.append({
+                    "decision": result["event"]["decision"],
+                    "event_id": result["event"]["event_id"],
+                    "pr_number": number,
+                })
             continue
 
         result = append_event(
@@ -986,7 +1107,7 @@ def _parser() -> argparse.ArgumentParser:
     append = sub.add_parser("append")
     append.add_argument("--ledger", type=Path, required=True)
     append.add_argument("--state", type=Path, required=True)
-    append.add_argument("--decision", choices=sorted(DECISIONS), required=True)
+    append.add_argument("--decision", choices=sorted(CLI_APPEND_DECISIONS), required=True)
     append.add_argument("--subject-kind", choices=sorted(SUBJECT_KINDS), required=True)
     append.add_argument("--subject-number", type=int, required=True)
     append.add_argument("--objective-issue-number", type=int)
@@ -1045,6 +1166,11 @@ def _parser() -> argparse.ArgumentParser:
     snapshot.add_argument("--actor", required=True)
     snapshot.add_argument("--recorded-at", required=True)
     snapshot.add_argument("--source-policy-sha", required=True)
+    snapshot.add_argument(
+        "--git-dir", type=Path,
+        help="Clone holding main and the PR heads; enables clean-merge carry-forward",
+    )
+    snapshot.add_argument("--main-ref", default="refs/remotes/origin/main")
     return parser
 
 
@@ -1105,6 +1231,12 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "reconcile-pr-snapshots":
             snapshots = json.loads(args.pr_snapshots.read_text(encoding="utf-8"))
             _require(isinstance(snapshots, list), "PR snapshots file must contain an array")
+            check = None
+            if args.git_dir is not None:
+                git_dir, main_ref = args.git_dir, args.main_ref
+                check = lambda old, new: clean_main_merge_chain(  # noqa: E731
+                    git_dir, old, new, main_ref
+                )
             result = reconcile_pr_snapshots(
                 ledger_path=args.ledger,
                 state_path=args.state,
@@ -1114,6 +1246,7 @@ def main(argv: list[str] | None = None) -> int:
                 actor=args.actor,
                 recorded_at=args.recorded_at,
                 source_policy_sha=args.source_policy_sha,
+                head_move_check=check,
             )
         else:
             result = append_event(
