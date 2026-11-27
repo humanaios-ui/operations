@@ -391,6 +391,55 @@ class OpportunitySurfaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             project_qualification_card(duplicate)
 
+    def test_annotation_cannot_soften_a_source_requirement(self):
+        for kind in ("PREFERRED", "DUTY"):
+            with self.subTest(kind=kind):
+                data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+                data["opportunity"]["requirements"][1]["kind"] = kind
+                with self.assertRaises(ValueError):
+                    project_qualification_card(data)
+
+    def test_unknown_source_wording_stays_a_mandatory_unknown(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        for index in (1, 2):
+            data["opportunity"]["requirements"][index]["source_predicate"] = "UNKNOWN"
+            data["opportunity"]["requirements"][index]["mapping_state"] = "PARTIAL"
+        card = project_qualification_card(data)
+        self.assertEqual(len(card["mandatory_unknowns"]), 2)
+        self.assertNotEqual(card["pathway_classification"], "HARVEST")
+
+    def test_hard_blocker_suppresses_the_optional_practice_path(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        requirement = data["opportunity"]["requirements"][1]
+        requirement["source_predicate"] = "EXPLICIT_EXCLUSION"
+        requirement["mapping_state"] = "BLOCKED"
+        self.assertIsNone(project_qualification_card(data)["advancement_path"])
+
+    def test_blocker_gap_type_needs_an_explicit_exclusion(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        data["opportunity"]["requirements"][1]["gap_type"] = "blocker"
+        with self.assertRaises(ValueError):
+            project_qualification_card(data)
+
+    def test_malformed_observation_times_raise_value_error_only(self):
+        for field, value in (
+            ("retrieved_at", "2026-11-05Z"),
+            ("retrieved_at", "2026-11-05T23:42:05+00:00"),
+            ("posting_date", "2026-1-5"),
+        ):
+            with self.subTest(field=field, value=value):
+                data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+                data["source"][field] = value
+                with self.assertRaises(ValueError):
+                    project_qualification_card(data)
+
+    def test_repeated_evidence_reference_is_rejected(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        requirement = data["opportunity"]["requirements"][0]
+        requirement["evidence_refs"] = requirement["evidence_refs"] * 2
+        with self.assertRaises(ValueError):
+            project_qualification_card(data)
+
     def test_unhashable_ids_are_invalid_not_unhandled_type_errors(self):
         data = specimen()
         data["bindings"][0]["target_id"] = ["cannot hash"]

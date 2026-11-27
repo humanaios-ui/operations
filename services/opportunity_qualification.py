@@ -28,6 +28,17 @@ _REQUIREMENT_KEYS = {
     "label", "kind", "source_predicate", "mapping_state", "gap_type", "evidence_refs"
 }
 _MAPPING_STATES = {"DOCUMENTED", "PARTIAL", "UNKNOWN", "NOT_HELD", "BLOCKED"}
+# What the source says decides how binding a requirement is; the annotation may
+# not soften it (a source REQUIREMENT can never be annotated PREFERRED or DUTY).
+_KIND_FOR_PREDICATE = {
+    "DUTY": {"DUTY"},
+    "REQUIREMENT": {"REQUIRED"},
+    "EXPLICIT_EXCLUSION": {"REQUIRED"},
+    "PREFERENCE": {"PREFERRED"},
+    "UNKNOWN": {"REQUIRED", "PREFERRED"},
+}
+_UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
+_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _CLAIM_STATES = {"SOURCE_SUPPORTED", "HUMAN_ATTESTED", "INFERRED", "UNVERIFIED"}
 
 
@@ -69,7 +80,12 @@ def _validate_source(source_value: Any) -> dict[str, Any]:
         retrieved = datetime.fromisoformat(source["retrieved_at"].replace("Z", "+00:00"))
     except (TypeError, ValueError) as exc:
         raise ValueError("Invalid source observation time") from exc
-    if not source["retrieved_at"].endswith("Z") or retrieved.utcoffset().total_seconds() != 0:
+    if (
+        not _UTC_TIMESTAMP.fullmatch(source["retrieved_at"])
+        or not _DATE.fullmatch(source["posting_date"])
+        or retrieved.utcoffset() is None
+        or retrieved.utcoffset().total_seconds() != 0
+    ):
         raise ValueError("Source observation time must be UTC")
     if not isinstance(source["rendered_main_text_sha256"], str) or not _HASH.fullmatch(
         source["rendered_main_text_sha256"]
@@ -125,7 +141,7 @@ def _validate_requirements(
     seen_labels = set()
     for requirement_value in requirements_value:
         requirement = _require_object(requirement_value, _REQUIREMENT_KEYS, "requirement")
-        label = _require_text(requirement["label"], "requirement label", maximum=240)
+        label = _require_text(requirement["label"], "requirement label", maximum=240).strip()
         if label in seen_labels:
             raise ValueError("Requirement labels must be unique")
         seen_labels.add(label)
@@ -147,7 +163,13 @@ def _validate_requirements(
             "evidence", "skill", "unknown", "blocker"
         }:
             raise ValueError("Invalid requirement gap type")
+        if requirement["kind"] not in _KIND_FOR_PREDICATE[requirement["source_predicate"]]:
+            raise ValueError("Requirement kind contradicts the source predicate")
+        if requirement["gap_type"] == "blocker" and requirement["mapping_state"] != "BLOCKED":
+            raise ValueError("Only an explicit source exclusion may carry a blocker gap type")
         refs = requirement["evidence_refs"]
+        if isinstance(refs, list) and len(refs) != len(set(map(str, refs))):
+            raise ValueError("Requirement evidence references must be unique")
         if not isinstance(refs, list) or any(
             not isinstance(ref, str) or ref not in evidence_by_locator for ref in refs
         ):
@@ -254,7 +276,9 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
             {
                 "label": item["label"],
                 "capability": item["label"],
-                "mapping_state": item["mapping_state"],
+                "mapping_state": (
+                    "UNKNOWN" if item["source_predicate"] == "UNKNOWN" else item["mapping_state"]
+                ),
                 "mandatory": item["kind"] == "REQUIRED",
                 "gap_type": item["gap_type"],
             }
@@ -264,10 +288,12 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
     gradient = score_opportunity(mapped_opportunity)
     priorities = learning_priorities([mapped_opportunity])
     advancement_path = None
-    if source_current:
+    has_hard_blocker = any(gap["category"] == "HARD_BLOCKER" for gap in gaps)
+    if source_current and not has_hard_blocker:
         for requirement in requirements:
             if (
                 requirement["kind"] == "PREFERRED"
+                and requirement["source_predicate"] == "PREFERENCE"
                 and requirement["mapping_state"] != "DOCUMENTED"
                 and requirement["gap_type"] in {"evidence", "skill"}
             ):
