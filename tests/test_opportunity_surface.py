@@ -406,7 +406,27 @@ class OpportunitySurfaceTests(unittest.TestCase):
             data["opportunity"]["requirements"][index]["mapping_state"] = "PARTIAL"
         card = project_qualification_card(data)
         self.assertEqual(len(card["mandatory_unknowns"]), 2)
-        self.assertNotEqual(card["pathway_classification"], "HARVEST")
+        self.assertEqual(card["pathway_classification"], "FRONTIER")
+        data["opportunity"]["requirements"][1]["kind"] = "PREFERRED"
+        with self.assertRaises(ValueError):
+            project_qualification_card(data)
+
+    def test_unknown_source_wording_keeps_a_reported_missing_capability(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        requirement = data["opportunity"]["requirements"][1]
+        requirement["source_predicate"] = "UNKNOWN"
+        requirement["mapping_state"] = "NOT_HELD"
+        requirement["gap_type"] = "skill"
+        requirement["evidence_refs"] = ["SYNTHETIC-EHR-REPORT"]
+        self.assertEqual(project_qualification_card(data)["pathway_classification"], "HOLD")
+
+    def test_labels_differing_only_in_case_or_spacing_are_duplicates(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        copy_of = deepcopy(data["opportunity"]["requirements"][1])
+        copy_of["label"] = "  AT LEAST three  years of quality program or project management "
+        data["opportunity"]["requirements"].append(copy_of)
+        with self.assertRaises(ValueError):
+            project_qualification_card(data)
 
     def test_hard_blocker_suppresses_the_optional_practice_path(self):
         data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))

@@ -35,7 +35,7 @@ _KIND_FOR_PREDICATE = {
     "REQUIREMENT": {"REQUIRED"},
     "EXPLICIT_EXCLUSION": {"REQUIRED"},
     "PREFERENCE": {"PREFERRED"},
-    "UNKNOWN": {"REQUIRED", "PREFERRED"},
+    "UNKNOWN": {"REQUIRED"},
 }
 _UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -80,9 +80,10 @@ def _validate_source(source_value: Any) -> dict[str, Any]:
         retrieved = datetime.fromisoformat(source["retrieved_at"].replace("Z", "+00:00"))
     except (TypeError, ValueError) as exc:
         raise ValueError("Invalid source observation time") from exc
+    if not _DATE.fullmatch(source["posting_date"]):
+        raise ValueError("Source posting date must be YYYY-MM-DD")
     if (
         not _UTC_TIMESTAMP.fullmatch(source["retrieved_at"])
-        or not _DATE.fullmatch(source["posting_date"])
         or retrieved.utcoffset() is None
         or retrieved.utcoffset().total_seconds() != 0
     ):
@@ -141,7 +142,8 @@ def _validate_requirements(
     seen_labels = set()
     for requirement_value in requirements_value:
         requirement = _require_object(requirement_value, _REQUIREMENT_KEYS, "requirement")
-        label = _require_text(requirement["label"], "requirement label", maximum=240).strip()
+        label = _require_text(requirement["label"], "requirement label", maximum=240)
+        label = " ".join(label.split()).casefold()
         if label in seen_labels:
             raise ValueError("Requirement labels must be unique")
         seen_labels.add(label)
@@ -204,6 +206,15 @@ def _validate_requirements(
             raise ValueError("Unknown source predicates cannot support a match")
         requirements.append(requirement)
     return requirements
+
+
+def _scored_state(requirement: dict[str, Any]) -> str:
+    """Unknown source wording never scores above UNKNOWN; NOT_HELD/BLOCKED keep their weight."""
+    if requirement["source_predicate"] == "UNKNOWN" and requirement["mapping_state"] in {
+        "PARTIAL", "DOCUMENTED"
+    }:
+        return "UNKNOWN"
+    return requirement["mapping_state"]
 
 
 def _requirement_category(requirement: dict[str, Any]) -> str | None:
@@ -276,9 +287,7 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
             {
                 "label": item["label"],
                 "capability": item["label"],
-                "mapping_state": (
-                    "UNKNOWN" if item["source_predicate"] == "UNKNOWN" else item["mapping_state"]
-                ),
+                "mapping_state": _scored_state(item),
                 "mandatory": item["kind"] == "REQUIRED",
                 "gap_type": item["gap_type"],
             }
@@ -293,7 +302,6 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
         for requirement in requirements:
             if (
                 requirement["kind"] == "PREFERRED"
-                and requirement["source_predicate"] == "PREFERENCE"
                 and requirement["mapping_state"] != "DOCUMENTED"
                 and requirement["gap_type"] in {"evidence", "skill"}
             ):
