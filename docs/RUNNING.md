@@ -73,7 +73,7 @@ Ended and deleted: Watch for Grok's PR on findlocaltattooartists (hourly, read-o
 | Metaculus forecasting bot (`scintillating-playfulness`) | Railway, `tools/Metaculus` | Not running. Restart set to never; auto-deploy paused Nov 24 until live posting is approved. Holds keys for 5 paid AI APIs, but spends nothing while stopped. |
 | Railway project `elegant-commitment` | Railway | Empty, no services |
 | Supabase `HumanAIOS` | Supabase, free plan | Live database, $0. 5 edge functions run only when called. |
-| Supabase `FTLA` | Supabase, free plan | Paused |
+| Supabase `FTLA` | Supabase, free plan | Live again since Nov 26: holds the findlocaltattooartists site database (10 tables, access rules, private photo storage), built by the findlocaltattooartists issue 1 work. Owner Night. $0 free tier. Review or turn off by 2027-03-01. |
 | Azure | Microsoft for Startups credit ($5,000, ends Jan 2) | Nothing running (Night, Nov 26). Any machine started later goes on this list first. |
 | Corpus integrity check | GitHub `empirica-outreach` | Paused by PR 28 (Nov 26) |
 
