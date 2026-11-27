@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 136
+  candidates: 137
   records: 96
 ratifiers:
 - Night
@@ -1354,6 +1354,13 @@ candidates:
   ratified_at: "2026-11-26"
   z2_ruling: "z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md"
   z2_hash: "c3ad71ad4a60226a26a2208d19f27422b5da1ffe9e9a3abc17672fa2dadcee17"
+- q_id: Q-PRODUCT-RELEASE-1144-01
+  title: '#1144 is the sole active product-release candidate; public-platform expansion deferred until it is complete'
+  path: z1-inbox/2026-11-27/Q-PRODUCT-RELEASE-1144-01.md
+  submitted: '2026-11-27'
+  status: awaiting_z2
+  tier: 0
+  note: 'Owner directive 2026-11-27 (recorded on #1143). Owner-approved default, pending Night Z2 ratification. Sequencing only; no code, label, admission or deploy change. Definition of done (Level A merge, Level B local demo) and deferral register on #1143. Falsifier stated.'
 records:
 - path: "z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md"
   title: "Z2 rulings 2026-11-26 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
