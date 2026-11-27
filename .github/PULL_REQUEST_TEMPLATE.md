@@ -1,5 +1,21 @@
 <!-- START_HERE.md has the map; CONTRIBUTING.md has the rules. This checklist keeps a PR honest. -->
 
+## Plain-words card (for Night; no code reading needed)
+
+<!-- Q-AGENT-WORKFLOWS-01 W5. Four lines, plain words. Night decides what and why;
+     agents own how. The reviewer must be a different agent from the builder. -->
+
+- **What it changes:**
+- **If it is wrong, what breaks and how to undo:**
+- **Safe to merge (reviewer's word):** yes / no — reviewer: <!-- agent name; never the builder -->
+- **What this teaches:** <!-- one programming idea, plain words, tied to this change; it becomes a row in Night's Code learning log -->
+
+**Builder:** <!-- agent that wrote this -->  ·  **Reviewer:** <!-- different agent -->
+
+<!-- When implementation checks are green on the final head, end the last report with
+     one line Night can paste: `/coordinator admit <full head sha>`.
+     The admission gate itself is red until that line is pasted; that is expected. -->
+
 ## What & why
 
 <!-- One or two sentences: what this changes and the reason. -->
@@ -61,7 +77,9 @@
 - [ ] **Document control** — if this adds/changes a controlled document, `document-registry.yaml` and frontmatter are updated (the CI gate will check)
 - [ ] **Immune memory** — if this fixes or reveals a failure mode, it's registered in `REGISTERED.md` (F / H / IC) — link it: <!-- IC-000 -->
 - [ ] **No secrets** — no credentials, tokens, or keys added (even placeholders)
+- [ ] **Running list** — if this starts, stops or re-times anything that runs on its own (timer, server, routine, bot, cloud machine), `docs/RUNNING.md` is updated in this PR
 - [ ] **Health** — ran `python3 tools/repo_health.py`; vitality not regressed
+- [ ] **Admission** — the head is final: a push after `/coordinator admit <SHA>` voids that admit (see CONTRIBUTING.md, "How a pull request is admitted")
 
 ## Notes
 

@@ -22,10 +22,9 @@ MAX_OBJECTIVE = 500
 MAX_ROWS = 500
 PUBLIC_SOURCES = {"HumanAIOS Funding Pipeline", "DEV Community"}
 # These source states are holds, NOT proof the program is closed or the applicant is ineligible.
-HELD_SOURCE_STATUSES = frozenset({
-    "LINK_FAILED_404", "ROLE_NOT_LISTED", "SOURCE_UNAVAILABLE",
-    "RECHECK_REQUIRED", "UNVERIFIED_RECHECK",
-})
+# Extends the shared set from models (which carries SOURCE_CONFLICT) instead of
+# shadowing it, so a conflicting source can never surface as an actionable lead.
+HELD_SOURCE_STATUSES = HELD_SOURCE_STATUSES | {"UNVERIFIED_RECHECK"}
 
 
 def _words(value: str) -> set[str]:
@@ -141,9 +140,7 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
             continue
         # Preserve a negative source correction through the user-facing search.
         # A proposed official recheck cannot self-release a held lead.
-        if row.get("source_verification_status") in HELD_SOURCE_STATUSES:
-            omitted += 1
-            continue
+        held = row.get("source_verification_status") in HELD_SOURCE_STATUSES
         url = _public_https(row.get("primary_source_url") or row.get("canonical_url") or row.get("source_url"))
         if not url:
             omitted += 1
@@ -177,7 +174,10 @@ def evaluate_objective(objective: str, rows: list[dict], *, source_mode: str,
         if not hits:
             continue
         verification_state, reason_code = _verification_state(row)
-        if _is_expired(row) or verification_state == "STALE":
+        # A held lead that matches the objective stays visible as a
+        # review-only case with a bounded reason code, never as an
+        # actionable discovery row.
+        if held or _is_expired(row) or verification_state == "STALE":
             # Keep a bounded reason code in the public response, never raw
             # source notes, evidence text, or application authority.
             verification_cases.append({

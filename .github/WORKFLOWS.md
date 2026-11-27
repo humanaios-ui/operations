@@ -1,7 +1,7 @@
 # GitHub Actions Workflow Audit & Classification
 
-**Last Updated:** 2026-09-21  
-**Total Workflows:** 52 — `ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l`  
+**Last Updated:** 2026-11-26 (header counts and Current Metrics only; tables below not re-classified)  
+**Total Workflows:** 105 — `ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l`  
 
 > This count is hand-maintained and was 48 while 52 files were present. It is a
 > derived view of a directory listing and belongs under a renderer like the other
@@ -207,21 +207,34 @@ Three intentionally separate workflows form a real-time prediction loop:
 
 ### Current Metrics
 
+As of 2026-11-26 (after #1341 retired `coordinator-issue-route.yml`):
+
 ```bash
 # Total workflows
 $ ls .github/workflows/*.yml | wc -l
-42
+105
 
 # By trigger type
 $ grep -l "schedule:" .github/workflows/*.yml | wc -l
-21
-
-$ grep -l "pull_request:" .github/workflows/*.yml | wc -l
 28
 
+$ grep -l "pull_request:" .github/workflows/*.yml | wc -l
+69
+
 $ grep -l "push:" .github/workflows/*.yml | wc -l
-12
+39
+
+$ grep -l "issue_comment:" .github/workflows/*.yml | wc -l
+2
+
+# With a concurrency block
+$ grep -l "concurrency:" .github/workflows/*.yml | wc -l
+45
 ```
+
+The classification tables above cover the September set and have not been
+re-done for the workflows added since. See `docs/CI_TRIAGE_2026-11.md` for
+current run-volume findings.
 
 ### Recommended Ongoing Checks
 
