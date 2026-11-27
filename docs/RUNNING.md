@@ -66,7 +66,7 @@ Off (kept, not running): Foundation Audit Aggregator, Monitor Collab Responses, 
 
 Ended and deleted: Watch for Grok's PR on findlocaltattooartists (hourly, read-only, $0; ran Nov 26 only, stopped when Grok's PR 3 arrived).
 
-## 4. Stopped or idle (listed so nobody wonders)
+## 4. Stopped, idle or free (listed so nobody wonders)
 
 | What | Where | State |
 |---|---|---|
