@@ -1,24 +1,24 @@
 {
   "schema": "humanaios.opportunity_qualification_card.e0.v1",
   "source": {
-    "issuer": "Molina Healthcare",
-    "job_id": "2040242",
-    "title": "National Quality Performance Manager",
-    "uri": "https://careers.molinahealthcare.com/job/united-states/national-quality-performance-manager-remote/21726/102561038192",
+    "issuer": "Example Health Partners",
+    "job_id": "EX-QPM-0001",
+    "title": "Quality Performance Manager",
+    "uri": "https://careers.example.org/jobs/ex-qpm-0001",
     "posting_date": "2026-10-28",
     "retrieved_at": "2026-11-05T23:42:05Z",
-    "rendered_main_text_sha256": "e447562a968c1c40c82b17b14b08e8da77eb5af022abd05592051a938847696a",
+    "rendered_main_text_sha256": "85225fd3855eb0bb067721fd343b225d76d46e4461f5436021aab00f01a2ced8",
     "snapshot_kind": "RENDERED_MAIN_TEXT_SHA256",
     "freshness": "CURRENT_AS_OBSERVED",
     "availability_status": "UNKNOWN",
     "uncertainty": [
-      "The digest covers normalized rendered main-page text, not raw HTML.",
+      "The opportunity source is fictional; this fixture proves mechanics only, not real-world eligibility.",
       "Application availability and candidate-specific eligibility were not assessed.",
       "Portfolio records are synthetic and do not describe a real person."
     ]
   },
   "opportunity": {
-    "goal": "Healthcare quality and data transformation leadership",
+    "goal": "Healthcare quality and data leadership (synthetic)",
     "requirements": [
       {
         "label": "EHR data validation, analysis and reporting",

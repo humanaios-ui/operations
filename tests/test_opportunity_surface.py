@@ -24,7 +24,7 @@ AT = "2026-10-10T10:00:00+00:00"
 AFTER = "2026-10-11T10:00:00+00:00"
 QUALIFICATION_FIXTURE = (
     ROOT / "humanaios-funding-pipeline" / "resource-miner" / "fixtures"
-    / "opportunity_qualification_molina_synthetic.json"
+    / "opportunity_qualification_synthetic.json"
 )
 
 

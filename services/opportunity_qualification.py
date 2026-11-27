@@ -12,10 +12,9 @@ from urllib.parse import urlsplit
 from services.career_gradient import learning_priorities, score_opportunity
 
 SCHEMA = "humanaios.opportunity_qualification_card.e0.v1"
-SOURCE_URI = (
-    "https://careers.molinahealthcare.com/job/united-states/"
-    "national-quality-performance-manager-remote/21726/102561038192"
-)
+# The E0 source is fictional on purpose: example.org is reserved for examples
+# (RFC 2606), so no real employer or posting is named in this public repository.
+SOURCE_URI = "https://careers.example.org/jobs/ex-qpm-0001"
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 _LOCATOR = re.compile(r"^SYNTHETIC-[A-Z0-9_-]{1,60}$")
 _ROOT_KEYS = {"schema", "source", "opportunity", "portfolio"}
@@ -58,16 +57,16 @@ def _require_text(value: Any, label: str, *, maximum: int = 500) -> str:
 def _validate_source(source_value: Any) -> dict[str, Any]:
     source = _require_object(source_value, _SOURCE_KEYS, "source")
     if (
-        source["issuer"] != "Molina Healthcare"
-        or source["job_id"] != "2040242"
+        source["issuer"] != "Example Health Partners"
+        or source["job_id"] != "EX-QPM-0001"
         or source["uri"] != SOURCE_URI
-        or source["title"] != "National Quality Performance Manager"
+        or source["title"] != "Quality Performance Manager"
     ):
         raise ValueError("Unrecognized first-party opportunity source")
     parsed_uri = urlsplit(source["uri"])
     if (
         parsed_uri.scheme != "https"
-        or parsed_uri.hostname != "careers.molinahealthcare.com"
+        or parsed_uri.hostname != "careers.example.org"
         or parsed_uri.username is not None
         or parsed_uri.password is not None
         or parsed_uri.query
