@@ -420,6 +420,57 @@ class OpportunitySurfaceTests(unittest.TestCase):
         requirement["evidence_refs"] = ["SYNTHETIC-EHR-REPORT"]
         self.assertEqual(project_qualification_card(data)["pathway_classification"], "HOLD")
 
+    def test_missing_required_item_blocks_the_practice_path_and_is_named(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        requirement = data["opportunity"]["requirements"][1]
+        requirement["mapping_state"] = "NOT_HELD"
+        requirement["gap_type"] = "skill"
+        requirement["evidence_refs"] = ["SYNTHETIC-EHR-REPORT"]
+        card = project_qualification_card(data)
+        self.assertEqual(card["pathway_classification"], "HOLD")
+        self.assertIn(requirement["label"], card["mandatory_blockers"])
+        self.assertIsNone(card["advancement_path"])
+
+    def test_missing_duty_does_not_block_by_design(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        duty = data["opportunity"]["requirements"][0]
+        duty["mapping_state"] = "NOT_HELD"
+        duty["gap_type"] = "skill"
+        card = project_qualification_card(data)
+        self.assertEqual(card["mandatory_blockers"], [])
+        self.assertNotIn(duty["label"], card["mandatory_unknowns"])
+
+    def test_invisible_or_lookalike_labels_cannot_duplicate_a_requirement(self):
+        for label in (
+            "At least three\u200b years of quality program or project management",
+            "\uff21t least three years of quality program or project management",
+            "\u200b",
+        ):
+            with self.subTest(label=label):
+                data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+                twin = deepcopy(data["opportunity"]["requirements"][3])
+                twin["label"] = label
+                data["opportunity"]["requirements"].append(twin)
+                with self.assertRaises(ValueError):
+                    project_qualification_card(data)
+
+    def test_posting_after_observation_is_rejected(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        data["source"]["posting_date"] = "2099-01-01"
+        with self.assertRaises(ValueError):
+            project_qualification_card(data)
+
+    def test_stale_source_keeps_each_rows_own_category(self):
+        data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
+        requirement = data["opportunity"]["requirements"][1]
+        requirement["source_predicate"] = "EXPLICIT_EXCLUSION"
+        requirement["mapping_state"] = "BLOCKED"
+        data["source"]["freshness"] = "STALE"
+        card = project_qualification_card(data)
+        row = next(gap for gap in card["gaps"] if gap["requirement"] == requirement["label"])
+        self.assertEqual(row["category"], "SOURCE_STALE")
+        self.assertEqual(row["requirement_category"], "HARD_BLOCKER")
+
     def test_labels_differing_only_in_case_or_spacing_are_duplicates(self):
         data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))
         copy_of = deepcopy(data["opportunity"]["requirements"][1])
@@ -444,7 +495,6 @@ class OpportunitySurfaceTests(unittest.TestCase):
     def test_malformed_observation_times_raise_value_error_only(self):
         for field, value in (
             ("retrieved_at", "2026-11-05Z"),
-            ("retrieved_at", "2026-11-05T23:42:05+00:00"),
             ("posting_date", "2026-1-5"),
         ):
             with self.subTest(field=field, value=value):

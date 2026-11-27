@@ -1,10 +1,11 @@
 """Synthetic-only, read-only qualification card for one manually reviewed source."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from hashlib import sha256
 import json
 import re
+import unicodedata
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -88,6 +89,8 @@ def _validate_source(source_value: Any) -> dict[str, Any]:
         or retrieved.utcoffset().total_seconds() != 0
     ):
         raise ValueError("Source observation time must be UTC")
+    if date.fromisoformat(source["posting_date"]) > retrieved.date():
+        raise ValueError("Source posting date is after its observation time")
     if not isinstance(source["rendered_main_text_sha256"], str) or not _HASH.fullmatch(
         source["rendered_main_text_sha256"]
     ):
@@ -143,7 +146,9 @@ def _validate_requirements(
     for requirement_value in requirements_value:
         requirement = _require_object(requirement_value, _REQUIREMENT_KEYS, "requirement")
         label = _require_text(requirement["label"], "requirement label", maximum=240)
-        label = " ".join(label.split()).casefold()
+        if any(unicodedata.category(ch) in {"Cc", "Cf"} for ch in label):
+            raise ValueError("Requirement labels may not contain control or invisible characters")
+        label = " ".join(unicodedata.normalize("NFKC", label).split()).casefold()
         if label in seen_labels:
             raise ValueError("Requirement labels must be unique")
         seen_labels.add(label)
@@ -170,7 +175,11 @@ def _validate_requirements(
         if requirement["gap_type"] == "blocker" and requirement["mapping_state"] != "BLOCKED":
             raise ValueError("Only an explicit source exclusion may carry a blocker gap type")
         refs = requirement["evidence_refs"]
-        if isinstance(refs, list) and len(refs) != len(set(map(str, refs))):
+        if (
+            isinstance(refs, list)
+            and all(isinstance(ref, str) for ref in refs)
+            and len(refs) != len(set(refs))
+        ):
             raise ValueError("Requirement evidence references must be unique")
         if not isinstance(refs, list) or any(
             not isinstance(ref, str) or ref not in evidence_by_locator for ref in refs
@@ -253,7 +262,8 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
                 "requirement": requirement["label"],
                 "kind": requirement["kind"],
                 "category": category,
-                "mapping_state": requirement["mapping_state"],
+                "requirement_category": _requirement_category(requirement),
+                "mapping_state": _scored_state(requirement),
             })
         elif requirement["mapping_state"] == "DOCUMENTED":
             supported_matches.append({
@@ -276,7 +286,7 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
                 "requirement": requirement["label"],
                 "kind": requirement["kind"],
                 "category": _requirement_category(requirement),
-                "mapping_state": requirement["mapping_state"],
+                "mapping_state": _scored_state(requirement),
             })
 
     mapped_opportunity = {
@@ -298,7 +308,9 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
     priorities = learning_priorities([mapped_opportunity])
     advancement_path = None
     has_hard_blocker = any(gap["category"] == "HARD_BLOCKER" for gap in gaps)
-    if source_current and not has_hard_blocker:
+    # A missing REQUIRED item (NOT_HELD) blocks too. DUTY rows describe the job's
+    # work, not entry conditions, so by design they never block on their own.
+    if source_current and not has_hard_blocker and not gradient.mandatory_blockers:
         for requirement in requirements:
             if (
                 requirement["kind"] == "PREFERRED"
@@ -361,6 +373,7 @@ def project_qualification_card(payload: dict[str, Any]) -> dict[str, Any]:
         "supported_matches": supported_matches,
         "gaps": gaps,
         "pathway_classification": gradient.classification if source_current else "HOLD",
+        "mandatory_blockers": list(gradient.mandatory_blockers) if source_current else [],
         "mandatory_unknowns": list(gradient.mandatory_unknowns) if source_current else [],
         "eligibility_status": "UNASSESSED",
         "eligibility_assessed": False,
