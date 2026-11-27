@@ -40,33 +40,6 @@ Permitted temporal classes:
 
 ---
 
-## Product Release Focus
-
-**Ratified by:** Z2 merge of the PR that adds this section (merge is ratification).
-**Instruction (Night, Z2):** "Make #1144 the sole active product-release candidate. Complete it before expanding the public platform."
-
-| Field | Value |
-|:------|:------|
-| Sole active release candidate | PR #1144: INTENT-OS read-only qualification card (synthetic E0) under the ratified plan in issue #1143 |
-| Done means | #1144 merged by Z2, with: the six deterministic cases passing on the exact head; a review from an agent other than the builder, read and answered; `Refs #1143` in place of `Fixes #1143`, so the plan issue stays open; no private data in fixtures |
-| Not in this release | share links, employer export, real profile import, second-user pilot, hosting or deploy (all deferred by #1143) |
-| Public platform | No PR that adds a new public or user-facing surface merges while this focus stands, except the exempt kinds below |
-
-### Held while the focus stands (proposed list)
-
-Holding means "do not merge yet". Nothing here is closed, relabeled or commented on. Z2 can move any PR off this list in one line.
-
-**Other INTENT-OS / Resource Miner product slices:** #763, #914, #967, #1024, #1045, #1066, #1074, #1092, #1094, #1117, #1121, #1122, #1124, #1128, #1132, #1135, #1136, #1155, #1239, #1258, #1308
-
-**New public surfaces, publishing and outreach:** #819, #1012, #1137, #1167, #1171, #1187, #1216, #1270, #1271, #1278, #1292, #1306, #1330, #1331, #1332, #1333
-
-**Exempt (not held):** security and fail-closed fixes, dependency bumps, CI repair, governance and ratification records, the running list (`docs/RUNNING.md`), research that publishes nothing, and work owed to an outside commitment already made.
-
-**Release trigger:** when #1144 merges, a follow-up PR removes this section and held work returns to normal admission.
-**Falsifier:** if a held PR proves necessary for #1144 to pass its six cases, that PR is released from the hold and the reason is recorded here.
-
----
-
 ## Current Queue
 
 | Rank | Candidate | Title | Impact | Blocking % | Priority | State |
