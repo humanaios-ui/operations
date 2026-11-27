@@ -430,6 +430,12 @@ class OpportunitySurfaceTests(unittest.TestCase):
         self.assertEqual(card["pathway_classification"], "HOLD")
         self.assertIn(requirement["label"], card["mandatory_blockers"])
         self.assertIsNone(card["advancement_path"])
+        row = next(gap for gap in card["gaps"] if gap["requirement"] == requirement["label"])
+        self.assertEqual(row["category"], "MISSING_REQUIRED")
+        data["source"]["freshness"] = "STALE"
+        card = project_qualification_card(data)
+        row = next(gap for gap in card["gaps"] if gap["requirement"] == requirement["label"])
+        self.assertEqual(row["requirement_category"], "MISSING_REQUIRED")
 
     def test_missing_duty_does_not_block_by_design(self):
         data = json.loads(QUALIFICATION_FIXTURE.read_text(encoding="utf-8"))

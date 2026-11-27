@@ -229,6 +229,8 @@ def _scored_state(requirement: dict[str, Any]) -> str:
 def _requirement_category(requirement: dict[str, Any]) -> str | None:
     if requirement["source_predicate"] == "EXPLICIT_EXCLUSION":
         return "HARD_BLOCKER"
+    if requirement["kind"] == "REQUIRED" and requirement["mapping_state"] == "NOT_HELD":
+        return "MISSING_REQUIRED"
     if requirement["source_predicate"] == "UNKNOWN":
         return "SOURCE_UNKNOWN"
     if requirement["mapping_state"] == "DOCUMENTED":
