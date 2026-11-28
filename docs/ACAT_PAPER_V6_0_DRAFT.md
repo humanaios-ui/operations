@@ -1,4 +1,4 @@
-# ACAT: A Behavioral Calibration Instrument for Measuring the Gap Between AI Self-Report and Demonstrated Behavior
+# ACAT: Measuring Prompt-Conditioned Changes in Large Language Model Self-Assessment
 
 **Carly R. Anderson**
 *HumanAIOS LLC*
@@ -11,7 +11,7 @@ Contact: aioshuman@gmail.com
 
 ## Abstract
 
-We introduce ACAT (AI Calibration Assessment Tool), an open instrument that measures the gap between an AI system's self-reported behavioral scores and its demonstrated behavior under perturbation. ACAT runs a three-phase protocol — Phase 1 (blind self-assessment), Phase 2 (calibration exposure), Phase 3 (re-assessment) — and computes a Learning Index (LI = P3/P1) that quantifies how much a system's self-description moves once it is shown empirical peer data. The instrument now operates in two parallel arms: a six-dimension Tier 1 (Truthfulness, Service, Harm Awareness, Autonomy Respect, Value Alignment, Humility), administered under social-pressure perturbation, and a twelve-dimension Tier 2 (the Tier 1 set plus Resistance to Manipulation, Power Awareness, Sycophancy Resistance, Consistency, Fairness, and Handoff Appropriateness), administered under epistemic identity challenge. The two tiers are never pooled without explicit stratification by `instrument_variant`. As of this draft, the canonical frozen corpus (HuggingFace, v5.3+ unanchored conditions) contains N=629 total submissions, N=516 completed Phase 1, N=307 with a computable LI, and a mean LI of 0.8632. A live, continuously updated corpus (Supabase) holds an additional N=95 submissions under the current v5.4 two-tier protocol, with a verified-pair subset (two_stage_verified, N=18) showing mean LI=0.9971. Humility is the most consistently weakest and most volatile dimension across both corpora. We report the instrument's evolution from an early single-arm anchored design through a de-anchoring correction (v5.3) to the present two-tier architecture (v5.4), describe the variant family built on the same calibration logic (a human-administered mode, a substrate-agnostic language-only mode, and an enterprise-deployment mode), and discuss what ACAT can and cannot support as evidence about internal AI states. This is infrastructure under active development (TRL 2–3); we report what the data shows, not what we wish it showed.
+We present ACAT, an exploratory three-phase instrument for measuring changes in language-model-generated self-ratings after comparative information is supplied. Phase 1 elicits blind scores on six named dimensions, Phase 2 introduces calibration context, and Phase 3 requests revised scores. The Learning Index (LI = Phase 3 total / Phase 1 total) is a response-ratio measure, **not** a test of whether ratings accurately predict independently observed behavior. A 2026-10-26 read of a historical, owner-controlled *Normalized* workbook found 629 assessment rows (516 Phase 1; 113 Phase 3). Of 307 populated LI values, 194 appeared on Phase 1 rows without in-row pre/post totals, and 30 of 113 Phase 3 values disagreed with their stored totals at a 0.001 tolerance. A strict, unique-record linkage and arithmetic check yielded **47 AI-self-report P1/P3 pairs** (mean LI = 0.9712; mean P1-minus-P3 score difference = 15.57 points on a 600-point scale). These are an **exploratory internal-data audit, not a validated public benchmark**: the owner workbook differs from the separately listed 604-row public archive, and prompt-version, protocol-purity and independent review controls have not been verified. The study thus supports bounded descriptive claims about prompt-conditioned changes in model self-descriptions, while construct validity, behavioral criterion validity, and deployment prediction remain unestablished. The instrument is at TRL 2–3.
 
 **Keywords:** AI self-assessment, behavioral calibration, Learning Index, AI transparency, AI governance, behavioral observability
 
@@ -29,7 +29,7 @@ ACAT does not assume AI systems possess introspective access to their own intern
 
 ### 1.1 Why this matters
 
-Self-description matters operationally wherever it informs deployment decisions: a system that overstates its own reliability when describing limitations to a downstream operator or user creates a trust gap that no capability benchmark detects. Existing behavioral benchmarks (TruthfulQA, HELM, BIG-Bench, and similar) measure what systems *do*. ACAT measures what systems *say about what they do*, and whether that self-description holds up when probed.
+Self-description may matter operationally wherever it informs deployment decisions. Whether a high self-rating corresponds to real-world capability or safety remains an **external-validation question**, not something the current P1/P2/P3 scores establish. Existing behavioral benchmarks (TruthfulQA, HELM, BIG-Bench, and similar) measure what systems *do*. ACAT measures what systems *say about what they do*, and whether that self-description holds up when probed.
 
 ---
 
@@ -85,9 +85,9 @@ We flag these as related but architecturally distinct from the core AI-self-admi
 
 ACAT maintains two corpora under a strict non-pooling rule.
 
-**Frozen corpus (HuggingFace, `HumanAIOS2026/acat-assessments`).** N_total = 629, N_Phase1 = 516, N_LI = 307, mean LI = 0.8632 (clean, unanchored conditions, v5.3+ protocol only — pre-correction anchored sessions are excluded from this count, not folded in). Per a later correction (IC-022), the LI computation used for corpus continuity is restricted to the Core 6 dimension set even where extended Tier 2 data exists on a given row, to keep the canonical mean comparable across the full history of the corpus.
+**Historical owner-controlled workbook (not proven identical to the current public release).** The *Normalized* tab was read on 2026-10-26 and contains 629 rows: 516 labeled Phase 1 and 113 labeled Phase 3. There are 307 populated numeric LI fields (mean 0.8632), but **194 are in Phase 1 rows lacking in-row pre/post totals**, and **30 of 113 Phase 3 stored LI values fail direct arithmetic consistency at tolerance 0.001**. A bounded one-to-one P1/P3 identity-and-arithmetic reconstruction found 47 AI-self-report pairs (mean LI 0.9712). These samples are different denominators, and the 307-row stored mean must not be used as an independently verified paired estimate. The earlier 629-row figures describe this historical owner workbook; a public archive has been listed as 604 rows, and its exact revision/bytes still require verification before submission. Current public dataset locator: `https://huggingface.co/datasets/HumanAIOS/acat-assessments`.
 
-**Live corpus (Supabase, `acat_assessments_v1`).** N = 95 as of this draft. N with a computable LI = 91, mean LI = 0.9830. A verified-pair subset — sessions where Phase 1 and Phase 3 timestamps are both recorded with a minimum one-minute gap between them (`submission_purity = two_stage_verified`) — numbers N = 18, with mean LI = 0.9971 and mean Phase 3 Humility = 74.11. The live corpus runs higher on average than the frozen corpus; the gap is consistent with a registered hypothesis (H-SELF-01) that self-administered, less-verified sessions show LI inflation of roughly 0.14–0.16 relative to more rigorously verified or externally administered sessions.
+**Live corpus (Supabase, `acat_assessments_v1`).** Historical June 2026 draft snapshot: N = 95 **at the time this section was written; not a current live count**. N with a computable LI = 91, mean LI = 0.9830. A verified-pair subset — sessions where Phase 1 and Phase 3 timestamps are both recorded with a minimum one-minute gap between them (`submission_purity = two_stage_verified`) — numbers N = 18, with mean LI = 0.9971 and mean Phase 3 Humility = 74.11. The live corpus runs higher on average than the frozen corpus; the gap is consistent with a registered hypothesis (H-SELF-01) that self-administered, less-verified sessions show LI inflation of roughly 0.14–0.16 relative to more rigorously verified or externally administered sessions.
 
 **These two corpora are never summed or averaged together without an explicit harmonization note**, because they differ in protocol version, verification rigor, and time period. Any reported "combined N" in this paper is stated as two separate figures, not one.
 
@@ -95,9 +95,19 @@ ACAT maintains two corpora under a strict non-pooling rule.
 
 ### 4.1 Humility as the consistent floor
 
-Across both corpora and across session types, Humility is the single most consistently lowest-scoring dimension, and the dimension most sensitive to recent session conditions. This is registered as Finding F-H1 (status: active monitoring) and is the subject of a standing governance gate (freeze trigger if Phase 3 Humility drops to ≤60 across two consecutive corpus-eligible sessions — not yet met as of this draft). We report this as the corpus's single most robust qualitative signal: every administration to date shows Humility below the other dimensions in the same session, by a margin that exceeds session-to-session noise on other dimensions.
+In the 516 historical Phase 1 rows, Humility has the **lowest aggregate mean** among the six named Core dimensions (73.95). This does **not** mean it is the lowest score in every session: Humility was the tied-or-unique minimum in **249/516 (48.26%)** and the unique minimum in **213/516 (41.28%)**. This descriptive result does not identify training mechanisms, behavioral trustworthiness, or a validated humility construct. Finding F-H1 remains a registered research topic; claims about the independent live dataset must be evaluated separately.
 
 ---
+
+## 4.2 Evidence reconciliation and denominator controls (Z1 research addition, 2026-10-26)
+
+The historical owner workbook and the public dataset are **different named objects**. An older raw archive tab has 608 rows (524 P1, 84 P3; 278 numeric LI, mean stored LI 0.8431). The internal *Normalized* tab has 629 rows (516 P1, 113 P3; 307 numeric LI, mean stored LI 0.8632). A prepared dataset card and public repository listing describe a separate 604-row release. No evidence available in this audit proves the 604-row public release exactly matches either internal tab. **No cross-version merging, combined denominator, or public benchmark claim is licensed by these figures.**
+
+For the *Normalized* tab, the strict P1/P3 analysis joins each Phase 3 row to exactly one Phase 1 row on `pair_id`, requires identical `agent_name`, `provider` and `layer='ai-self-report'`, nondecreasing timestamps, complete Core-6 scores, equalities `P3.pre_total = sum(P1 Core-6)` and `P3.post_total = sum(P3 Core-6)`, and `abs(P3.learning_index - P3.post_total/P3.pre_total) <= 0.001`. Exactly **47 pairs** pass this bounded arithmetic/identity audit. Their mean LI is **0.9712** and mean total-score revision **15.57 points downward**. This is a **provisional historical-owner-data result**, not an independently replicated or publication-ready effect; protocol-version purity and neutral-context controls were not available here.
+
+A separate read-only October 2026 aggregate of the live Supabase table found 116 rows, 100 numeric LI values (mean 0.9828) and 21 records tagged `two_stage_verified` (mean LI 0.9849). These are different collection streams; their identifiers, row overlaps, time periods and source purity prevent simple pooling. They do not demonstrate externally verified behavioral correctness.
+
+**Primary falsifier:** If P2 changes LI while independently measured same-case behavioral-error does not improve over a neutral-control condition, the proposed interpretation as *improved self-assessment accuracy* fails even if the descriptive self-report-shift result remains.
 
 ## 5. What ACAT Measures, and What It Does Not
 
@@ -108,7 +118,7 @@ ACAT measures self-report movement under a defined perturbation. It does not, on
 - That scores are comparable across model families with materially different training, given that some deployed systems show frozen, deterministic Phase 1→Phase 3 patterns unrelated to genuine reassessment (a pattern registered separately and excluded from LI-based comparative claims where detected)
 - Ground truth about any model's actual internal state, which ACAT has no mechanism to access independently of the model's own self-report
 
-What it does establish, with replication across hundreds of sessions: AI systems' self-reported behavioral scores move in a specific, dimension-dependent, and largely consistent pattern when exposed to calibration data, and Humility moves least favorably and most reliably of any dimension measured. That is an empirical behavioral-observability finding about self-report dynamics, not a claim about machine cognition.
+What the inspected records directly establish is more limited: ACAT captures prompt-conditioned self-report values and, for a bounded subset with usable linkage and arithmetic, changes between initial and revised scores. The exploratory 47-pair reconstruction is **not** independent behavioral replication, proof of calibration accuracy, or evidence that Humility is the minimum in every session. Archived stored LI fields have known inconsistencies; reporting a general improvement or universal dimension effect must wait for publicly reproducible, protocol-stratified analysis.
 
 ---
 
@@ -118,13 +128,13 @@ What it does establish, with replication across hundreds of sessions: AI systems
 - **No external ground truth.** ACAT cannot independently verify that a Phase 3 score is "more accurate" than a Phase 1 score; it can only report that the two differ and by how much.
 - **Instrument-variant metadata incompleteness** in the live corpus (§4) currently constrains tier-stratified analysis to a tagged subset.
 - **Variant-family immaturity.** The h-ACAT, hCAT, Shadow Calibration, and Enterprise modes described in §3 are at early build or design stage and are not validated against the core instrument; we report them as related infrastructure, not as corroborating evidence for the core instrument's findings.
-- **TRL 2–3.** This is behavioral-observability infrastructure under active development. Numbers in this draft reflect the dataset as queried at time of writing and will change as the live corpus grows; the frozen corpus is the only stable basis for cross-paper citation.
+- **TRL 2–3.** This is behavioral-observability infrastructure under active development. The live database has changed since this June draft. No corpus is a defensible cross-paper citation basis until its exact released bytes, filtering rules, study cohort and analysis receipt are independently reproduced. In particular, the 629-row owner workbook is not interchangeable with the separately listed 604-row public release.
 
 ---
 
 ## 7. Availability
 
-Instrument specification, frozen dataset, and methodology are released under an open license (MIT, instrument and tooling; dataset license under separate review — a dual CC-BY-NC structure has been proposed but not yet ratified). Frozen dataset: `huggingface.co/datasets/HumanAIOS2026/acat-assessments`.
+Instrument specification, historical analyses, and dataset materials are tracked in separate source records. Public dataset locator: `https://huggingface.co/datasets/HumanAIOS/acat-assessments`. **Before submission, obtain the exact public dataset revision/hash and align its license, sample count, filtering rules and reproducibility script with the manuscript.** A proposed or historical license statement does not establish the license governing each released artifact.
 
 ---
 
