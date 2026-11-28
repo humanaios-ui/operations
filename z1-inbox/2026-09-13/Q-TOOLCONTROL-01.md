@@ -264,3 +264,7 @@ registered honestly and left visible, because categorizing, owning and approving
 do.
 
 **Ratification requested.**
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: PR #304, .github/workflows/tool-manifest.yml and tools-manifest.yaml. Left over: the two MCP servers are still unscoped and a root CODEOWNERS sits beside .github/CODEOWNERS. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

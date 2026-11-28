@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: commit the rendered dashboard
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 7aec285c272230e080dcc30d8bfb9027b18b1fba42e53e7cfdde5b990a00e4f0
+body_hash: a4ac2ae07a555c325ef66d29135f9fe794a2a0f4fd1898be0a2f80e7ec298925
+
+```
+RULING d21
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Test dashboard — commit the rendered dashboard and receipt with each run (the tree carries the last verified state; `git.head` inside the receipt is the SHA it ran on), or keep `main`'s dashboard unrendered and render locally per session?
+  choice: commit the rendered dashboard
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

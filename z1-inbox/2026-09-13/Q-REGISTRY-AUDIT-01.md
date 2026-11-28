@@ -111,3 +111,7 @@ The 6 unaccounted repos can be resolved in three ways:
 
 **Proposed Z2 Decision Window:** 48h from ratification request  
 **Associated:** IC-REGISTRY-001 (meta-gap: authority structure itself)
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: Option B (PLANNED_REPOS.md), applied by Z1 on 2026-09-14 per CLAUDE.md. Left over: ZONE_REGISTRY.md still says 31 in its title and its active count disagrees with its metadata. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

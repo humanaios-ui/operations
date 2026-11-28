@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: report-only
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: dc3ae234173c4df0ef22618b586918019206fbff62158474f5828eb643571735
+body_hash: a22a9336db17bc05cfb5f0017b22e76830042395c4816f9cd8d56586ea548b19
+
+```
+RULING d23
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Refresh job — set the repository variable `INTENT_OS_REFRESH_AUTOPR=true` so the job opens a re-seal PR per mechanical drift and an issue per NEEDS-HUMAN read, or keep it report-only (summary + artifacts, nothing opened)?
+  choice: report-only
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

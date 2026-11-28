@@ -138,3 +138,7 @@ Claims in this block and where each is checkable.
 | Every RAT-min figure is a prior | every census field carries `basis: PRIOR`; no SPEND row exists |
 
 **Not done this session:** no REGISTERED.md write (Z2 sole write); no ratification hash claimed; no capacity declared; no measured shadow price (n = 0 for every pair); no back-fill of historical RAT-min spends — the ledger starts empty rather than being seeded with reconstructed numbers.
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: RESOURCE_UNITS.yaml reads RATIFIED, the capacity event is in ledgers/RESOURCE_LEDGER.jsonl and F-62/63/64 are registered. Left over: the units file's hash matches nothing; it needs `ratify.py --artifact`. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

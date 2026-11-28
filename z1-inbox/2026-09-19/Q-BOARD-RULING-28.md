@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: edfcd6340bedfb61e10ca2e5dbb2597ebc20e2a90c1c35457d87eb10f7fec8b1
+body_hash: 5ecb6b50f0e0134c0f43bae092efda51315dbdc570b51d8243bb498c1d753ab4
+
+```
+RULING d28
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Issue mirror — mirror every `REQ-` record to one GitHub issue (body = the record's Ask verbatim plus the request block and a link to the record; labels `agent-request` and one stage label), so people who do not read z1-inbox see the bus — or keep it git-only (the req/ PR is the notice)?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

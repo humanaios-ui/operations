@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 5b4f3f9df4437a16418b931428b6d71221a5042a43805eed372daa2f0d14d94a
+body_hash: 4d6448b79f71778166b9c4accead570ce8d324a0d6c55cf8d0defb2b3f20db7d
+
+```
+RULING d32
+  by: Night (tagline)
+  project: HumanAIOS
+  question: KNOWN_RED — the refresh job carries `INTENT_OS_KNOWN_RED: t3-pytest-acat` so the registered F-CAND does not open a STALE issue on every run. Accept that list as the place a registered-but-unfixed red row is named, or require the list to be empty (every red row files)?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 
