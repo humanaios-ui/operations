@@ -10,8 +10,32 @@ This file decides nothing and changes no file other than itself and the index. I
 ## What Z2 is asked to decide
 
 1. **The registry entry.** Does Z2 want an entry in `REGISTERED.md` for the `admission-ruling-graph` workflow, entered after the merge? Z2 writes it. Z1 offers the facts below, not text to paste as signed. If Z2 does not want one, say so, and the gap is recorded as accepted.
-2. **The ADV run.** Does Z2 want an adversarial run against this workflow, and who runs it? Z1's proposed attacks and what is already known are in "The ADV run, what exists". Z1 did not run any ADV.
+2. **The ADV run.** Does Z2 want an adversarial run against this workflow, and who runs it? Z1's proposed attacks and what is already known are in "The ADV run, what exists". Z1 did not run any ADV. Z2 also settles A4: after a hand-edited subject drops the marker, is one extra draft pull request a pass (the known gap) or a failure? Until Z2 says, A4's outcome is not a pass or fail criterion.
 3. **What #1291 is meanwhile.** `MOLT_STATE.md` says the registry entry and the ADV run come before KEEP, and also says nothing enforces that yet ("measurement precedes enforcement"). Is #1291 left merged while those are open (Z1's lean), or reverted until both exist?
+
+## Options
+
+- `entry, adv, keep`
+- `entry, keep`
+- `adv, keep`
+- `keep only`
+- `revert`
+- `edit`
+- `later`
+
+The words are the three asks in "What Z2 is asked to decide" above. `entry` answers question 1 yes: Z2 writes the `REGISTERED.md` entry. `adv` answers question 2 yes: an adversarial run happens, with Z1 running A1 to A8 as written where Z1 can (A4 and A6 need Night's merges) and counting A4 as a **pass** when exactly one extra draft pull request results (Z1's lean; any other answer on A4, any other runner, or a changed attack list is an `edit`). `keep` answers question 3: #1291 stays merged. A missing `entry` or `adv` in an option means that gap is accepted and recorded as accepted by the ruling.
+
+## What each sets in motion
+
+Every option except `edit` and `later` rules this block, and a merged ruling marks the **whole block** `ratified`. The relay refuses a second ruling, so whatever an option leaves out can return only as a new block. A ruling changes no file except this one.
+
+- `entry, adv, keep`: Z2 writes the `REGISTERED.md` entry in its own act; the ruling does not write it, and Z1 does not. Z1 then runs what Z1 can and reports each attack as caught or missed, with the evidence. A5, A7 and A8 run locally with a stand-in `gh`. A1 and A2 need a real runner, so they use a draft pull request that plants a failure and a manual dispatch from a non-`main` branch in this repository. A3 was seen live once (see below). A4 and A6 need merges to `main`, which only Night does: Z1 hands Night the exact steps and those two stay unrun until Night does them. Z1 does not use `adv_eval_v2.py` for the scoring (it scores supplied values; its `attack_config.json` is written for a request-limit gate). The result is evidence for Z2. It is not an enforced gate. #1291 stays merged.
+- `entry, keep`: the entry only. The ADV gap is accepted and recorded as accepted. #1291 stays merged.
+- `adv, keep`: the run only. The registry gap is accepted and recorded as accepted. #1291 stays merged.
+- `keep only`: neither. Both gaps are accepted and recorded as accepted by this ruling, and #1291 stays merged. Nothing else changes.
+- `revert`: Z1 drafts a pull request that reverts #1291 until the entry and the run exist. Z1 has not checked whether the revert of a Tier 2 path needs the same obligations. A revert stops the page refresh. The committed page stays as a stale snapshot, the pointer issue [#1300](https://github.com/humanaios-ui/operations/issues/1300) says it is refreshed by a workflow and would need an edit, and each open refresh pull request would need closing by hand.
+- `edit`: Z1 revises the block and files it again.
+- `later`: this block closes with its bytes signed; the question returns only as a new block.
 
 ## The registry entry, facts only
 
@@ -35,10 +59,10 @@ This file decides nothing and changes no file other than itself and the index. I
 | A5 | Leave a refresh branch with no pull request, then rerun | no pull request is created |
 | A6 | Two merges to `main` in quick succession | more than one refresh pull request stays open |
 | A7 | Make the ledger branch unreadable | a pull request is opened from a stale or empty page |
-| A8 | Put markup or a long line in a merged pull request title that the page prints | the generated page carries it unescaped |
+| A8 | Put a pipe, a backtick or a line break in a candidate's Q-ID or status in `z1-inbox/INDEX.yaml`, which the page prints | the generated page breaks its own table or carries the text unescaped |
 
 - **Already known, not ADV:** A5, the rerun with a pull request open, and the closing of an older refresh pull request were run locally against a throwaway repository with a stand-in `gh` before the merge, and again for A5 after the review fix. Real GitHub was not used. The marker in the commit subject and pull request title (A3) is pinned by a structural test, not run on a real merge. Closing an older refresh pull request has not run live: only one refresh pull request exists so far.
-- **Not known:** A1, A2, A4, A6, A7 and A8 were not run in any form. Z1 did not check whether the page escapes markup in a pull request title (A8).
+- **Not known:** A1, A2, A4, A6, A7 and A8 were not run in any form. The page prints pull request links, Q-IDs, statuses and ledger decisions, and no pull request titles (`render_markdown` in the generator; `grep title` finds nothing there). It escapes the status with `_esc`; Z1 did not check whether it escapes a Q-ID, and A8 asks exactly that.
 
 ## Checked on 2026-11-20 (main `2b99a5c5`)
 
@@ -54,6 +78,26 @@ This file decides nothing and changes no file other than itself and the index. I
 - Z1-ktok: moderate if Z1 is asked to run A1 to A8 in a throwaway repository; none if Z2 declines the run.
 - CI-min: small if a real run needs a test branch; none otherwise.
 
+## Checked again on 2026-11-20 (main `e0e43053`), for this ruling
+
+- **Three real runs of the workflow's `refresh` job on `main`.**
+  - The merge of #1291 (run `44824286426`): success, one draft pull request opened ([#1299](https://github.com/humanaios-ui/operations/pull/1299)).
+  - The merge of #1299 (run `44828350223`): **skipped**. That is attack A3 on a real merge: a regular merge commit whose subject carries `admission-graph/refresh-`. A squash merge was not tried.
+  - The merge of #1301, the filing of this block (run `44829023757`): success, one draft pull request opened ([#1302](https://github.com/humanaios-ui/operations/pull/1302)).
+- **Falsifier (b) has not tripped.** No run opened a pull request for a refresh merge, and no run left more than one refresh pull request open.
+- **Closing an older refresh pull request has still not run live.** #1299 was merged before #1302 opened, so no older open refresh pull request existed to close.
+- **A cost to read.** A merge to `main` that is not a refresh merge opens a new draft refresh pull request (two so far, on two such merges). The page then lags until Night merges one or the next refresh supersedes it. Nothing in the ledger records them as admitted work. Night marked #1299 ready, admitted it and merged it; #1302 is open.
+- **ADV tooling.** `attack_config.json` configures request-limit gates (`GATE-Z1-REQ-001`), not this workflow. `adv_eval_v1.py`, `adv_eval_v2.py` and `test_adv_eval_tier1.py` exist. Z1 also saw `tools/acat_adversarial_*` files and did not read them, so whether they could serve this workflow is unknown.
+- **The registry entry is still absent.** `grep admission-ruling-graph REGISTERED.md` on `main` finds nothing.
+- **Not checked:** whether the `tools/acat_adversarial_*` suite fits this workflow, whether a registry entry has a required form, the active CODEOWNERS for `REGISTERED.md`, and a squash merge of a refresh pull request.
+
+## Ruling
+
+choice:
+by:
+at:
+status: OPEN
+
 ## Z2 Review Checklist
 
 - [ ] Question 1: write a `REGISTERED.md` entry for the workflow, or accept the gap.
@@ -65,6 +109,6 @@ This file decides nothing and changes no file other than itself and the index. I
 Event-based, no clock. This block is wrong, and should be withdrawn in whole or in part, if any of these happens:
 
 - (a) an entry for the workflow is found in `REGISTERED.md`. Probe: `grep -n admission-ruling-graph REGISTERED.md`. Z1 found none today.
-- (b) a real run of `refresh` opens more than one open refresh pull request, or opens one for its own merge. Then #1291 failed its own falsifier and the question is a revert, not a registry entry.
+- (b) a real run of `refresh` opens more than one open refresh pull request, or opens one for the merge of a refresh pull request whose subject still carries the marker `admission-graph/refresh-`. Then #1291 failed its own falsifier and the question is a revert, not a registry entry. A merge whose subject was hand-edited to drop the marker is attack A4, not this falsifier; Z2 settles A4 under question 2.
 - (c) a run of `adv_eval_v2.py` is found to execute the workflow or a script, not score supplied values. Z1 read only its attack simulation.
-- (d) the molt classifier stops measuring `.github/workflows/` as Tier 2, so the obligation no longer applies.
+- (d) Z2 rules that the Tier 2 obligations of #1291 are removed or waived. A later change to the molt classifier does not remove them by itself: `MOLT_STATE.md` pins the tier measured at pull request open and does not re-measure after the classifier changes.
