@@ -21,21 +21,22 @@ gh api "$R/pulls/comments?per_page=100" --paginate \
 JQ='.[] | select(.user.type=="Bot") | {pr:(.pull_request_url|split("/")|last|tonumber),bot:.user.login,state:.state,at:.submitted_at,quota_fail:((.body//"")|test("insufficient remaining quota|unable to review";"i")),verdict:(((.body//"")|capture("(?<v>Changes recommended|Needs a closer look|Approval recommended)")|.v)//null)}'
 # A failed request is recorded in fetch_errors.jsonl so the PR is not read as "no bot review".
 # 8 requests at a time; each PR writes its own part file, joined in PR order at the end.
-export R JQ o
-mkdir -p "$o/parts"
+# Parts go in a fresh temp dir each run, so a stale .ok from an interrupted run cannot hide a failed retry.
+parts=$(mktemp -d "$o/parts.XXXXXX")
+trap 'rm -rf "$parts"' EXIT
+export R JQ parts
 jq -r .pr "$o/prs.jsonl" | xargs -P 8 -I{} bash -c '
   if out=$(gh api "$R/pulls/{}/reviews?per_page=100" --paginate --jq "$JQ"); then
-    printf "%s" "$out" > "$o/parts/{}.ok"
+    printf "%s" "$out" > "$parts/{}.ok"
   else
-    : > "$o/parts/{}.err"
+    : > "$parts/{}.err"
   fi'
 : > "$o/reviews.jsonl"; : > "$o/fetch_errors.jsonl"
 for n in $(jq -r .pr "$o/prs.jsonl"); do
-  if [ -f "$o/parts/$n.ok" ]; then
-    [ -s "$o/parts/$n.ok" ] && { cat "$o/parts/$n.ok"; echo; } >> "$o/reviews.jsonl"
+  if [ -f "$parts/$n.ok" ]; then
+    if [ -s "$parts/$n.ok" ]; then { cat "$parts/$n.ok"; echo; } >> "$o/reviews.jsonl"; fi
   else
     echo "{\"pr\":$n,\"what\":\"reviews\"}" >> "$o/fetch_errors.jsonl"
   fi
 done
-rm -rf "$o/parts"
 wc -l "$o"/*.jsonl

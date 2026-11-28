@@ -54,10 +54,11 @@ res["coderabbit_check_in_smag_failures"] = sum(s["cr_check_failed"] for s in sma
 groups = collections.defaultdict(list)
 for n, s, b in joined:
     if b and b["cr_review"]:
+        # An unparsed finding could be any severity, so it outranks minor and trivial.
         if b["cr_major"]: g = "cr_major"
+        elif b["cr_unparsed"]: g = "cr_has_unparsed"
         elif b["cr_minor"]: g = "cr_minor_only"
         elif b["cr_trivial"]: g = "cr_trivial_only"
-        elif b["cr_unparsed"]: g = "cr_unparsed_only"
         else: g = "cr_no_inline_findings"
         groups[g].append(s)
     if b and b["cp_verdict"]: groups["cp_" + b["cp_verdict"]].append(s)
