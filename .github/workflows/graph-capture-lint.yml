@@ -9,6 +9,8 @@ on:
   pull_request:
     paths:
       - 'INTENT_GRAPH.yaml'
+      - 'INTENT_GRAPH.md'
+      - 'tools/intent_graph_v1_0.py'
       - 'system_graph.json'
       - 'EVIDENCE_GRAPH.json'
       - 'crb/capability_graph.json'
@@ -24,6 +26,8 @@ on:
     branches: [main]
     paths:
       - 'INTENT_GRAPH.yaml'
+      - 'INTENT_GRAPH.md'
+      - 'tools/intent_graph_v1_0.py'
       - 'system_graph.json'
       - 'EVIDENCE_GRAPH.json'
       - 'crb/capability_graph.json'
@@ -58,6 +62,14 @@ jobs:
 
       - name: Rendered system graph view in sync with source (blocking)
         run: python3 tools/system_graph_render_v1_0.py --check docs/SYSTEM_GRAPH.md
+
+      # The intent graph's E-rule check runs on every PR in intent-graph-check.yml,
+      # because a source file can break the graph from outside it. The rendered
+      # page is compared here, only when the graph or its tool changes: the page
+      # repeats tree-derived warnings, and checking it on every PR would turn an
+      # unrelated PR red for a page it never touched.
+      - name: Rendered intent graph view in sync with source (blocking)
+        run: python3 tools/intent_graph_v1_0.py render --check
 
       - name: Canonical graph set against the baseline (blocking)
         run: python3 tools/graph_capture_lint_v1_0.py --all --baseline crb/graph_capture_baseline.json

@@ -63,6 +63,8 @@ flowchart BT
     I-QUEUE-ENGINE[("I-QUEUE-ENGINE<br/>Priority queue engine")]
     I-CORPUS-VALIDATOR[("I-CORPUS-VALIDATOR<br/>Corpus integrity validator")]
     I-INTENT-GRAPH[("I-INTENT-GRAPH<br/>Intent graph renderer")]
+    I-Z1-QUEUE-REPORT[("I-Z1-QUEUE-REPORT<br/>Z2 queue report")]
+    I-DOC-TRIAGE[("I-DOC-TRIAGE<br/>Document review triage")]
   end
 
   M-OBSERVABILITY -->|realizes| V-HAIOS
@@ -112,6 +114,8 @@ flowchart BT
   I-QUEUE-ENGINE ==>|measures| O-QUEUE
   I-INTENT-GRAPH ==>|measures| O-INTENT-GRAPH
   I-CORPUS-VALIDATOR ==>|measures| O-CORPUS-INTEGRITY
+  I-Z1-QUEUE-REPORT ==>|measures| O-DECISION-ROUTING
+  I-DOC-TRIAGE ==>|measures| O-DOC-CONTROL
   G-ANTI-CASCADE -.->|constrains| O-MOLT-CYCLE
   G-TEMPORAL-SCAN -.->|constrains| O-DOC-CONTROL
   O-MOLT-CYCLE x--x|conflicts: Q-MOLT-TEMPORAL-PURITY-01| O-TEMPORAL-GATE
@@ -231,6 +235,8 @@ candidate that would settle it — an open row with no candidate fails validatio
 | `I-QUEUE-ENGINE` | Priority queue engine | Two-band constraint allocation over eligible work. | `priority_queue_engine.py` | live | Z2 supersedes |
 | `I-CORPUS-VALIDATOR` | Corpus integrity validator | Recomputes the Learning Index per row and flags mismatch, anchoring and missing-timestamp defects in the published corpus. | `tools/corpus_integrity_validator.py` | live | Z2 supersedes |
 | `I-INTENT-GRAPH` | Intent graph renderer | Validates this file against the tree and renders INTENT_GRAPH.md. Reports orphans, unresolved sources and open conflicts. | `tools/intent_graph_v1_0.py` | proposed | Z2 supersedes |
+| `I-Z1-QUEUE-REPORT` | Z2 queue report | Reads z1-inbox/INDEX.yaml and reports, as JSON, the number of candidates, how many await Z2, the number of records, the open list and any falsifier waivers. | `.z1-control/validate.py` | live | Z2 supersedes |
+| `I-DOC-TRIAGE` | Document review triage | Counts controlled documents in document-registry.yaml that have no owner or have never been reviewed. | `.doc-control/review.py` | live | Z2 supersedes |
 
 ---
 
@@ -258,14 +264,12 @@ No errors: every node resolves to a path in the tree, every objective reaches
 the vision, every objective and gate is grounded, and every open contradiction
 names a candidate.
 
-**7 warning(s)** — reported, not blocking:
+**5 warning(s)** — reported, not blocking:
 
 - W1 G-FALSIFIER-LINT: cited by CLAUDE.md with no implementation found
-- W6 edge[50] O-DOC-CONTROL-conflicts_with->O-TEMPORAL-GATE: q_ref Q-TEMPORAL-DISSOLUTION-01 is well-formed but not indexed in z1-inbox/INDEX.yaml — check it is not a typo for a real candidate
+- W6 edge[52] O-DOC-CONTROL-conflicts_with->O-TEMPORAL-GATE: q_ref Q-TEMPORAL-DISSOLUTION-01 is well-formed but not indexed in z1-inbox/INDEX.yaml — check it is not a typo for a real candidate
 - W2 O-TEMPORAL-GATE: no instrument measures this objective
 - W2 O-WITNESS: no instrument measures this objective
-- W2 O-DECISION-ROUTING: no instrument measures this objective
-- W2 O-DOC-CONTROL: no instrument measures this objective
 - W2 O-IDENTITY-ANCHOR: no instrument measures this objective
 
 ---
