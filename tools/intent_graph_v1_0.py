@@ -1058,7 +1058,7 @@ def run_smoke_test() -> int:
     errors, _ = validate(quoting, root=ROOT)
     check("conflicts_with row may quote a prohibited control", errors == [])
 
-    # W8 — an anchor that no longer appears in its source warns, never blocks.
+    # W8 — an anchor that no longer appears in its source warns; it does not block.
     moved = yaml.safe_load(_FIXTURE)
     moved["nodes"][0]["anchor"] = "A heading that is not in README.md xq7"
     errors, warnings = validate(moved, root=ROOT)
