@@ -1,9 +1,12 @@
 name: agent-api-monitor
 
-# Run daily at 09:00 UTC
+# Ran daily at 09:00 UTC until the pause below.
 on:
   # Schedule paused by Q-AGENT-WORKFLOWS-01 W2 (2026-11-26): Supabase legacy API keys were disabled 2026-09-10.
-  # Re-enable the daily cron when SUPABASE_KEY is rotated to a current key. Manual runs still work.
+  # Re-enable the daily cron when SUPABASE_KEY is rotated to a current key, and METACULUS_TOKEN and
+  # SLACK_WEBHOOK_URL are set (on 2026-11-25 the Metaculus check got HTTP 403 and no alert was sent).
+  # A green run does not prove Metaculus is healthy: the script exits 0 even when a check fails.
+  # Manual runs still work.
   workflow_dispatch:
 
 permissions:

@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 233
+  tools: 234
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 184
+  builder_markers_present: 185
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2960,6 +2960,19 @@ tools:
   purpose: z2_authorized_machine_identities_api_v0.py — optional read-only local /api/z2-authorized-machine-identities
     mirror.
   session: S-112026-intent-os-machine-identity-api
+- tool_id: HAIOS-TOOL-247
+  name: render_workflow_inventory
+  path: tools/render_workflow_inventory.py
+  version: 1.1.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Regenerate the workflow inventory inside .github/WORKFLOWS.md.
+  session: S-112826-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
