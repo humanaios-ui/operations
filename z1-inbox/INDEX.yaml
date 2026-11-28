@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 137
+  candidates: 138
   records: 97
 ratifiers:
 - Night
 candidates:
+- q_id: Q-TEMPORAL-DISSOLUTION-01
+  title: "Index filing: no clock authority over internal work (policy already in the tree; open graph conflict remains)"
+  path: "z1-inbox/2026-11-28/Q-TEMPORAL-DISSOLUTION-01.md"
+  submitted: '2026-11-28'
+  status: awaiting_z2
+  tier: 0
+  note: "W6 fix for issue #1391. INTENT_GRAPH.yaml cites this q_ref on the open O-DOC-CONTROL conflicts_with O-TEMPORAL-GATE edge, but the id was not in this index. The policy text is already at TEMPORAL_DISSOLUTION_POLICY.md (proposed, not effective until ratification). This entry indexes the existing q_ref; it does not ratify the policy, close the conflict, or change any control surface."
 - q_id: Q-STALE-QUEUE-SORT-01
   title: "Sort of the 37 candidates waiting since 2026-09-08 to 09-19: 14 recorded as in effect, 18 lapsed, 2 rejected, 3 left for Z2 (amends W6 of Q-AGENT-WORKFLOWS-01)"
   path: "z1-inbox/2026-11-28/Q-STALE-QUEUE-SORT-01.md"
