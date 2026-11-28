@@ -1,0 +1,456 @@
+"""Synthetic tests for the EXPERIMENT-ONLY token-attractor pilot. No real profile data."""
+import json
+import os
+import re
+import stat
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+from resource_miner.experiments import token_attractor as ta
+from resource_miner.models import ResourceCandidate
+
+REV = "a" * 40
+
+
+def setUpModule():
+    # The research tests need both keys; the default-off tests below clear the env themselves.
+    os.environ[ta.EXPERIMENT_ENV] = "1"
+
+
+_PRIOR_ENV = os.environ.get(ta.EXPERIMENT_ENV)
+
+
+def tearDownModule():
+    if _PRIOR_ENV is None:
+        os.environ.pop(ta.EXPERIMENT_ENV, None)
+    else:
+        os.environ[ta.EXPERIMENT_ENV] = _PRIOR_ENV
+MASTER = {
+    "competencies": {
+        "data_quality": ["Assay Validation Practice", "Data Pipeline Basics"],
+        "ai_research": ["AI Evaluation Practice", "Calibration Protocol Review"],
+        "operations": ["Process Improvement (Lean)", "Cause Review Practice"],
+        "technical_skills": {
+            "quality_compliance": ["HPLC", "Regulatory Auditing (ISO, GLP)"],
+            "data_analytics": ["Python"],
+            "ai_infrastructure": [],
+            "infrastructure": ["GitHub Actions"],
+        },
+    },
+    "experience": [{
+        "role": "Quality Director", "organization": "Sample Hospital",
+        "duration_display": "2020-2023", "summary": "Directed patient safety and quality programs.",
+        "bullets": ["Used HPLC validation to qualify a new assay in the laboratory."],
+    }],
+    "achievements": [{"category": "x", "items": [
+        {"title": "Built an AI evaluation rubric", "description": "Behavioral rubric with calibration."}]}],
+    "project_evidence": [{
+        "title": "Lab buildout", "mandate": "Establish a laboratory capability.",
+        "evidence_bullets": ["Authored SOPs for the laboratory."],
+        "evidence_ref": "owner-supplied-local-docx:sha256-synthetic", "review_status": "APPROVED"}],
+    "publications": [{"title": "A study", "status": "published"}],
+    "education": [{"degree": "BS Chemistry", "school": "Sample University"}],
+}
+PER = [{"project_id": "PER-X", "constraints": ["pre-revenue environment"]}]
+
+
+def resource(rid, title, desc="", **kw):
+    return ResourceCandidate(resource_id=rid, title=title, source_name="s", source_url="https://x.invalid/" + rid,
+                             canonical_url="https://x.invalid/" + rid, discovery_method="t",
+                             discovered_at="2026-10-30", description=desc, **kw)
+
+
+class TokenTests(unittest.TestCase):
+    def setUp(self):
+        self.tokens = ta.build_tokens(MASTER, REV, PER)
+        self.supports = ta.classify(self.tokens)
+
+    def test_every_token_keeps_provenance_status_and_meaning(self):
+        self.assertTrue(self.tokens)
+        for t in self.tokens:
+            self.assertIn(t["type"], ta.TOKEN_TYPES)
+            for k in ("source_path", "source_revision", "evidence_ref", "approval_status", "meaning"):
+                self.assertTrue(t[k], (k, t["label"]))
+        self.assertEqual(len({t["token_id"] for t in self.tokens}), len(self.tokens))
+
+    def test_all_six_types_are_produced(self):
+        self.assertEqual({t["type"] for t in self.tokens}, set(ta.TOKEN_TYPES))
+
+    def test_approval_status_is_carried_not_upgraded(self):
+        by = {t["source_path"]: t for t in self.tokens}
+        self.assertEqual(by["project_evidence[0]"]["approval_status"], "APPROVED")
+        self.assertEqual(by["competencies.data_quality[0]"]["approval_status"], "OWNER_COMMITTED_MASTER")
+        self.assertEqual(by["per:PER-X.constraints[0]"]["approval_status"], "SEED_RECORD")
+
+    def test_token_without_source_is_refused(self):
+        with self.assertRaises(ValueError):
+            ta.make_token("CAPABILITY", "x", "", REV, "ref", "S")
+        with self.assertRaises(ValueError):
+            ta.make_token("CAPABILITY", "x", "p", REV, "", "S")
+        with self.assertRaises(ValueError):
+            ta.make_token("MAGIC", "x", "p", REV, "r", "S")
+
+    def test_normalization_groups_without_collapsing_distinct_facts(self):
+        lab = [e for e in self.supports if e["to"] == "LABORATORY_OPERATIONS"]
+        self.assertGreaterEqual(len({e["from"] for e in lab}), 2)  # separate tokens, one concept
+        hplc_a = [t for t in self.tokens if "HPLC" in t["label"]]
+        self.assertGreaterEqual(len(hplc_a), 2)
+        self.assertEqual(len({t["token_id"] for t in hplc_a}), len(hplc_a))
+
+    def test_constraints_never_support_a_capability_concept(self):
+        cons = ta.build_tokens({}, REV, [{"project_id": "PER-Y", "constraints": ["regulated laboratory environment, CLIA audits"]}])
+        self.assertEqual({x["type"] for x in cons}, {"CONSTRAINT"})
+        self.assertEqual(ta.classify(cons), [])
+
+    def test_structural_edges(self):
+        edges = ta.structural_edges(self.tokens)
+        kinds = {e["type"] for e in edges}
+        self.assertIn("DERIVED_FROM", kinds)
+        self.assertIn("REQUIRES", kinds)  # the bullet that names HPLC requires the HPLC method token
+        self.assertTrue(all(e["state"] == "SOURCE_BACKED" for e in edges))
+
+    def test_transfer_edges_are_hypotheses_and_unlisted_jumps_are_refused(self):
+        for e in ta.transfer_edges():
+            self.assertEqual((e["type"], e["state"]), ("TRANSFERABLE_HYPOTHESIS", "HYPOTHESIS"))
+        with self.assertRaises(ValueError):
+            ta.propose_transfer("LABORATORY_OPERATIONS", "AI_EVALUATION")
+        with self.assertRaises(ValueError):
+            ta.propose_transfer("LABORATORY_OPERATIONS", "CTRL_LICENSED_CLINICAL_PRACTICE")
+
+    def test_contradiction_needs_reconciliation_never_settled(self):
+        e = ta.contradiction_edge("TK-a", "TK-b", "different sources")
+        self.assertEqual((e["type"], e["state"]), ("CONTRADICTS", "RECONCILIATION_REQUIRED"))
+
+    def test_predicates_carry_no_personal_text(self):
+        members = ta.backed_concepts(self.tokens, self.supports)
+        for c in members:
+            blob = json.dumps([ta.predicate_need(c, ta.expanded_signals(c, with_hypothesis=True, experiment=True), "B2"),
+                               ta.predicate_need(c, ta.literal_signals(self.tokens, members[c]), "A")]).casefold()
+            for private in ("sample hospital", "sample university", "quality director", "directed patient"):
+                self.assertNotIn(private, blob)
+
+    def test_source_backing_gate_and_hypothesis_superset(self):
+        corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark")]
+        arms = ta.run_arms(self.tokens, self.supports, corpus, experiment=True, include_transfer_hypotheses=True)
+        self.assertEqual(arms["gated_out"], [])  # all six concepts have a supporting token here
+        thin = ta.run_arms([t for t in self.tokens if t["type"] == "CONSTRAINT"], [], corpus, experiment=True, include_transfer_hypotheses=True)
+        self.assertEqual(thin["predicates"], {})  # nothing backed -> nothing asked
+        self.assertEqual(len(thin["gated_out"]), len(ta.CONCEPTS))
+        for c in ("AI_EVALUATION", "ANALYTICAL_METHOD_VALIDATION"):
+            self.assertTrue(set(ta.expanded_signals(c, with_hypothesis=False, experiment=True))
+                            <= set(ta.expanded_signals(c, with_hypothesis=True, experiment=True)))
+            h1 = {h["resource_id"] for h in arms["hits"][f"{c}|B1"]}
+            h2 = {h["resource_id"] for h in arms["hits"][f"{c}|B2"]}
+            self.assertTrue(h1 <= h2)
+
+    def test_matches_never_assess_eligibility_and_flag_credentials(self):
+        corpus = [resource("r1", "PhD only evaluation benchmark fellowship",
+                           "licensed applicants; evaluation and benchmark and calibration")]
+        hits = ta.discover({"k": ta.predicate_need("AI_EVALUATION", ["evaluation", "benchmark"], "B1")}, corpus)["k"]
+        self.assertEqual(len(hits), 1)
+        self.assertFalse(hits[0]["eligibility_assessed"])
+        self.assertEqual(hits[0]["eligibility_status"], "UNASSESSED")
+        self.assertTrue(hits[0]["credential_flags"])
+
+    def test_controls_are_refused_and_nonsense_matches_nothing(self):
+        corpus = [resource("r1", "AI safety benchmark grant", "evaluation calibration validation")]
+        out = ta.run_controls(corpus)
+        for cid in out:
+            self.assertEqual(out[cid]["gate"], "REFUSED_NO_SOURCE_BACKING")
+        self.assertEqual(out["CTRL_NONSENSE"]["bypassed_matches"], [])
+        self.assertEqual(out["CTRL_QUANTUM_HARDWARE"]["bypassed_matches"], [])
+
+    def test_intent_os_preview_stays_non_eligibility(self):
+        corpus = [resource("r1", "AI evaluation fellowship", "model evaluation benchmark program")]
+        corpus[0].source_name = "HumanAIOS Funding Pipeline"
+        corpus[0].primary_source_url = "https://example.org/prog"
+        out = ta.intent_os_preview("AI evaluation fellowship", corpus)
+        self.assertTrue(out["candidates"])
+        self.assertTrue(all(c["eligibility_assessed"] is False for c in out["candidates"]))
+        self.assertNotIn("eligible", json.dumps([c.get("status") for c in out["candidates"]]).lower())
+
+    def test_human_reported_outcome_is_distinct_from_the_draft(self):
+        rec = ta.human_reported_submission("Slack", "2026-10-30", {"draft.docx": "ab" * 32})
+        self.assertEqual(rec["status"], "HUMAN_REPORTED_RESUME_SUBMITTED")
+        self.assertFalse(rec["linked_to_unapproved_draft"])
+        self.assertFalse(rec["verified_by_system"])
+        for k in ("client", "job_requirements", "match_outcome", "contract_status"):
+            self.assertEqual(rec[k], "UNKNOWN")
+        self.assertEqual(rec["draft_status"], "UNAPPROVED_NOT_SUBMITTED")
+        self.assertFalse({"email", "phone", "contact", "name"} & set(rec))
+
+
+class StrictMatcherTests(unittest.TestCase):
+    """P3 corrections, each tied to a P2 adjudication finding."""
+
+    def setUp(self):
+        self.tokens = ta.build_tokens(MASTER, REV, PER)
+        self.supports = ta.classify(self.tokens)
+
+    def _pred(self, own, signals):
+        return {"k": ta.predicate_need("AI_EVALUATION", signals, "B2", own=own)}
+
+    def test_neighbour_signals_alone_cannot_create_a_match(self):
+        corpus = [resource("r1", "Program launch", "a long enough description about coordination and operations work")]
+        pred = self._pred(["evaluation"], ["evaluation", "coordination", "operations"])
+        self.assertEqual(len(ta.discover(pred, corpus)["k"]), 1)          # P1 behaviour
+        self.assertEqual(ta.discover_strict(pred, corpus)["k"], [])        # P3: no own-signal hit
+
+    def test_in_word_hits_are_rejected_stem_prefixes_still_work(self):
+        corpus = [resource("r1", "Cooperation board", "a long enough description of cooperations and reproducibility work")]
+        self.assertEqual(ta.discover_strict(self._pred(["operations"], ["operations"]), corpus, ta.ANY_HIT)["k"], [])
+        hit = ta.discover_strict(self._pred(["reproducib"], ["reproducib"]), corpus, ta.ANY_HIT)["k"]
+        self.assertEqual(len(hit), 1)
+
+    def test_thin_text_and_domain_requirements_are_flagged_not_hidden(self):
+        corpus = [resource("r1", "Evaluation role", "evaluation; chemistry background required"),
+                  resource("r2", "Evaluation program", "A sufficiently long description of an evaluation program open to many applicants everywhere.")]
+        hits = {h["resource_id"]: h for h in ta.discover_strict(self._pred(["evaluation"], ["evaluation"]), corpus, ta.ANY_HIT)["k"]}
+        self.assertTrue(hits["r1"]["thin_text"])
+        self.assertTrue(hits["r1"]["domain_requirement_flags"])
+        self.assertFalse(hits["r2"]["thin_text"])
+        self.assertTrue(all(h["eligibility_assessed"] is False for h in hits.values()))
+
+    def test_strict_results_are_a_subset_of_baseline_results(self):
+        corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark program text here"),
+                  resource("r2", "Coordination job", "coordination and operations and delivery for program launch teams")]
+        base = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT, experiment=True, include_transfer_hypotheses=True)
+        strict = ta.run_arms(self.tokens, self.supports, corpus, ta.ANY_HIT, strict=True, experiment=True, include_transfer_hypotheses=True)
+        for k, hs in strict["hits"].items():
+            self.assertTrue({h["resource_id"] for h in hs} <= {h["resource_id"] for h in base["hits"][k]})
+
+    def test_strict_gate_needs_a_non_outcome_approved_token(self):
+        outcome_only = [t for t in self.tokens if t["type"] == "OUTCOME"]
+        sup = ta.classify(outcome_only)
+        self.assertTrue(ta.backed_concepts(outcome_only, sup))             # P1 gate would open
+        arms = ta.run_arms(outcome_only, sup, [resource("r", "x", "evaluation validation")], strict=True)
+        self.assertEqual(arms["predicates"], {})                           # strict gate stays shut
+
+    def test_strict_controls_still_match_nothing(self):
+        corpus = [resource("r1", "AI benchmark grant", "evaluation calibration validation of models and data")]
+        out = ta.run_controls(corpus, strict=True)
+        self.assertEqual(out["CTRL_NONSENSE"]["bypassed_matches"], [])
+        self.assertEqual(out["CTRL_QUANTUM_HARDWARE"]["bypassed_matches"], [])
+
+
+class ReviewerChallengeRegressions(unittest.TestCase):
+    """One test per confirmed finding of the independent challenge."""
+
+    def _tok(self, label, path="competencies.x[0]", ttype="CAPABILITY", rev=REV):
+        return ta.make_token(ttype, label, path, rev, "ref", "OWNER_COMMITTED_MASTER")
+
+    def test_baseline_phrase_normalization_collapses_whitespace(self):  # finding 7
+        self.assertEqual(ta._norm_phrase("Process Improvement (Lean)"), "process improvement lean")
+        self.assertEqual(ta._norm_phrase("Regulatory Auditing (ISO, GLP)"), "regulatory auditing iso glp")
+        hit = ta.discover_strict({"k": ta.predicate_need("PROJECT_DELIVERY", ["process improvement lean"], "A")},
+                                 [resource("r", "x", "a role in process improvement lean work for teams everywhere here")],
+                                 ta.ANY_HIT)["k"]
+        self.assertEqual(len(hit), 1)
+
+    def test_fair_bag_baseline_is_built_from_skill_phrases_only(self):  # finding 7
+        t = [self._tok("Calibration Protocol Review"), self._tok("Led the Acme program in 2019", path="experience[0].bullets[0]", ttype="OUTCOME")]
+        sig = ta.bag_signals(t, [x["token_id"] for x in t])
+        self.assertIn("calibration", sig)
+        self.assertIn("calibration protocol", sig)
+        self.assertFalse(any("acme" in x for x in sig))
+
+    def test_personal_text_cannot_reach_the_matcher(self):  # finding 14
+        master = {"contact": {"legal_name": "Jane Doe"}, "experience": [{"organization": "Acme Hospital"}]}
+        terms = ta.private_terms_from_master(master)
+        self.assertTrue({"jane", "acme"} <= terms)
+        long_label = self._tok("Quality lead at Acme Hospital Jane Doe")          # > 5 words: never literal
+        self.assertEqual(ta.literal_signals([long_label], [long_label["token_id"]]), [])
+        short_label = self._tok("Acme quality")                                   # short but names an employer
+        sup = ta.classify([short_label]) or [ta.make_edge("SUPPORTS", short_label["token_id"], "PROJECT_DELIVERY", "SOURCE_BACKED", "t")]
+        with self.assertRaises(ValueError):
+            ta.run_arms([short_label], sup, [resource("r", "x", "y")], private_terms=terms)
+        outcome = self._tok("Jane Doe 2019 award", path="achievements[0].items[0]", ttype="OUTCOME")
+        self.assertEqual(ta.literal_signals([outcome], [outcome["token_id"]]), [])  # not a competency phrase
+
+    def test_classifier_no_longer_overmatches(self):  # finding 15
+        for label in ("Collaborator network lead", "Cap table management", "Language proficiency Spanish",
+                      "Worked in a lab-grown meat startup", "Risk management in startups",
+                      "Statistical review of sports"):
+            self.assertEqual(ta.classify([self._tok(label)]), [], label)
+        for label, concept in (("Regulatory Auditing (ISO, GLP)", "HEALTHCARE_QUALITY_SYSTEMS"),
+                               ("Laboratory operations", "LABORATORY_OPERATIONS"),
+                               ("Proficiency testing program", "ANALYTICAL_METHOD_VALIDATION")):
+            self.assertIn(concept, [e["to"] for e in ta.classify([self._tok(label)])], label)
+
+    def test_employer_name_cannot_open_a_concept(self):  # finding 16
+        master = {"experience": [{"role": "Analyst", "organization": "Hospital Corp", "duration_display": "2020",
+                                  "summary": "Prepared weekly reports."}]}
+        toks = ta.build_tokens(master, REV)
+        self.assertEqual(ta.classify(toks), [])
+        arms = ta.run_arms(toks, ta.classify(toks), [resource("r", "x", "y")], strict=True)
+        self.assertEqual(arms["predicates"], {})
+
+    def test_credential_detector_covers_common_requirements(self):  # finding 17
+        for text in ("MBA required", "bachelor's degree required", "Master's degree", "ph.d. required",
+                     "must have security clearance", "for women-led companies"):
+            self.assertTrue(ta.credential_flags(resource("r", text)), text)
+        self.assertFalse(ta.credential_flags(resource("r", "Open evaluation program", "Anyone may apply to this open program.")))
+
+    def test_token_id_distinguishes_type_and_revision(self):  # finding 19
+        a = self._tok("Same label", rev="a" * 40)
+        b = self._tok("Same label", rev="b" * 40)
+        c = self._tok("Same label", ttype="OUTCOME")
+        self.assertEqual(len({a["token_id"], b["token_id"], c["token_id"]}), 3)
+
+    def test_hits_carry_the_source_url(self):  # finding 18
+        r = resource("r1", "Evaluation fellowship", "a long enough description about evaluation and benchmark programs")
+        hits = ta.discover_strict({"k": ta.predicate_need("AI_EVALUATION", ["evaluation", "benchmark"], "B1")}, [r])["k"]
+        self.assertEqual(hits[0]["source_url"], r.source_url)
+
+    def test_failed_write_leaves_no_partial_file_and_allows_retry(self):  # finding 20
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "x.json"
+            with self.assertRaises(TypeError):
+                ta.write_private_json(out, {"bad": object()}, guard_dir=False)
+            self.assertFalse(out.exists())
+            ta.write_private_json(out, {"ok": 1}, guard_dir=False)
+            self.assertEqual(json.loads(out.read_text()), {"ok": 1})
+
+    def test_control_gate_is_computed_from_backing_not_asserted(self):
+        corpus = [resource("r1", "x", "clinical trial site licensed physician fda")]
+        refused = ta.run_controls(corpus)
+        self.assertEqual(refused["CTRL_LICENSED_CLINICAL_PRACTICE"]["gate"], "REFUSED_NO_SOURCE_BACKING")
+        backed = ta.run_controls(corpus, members={"CTRL_LICENSED_CLINICAL_PRACTICE": ["TK-x"]})
+        self.assertEqual(backed["CTRL_LICENSED_CLINICAL_PRACTICE"]["gate"], "BACKED")
+        self.assertEqual(refused["CTRL_NONSENSE"]["gate"], "REFUSED_NO_SOURCE_BACKING")
+
+    def test_control_concepts_are_non_empty_and_checked(self):  # finding 26
+        for cid, spec in ta.CONTROL_CONCEPTS.items():
+            self.assertTrue(spec["discover"], cid)
+        trap = [resource("r1", "Clinical trial site", "licensed physician needed for clinical trial patient care and fda work")]
+        out = ta.run_controls(trap)
+        self.assertTrue(out["CTRL_LICENSED_CLINICAL_PRACTICE"]["bypassed_matches"])  # the detector can fire...
+        self.assertTrue(all(m["eligibility_assessed"] is False
+                            for m in out["CTRL_LICENSED_CLINICAL_PRACTICE"]["bypassed_matches"]))  # ...but never claims eligibility
+        self.assertEqual(out["CTRL_LICENSED_CLINICAL_PRACTICE"]["gate"], "REFUSED_NO_SOURCE_BACKING")
+
+    def test_git_guard_runs_even_when_tempdir_is_not_in_a_repo(self):  # finding 27
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp, mock.patch("resource_miner.application_portfolio._inside_git_work_tree", return_value=True):
+            with self.assertRaises(ValueError):
+                ta.write_private_json(Path(tmp) / "x.json", {"a": 1})
+            self.assertFalse((Path(tmp) / "x.json").exists())
+
+
+class ExperimentOnlyBoundaryTests(unittest.TestCase):
+    """The pilot's result was negative: expansion and transfer matching are off by default."""
+
+    def setUp(self):
+        from unittest import mock
+        self._env = mock.patch.dict(os.environ, {}, clear=False)
+        self._env.start()
+        os.environ.pop(ta.EXPERIMENT_ENV, None)
+        self.addCleanup(self._env.stop)
+        self.tokens = ta.build_tokens(MASTER, REV, PER)
+        self.supports = ta.classify(self.tokens)
+        self.corpus = [resource("r1", "Validation fellowship", "assay validation and evaluation benchmark program text here")]
+
+    def test_expansion_flags_are_not_decorative_constants(self):
+        self.assertFalse(hasattr(ta, "CONCEPT_EXPANSION_ENABLED"))
+        self.assertFalse(hasattr(ta, "TRANSFER_HYPOTHESIS_MATCHING_ENABLED"))
+
+    def test_expansion_tagged_predicates_are_gated_where_they_reach_the_matcher(self):
+        pred = {"k": ta.predicate_need("AI_EVALUATION", ["evaluation"], "B1")}
+        for run in (ta.discover, ta.discover_strict):
+            with self.assertRaises(ta.ExperimentOnlyError):
+                run(pred, self.corpus)
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        self.assertEqual(set(ta.discover(pred, self.corpus)), {"k"})
+        pred_b2 = {"k": ta.predicate_need("AI_EVALUATION", ["evaluation"], "B2")}
+        os.environ.pop(ta.EXPERIMENT_ENV)
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.discover_strict(pred_b2, self.corpus)
+
+    def test_experiment_argument_must_be_literally_true(self):
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        for bad in ("no", 1, "yes", None):
+            with self.assertRaises(ta.ExperimentOnlyError):
+                ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=bad)
+
+    def test_environment_value_must_be_exactly_one(self):
+        for val in ("true", "01", " 1", "yes", ""):
+            os.environ[ta.EXPERIMENT_ENV] = val
+            with self.assertRaises(ta.ExperimentOnlyError):
+                ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=True)
+
+    def test_default_run_has_baselines_only(self):
+        arms = ta.run_arms(self.tokens, self.supports, self.corpus)
+        suffixes = {k.split("|")[1] for k in arms["predicates"]}
+        self.assertEqual(suffixes, {"A", "A2"})
+
+    def test_expansion_needs_both_keys(self):
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.expanded_signals("AI_EVALUATION", with_hypothesis=False)                 # no keys
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=True)  # arg only
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.expanded_signals("AI_EVALUATION", with_hypothesis=False)                 # env only
+        self.assertTrue(ta.expanded_signals("AI_EVALUATION", with_hypothesis=False, experiment=True))
+
+    def test_run_arms_experiment_requires_the_environment_key(self):
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.run_arms(self.tokens, self.supports, self.corpus, experiment=True)
+        with self.assertRaises(ta.ExperimentOnlyError):
+            ta.run_arms(self.tokens, self.supports, self.corpus, include_transfer_hypotheses=True)
+
+    def test_transfer_hypothesis_arm_needs_its_own_flag(self):
+        os.environ[ta.EXPERIMENT_ENV] = "1"
+        b1 = ta.run_arms(self.tokens, self.supports, self.corpus, experiment=True)
+        self.assertNotIn("B2", {k.split("|")[1] for k in b1["predicates"]})
+        self.assertIn("B1", {k.split("|")[1] for k in b1["predicates"]})
+        b2 = ta.run_arms(self.tokens, self.supports, self.corpus, experiment=True, include_transfer_hypotheses=True)
+        self.assertIn("B2", {k.split("|")[1] for k in b2["predicates"]})
+
+    def test_nothing_outside_the_pilot_references_it_anywhere_in_the_tree(self):
+        repo = Path(__file__).resolve().parents[3]
+        allowed = {"resource_miner/experiments/token_attractor.py", "resource_miner/experiments/__init__.py",
+                   "tests/test_experiments_token_attractor.py",
+                   "docs/TOKEN_ATTRACTOR_NEGATIVE_RESULT.md", "docs/EXPERIMENT_PROPOSAL_EVIDENCE_ACCURACY_BURDEN_V0_1.md"}
+        base = repo / "humanaios-funding-pipeline" / "resource-miner"
+        offenders = []
+        for f in repo.rglob("*"):
+            if not f.is_file() or f.suffix not in {".py", ".yml", ".yaml", ".md", ".sh", ".toml", ".json", ".cjs", ".js"}:
+                continue
+            if any(part in {".git", "node_modules", "__pycache__"} for part in f.parts):
+                continue
+            rel = f.relative_to(base).as_posix() if base in f.parents else None
+            if rel in allowed:
+                continue
+            try:
+                text = f.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            if "token_attractor" in text or re.search(r"resource_miner\.experiments|from\s+\.+\s*experiments|from\s+resource_miner\s+import\s+experiments", text):
+                offenders.append(f.relative_to(repo).as_posix())
+        self.assertEqual(offenders, [])
+
+
+class PrivateWriteTests(unittest.TestCase):
+    def test_exclusive_0600_and_refuses_git_work_tree(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            probe = subprocess.run(["git", "-C", tmp, "rev-parse", "--is-inside-work-tree"],
+                                   capture_output=True, text=True)
+            repo = Path(tmp) / "r"
+            repo.mkdir()
+            subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
+            with self.assertRaises(ValueError):
+                ta.write_private_json(repo / "x.json", {"a": 1})
+            if probe.returncode == 0:
+                self.skipTest("temp dir inside a git work tree")
+            out = Path(tmp) / "ok.json"
+            ta.write_private_json(out, {"a": 1})
+            self.assertEqual(stat.S_IMODE(out.stat().st_mode), 0o600)
+            with self.assertRaises(FileExistsError):
+                ta.write_private_json(out, {"a": 2})
+
+
+if __name__ == "__main__":
+    unittest.main()

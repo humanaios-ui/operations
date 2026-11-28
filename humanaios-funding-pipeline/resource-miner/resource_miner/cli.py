@@ -69,6 +69,48 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--events-ledger", default=str(DEFAULT_CLAIM_EVENTS))
     resolve.add_argument("--dry-run", action="store_true")
 
+    profile = sub.add_parser(
+        "portfolio-check",
+        help="Read-only controlled profile resource drift check (local, approval-gated)",
+    )
+    profile.add_argument("--personal-projection", required=True)
+    profile.add_argument("--business-anchor", required=True)
+    profile.add_argument("--consumer-snapshot", required=True)
+    profile.add_argument("--prior-revisions")
+
+    local_profile = sub.add_parser(
+        "connect-private-profile",
+        help="On-demand owner-approved read from three local git checkouts",
+    )
+    local_profile.add_argument("--private-checkout", required=True)
+    local_profile.add_argument("--operations-checkout", required=True)
+    local_profile.add_argument("--consumer-checkout", required=True)
+    local_profile.add_argument("--owner-approved", action="store_true")
+    local_profile.add_argument("--prior-revisions")
+
+    app = sub.add_parser(
+        "render-private-application",
+        help="Build a review-only DOCX using the private master and local style template",
+    )
+    app.add_argument("--private-checkout", required=True)
+    app.add_argument("--template", required=True)
+    app.add_argument("--output", required=True)
+    app.add_argument("--target", default="")
+    app.add_argument("--max-projects", type=int, default=5)
+    app.add_argument("--owner-approved", action="store_true")
+    app.add_argument("--operations-checkout")
+
+    presence = sub.add_parser(
+        "profile-presence",
+        help="Owner-approved, read-only public profile inventory and review",
+    )
+    presence.add_argument("--private-checkout", required=True)
+    presence.add_argument("--candidate-observations", help="Local Resource Miner public-result snapshot JSON")
+    presence.add_argument("--probe-public", action="store_true",
+                          help="Contact only fixed public GitHub/ORCID read APIs")
+    presence.add_argument("--owner-approved", action="store_true")
+    presence.add_argument("--github-alias", help="Explicit owner-selected public alias to search GitHub once")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -92,8 +134,100 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
     return requirements
 
 
+def _safe_reason(exc: BaseException) -> str:
+    """Short, fixed-vocabulary reason; never echo parser or file contents."""
+    if isinstance(exc, (ValueError, RuntimeError, PermissionError, FileExistsError)):
+        return str(exc)[:120]
+    return "local file or git access failed"
+
+
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "profile-presence":
+        from .private_profile_bridge import load_private_master
+        from .profile_presence import observe_owner_presence
+        if not args.owner_approved:
+            raise SystemExit("owner approval required: supply --owner-approved")
+        try:
+            master, revision = load_private_master(args.private_checkout)
+        except (ValueError, RuntimeError, PermissionError, OSError) as exc:
+            raise SystemExit(f"profile-presence failed: {_safe_reason(exc)}") from None
+        observations = (
+            json.loads(Path(args.candidate_observations).read_text(encoding="utf-8"))
+            if args.candidate_observations else []
+        )
+        if args.github_alias:
+            from .profile_presence import search_github_alias
+            search_result = search_github_alias(args.github_alias, owner_approved=True)
+            observations = observations + search_result["observations"]
+        else:
+            search_result = {"state": "NOT_REQUESTED", "observations": []}
+        report = observe_owner_presence(
+            master, owner_approved=True, observations=observations,
+            probe_public=args.probe_public,
+        )
+        report["search_state"] = search_result["state"]
+        report["private_source_revision"] = revision
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
+
+    if args.command == "render-private-application":
+        from .application_portfolio import build_application
+        if not args.owner_approved:
+            raise SystemExit("owner approval required: supply --owner-approved")
+        if not (1 <= args.max_projects <= 12):
+            raise SystemExit("--max-projects must be between 1 and 12")
+        protected = (
+            (Path(args.operations_checkout).expanduser().resolve(),)
+            if args.operations_checkout else ()
+        )
+        try:
+            receipt = build_application(
+                args.private_checkout, args.template, args.output,
+                target=args.target, max_projects=args.max_projects,
+                forbidden_checkouts=protected,
+            )
+        except (ValueError, RuntimeError, PermissionError, OSError) as exc:
+            raise SystemExit(f"render-private-application failed: {_safe_reason(exc)}") from None
+        print(json.dumps(receipt, indent=2, sort_keys=True))
+        return
+
+    if args.command == "connect-private-profile":
+        from .private_profile_bridge import read_local_portfolio
+        if not args.owner_approved:
+            raise SystemExit("owner approval required: supply --owner-approved")
+        prior = (
+            json.loads(Path(args.prior_revisions).read_text(encoding="utf-8"))
+            if args.prior_revisions else None
+        )
+        try:
+            report = read_local_portfolio(
+                args.private_checkout,
+                args.operations_checkout,
+                args.consumer_checkout,
+                owner_approved=True,
+                prior=prior,
+            )
+        except (ValueError, RuntimeError, PermissionError, OSError) as exc:
+            raise SystemExit(f"connect-private-profile failed: {_safe_reason(exc)}") from None
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
+
+    if args.command == "portfolio-check":
+        from .portfolio_maintainer import observe_portfolio
+
+        def read_local(path: str) -> dict:
+            return json.loads(Path(path).read_text(encoding="utf-8"))
+
+        report = observe_portfolio(
+            read_local(args.personal_projection),
+            read_local(args.business_anchor),
+            read_local(args.consumer_snapshot),
+            prior=read_local(args.prior_revisions) if args.prior_revisions else None,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
 
     if args.command == "reconcile":
         audit = reconcile_snapshot(args.snapshot, args.receipts, args.out, args.audit_out)
