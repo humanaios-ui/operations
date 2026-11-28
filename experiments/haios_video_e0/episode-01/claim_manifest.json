@@ -1,0 +1,129 @@
+{
+  "manifest": "HAIOS-VIDEO-E0 episode-01 claim manifest",
+  "issue": 1329,
+  "status": "DRAFT_NOT_FOR_RELEASE",
+  "authority_effect": "NONE",
+  "receipt": "../observed.json",
+  "code": "../replay.mjs",
+  "allowed_tags": ["observed", "source-reported", "hypothesis", "unknown"],
+  "allowed_human_decisions": ["pending", "approved", "revise", "reject"],
+  "claims": [
+    {
+      "id": "S01",
+      "text": "Four scripted agents share one pool that starts at 100 units, over 60 rounds, with a shortage in rounds 20 to 34.",
+      "tag": "observed",
+      "evidence": [
+        {"pointer": "/agents", "equals": 4},
+        {"pointer": "/cycles", "equals": 60},
+        {"code_contains": "let stock=100"},
+        {"code_contains": "t>=19&&t<=33"}
+      ],
+      "limitation": "Scripted request rules, not AI models. Shortage rounds are zero-based 19 to 33 in code.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "S02",
+      "text": "No agent may take more than 4 units a round under the capped designs, and the gated design keeps a 25-unit reserve.",
+      "tag": "observed",
+      "evidence": [
+        {"code_contains": "grant=Math.min(grant,4)"},
+        {"code_contains": "Math.max(0,stock-25)"}
+      ],
+      "limitation": "Rules are applied by the simulation itself.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "C01",
+      "text": "A synthetic scripted test ran 600 paired runs across 200 seeds and three designs.",
+      "tag": "observed",
+      "evidence": [
+        {"pointer": "/pairedRuns", "equals": 600},
+        {"pointer": "/seedRange/1", "equals": 200},
+        {"pointer": "/pool/A/runs", "equals": 200},
+        {"pointer": "/pool/B/runs", "equals": 200},
+        {"pointer": "/pool/C/runs", "equals": 200}
+      ],
+      "limitation": "Not the earlier unsupported 600-run figure; see CORRECTIONS.md.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "C02",
+      "text": "The gated group retained its reserve in 200/200 runs, compared with 0/200 for both comparison groups.",
+      "tag": "observed",
+      "evidence": [
+        {"pointer": "/pool/C/reservePreserved", "equals": 200},
+        {"pointer": "/pool/A/reservePreserved", "equals": 0},
+        {"pointer": "/pool/B/reservePreserved", "equals": 0}
+      ],
+      "limitation": "True by construction: the gated design cannot grant below the reserve, and the others have no reserve rule.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "C03",
+      "text": "Mean useful work was 591.68 for the gated group, versus 609.72 unrestricted and 609.42 cap-only.",
+      "tag": "observed",
+      "evidence": [
+        {"pointer": "/pool/C/useful", "equals": 591.68},
+        {"pointer": "/pool/A/useful", "equals": 609.72},
+        {"pointer": "/pool/B/useful", "equals": 609.42}
+      ],
+      "limitation": "Useful work is a toy count of units matched to need, not real output.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "C04",
+      "text": "Rules were enforced by construction; live agent behavior, security, social outcomes and human comprehension were not tested.",
+      "tag": "observed",
+      "evidence": [
+        {"pointer": "/scope", "equals": "scripted synthetic; not live AI or human participants"},
+        {"pointer": "/mediaScope/mediumEffectMeasured", "equals": false}
+      ],
+      "limitation": "Scope statement.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "C05",
+      "text": "Humans retain release decisions; no gate or score grants real authority.",
+      "tag": "source-reported",
+      "evidence": [
+        {"source": "CLAUDE.md (Z1 proposes, Z2 ratifies) and issue #1329 AUTHORITY_EFFECT=NONE"}
+      ],
+      "limitation": "Governance rule of this project, not a property of the simulation.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "C06",
+      "text": "Splitting the gated design apart, most of the useful-work cost came from the 25-unit reserve floor (589.22 with reserve alone), not from human consent (613.79 with consent alone); the more even split came from the turn order, not the gate.",
+      "tag": "observed",
+      "evidence": [
+        {"pointer": "/ablation/reserveOnly/useful", "equals": 589.22},
+        {"pointer": "/ablation/consentOnly/useful", "equals": 613.79},
+        {"pointer": "/ablation/orderOnly/allocationSpread", "equals": 12.13},
+        {"pointer": "/ablation/C_noOrder/allocationSpread", "equals": 48.07}
+      ],
+      "limitation": "Ablation arms apply rules directly, not via the gate.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "C07",
+      "text": "In the first draft, 2 of 9 checks could not fail; both were rebuilt and now fail when the rule they check is broken.",
+      "tag": "observed",
+      "evidence": [
+        {"pointer": "/controls/8/name", "equals": "out-of-band mutation detected"},
+        {"pointer": "/controls/8/pass", "equals": true},
+        {"pointer": "/gateWiring/ungatedGrantsInArmC", "equals": 0},
+        {"source": "../AUDIT_2026-11-26.md findings A1 and A2"}
+      ],
+      "limitation": "Audit by one AI agent, not independent human review.",
+      "human_decision": "pending"
+    },
+    {
+      "id": "Q01",
+      "text": "Can AI agents cooperate without taking control?",
+      "tag": "unknown",
+      "evidence": [],
+      "limitation": "This test uses scripted agents, so it cannot answer the question for real AI systems.",
+      "human_decision": "pending"
+    }
+  ]
+}
