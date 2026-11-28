@@ -343,6 +343,37 @@ def _declared_vocab(value: Any) -> set:
     return out
 
 
+def _companion_schema(path: str, reference: Any) -> dict:
+    if not isinstance(reference, str) or not reference:
+        raise GraphLoadError(f"{path}: schema_doc must be a relative Markdown path")
+    graph_dir = os.path.realpath(os.path.dirname(path) or ".")
+    schema_path = os.path.realpath(os.path.join(graph_dir, reference))
+    try:
+        if os.path.commonpath((graph_dir, schema_path)) != graph_dir:
+            raise GraphLoadError(f"{path}: schema_doc escapes the graph directory")
+    except ValueError as exc:
+        raise GraphLoadError(f"{path}: invalid schema_doc path") from exc
+    try:
+        with open(schema_path, encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError as exc:
+        raise GraphLoadError(f"{path}: cannot read schema_doc ({exc})") from exc
+    blocks = list(re.finditer(r"```(?:yaml|yml)\s*\n(.*?)\n```", text, re.S | re.I))
+    if not blocks:
+        raise GraphLoadError(f"{schema_path}: no YAML vocabulary block")
+    try:
+        import yaml  # type: ignore
+        data: dict = {}
+        for match in blocks:
+            block = yaml.safe_load(match.group(1))
+            if not isinstance(block, dict) or set(data) & set(block):
+                raise ValueError("invalid or duplicate vocabulary keys")
+            data.update(block)
+    except Exception as exc:
+        raise GraphLoadError(f"{schema_path}: invalid YAML vocabulary block") from exc
+    return data
+
+
 def normalize(path: str, doc: Any) -> Graph:
     g = Graph(path=path, doc=doc)
     if not isinstance(doc, dict):
@@ -377,6 +408,10 @@ def normalize(path: str, doc: Any) -> Graph:
         if isinstance(value, (dict, list)):
             walk(value, 1)
         g.top[nk] = value
+    if "schema_doc" in doc:
+        schema = _companion_schema(path, doc["schema_doc"])
+        g.node_vocab |= _declared_vocab(schema.get("node_types"))
+        g.rel_vocab |= _declared_vocab(schema.get("edge_types"))
     return g
 
 
