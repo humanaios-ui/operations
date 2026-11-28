@@ -73,10 +73,23 @@ as a new block citing this one. `keep the frozen path` leaves d19 in force uncha
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: a045814a6c43c5c878b0a8262562dc1627bdcb5124aa86b5c22eea2725972503
+body_hash: 5708c50800142c8bfc87c5842e1fc9af905aa74b6e976fa9fc5282aed65d91a3
+
+```
+RULING d33
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Board filename — rename `ui/intent-os-humanaios-v3_3.html` to `ui/intent-os-board.html` as the stable consumer target (a successor to d19's freeze, which pinned the versioned name), with a redirect from the old path so bookmarks and the local-copy instruction keep working?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

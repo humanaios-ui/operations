@@ -89,3 +89,7 @@ This action **creates zone entries for:**
 
 **Proposed Z2 Decision Window:** 48h (after Q-REGISTRY-AUDIT-01 resolved)  
 **Associated:** IC-REGISTRY-002 (active repos missing from authority register)
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect in a flatter shape: all 7 repos are in ZONE_REGISTRY.md as Z-004 to Z-011. This records the layout that shipped. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

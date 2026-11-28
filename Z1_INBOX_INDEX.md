@@ -4,35 +4,26 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**136 candidates** — ⏳ awaiting Z2 37 · ✅ ratified 99 · **96 records**
+**137 candidates** — ⏳ awaiting Z2 28 · ✅ ratified 99 · ⤴️ superseded 2 · ↩️ withdrawn 8 · **96 records**
 
-## Awaiting Z2 (37)
+## Awaiting Z2 (28)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
 | decision due | candidate | what it asks | block |
 |---|---|---|---|
-| 2026-09-10 | **Q-DOC-LIFECYCLE-01** | docs/ lifecycle — disposition for 108 files | `z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md` |
 | 2026-09-12 | **Q-FRAMEWORK-MAPPING-01** ⚠️ falsifier waived | Framework Mapping — 5 AI engineering concepts → Z-roles | `z1-inbox/2026-09-10/FRAMEWORK_MAPPING_CANDIDATE.md` |
-| 2026-09-12 | **Q-FRAMEWORK-MAPPING-INTEGRATION-01** | Framework Mapping governance integration across 31 repos | `z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md` |
-| 2026-09-12 | **Q-NF-SCHEMA-01** | Unify NF_LEDGER schema | `z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md` |
-| 2026-09-13 | **Q-PHASE1-2-ROLLOUT-01** | Framework Mapping Phase 1–3 rollout plan | `z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md` |
-| 2026-09-14 | **Q-ADVREVIEW-CALIB-01** | Adversarial review as a PR-gated calibration node | `z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md` |
-| 2026-09-15 | **Q-CGBG-BASELINE-01** | Adversarial review: CGBG-MARKET-BASELINE-001 (Evidence-Linked Market Observation v0.1) | `z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md` |
-| 2026-09-15 | **Q-CGBG-PILOT-01** | Adversarial review: CGBG Pilot Offer (AI Research Capacity) | `z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-01** | The 39 overdue document reviews — lifecycle, not re-dating | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-02** | Findings from the first real document review pass (11 reviewed, 28 unreachable) | `z1-inbox/2026-09-13/Q-DOCREVIEW-02.md` |
 | 2026-09-15 | **Q-GOVGATE-01** | The Z2 gate never ran; z1-inbox conversion mechanism | `z1-inbox/2026-09-13/Q-GOVGATE-01.md` |
 | 2026-09-15 | **Q-RBE-01** | Resource-based operations v0.1 — units, ledger, census, priced queue | `z1-inbox/2026-09-13/Q-RBE-01.md` |
 | 2026-09-15 | **Q-REGISTRY-AUDIT-01** | ZONE_REGISTRY.md reconciliation — classify 13 missing repos (planned, never created) | `z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-01.md` |
 | 2026-09-15 | **Q-REGISTRY-AUDIT-02** | ZONE_REGISTRY.md reconciliation — register 7 active repos missing from registry | `z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-02.md` |
-| 2026-09-15 | **Q-REGISTRY-AUDIT-03** | ZONE_REGISTRY.md reconciliation — implement + deploy CI gate | `z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md` |
 | 2026-09-15 | **Q-RFM-01** | REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner | `z1-inbox/2026-09-13/Q-RFM-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-01** | Tool manifest & document-control registry | `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-02** | Tool category vocabulary & backlog clearance | `z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-03** | Turning the gate on itself — every blocking rule must be able to fail | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` |
 | 2026-09-16 | **Q-BOOT-FINDINGS-SCAN-01** | Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch | `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md` |
-| 2026-09-16 | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
 | 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
 | 2026-09-20 | **Q-BOARD-PUBLISH-01** | Board ruling d31 — board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities), replacing d17's local-only? | `z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md` |
 | 2026-09-21 | **Q-BOARD-RULING-20** | Board ruling d20 — Test harness as §A step 3 | `z1-inbox/2026-09-19/Q-BOARD-RULING-20.md` |
@@ -48,7 +39,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-21 | **Q-BOARD-RULING-30** | Board ruling d30 — Squash-merge read pointer | `z1-inbox/2026-09-19/Q-BOARD-RULING-30.md` |
 | 2026-09-21 | **Q-BOARD-RULING-32** | Board ruling d32 — KNOWN_RED list in the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-32.md` |
 | 2026-09-21 | **Q-BOARD-RULING-33** | Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19's freeze), keep the frozen path, or later | `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` |
-| 2026-09-21 | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
+| 2026-11-30 | **Q-STALE-QUEUE-SORT-01** | Sort of the 37 candidates waiting since 2026-09-08 to 09-19: 14 recorded as in effect, 18 lapsed, 2 rejected, 3 left for Z2 (amends W6 of Q-AGENT-WORKFLOWS-01) | `z1-inbox/2026-11-28/Q-STALE-QUEUE-SORT-01.md` |
 
 ## Decided (99)
 
@@ -154,6 +145,23 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-REPO-GRAPH-SORT-01** | Night | 2026-11-25 | `z1-inbox/2026-11-25/Z2_RULINGS_2026-11-25.md`<br>`50d27729d923587ef8e433fd826d901b22dba58a826a9bfb2efed79f48cd8efa` |
 | ✅ ratified | **Q-AGENT-WORKFLOWS-01** | Night | 2026-11-26 | `z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md`<br>`c3ad71ad4a60226a26a2208d19f27422b5da1ffe9e9a3abc17672fa2dadcee17` |
 
+## Closed without a Z2 decision (10)
+
+Withdrawn or superseded by the proposer. No Z2 ruling was issued, so these carry no signature — they are not decisions.
+
+| state | candidate | what it asked | block |
+|---|---|---|---|
+| ↩️ withdrawn | **Q-ADVREVIEW-CALIB-01** | Adversarial review as a PR-gated calibration node | `z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md` |
+| ↩️ withdrawn | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
+| ↩️ withdrawn | **Q-CGBG-BASELINE-01** | Adversarial review: CGBG-MARKET-BASELINE-001 (Evidence-Linked Market Observation v0.1) | `z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md` |
+| ↩️ withdrawn | **Q-CGBG-PILOT-01** | Adversarial review: CGBG Pilot Offer (AI Research Capacity) | `z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md` |
+| ↩️ withdrawn | **Q-DOC-LIFECYCLE-01** | docs/ lifecycle — disposition for 108 files | `z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md` |
+| ↩️ withdrawn | **Q-FRAMEWORK-MAPPING-INTEGRATION-01** | Framework Mapping governance integration across 31 repos | `z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md` |
+| ⤴️ superseded | **Q-NF-SCHEMA-01** | Unify NF_LEDGER schema | `z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md` |
+| ↩️ withdrawn | **Q-PHASE1-2-ROLLOUT-01** | Framework Mapping Phase 1–3 rollout plan | `z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md` |
+| ↩️ withdrawn | **Q-REGISTRY-AUDIT-03** | ZONE_REGISTRY.md reconciliation — implement + deploy CI gate | `z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md` |
+| ⤴️ superseded | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
+
 ## ⚠️ Falsifier waivers (4) — open for Z2
 
 A candidate with no falsifier. The waiver is the candidate's own claim that it predicts nothing, recorded so it cannot pass silently. Accepting or refusing it is Z2's act.
@@ -165,22 +173,9 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
-## Open questions for Z2 (111)
+## Open questions for Z2 (74)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
-
-### Q-ADVREVIEW-CALIB-01 (8)
-
-`z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md`
-
-- [ ] Falsifiers are testable; the humility one is correctly marked as needing a statistic first
-- [ ] Stage 0 is accepted as blocking Stage 1, and the 14-day clock starts at **Stage 0 completion**, not ratification (owner residual #3)
-- [ ] Stage 1 output is acknowledged as **declaration-level pure only** until a provenance check exists (owner residual #5)
-- [ ] The self-referential limit is acknowledged in the ratification record: this is truth-gap reduction under pressure, not an independent measurement of the mechanism (owner residual #1)
-- [ ] `quality-baseline.yml` coverage is confirmed at ratification time, including whether its output can be joined to a dimension without additional attribution logic (owner residual #4)
-- [ ] Stage 3 is accepted as requiring a trusted-base evaluator and ratified attack corpus
-- [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
-- [ ] Out-of-scope boundary on `score_transcript()` is accepted
 
 ### Q-BOARD-PUBLISH-01 (4)
 
@@ -283,30 +278,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] The move is one commit: rename, every reference, the Worker redirect, the runbook, the re-seal — nothing lands piecemeal
 - [ ] Conditioned on d31: the executing PR opens only after d31's ruling PR has merged, and carries the Worker redirect exactly when d31 ruled `serve behind login`; it stays held while d31 is `later`
 
-### Q-CGBG-BASELINE-01 (6)
-
-`z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md`
-
-- [ ] Confirm or refute the filename/description mismatch flagged in finding 1 before any field tied to that evidence candidate is upgraded.
-- [ ] Decide whether "NONE" and "PROHIBITED" should be added to §2's enumerated states, or the two matrix rows restated using the existing seven (finding 3).
-- [ ] Decide whether "$X/project" should be downgraded to "reported figure, unit unverified" pending confirmation of what "project" denotes (finding 2).
-- [ ] Decide whether the source engagement record should be captured/hashed/dated now, before it can be edited or removed (finding 4).
-- [ ] Name (or explicitly decline to name) a third party who could ever move a claim to INDEPENDENTLY_CORROBORATED (finding 5).
-- [ ] Decide whether the future Treatment exchange runs under the Pilot Offer as published or a revised version addressing `Q-CGBG-PILOT-01` (finding 6).
-
-### Q-CGBG-PILOT-01 (8)
-
-`z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md`
-
-- [ ] Set an actual expiration date/time for the offer (finding 1 — currently the field is broken).
-- [ ] Decide a settlement floor and/or explicit Provider refusal right for inadequate reciprocal resources (finding 2).
-- [ ] Decide delivery sequencing — who goes first, and what recourse exists if the counterparty doesn't reciprocate (finding 3).
-- [ ] Define the "5 hours" unit and boundary behavior (finding 4).
-- [ ] Add an explicit right to decline a task spec that's out of scope, infeasible, unlawful, or unsafe (finding 5).
-- [ ] Decide whether to publish an acceptance-latency SLA (finding 6) — optional given this is a one-off pilot, not a recurring program.
-- [ ] Decide whether evidence/verification should be strengthened from "where applicable" / "permitted" to a firmer commitment (finding 7).
-- [ ] Findings 8–10 — acknowledge or explicitly accept as out of scope for a single-pilot experiment.
-
 ### Q-DOCREVIEW-01 (9)
 
 `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md`
@@ -343,31 +314,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Register IC-BOARD-SEALS-01 in REGISTERED.md as an IC (class memory-vs-fetch), or fold it into IC-030 as a recurrence
 - [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
 - [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
-
-### Q-NF-SCHEMA-01 (6)
-
-`z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md`
-
-- [ ] Falsifier is testable and unambiguous
-- [ ] Four incompatibilities actually resolved (review each mapping above)
-- [ ] Hash chain prevents tampering (review CI gate spec in schema)
-- [ ] Brier calculation is mathematically sound (review formula)
-- [ ] Schema extends without breaking existing records (review migration path)
-- [ ] Molt Cycle integration is viable (review pseudocode in schema)
-
-### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
-
-`z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md`
-
-- [ ] Research findings currently stall; this loop solves a real bottleneck
-- [ ] The three tools are well-specified and non-overlapping in purpose
-- [ ] findings-manifest.yaml format is clear enough for reliable encoding of operations
-- [ ] Gate conditions are strong enough to prevent bad implementations from merging
-- [ ] Falsifiers are mechanical, testable, not subjective (all event-based)
-- [ ] Predictions are pre-registered and falsifiable within 90 days
-- [ ] The auditor sources (GitHub, arXiv, OSPO) are trustworthy; filtering logic won't spam the board
-- [ ] This is a genuine Tier 2 molt (changes how work flows; requires validation cycle and ratification)
-- [ ] Once adopted, the system scales: every research finding and external best practice feeds into governance automatically
 
 ### Q-TOOLCONTROL-01 (8)
 

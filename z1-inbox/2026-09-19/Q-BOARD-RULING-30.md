@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 367ede3f121e6a61a8c3ffe80bbc93d6df14703b7761792f0260a5b19c53439b
+body_hash: c25d814e521199b54266ebf03ae71ffd8b46a31e932a28554bb91c3909440990
+
+```
+RULING d30
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Squash-merge read pointer — after a squash-merge `read.against` names a commit outside main's history and the board reads STALE (NOT-IN-HISTORY) although the tree is byte-identical. Let `intent_os_board_reseal` move the pointer mechanically when the tree hash at the new HEAD equals the tree hash at the read (a fetch, not a judgement; the description says so), or keep it NEEDS-HUMAN as now?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

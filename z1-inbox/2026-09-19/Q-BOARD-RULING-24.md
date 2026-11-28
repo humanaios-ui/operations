@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 5a38479510d805d4689fa48c7a396bb8b34fecc2f907ef8272fb73afec58cc4e
+body_hash: aab74461637b24762319b8337a21f56d132b7bc071fdad43600a208462377034
+
+```
+RULING d24
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Board rev — an automated re-seal advances `rev`, so a copy open in a browser is superseded by the new data on its next restore (taps kept). Accept that a job's read may supersede an open copy, or reserve `rev` advances for human re-reads?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

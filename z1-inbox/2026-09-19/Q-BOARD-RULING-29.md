@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 5eb754c85e346331060c88ee67eac1565b8baf3ae7bdac017ef43b5a6896516c
+body_hash: 58d57f9666bfdbc2f382fc54dd7435119cab7ec85e3d149931bea1af111891ae
+
+```
+RULING d29
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Smoke contract — make `smoke_test: true` in the tool manifest mean carries a flag (`--smoke-test` or `--self-test` exists in the source), not mentions; the scan records `smoke_flag` and 18 no-flag rows drop (141 → 123) while the 17 whose flag fails stay claimed and red in T5 — or keep the text match?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

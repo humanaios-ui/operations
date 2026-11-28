@@ -140,3 +140,7 @@ The registry asks every session to predict its own failure modes and had never e
 The most useful output is not the defect count. It is the watch census: **0 MANNED · 9 ADVISORY · 5 UNMANNED**. Before this work it was 0 · 2 · 12. The dominant failure mode of `REGISTERED.md` is not any single defect; it is that almost nothing would have caught any of them.
 
 **Ratification requested.**
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: PR #312 merged and findings-registry.yml runs the scanner as a blocking step. Left over: the `--enforce` instruction recorded above (Night's answer "turn on now") has not been carried out. It stays open for Z2 under this candidate; this disposition does not turn it on. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

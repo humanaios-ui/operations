@@ -2,11 +2,18 @@ version: 1
 generated: '2026-10-27'
 decision_window_days: 2
 counts:
-  candidates: 136
+  candidates: 137
   records: 96
 ratifiers:
 - Night
 candidates:
+- q_id: Q-STALE-QUEUE-SORT-01
+  title: "Sort of the 37 candidates waiting since 2026-09-08 to 09-19: 14 recorded as in effect, 18 lapsed, 2 rejected, 3 left for Z2 (amends W6 of Q-AGENT-WORKFLOWS-01)"
+  path: "z1-inbox/2026-11-28/Q-STALE-QUEUE-SORT-01.md"
+  submitted: '2026-11-28'
+  status: awaiting_z2
+  tier: 0
+  note: "Night asked for the decision table and then for this draft PR in session on 2026-11-28. Each row was read against main at 6924123. The merge of this pull request is the ruling. Falsifier stated."
 - q_id: Q-DIGEST-COORD-LAYER-01
   title: HAIOS-MM-ACAT-003 daily digest as the multi-model coordination layer (layout, workload and integrity measures, two-week trial 2026-11-26 to 2026-12-09)
   path: z1-inbox/2026-11-25/Q-DIGEST-COORD-LAYER-01.md
@@ -249,7 +256,8 @@ candidates:
   title: docs/ lifecycle — disposition for 108 files
   path: z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md
   submitted: '2026-09-08'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   tier: 1
 - q_id: Q-FRAMEWORK-MAPPING-01
   title: Framework Mapping — 5 AI engineering concepts → Z-roles
@@ -263,26 +271,30 @@ candidates:
   title: Framework Mapping governance integration across 31 repos
   path: z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md
   submitted: '2026-09-10'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   tier: 0
 - q_id: Q-NF-SCHEMA-01
   title: Unify NF_LEDGER schema
   path: z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md
   submitted: '2026-09-10'
-  status: awaiting_z2
+  status: superseded
+  disposition: "Rejected in Q-STALE-QUEUE-SORT-01 (2026-11-28): Z2 chose its rival Q-NF-ADAPTER-01 on 2026-11-15. Shown as superseded because rejected needs a Z2 signature."
   note: Priority Queue score 8; unblocks Q-MOLT-04 (score 9).
   tier: 0
 - q_id: Q-PHASE1-2-ROLLOUT-01
   title: Framework Mapping Phase 1–3 rollout plan
   path: z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md
   submitted: '2026-09-11'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   tier: 0
 - q_id: Q-ADVREVIEW-CALIB-01
   title: Adversarial review as a PR-gated calibration node
   path: z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md
   submitted: '2026-09-12'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   tier: 1
 - q_id: Q-RFM-01
   title: REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner
@@ -355,14 +367,16 @@ candidates:
   title: 'Adversarial review: CGBG Pilot Offer (AI Research Capacity)'
   path: z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   note: Ten adversarial findings on the externally-circulated CGBG Pilot Offer; flags a broken expiration clause (references a deadline never stated) and no settlement floor / delivery sequencing as the top exploitation risks. Recommends patching before the offer is shown to a real counterparty.
   tier: 1
 - q_id: Q-CGBG-BASELINE-01
   title: 'Adversarial review: CGBG-MARKET-BASELINE-001 (Evidence-Linked Market Observation v0.1)'
   path: z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   note: 'Seven findings on the companion market-baseline document: an unflagged identity-match red flag already visible in its own inputs, and two evidence-matrix values outside its own declared epistemic-state vocabulary. Client/manager/compensation specifics redacted in this file per the subject document''s own confidentiality clause.'
   tier: 1
 - q_id: Q-REGISTRY-AUDIT-01
@@ -383,7 +397,8 @@ candidates:
   title: ZONE_REGISTRY.md reconciliation — implement + deploy CI gate
   path: z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   note: Phase 3 of registry audit. Implementation plan for chosen reconciliation option. Deploys registry_consistency CI gate to prevent future drift. Blocked on -01 and -02 ratification.
   tier: 1
 - q_id: Q-INTENTOS-LAUNCH-01
@@ -552,7 +567,8 @@ candidates:
   title: Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation
   path: z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: withdrawn
+  disposition: "Lapsed by Q-STALE-QUEUE-SORT-01 (2026-11-28): stale, dormant or replaced; not rejected. Refile as a new candidate to reopen."
   note: 'Asks Z2 for EDIT-over-REJECT on the prototype and for disposition of four upstream candidates it surfaced while verifying citations: IC-CAND-BSM-A (SESSION_RITUALS changelog claims a Section F Degraded-Mode Specification the live file does not contain — halt 9 points at nothing), IC-CAND-BSM-B (P27 cites a SESSION_RITUALS Section B Step 0 that does not exist), AMBIGUITY-BSM-C (CLAUDE.md §A and SESSION_RITUALS §A both specify session open, differently — P22.1 first-match-wins is unsatisfiable until one governs), AMBIGUITY-BSM-D (§A.1 halt vs Z2-GOVARCH-02 demotion: read literally, every Claude session halts at open). Also carries F-CAND-BSM-E. The Q- id did not exist in-repo before this entry (F-BSM-12); filed here rather than left dangling. Companion code at z1-inbox/2026-09-14/boot_state_machine_v0_2.py; reviewed input preserved verbatim at boot_state_machine_v0_1_AS_REVIEWED.py.txt. No calibration_ref — the P30 gate is NOT cleared, so this is not ratification-ready as filed. MERGED
     via #332 (f0c0cec); its four upstream candidates are re-filed with live-registry cross-walk under Q-BOOT-FINDINGS-SCAN-01 below, which supersedes the routing table in this block.'
   tier: 1
@@ -747,7 +763,8 @@ candidates:
   title: 'Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt)'
   path: z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: superseded
+  disposition: "Rejected in Q-STALE-QUEUE-SORT-01 (2026-11-28): auto-filing and auto-applying contradict Q-AGENT-WORKFLOWS-01 (ratified 2026-11-26). Shown as superseded because rejected needs a Z2 signature."
   tier: 2
   note: 'Proposes automated research→governance→operations loop: research documents feed into candidates; Z2 decides on board; findings auto-implement via manifest spec; gates validate. Also proposes repository_auditor.py that scans open-source/arXiv for best practices and files candidates automatically. Falsifiers are mechanical. Predictions pre-registered: 3+ candidates filed within 30 days, 1+ PR merged within 60 days, <4-hour implementation time, no tool failures in 90 days.'
 - q_id: Q-TOOL-MANIFEST-DRIFT-PREVENTION-01
