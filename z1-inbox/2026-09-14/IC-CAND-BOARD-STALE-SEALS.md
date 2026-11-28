@@ -66,3 +66,7 @@ source_issue: "humanaios-ui/operations#323"
 
 Stated above per claim: any of the three unique shas (four references) reachable from `main`, or a prior
 RECEIPT-GAP naming these seals in a 2026-09-10 → 09-13 handoff, falsifies the block as written.
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: the correction landed (PRs #323, #325) and intent-os-refresh.yml checks seals on every push to main. Accepting records the IC; the §A session-open line was not added and can be refiled. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

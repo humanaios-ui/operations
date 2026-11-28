@@ -244,3 +244,7 @@ What was not done is named rather than papered over: 19 tools still lack Builder
 136 still lack a status and an owner.
 
 **Ratification requested.**
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: PR #306; every tool in tools-manifest.yaml carries one of the 16 categories. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

@@ -279,3 +279,7 @@ Reviewers: 22 findings, 22 correct. Gates, on those same defects: 0. That ratio 
 for keeping adversarial review in the loop, not for believing the gates now suffice.
 
 **Ratification requested.**
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: tool-manifest.yml runs .tool-control/selftest.py. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

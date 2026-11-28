@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: e1791baeff280e98a4c8cd9354f14d502ec0d3c8b0613650a21b1c5db5c1e6e9
+body_hash: 1acf43cb3053bdbeb50626a4981f20a000356f97eafb75f88a169cda03713001
+
+```
+RULING d22
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Test surface scale-out — follow the zone registry's order (Z-001 humanaios first), or name the first repository?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

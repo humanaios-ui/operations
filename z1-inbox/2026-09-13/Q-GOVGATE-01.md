@@ -416,3 +416,7 @@ Eleven candidates are awaiting Z2; five are past the 48h window; one asserts its
 exemption. None of that was visible before, and none of it is Z1's to settle.
 
 **Ratification requested.**
+
+## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
+
+RECORD. In effect: z2_ratification_gate.yml runs real jobs (main, 2026-11-26) and .z1-control/validate.py exists. Left over: KNOWN_RATIFIERS holds Night only. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).
