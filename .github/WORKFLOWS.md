@@ -2,7 +2,7 @@
 
 **Source of the file count:** `python3 tools/render_workflow_inventory.py --write`
 
-The table under Inventory is generated from `.github/workflows/*.yml` and `*.yaml`. Re-run the script after adding or removing a workflow; `python3 tools/render_workflow_inventory.py --check` exits 1 when the marked region is stale. For how recent runs went, run `python3 tools/render_workflow_inventory.py --runs 10` (needs `gh`). That report is printed, never written here, because run results change by the hour.
+The table under Inventory is generated from `.github/workflows/*.yml` and `*.yaml`. Re-run the script after adding or removing a workflow; `python3 tools/render_workflow_inventory.py --check` exits 1 when the marked region is stale. For how recent runs went, run `python3 tools/render_workflow_inventory.py --runs 10` (needs `gh`). That report is printed, not written here, because run results change by the hour.
 
 ## What actually gates a merge
 
@@ -19,7 +19,7 @@ Every other red check on a pull request is a signal, not a merge block. The repo
 
 The check name GitHub shows is the job's `name:` when set, otherwise the job id. Three workflows use the job id `validate`, so their check runs share one name.
 
-"Every PR?" says whether the workflow runs on every pull request. A check that runs only when certain files change never reports on other pull requests. Making such a check required would leave those pull requests waiting forever, so this page recommends no new required checks.
+"Every PR?" says whether the workflow runs on every pull request. A check that runs only when certain files change does not report on other pull requests. Making such a check required would leave those pull requests waiting with no way to pass, so this page recommends no new required checks.
 
 | Workflow | Check name | Every PR? | What a failure means |
 | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ The check name GitHub shows is the job's `name:` when set, otherwise the job id.
 
 ### Checks that are advisory on purpose
 
-`molt-tier-check.yml` says it never fails the build. `workflow-lint.yml` is named ADVISORY. `graph-capture-lint.yml` says it is not a required check until a Z2 decision adds it. `repository-coordinator.yml` publishes an advisory index.
+`molt-tier-check.yml` says it does not fail the build. `workflow-lint.yml` is named ADVISORY. `graph-capture-lint.yml` says it is not a required check until a Z2 decision adds it. `repository-coordinator.yml` publishes an advisory index.
 
 ### Schedules changed by Q-AGENT-WORKFLOWS-01
 

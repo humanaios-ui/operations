@@ -23,7 +23,7 @@ The marked region is everything between these HTML comments:
     <!-- workflow-inventory:end -->
 
 The committed table holds only what the files say, so --check stays stable.
-Run results change by the hour, so --runs prints them and never writes them.
+Run results change by the hour, so --runs prints them and does not write them.
 """
 
 from __future__ import annotations
