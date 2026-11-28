@@ -13,7 +13,7 @@ All 37 candidates submitted 2026-09-08 to 09-19 have sat `awaiting_z2` for 67 to
 | Decision | Count | What the merge does |
 |---|---|---|
 | RECORD | 14 | Ratified as in effect. Ten plain candidates gain a `## Disposition` section, so the reconcile job signs them on merge. Four board blocks get their in-effect option written in their `## Ruling` section. |
-| LAPSE | 18 | Closed without a verdict. Eight plain candidates move to `withdrawn` in the index; ten board blocks take their own `later` option. Any can be refiled. |
+| LAPSE | 18 | Closed without deciding the question. Eight plain candidates move to `withdrawn` in the index. Ten board blocks take their own `later` option, which each block defines as a ruling that closes it: reconcile signs that `later` choice, so those ten end `ratified` with `choice: later`. Any can be refiled. |
 | REJECT | 2 | Moved to `superseded` in the index, with the reason. `rejected` needs a Z2 signature, which a merge alone cannot write. |
 | LEFT FOR Z2 | 3 | Untouched; still `awaiting_z2`. |
 
@@ -22,7 +22,7 @@ All 37 candidates submitted 2026-09-08 to 09-19 have sat `awaiting_z2` for 67 to
 | Candidate | Evidence it is in effect | Left over (not decided here) |
 |---|---|---|
 | Q-FRAMEWORK-MAPPING-01 | `CLAUDE.md` records it ratified 2026-10-02; `FRAMEWORK_MAPPING.md` hash matches; A8 in `haios-standing-audit.yml` | Its falsifier waiver is accepted with it |
-| Q-RFM-01 | PR #312; blocking step in `findings-registry.yml` | `--enforce` was answered "turn on now" and not done |
+| Q-RFM-01 | PR #312; blocking step in `findings-registry.yml` | `--enforce` was answered "turn on now" and not done; stays open under Q-RFM-01 |
 | Q-TOOLCONTROL-01 | PR #304; `tool-manifest.yml` | Two MCP servers unscoped; root `CODEOWNERS` duplicate |
 | Q-TOOLCONTROL-02 | PR #306; all tools categorized | — |
 | Q-TOOLCONTROL-03 | `tool-manifest.yml` runs `.tool-control/selftest.py` | — |
@@ -30,7 +30,7 @@ All 37 candidates submitted 2026-09-08 to 09-19 have sat `awaiting_z2` for 67 to
 | Q-RBE-01 | `RESOURCE_UNITS.yaml` RATIFIED; CAP event in `ledgers/RESOURCE_LEDGER.jsonl`; F-62/63/64 | Units file hash matches nothing |
 | Q-REGISTRY-AUDIT-01 | Option B, `PLANNED_REPOS.md` | `ZONE_REGISTRY.md` title and counts drift |
 | Q-REGISTRY-AUDIT-02 | Seven repos in `ZONE_REGISTRY.md` (Z-004 to Z-011), flat layout | — |
-| Q-IC-BOARD-SEALS-01 | PRs #323, #325; seal check in `intent-os-refresh.yml` | §A session-open line not added |
+| Q-IC-BOARD-SEALS-01 | PRs #323, #325; seal check in `intent-os-refresh.yml` | IC not yet registered (own entry or fold into IC-030 is Z2's call); §A line not added |
 | Q-BOARD-RULING-21 (d21) | Rendered dashboard committed with its receipt | Receipt dates from 2026-09-18 |
 | Q-BOARD-RULING-23 (d23) | Refresh job opens no PR or issue (inferred from no bot output; the repo variable could not be read) | — |
 | Q-BOARD-RULING-25 (d25) | Runbook §5 step 4: re-download after each merge | — |
@@ -77,9 +77,10 @@ All 37 candidates submitted 2026-09-08 to 09-19 have sat `awaiting_z2` for 67 to
 ## Limits
 
 - The four RECORD board options and the ten `later` options are written by Z1, not tapped on the board. The `by:` line says so; the merge is the act.
+- This sorts 37 candidates in one pull request instead of one per ruling file. The relay's one-file pull request is the tap route, not a limit on what one merge ratifies (Z2, 2026-11-25: the merge of any pull request that carries an `awaiting_z2` candidate ratifies it). Merging this pull request accepts the bulk form.
 - `withdrawn` and `superseded` are the index's open statuses; neither carries a signature. There is no `lapsed` status, and adding one is a `.z1-control/` change this candidate does not make.
 - The "left over" items are not decided here. Each can be filed as its own small candidate.
 
 ## Falsifier
 
-This sort is wrong if, after the merge and the next reconcile run, any of these hold: a RECORD row's evidence path does not exist on `main`; a lapsed or rejected candidate is shown to be in active use (a workflow, tool or merged PR after 2026-11-28 that depends on it); or the reconcile job signs a candidate this file lapses or rejects. Any one sends the matching row back to Z2.
+This sort is wrong if, after the merge and the next reconcile run, any of these hold: a RECORD row's evidence path does not exist on `main`; a lapsed or rejected candidate is shown to be in active use (a workflow, tool or merged PR after 2026-11-28 that depends on it); or the reconcile job signs a plain candidate this file moves to `withdrawn` or `superseded`, or signs a board block with an option other than the one written here. Any one sends the matching row back to Z2.

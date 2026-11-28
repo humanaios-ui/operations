@@ -69,4 +69,4 @@ RECEIPT-GAP naming these seals in a 2026-09-10 → 09-13 handoff, falsifies the 
 
 ## Disposition (2026-11-28, Q-STALE-QUEUE-SORT-01)
 
-RECORD. In effect: the correction landed (PRs #323, #325) and intent-os-refresh.yml checks seals on every push to main. Accepting records the IC; the §A session-open line was not added and can be refiled. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).
+RECORD. In effect: the correction landed (PRs #323, #325) and intent-os-refresh.yml checks seals on every push to main. Accepting confirms the correction and the CI check. It does not register the IC: whether it gets its own REGISTERED.md entry or is folded into IC-030, as the checklist above asks, is left for Z2. The §A session-open line was not added and can be refiled. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).
