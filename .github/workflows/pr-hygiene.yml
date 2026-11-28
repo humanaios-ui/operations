@@ -1,0 +1,360 @@
+name: pr-hygiene
+
+# Agent-authored review flow. Same shape as no-op-pr-guard.yml: a small job,
+# the pull_request payload, and a non-zero exit when the claim and the PR
+# state disagree. Two scheduled jobs cover PRs that go bad without a new push.
+#
+# (a) Title says draft/WIP but the PR is ready, or the PR is draft but the
+#     title does not say draft/WIP.
+# (b) Auto-merge is turned off when mergeable_state is not clean, or when a
+#     required status check is not success on the Checks API (check-runs, not
+#     the combined status API and not search).
+# (c) Once a week, an agent or owner PR that has been dirty and quiet for
+#     more than 7 days is converted back to draft.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft]
+  schedule:
+    - cron: "41 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  checks: read
+
+jobs:
+  title-draft:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    name: Title matches draft state
+    steps:
+      - name: Fail when the title and the draft flag disagree
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          python3 - << 'PY'
+          import os, re, sys
+          title = os.environ.get("PR_TITLE") or ""
+          draft = os.environ.get("PR_DRAFT") == "true"
+          signals_draft = re.search(r"(?i)(\bdraft\b|\bwip\b)", title) is not None
+          if signals_draft and not draft:
+              print("::error::Title says draft/WIP but the pull request is marked ready for review. Mark it draft, or take draft/WIP out of the title.")
+              sys.exit(1)
+          if draft and not signals_draft:
+              print("::error::Pull request is a draft but the title does not say draft or WIP. Add that to the title, or mark it ready for review.")
+              sys.exit(1)
+          print(f"OK — draft={draft} title_signals_draft={signals_draft}")
+          PY
+
+  automerge-guard:
+    runs-on: ubuntu-latest
+    name: Disable auto-merge when the PR is not clean
+    steps:
+      - name: Disable auto-merge unless mergeable_state is clean and required checks are green
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python3 - << 'PY'
+          import json, os, subprocess
+
+          REPO = os.environ["REPO"]
+          EVENT = os.environ.get("EVENT") or ""
+          ONLY = os.environ.get("PR_NUMBER") or ""
+          MARKER = "<!-- pr-hygiene:automerge-disabled -->"
+
+          def gh_api(path, method="GET", raw=None):
+              cmd = ["gh", "api", "-X", method, path]
+              if raw:
+                  cmd.extend(["--input", "-"])
+                  proc = subprocess.run(cmd, input=raw, text=True, capture_output=True)
+              else:
+                  proc = subprocess.run(cmd, text=True, capture_output=True)
+              if proc.returncode != 0:
+                  raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or f"gh api {path} failed")
+              if not proc.stdout.strip():
+                  return None
+              return json.loads(proc.stdout)
+
+          def graphql(query):
+              proc = subprocess.run(
+                  ["gh", "api", "graphql", "-f", f"query={query}"],
+                  text=True, capture_output=True,
+              )
+              if proc.returncode != 0:
+                  raise RuntimeError(proc.stderr.strip() or proc.stdout.strip())
+              data = json.loads(proc.stdout)
+              if data.get("errors"):
+                  raise RuntimeError(json.dumps(data["errors"]))
+              return data["data"]
+
+          def required_check_names(base):
+              try:
+                  rules = gh_api(f"repos/{REPO}/rules/branches/{base}")
+              except RuntimeError as exc:
+                  print(f"::warning::could not read rules for {base}: {exc}")
+                  return []
+              names = []
+              for rule in rules or []:
+                  if rule.get("type") != "required_status_checks":
+                      continue
+                  params = rule.get("parameters") or {}
+                  for ctx in params.get("required_status_checks") or []:
+                      if isinstance(ctx, dict):
+                          name = ctx.get("context") or ""
+                      else:
+                          name = str(ctx)
+                      if name:
+                          names.append(name)
+              return names
+
+          def latest_check_runs(sha):
+              latest = {}
+              page = 1
+              while page <= 10:
+                  data = gh_api(f"repos/{REPO}/commits/{sha}/check-runs?per_page=100&page={page}")
+                  batch = (data or {}).get("check_runs") or []
+                  for run in batch:
+                      name = run.get("name") or ""
+                      started = run.get("started_at") or ""
+                      prev = latest.get(name)
+                      if prev is None or started >= (prev.get("started_at") or ""):
+                          latest[name] = run
+                  if len(batch) < 100:
+                      break
+                  page += 1
+              return latest
+
+          def checks_not_green(sha, required):
+              if not required:
+                  return []
+              latest = latest_check_runs(sha)
+              bad = []
+              for name in required:
+                  run = latest.get(name)
+                  if run is None:
+                      bad.append(f"{name} (no check-run)")
+                      continue
+                  conclusion = run.get("conclusion")
+                  if run.get("status") != "completed" or conclusion != "success":
+                      bad.append(f"{name}={conclusion or run.get('status')}")
+              return bad
+
+          def open_numbers():
+              if EVENT == "pull_request" and ONLY:
+                  return [int(ONLY)]
+              owner, name = REPO.split("/", 1)
+              numbers = []
+              cursor = None
+              while True:
+                  after = f', after: "{cursor}"' if cursor else ""
+                  query = f'''
+                  query {{
+                    repository(owner: "{owner}", name: "{name}") {{
+                      pullRequests(states: OPEN, first: 50{after}) {{
+                        pageInfo {{ hasNextPage endCursor }}
+                        nodes {{ number autoMergeRequest {{ enabledAt }} }}
+                      }}
+                    }}
+                  }}
+                  '''
+                  conn = graphql(query)["repository"]["pullRequests"]
+                  for node in conn["nodes"]:
+                      if node.get("autoMergeRequest"):
+                          numbers.append(node["number"])
+                  if not conn["pageInfo"]["hasNextPage"]:
+                      break
+                  cursor = conn["pageInfo"]["endCursor"]
+              return numbers
+
+          def disable(node_id):
+              query = f'''
+              mutation {{
+                disablePullRequestAutoMerge(input: {{pullRequestId: "{node_id}"}}) {{
+                  pullRequest {{ number }}
+                }}
+              }}
+              '''
+              graphql(query)
+
+          failed = False
+          for number in open_numbers():
+              try:
+                  pr = gh_api(f"repos/{REPO}/pulls/{number}")
+              except RuntimeError as exc:
+                  print(f"::warning::could not read PR #{number}: {exc}")
+                  failed = True
+                  continue
+              if not pr.get("auto_merge"):
+                  continue
+              state = (pr.get("mergeable_state") or "").lower()
+              if state in ("", "unknown"):
+                  print(f"#{number} mergeable_state is not computed yet; leaving auto-merge for the next run")
+                  continue
+              base = ((pr.get("base") or {}).get("ref")) or "main"
+              sha = ((pr.get("head") or {}).get("sha")) or ""
+              try:
+                  bad_checks = checks_not_green(sha, required_check_names(base)) if sha else ["head sha missing"]
+              except RuntimeError as exc:
+                  print(f"::error::Checks API failed for #{number}: {exc}")
+                  failed = True
+                  continue
+              not_clean = state != "clean"
+              if not not_clean and not bad_checks:
+                  print(f"#{number} mergeable_state=clean and required checks are green")
+                  continue
+              reasons = []
+              if not_clean:
+                  reasons.append(f"mergeable_state is `{state}` (not clean)")
+              if bad_checks:
+                  reasons.append("required checks are not green per the Checks API: " + ", ".join(bad_checks))
+              why = "; ".join(reasons)
+              try:
+                  disable(pr["node_id"])
+              except RuntimeError as exc:
+                  print(f"::error::could not disable auto-merge on #{number}: {exc}")
+                  failed = True
+                  continue
+              body = (
+                  f"{MARKER}\n"
+                  f"Auto-merge was turned off because {why}. "
+                  "It can be re-enabled once the branch is clean and the required checks are green."
+              )
+              proc = subprocess.run(
+                  ["gh", "pr", "comment", str(number), "--repo", REPO, "--body", body],
+                  text=True, capture_output=True,
+              )
+              if proc.returncode != 0:
+                  print(f"::error::auto-merge disabled on #{number} but the comment failed: {proc.stderr.strip()}")
+                  failed = True
+              else:
+                  print(f"disabled auto-merge on #{number}: {why}")
+          if failed:
+              raise SystemExit(1)
+          PY
+
+  dirty-sla:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    name: Draft agent or owner PRs dirty for 7 days
+    steps:
+      - name: Convert long-dirty agent and owner PRs back to draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          python3 - << 'PY'
+          import json, os, subprocess
+          from datetime import datetime, timedelta, timezone
+
+          REPO = os.environ["REPO"]
+          EVENT = os.environ.get("EVENT") or ""
+          OWNER = "humanaios-ui"
+          EXEMPT_NUMBERS = {597}
+          EXEMPT_LABELS = {"do not merge", "experiment"}
+          now = datetime.now(timezone.utc)
+
+          def graphql(query):
+              proc = subprocess.run(
+                  ["gh", "api", "graphql", "-f", f"query={query}"],
+                  text=True, capture_output=True,
+              )
+              if proc.returncode != 0:
+                  raise SystemExit(proc.stderr.strip() or proc.stdout.strip())
+              data = json.loads(proc.stdout)
+              if data.get("errors"):
+                  raise SystemExit(json.dumps(data["errors"]))
+              return data["data"]
+
+          # The schedule is daily so the auto-merge guard runs every day.
+          # The draft SLA is weekly: Mondays, plus an explicit dispatch.
+          if EVENT == "schedule" and now.weekday() != 0:
+              print("SLA draft conversion runs on Mondays; today is not Monday")
+              raise SystemExit(0)
+
+          owner, name = REPO.split("/", 1)
+          nodes = []
+          cursor = None
+          while True:
+              after = f', after: "{cursor}"' if cursor else ""
+              query = f'''
+              query {{
+                repository(owner: "{owner}", name: "{name}") {{
+                  pullRequests(states: OPEN, first: 50{after}) {{
+                    pageInfo {{ hasNextPage endCursor }}
+                    nodes {{
+                      number title isDraft updatedAt
+                      mergeStateStatus
+                      author {{ login __typename }}
+                      labels(first: 30) {{ nodes {{ name }} }}
+                    }}
+                  }}
+                }}
+              }}
+              '''
+              conn = graphql(query)["repository"]["pullRequests"]
+              nodes.extend(conn["nodes"])
+              if not conn["pageInfo"]["hasNextPage"]:
+                  break
+              cursor = conn["pageInfo"]["endCursor"]
+
+          def exempt(node):
+              if node["number"] in EXEMPT_NUMBERS:
+                  return True
+              labels = {item["name"] for item in (node.get("labels") or {}).get("nodes") or []}
+              if labels & EXEMPT_LABELS:
+                  return True
+              title = node.get("title") or ""
+              if "experiment" in title.lower():
+                  return True
+              return False
+
+          def agent_or_owner(node):
+              author = node.get("author") or {}
+              login = author.get("login") or ""
+              if login == OWNER:
+                  return True
+              if author.get("__typename") == "Bot" or login.endswith("[bot]") or login.startswith("app/"):
+                  return True
+              return False
+
+          drafted = 0
+          for node in nodes:
+              if node.get("isDraft") or exempt(node) or not agent_or_owner(node):
+                  continue
+              if node.get("mergeStateStatus") != "DIRTY":
+                  continue
+              updated = datetime.fromisoformat(node["updatedAt"].replace("Z", "+00:00"))
+              if now - updated <= timedelta(days=7):
+                  continue
+              number = node["number"]
+              login = (node.get("author") or {}).get("login") or "author"
+              proc = subprocess.run(
+                  ["gh", "pr", "ready", str(number), "--repo", REPO, "--undo"],
+                  text=True, capture_output=True,
+              )
+              if proc.returncode != 0:
+                  print(f"::error::could not convert #{number} to draft: {proc.stderr.strip()}")
+                  raise SystemExit(1)
+              body = (
+                  f"@{login} this pull request has had merge conflicts and no updates for more than 7 days, "
+                  "so it was converted back to draft. Mark it ready again after the branch is clean."
+              )
+              comment = subprocess.run(
+                  ["gh", "pr", "comment", str(number), "--repo", REPO, "--body", body],
+                  text=True, capture_output=True,
+              )
+              if comment.returncode != 0:
+                  print(f"::error::#{number} is draft but the comment failed: {comment.stderr.strip()}")
+                  raise SystemExit(1)
+              print(f"converted #{number} to draft")
+              drafted += 1
+          print(f"drafted {drafted} pull request(s)")
+          PY
