@@ -37,3 +37,8 @@ jobs:
 
       - name: Intent graph validates against the tree (blocking on E-rules)
         run: python3 tools/intent_graph_v1_0.py check
+
+      - name: Compact agent view is the same graph (E0, blocking)
+        run: |
+          python3 tools/intent_graph_v1_0.py compact > "$RUNNER_TEMP/intent_graph_compact.yaml"
+          python3 tools/intent_graph_v1_0.py compare --candidate "$RUNNER_TEMP/intent_graph_compact.yaml"
