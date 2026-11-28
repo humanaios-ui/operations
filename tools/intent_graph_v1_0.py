@@ -11,6 +11,8 @@ what enforces it, and what in the tree contradicts it.
   check                  validate the graph; exit 1 on any error
   render                 write INTENT_GRAPH.md
   render --check         exit 1 if INTENT_GRAPH.md is out of sync (CI mode)
+  modules                write the traceable five-module projection
+  modules --check        exit 1 if INTENT_GRAPH_MODULES.md is out of sync
   trace <node-id>        print one node's grounding, measurement and conflicts
   --input <path>         read a graph other than INTENT_GRAPH.yaml; renders to
                          stdout, so trying a candidate graph cannot overwrite
@@ -28,10 +30,11 @@ what closes it is a Z2 decision, not elapsed time.
 
 VALIDATION RULES (all mechanical, all re-runnable)
   E1  every node id is unique
-  E2  every node type is in node_types
+  E2  every node type is in the documented vocabulary
   E3  every node source path resolves in the tree     <- the anti-drift rule
+  E3b every source has a matching deterministic content hash; anchors resolve
   E4  every edge endpoint names an existing node
-  E5  every edge rel is in edge_types
+  E5  every edge rel is in the documented vocabulary
   E6  every objective reaches a vision by `realizes`
   E7  every objective and gate has >=1 inbound `grounds`
   E8  every conflicts_with edge carries status and, when OPEN, a q_ref
@@ -54,13 +57,14 @@ VALIDATION RULES (all mechanical, all re-runnable)
   W2  an objective with no inbound `measures` edge is reported
   W3  a mission no objective in this tree realizes is reported
   W4  a vision count other than 1 is reported
-  W5  a declared type the validator has no structural rule for is reported
   W6  a well-formed q_ref not indexed in z1-inbox/INDEX.yaml is reported
   W7  a TRANSMISSION node with no outbound edge is reported
+  E16 every open conflict has exactly one matching detail record
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import re
 import sys
@@ -81,6 +85,8 @@ TOOL_ZONE = 1
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRAPH = os.path.join(ROOT, "INTENT_GRAPH.yaml")
 OUTPUT = os.path.join(ROOT, "INTENT_GRAPH.md")
+CONFLICTS = os.path.join(ROOT, "CONFLICTS.yaml")
+MODULES_OUTPUT = os.path.join(ROOT, "INTENT_GRAPH_MODULES.md")
 
 # E10. The full RISK_PATTERNS set from tests/test_temporal_dissolution_gate.py,
 # adapted for field text rather than diff lines: the gate's `^\s*(schedule|cron):`
@@ -110,7 +116,7 @@ ALLOWED_TEMPORAL_CLASSES = {
     "HISTORICAL_RECORD",
 }
 
-# E11. The status vocabulary. Documented in INTENT_GRAPH.yaml's header comment;
+# E11. The status vocabulary. Documented in INTENT_GRAPH_SCHEMA.md;
 # without this it was documented and unenforced, so `PROPOSD` would have read as
 # an unknown status and been treated as "not CONFLICTED" by E9.
 NODE_STATUSES = {
@@ -133,10 +139,8 @@ EDGE_DOMAINS: dict[str, tuple[set[str], set[str]]] = {
     "constrains": ({"gate", "principle"}, {"objective", "gate", "instrument"}),
 }
 
-# Node types this validator actually has structural rules for. A type declared in
-# the graph but absent here is reported (W5): the file's own header says adding a
-# type without teaching the validator what it means is a lint failure, and that
-# claim was previously unenforced.
+# Node types with structural rules. Their descriptions and the graph vocabulary
+# are documented in INTENT_GRAPH_SCHEMA.md.
 KNOWN_NODE_TYPES = {"vision", "mission", "principle", "objective", "gate", "instrument"}
 
 # E14 / W7. Persistence class — how long a node survives, expressed as a *state*
@@ -244,6 +248,34 @@ def load(path: str = GRAPH) -> dict[str, Any]:
     return data
 
 
+def load_conflicts(path: str = CONFLICTS) -> dict[tuple[str, str, str], dict[str, Any]]:
+    with open(path, encoding="utf-8") as handle:
+        data = yaml.load(handle, Loader=StrictLoader)
+    if not isinstance(data, dict):
+        raise ValueError(f"{path}: expected a mapping at the top level")
+    records = data.get("conflicts")
+    if not isinstance(records, list):
+        raise ValueError(f"{path}: expected a conflicts list")
+    by_edge: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for record in records:
+        if not isinstance(record, dict) or not record.get("q_ref"):
+            raise ValueError(f"{path}: every conflict record needs a q_ref")
+        key = (str(record.get("from")), str(record.get("to")), str(record["q_ref"]))
+        if key in by_edge:
+            raise ValueError(f"{path}: duplicate conflict record {key}")
+        by_edge[key] = record
+    return by_edge
+
+
+def _conflict_record(
+    edge: dict, conflicts: dict[tuple[str, str, str], dict[str, Any]] | None
+) -> dict:
+    if not conflicts:
+        return edge
+    key = (str(edge.get("from")), str(edge.get("to")), str(edge.get("q_ref")))
+    return conflicts.get(key, edge)
+
+
 def _nodes(graph: dict) -> list[dict]:
     return list(graph.get("nodes") or [])
 
@@ -276,16 +308,80 @@ def known_candidate_ids(path: str = CANDIDATE_INDEX) -> set[str]:
     }
 
 
+def _anchor_section(text: str, anchor: str) -> str | None:
+    lines = text.splitlines(keepends=True)
+    hits: list[tuple[int, int]] = []
+    heading_re = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        match = heading_re.match(stripped)
+        if match:
+            level = len(match.group(1))
+            title = re.sub(r"\*\*", "", match.group(2)).strip()
+        elif stripped.startswith("**") and stripped.endswith("**"):
+            level = 0
+            title = stripped.strip("*").strip()
+        else:
+            continue
+        if title == anchor or re.match(
+            rf"^{re.escape(anchor)}(?=$|[\s:—–-])", title
+        ):
+            if level == 0:
+                for previous in reversed(lines[:index]):
+                    parent = heading_re.match(previous.strip())
+                    if parent:
+                        level = len(parent.group(1))
+                        break
+            hits.append((index, level))
+
+    if len(hits) != 1:
+        return None
+    start, level = hits[0]
+    for end in range(start + 1, len(lines)):
+        match = heading_re.match(lines[end].strip())
+        if match and len(match.group(1)) <= (level or 1):
+            break
+    else:
+        end = len(lines)
+    return "".join(lines[start:end])
+
+
+def _source_fingerprint(source_path: str, anchor: str | None, root: str) -> str | None:
+    try:
+        with open(source_path, "rb") as handle:
+            raw = handle.read()
+        if anchor:
+            section = _anchor_section(raw.decode("utf-8"), str(anchor))
+            if section is None:
+                return None
+            raw = section.encode("utf-8")
+        elif os.path.realpath(source_path) == os.path.realpath(
+            os.path.join(root, "INTENT_GRAPH.yaml")
+        ):
+            text = raw.decode("utf-8")
+            text = re.sub(
+                r"""(?m)^(\s*source_hash:\s*)["']?[0-9a-f]{16}["']?\s*$""",
+                rf"\g<1>{'0' * 16}",
+                text,
+            )
+            raw = text.encode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    return hashlib.sha256(raw).hexdigest()[:16]
+
+
 def validate(graph: dict, root: str = ROOT,
-             known_candidates: set[str] | None = None) -> tuple[list[str], list[str]]:
+             known_candidates: set[str] | None = None,
+             conflicts: dict[tuple[str, str, str], dict[str, Any]] | None = None
+             ) -> tuple[list[str], list[str]]:
     """Return (errors, warnings). Errors are merge-blocking; warnings are not."""
     errors: list[str] = []
     warnings: list[str] = []
     if known_candidates is None:
         known_candidates = known_candidate_ids()
 
-    node_types = set(graph.get("node_types") or {})
-    edge_types = set(graph.get("edge_types") or {})
+    node_types = KNOWN_NODE_TYPES
+    edge_types = set(EDGE_DOMAINS) | {"conflicts_with"}
     nodes = _nodes(graph)
     edges = _edges(graph)
 
@@ -333,6 +429,28 @@ def validate(graph: dict, root: str = ROOT,
                 )
             elif not os.path.exists(resolved):
                 errors.append(f"E3 {nid}: source does not resolve in the tree: {source}")
+            else:
+                expected_hash = node.get("source_hash")
+                if not isinstance(expected_hash, str) or not re.fullmatch(
+                    r"[0-9a-f]{16}", expected_hash
+                ):
+                    errors.append(
+                        f"E3b {nid}: source_hash must be 16 lowercase hex characters"
+                    )
+                else:
+                    actual_hash = _source_fingerprint(
+                        resolved, node.get("anchor"), root
+                    )
+                    if actual_hash is None:
+                        errors.append(
+                            f"E3b {nid}: anchor {node.get('anchor')!r} cannot be "
+                            f"resolved in {source}"
+                        )
+                    elif actual_hash != expected_hash:
+                        errors.append(
+                            f"E3b {nid}: source content changed; update source_hash "
+                            f"if the change is intentional"
+                        )
 
         if node.get("status") == "CITED_NOT_IMPLEMENTED":
             warnings.append(f"W1 {nid}: cited by {node.get('source')} with no implementation found")
@@ -433,6 +551,24 @@ def validate(graph: dict, root: str = ROOT,
                 f"{by_id[nid].get('status')!r}, not CONFLICTED"
             )
 
+    if conflicts is not None:
+        open_conflicts = {
+            (str(edge.get("from")), str(edge.get("to")), str(edge.get("q_ref"))): edge
+            for edge in edges
+            if edge.get("rel") == "conflicts_with" and edge.get("status") == "OPEN"
+        }
+        for key in open_conflicts:
+            record = conflicts.get(key)
+            if (
+                not record
+                or not record.get("detail")
+                or not isinstance(record.get("evidence"), list)
+                or not record["evidence"]
+            ):
+                errors.append(f"E16 {key[2]}: open conflict has no matching detail record")
+        for key in set(conflicts) - set(open_conflicts):
+            errors.append(f"E16 {key[2]}: detail record has no matching open conflict")
+
     # W2 — measurement.
     for nid, node in by_id.items():
         if node.get("type") == "objective" and not inbound.get((nid, "measures")):
@@ -480,19 +616,6 @@ def validate(graph: dict, root: str = ROOT,
         warnings.append(
             f"W4 {len(visions)} vision nodes ({', '.join(sorted(visions)) or 'none'}); "
             f"the vocabulary expects exactly 1"
-        )
-
-    # W5 — a type the graph declares that this validator has no rule for. The
-    # header claims adding one is a lint failure; this is that lint.
-    for declared in sorted(set(node_types) - KNOWN_NODE_TYPES):
-        warnings.append(
-            f"W5 node type {declared!r} is declared but the validator has no "
-            f"structural rule for it — it is checked only for id and source"
-        )
-    for declared in sorted(set(edge_types) - set(EDGE_DOMAINS) - {"conflicts_with"}):
-        warnings.append(
-            f"W5 edge type {declared!r} is declared but has no entry in "
-            f"EDGE_DOMAINS — its endpoints are unchecked"
         )
 
     return errors, warnings
@@ -549,7 +672,8 @@ def _mermaid_label(node: dict) -> str:
     return f'{node["id"]}<br/>{name}'
 
 
-def render(graph: dict, errors: list[str], warnings: list[str]) -> str:
+def render(graph: dict, errors: list[str], warnings: list[str],
+           conflicts: dict[tuple[str, str, str], dict[str, Any]] | None = None) -> str:
     nodes = _nodes(graph)
     edges = _edges(graph)
     by_id = {n["id"]: n for n in nodes if n.get("id")}
@@ -650,13 +774,15 @@ def render(graph: dict, errors: list[str], warnings: list[str]) -> str:
         add("| Between | And | Candidate | What contradicts |")
         add("|:--|:--|:--|:--|")
         for edge in open_conflicts:
+            record = _conflict_record(edge, conflicts)
             add(
                 f'| `{edge["from"]}` | `{edge["to"]}` | {_esc(edge.get("q_ref"))} '
-                f'| {_esc(_oneline(edge.get("detail")))} |'
+                f'| {_esc(_oneline(record.get("detail")))} |'
             )
         add("")
         for edge in open_conflicts:
-            evidence = edge.get("evidence") or []
+            record = _conflict_record(edge, conflicts)
+            evidence = record.get("evidence") or []
             if not evidence:
                 continue
             add(f'**{edge["from"]} ↔ {edge["to"]} — evidence**')
@@ -763,7 +889,8 @@ def render(graph: dict, errors: list[str], warnings: list[str]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def trace(graph: dict, node_id: str) -> str:
+def trace(graph: dict, node_id: str,
+          conflicts: dict[tuple[str, str, str], dict[str, Any]] | None = None) -> str:
     nodes = {n["id"]: n for n in _nodes(graph) if n.get("id")}
     if node_id not in nodes:
         return f"no such node: {node_id}"
@@ -797,17 +924,91 @@ def trace(graph: dict, node_id: str) -> str:
         [f"{e['to']} ({nodes[e['to']].get('name')})"
          for e in edges if e.get("rel") == "realizes" and e.get("from") == node_id],
     )
-    conflicts = [
+    conflict_edges = [
         e for e in edges
         if e.get("rel") == "conflicts_with" and node_id in (e.get("from"), e.get("to"))
     ]
+
+    def conflict_detail(edge: dict) -> str:
+        record = _conflict_record(edge, conflicts)
+        other = edge["to"] if edge["from"] == node_id else edge["from"]
+        return (
+            f"[{edge.get('status')}] with {other} — {edge.get('q_ref', 'UNFILED')}: "
+            f"{_oneline(record.get('detail'))}"
+        )
+
     show(
         "conflicts",
-        [f"[{e.get('status')}] with {e['to'] if e['from'] == node_id else e['from']} "
-         f"— {e.get('q_ref', 'UNFILED')}: {_oneline(e.get('detail'))}"
-         for e in conflicts],
+        [conflict_detail(edge) for edge in conflict_edges],
     )
     return "\n".join(lines).rstrip()
+
+
+MODULES = {
+    "Intent": (
+        "V-HAIOS", "M-OBSERVABILITY", "M-GOVERNED-CHANGE", "M-RESOURCE-TRUTH",
+        "P-FALSIFIER", "P-ADMISSION", "P-EVIDENCE-OVER-CLAIM",
+        "P-NON-COMMENSURABLE", "P-TEMPORAL-PURITY", "P-SERIAL-GATE",
+    ),
+    "Resources": (
+        "O-QUEUE", "O-TEMPORAL-GATE", "O-CORPUS-INTEGRITY",
+        "I-RESOURCE-CENSUS", "I-QUEUE-ENGINE", "I-CORPUS-VALIDATOR",
+    ),
+    "Control": (
+        "O-MOLT-CYCLE", "O-REGISTRY", "O-DECISION-ROUTING", "O-DOC-CONTROL",
+        "O-IDENTITY-ANCHOR", "G-Z2-RATIFY", "G-TEMPORAL-SCAN",
+        "G-ANTI-CASCADE", "G-FALSIFIER-LINT",
+    ),
+    "Execution": ("O-WITNESS", "O-INTENT-GRAPH"),
+    "Assurance": ("I-NF-LEDGER", "I-INTENT-GRAPH"),
+}
+
+
+def render_modules(graph: dict) -> str:
+    nodes = {node["id"]: node for node in _nodes(graph) if node.get("id")}
+    assigned = [node_id for ids in MODULES.values() for node_id in ids]
+    if len(assigned) != len(set(assigned)) or set(assigned) != set(nodes):
+        raise ValueError("module projection must assign every graph node exactly once")
+
+    lines = [
+        "<!-- DERIVED VIEW — do not hand-edit. Source: INTENT_GRAPH.yaml -->",
+        "",
+        "# INTENT_GRAPH_MODULES",
+        "",
+        "**Status:** derived projection only; the graph remains `PROPOSED` and authoritative "
+        "structure remains in `INTENT_GRAPH.yaml`.",
+        "",
+        "Every entry retains its original node id and source path. Module placement is an "
+        "operator-facing grouping, not a graph relationship or authority change.",
+        "",
+    ]
+    for module, node_ids in MODULES.items():
+        lines.extend((f"## {module}", "", "| Node | Type | Name | Status | Source |",
+                      "|:--|:--|:--|:--|:--|"))
+        for node_id in node_ids:
+            node = nodes[node_id]
+            source = _esc(node.get("source"))
+            anchor = node.get("anchor")
+            source_cell = f"`{source}`" + (f" · {_esc(anchor)}" if anchor else "")
+            lines.append(
+                f'| `{node_id}` | {_esc(node.get("type"))} | '
+                f'{_esc(node.get("name"))} | {_esc(node.get("status"))} | {source_cell} |'
+            )
+        lines.append("")
+
+    conflicts = [
+        edge for edge in _edges(graph)
+        if edge.get("rel") == "conflicts_with" and edge.get("status") == "OPEN"
+    ]
+    lines.extend(("## Open conflicts", "",
+                  "Conflict details and evidence are retained in `CONFLICTS.yaml`.", "",
+                  "| From | To | Candidate |", "|:--|:--|:--|"))
+    for edge in conflicts:
+        lines.append(
+            f'| `{edge["from"]}` | `{edge["to"]}` | {_esc(edge.get("q_ref"))} |'
+        )
+    lines.append("")
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -816,13 +1017,11 @@ def trace(graph: dict, node_id: str) -> str:
 
 _FIXTURE = """
 version: 1
-node_types: {vision: v, objective: o, principle: p, gate: g, instrument: i}
-edge_types: {realizes: r, grounds: g, measures: m, enforces: e, conflicts_with: c}
 nodes:
-  - {id: V, type: vision, name: V, source: README.md, status: LIVE}
-  - {id: P, type: principle, name: P, source: README.md, status: LIVE}
-  - {id: O, type: objective, name: O, source: README.md, status: LIVE}
-  - {id: I, type: instrument, name: I, source: README.md, status: LIVE}
+  - {id: V, type: vision, name: V, source: README.md, source_hash: b6d2fe2f06e11271, status: LIVE}
+  - {id: P, type: principle, name: P, source: README.md, source_hash: b6d2fe2f06e11271, status: LIVE}
+  - {id: O, type: objective, name: O, source: README.md, source_hash: b6d2fe2f06e11271, status: LIVE}
+  - {id: I, type: instrument, name: I, source: README.md, source_hash: b6d2fe2f06e11271, status: LIVE}
 edges:
   - {from: O, to: V, rel: realizes}
   - {from: P, to: O, rel: grounds}
@@ -866,7 +1065,8 @@ def run_smoke_test() -> int:
     # E8 — an open conflict with no candidate is refused.
     unfiled = yaml.safe_load(_FIXTURE)
     unfiled["nodes"].append({"id": "O2", "type": "objective", "name": "O2",
-                             "source": "README.md", "status": "CONFLICTED"})
+                             "source": "README.md", "source_hash": "b6d2fe2f06e11271",
+                             "status": "CONFLICTED"})
     unfiled["nodes"][2]["status"] = "CONFLICTED"
     unfiled["edges"] += [
         {"from": "O2", "to": "V", "rel": "realizes"},
@@ -879,7 +1079,8 @@ def run_smoke_test() -> int:
     # E9 — a conflicted node must declare it.
     undeclared = yaml.safe_load(_FIXTURE)
     undeclared["nodes"].append({"id": "O2", "type": "objective", "name": "O2",
-                                "source": "README.md", "status": "LIVE"})
+                                "source": "README.md", "source_hash": "b6d2fe2f06e11271",
+                                "status": "LIVE"})
     undeclared["edges"] += [
         {"from": "O2", "to": "V", "rel": "realizes"},
         {"from": "P", "to": "O2", "rel": "grounds"},
@@ -906,16 +1107,45 @@ def run_smoke_test() -> int:
     # W4 — vision cardinality is reported, not enforced.
     two_visions = yaml.safe_load(_FIXTURE)
     two_visions["nodes"].append({"id": "V2", "type": "vision", "name": "V2",
-                                 "source": "README.md", "status": "LIVE"})
+                                 "source": "README.md", "source_hash": "b6d2fe2f06e11271",
+                                 "status": "LIVE"})
     errors, warnings = validate(two_visions, root=ROOT)
     check("second vision warns but does not block",
           errors == [] and any(w.startswith("W4") for w in warnings))
 
     # W5 — a type the graph declares that the validator cannot reason about.
     widened = yaml.safe_load(_FIXTURE)
-    widened["node_types"]["ritual"] = "a type the validator knows nothing about"
-    _, warnings = validate(widened, root=ROOT)
-    check("undeclared-to-validator node type warns", any(w.startswith("W5") for w in warnings))
+    widened["nodes"][2]["type"] = "ritual"
+    errors, _ = validate(widened, root=ROOT)
+    check("unknown node type is an error", any(e.startswith("E2") for e in errors))
+
+    changed_source = yaml.safe_load(_FIXTURE)
+    changed_source["nodes"][2]["source_hash"] = "0" * 16
+    errors, _ = validate(changed_source, root=ROOT)
+    check("changed source hash is an error", any(e.startswith("E3b") for e in errors))
+
+    unresolved_anchor = yaml.safe_load(_FIXTURE)
+    unresolved_anchor["nodes"][2]["anchor"] = "not a source section"
+    errors, _ = validate(unresolved_anchor, root=ROOT)
+    check("unresolved source anchor is an error",
+          any(e.startswith("E3b") and "cannot be resolved" in e for e in errors))
+
+    anchored = yaml.safe_load(_FIXTURE)
+    anchored["nodes"][2]["anchor"] = "HumanAIOS Operations Repository"
+    anchored["nodes"][2]["source_hash"] = _source_fingerprint(
+        os.path.join(ROOT, "README.md"), anchored["nodes"][2]["anchor"], ROOT
+    )
+    errors, _ = validate(anchored, root=ROOT)
+    check("resolved anchor content hash validates", not any(e.startswith("E3b") for e in errors))
+    with open(os.path.join(ROOT, "CLAUDE.md"), encoding="utf-8") as handle:
+        receipt_section = _anchor_section(handle.read(), "B.6")
+    check("bold section anchor ends at its enclosing heading boundary",
+          receipt_section is not None and "Callout Mandatory Triggers" not in receipt_section)
+
+    missing_hash = yaml.safe_load(_FIXTURE)
+    del missing_hash["nodes"][2]["source_hash"]
+    errors, _ = validate(missing_hash, root=ROOT)
+    check("missing source hash is an error", any(e.startswith("E3b") for e in errors))
 
     # E14 — persistence class vocabulary.
     bad_persist = yaml.safe_load(_FIXTURE)
@@ -950,7 +1180,8 @@ def run_smoke_test() -> int:
     def _with_conflict(**edge_extra):
         graph = yaml.safe_load(_FIXTURE)
         graph["nodes"].append({"id": "O2", "type": "objective", "name": "O2",
-                               "source": "README.md", "status": "LIVE"})
+                               "source": "README.md", "source_hash": "b6d2fe2f06e11271",
+                               "status": "LIVE"})
         graph["nodes"][2]["status"] = "CONFLICTED"
         graph["edges"] += [
             {"from": "O2", "to": "V", "rel": "realizes"},
@@ -972,6 +1203,11 @@ def run_smoke_test() -> int:
                                 known_candidates={"Q-FIXTURE-01"})
     check("indexed q_ref is clean",
           errors == [] and not any(w.startswith("W6") for w in warnings))
+
+    errors, _ = validate(_with_conflict(q_ref="Q-FIXTURE-01"), root=ROOT,
+                         known_candidates={"Q-FIXTURE-01"}, conflicts={})
+    check("open conflict requires extracted detail and evidence",
+          any(e.startswith("E16") for e in errors))
 
     # A missing or unparseable index must not break the tool — this repository
     # shipped an unparseable INDEX.yaml, which is how that case was found.
@@ -1028,7 +1264,8 @@ def run_smoke_test() -> int:
     # ...a conflicts_with row may quote the defect it reports without tripping it.
     quoting = yaml.safe_load(_FIXTURE)
     quoting["nodes"].append({"id": "O2", "type": "objective", "name": "O2",
-                             "source": "README.md", "status": "LIVE"})
+                             "source": "README.md", "source_hash": "b6d2fe2f06e11271",
+                             "status": "LIVE"})
     quoting["nodes"][2]["status"] = "CONFLICTED"
     quoting["edges"] += [
         {"from": "O2", "to": "V", "rel": "realizes"},
@@ -1099,7 +1336,22 @@ def run_smoke_test() -> int:
     # The real graph must load and render.
     try:
         live = load()
-        render(live, *validate(live))
+        live_conflicts = load_conflicts()
+        live_errors, live_warnings = validate(live, conflicts=live_conflicts)
+        live_page = render(live, live_errors, live_warnings, live_conflicts)
+        module_page = render_modules(live)
+        check("all open conflicts have extracted details",
+              not any(error.startswith("E16") for error in live_errors))
+        check("rendered graph retains extracted conflict detail",
+              "brier_actual" in live_page and "window_start" in live_page)
+        check("module view assigns every original id once",
+              all(
+                  module_page.split("## Open conflicts", 1)[0].count(f"`{node['id']}`") == 1
+                  for node in _nodes(live)
+              ))
+        check("module view preserves every open conflict reference",
+              all(edge["q_ref"] in module_page for edge in _edges(live)
+                  if edge.get("rel") == "conflicts_with" and edge.get("status") == "OPEN"))
         check("INTENT_GRAPH.yaml loads and renders", True)
     except Exception as exc:  # pragma: no cover - reported, not raised
         check(f"INTENT_GRAPH.yaml loads and renders ({exc})", False)
@@ -1116,7 +1368,7 @@ def run_smoke_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     parser.add_argument("command", nargs="?", default="check",
-                        choices=["check", "render", "trace"])
+                        choices=["check", "render", "modules", "trace"])
     parser.add_argument("node", nargs="?", help="node id, for `trace`")
     parser.add_argument("--input", default=GRAPH, metavar="PATH",
                         help="graph to read (default: INTENT_GRAPH.yaml). A graph "
@@ -1130,10 +1382,11 @@ def main() -> int:
     if args.smoke_test:
         return run_smoke_test()
 
-    graph = load(args.input)
-    errors, warnings = validate(graph)
     # Only the canonical graph owns the canonical page; anything else prints.
     is_default = os.path.realpath(args.input) == os.path.realpath(GRAPH)
+    graph = load(args.input)
+    conflicts = load_conflicts() if is_default else None
+    errors, warnings = validate(graph, conflicts=conflicts)
 
     if args.command == "trace":
         if not args.node:
@@ -1146,7 +1399,7 @@ def main() -> int:
             # missing node as a clean answer.
             print(f"no such node: {args.node}", file=sys.stderr)
             return 1
-        print(trace(graph, args.node))
+        print(trace(graph, args.node, conflicts))
         return 0
 
     if args.command == "check":
@@ -1158,8 +1411,14 @@ def main() -> int:
               f"{len(errors)} error(s), {len(warnings)} warning(s)")
         return 1 if errors else 0
 
-    # render
-    text = render(graph, errors, warnings)
+    if args.command == "modules":
+        text = render_modules(graph)
+        output_path = MODULES_OUTPUT
+        output_name = "INTENT_GRAPH_MODULES.md"
+    else:
+        text = render(graph, errors, warnings, conflicts)
+        output_path = OUTPUT
+        output_name = "INTENT_GRAPH.md"
     if not is_default:
         if args.check:
             print("::error::--check compares the canonical page; it needs the "
@@ -1169,21 +1428,20 @@ def main() -> int:
         return 1 if errors else 0
     if args.check:
         current = ""
-        if os.path.exists(OUTPUT):
-            with open(OUTPUT, encoding="utf-8") as handle:
+        if os.path.exists(output_path):
+            with open(output_path, encoding="utf-8") as handle:
                 current = handle.read()
         if current != text:
-            print("::error::INTENT_GRAPH.md is out of sync with INTENT_GRAPH.yaml "
-                  "(run: python3 tools/intent_graph_v1_0.py render)")
+            print(f"::error::{output_name} is out of sync with INTENT_GRAPH.yaml "
+                  f"(run: python3 tools/intent_graph_v1_0.py {args.command})")
             return 1
-        print("INTENT_GRAPH.md in sync")
+        print(f"{output_name} in sync")
         return 0
 
-    with open(OUTPUT, "w", encoding="utf-8") as handle:
+    with open(output_path, "w", encoding="utf-8") as handle:
         handle.write(text)
-    print(f"wrote {os.path.relpath(OUTPUT, ROOT)} "
-          f"({len(_nodes(graph))} nodes, {len(_edges(graph))} edges, "
-          f"{len(errors)} error(s), {len(warnings)} warning(s))")
+    print(f"wrote {os.path.relpath(output_path, ROOT)} "
+          f"({len(_nodes(graph))} nodes, {len(errors)} error(s), {len(warnings)} warning(s))")
     return 1 if errors else 0
 
 

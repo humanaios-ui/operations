@@ -331,6 +331,24 @@ def test_normalize_dict_of_nodes_and_source_target_edges():
     assert len(g.edges) == 1 and g.edges[0].rel == "data_flow"
 
 
+def test_normalize_reads_schema_vocabulary_from_companion_document():
+    graph_path = REPO_ROOT / "INTENT_GRAPH.yaml"
+    graph = gcl.normalize(str(graph_path), gcl.load_doc(str(graph_path)))
+    assert graph.node_vocab == {
+        "vision", "mission", "principle", "objective", "gate", "instrument"
+    }
+    assert graph.rel_vocab == {
+        "realizes", "grounds", "measures", "enforces", "constrains", "conflicts_with"
+    }
+    p8 = next(f for f in gcl.lint_graph(graph).findings if f.prop == "P8")
+    assert not p8.failed
+
+
+def test_normalize_rejects_schema_document_path_escape():
+    with pytest.raises(gcl.GraphLoadError, match="escapes"):
+        gcl.normalize("/repo/graph.yaml", {"schema_doc": "../outside.md"})
+
+
 def test_normalize_collects_nodes_from_several_lists():
     doc = {"stages": [{"id": "S1", "label": "stage"}],
            "crb_nodes": [{"id": "R1", "type": "crb_role", "label": "role"}],

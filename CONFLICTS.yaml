@@ -1,0 +1,75 @@
+conflicts:
+  - from: O-MOLT-CYCLE
+    to: O-TEMPORAL-GATE
+    q_ref: Q-MOLT-TEMPORAL-PURITY-01
+    detail: >-
+      MOLT_STATE.md resolves a molt at `window_end` and computes brier_actual
+      "at window close" — a molt outcome determined by elapsed time.
+      TEMPORAL_DISSOLUTION_POLICY.md classifies exactly that as
+      INVALID_INTERNAL_DEADLINE, and BOOT_PROCESS_MAP.md already published the
+      successor reading ("Molt completes when measurement criteria met") without
+      MOLT_STATE.md being migrated to match.
+    evidence:
+      - 'MOLT_STATE.md: window_start / window_end / prediction.window_days'
+      - 'BOOT_PROCESS_MAP.md: "Molt window_end at timestamp" listed as REMOVED'
+      - 'TEMPORAL_DISSOLUTION_POLICY.md: INTERNAL_WORK_DEADLINE class'
+
+  - from: O-DOC-CONTROL
+    to: O-TEMPORAL-GATE
+    q_ref: Q-TEMPORAL-DISSOLUTION-01
+    detail: >-
+      document-registry.yaml derives review_due from review_interval_days and
+      renders documents "visibly overdue" once the interval elapses. Obligation
+      is created by the calendar rather than by source drift.
+    evidence:
+      - 'document-registry.yaml: review_interval_days, review_due, overdue'
+      - 'TEMPORAL_CONTROL_AUDIT.md: document-control finding'
+
+  - from: O-IDENTITY-ANCHOR
+    to: V-HAIOS
+    q_ref: Q-SEED-TRL-PROPAGATION-01
+    detail: >-
+      OPS_ROADMAP_V1.2.md records a Z2 ratification — "TRL corrected from 2-3
+      to 4 throughout | RATIFIED - Night | S-061226-02" — and applies TRL 4.
+      SEED.md, the identity anchor that is live-fetched at session open, still
+      states TRL 2-3 in three places including its footer. A ratified correction
+      was applied to one surface and never propagated to the canonical one, so
+      every session boots on the superseded value. Exactly the shape of the
+      molt-window finding.
+    evidence:
+      - 'OPS_ROADMAP_V1.2.md line 18: TRL corrected from 2-3 to 4 throughout, RATIFIED'
+      - 'SEED.md lines 33, 231, 318: TRL 2-3'
+      - 'tree-wide: 57 occurrences of TRL 2-3 against 21 of TRL 4'
+
+  - from: O-IDENTITY-ANCHOR
+    to: O-CORPUS-INTEGRITY
+    q_ref: Q-CORPUS-STATS-RECONCILE-01
+    detail: >-
+      audits/CORPUS_RECONCILIATION_S-070226.md is a Zone 1 submission-blocking
+      finding: the cited headline statistics are not reproducible from the
+      published dataset. It offers two resolution options and records no
+      selection. SEED.md still publishes the unreproducible set as canonical —
+      N_total 629, N_LI 307, mean LI 0.8632 — against the audit's measured 608
+      rows, 0.8431 raw and 0.8572 cleaned. Tree-wide, 0.8632 appears 38 times.
+      A third set (LI 0.87, the "canonical paper numbers") is in use with a
+      written instruction not to mix it with the others. The finding is
+      documented, unresolved, and load-bearing for the instrument's own
+      credibility claim.
+    evidence:
+      - 'audits/CORPUS_RECONCILIATION_S-070226.md: "Not one of the five headline numbers matches"'
+      - 'SEED.md lines 89-92: N_total 629, N_LI 307, Mean LI 0.8632'
+      - 'deliverables/witness-stand-post-1.md: "Do NOT swap in the 0.8632/N=629 draft figures"'
+      - 'tree-wide mean LI values: 0.8632 x38, 0.8532 x7, 0.8431 x2, 0.8572 x1'
+
+  - from: O-DECISION-ROUTING
+    to: O-TEMPORAL-GATE
+    q_ref: Q-MOLT-TEMPORAL-PURITY-01
+    detail: >-
+      z1-inbox/INDEX.yaml carries `decision_window_days: 2` and CLAUDE.md states
+      a 48h Z2 decision window with contest rights expiring on elapsed time. The
+      ratifier's attention is a measured resource (RAT-min); a two-day clock
+      neither creates it nor licenses escalation when it runs out.
+    evidence:
+      - 'z1-inbox/INDEX.yaml: decision_window_days: 2'
+      - 'CLAUDE.md: "Decision window: 48h for routine decisions"'
+      - 'BOOT_PROCESS_MAP.md: "Z2 responds within 48h" listed as REMOVED'
