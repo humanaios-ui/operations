@@ -34,29 +34,29 @@
       "n": 26,
       "red_rate_ex_coderabbit": 0.692
     },
-    "cr_clean_or_trivial": {
-      "brier_vs_code_green": 0.035,
-      "brier_vs_green": 0.585,
-      "code_red_rate": 0.0,
-      "mean_smag_p": 0.841,
-      "n": 8,
-      "red_rate_ex_coderabbit": 0.75
-    },
     "cr_major": {
-      "brier_vs_code_green": 0.2753,
-      "brier_vs_green": 0.5133,
-      "code_red_rate": 0.4,
-      "mean_smag_p": 0.869,
-      "n": 10,
-      "red_rate_ex_coderabbit": 0.7
+      "brier_vs_code_green": 0.1994,
+      "brier_vs_green": 0.498,
+      "code_red_rate": 0.267,
+      "mean_smag_p": 0.851,
+      "n": 15,
+      "red_rate_ex_coderabbit": 0.667
     },
     "cr_minor_only": {
-      "brier_vs_code_green": 0.0865,
-      "brier_vs_green": 0.6051,
-      "code_red_rate": 0.071,
+      "brier_vs_code_green": 0.0777,
+      "brier_vs_green": 0.6252,
+      "code_red_rate": 0.062,
       "mean_smag_p": 0.874,
-      "n": 14,
-      "red_rate_ex_coderabbit": 0.786
+      "n": 16,
+      "red_rate_ex_coderabbit": 0.812
+    },
+    "cr_no_inline_findings": {
+      "brier_vs_code_green": 0.01,
+      "brier_vs_green": 0.81,
+      "code_red_rate": 0.0,
+      "mean_smag_p": 0.9,
+      "n": 1,
+      "red_rate_ex_coderabbit": 1.0
     },
     "no_bot_review": {
       "brier_vs_code_green": 0.1866,
@@ -69,14 +69,15 @@
   },
   "coderabbit_check_in_smag_failures": 8,
   "coderabbit_findings_total": {
-    "major_or_critical": 210,
-    "minor": 404,
-    "trivial": 97
+    "major_or_critical": 299,
+    "minor": 672,
+    "trivial": 139,
+    "unparsed": 0
   },
   "coverage": {
-    "coderabbit_reviewed": 185,
-    "coderabbit_with_inline_findings": 117,
-    "copilot_quota_failures": 44,
+    "coderabbit_reviewed": 187,
+    "coderabbit_with_inline_findings": 185,
+    "copilot_quota_failures": 46,
     "copilot_reviewed": 731,
     "copilot_verdicts": {
       "approve": 29,
@@ -85,6 +86,7 @@
     }
   },
   "joined_smag_and_any_bot": 128,
-  "prs_total": 1086,
+  "prs_total": 1092,
+  "review_fetch_errors": 0,
   "smag_resolved_with_p": 152
 }
