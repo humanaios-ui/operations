@@ -320,7 +320,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-098 | phase1_prompt_integrity_checker | `tools/phase1_prompt_integrity_checker_v1.0.py` | 1.0.0 | 1 | draft | — | Phase 1 Prompt Integrity Checker - v1.0 |
 | HAIOS-TOOL-104 | registered_findings_validator | `tools/registered_findings_validator_v1_0.py` | 1.0.0 | 1 | draft | — | Registered Findings Validator — v1.0 |
 | HAIOS-TOOL-140 | validate_skills | `tools/validate_skills.py` | 1.0.0 | 1 | draft | — | validate_skills.py |
-| HAIOS-TOOL-146 | doc_control_validator | `.doc-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers, no-smoke-test | Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md: |
+| HAIOS-TOOL-146 | doc_control_validator | `.doc-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers, no-smoke-test | Enforces the mechanical controlled-document rules, written out in its own header (there is no separate plan document). |
 | HAIOS-TOOL-149 | tool_control_selftest | `.tool-control/selftest.py` | 1.1.0 | 1 | draft | no-builder-markers | Adversarial self-test for the tool-control gate: prove every rule can FAIL. |
 | HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
 | HAIOS-TOOL-161 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |

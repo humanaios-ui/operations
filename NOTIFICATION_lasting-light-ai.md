@@ -67,7 +67,7 @@ On **Monday, Aug 12, 2026:**
 
 - Activation brief: `operations/DOCUMENT_CONTROL_ACTIVATION_BRIEF.md`
 - Rollout plan: `operations/A5_MULTIrepo_ROLLOUT_PLAN.md` (find "lasting-light-ai")
-- Full method: `operations/DOCUMENT_CONTROL_PLAN.md`
+- Full method: `operations/DOCUMENT_CONTROL_PLAN.md` *(corrected 2026-11-28: that file does not exist. The rules live in `operations/.doc-control/validate.py`, `operations/.doc-control/review.py` and the comments in `operations/document-registry.yaml`.)*
 
 ---
 

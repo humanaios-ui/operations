@@ -181,3 +181,7 @@ same `review_due`. Or `--check` rejects a date `--record` wrote.
 document and reports what they found; five findings are what this one found. Fixing them is separate
 work and F-CANDIDATE-01 in particular needs Z2 to decide whether the plan is written or the
 references are corrected.
+
+## Disposition (2026-11-28)
+
+Z2 chose option 2A on 2026-11-28 (Night, in session: "1-3A"): F-CANDIDATE-01 is closed by pointing every live reference at what holds the rules (`.doc-control/validate.py`, `.doc-control/review.py` and the comments in `document-registry.yaml`) instead of writing `DOCUMENT_CONTROL_PLAN.md`. The three notifications already sent keep their original line and gain a dated correction note. Historical audit files are left as written. Not decided here: F-CANDIDATE-02 to -05 and the routing of the 28 documents outside this repository. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

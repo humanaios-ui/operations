@@ -44,7 +44,7 @@ The S070126 audit found 71 diverged document pairs and 1653 uncontrolled files. 
 |-------|----------|------|
 | **TL;DR** | DOCUMENT_CONTROL_ACTIVATION_BRIEF.md (this page) | 5 min |
 | **My Area's Rollout** | A5_MULTI_REPO_ROLLOUT_PLAN.md (find your repo's day) | 10 min |
-| **How It Works** | DOCUMENT_CONTROL_PLAN.md (full design + rationale) | 20 min |
+| **How It Works** | `.doc-control/validate.py` and `.doc-control/review.py` (the rules are in their headers) and the comments in `document-registry.yaml` | 20 min |
 
 ---
 
@@ -63,7 +63,7 @@ The S070126 audit found 71 diverged document pairs and 1653 uncontrolled files. 
 - **"How do I approve my document?"** → See DOCUMENT_CONTROL_ACTIVATION_BRIEF.md FAQ
 - **"What's my area code (GOV, PROC, RES, etc.)?"** → See A4_INTAKE_PIPELINE_SPEC.md rules template
 - **"When does my repo roll out?"** → See A5_MULTI_REPO_ROLLOUT_PLAN.md (find your repo)
-- **"Can I delete a controlled document?"** → DOCUMENT_CONTROL_PLAN.md §3.3 (answer: mark superseded, never delete)
+- **"Can I delete a controlled document?"** → No: mark it `superseded` or `retired` in `document-registry.yaml` instead (the allowed statuses are in `.doc-control/validate.py`)
 - **"What about external links that break?"** → EXTERNAL_LINK_POLICY.md (fix/defer/supersede — no silent removal)
 
 **File an issue:** `humanaios-ui/operations` with tag `document-control/question`
