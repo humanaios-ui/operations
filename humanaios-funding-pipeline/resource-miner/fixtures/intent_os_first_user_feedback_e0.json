@@ -1,0 +1,26 @@
+{
+  "schema": "humanaios.intent_os_feedback.v0.1",
+  "entries": [
+    {
+      "resource_id": "FIXTURE-GITHUB-SPONSORS",
+      "source_url": "https://github.com/sponsors",
+      "title": "GitHub Sponsors",
+      "status": "SETUP_INCOMPLETE",
+      "related_url": "https://github.com/sponsors/humanaios-ui"
+    },
+    {
+      "resource_id": "FIXTURE-APART-LAB",
+      "source_url": "https://apartresearch.com/lab",
+      "title": "Apart Lab Fellowship",
+      "status": "INTERESTED",
+      "related_url": "https://apartresearch.com/sprints/ai-collusion-research-sprint-2026-10-23-to-2026-10-25"
+    },
+    {
+      "resource_id": "FIXTURE-MICROSOFT-STARTUPS",
+      "source_url": "https://www.microsoft.com/en-us/startups",
+      "title": "Microsoft for Startups Founders Hub",
+      "status": "ALREADY_IN_USE",
+      "related_url": null
+    }
+  ]
+}
