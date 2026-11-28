@@ -1,0 +1,173 @@
+{
+  "experiment": "HAIOS-VIDEO-E0",
+  "seedRange": [
+    1,
+    200
+  ],
+  "cycles": 60,
+  "agents": 4,
+  "pairedRuns": 600,
+  "scope": "scripted synthetic; not live AI or human participants",
+  "pool": {
+    "A": {
+      "runs": 200,
+      "reservePreserved": 0,
+      "zeroViolations": 0,
+      "stock": 16.17,
+      "min": 0,
+      "violations": 149.67,
+      "useful": 609.72,
+      "raw": 814.49,
+      "withdrawal": 7.7,
+      "capViol": 76.76,
+      "reserveViol": 106.78,
+      "minAgent": 181.11,
+      "maxAgent": 227.93
+    },
+    "B": {
+      "runs": 200,
+      "reservePreserved": 0,
+      "zeroViolations": 0,
+      "stock": 73.65,
+      "min": 0,
+      "violations": 53.59,
+      "useful": 609.42,
+      "raw": 715.4,
+      "withdrawal": 8.6,
+      "capViol": 0,
+      "reserveViol": 47.04,
+      "minAgent": 167.88,
+      "maxAgent": 190.34
+    },
+    "C": {
+      "runs": 200,
+      "reservePreserved": 200,
+      "zeroViolations": 200,
+      "stock": 86.72,
+      "min": 25,
+      "violations": 0,
+      "useful": 591.68,
+      "raw": 668.36,
+      "withdrawal": 0,
+      "capViol": 0,
+      "reserveViol": 0,
+      "minAgent": 155.28,
+      "maxAgent": 175.84
+    }
+  },
+  "controls": [
+    {
+      "name": "valid",
+      "expected": true,
+      "observed": true,
+      "pass": true
+    },
+    {
+      "name": "forged principal",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    },
+    {
+      "name": "stale",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    },
+    {
+      "name": "withdrawn",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    },
+    {
+      "name": "duplicate",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    },
+    {
+      "name": "over cap",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    },
+    {
+      "name": "reserve",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    },
+    {
+      "name": "negative amount",
+      "expected": false,
+      "observed": false,
+      "pass": true
+    },
+    {
+      "name": "out-of-band mutation detected",
+      "expected": true,
+      "observed": true,
+      "pass": true
+    }
+  ],
+  "media": {
+    "article": {
+      "cases": 96,
+      "raw": {
+        "correctRelease": 36,
+        "falseRelease": 60,
+        "holdValid": 0,
+        "holdInvalid": 0
+      },
+      "verified": {
+        "correctRelease": 24,
+        "falseRelease": 0,
+        "holdValid": 12,
+        "holdInvalid": 60
+      },
+      "correctionRetained": {
+        "raw": 12,
+        "verified": 12
+      }
+    },
+    "conventional_video_script": {
+      "cases": 96,
+      "raw": {
+        "correctRelease": 36,
+        "falseRelease": 60,
+        "holdValid": 0,
+        "holdInvalid": 0
+      },
+      "verified": {
+        "correctRelease": 24,
+        "falseRelease": 0,
+        "holdValid": 12,
+        "holdInvalid": 60
+      },
+      "correctionRetained": {
+        "raw": 12,
+        "verified": 12
+      }
+    },
+    "witness_video_script": {
+      "cases": 96,
+      "raw": {
+        "correctRelease": 36,
+        "falseRelease": 60,
+        "holdValid": 0,
+        "holdInvalid": 0
+      },
+      "verified": {
+        "correctRelease": 24,
+        "falseRelease": 0,
+        "holdValid": 12,
+        "holdInvalid": 60
+      },
+      "correctionRetained": {
+        "raw": 12,
+        "verified": 12
+      }
+    }
+  }
+}
