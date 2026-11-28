@@ -1,0 +1,1351 @@
+{
+  "protocol": "humanaios.dual-service-e01.v0.1.1",
+  "test_clock": "2026-11-18T12:00:00Z",
+  "original_e0_cases_unchanged_sha256": "b8579e64088af24b2cae1375653ca0aa17052bcf544be440be6b332b2d199cf1",
+  "original_e0_sources_unchanged_sha256": "d9986e8ca70823fb15ded7d21e6452bebcd368777ea05ce895a98b74f9c63268",
+  "additional_cases_sha256": "96b95f3e09cb3d75b83a20c7857b9c05bff0250337793442320f18c340a18966",
+  "original_oracle_schema_blob_sha1": "c8d506434a3f13a97fc0a98d9fc882f1083e6691",
+  "sidecar_schema_sha256": "2c1d86e0278137ef3f8f5e9a99c3156e713d81815fe97851ec2b958e6d6bff05",
+  "total": 28,
+  "passed": 28,
+  "failed": 0,
+  "status": "SELF_CHECK_PASS_REVIEW_REQUIRED",
+  "review_status": "NOT_INDEPENDENTLY_REVIEWED",
+  "real_app_integration": "NOT_RUN",
+  "real_user_testing": "NOT_RUN",
+  "network_calls": 0,
+  "results": [
+    {
+      "id": "S01",
+      "service": "integrity",
+      "scenario": "supported",
+      "expected": "AFFECTED_BY_THIS_ADVISORY",
+      "actual": "AFFECTED_BY_THIS_ADVISORY",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S01",
+          "service": "integrity",
+          "decision": "AFFECTED_BY_THIS_ADVISORY",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "This version is listed in this one advisory; deployment exposure is unassessed.",
+          "next_step": "Review the advisory and plan an approved update.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-45b2c32fe4b4286e8fcb5d9d",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S01 | AFFECTED_BY_THIS_ADVISORY | This version is listed in this one advisory; deployment exposure is unassessed.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S02",
+      "service": "integrity",
+      "scenario": "mismatch",
+      "expected": "NOT_AFFECTED_BY_THIS_ADVISORY",
+      "actual": "NOT_AFFECTED_BY_THIS_ADVISORY",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S02",
+          "service": "integrity",
+          "decision": "NOT_AFFECTED_BY_THIS_ADVISORY",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "Not affected by this specific advisory only; other vulnerabilities and actual safety remain unknown.",
+          "next_step": "Check other advisories and the real dependency graph.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-a1bdc319b4ec6cd48aa8ffc0",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S02 | NOT_AFFECTED_BY_THIS_ADVISORY | Not affected by this specific advisory only; other vulnerabilities and actual safety remain unknown.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S03",
+      "service": "integrity",
+      "scenario": "missing",
+      "expected": "UNKNOWN_VERSION",
+      "actual": "UNKNOWN_VERSION",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S03",
+          "service": "integrity",
+          "decision": "UNKNOWN_VERSION",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "Exact release version needed; prereleases not assessed.",
+          "next_step": "Verify a full stable version from the package inventory.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-afa07b91d3d46d0168f99aa7",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S03 | UNKNOWN_VERSION | Exact release version needed; prereleases not assessed.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S04",
+      "service": "integrity",
+      "scenario": "stale",
+      "expected": "STALE_SOURCE",
+      "actual": "STALE_SOURCE",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S04",
+          "service": "integrity",
+          "decision": "STALE_SOURCE",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "Source snapshot older than the declared 90-day test window.",
+          "next_step": "Retrieve a valid, independently dated source.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-ec6ad3e4c621a5adedb0a69a",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S04 | STALE_SOURCE | Source snapshot older than the declared 90-day test window.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S05",
+      "service": "integrity",
+      "scenario": "conflict",
+      "expected": "DISPUTED_SOURCE",
+      "actual": "DISPUTED_SOURCE",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S05",
+          "service": "integrity",
+          "decision": "DISPUTED_SOURCE",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 2,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "Affected-version thresholds conflict; do not conclude.",
+          "next_step": "Check the authoritative advisory revision.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-83f5365563e3bdcc6f02dca0",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S05 | DISPUTED_SOURCE | Affected-version thresholds conflict; do not conclude.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S06",
+      "service": "integrity",
+      "scenario": "duplicate",
+      "expected": "AFFECTED_BY_THIS_ADVISORY",
+      "actual": "AFFECTED_BY_THIS_ADVISORY",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S06",
+          "service": "integrity",
+          "decision": "AFFECTED_BY_THIS_ADVISORY",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "This version is listed in this one advisory; deployment exposure is unassessed.",
+          "next_step": "Review the advisory and plan an approved update.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-4a11568a6ac6b2bb627ed919",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S06 | AFFECTED_BY_THIS_ADVISORY | This version is listed in this one advisory; deployment exposure is unassessed.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S07",
+      "service": "integrity",
+      "scenario": "untrusted_instruction",
+      "expected": "AFFECTED_BY_THIS_ADVISORY",
+      "actual": "AFFECTED_BY_THIS_ADVISORY",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S07",
+          "service": "integrity",
+          "decision": "AFFECTED_BY_THIS_ADVISORY",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "This version is listed in this one advisory; deployment exposure is unassessed.",
+          "next_step": "Review the advisory and plan an approved update.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-3d9b8d86c95c75c30b2c59a5",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S07 | AFFECTED_BY_THIS_ADVISORY | This version is listed in this one advisory; deployment exposure is unassessed.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S08",
+      "service": "integrity",
+      "scenario": "unavailable",
+      "expected": "SOURCE_UNAVAILABLE",
+      "actual": "SOURCE_UNAVAILABLE",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S08",
+          "service": "integrity",
+          "decision": "SOURCE_UNAVAILABLE",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 0,
+          "evidence_links": [],
+          "rationale": "The frozen record is unavailable; no conclusion.",
+          "next_step": "Obtain an authentic source record.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-5e0c7a64985e5b49550adb4a",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S08 | SOURCE_UNAVAILABLE | The frozen record is unavailable; no conclusion.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R01",
+      "service": "compass",
+      "scenario": "supported",
+      "expected": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "actual": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R01",
+          "service": "compass",
+          "decision": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "next_step": "Open the official course page and verify terms.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-94571002c046f73e42af8ab8",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R01 | RELEVANT_NOT_ELIGIBILITY_ASSESSED | Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R02",
+      "service": "compass",
+      "scenario": "mismatch",
+      "expected": "NOT_RELEVANT",
+      "actual": "NOT_RELEVANT",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R02",
+          "service": "compass",
+          "decision": "NOT_RELEVANT",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "No supported match to foundational cybersecurity learning goal.",
+          "next_step": "Clarify the skill and course level needed.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-89b43f49a504dc42de2a85ac",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R02 | NOT_RELEVANT | No supported match to foundational cybersecurity learning goal.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R03",
+      "service": "compass",
+      "scenario": "missing",
+      "expected": "NEEDS_PROOF",
+      "actual": "NEEDS_PROOF",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R03",
+          "service": "compass",
+          "decision": "NEEDS_PROOF",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "The provided source does not guarantee a credential or enrollment.",
+          "next_step": "Verify credential terms with the provider.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-adf13874cc7be8e023b66065",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R03 | NEEDS_PROOF | The provided source does not guarantee a credential or enrollment.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R04",
+      "service": "compass",
+      "scenario": "stale",
+      "expected": "STALE_SOURCE",
+      "actual": "STALE_SOURCE",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R04",
+          "service": "compass",
+          "decision": "STALE_SOURCE",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Source snapshot older than the declared 90-day test window.",
+          "next_step": "Retrieve a valid, independently dated source.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-785567859f9c55da17fdc064",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R04 | STALE_SOURCE | Source snapshot older than the declared 90-day test window.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R05",
+      "service": "compass",
+      "scenario": "conflict",
+      "expected": "DISPUTED_SOURCE",
+      "actual": "DISPUTED_SOURCE",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R05",
+          "service": "compass",
+          "decision": "DISPUTED_SOURCE",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 2,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "The course price claims conflict; access and price are unresolved.",
+          "next_step": "Check current first-party course terms.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-4f6709dae5eb6e3a368150bd",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R05 | DISPUTED_SOURCE | The course price claims conflict; access and price are unresolved.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R06",
+      "service": "compass",
+      "scenario": "duplicate",
+      "expected": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "actual": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R06",
+          "service": "compass",
+          "decision": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "next_step": "Open the official course page and verify terms.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-3c89a3ccd439a12067c631c3",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R06 | RELEVANT_NOT_ELIGIBILITY_ASSESSED | Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R07",
+      "service": "compass",
+      "scenario": "untrusted_instruction",
+      "expected": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "actual": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R07",
+          "service": "compass",
+          "decision": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "next_step": "Open the official course page and verify terms.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-143ac77e90f1e49cd8abfbd3",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R07 | RELEVANT_NOT_ELIGIBILITY_ASSESSED | Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R08",
+      "service": "compass",
+      "scenario": "unavailable",
+      "expected": "SOURCE_UNAVAILABLE",
+      "actual": "SOURCE_UNAVAILABLE",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R08",
+          "service": "compass",
+          "decision": "SOURCE_UNAVAILABLE",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 0,
+          "evidence_links": [],
+          "rationale": "The frozen record is unavailable; no conclusion.",
+          "next_step": "Obtain an authentic source record.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-5fae35cba851e1b657ade040",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R08 | SOURCE_UNAVAILABLE | The frozen record is unavailable; no conclusion.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S09",
+      "service": "integrity",
+      "scenario": "malformed_source_time",
+      "expected": "INVALID_SOURCE_TIME",
+      "actual": "INVALID_SOURCE_TIME",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S09",
+          "service": "integrity",
+          "decision": "INVALID_SOURCE_TIME",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 0,
+          "evidence_links": [],
+          "rationale": "Source timestamp invalid; evidence withheld.",
+          "next_step": "Retrieve a valid, independently dated source.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-50343295b0e33cdc67c1b352",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S09 | INVALID_SOURCE_TIME | Source timestamp invalid; evidence withheld.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S10",
+      "service": "integrity",
+      "scenario": "future_source_time",
+      "expected": "FUTURE_SOURCE_TIME",
+      "actual": "FUTURE_SOURCE_TIME",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S10",
+          "service": "integrity",
+          "decision": "FUTURE_SOURCE_TIME",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 0,
+          "evidence_links": [],
+          "rationale": "Source date is in the future relative to test clock; evidence withheld.",
+          "next_step": "Retrieve a valid, independently dated source.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-3f5f4a5c27b6da87d65a4eba",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S10 | FUTURE_SOURCE_TIME | Source date is in the future relative to test clock; evidence withheld.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S11",
+      "service": "integrity",
+      "scenario": "wrong_ecosystem",
+      "expected": "UNKNOWN_PACKAGE",
+      "actual": "UNKNOWN_PACKAGE",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S11",
+          "service": "integrity",
+          "decision": "UNKNOWN_PACKAGE",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "The requested package identity does not match the advisory.",
+          "next_step": "Verify package and ecosystem identifiers.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-debf238b2b4d83d907fa6f0e",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S11 | UNKNOWN_PACKAGE | The requested package identity does not match the advisory.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S12",
+      "service": "integrity",
+      "scenario": "prerelease_uncertainty",
+      "expected": "UNKNOWN_VERSION",
+      "actual": "UNKNOWN_VERSION",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S12",
+          "service": "integrity",
+          "decision": "UNKNOWN_VERSION",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "Exact release version needed; prereleases not assessed.",
+          "next_step": "Verify a full stable version from the package inventory.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-8f0e346f16f38660b66c5bc7",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S12 | UNKNOWN_VERSION | Exact release version needed; prereleases not assessed.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S13",
+      "service": "integrity",
+      "scenario": "partial_version",
+      "expected": "UNKNOWN_VERSION",
+      "actual": "UNKNOWN_VERSION",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S13",
+          "service": "integrity",
+          "decision": "UNKNOWN_VERSION",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "Exact release version needed; prereleases not assessed.",
+          "next_step": "Verify a full stable version from the package inventory.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-5c413396b12db1c51b1ffbbd",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S13 | UNKNOWN_VERSION | Exact release version needed; prereleases not assessed.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "S14",
+      "service": "integrity",
+      "scenario": "private_marker_in_untrusted_note",
+      "expected": "AFFECTED_BY_THIS_ADVISORY",
+      "actual": "AFFECTED_BY_THIS_ADVISORY",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "S14",
+          "service": "integrity",
+          "decision": "AFFECTED_BY_THIS_ADVISORY",
+          "source_id": "OSV-GHSA-35jh-r3h4-6jhm",
+          "source_snapshot_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm"
+          ],
+          "rationale": "This version is listed in this one advisory; deployment exposure is unassessed.",
+          "next_step": "Review the advisory and plan an approved update.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-6faa469cb42502bb66998aea",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://osv.dev/vulnerability/GHSA-35jh-r3h4-6jhm",
+            "content_sha256": "60ffc63765004d93c0a15f4233fe6611772740ba8df7990fe0535ef214913af1"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "S14 | AFFECTED_BY_THIS_ADVISORY | This version is listed in this one advisory; deployment exposure is unassessed.",
+          "subject_ref": "OSV-GHSA-35jh-r3h4-6jhm",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R09",
+      "service": "compass",
+      "scenario": "missing_budget",
+      "expected": "NEEDS_PROOF",
+      "actual": "NEEDS_PROOF",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R09",
+          "service": "compass",
+          "decision": "NEEDS_PROOF",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Missing or invalid budget; cost fit cannot be assessed.",
+          "next_step": "Provide a valid nonnegative budget.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-55c0c9eeca06df866fe6d410",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R09 | NEEDS_PROOF | Missing or invalid budget; cost fit cannot be assessed.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R10",
+      "service": "compass",
+      "scenario": "alternate_goal_words",
+      "expected": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "actual": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R10",
+          "service": "compass",
+          "decision": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "next_step": "Open the official course page and verify terms.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-a1d6021e95f9d18935caae9c",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R10 | RELEVANT_NOT_ELIGIBILITY_ASSESSED | Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R11",
+      "service": "compass",
+      "scenario": "boolean_budget_invalid",
+      "expected": "NEEDS_PROOF",
+      "actual": "NEEDS_PROOF",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R11",
+          "service": "compass",
+          "decision": "NEEDS_PROOF",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Missing or invalid budget; cost fit cannot be assessed.",
+          "next_step": "Provide a valid nonnegative budget.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-ae939d21ef8f3ac2bfeb2a2d",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R11 | NEEDS_PROOF | Missing or invalid budget; cost fit cannot be assessed.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R12",
+      "service": "compass",
+      "scenario": "malformed_source_time",
+      "expected": "INVALID_SOURCE_TIME",
+      "actual": "INVALID_SOURCE_TIME",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R12",
+          "service": "compass",
+          "decision": "INVALID_SOURCE_TIME",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 0,
+          "evidence_links": [],
+          "rationale": "Source timestamp invalid; evidence withheld.",
+          "next_step": "Retrieve a valid, independently dated source.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-06bbcf77c5498de9d6eeac15",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R12 | INVALID_SOURCE_TIME | Source timestamp invalid; evidence withheld.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R13",
+      "service": "compass",
+      "scenario": "future_source_time",
+      "expected": "FUTURE_SOURCE_TIME",
+      "actual": "FUTURE_SOURCE_TIME",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R13",
+          "service": "compass",
+          "decision": "FUTURE_SOURCE_TIME",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 0,
+          "evidence_links": [],
+          "rationale": "Source date is in the future relative to test clock; evidence withheld.",
+          "next_step": "Retrieve a valid, independently dated source.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-127ca0a332bbaa77c223cf65",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R13 | FUTURE_SOURCE_TIME | Source date is in the future relative to test clock; evidence withheld.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    },
+    {
+      "id": "R14",
+      "service": "compass",
+      "scenario": "private_marker_in_untrusted_note",
+      "expected": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "actual": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+      "pass": true,
+      "errors": [],
+      "output": {
+        "sidecar": {
+          "case_id": "R14",
+          "service": "compass",
+          "decision": "RELEVANT_NOT_ELIGIBILITY_ASSESSED",
+          "source_id": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "source_snapshot_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c",
+          "evidence_count": 1,
+          "evidence_links": [
+            "https://skillsbuild.org/learning-catalog"
+          ],
+          "rationale": "Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "next_step": "Open the official course page and verify terms.",
+          "action_class": "READ_ONLY",
+          "source_quality": "MANUALLY_TRANSCRIBED_UNATTESTED"
+        },
+        "observation": {
+          "schema_version": "1.0",
+          "observation_id": "E01-a71fa64af4a635204dd93621",
+          "oracle_id": "humanaios-offline-e01-correction-probe",
+          "source": {
+            "substrate": "web_research",
+            "locator": "https://skillsbuild.org/learning-catalog",
+            "content_sha256": "06131140cdcb87d8bfc678db2e68cc16698008d5557428b22a3234552ccd0b3c"
+          },
+          "as_of": "2026-11-18T12:00:00Z",
+          "recorded_at": "2026-11-18T12:00:00Z",
+          "observation": "R14 | RELEVANT_NOT_ELIGIBILITY_ASSESSED | Source indicates a relevant course; personal eligibility and access are not assessed.",
+          "subject_ref": "IBM-SKILLSBUILD-EXPLORING-CYBERSECURITY",
+          "transformation": {
+            "component": "offline_e01_probe",
+            "version": "0.1.1",
+            "producer_ref": "test-only"
+          },
+          "advisory_only": true,
+          "can_authorize": false,
+          "authority_effect": "NONE"
+        }
+      }
+    }
+  ]
+}
