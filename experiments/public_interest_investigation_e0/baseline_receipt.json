@@ -1,0 +1,9 @@
+{
+  "experiment": "PUBLIC-INTEREST-INVESTIGATION-E0",
+  "archive_sha256": "84f4aa5d2abd2e30d570e2f3f99540bee3c74244ef99a634164bbda039c725df",
+  "archive_git_blob_sha": "b90818d56dfca23a7c40c30569310fb44ee0665f",
+  "archive_bytes": 17483,
+  "baseline_type": "ORIGINAL_AUTHOR_FROZEN_NOTES_NOT_SOURCE_ORIGINALS",
+  "preservation_timing": "LATE_REPOSITORY_PRESERVATION_AFTER_REVIEWER_SUMMARIES",
+  "authority_effect": "NONE"
+}

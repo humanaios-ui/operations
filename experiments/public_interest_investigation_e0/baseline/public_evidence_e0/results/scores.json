@@ -1,0 +1,41 @@
+{
+  "scoring_status": "AUTHOR_KEY_SELF_CHECK_ONLY",
+  "results": {
+    "A": {
+      "targeted_records": 9,
+      "false_positive_ids": [],
+      "missed_ids": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "duplicate_ids": 0,
+      "required_state_correct": true,
+      "conflict": "UNRESOLVED",
+      "exposure": "UNKNOWN",
+      "authority_none": true
+    },
+    "B": {
+      "targeted_records": 9,
+      "false_positive_ids": [],
+      "missed_ids": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "duplicate_ids": 0,
+      "required_state_correct": true,
+      "conflict": "NOT_EVALUATED",
+      "exposure": "NOT_EVALUATED",
+      "authority_none": true
+    },
+    "C": {
+      "targeted_records": 9,
+      "false_positive_ids": [],
+      "missed_ids": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "duplicate_ids": 0,
+      "required_state_correct": true,
+      "conflict": "UNRESOLVED",
+      "exposure": "UNKNOWN",
+      "authority_none": true
+    }
+  }
+}

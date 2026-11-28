@@ -1,0 +1,465 @@
+{
+  "input_sha256": "cb93ee395116978e7d3888e22b19e057f5b6f3a6da969e499812ffd34b82010c",
+  "as_of": "2026-11-25",
+  "A": {
+    "candidate_ids": [
+      "ER-001",
+      "ER-002",
+      "ER-003",
+      "ER-004",
+      "ER-005",
+      "ER-006",
+      "ER-007",
+      "ER-008",
+      "ER-009"
+    ],
+    "required_ids": [
+      "ER-009"
+    ],
+    "conflict": "UNRESOLVED",
+    "exposure": "UNKNOWN",
+    "authority": "NONE",
+    "method": "author-coded conventional reconstruction from frozen notes; not a separate agent"
+  },
+  "B": {
+    "candidate_ids": [
+      "ER-001",
+      "ER-002",
+      "ER-003",
+      "ER-004",
+      "ER-005",
+      "ER-006",
+      "ER-007",
+      "ER-008",
+      "ER-009"
+    ],
+    "required_ids": [
+      "ER-009"
+    ],
+    "conflict": "NOT_EVALUATED",
+    "exposure": "NOT_EVALUATED",
+    "authority": "NONE",
+    "method": "executed bounded adapter on manually annotated frozen notes"
+  },
+  "C": {
+    "candidate_ids": [
+      "ER-001",
+      "ER-002",
+      "ER-003",
+      "ER-004",
+      "ER-005",
+      "ER-006",
+      "ER-007",
+      "ER-008",
+      "ER-009"
+    ],
+    "required_ids": [
+      "ER-009"
+    ],
+    "conflict": "UNRESOLVED",
+    "exposure": "UNKNOWN",
+    "authority": "NONE",
+    "method": "executed adapter plus author-authored Witness-style challenge; no independent runtime",
+    "challenge_sources": [
+      "ARMY",
+      "IPR"
+    ],
+    "verification_tasks": [
+      "Obtain public or lawfully releasable decision records",
+      "Compare agency rationale with underlying records",
+      "Obtain validated environmental results and independent scientific review"
+    ],
+    "planning_requirements": [
+      {
+        "requirement_id": "ER-001",
+        "label": "Army alternatives correspondence (August)",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "alternatives"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-002",
+        "label": "Army alternatives correspondence (September)",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "alternatives"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-003",
+        "label": "Alternative Treatment Technology Assessment",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "alternatives"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-004",
+        "label": "Community Engagement Plan",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "engagement"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-005",
+        "label": "Environmental Sampling and Analysis Plan",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "monitoring"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-006",
+        "label": "Amended sampling plan",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "monitoring"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-007",
+        "label": "EPA sampling-plan comments",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "monitoring"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-008",
+        "label": "Approved quality assurance project plan",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "monitoring"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      },
+      {
+        "requirement_id": "ER-009",
+        "label": "Final report with validated laboratory results",
+        "objective": "Obtain public or lawfully releasable record; verify origin and completeness.",
+        "resource_types": [
+          "public_record"
+        ],
+        "affordances": [
+          "evidence_access"
+        ],
+        "signals": [
+          "reporting"
+        ],
+        "activation_state": "ACTIVE",
+        "resolution_mode": "ACQUIRE_EXTERNAL",
+        "mine_external": true,
+        "satisfied_when": "Underlying record obtained and independently reviewed",
+        "work_package_ids": [
+          "WP-RECORDS"
+        ],
+        "capability_ids": [
+          "CAP-REVIEW"
+        ]
+      }
+    ]
+  },
+  "adapter_receipt": {
+    "schema": "humanaios.public_evidence.discovery.v1",
+    "input_sha256": "cb93ee395116978e7d3888e22b19e057f5b6f3a6da969e499812ffd34b82010c",
+    "as_of": "2026-11-25",
+    "authority_effect": "NONE",
+    "execution": "DISABLED",
+    "coverage": "SUPPLIED_FROZEN_NOTES_ONLY",
+    "candidates": [
+      {
+        "id": "ER-001",
+        "title": "Army alternatives correspondence (August)",
+        "topic": "alternatives",
+        "state": "REFERENCED",
+        "record_date": "2026-08-12",
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 2",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-002",
+        "title": "Army alternatives correspondence (September)",
+        "topic": "alternatives",
+        "state": "REFERENCED",
+        "record_date": "2026-09-04",
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 2",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-003",
+        "title": "Alternative Treatment Technology Assessment",
+        "topic": "alternatives",
+        "state": "REFERENCED",
+        "record_date": null,
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "pp. 2–3, §1.4",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-004",
+        "title": "Community Engagement Plan",
+        "topic": "engagement",
+        "state": "REFERENCED",
+        "record_date": "2026-09-04",
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 20, Appendix A",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-005",
+        "title": "Environmental Sampling and Analysis Plan",
+        "topic": "monitoring",
+        "state": "REFERENCED",
+        "record_date": "2026-09-11",
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 20, Appendix A",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-006",
+        "title": "Amended sampling plan",
+        "topic": "monitoring",
+        "state": "REFERENCED",
+        "record_date": "2026-10-13",
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 20, Appendix A",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-007",
+        "title": "EPA sampling-plan comments",
+        "topic": "monitoring",
+        "state": "REFERENCED",
+        "record_date": "2026-10-09",
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 20, Appendix A",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-008",
+        "title": "Approved quality assurance project plan",
+        "topic": "monitoring",
+        "state": "REFERENCED",
+        "record_date": "2026-11-05",
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 3",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      },
+      {
+        "id": "ER-009",
+        "title": "Final report with validated laboratory results",
+        "topic": "reporting",
+        "state": "REQUIRED",
+        "record_date": null,
+        "provenance": [
+          {
+            "source_id": "EPA-PERMIT",
+            "url": "https://www.epa.gov/system/files/documents/2026-11/iaaap-emergency-permit-for-treatment-and-storage-final_redacted.pdf",
+            "locator": "p. 18, V.G–H",
+            "source_date": "2026-11-13"
+          }
+        ],
+        "retrieval_state": "NOT_RETRIEVED",
+        "verification_state": "UNVERIFIED_REFERENCE",
+        "authority_effect": "NONE"
+      }
+    ]
+  },
+  "independence": "NONE",
+  "production": "HOLD"
+}
