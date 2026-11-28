@@ -9,8 +9,13 @@ from .miner import enrich
 from .mines import load_mines, receipts_to_jsonl, resolve_mines
 from .opportunity_claim import claims_from_propositions, write_claims_jsonl
 from .proposition import propositions_from_candidates, write_propositions_jsonl
-from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
-from .reconcile import reconcile_snapshot
+from .planning import (
+    load_resource_plan,
+    load_three_source_pilot,
+    miner_requirements_from_plan,
+    resolve_resource_plan,
+    resolve_three_source_pilot,
+)
 from .policy_adjudication import adjudicate_ranked_candidate
 from .security_authorization import TestingMode
 from .security_capability import profile_from_machine_graph, unknown_capability_profile
@@ -77,11 +82,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Emit only externally mineable Resource Requirement Objects",
     )
 
-    reconcile = sub.add_parser("reconcile", help="Reconcile durable resource state against receipts")
-    reconcile.add_argument("--snapshot", default=str(ROOT / "data" / "resources.snapshot.jsonl"))
-    reconcile.add_argument("--receipts", default=str(ROOT / "data" / "resource_state.receipts.jsonl"))
-    reconcile.add_argument("--out", default=None, help="Defaults to rewriting --snapshot in place")
-    reconcile.add_argument("--audit-out", default=None)
+    context = sub.add_parser(
+        "context-pilot",
+        help="Project one Drive observation, Empirica finding, and repository capability",
+    )
+    context.add_argument("--file", required=True)
     return parser
 
 
@@ -103,6 +108,11 @@ def main() -> None:
     if args.command == "plan":
         plan = load_resource_plan(args.file)
         data = miner_requirements_from_plan(plan) if args.miner_requirements else resolve_resource_plan(plan)
+        print(json.dumps(data, indent=2, ensure_ascii=False))
+        return
+
+    if args.command == "context-pilot":
+        data = resolve_three_source_pilot(load_three_source_pilot(args.file))
         print(json.dumps(data, indent=2, ensure_ascii=False))
         return
 
