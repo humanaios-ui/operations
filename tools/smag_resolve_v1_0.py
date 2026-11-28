@@ -47,8 +47,8 @@ _RUNNING = {"IN_PROGRESS", "QUEUED", "PENDING", "WAITING", "REQUESTED", ""}
 # Admission / repository-coordinator checks. They go red on admit timing (a "ready"
 # event racing the /coordinator admit command), not on the code the author predicted
 # about, so a red one is not counted as `failure` against the author's smag_p.
-# They are still recorded, as `routing_red:R` and `routing_failing_checks`, so nothing
-# is hidden. Evidence: experiments/bot_review_calibration_e0 (45 of 79 red PRs were red
+# They are still recorded, as `routing_red:R` and `routing_failing_checks`, so they
+# stay visible. Evidence: experiments/bot_review_calibration_e0 (45 of 79 red PRs were red
 # only on these). Z2 asked for this on 2026-11-28; the merge of this change ratifies it.
 ROUTING_CHECKS = frozenset({
     "Repository admission/backpressure gate",
@@ -75,7 +75,7 @@ def resolve_measured(rollup: list, merged: bool) -> tuple:
     the classifier format: 'merged=<bool>; checks: failure:F, success:S[, skipped:K]
     [, routing_red:R]' when terminal. failing_names lists the checks that concluded
     failure — so the gap can be attributed to a specific (often single, recurring)
-    check. Red ROUTING_CHECKS go to routing_names and routing_red, never to failure."""
+    check. Red ROUTING_CHECKS go to routing_names and routing_red instead of failure."""
     fail = succ = skip = running = routing = 0
     failing_names, routing_names = [], []
     for c in rollup or []:
