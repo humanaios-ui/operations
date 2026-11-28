@@ -109,6 +109,12 @@
       "expected": true,
       "observed": true,
       "pass": true
+    },
+    {
+      "name": "no detector false alarm on 1400 clean runs",
+      "expected": true,
+      "observed": true,
+      "pass": true
     }
   ],
   "media": {
@@ -126,7 +132,7 @@
         "holdValid": 12,
         "holdInvalid": 60
       },
-      "correctionRetained": {
+      "correctedFixtureAccepted": {
         "raw": 12,
         "verified": 12
       }
@@ -145,7 +151,7 @@
         "holdValid": 12,
         "holdInvalid": 60
       },
-      "correctionRetained": {
+      "correctedFixtureAccepted": {
         "raw": 12,
         "verified": 12
       }
@@ -164,10 +170,62 @@
         "holdValid": 12,
         "holdInvalid": 60
       },
-      "correctionRetained": {
+      "correctedFixtureAccepted": {
         "raw": 12,
         "verified": 12
       }
     }
+  },
+  "gateWiring": {
+    "gateCallsInArmC": 44726,
+    "ungatedGrantsInArmC": 0,
+    "detectorFlagsOnCleanRuns": 0
+  },
+  "ablation": {
+    "C_noOrder": {
+      "rules": [
+        "cap",
+        "consent",
+        "reserve"
+      ],
+      "reservePreserved": 200,
+      "useful": 591.98,
+      "allocationSpread": 48.07
+    },
+    "reserveOnly": {
+      "rules": [
+        "cap",
+        "reserve"
+      ],
+      "reservePreserved": 200,
+      "useful": 589.22,
+      "allocationSpread": 28.17
+    },
+    "consentOnly": {
+      "rules": [
+        "cap",
+        "consent"
+      ],
+      "reservePreserved": 0,
+      "useful": 613.79,
+      "allocationSpread": 43.12
+    },
+    "orderOnly": {
+      "rules": [
+        "cap",
+        "order"
+      ],
+      "reservePreserved": 0,
+      "useful": 608.86,
+      "allocationSpread": 12.13
+    },
+    "B_allocationSpread": 22.47,
+    "C_allocationSpread": 20.57,
+    "note": "Ablation arms apply rules directly, not via gate(); they attribute arm C effects and are not a fourth design."
+  },
+  "mediaScope": {
+    "mediumEffectMeasured": false,
+    "correctionPropagationTested": false,
+    "note": "All three media receive identical structured input and the verifier compares against the fixture truth it holds; identical counts per medium are expected by construction. The corrected fixture equals the latest state, so it shows acceptance, not retention across time."
   }
 }
