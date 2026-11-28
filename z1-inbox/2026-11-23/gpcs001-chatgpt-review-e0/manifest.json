@@ -1,0 +1,22 @@
+{
+  "schema": "humanaios.gpcs001.review-manifest.e0",
+  "observed_date": "2026-11-23",
+  "baseline_main_sha": "e0e43053a45acc7f259ef564e6aff27de487a311",
+  "authority_effect": "NONE",
+  "status": "PENDING_INDEPENDENT_REVIEW",
+  "privacy": "PUBLIC_SAFE_SUMMARIES_ONLY",
+  "file_list": [
+    "README.md",
+    "source_inventory.json",
+    "adversarial_review.md",
+    "contribution_candidates.jsonl",
+    "repair_plan.md",
+    "manifest.json"
+  ],
+  "candidate_count": 4,
+  "duplicate_work_omitted": true,
+  "original_private_bytes_included": false,
+  "source_coverage": "PARTIAL",
+  "independent_acceptance": false,
+  "merging_authorized": false
+}

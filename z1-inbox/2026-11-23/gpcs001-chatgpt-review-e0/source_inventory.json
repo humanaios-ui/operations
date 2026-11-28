@@ -1,0 +1,67 @@
+{
+  "schema": "humanaios.gpcs001.source-inventory.e0",
+  "observed_date": "2026-11-23",
+  "agent_role_claim": "ChatGPT / GPT-6",
+  "identity_verified": false,
+  "authority_effect": "NONE",
+  "base_repository": "humanaios-ui/operations",
+  "base_main_sha": "e0e43053a45acc7f259ef564e6aff27de487a311",
+  "method": "Bounded direct connector reads and semantic memory/library search; not a full account export, tree census, or reproducible whole-history scan.",
+  "sources": [
+    {
+      "system": "GitHub",
+      "access": "READ_AND_PROPOSAL_WRITE",
+      "reviewed": "Current main; #775 and ten returned comments; #677, #691, #923; merged #776; draft #1171 and #1310; current risk_obs_001 README; entry_protocol README; Coordinator policy; bounded code/issue search",
+      "coverage": "PARTIAL",
+      "source_class": "ORIGINAL_PUBLIC_SOURCE"
+    },
+    {
+      "system": "ChatGPT prior sessions",
+      "access": "SUMMARIES_AND_RETRIEVED_CONTEXT",
+      "reviewed": "Relevant indexed historic summaries; no native transcript export",
+      "coverage": "PARTIAL",
+      "source_class": "AI_GENERATED_SUMMARY"
+    },
+    {
+      "system": "ChatGPT Library",
+      "access": "SEARCH_SNIPPETS",
+      "reviewed": "Eight ranked results returned in one topical search, including historical audit and graph materials; raw files not opened",
+      "coverage": "PARTIAL",
+      "source_class": "METADATA_AND_EXCERPTS"
+    },
+    {
+      "system": "Google Drive",
+      "access": "SEARCH_AND_READ",
+      "reviewed": "Three project-relevant documents fetched; selected excerpts inspected; source index may be stale",
+      "coverage": "PARTIAL",
+      "source_class": "PRIVATE_ORIGINAL_OR_DERIVED",
+      "public_identifiers": "OMITTED"
+    },
+    {
+      "system": "Gmail",
+      "access": "SEARCH_AND_READ",
+      "reviewed": "Two bounded topical searches; three private project messages fetched and excerpt-reviewed",
+      "coverage": "PARTIAL",
+      "source_class": "PRIVATE_MESSAGES",
+      "public_identifiers": "OMITTED"
+    },
+    {
+      "system": "Remote Desktop Commander",
+      "access": "DEVICE_STATUS",
+      "reviewed": "Registered computer observed OFFLINE; no filesystem content read",
+      "coverage": "INACCESSIBLE",
+      "source_class": "NO_FILE_OBSERVATION"
+    },
+    {
+      "system": "Claude and Grok native conversation history",
+      "access": "NO_NATIVE_ACCESS",
+      "reviewed": "Only earlier public agent-reported receipts and bounded connected material, not direct provider-native session histories",
+      "coverage": "INACCESSIBLE",
+      "source_class": "AGENT_REPORTED_ONLY"
+    }
+  ],
+  "private_bytes_exported": false,
+  "actual_native_chat_export": false,
+  "full_coverage_claim": false,
+  "redaction": "No raw private email, Drive names/paths/IDs, chat text, account identifiers or private source handles included."
+}
