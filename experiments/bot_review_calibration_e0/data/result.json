@@ -1,0 +1,90 @@
+{
+  "all_smag": {
+    "all_merged": true,
+    "brier": 0.4041,
+    "brier_if_always_0_5": 0.25,
+    "brier_vs_code_green": 0.1921,
+    "code_red_rate": 0.224,
+    "mean_p": 0.863,
+    "n": 152,
+    "red_rate_ex_coderabbit": 0.52
+  },
+  "by_bot_signal": {
+    "cp_approve": {
+      "brier_vs_code_green": 0.2347,
+      "brier_vs_green": 0.3147,
+      "code_red_rate": 0.3,
+      "mean_smag_p": 0.918,
+      "n": 10,
+      "red_rate_ex_coderabbit": 0.4
+    },
+    "cp_changes": {
+      "brier_vs_code_green": 0.1776,
+      "brier_vs_green": 0.335,
+      "code_red_rate": 0.209,
+      "mean_smag_p": 0.84,
+      "n": 91,
+      "red_rate_ex_coderabbit": 0.451
+    },
+    "cp_closer_look": {
+      "brier_vs_code_green": 0.2388,
+      "brier_vs_green": 0.5634,
+      "code_red_rate": 0.269,
+      "mean_smag_p": 0.887,
+      "n": 26,
+      "red_rate_ex_coderabbit": 0.692
+    },
+    "cr_clean_or_trivial": {
+      "brier_vs_code_green": 0.035,
+      "brier_vs_green": 0.585,
+      "code_red_rate": 0.0,
+      "mean_smag_p": 0.841,
+      "n": 8,
+      "red_rate_ex_coderabbit": 0.75
+    },
+    "cr_major": {
+      "brier_vs_code_green": 0.2753,
+      "brier_vs_green": 0.5133,
+      "code_red_rate": 0.4,
+      "mean_smag_p": 0.869,
+      "n": 10,
+      "red_rate_ex_coderabbit": 0.7
+    },
+    "cr_minor_only": {
+      "brier_vs_code_green": 0.0865,
+      "brier_vs_green": 0.6051,
+      "code_red_rate": 0.071,
+      "mean_smag_p": 0.874,
+      "n": 14,
+      "red_rate_ex_coderabbit": 0.786
+    },
+    "no_bot_review": {
+      "brier_vs_code_green": 0.1866,
+      "brier_vs_green": 0.5141,
+      "code_red_rate": 0.208,
+      "mean_smag_p": 0.899,
+      "n": 24,
+      "red_rate_ex_coderabbit": 0.625
+    }
+  },
+  "coderabbit_check_in_smag_failures": 8,
+  "coderabbit_findings_total": {
+    "major_or_critical": 210,
+    "minor": 404,
+    "trivial": 97
+  },
+  "coverage": {
+    "coderabbit_reviewed": 185,
+    "coderabbit_with_inline_findings": 117,
+    "copilot_quota_failures": 44,
+    "copilot_reviewed": 731,
+    "copilot_verdicts": {
+      "approve": 29,
+      "changes": 427,
+      "closer_look": 105
+    }
+  },
+  "joined_smag_and_any_bot": 128,
+  "prs_total": 1086,
+  "smag_resolved_with_p": 152
+}
