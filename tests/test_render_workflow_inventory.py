@@ -74,6 +74,22 @@ class RenderWorkflowInventoryTest(unittest.TestCase):
     def test_smoke_test_passes(self):
         self.assertEqual(inv.run_smoke_test(), 0)
 
+    def test_lowercase_freeze_marker(self):
+        text = "name: c\non:\n  # Weekly schedule frozen by Q-AGENT-WORKFLOWS-01 W7 (2026-11-26).\n  workflow_dispatch: {}\n"
+        self.assertEqual(inv.parse_text(text, "c.yml")["status"], "frozen")
+
+    def test_commented_cron_is_ignored(self):
+        text = "name: c\non:\n  # schedule:\n  #   - cron: '0 1 * * *'\n  workflow_dispatch: {}\n"
+        row = inv.parse_text(text, "c.yml")
+        self.assertEqual(row["crons"], [])
+        self.assertEqual(row["triggers"], ["workflow_dispatch"])
+        self.assertEqual(row["status"], "manual only")
+
+    def test_runs_report_marks_api_error(self):
+        rows = [inv.parse_text(SAMPLE, "example.yml")]
+        out = inv.render_runs(rows, 3, fetch=lambda f, n: None)
+        self.assertIn("| `example.yml` | timer | unavailable | — | — | — |", out)
+
 
 if __name__ == "__main__":
     unittest.main()

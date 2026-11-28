@@ -42,7 +42,7 @@ The check name GitHub shows is the job's `name:` when set, otherwise the job id.
 
 ### Schedules changed by Q-AGENT-WORKFLOWS-01
 
-On 2026-11-26, nine timers were turned off and the SMAG capture job was set to manual only (pull requests #1335, #1336 and #1338). Each changed file carries a marker comment with the reason and the condition for turning it back on. The Status column below shows them as `paused`, `retired` or `frozen`; `smag-consolidate.yml` has no marker comment and shows as `manual only`.
+On 2026-11-26, nine timers were turned off and the SMAG capture job was set to manual only (pull requests #1335, #1336 and #1338). Each changed file carries a marker comment with the reason and the condition for turning it back on. The Status column below shows them as `paused`, `retired` or `frozen`.
 
 ## Inventory
 
@@ -58,8 +58,8 @@ Status is read from each file: `timer` runs on a schedule, `events` runs on repo
 | timer | 19 |
 | paused | 4 |
 | retired | 4 |
-| manual only | 3 |
-| frozen | 1 |
+| frozen | 2 |
+| manual only | 2 |
 
 Trigger counts are file counts, not mutually exclusive.
 
@@ -168,7 +168,7 @@ Trigger counts are file counts, not mutually exclusive.
 | `seed-satellite-ci.yml` | Seed Satellite CI | manual only | `workflow_dispatch` | — |
 | `semgrep-review.yml` | semgrep-review | events | `pull_request`, `workflow_dispatch` | — |
 | `smag-capture.yml` | smag-capture | frozen | `workflow_dispatch` | — |
-| `smag-consolidate.yml` | smag-consolidate | manual only | `workflow_dispatch` | — |
+| `smag-consolidate.yml` | smag-consolidate | frozen | `workflow_dispatch` | — |
 | `sonarcloud-baseline-auto.yml` | SonarCloud Baseline Auto-Capture | events | `pull_request`, `push`, `workflow_dispatch` | — |
 | `system-graph-freshness.yml` | system-graph-freshness | timer | `pull_request`, `push`, `schedule`, `workflow_dispatch` | `17 6 * * 1` |
 | `temporal-dissolution-gate.yml` | temporal-dissolution-gate | events | `pull_request` | — |

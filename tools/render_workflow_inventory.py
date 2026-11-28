@@ -58,10 +58,11 @@ NAME_LINE = re.compile(r"^name:\s*(.+?)\s*$")
 FILTER_KEYS = {"types", "branches", "branches-ignore", "paths", "paths-ignore", "tags", "tags-ignore"}
 
 # Marker comments that Q-AGENT-WORKFLOWS-01 changes leave in a workflow file.
+# Matched without regard to case ("Frozen by" and "schedule frozen by" both count).
 PAUSE_MARKERS = (
-    ("Schedule paused by Q-AGENT-WORKFLOWS-01", "paused"),
-    ("Retired from the schedule by Q-AGENT-WORKFLOWS-01", "retired"),
-    ("Frozen by Q-AGENT-WORKFLOWS-01", "frozen"),
+    ("schedule paused by q-agent-workflows-01", "paused"),
+    ("retired from the schedule by q-agent-workflows-01", "retired"),
+    ("frozen by q-agent-workflows-01", "frozen"),
 )
 
 
@@ -87,8 +88,9 @@ def _scalar_triggers(value: str) -> list[str]:
 
 
 def status_for(text: str, triggers: list[str], crons: list[str]) -> str:
+    lowered = text.lower()
     for marker, label in PAUSE_MARKERS:
-        if marker in text:
+        if marker in lowered:
             return label
     if crons:
         return "timer"
@@ -125,6 +127,8 @@ def parse_text(text: str, filename: str) -> dict:
         if in_on:
             if line and not line.startswith((" ", "\t", "#")):
                 in_on = False
+            elif line.lstrip().startswith("#"):
+                continue
             else:
                 trig = TRIGGER_LINE.match(line)
                 if trig and trig.group(1) not in FILTER_KEYS:
@@ -210,14 +214,14 @@ def replace_region(document: str, inventory: str) -> str:
     return f"{pre}{START}\n{inventory}{END}{post}"
 
 
-def fetch_runs(workflow_file: str, count: int) -> list[str]:
-    """Conclusions of the last `count` completed runs, newest first. Needs an authenticated gh."""
+def fetch_runs(workflow_file: str, count: int) -> list[str] | None:
+    """Conclusions of the last `count` completed runs, newest first, or None if gh could not read them."""
     out = subprocess.run(
         ["gh", "api", f"repos/{REPO}/actions/workflows/{workflow_file}/runs?status=completed&per_page={count}"],
         capture_output=True, text=True, check=False,
     )
     if out.returncode != 0:
-        return ["(unreadable)"]
+        return None
     runs = json.loads(out.stdout).get("workflow_runs", [])
     return [run.get("conclusion") or "none" for run in runs]
 
@@ -232,6 +236,9 @@ def render_runs(rows: list[dict], count: int, fetch=fetch_runs) -> str:
     ]
     for row in rows:
         conclusions = fetch(row["file"], count)
+        if conclusions is None:
+            lines.append(f"| `{row['file']}` | {row['status']} | unavailable | — | — | — |")
+            continue
         tally = Counter(conclusions)
         other = len(conclusions) - tally["success"] - tally["failure"]
         lines.append(
