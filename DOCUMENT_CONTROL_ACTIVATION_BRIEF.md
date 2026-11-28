@@ -1,7 +1,7 @@
 ---
 doc_id: HAIOS-OPS-005
 title: Document Control Activation Brief (A1-A3 Complete)
-revision: 1
+revision: 2
 status: approved
 owner: "@humanaios-ui/operations"
 approved_by: carly
@@ -98,7 +98,7 @@ A: The CODEOWNERS group for your area (see `.github/CODEOWNERS`). Approval is a 
 
 - **Registry:** `operations/document-registry.yaml` (single source of truth)
 - **Policy:** `operations/EXTERNAL_LINK_POLICY.md` (what to do with broken links)
-- **Method:** `operations/DOCUMENT_CONTROL_PLAN.md` (full design + rationale)
+- **Method:** the rules live in `operations/.doc-control/validate.py`, `operations/.doc-control/review.py` and the comments in `operations/document-registry.yaml`. Revision 1 named `DOCUMENT_CONTROL_PLAN.md`, which does not exist (Q-DOCREVIEW-02, Z2 2026-11-28).
 - **Assignment:** `operations/.doc-control/MAINTAINER_ASSIGNMENT.md` (who owns infrastructure)
 
 **Questions?** File an issue on the operations repo with tag `document-control/question`.

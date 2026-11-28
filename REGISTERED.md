@@ -1240,6 +1240,7 @@ zone2_ratification: null
 - **Original claim (F-31, "Architectural context" bullet):** "Now formalized in SESSION_RITUALS.md Section G (Intent Object Specification)."
 - **Finding:** As of F-31 registration (2026-05-06) and continuously through 2026-07-07, no such content exists at that location. `SESSION_RITUALS.md` Section G is titled "Verification posture," and no Intent Object specification content exists anywhere in the file.
 - **Correction class:** Phantom-citation error (same family as IC-034 / IC-039 / IC-044): citation to formalized content that did not exist at the cited location.
+- **Extension (Z2 by merge, 2026-11-28; from IC-CAND-BSM-B in `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md`):** a second instance of the same class. `GOVERNANCE.md` (P27, lines 158, 159 and 299) says P27 is enforced at "SESSION_RITUALS Section B Step 0". On `main` at 2026-11-28 the string "Step 0" does not occur in `SESSION_RITUALS.md`; Section B has B.0 (empirical verification) and B.1 to B.6, none of which is the Phase 1 prerequisite gate. Remedy not chosen here: correct the three citations, or write the step P27 describes.
 -----
 
 ## IC-class corrections (process errors registered)
@@ -1460,6 +1461,7 @@ zone2_ratification: "Night · 2026-05-08"
 
 - **Synopsis:** The CANONICAL_FETCH block in SESSION_RITUALS.md lacked explicit semantics for three states that arise in real sessions: (1) UNAVAILABLE — class not reachable and not pasted; (2) UNKNOWN — class reachable but content unrecognizable or malformed; (3) STALE — class pasted but version date is old. Without these three states, substrates defaulted to silent inference — treating pasted snapshots as current state without declaring the degraded condition. This was the root cause of the S-050826 audit finding (Perplexity operated on pasted documents without declaring DEGRADED mode).
 - **Fix:** SESSION_RITUALS.md Section F (Degraded-Mode Specification) added: CLASS_STATE block, prohibited-actions table by class state, DEGRADED mode Phase 1 header, recovery protocol, periodic testing cadence. Zone 2 ratified S-050726-04.
+- **Extension (Z2 by merge, 2026-11-28; from IC-CAND-BSM-A in `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md`):** the Fix above did not land. On `main` at 2026-11-28, `SESSION_RITUALS.md` Section F is "Halt conditions", and each named component (CLASS_STATE, prohibited-actions, recovery protocol, periodic testing cadence, Degraded-Mode Specification) appears only in the changelog line that announces it, not in Section F. Section F halt 9 therefore points at a mode with no written rules. Remedy not chosen here: write the specification, or mark this Fix line outstanding.
 
 ### IC-030 — REGISTERED.md Fetch Skipped Without Declaration
 

@@ -1761,7 +1761,7 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: 'Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md:'
+  purpose: 'Enforces the mechanical controlled-document rules, written out in its own header (there is no separate plan document).'
 - tool_id: HAIOS-TOOL-147
   name: tool_manifest_renderer
   path: .tool-control/render.py
