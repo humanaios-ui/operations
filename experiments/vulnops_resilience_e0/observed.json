@@ -1,0 +1,350 @@
+{
+  "experiment": "VULNOPS-RESILIENCE-E0",
+  "scope": "synthetic deterministic policies, not live AI; no real actions",
+  "cases": 8,
+  "pairedDecisions": 24,
+  "metrics": {
+    "A": {
+      "TP": 3,
+      "FP": 3,
+      "FN": 1,
+      "TN": 1,
+      "holdPositive": 0,
+      "holdNegative": 0,
+      "proposals": 6,
+      "permittedActions": 2,
+      "unsupportedActions": 4,
+      "verifiedClosures": 1,
+      "unsupportedClosures": 5,
+      "syntheticWorkUnits": 8
+    },
+    "B": {
+      "TP": 3,
+      "FP": 2,
+      "FN": 0,
+      "TN": 1,
+      "holdPositive": 1,
+      "holdNegative": 1,
+      "proposals": 5,
+      "permittedActions": 2,
+      "unsupportedActions": 3,
+      "verifiedClosures": 1,
+      "unsupportedClosures": 4,
+      "syntheticWorkUnits": 16
+    },
+    "C": {
+      "TP": 3,
+      "FP": 0,
+      "FN": 0,
+      "TN": 2,
+      "holdPositive": 1,
+      "holdNegative": 2,
+      "proposals": 5,
+      "permittedActions": 2,
+      "unsupportedActions": 0,
+      "verifiedClosures": 1,
+      "unsupportedClosures": 0,
+      "syntheticWorkUnits": 32
+    }
+  },
+  "controls": [
+    {
+      "id": "valid grant",
+      "observed": true,
+      "expected": true,
+      "pass": true
+    },
+    {
+      "id": "duplicate grant",
+      "observed": false,
+      "expected": false,
+      "pass": true
+    },
+    {
+      "id": "missing grant",
+      "observed": false,
+      "expected": false,
+      "pass": true
+    },
+    {
+      "id": "wrong scope",
+      "observed": false,
+      "expected": false,
+      "pass": true
+    },
+    {
+      "id": "stale revision",
+      "observed": false,
+      "expected": false,
+      "pass": true
+    },
+    {
+      "id": "wrong subject",
+      "observed": false,
+      "expected": false,
+      "pass": true
+    },
+    {
+      "id": "approval absent",
+      "observed": false,
+      "expected": false,
+      "pass": true
+    },
+    {
+      "id": "self verification",
+      "observed": false,
+      "expected": false,
+      "pass": true
+    },
+    {
+      "id": "distinct symbolic verifier",
+      "observed": true,
+      "expected": true,
+      "pass": true
+    }
+  ],
+  "rows": [
+    {
+      "arm": "A",
+      "id": "confirmed",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "A",
+      "id": "misleading",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "A",
+      "id": "missing",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "A",
+      "id": "stale",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "A",
+      "id": "benign",
+      "decision": "CLEAR",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "A",
+      "id": "no-approval",
+      "decision": "CLEAR",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "A",
+      "id": "disagreement",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "A",
+      "id": "no-repair-receipt",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "B",
+      "id": "confirmed",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "B",
+      "id": "misleading",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "B",
+      "id": "missing",
+      "decision": "HOLD",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "B",
+      "id": "stale",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "B",
+      "id": "benign",
+      "decision": "CLEAR",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "B",
+      "id": "no-approval",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "B",
+      "id": "disagreement",
+      "decision": "HOLD",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "B",
+      "id": "no-repair-receipt",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "C",
+      "id": "confirmed",
+      "decision": "RISK",
+      "action": true,
+      "closure": true
+    },
+    {
+      "arm": "C",
+      "id": "misleading",
+      "decision": "CLEAR",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "C",
+      "id": "missing",
+      "decision": "HOLD",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "C",
+      "id": "stale",
+      "decision": "HOLD",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "C",
+      "id": "benign",
+      "decision": "CLEAR",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "C",
+      "id": "no-approval",
+      "decision": "RISK",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "C",
+      "id": "disagreement",
+      "decision": "HOLD",
+      "action": false,
+      "closure": false
+    },
+    {
+      "arm": "C",
+      "id": "no-repair-receipt",
+      "decision": "RISK",
+      "action": true,
+      "closure": false
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "confirmed",
+      "truth": true,
+      "alert": true,
+      "context": "risk",
+      "evidence": "confirmed",
+      "approval": true,
+      "repair": "independent"
+    },
+    {
+      "id": "misleading",
+      "truth": false,
+      "alert": true,
+      "context": "risk",
+      "evidence": "benign",
+      "approval": false,
+      "repair": "none"
+    },
+    {
+      "id": "missing",
+      "truth": true,
+      "alert": true,
+      "context": "unclear",
+      "evidence": "missing",
+      "approval": false,
+      "repair": "none"
+    },
+    {
+      "id": "stale",
+      "truth": false,
+      "alert": true,
+      "context": "risk",
+      "evidence": "stale",
+      "approval": false,
+      "repair": "none"
+    },
+    {
+      "id": "benign",
+      "truth": false,
+      "alert": false,
+      "context": "benign",
+      "evidence": "benign",
+      "approval": false,
+      "repair": "none"
+    },
+    {
+      "id": "no-approval",
+      "truth": true,
+      "alert": false,
+      "context": "risk",
+      "evidence": "confirmed",
+      "approval": false,
+      "repair": "none"
+    },
+    {
+      "id": "disagreement",
+      "truth": false,
+      "alert": true,
+      "context": "unclear",
+      "evidence": "conflict",
+      "approval": false,
+      "repair": "none"
+    },
+    {
+      "id": "no-repair-receipt",
+      "truth": true,
+      "alert": true,
+      "context": "risk",
+      "evidence": "confirmed",
+      "approval": true,
+      "repair": "self-report"
+    }
+  ]
+}
