@@ -363,16 +363,24 @@ candidates:
   title: The 39 overdue document reviews — lifecycle, not re-dating
   path: z1-inbox/2026-09-13/Q-DOCREVIEW-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision B (owners) are the owner's acts; no date was moved.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "19b0228c5a7809a4acc99f78ff2bbeab9ca14013643f0cff7bad8b89a05bbe15"
 - q_id: Q-DOCREVIEW-02
   title: Findings from the first real document review pass (11 reviewed, 28 unreachable)
   path: z1-inbox/2026-09-13/Q-DOCREVIEW-02.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: Executes Q-DOCREVIEW-01. Five findings, led by DOCUMENT_CONTROL_PLAN.md being absent while .doc-control/validate.py, the registry and four external practice notifications all cite it as authoritative. Also needs a Z2 routing decision for the 28 overdue documents in humanaios-internal and lasting-light-ai, which this session cannot open.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "2740932f7d8bb814bac606bd60b04c5d5808822113afa67cabfe143324f9c73c"
 - q_id: Q-NF-ADAPTER-01
   title: molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger
   path: z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md
@@ -616,10 +624,14 @@ candidates:
   title: Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch
   path: z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: 'Produced by the humanaios-findings-scan skill (standalone), which hard-gates on IC-030. The live fetch surfaced three IC candidates and one H candidate. IC-CAND-BSM-A: IC-029 is status REGISTERED with z2_ratification ''Night · 2026-05-08'', and its Fix line asserts a Section F Degraded-Mode Specification that grep against the live file shows is absent — three surfaces assert it (REGISTERED.md:1460, REGISTERED.md:3082, SESSION_RITUALS.md:437), so a ratified fix never landed and halt 9 would order substrates into an undefined mode. IC-CAND-BSM-B: P27 cites ''Section B Step 0'' which does not exist; B.0 is the empirical gate, not the P27 prerequisite. IC-CAND-BSM-F: #332 did registry-touching work with no live fetch, violating IC-030. AMBIGUITY-BSM-D is a Z2 ruling (2026-09-14, Night): §A.1 amended to WGS-primary / halt-only-if-both-fail, resolving the composed halt conflict with Z2-GOVARCH-02. H-CAND-BSM-E: adversarial review reproduces the class it charges; filed at N=1, not promotion-eligible,
     falsifier on record. Synthesis for Z2: three IC items share IC-031''s error class (registry layer, not session layer) — ratified instruments not operative in the named location. Nothing currently verifies that a ratified ''Fix →'' line landed in the file it names; Q-RFM-01''s scanner is the natural home for this check. No calibration_ref — P30 NOT cleared.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "71969a8e15ef5dff41aadba75d65885f095e6dd57caee233310359600bc828de"
 - q_id: Q-IC-BOARD-SEALS-01
   title: IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class)
   path: z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md
