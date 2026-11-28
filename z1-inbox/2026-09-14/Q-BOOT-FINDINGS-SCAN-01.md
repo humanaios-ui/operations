@@ -427,3 +427,7 @@ These findings were produced before reading #335, and they land on its invariant
 ---
 
 **Not done by this candidate:** no `REGISTERED.md` modification, no `PRIORITY_QUEUE.md` amendment, no `calibration_ref` (P30 **not cleared**). `AMBIGUITY-BSM-D` was ruled by Z2 in session and the amendment has landed; its `z2_hash` is **unsigned** pending `ratify.py`. No canonical file was edited to fix any *other* finding — A, B, F, E and C remain as reported, for Z2 to dispose of. Z1 proposes; Night decides (**P21**).
+
+## Disposition (2026-11-28)
+
+Z2 chose option 3A on 2026-11-28 (Night, in session: "1-3A"): IC-CAND-BSM-A is recorded as an extension of IC-029 and IC-CAND-BSM-B as an extension of the F-31 citation correction, both in `REGISTERED.md` and both re-checked on `main` that day. IC-CAND-BSM-F and H-CAND-BSM-E are not registered. Not decided here: the remedy for either defect (write the missing text, or correct the citations). Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).

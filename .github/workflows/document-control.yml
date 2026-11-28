@@ -2,9 +2,8 @@ name: document-control
 
 # Phase 2 gate. The registry + frontmatter integrity check (validate.py) is the
 # ERROR gate — it blocks on structural controlled-document violations. Prose
-# (markdownlint) and internal-link checks run ADVISORY (continue-on-error) per
-# DOCUMENT_CONTROL_PLAN.md §4 ("advisory checks ... as warnings"); promote them
-# to blocking in a later phase once the doc corpus is clean.
+# (markdownlint) and internal-link checks run ADVISORY (continue-on-error);
+# promote them to blocking in a later phase once the doc corpus is clean.
 
 on:
   pull_request:

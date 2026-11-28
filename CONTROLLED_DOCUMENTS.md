@@ -15,8 +15,9 @@ Approval is the owner's act and is never automated — no self-grant.
 |---|---|
 | Controlled documents | 50 |
 | — status `draft` | 9 |
-| — status `review` | 34 |
+| — status `review` | 25 |
 | — status `approved` | 7 |
+| — status `retired` | 9 |
 | Needing reconciliation | 5 |
 | Content-accuracy holds | 5 |
 | Excluded | 37 |
@@ -71,15 +72,15 @@ Approval is the owner's act and is never automated — no self-grant.
 
 | doc_id | title | repo | canonical path | status | flags |
 |---|---|---|---|---|---|
-| HAIOS-COLLAB-001 | WAMPUM-GADUGI-SIGNAL_S-032126-F.html | humanaios-internal | `WAMPUM-GADUGI-SIGNAL_S-032126-F.html` | review | — |
-| HAIOS-COLLAB-002 | ACADEMIC_HOSTS_OUTREACH_S-051426-02.html | humanaios-internal | `collaborators/ACADEMIC_HOSTS_OUTREACH_S-051426-02.html` | review | — |
-| HAIOS-COLLAB-003 | Berlin_Advisory.html | humanaios-internal | `collaborators/Berlin_Advisory.html` | review | needs-reconcile |
-| HAIOS-COLLAB-004 | COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html | humanaios-internal | `collaborators/COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html` | review | — |
-| HAIOS-COLLAB-005 | EMPIRICA_JOINT_REPORT_S-051426-02.html | humanaios-internal | `collaborators/EMPIRICA_JOINT_REPORT_S-051426-02.html` | review | — |
-| HAIOS-COLLAB-006 | LEANDRO_DORMANT_RECORD_S-051426-02.html | humanaios-internal | `collaborators/LEANDRO_DORMANT_RECORD_S-051426-02.html` | review | — |
-| HAIOS-COLLAB-007 | MODEAI_JOINT_REPORT_S-051626-02.html | humanaios-internal | `collaborators/MODEAI_JOINT_REPORT_S-051626-02.html` | review | — |
-| HAIOS-COLLAB-008 | RAH_OPERATIONAL_RECORD_S-051426-02.html | humanaios-internal | `collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html` | review | — |
-| HAIOS-COLLAB-009 | SYDAN_JOINT_REPORT_S-051426-02.html | humanaios-internal | `collaborators/SYDAN_JOINT_REPORT_S-051426-02.html` | review | — |
+| HAIOS-COLLAB-001 | WAMPUM-GADUGI-SIGNAL_S-032126-F.html | humanaios-internal | `WAMPUM-GADUGI-SIGNAL_S-032126-F.html` | retired | — |
+| HAIOS-COLLAB-002 | ACADEMIC_HOSTS_OUTREACH_S-051426-02.html | humanaios-internal | `collaborators/ACADEMIC_HOSTS_OUTREACH_S-051426-02.html` | retired | — |
+| HAIOS-COLLAB-003 | Berlin_Advisory.html | humanaios-internal | `collaborators/Berlin_Advisory.html` | retired | needs-reconcile |
+| HAIOS-COLLAB-004 | COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html | humanaios-internal | `collaborators/COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html` | retired | — |
+| HAIOS-COLLAB-005 | EMPIRICA_JOINT_REPORT_S-051426-02.html | humanaios-internal | `collaborators/EMPIRICA_JOINT_REPORT_S-051426-02.html` | retired | — |
+| HAIOS-COLLAB-006 | LEANDRO_DORMANT_RECORD_S-051426-02.html | humanaios-internal | `collaborators/LEANDRO_DORMANT_RECORD_S-051426-02.html` | retired | — |
+| HAIOS-COLLAB-007 | MODEAI_JOINT_REPORT_S-051626-02.html | humanaios-internal | `collaborators/MODEAI_JOINT_REPORT_S-051626-02.html` | retired | — |
+| HAIOS-COLLAB-008 | RAH_OPERATIONAL_RECORD_S-051426-02.html | humanaios-internal | `collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html` | retired | — |
+| HAIOS-COLLAB-009 | SYDAN_JOINT_REPORT_S-051426-02.html | humanaios-internal | `collaborators/SYDAN_JOINT_REPORT_S-051426-02.html` | retired | — |
 
 ## Process / Runbooks — `PROC` (7)
 
@@ -113,21 +114,12 @@ Documents whose inbox copy diverged from the repo copy and need a merge decision
 | HAIOS-WEB-004 | `public/lumina_tide_pool_v2.html` | inbox copy larger/additive — diff vs repo, merge additive content into repo canonical, then approve |
 | HAIOS-WEB-010 | `the-source.html` | inbox copy larger/additive — diff vs repo, merge additive content into repo canonical, then approve |
 
-## Review schedule (43)
+## Review schedule (34)
 
 Earliest due first. Anything dated before today is overdue — `.doc-control/validate.py` flags those on every run. The review itself is the owner's act.
 
 | review due | doc_id | canonical path | status |
 |---|---|---|---|
-| 2026-08-01 | HAIOS-COLLAB-001 | `WAMPUM-GADUGI-SIGNAL_S-032126-F.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-002 | `collaborators/ACADEMIC_HOSTS_OUTREACH_S-051426-02.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-003 | `collaborators/Berlin_Advisory.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-004 | `collaborators/COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-005 | `collaborators/EMPIRICA_JOINT_REPORT_S-051426-02.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-006 | `collaborators/LEANDRO_DORMANT_RECORD_S-051426-02.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-007 | `collaborators/MODEAI_JOINT_REPORT_S-051626-02.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-008 | `collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html` | review |
-| 2026-08-01 | HAIOS-COLLAB-009 | `collaborators/SYDAN_JOINT_REPORT_S-051426-02.html` | review |
 | 2026-08-01 | HAIOS-OPS-001 | `comparison-chamber.html` | review |
 | 2026-08-01 | HAIOS-OPS-002 | `witness-renderer.html` | review |
 | 2026-08-01 | HAIOS-PROC-001 | `OPERATOR_RUNBOOK.md` | review |

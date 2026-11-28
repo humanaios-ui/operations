@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """HumanAIOS document-control validator (Phase 2, errors-only).
 
-Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md:
+Enforces the mechanical controlled-document rules, written out here (there is no separate plan document):
   1. document-registry.yaml parses and each entry has required fields.
   2. doc_id is unique and well-formed.
   3. Exactly one `canonical: true` per doc_id.

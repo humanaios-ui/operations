@@ -340,3 +340,7 @@ What is left is the part that was always the owner's: whether to stagger the bac
 records among it, and who owns what.
 
 **Ratification requested.**
+
+## Disposition (2026-11-28)
+
+Z2 chose option 1A on 2026-11-28 (Night, in session: "1-3A"). Decision A is A2 then A1: the nine HAIOS-COLLAB records are `retired` in `document-registry.yaml`, and the rest are worked as the dateless pull queue (`review.py --pull`, 22 documents today). Decision B: Night is owner of record on all 50 documents; agents record reviews with `review.py --record`, and approval stays Night's act. Not decided here: the interval values, renaming `review_due`/"overdue", and the 28 documents held in repositories this session cannot open. Merging the pull request that adds this section ratifies the candidate as it stands (Z2, 2026-11-25: the merge ratifies every candidate).
