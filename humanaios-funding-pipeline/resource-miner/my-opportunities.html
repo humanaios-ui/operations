@@ -61,6 +61,7 @@ button,select,input[type=file]{min-height:44px}
 <div class="actions">
 <button id="demo" type="button" class="secondary">View synthetic example</button>
 <button id="starter" type="button" class="secondary">Start a blank-action checklist</button>
+<button id="applicationStarter" type="button" class="secondary">Start research application case (AIAF)</button>
 </div>
 <label for="import">Import local journey or private evidence bundle JSON</label>
 <input id="import" type="file" accept=".json,application/json">
@@ -116,6 +117,11 @@ button,select,input[type=file]{min-height:44px}
 <label class="check"><input type="checkbox" name="humanAction" value="SURVEY_SUBMITTED_HUMAN"> I submitted its survey</label>
 <label class="check"><input type="checkbox" name="humanAction" value="DISCORD_JOINED_HUMAN"> I joined its Discord</label>
 </fieldset>
+<fieldset id="applicationActions" disabled hidden>
+<legend>Research funding application — report only what you observed</legend>
+<label class="check"><input type="checkbox" name="applicationAction" value="APPLICATION_SUBMITTED_HUMAN"> I submitted this application</label>
+<label class="check"><input type="checkbox" name="applicationAction" value="APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED"> I saw a confirmation on the provider website</label>
+</fieldset>
 <div class="actions"><button id="record" type="button" disabled>Record selected reports</button></div>
 <p class="subtle">Already recorded actions appear checked and locked to prevent duplication. Start a blank-action checklist to test interactive boxes, or import your own JSON to continue an existing record.</p>
 </section>
@@ -131,6 +137,8 @@ button,select,input[type=file]{min-height:44px}
 <option value="SURVEY_SUBMITTED_HUMAN">Survey submission (human-reported)</option>
 <option value="DISCORD_JOINED_HUMAN">Discord participation (human-reported)</option>
 <option value="CALENDAR_EVENT_CREATED">Calendar event (linked by user)</option>
+<option value="APPLICATION_SUBMITTED_HUMAN">Application submission (human reported)</option>
+<option value="APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED">Provider success page (human observed, unverified)</option>
 </select>
 <label for="evidenceExcerpt">Optional short excerpt or note (max 750 characters)</label>
 <textarea id="evidenceExcerpt" maxlength="750" rows="3" placeholder="What does this source support? Respect others’ privacy and intellectual property."></textarea>
@@ -153,7 +161,7 @@ button,select,input[type=file]{min-height:44px}
 const byId=id=>document.getElementById(id);
 const localKey="humanaios.my_opportunities.v0.1";
 const status=byId("status");
-const allowedHuman=new Set(["HUMAN_SELECTED","SURVEY_SUBMITTED_HUMAN","DISCORD_JOINED_HUMAN"]);
+const allowedHuman=new Set(["HUMAN_SELECTED","SURVEY_SUBMITTED_HUMAN","DISCORD_JOINED_HUMAN","APPLICATION_SUBMITTED_HUMAN","APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED"]);
 const nice={
  DISCOVERED:["Discovered","Resource Miner observation"],
  HUMAN_SELECTED:["Selected","Human report"],
@@ -162,7 +170,15 @@ const nice={
  CALENDAR_EVENT_CREATED:["Calendar event created","Connector receipt claimed"],
  DISCORD_JOINED_HUMAN:["Discord joined","Human reported"]
 };
+const applicationNice={
+ HUMAN_SELECTED:["Selected research opportunity","Human reported"],
+ APPLICATION_SUBMITTED_HUMAN:["Application submitted","Human reported, not provider receipt"],
+ APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED:["Provider website confirmation","Human observed, not independently authenticated"]
+};
 const actions={
+ CHECK_FOR_PROVIDER_RESPONSE:"Wait for the funder response and record new evidence if received.",
+ REVIEW_AND_RECORD_CONFIRMATION:"Review the provider submission page and record what you observed.",
+ REVIEW_APPLICATION_AND_CONFIRM_SUBMISSION:"Review application. Any submission needs explicit human action.",
  REVIEW_AND_SELECT_OPPORTUNITY:"Review this opportunity and explicitly decide whether to pursue it.",
  REVIEW_SIGNUP_OR_APPLICATION:"Review the application or signup procedure. Submission requires your own approval.",
  COMPLETE_REQUIRED_SURVEY:"Complete the required participant survey if still outstanding.",
@@ -190,17 +206,25 @@ function render(data){
   throw new Error("Authority or provider-standing contract changed.");
  byId("cards").hidden=false;
  setText(byId("source"),data.mode||"UNVERIFIED");
- setText(byId("opportunity"),j.opportunity_id);
+ const application=j.workflow==="RESEARCH_SUPPORT_APPLICATION";
+ setText(byId("opportunity"),application&&j.opportunity_id==="aiaf-research-support-local"?"AI Alignment Foundation — Research Support":j.opportunity_id);
  setText(byId("parent"),"Related parent resource: "+j.parent_resource_id);
- setText(byId("standingResult"),j.human_action_cycle==="INCOMPLETE"?
-    "Human action cycle: incomplete.":"Human actions recorded; independent participant qualification still unconfirmed.");
+ setText(byId("standingResult"),application?
+  "Application: "+j.application_standing.replaceAll("_"," ")+". Provider decision not verified.":
+  (j.human_action_cycle==="INCOMPLETE"?"Human action cycle: incomplete.":"Human actions recorded; independent participant qualification still unconfirmed."));
  const holder=byId("facts");holder.replaceChildren();
- for(const [kind,[label,detail]] of Object.entries(nice)){
+ for(const [kind,[label,detail]] of Object.entries(application?applicationNice:nice)){
   const observed=!!j.observations?.[kind];
   holder.append(fact(label,observed?"Reported / observed":"Not in record",detail,observed));
  }
- holder.append(fact("Participant qualification",j.participant_standing,"Not verified by Apart",false));
- holder.append(fact("Research submission",j.research_submission,"No submission evidence",false));
+ if(application){
+  holder.append(fact("Application standing",j.application_standing,"User report, not authenticated receipt",false));
+  holder.append(fact("Provider review",j.provider_review_standing,"No provider decision observed",false));
+  holder.append(fact("Funding or support",j.grant_or_support_outcome,"No award or payment evidence",false));
+ }else{
+  holder.append(fact("Participant qualification",j.participant_standing,"Not verified by Apart",false));
+  holder.append(fact("Research submission",j.research_submission,"No submission evidence",false));
+ }
  const list=byId("actionsList");list.replaceChildren();
  const next=Array.isArray(j.next_action_codes)?j.next_action_codes:[];
  for(const code of next){
@@ -213,7 +237,7 @@ function render(data){
  const synthetic=data.mode==="SYNTHETIC_DEMONSTRATION_NOT_PERSONAL_EVIDENCE";
  setText(byId("standing"),synthetic?
    "SYNTHETIC DEMONSTRATION — not a linked personal record.":
-   "LOCAL USER-PROVIDED PREVIEW — source/participant claims are not independently verified.");
+   "LOCAL USER-PROVIDED PREVIEW — claims are not independently verified; no live provider account sync.");
  byId("export").disabled=!current;
  byId("save").disabled=!current;
  renderPreparation(j.preparation);updateHumanChecks();renderEvidence();
@@ -240,6 +264,17 @@ function download(name,payload){
  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 byId("demo").addEventListener("click",()=>showDemo().catch(e=>showError(e.message)));
+byId("applicationStarter").addEventListener("click",async()=>{
+ if(current&&!confirm("Replace in-memory case? Export your current record first."))return;
+ const at=new Date().toISOString();
+ const next={schema:"humanaios.opportunity_journey.e0.v1",workflow:"RESEARCH_SUPPORT_APPLICATION",
+  opportunity:{id:"aiaf-research-support-local",parent_resource_id:"RES-34503D2F931B5304"},
+  events:[{event_id:"HUMAN-SELECTED-"+Date.now(),kind:"HUMAN_SELECTED",source_kind:"HUMAN_REPORT",
+   evidence_ref:"OPERATOR-SELECTION",observed_at:at}]};
+ try{await requestProjection(next);setEditable(next,[]);
+  showStatus("Local AIAF case opened. Report only observed actions. No application sent.");
+ }catch(error){showError(error.message);}
+});
 byId("starter").addEventListener("click",async()=>{
  try{
   const r=await fetch("/api/my-opportunities/starter",{cache:"no-store"});
@@ -268,7 +303,7 @@ byId("import").addEventListener("change",async e=>{
  finally{e.target.value="";}
 });
 const evidenceSchema="humanaios.my_opportunities.private_bundle.v0.1";
-const evidenceAllowed=new Set(["CONTEXT_ONLY","SIGNUP_WELCOME_EMAIL_OBSERVED","SURVEY_SUBMITTED_HUMAN","DISCORD_JOINED_HUMAN","CALENDAR_EVENT_CREATED"]);
+const evidenceAllowed=new Set(["CONTEXT_ONLY","SIGNUP_WELCOME_EMAIL_OBSERVED","SURVEY_SUBMITTED_HUMAN","DISCORD_JOINED_HUMAN","CALENDAR_EVENT_CREATED","APPLICATION_SUBMITTED_HUMAN","APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED"]);
 let evidence=[];
 function safeLink(raw){
  if(typeof raw!=="string"||raw.length>1400)throw new Error("Evidence URL too long.");
@@ -312,12 +347,18 @@ function bundle(){
 }
 function updateHumanChecks(){
  const editing=!!current;
+ const application=current?.workflow==="RESEARCH_SUPPORT_APPLICATION";
  byId("preparationControls").disabled=!editing;
- byId("humanActions").disabled=!editing;
- for(const checkbox of document.querySelectorAll('input[name="humanAction"]')){
+ byId("humanActions").hidden=!!application;
+ byId("applicationActions").hidden=!application;
+ byId("humanActions").disabled=!editing||!!application;
+ byId("applicationActions").disabled=!editing||!application;
+ for(const checkbox of [...document.querySelectorAll('input[name="humanAction"]'),
+  ...document.querySelectorAll('input[name="applicationAction"]')]){
   const already=!!current?.events?.some(item=>item.kind===checkbox.value);
   checkbox.checked=already;
-  checkbox.disabled=!editing||already;
+  const applicationKind=["APPLICATION_SUBMITTED_HUMAN","APPLICATION_CONFIRMATION_PAGE_HUMAN_OBSERVED"].includes(checkbox.value);
+  checkbox.disabled=!editing||already||(application?!applicationKind:applicationKind);
  }
  byId("record").disabled=!editing;
  byId("addEvidence").disabled=!editing;
@@ -424,7 +465,7 @@ function setEditable(payload,items=[]){
 }
 byId("record").addEventListener("click",async()=>{
  if(!current)return;
- const selected=[...document.querySelectorAll('input[name="humanAction"]:checked:not(:disabled)')]
+ const selected=[...document.querySelectorAll('input[name="humanAction"]:checked:not(:disabled)'),...document.querySelectorAll('input[name="applicationAction"]:checked:not(:disabled)')]
    .map(x=>x.value).filter(x=>allowedHuman.has(x));
  if(!selected.length){showStatus("Select at least one new action.");return;}
  const next=JSON.parse(JSON.stringify(current));
