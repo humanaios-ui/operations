@@ -4,19 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**137 candidates** — ⏳ awaiting Z2 3 · ✅ ratified 124 · ⤴️ superseded 2 · ↩️ withdrawn 8 · **97 records**
+**137 candidates** — ✅ ratified 127 · ⤴️ superseded 2 · ↩️ withdrawn 8 · **97 records**
 
-## Awaiting Z2 (3)
-
-Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
-
-| decision due | candidate | what it asks | block |
-|---|---|---|---|
-| 2026-09-15 | **Q-DOCREVIEW-01** | The 39 overdue document reviews — lifecycle, not re-dating | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` |
-| 2026-09-15 | **Q-DOCREVIEW-02** | Findings from the first real document review pass (11 reviewed, 28 unreachable) | `z1-inbox/2026-09-13/Q-DOCREVIEW-02.md` |
-| 2026-09-16 | **Q-BOOT-FINDINGS-SCAN-01** | Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch | `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md` |
-
-## Decided (124)
+## Decided (127)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -133,6 +123,9 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-BOARD-RULING-30** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`c565584f818c1528e3c511a0c8af851c5e4bfe875237999e76126bded3ccd27d` |
 | ✅ ratified | **Q-BOARD-RULING-32** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`17267ddbe840bff8ceeff42df5541cff76d18208b37b3c7e56c46f20c3460905` |
 | ✅ ratified | **Q-BOARD-RULING-33** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`0e984b38cadaaedef7e80710b85ada27715c4246b232afacf02cfee647118f5a` |
+| ✅ ratified | **Q-BOOT-FINDINGS-SCAN-01** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`71969a8e15ef5dff41aadba75d65885f095e6dd57caee233310359600bc828de` |
+| ✅ ratified | **Q-DOCREVIEW-01** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`19b0228c5a7809a4acc99f78ff2bbeab9ca14013643f0cff7bad8b89a05bbe15` |
+| ✅ ratified | **Q-DOCREVIEW-02** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`2740932f7d8bb814bac606bd60b04c5d5808822113afa67cabfe143324f9c73c` |
 | ✅ ratified | **Q-FRAMEWORK-MAPPING-01** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`0be243df58618a069ee0a0c45883c370102ab70e6216b23f3784249a13d43d1f` |
 | ✅ ratified | **Q-GOVGATE-01** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`0e25254978a1e7e0d22713e79b359546a0273a76565b60e440a0f0d95956639f` |
 | ✅ ratified | **Q-IC-BOARD-SEALS-01** | Night | 2026-11-28 | `z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md`<br>`39dde9d3b2211e917e80e3763e3579053b6685427d0b6ec3d479309b864b37c9` |
@@ -172,24 +165,6 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 | **Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01** | As filed, this candidate presents four strategic options (A-D) for Z2 to prioritize rather than a single falsifiable prediction, and contains no explicit '## Falsifier' heading or falsifier: field. Recorded as the gap, not as an accepted exemption: Z2 accepts or refuses the waiver, or requires a falsifier scoped to whichever option(s) it selects. |
 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
-
-## Open questions for Z2 (9)
-
-Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
-
-### Q-DOCREVIEW-01 (9)
-
-`z1-inbox/2026-09-13/Q-DOCREVIEW-01.md`
-
-- [ ] **Decision A — the backlog.** A1 pull queue / A2 retire first / A3 accept as-is. Z1 recommends **A2 then A1**. The staggered-schedule option is withdrawn: it invented an end date, which is the error this correction names.
-- [ ] **Decision A3 specifically:** are the nine `HAIOS-COLLAB-*` point-in-time reports live documents or historical records? If records, `retired` is the truthful disposition.
-- [ ] **Decision B — owners.** 0 of 46 assigned. A cadence with no assignee produces a queue nobody is late on.
-- [ ] `review_policy: {draft: 30, review: 90, approved: 180}` — accept or set real intervals.
-- [ ] Overdue stays **advisory** while derivation-mismatch becomes **blocking** — confirm that split is the intended one.
-- [ ] `governance-triage.yml` cadence (Mondays 07:00 UTC) and the issue-per-queue shape.
-- [ ] **Item 8:** `review_due` and "overdue" are deadline words for what is staleness. Renaming them touches 41 entries and a pre-existing tool — routed, not taken.
-- [ ] The 5 documents with **no** `review_due` — leave them, or declare them off-cadence. Under a resource-based reading a missing date is not a defect: it simply means no staleness reference exists yet, which `--record` supplies on first review. They are outside `review_baseline:` for the same reason: there is no seeded date to freeze.
-- [ ] `review_baseline:` is accepted as the frozen record of the seeded dates, and changing an entry is understood to be a ratified re-dating rather than an edit.
 
 ## Records (97)
 
