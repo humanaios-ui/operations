@@ -1,0 +1,39 @@
+name: intent-graph-check
+
+# Runs the INTENT_GRAPH.yaml validator (tools/intent_graph_v1_0.py) on every PR.
+# E1-E15 block; W1-W8 are printed as warnings and never block.
+# No path filter on purpose: the graph points at source files across the tree
+# (E3 sources, W8 anchors, the z1-inbox index), so a PR that deletes or renames
+# one of them can break the graph without touching it. The check reads files
+# only and takes seconds. The rendered INTENT_GRAPH.md is compared in
+# graph-capture-lint.yml, which runs when the graph itself changes.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: Validator smoke test (blocking)
+        run: python3 tools/intent_graph_v1_0.py --smoke-test
+
+      - name: Intent graph validates against the tree (blocking on E-rules)
+        run: python3 tools/intent_graph_v1_0.py check

@@ -57,11 +57,13 @@ VALIDATION RULES (all mechanical, all re-runnable)
   W5  a declared type the validator has no structural rule for is reported
   W6  a well-formed q_ref not indexed in z1-inbox/INDEX.yaml is reported
   W7  a TRANSMISSION node with no outbound edge is reported
-  W8  a node's `anchor` text is not found in its source file. A renamed or
-      deleted heading leaves E3 green (the file still exists) while the node
-      now points at nothing. A warning, not an error: a content hash would
-      turn every unrelated edit of a busy file like CLAUDE.md into a red
-      check, and anchors are short human labels, matched case-insensitively.
+  W8  a node's `anchor` text no longer appears anywhere in its source file.
+      E3 stays green while the file exists, so a removed section otherwise
+      goes unnoticed. This is a plain case-insensitive text search over the
+      whole file, not a heading parser: a renamed heading whose words still
+      appear elsewhere in the file is not caught. A warning, not an error: a
+      content hash would turn every unrelated edit of a busy file like
+      CLAUDE.md into a red check.
 """
 from __future__ import annotations
 
@@ -345,7 +347,7 @@ def validate(graph: dict, root: str = ROOT,
                         body = handle.read()
                 except OSError:
                     body = ""
-                if anchor and anchor.lower() not in body.lower():
+                if anchor and anchor.casefold() not in body.casefold():
                     warnings.append(
                         f"W8 {nid}: anchor {anchor!r} not found in {source} — "
                         f"the section may have been renamed or removed"
@@ -1064,7 +1066,8 @@ def run_smoke_test() -> int:
           errors == [] and any(w.startswith("W8") for w in warnings))
     found = yaml.safe_load(_FIXTURE)
     with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as handle:
-        first_word = next((w for w in handle.read().split() if w.isalpha()), "")
+        first_word = next((w for w in handle.read().split()
+                           if w.isascii() and w.isalpha()), "")
     found["nodes"][0]["anchor"] = first_word.upper()
     errors, warnings = validate(found, root=ROOT)
     check("present anchor (any case) raises no W8",

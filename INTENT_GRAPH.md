@@ -235,7 +235,7 @@ candidate that would settle it — an open row with no candidate fails validatio
 | `I-QUEUE-ENGINE` | Priority queue engine | Two-band constraint allocation over eligible work. | `priority_queue_engine.py` | live | Z2 supersedes |
 | `I-CORPUS-VALIDATOR` | Corpus integrity validator | Recomputes the Learning Index per row and flags mismatch, anchoring and missing-timestamp defects in the published corpus. | `tools/corpus_integrity_validator.py` | live | Z2 supersedes |
 | `I-INTENT-GRAPH` | Intent graph renderer | Validates this file against the tree and renders INTENT_GRAPH.md. Reports orphans, unresolved sources and open conflicts. | `tools/intent_graph_v1_0.py` | proposed | Z2 supersedes |
-| `I-Z1-QUEUE-REPORT` | Z2 queue report | Reads z1-inbox/INDEX.yaml and reports, as JSON, how many candidates exist, how many await a Z2 decision and how many have a decision recorded. | `.z1-control/validate.py` | live | Z2 supersedes |
+| `I-Z1-QUEUE-REPORT` | Z2 queue report | Reads z1-inbox/INDEX.yaml and reports, as JSON, the number of candidates, how many await Z2, the number of records, the open list and any falsifier waivers. | `.z1-control/validate.py` | live | Z2 supersedes |
 | `I-DOC-TRIAGE` | Document review triage | Counts controlled documents in document-registry.yaml that have no owner or have never been reviewed. | `.doc-control/review.py` | live | Z2 supersedes |
 
 ---

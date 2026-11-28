@@ -63,15 +63,11 @@ jobs:
       - name: Rendered system graph view in sync with source (blocking)
         run: python3 tools/system_graph_render_v1_0.py --check docs/SYSTEM_GRAPH.md
 
-      # INTENT_GRAPH.yaml has its own validator (E1-E15 block, W1-W8 warn) and
-      # renderer. Until this step nothing ran them, so a change could break the
-      # graph or leave INTENT_GRAPH.md stale without a red check.
-      - name: Intent graph validator smoke test (blocking)
-        run: python3 tools/intent_graph_v1_0.py --smoke-test
-
-      - name: Intent graph validates against the tree (blocking on E-rules)
-        run: python3 tools/intent_graph_v1_0.py check
-
+      # The intent graph's E-rule check runs on every PR in intent-graph-check.yml,
+      # because a source file can break the graph from outside it. The rendered
+      # page is compared here, only when the graph or its tool changes: the page
+      # repeats tree-derived warnings, and checking it on every PR would turn an
+      # unrelated PR red for a page it never touched.
       - name: Rendered intent graph view in sync with source (blocking)
         run: python3 tools/intent_graph_v1_0.py render --check
 

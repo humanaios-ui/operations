@@ -416,8 +416,9 @@ nodes:
     type: instrument
     name: Z2 queue report
     statement: >-
-      Reads z1-inbox/INDEX.yaml and reports, as JSON, how many candidates exist,
-      how many await a Z2 decision and how many have a decision recorded.
+      Reads z1-inbox/INDEX.yaml and reports, as JSON, the number of candidates,
+      how many await Z2, the number of records, the open list and any falsifier
+      waivers.
     source: .z1-control/validate.py
     status: LIVE
     note: >-
@@ -436,7 +437,7 @@ nodes:
     status: LIVE
     note: >-
       Measures owner and review state. Provenance is not measured: the registry
-      carries no provenance field. Its interval-based count is the clock that
+      carries no provenance field. Its due-date count is the clock that
       the O-DOC-CONTROL conflict names, so that figure is not evidence.
 
 # ---------------------------------------------------------------------------
