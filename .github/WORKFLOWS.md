@@ -1,277 +1,198 @@
-# GitHub Actions Workflow Audit & Classification
+# GitHub Actions workflow inventory
 
-**Last Updated:** 2026-11-26 (header counts and Current Metrics only; tables below not re-classified)  
-**Total Workflows:** 105 — `ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l`  
+**Source of the file count:** `python3 tools/render_workflow_inventory.py --write`
 
-> This count is hand-maintained and was 48 while 52 files were present. It is a
-> derived view of a directory listing and belongs under a renderer like the other
-> registries in this repository; see `Q-GOVDRIFT-01` ask 1. Until then, re-run the
-> command above when adding or removing a workflow.
-> 
-> **Five of the 52 do not parse** as GitHub reads them, so they produce zero-job
-> runs that read as failing gates but never execute a step: `drift-monitor.yml`,
-> `receipt-reconciliation-post-merge.yml`, `sonarcloud-baseline-auto.yml`,
-> `weekly-funding-rescore.yml`, `weekly-profile-sync.yml`. `workflow-lint.yml`
-> reports them advisory; repairing them is its stated precondition for becoming
-> blocking.
+The table under Inventory is generated from `.github/workflows/*.yml` and `*.yaml`. Re-run the script after adding or removing a workflow; `python3 tools/render_workflow_inventory.py --check` exits 1 when the marked region is stale. For how recent runs went, run `python3 tools/render_workflow_inventory.py --runs 10` (needs `gh`). That report is printed, not written here, because run results change by the hour.
 
-**Consolidation Phase:** Phase 1 Complete (findings-registry + sonarqube unified; 2 redundant workflows removed)
+## What actually gates a merge
 
-## Executive Summary
+Read from the GitHub API on 2026-11-26:
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Critical-Path Gates | 10 | Lean, required |
-| Scheduled Audits | 23 | Intentional separation by scope/schedule |
-| Specialized Frameworks | 5 | SMAG calibration (Stage 2), research, industry telemetry |
-| Infrastructure/Maintenance | 12 | Ancillary support workflows |
+| Source | Effect |
+| --- | --- |
+| Branch protection on `main` | Requires `guard`, `Secret scanning (gitleaks)` and `Python dependency vulnerability scan`, with the branch up to date with `main`. Requires 0 approving reviews. |
+| Ruleset Basic (id 18594514, all branches) | Blocks branch deletion and force-push, and asks Copilot to review open, non-draft pull requests. |
 
-### Quick Consolidation Facts
-- **Completed:** 2 redundant workflows merged (findings-registry-gate → findings-registry; sonarqube → sonarcloud-baseline-auto)
-- **Remaining:** 44 → 42 active workflows
-- **Further Consolidation:** Candidates identified but architectural separation required (multi-stage pipelines, different audit scopes)
+Every other red check on a pull request is a signal, not a merge block. The repository admission gate is not required; it records admission, and its own receipts say it carries no merge authority.
 
----
+### Checks that are written to fail the job
 
-## Critical-Path Gates (Blocking PRs)
+The check name GitHub shows is the job's `name:` when set, otherwise the job id. Three workflows use the job id `validate`, so their check runs share one name.
 
-These 10 workflows must pass before a PR can merge to main:
+"Every PR?" says whether the workflow runs on every pull request. A check that runs only when certain files change does not report on other pull requests. Making such a check required would leave those pull requests waiting with no way to pass, so this page recommends no new required checks.
 
-| Workflow | Purpose | Trigger | Category |
-|----------|---------|---------|----------|
-| `findings-registry.yml` | Validate REGISTERED.md integrity (hard failures block; soft warnings tolerated per Z2 guidance) | PR to main | Governance |
-| `molt-tier-check.yml` | Classify molt tier (Tier 0/1/2) and validate anti-cascade rules | PR changes | Governance |
-| `quality-baseline.yml` | Run pytest baseline (29 test suites: intent_os, industry_telemetry, etc.) | PR to main | Testing |
-| `security-gates.yml` | Run security checks (semgrep, component scanning, secret scanning) | PR to main | Security |
-| `z2_ratification_gate.yml` | Verify Z2 ratification requirements on candidate blocks: z1-inbox integrity, rendered-index sync, recorded signatures, Seed Constitution Z2 hashes | PR to `z1-inbox/**`, `REGISTERED.md`, `seeds/`, `seed-publication/**` | Governance |
-| `governance-files.yml` | Hold `GOVERNANCE_FILES.md` to `.gov-control/governance-files.yaml`: every declared path resolves in-tree, no hand-set status, rendered view in sync | every PR and push to main (no path filter — the gate reads the whole tree) | Governance |
-| `temporal-dissolution-gate.yml` | Policy enforcement: reject unauthorized internal deadline semantics (audit-critical, S-070726) | PR to main | Policy |
-| `builder-lint.yml` | Lint builders and infrastructure-as-code | PR to main | Linting |
-| `workflow-lint.yml` | Lint GitHub Actions workflows themselves | PR to main | Linting |
-| `repository-admission-gate.yml` | Fail-closed admission/backpressure routing from trusted default-branch policy plus exact replayed coordinator state; RCC-linked manual/issue mutations, terminal PR lifecycle reconciliation, and durable RCD decision comments | PR/review events; PR closed lifecycle events; authorized issue comments; manual dispatch from main for authorized state mutators | Governance |
+| Workflow | Check name | Every PR? | What a failure means |
+| --- | --- | --- | --- |
+| `repository-admission-gate.yml` | `Repository admission/backpressure gate` | yes | The coordinator decision for this pull request is FAIL, usually because no admit names the current head. Not required. |
+| `no-op-pr-guard.yml` | `guard` | yes | The pull request changes zero files. Required. |
+| `security-gates.yml` | `Python dependency vulnerability scan` | yes | `pip-audit` failed on a changed requirements file. Required. |
+| `security-gates.yml` | `Secret scanning (gitleaks)` | yes | Required, but the gitleaks step is `continue-on-error: true`, so this check does not fail the job on a finding. |
+| `temporal-dissolution-gate.yml` | `Reject unauthorized internal deadline semantics` | yes | Unauthorized internal deadline language. |
+| `quality-baseline.yml` | `quality` | no | The pytest baseline failed. The SMAG calibration step in that workflow is advisory. |
+| `builder-lint.yml` | `Builder v1.7 compliance` | no | A changed tool in `tools/` lacks the Builder v1.7 markers. |
+| `tool-manifest.yml` | `Tool manifest integrity` | no | A tool on disk is missing from `tools-manifest.yaml`, or the index drifted. |
+| `z2_ratification_gate.yml` | `Verify Z2 Ratification Requirements` | no | Ratification requirements failed. |
+| `findings-registry.yml` | `validate` (shared name) | no | REGISTERED.md hard failures. |
+| `governance-files.yml` | `validate` (shared name) | no | Governance file list drift. |
+| `document-control.yml` | `validate` (shared name) | no | Document registry or frontmatter failed. Markdown lint and link check in this file are advisory. |
 
-**Why this stays small:** These gates cover the critical path (code quality, security, governance, policy). Additional audits run on schedule or event-trigger but do not block merges—by design, to prevent audit overhead from becoming a merge blocker.
+### Checks that are advisory on purpose
 
----
+`molt-tier-check.yml` says it does not fail the build. `workflow-lint.yml` is named ADVISORY. `graph-capture-lint.yml` says it is not a required check until a Z2 decision adds it. `repository-coordinator.yml` publishes an advisory index.
 
-## Scheduled Audits & Monitoring (21 workflows)
+### Schedules changed by Q-AGENT-WORKFLOWS-01
 
-Intentionally separated by schedule and scope to enable fault isolation and independent alerting.
+On 2026-11-26, nine timers were turned off and the SMAG capture job was set to manual only (pull requests #1335, #1336 and #1338). Each changed file carries a marker comment with the reason and the condition for turning it back on. The Status column below shows them as `paused`, `retired` or `frozen`.
 
-### Morning Window (Grounding Pre-Flight: 00:00–09:00 UTC)
+## Inventory
 
-| Time | Workflow | Purpose | Frequency |
-|------|----------|---------|-----------|
-| 00:00 | `divergence-detect.yml` | Consistency checks (daily) | Daily |
-| 02:00 | `haios-corpus-integrity.yml` | Corpus/registry validation | Daily |
-| 02:00 (Mon) | `drift-monitor.yml` | Document divergence, link rot, unregistered files | Biweekly |
-| 03:00 (Mon) | `intake-pipeline.yml` | Inbox classification → dedup → reconcile → register | Weekly |
-| 06:00 | `haios-system-audit.yml` | System pre-flight: verify operator mental model matches live state | Daily |
-| 06:00 (Mon) | `research-agent.yml` | Autonomous research task execution (arxiv_scan, metaculus_check) | Weekly |
-| 06:17 (Mon) | `smag-consolidate.yml` | SMAG ledger consolidation: drain issue comments → durable ledger → gap report PR | Weekly |
-| 07:00 (Mon) | `governance-triage.yml` | Governance triage automation | Weekly |
-| 08:00 | `acat-pipeline-trigger.yml` | ACAT agent assessment (sequential/single/perturbation modes) | Daily |
-| 08:00 | `daily-deadline-alerts.yml` | Deadline notifications | Daily |
-| 09:00 | `agent-api-monitor.yml` | API health monitoring | Daily |
-| 09:00 | `haios-standing-audit.yml` | Standing audit (A1: stale dimension count, etc.) | Daily |
+<!-- workflow-inventory:start -->
+Generated by `python3 tools/render_workflow_inventory.py --write`. The date is not embedded here, so `--check` stays green until a workflow file changes.
+Workflow files: **105**. Files with a duplicate top-level key or no `on:` trigger: **0**.
 
-### Event-Driven & Continuous
+Status is read from each file: `timer` runs on a schedule, `events` runs on repository events, `manual only` runs only when started by hand, and `paused`, `retired` or `frozen` carry a Q-AGENT-WORKFLOWS-01 marker comment that says why and how to turn it back on.
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `smag-capture.yml` | PR close | Mechanical SMAG capture: post predicted/measured row to issue #103 |
-| `mesh-sync-batch.yml` | Merge to governance files (GOVERNANCE_RATIFICATIONS_REGISTRY.yaml, AUTHORITY_ASSIGNMENTS.yaml, CONTROLLED_DOCUMENTS.md) | Dispatch governance changes to mesh repos |
-| `intent-os-reconcile.yml` | Schedule (weekly) + dispatch | INTENT-OS state reconciliation |
-| `scorecard.yml` | Event-driven | GitHub dependency scorecard |
-| `haios-harmonizer-pulse.yml` | Every 8 hours (00:00, 08:00, 16:00 UTC) | System pulse monitoring (3x/day) |
-| `industry-telemetry.yml` | Schedule (Monday 09:30 UTC) + manual | Industry telemetry capture and lead detection |
+| Status | Files |
+| --- | ---: |
+| events | 74 |
+| timer | 19 |
+| paused | 4 |
+| retired | 4 |
+| frozen | 2 |
+| manual only | 2 |
 
----
+Trigger counts are file counts, not mutually exclusive.
 
-## Specialized Frameworks
+| Trigger | Files |
+| --- | ---: |
+| `workflow_dispatch` | 89 |
+| `pull_request` | 66 |
+| `push` | 39 |
+| `schedule` | 19 |
+| `pull_request_target` | 3 |
+| `issue_comment` | 2 |
+| `branch_protection_rule` | 1 |
+| `check_suite` | 1 |
+| `issues` | 1 |
+| `pull_request_review` | 1 |
+| `workflow_run` | 1 |
 
-### SMAG Calibration Loop (Stage 2)
+| File | Name | Status | Triggers | Schedule |
+| --- | --- | --- | --- | --- |
+| `acat-pipeline-trigger.yml` | ACAT Research Pipeline | paused | `workflow_dispatch` | — |
+| `acat-r-noninjected.yml` | ACAT-R Existing Non-Injected Runtime Reference Pilot | events | `pull_request`, `workflow_dispatch` | — |
+| `acat-r-second-runtime-comparison.yml` | ACAT-R Second Runtime Fair Comparison | events | `pull_request`, `workflow_dispatch` | — |
+| `acat-r-v01.yml` | ACAT-R v0.1 Offline Contract Tests | events | `pull_request`, `workflow_dispatch` | — |
+| `admission-ruling-graph.yml` | admission-ruling-graph | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `agent-api-monitor.yml` | agent-api-monitor | paused | `workflow_dispatch` | — |
+| `agent-coordination-reflex-pilot.yml` | Agent coordination reflex pilot | events | `pull_request`, `push` | — |
+| `agent-principle-compliance-check.yml` | agent-principle-compliance-check | events | `push`, `pull_request` | — |
+| `audit-protocol-v3-1-regression.yml` | Audit Protocol v3.1 Synthetic Gates | events | `pull_request`, `workflow_dispatch` | — |
+| `auto-request-copilot-review.yml` | Legacy Copilot review request (disabled) | manual only | `workflow_dispatch` | — |
+| `azure-budget-tests.yml` | Azure budget template tests | events | `pull_request`, `push` | — |
+| `azure-readiness-tests.yml` | Azure readiness report tests | events | `pull_request`, `push` | — |
+| `b4-migration-admission.yml` | b4-migration-admission | events | `pull_request`, `workflow_dispatch` | — |
+| `behavioral-compliance.yml` | behavioral-compliance | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `builder-lint.yml` | builder-lint | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `cflite_pr.yml` | ClusterFuzzLite PR fuzzing | events | `pull_request`, `workflow_dispatch` | — |
+| `ci-predict-consolidate.yml` | ci-predict-consolidate | timer | `schedule`, `workflow_dispatch` | `37 4 * * *` |
+| `ci-predict-pin.yml` | ci-predict-pin | events | `pull_request` | — |
+| `ci-predict-resolve.yml` | ci-predict-resolve | events | `check_suite`, `workflow_dispatch` | — |
+| `claim-intersection-e0.yml` | claim-intersection-e0 | events | `pull_request`, `workflow_dispatch` | — |
+| `codebase-atlas.yml` | codebase-atlas | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `coordinator-admission-sweep.yml` | coordinator-admission-sweep | timer | `schedule`, `workflow_dispatch` | `17 */6 * * *` |
+| `copilot-base-guard.yml` | copilot-base-guard | events | `pull_request_target` | — |
+| `daily-deadline-alerts.yml` | Daily Deadline Alerts | timer | `schedule`, `workflow_dispatch` | `0 8 * * *` |
+| `daily-topic-digest.yml` | Daily Topic-to-Mitigation Digest | retired | `workflow_dispatch` | — |
+| `deploy-acat-api-azure.yml` | Deploy ACAT API to Azure Container Apps | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `divergence-detect.yml` | divergence-detect | timer | `schedule`, `workflow_dispatch` | `0 0 * * *` |
+| `document-control.yml` | document-control | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `drift-monitor.yml` | drift-monitor | timer | `schedule`, `workflow_dispatch` | `0 2 * * 1` |
+| `external-contribution-admission-witness.yml` | external-contribution-admission-witness | events | `pull_request_target`, `workflow_dispatch` | — |
+| `feedback-replay-1002.yml` | INTENT-OS E1 pinned source-feedback replay | events | `pull_request`, `workflow_dispatch` | — |
+| `findings-registry.yml` | findings-registry | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `forecasting-tools-031-smoke.yml` | forecasting-tools-0.3.1-compat-smoke | events | `push` | — |
+| `governance-files.yml` | governance-files | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `governance-invariant-evaluator.yml` | governance-invariant-evaluator | events | `pull_request`, `workflow_dispatch` | — |
+| `governance-triage.yml` | governance-triage | timer | `schedule`, `workflow_dispatch` | `0 7 * * 1` |
+| `gpcs-contract.yml` | GPCS contract tests | events | `pull_request`, `workflow_dispatch` | — |
+| `graph-capture-lint.yml` | graph-capture-lint | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `haios-corpus-integrity.yml` | HAIOS Corpus Integrity | paused | `workflow_dispatch` | — |
+| `haios-harmonizer-pulse.yml` | HAIOS Harmonizer Pulse | timer | `schedule`, `workflow_dispatch` | `0 0,8,16 * * *` |
+| `haios-standing-audit.yml` | HumanAIOS Standing Audit | timer | `push`, `schedule`, `workflow_dispatch` | `0 9 * * *` |
+| `haios-system-audit.yml` | HAIOS System Audit | paused | `workflow_dispatch` | — |
+| `iew-001-admission-negative-controls.yml` | iew-001-admission-negative-controls | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `industry-telemetry.yml` | industry-telemetry | timer | `schedule`, `workflow_dispatch`, `pull_request` | `30 9 * * 1` |
+| `intake-pipeline.yml` | intake-pipeline | timer | `schedule`, `workflow_dispatch`, `push` | `0 3 * * 1` |
+| `intent-form-browser.yml` | intent-form-browser | events | `pull_request`, `workflow_dispatch` | — |
+| `intent-os-collaboration.yml` | INTENT-OS collaboration boundary | events | `pull_request`, `push` | — |
+| `intent-os-opportunity-journey-e0.yml` | INTENT-OS Opportunity Journey E0 | events | `pull_request`, `workflow_dispatch` | — |
+| `intent-os-reconcile.yml` | intent-os-reconcile | events | `push`, `workflow_dispatch` | — |
+| `intent-os-refresh.yml` | intent-os-refresh | events | `push`, `workflow_dispatch` | — |
+| `manifest-sync-gate.yml` | manifest-sync-gate | events | `pull_request`, `workflow_dispatch` | — |
+| `mesh-standard-files.yml` | mesh-standard-files | timer | `schedule`, `workflow_dispatch` | `0 6 * * 1` |
+| `mesh-sync-batch.yml` | mesh-sync-batch | events | `pull_request` | — |
+| `meta-smag-regression.yml` | Meta SMAG Accuracy Regression | events | `pull_request`, `workflow_dispatch` | — |
+| `metaculus-e0-offline.yml` | Metaculus E0 offline safety | events | `pull_request`, `workflow_dispatch` | — |
+| `mode-haios-interop-e0.yml` | MODE-HumanAIOS E0 synthetic interoperability | events | `pull_request`, `workflow_dispatch` | — |
+| `mode-publisher-influence-e0.yml` | MODE publisher influence source test | events | `pull_request`, `workflow_dispatch` | — |
+| `molt-notification-hook.yml` | MOLT State Tracking & Falsifier Notifications | events | `push`, `pull_request`, `workflow_dispatch` | — |
+| `molt-tier-check.yml` | molt-tier-check | events | `pull_request` | — |
+| `molt-window-close-trigger.yml` | MOLT Window Close Measurement Trigger | timer | `schedule`, `workflow_dispatch` | `0 0 * * *` |
+| `no-op-pr-guard.yml` | No-op PR guard | events | `pull_request` | — |
+| `odin-opportunity-e1.yml` | ODIN E1 Opportunity Task Projection | events | `pull_request`, `workflow_dispatch` | — |
+| `on-track-reflex-execution.yml` | on-track-reflex-execution | events | `pull_request`, `workflow_dispatch` | — |
+| `on-track-reflex-observe.yml` | on-track-reflex-observe | events | `workflow_dispatch`, `issues`, `pull_request` | — |
+| `oracle-replay-regression.yml` | Oracle Replay Regression | events | `pull_request`, `workflow_dispatch` | — |
+| `orcid-reconcile-tests.yml` | ORCID reconcile tests | events | `pull_request`, `push` | — |
+| `pages.yml` | Deploy GitHub Pages | events | `push`, `workflow_dispatch` | — |
+| `pr-challenge-dialogue.yml` | PR challenge dialogue router | events | `issue_comment` | — |
+| `priority-queue-triage.yml` | priority-queue-triage | timer | `schedule`, `workflow_dispatch` | `0 12 * * 1` |
+| `quality-baseline.yml` | quality-baseline | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `receipt-reconciliation-post-merge.yml` | Post-Merge Receipt Reconciliation | events | `push`, `workflow_dispatch` | — |
+| `repository-admission-gate.yml` | repository-admission-gate | events | `pull_request_target`, `pull_request_review`, `issue_comment`, `workflow_dispatch` | — |
+| `repository-coordinator.yml` | repository-coordinator | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `research-agent.yml` | HAIOS Research Agent | retired | `workflow_dispatch` | — |
+| `research-validation.yml` | Research Validation | events | `workflow_dispatch`, `pull_request` | — |
+| `resource-miner-azure-readiness.yml` | Resource Miner Azure Container Readiness | events | `pull_request`, `push` | — |
+| `resource-miner-pr.yml` | Resource Miner PR | events | `pull_request` | — |
+| `resource-miner-scan.yml` | Resource Miner Scan | timer | `schedule`, `workflow_dispatch` | `15 6 * * *` |
+| `resource-miner-three-source-observation.yml` | Resource Miner Three Source Observation | events | `pull_request`, `workflow_dispatch` | — |
+| `rmo-verification-cross-contract.yml` | RMO URA Cross Contract | events | `pull_request`, `workflow_dispatch` | — |
+| `rmo-verification-opportunities.yml` | RMO Verification Opportunity Offline Tests | events | `pull_request`, `workflow_dispatch` | — |
+| `rnola-governance-validation.yml` | rnola-governance-validation | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `scheduled-audit.yml` | scheduled-audit | timer | `schedule`, `workflow_dispatch` | `0 9 * * 1` |
+| `scorecard.yml` | scorecard-security | timer | `branch_protection_rule`, `schedule`, `push`, `workflow_dispatch` | `0 8 * * 1` |
+| `scvc-milestone-witness.yml` | scvc-milestone-witness | timer | `workflow_run`, `schedule`, `workflow_dispatch`, `push` | `17 9 * * *` |
+| `security-gates.yml` | security-gates | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `seed-satellite-ci.yml` | Seed Satellite CI | manual only | `workflow_dispatch` | — |
+| `semgrep-review.yml` | semgrep-review | events | `pull_request`, `workflow_dispatch` | — |
+| `smag-capture.yml` | smag-capture | frozen | `workflow_dispatch` | — |
+| `smag-consolidate.yml` | smag-consolidate | frozen | `workflow_dispatch` | — |
+| `sonarcloud-baseline-auto.yml` | SonarCloud Baseline Auto-Capture | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `system-graph-freshness.yml` | system-graph-freshness | timer | `pull_request`, `push`, `schedule`, `workflow_dispatch` | `17 6 * * 1` |
+| `temporal-dissolution-gate.yml` | temporal-dissolution-gate | events | `pull_request` | — |
+| `tool-manifest.yml` | tool-manifest | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `ura-hmbm-daily-regression.yml` | URA HMBM State-Triggered Regression (read-only) | timer | `schedule`, `workflow_dispatch`, `pull_request` | `17 13 * * *` |
+| `verified-receipts-tests.yml` | verified-receipts-tests | events | `pull_request`, `workflow_dispatch` | — |
+| `wardens-council-prototype.yml` | Wardens Council Prototype Tests | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `wardens-lineage-prototype.yml` | Wardens persistent lineage + Discord prototype tests | events | `pull_request`, `workflow_dispatch` | — |
+| `weekly-funding-rescore.yml` | Weekly Funding Rescore | retired | `workflow_dispatch` | — |
+| `weekly-profile-sync.yml` | Weekly Profile Sync | retired | `workflow_dispatch` | — |
+| `workflow-lint.yml` | workflow-lint | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `workflow-path-validation.yml` | workflow-path-validation | events | `pull_request`, `push`, `workflow_dispatch` | — |
+| `workspace-evidence-bus-roundtrip.yml` | Workspace Evidence Bus Roundtrip | events | `workflow_dispatch`, `pull_request` | — |
+| `z2-ratification-z3-kickoff.yml` | Z2 Ratification → Z3 Executor Kickoff | events | `push`, `workflow_dispatch` | — |
+| `z2_ratification_gate.yml` | Z2 Ratification Gate | events | `pull_request`, `push`, `workflow_dispatch` | — |
+<!-- workflow-inventory:end -->
 
-Three intentionally separate workflows form a real-time prediction loop:
-
-| Workflow | Trigger | Role |
-|----------|---------|------|
-| `ci-predict-pin.yml` | PR create | Pin prediction (smag_p) at proposal time |
-| `ci-predict-resolve.yml` | PR merge | Resolve prediction: record measured outcome (CI pass/fail, checks) |
-| `ci-predict-consolidate.yml` | Hourly (0 * * * *) | Consolidate ledger: compute gap report, feedback signal for next cycle |
-
-**Why separate:** Real-time pin and resolve operate at PR boundary; consolidation must aggregate across all PRs hourly. Merging would create coupling between PR-boundary logic and batch aggregation.
-
-### Research & Analysis
-
-| Workflow | Purpose | Status |
-|----------|---------|--------|
-| `research-agent.yml` | Autonomous research (arxiv_scan, metaculus_check) | Scheduled weekly |
-| `research-validation.yml` | Validate research framework (bio_framework_core_v1_2.py, etc.) | On bio framework changes |
-
-**Zone Status:** Research zone is read-only per CLAUDE.md; workflows run as scheduled but do not gate merges.
-
----
-
-## Infrastructure & Maintenance (16 workflows)
-
-| Workflow | Purpose | Trigger |
-|----------|---------|---------|
-| `graph-capture-lint.yml` | Score the five canonical graph layers (INTENT, system, EVIDENCE, capability, morphogenesis) against the nine self-sealing properties; exits non-zero on a P1–P3 failure not listed in `crb/graph_capture_baseline.json` or on a stale baseline entry. Not a required check until Z2 adds it (Q-GRAPH-CAPTURE-LINT-01) | PR/push touching a canonical graph, the baseline, the tool or its tests |
-| `.coderabbit.yaml` | CodeRabbit advisory review policy (requires installed GitHub App) | PR create/update via external app |
-| `auto-request-copilot-review.yml` | Legacy Copilot review provenance stub | Manual dispatch only |
-| `copilot-base-guard.yml` | Base branch protection with Copilot checks | PR to main |
-| `behavioral-compliance.yml` | Agent behavior compliance checking | Scheduled |
-| `agent-principle-compliance-check.yml` | Principle compliance validation | PR changes |
-| `tool-manifest.yml` | Validate tools-manifest.yaml and TOOLS_MANIFEST.md sync | tool-manifest changes |
-| `document-control.yml` | Document control gate: validate frontmatter, registry sync | Document changes |
-| `no-op-pr-guard.yml` | Reject no-op PRs (safety gate, prevents empty merges) | PR to main |
-| `pages.yml` | GitHub Pages deployment (docs site) | Push to main |
-| `priority-queue-triage.yml` | Priority queue triage automation | Scheduled |
-| `haios-harmonizer-pulse.yml` | System pulse monitoring | Every 8 hours |
-| `intent-os-refresh.yml` | INTENT-OS state refresh | Scheduled + dispatch |
-| `intent-form-browser.yml` | Intent form tests, including Playwright browser checks in headless Chromium; a missing browser fails the run under CI | PR touching `ui/intent-form.html`, `intent.md`, or the intent form tests; manual dispatch |
-| `industry-telemetry.yml` | Industry telemetry capture (Q4 2026 forecasts) | Mon 09:30 UTC |
-| `deploy-acat-api-azure.yml` | Deploy ACAT API to Azure Container Apps — Microsoft for Startups M3 proof-of-concept; builds/lints on every PR touching Dockerfile.acat-api/bicep/acat/api paths, deploys only on manual dispatch behind an environment gate | PR/push (build-validate only); manual dispatch (deploy) |
-
----
-
-## Consolidation History
-
-### Phase 1: Redundancy Elimination (PR #422)
-
-**Completed:**
-- ✅ `findings-registry-gate.yml` → Merged into `findings-registry.yml`
-  - Consolidated artifact capture logic from separate gate workflow
-  - Non-strict validation (tolerates REG_UNCOMMITTED_CANDIDATE warnings; blocks hard failures)
-  - Audit S-070726: governance records retention via artifact upload
-  
-- ✅ `sonarqube.yml` (dormant) → Consolidated into `sonarcloud-baseline-auto.yml`
-  - Added PR trigger support (pull_request: [opened, synchronize, reopened])
-  - Unified workflow now handles both PR advisory scans and main baseline capture
-  - Metrics fetch, BLOCKER issue creation, baseline updates all in one workflow
-
-**Result:** Reduced active workflows from 44 to 42.
-
-### Intentional Non-Consolidations
-
-**Why these remain separate:**
-
-1. **ci-predict-*.yml (3 workflows)**
-   - Real-time pins and resolves operate at PR boundary; consolidation would couple boundary logic with batch aggregation
-   - Hourly consolidation is independent timing requirement
-   - Stage 2 calibration framework requires architectural separation
-
-2. **smag-capture.yml + smag-consolidate.yml (2 workflows)**
-   - Real-time capture (on PR close) + weekly consolidation form a closed-loop learning pipeline
-   - Separation enables independent retries and failure isolation
-   - By design: mechanical capture → human review window → scheduled consolidation
-
-3. **temporal-dissolution-gate.yml**
-   - Critical audit gate for deadline policy enforcement (S-070726)
-   - Must run on every PR to main; cannot be merged with other gates
-   - Policy isolation: separate status report for policy violations
-
-4. **Scheduled audits (21 workflows)**
-   - Different schedules (daily, weekly, biweekly, hourly) prevent bundling without losing precision
-   - Different scopes (governance, infrastructure, research, monitoring) prevent coupling
-   - Fault isolation: a failure in one audit scope does not halt others
-
----
-
-## Monitoring & Future Optimizations
-
-### Phase 2 Candidates (Not Recommended Now)
-
-1. **Alert infrastructure sharing** (future consideration)
-   - `daily-deadline-alerts.yml` + `priority-queue-triage.yml` could potentially share a consolidated alert delivery system
-   - Status: Monitor for growth; only consolidate if both workflows grow significantly
-
-2. **Mesh workflow framework** (future consideration)
-   - `mesh-standard-files.yml` + `mesh-sync-batch.yml` might benefit from a shared mesh orchestration layer
-   - Status: Defer until mesh ecosystem grows beyond current 31 repos
-
-### Non-Candidates (Will Not Consolidate)
-
-1. **Research workflows**
-   - Zone status: Read-only per CLAUDE.md; no changes to consolidation policy
-   - Status: Frozen unless research zone reactivates
-
-2. **Audit workflows**
-   - Intentional separation by schedule and scope
-   - Status: Each audit serves a distinct governance or monitoring function; separation prevents fault cascades
-
----
-
-## Verification & Health Checks
-
-### Current Metrics
-
-As of 2026-11-26 (after #1341 retired `coordinator-issue-route.yml`):
+## How to regenerate
 
 ```bash
-# Total workflows
-$ ls .github/workflows/*.yml | wc -l
-105
-
-# By trigger type
-$ grep -l "schedule:" .github/workflows/*.yml | wc -l
-28
-
-$ grep -l "pull_request:" .github/workflows/*.yml | wc -l
-69
-
-$ grep -l "push:" .github/workflows/*.yml | wc -l
-39
-
-$ grep -l "issue_comment:" .github/workflows/*.yml | wc -l
-2
-
-# With a concurrency block
-$ grep -l "concurrency:" .github/workflows/*.yml | wc -l
-45
+python3 tools/render_workflow_inventory.py --write
+python3 tools/render_workflow_inventory.py --check
 ```
 
-The classification tables above cover the September set and have not been
-re-done for the workflows added since. See `docs/CI_TRIAGE_2026-11.md` for
-current run-volume findings.
+The script is stdlib-only. It records workflow `name:`, the keys under top-level `on:`, cron strings, and duplicate top-level keys. A duplicate top-level key is the defect that makes GitHub create a zero-job run that looks like a failed gate (`workflow-lint.yml` describes that failure mode). The script does not decide which checks are required; that is the ruleset, described above.
 
-### Recommended Ongoing Checks
-
-1. **Watch for new workflows**
-   - Every new workflow should be classified and added to this audit
-   - Pattern: 4 categories (critical gates, audits, frameworks, maintenance)
-
-2. **Monitor consolidation opportunities**
-   - If two workflows run at the same time and same scope → consider future consolidation
-   - If a workflow's purpose overlaps >80% with another → flag for review
-
-3. **Audit for timeout/resource issues**
-   - Track total CI/CD runtime per day
-   - Watch for workflows exceeding 30-minute timeout (may need splitting)
-
----
-
-## Quick Reference
-
-**Emergency: Need to disable a workflow temporarily?**
-1. Rename `.github/workflows/name.yml` to `.github/workflows/name.yml.disabled`
-2. Create a PR explaining temporary disable reason
-3. Remove `.disabled` suffix when re-enabling
-
-**Adding a new workflow?**
-1. Classify as one of: critical gate, scheduled audit, framework, maintenance
-2. Document schedule/trigger in `.github/WORKFLOWS.md` (this file)
-3. Ensure no duplicate scope with existing workflows
-4. Run `workflow-lint.yml` validation before merge
-
-**Want to consolidate workflows?**
-1. Verify both workflows serve the same scope (not just same schedule)
-2. Ensure consolidation does not break fault isolation (audit workflows)
-3. Test consolidated workflow passes all checks
-4. Document consolidation in `.github/WORKFLOWS.md`
-5. Open PR with justification; await Z2 review
-
----
-
-**Governance:** This audit is informational (Z1 documentation). Changes to workflow structure require Z2 ratification via PR review.
+**Governance:** this file is a Z1 inventory of what is in the tree and what the rules API returned. Changing a workflow that is a gate is still a Tier 2 edit. Adding a required check or a review rule is a repository setting and is not done by merging this document.
