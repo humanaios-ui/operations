@@ -27,11 +27,13 @@ This is the one file-level graph list. It answers step 1 of "Mapping and deploym
 
 ### Graphs not on main
 
-| Graph | Where | Question it answers | Size and state |
-|---|---|---|---|
-| Knowledge graph v0.2 proposal | PR #1310, `kg/humanaios_kg_v0_2_proposal.json` | Which links finish the KG: dependency, evidence, decision, outcome? | 19 new nodes, 73 edges; open draft PR, all edges unratified |
-| Repository knowledge graph | PR #630, `tools/repository_knowledge_graph_v0_1.py` | What is in the repo, with a citation for every edge? | Compiler plus schema; PR closed without merge 2026-10-16 |
-| 358-node research graph | Private; pinned by a receipt in PR #1310 | Research graph behind the KG work | Two snapshots, 358 nodes each, 53 and 83 edges; not published |
+These rows are references, not part of the path-plus-blob list above: a PR head can move and a private graph has no public bytes. Each row names the revision it was read at (2026-11-28) and the blob or digest that identifies it there.
+
+| Graph | Where | Read at | Identity | Question it answers | Size and state |
+|---|---|---|---|---|---|
+| Knowledge graph v0.2 proposal | PR #1310, `kg/humanaios_kg_v0_2_proposal.json` | PR head `deb28037` | blob `aec9d323` | Which links finish the KG: dependency, evidence, decision, outcome? | 19 new nodes, 73 edges; open draft PR, all edges unratified |
+| Repository knowledge graph | PR #630, `tools/repository_knowledge_graph_v0_1.py` | last PR head `c3e0bb56` | blob `f9cd26df` (compiler; no graph output committed) | What is in the repo, with a citation for every edge? | PR closed without merge 2026-10-16 |
+| 358-node research graph | Private; receipt `kg/KG_RESEARCH_GRAPH_358_BOUNDARY_RECEIPT.json` in PR #1310 | PR head `deb28037` | receipt blob `94aeeb32`; snapshot SHA-256 `2109ab9e…0073b253` (83 edges) and `f8ddceab…9dc58dac` (53 edges), as the receipt records them | Research graph behind the KG work | Two snapshots, 358 nodes each; not published, digests not independently checked |
 
 ### Clashes
 
