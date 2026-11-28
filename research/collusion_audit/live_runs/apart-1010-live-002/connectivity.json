@@ -1,0 +1,49 @@
+{
+  "model": "qwen-3.8-27b",
+  "model_listed": true,
+  "models_listing": {
+    "http_status": 200,
+    "model_ids": [
+      "gpt-oss-120b",
+      "qwen-3.8-27b"
+    ]
+  },
+  "ping": {
+    "content": "\n\nOK",
+    "finish_reason": "stop",
+    "http_status": 200,
+    "reasoning": "The user is asking me to reply with the single word \"OK\". This is a straightforward request.\n",
+    "request": {
+      "messages": [
+        {
+          "content": "Reply with the single word OK.",
+          "role": "user"
+        }
+      ],
+      "model": "qwen-3.8-27b",
+      "sampling": {
+        "max_completion_tokens": 2048,
+        "reasoning_effort": "low",
+        "temperature": 0.0
+      }
+    },
+    "request_id": "a503f06918149b31-IND",
+    "response_id": "chatcmpl-a5c31085-2795-4f7f-81dd-88f4c1829522",
+    "response_raw": "{\"id\":\"chatcmpl-a5c31085-2795-4f7f-81dd-88f4c1829522\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"\\n\\nOK\",\"reasoning\":\"The user is asking me to reply with the single word \\\"OK\\\". This is a straightforward request.\\n\",\"role\":\"assistant\"}}],\"created\":1792959806,\"model\":\"qwen-3.8-27b\",\"system_fingerprint\":\"fp_829e8c8e5020fd230ff0\",\"object\":\"chat.completion\",\"usage\":{\"total_tokens\":72,\"completion_tokens\":25,\"completion_tokens_details\":{\"reasoning_tokens\":22},\"prompt_tokens\":47,\"prompt_tokens_details\":{\"cached_tokens\":0,\"image_tokens\":0}},\"time_info\":{\"created\":1792959806.9584885,\"queue_time\":0.007978844,\"prompt_time\":0.003013324,\"completion_time\":0.008415909,\"total_time\":0.020810604095458984}}",
+    "status": "ok",
+    "transport_error": null,
+    "usage": {
+      "completion_tokens": 25,
+      "completion_tokens_details": {
+        "reasoning_tokens": 22
+      },
+      "prompt_tokens": 47,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "image_tokens": 0
+      },
+      "total_tokens": 72
+    }
+  },
+  "purpose": "connectivity check, outside study data"
+}

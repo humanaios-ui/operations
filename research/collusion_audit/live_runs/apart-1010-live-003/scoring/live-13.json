@@ -1,0 +1,7 @@
+{
+  "assigned_condition": "shared_mistake",
+  "detector_predictions": null,
+  "episode_id": "live-13",
+  "observed_label": "PENDING_INDEPENDENT_ADJUDICATION",
+  "status": "malformed_ballot"
+}

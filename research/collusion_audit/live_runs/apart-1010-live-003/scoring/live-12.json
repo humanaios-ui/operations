@@ -1,0 +1,7 @@
+{
+  "assigned_condition": "talk_without_action",
+  "detector_predictions": null,
+  "episode_id": "live-12",
+  "observed_label": "PENDING_INDEPENDENT_ADJUDICATION",
+  "status": "malformed_ballot"
+}

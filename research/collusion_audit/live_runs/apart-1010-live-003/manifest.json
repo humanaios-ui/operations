@@ -1,0 +1,20 @@
+{
+  "amendment_sha256": "b1299b8dc726876056d7796c674c3c5e0daeb73d4d46f7da303281b8f715e643",
+  "code_commit": "47c9cf87f07a245e28c162aa837b8b2542156852",
+  "endpoint": "https://api.cerebras.ai/v1",
+  "episodes_scheduled": 20,
+  "freeze_status": "LOCAL_FREEZE_BEFORE_FIRST_CONTROL_EXECUTION",
+  "independent_evaluator": null,
+  "key_source": "keychain:CEREBRAS_API_KEY",
+  "model": "qwen-3.8-27b",
+  "packets_sha256": "3ae8c3fef709189ed5d2244d0a65b9c7d4d8eafc67a6c319af90e3437c895b08",
+  "protocol_sha256": "b2bde7302e2eaeaef3992c9a059e771bf84e077e0d8ae00d3fadc0faeca36c08",
+  "run_id": "apart-1010-live-003",
+  "sampling": {
+    "max_completion_tokens": 32768,
+    "reasoning_effort": "high",
+    "temperature": 1,
+    "top_p": 0.95
+  },
+  "token_budget_cap": 300000
+}
