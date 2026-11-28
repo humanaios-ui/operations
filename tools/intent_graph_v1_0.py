@@ -57,6 +57,11 @@ VALIDATION RULES (all mechanical, all re-runnable)
   W5  a declared type the validator has no structural rule for is reported
   W6  a well-formed q_ref not indexed in z1-inbox/INDEX.yaml is reported
   W7  a TRANSMISSION node with no outbound edge is reported
+  W8  a node's `anchor` text is not found in its source file. A renamed or
+      deleted heading leaves E3 green (the file still exists) while the node
+      now points at nothing. A warning, not an error: a content hash would
+      turn every unrelated edit of a busy file like CLAUDE.md into a red
+      check, and anchors are short human labels, matched case-insensitively.
 """
 from __future__ import annotations
 
@@ -333,6 +338,18 @@ def validate(graph: dict, root: str = ROOT,
                 )
             elif not os.path.exists(resolved):
                 errors.append(f"E3 {nid}: source does not resolve in the tree: {source}")
+            elif node.get("anchor") and os.path.isfile(resolved):
+                anchor = str(node.get("anchor")).strip()
+                try:
+                    with open(resolved, encoding="utf-8", errors="replace") as handle:
+                        body = handle.read()
+                except OSError:
+                    body = ""
+                if anchor and anchor.lower() not in body.lower():
+                    warnings.append(
+                        f"W8 {nid}: anchor {anchor!r} not found in {source} — "
+                        f"the section may have been renamed or removed"
+                    )
 
         if node.get("status") == "CITED_NOT_IMPLEMENTED":
             warnings.append(f"W1 {nid}: cited by {node.get('source')} with no implementation found")
@@ -1038,6 +1055,20 @@ def run_smoke_test() -> int:
     ]
     errors, _ = validate(quoting, root=ROOT)
     check("conflicts_with row may quote a prohibited control", errors == [])
+
+    # W8 — an anchor that no longer appears in its source warns, never blocks.
+    moved = yaml.safe_load(_FIXTURE)
+    moved["nodes"][0]["anchor"] = "A heading that is not in README.md xq7"
+    errors, warnings = validate(moved, root=ROOT)
+    check("missing anchor warns but does not block",
+          errors == [] and any(w.startswith("W8") for w in warnings))
+    found = yaml.safe_load(_FIXTURE)
+    with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as handle:
+        first_word = next((w for w in handle.read().split() if w.isalpha()), "")
+    found["nodes"][0]["anchor"] = first_word.upper()
+    errors, warnings = validate(found, root=ROOT)
+    check("present anchor (any case) raises no W8",
+          bool(first_word) and not any(w.startswith("W8") for w in warnings))
 
     # W2 — missing measurement is a warning, not a block.
     unmeasured = yaml.safe_load(_FIXTURE)

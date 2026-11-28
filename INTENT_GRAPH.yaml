@@ -412,6 +412,33 @@ nodes:
     source: tools/intent_graph_v1_0.py
     status: PROPOSED
 
+  - id: I-Z1-QUEUE-REPORT
+    type: instrument
+    name: Z2 queue report
+    statement: >-
+      Reads z1-inbox/INDEX.yaml and reports, as JSON, how many candidates exist,
+      how many await a Z2 decision and how many have a decision recorded.
+    source: .z1-control/validate.py
+    status: LIVE
+    note: >-
+      The `--report` mode measures; the same script without it is the engine of
+      G-Z2-RATIFY. governance-triage.yml reads the report. Its count of items
+      past the decision window comes from the clock that the
+      O-DECISION-ROUTING conflict names, so that one figure is not evidence.
+
+  - id: I-DOC-TRIAGE
+    type: instrument
+    name: Document review triage
+    statement: >-
+      Counts controlled documents in document-registry.yaml that have no owner
+      or have never been reviewed.
+    source: .doc-control/review.py
+    status: LIVE
+    note: >-
+      Measures owner and review state. Provenance is not measured: the registry
+      carries no provenance field. Its interval-based count is the clock that
+      the O-DOC-CONTROL conflict names, so that figure is not evidence.
+
 # ---------------------------------------------------------------------------
 # Edges.
 # ---------------------------------------------------------------------------
@@ -476,6 +503,8 @@ edges:
   - {from: I-QUEUE-ENGINE,   to: O-QUEUE,        rel: measures}
   - {from: I-INTENT-GRAPH,   to: O-INTENT-GRAPH, rel: measures}
   - {from: I-CORPUS-VALIDATOR, to: O-CORPUS-INTEGRITY, rel: measures}
+  - {from: I-Z1-QUEUE-REPORT, to: O-DECISION-ROUTING, rel: measures}
+  - {from: I-DOC-TRIAGE,      to: O-DOC-CONTROL,      rel: measures}
 
   # constraints
   - {from: G-ANTI-CASCADE,  to: O-MOLT-CYCLE, rel: constrains}

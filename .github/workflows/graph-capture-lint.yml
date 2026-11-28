@@ -9,6 +9,8 @@ on:
   pull_request:
     paths:
       - 'INTENT_GRAPH.yaml'
+      - 'INTENT_GRAPH.md'
+      - 'tools/intent_graph_v1_0.py'
       - 'system_graph.json'
       - 'EVIDENCE_GRAPH.json'
       - 'crb/capability_graph.json'
@@ -24,6 +26,8 @@ on:
     branches: [main]
     paths:
       - 'INTENT_GRAPH.yaml'
+      - 'INTENT_GRAPH.md'
+      - 'tools/intent_graph_v1_0.py'
       - 'system_graph.json'
       - 'EVIDENCE_GRAPH.json'
       - 'crb/capability_graph.json'
@@ -58,6 +62,18 @@ jobs:
 
       - name: Rendered system graph view in sync with source (blocking)
         run: python3 tools/system_graph_render_v1_0.py --check docs/SYSTEM_GRAPH.md
+
+      # INTENT_GRAPH.yaml has its own validator (E1-E15 block, W1-W8 warn) and
+      # renderer. Until this step nothing ran them, so a change could break the
+      # graph or leave INTENT_GRAPH.md stale without a red check.
+      - name: Intent graph validator smoke test (blocking)
+        run: python3 tools/intent_graph_v1_0.py --smoke-test
+
+      - name: Intent graph validates against the tree (blocking on E-rules)
+        run: python3 tools/intent_graph_v1_0.py check
+
+      - name: Rendered intent graph view in sync with source (blocking)
+        run: python3 tools/intent_graph_v1_0.py render --check
 
       - name: Canonical graph set against the baseline (blocking)
         run: python3 tools/graph_capture_lint_v1_0.py --all --baseline crb/graph_capture_baseline.json
