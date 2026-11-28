@@ -190,7 +190,12 @@ class Handler(BaseHTTPRequestHandler):
                 filename = ("operations-observatory-e0.js" if is_script
                             else "operations-observatory-e0.html")
                 source_file = OBSERVATORY_UI / filename
-                if not source_file.is_file():
+                # HTML and its companion script are one usable preview. A 200
+                # HTML response with a missing script would expose a dead link
+                # and leave telemetry stuck at "Not checked yet".
+                required_assets = ("operations-observatory-e0.html",
+                                   "operations-observatory-e0.js")
+                if any(not (OBSERVATORY_UI / name).is_file() for name in required_assets):
                     return self._send_json(
                         {"error": "Existing Observatory assets not available in this runtime.",
                          "status": "NOT_CONNECTED"}, HTTPStatus.SERVICE_UNAVAILABLE)
