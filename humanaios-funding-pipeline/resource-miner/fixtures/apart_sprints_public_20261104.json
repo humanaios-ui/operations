@@ -1,0 +1,50 @@
+{
+  "schema": "humanaios.apart_sprints.public.e0.v1",
+  "checked_on": "2026-11-04",
+  "sprints": [
+    {
+      "title": "AI Collusion Research Sprint",
+      "url": "https://apartresearch.com/sprints/ai-collusion-research-sprint-2026-10-23-to-2026-10-25",
+      "starts_on": "2026-10-23",
+      "ends_on": "2026-10-25",
+      "deadline": "2026-10-25 23:59 AoE (UTC-12)",
+      "linked_research": [
+        "https://apartresearch.com/sprints/projects/talk-actions-and-planted-approval-pacts-an-exploratory-audit-d106"
+      ]
+    },
+    {
+      "title": "Swarm Alignment Hackathon",
+      "url": "https://apartresearch.com/sprints/swarm-alignment-2026",
+      "starts_on": "2026-11-06",
+      "ends_on": "2026-11-08",
+      "deadline": "2026-11-08 23:59 AoE (UTC-12)",
+      "linked_research": [
+        "https://github.com/humanaios-ui/operations/pull/1010"
+      ]
+    },
+    {
+      "title": "AI x Epistemics Research Sprint",
+      "url": "https://apartresearch.com/sprints/ai-x-epistemics-research-sprint-2026-11-13-to-2026-11-15",
+      "starts_on": "2026-11-13",
+      "ends_on": "2026-11-15",
+      "deadline": "2026-11-15 23:59 AoE (UTC-12)",
+      "linked_research": []
+    },
+    {
+      "title": "Agent Attribution Hackathon",
+      "url": "https://apartresearch.com/sprints/agent-attribution-2026",
+      "starts_on": "2026-11-27",
+      "ends_on": "2026-11-29",
+      "deadline": "2026-11-29 23:59 AoE (UTC-12)",
+      "linked_research": []
+    },
+    {
+      "title": "Threat Intelligence & Threat Modelling Hackathon",
+      "url": "https://apartresearch.com/sprints/threat-intelligence-threat-modelling-2026",
+      "starts_on": "2026-12-04",
+      "ends_on": "2026-12-06",
+      "deadline": "2026-12-06 23:59 AoE (UTC-12)",
+      "linked_research": []
+    }
+  ]
+}
