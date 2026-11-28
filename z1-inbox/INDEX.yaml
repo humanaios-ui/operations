@@ -3,7 +3,7 @@ generated: '2026-10-27'
 decision_window_days: 2
 counts:
   candidates: 137
-  records: 96
+  records: 97
 ratifiers:
 - Night
 candidates:
@@ -11,9 +11,13 @@ candidates:
   title: "Sort of the 37 candidates waiting since 2026-09-08 to 09-19: 14 recorded as in effect, 18 lapsed, 2 rejected, 3 left for Z2 (amends W6 of Q-AGENT-WORKFLOWS-01)"
   path: "z1-inbox/2026-11-28/Q-STALE-QUEUE-SORT-01.md"
   submitted: '2026-11-28'
-  status: awaiting_z2
+  status: ratified
   tier: 0
   note: "Night asked for the decision table and then for this draft PR in session on 2026-11-28. Each row was read against main at 6924123. The merge of this pull request is the ruling. Falsifier stated."
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "3432b0cb326b50b0ab6ea895c2d247c2b3ec84415dc410531757ed9a37ff9810"
 - q_id: Q-DIGEST-COORD-LAYER-01
   title: HAIOS-MM-ACAT-003 daily digest as the multi-model coordination layer (layout, workload and integrity measures, two-week trial 2026-11-26 to 2026-12-09)
   path: z1-inbox/2026-11-25/Q-DIGEST-COORD-LAYER-01.md
@@ -263,10 +267,14 @@ candidates:
   title: Framework Mapping — 5 AI engineering concepts → Z-roles
   path: z1-inbox/2026-09-10/FRAMEWORK_MAPPING_CANDIDATE.md
   submitted: '2026-09-10'
-  status: awaiting_z2
+  status: ratified
   falsifier_waiver: 'the block declares itself Type H, ''no falsifier required — reference architecture''. Recorded as the candidate''s own claim, not as an accepted exemption: Z2 accepts or refuses it.'
   note: 'CLAUDE.md appended events, 2026-09-10 22:17 UTC: PR #264 merged the content; the RATIFY signature is still outstanding.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "0be243df58618a069ee0a0c45883c370102ab70e6216b23f3784249a13d43d1f"
 - q_id: Q-FRAMEWORK-MAPPING-INTEGRATION-01
   title: Framework Mapping governance integration across 31 repos
   path: z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md
@@ -300,37 +308,57 @@ candidates:
   title: REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner
   path: z1-inbox/2026-09-13/Q-RFM-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: 'Eight-item Z2 checklist. Blocking decisions: whether to turn on --enforce, and which of four disagreeing instruments states the registry census (126 / 130 / 135 / 138 / 142). Current baseline post-second-main-merge: 142 entries, 107/568 defects, 81.2% FPY, 188,380 DPMO.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "85fdf7a4b6d6a2b6c3a11f77608a09aaa3f41a6a79913659dd5388247660408a"
 - q_id: Q-TOOLCONTROL-01
   title: Tool manifest & document-control registry
   path: z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: Eight-item Z2 checklist; item 6 is the 39 overdue document reviews.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "9ddb53605ea1992d4f0cb83af1f8061b692ba13697305659f62b92de420f1192"
 - q_id: Q-TOOLCONTROL-02
   title: Tool category vocabulary & backlog clearance
   path: z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: 'Landed on main via PR #306 while this branch was open. The coverage rule caught it unindexed in CI — the first real firing of that rule.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "7ef3a9b5e40900cf6e051f030636b1aa02bd69acc6a204893d76a65e33c3609f"
 - q_id: Q-TOOLCONTROL-03
   title: Turning the gate on itself — every blocking rule must be able to fail
   path: z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: 'Answers the operator''s question after #306: 10 of 26 blocking conditions had ever been executed. This block was itself caught unindexed by .z1-control/validate.py on its first run against it.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "8823989d1b0113972849ac9dceb5ffdc139c397812c6e8dee50c8574118d2a8c"
 - q_id: Q-GOVGATE-01
   title: The Z2 gate never ran; z1-inbox conversion mechanism
   path: z1-inbox/2026-09-13/Q-GOVGATE-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: z2_ratification_gate.yml was invalid YAML from its first commit — 122 runs, 0 jobs. Four further workflows are in the same state.
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "0e25254978a1e7e0d22713e79b359546a0273a76565b60e440a0f0d95956639f"
 - q_id: Q-DOCREVIEW-01
   title: The 39 overdue document reviews — lifecycle, not re-dating
   path: z1-inbox/2026-09-13/Q-DOCREVIEW-01.md
@@ -360,9 +388,13 @@ candidates:
   title: Resource-based operations v0.1 — units, ledger, census, priced queue
   path: z1-inbox/2026-09-13/Q-RBE-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: 'Asks for four acts: a hash on RESOURCE_UNITS.yaml, a RAT-min capacity declaration, two constant molts, and disposition of F-RBE-01/02/03. Every artifact is inert until then; the queue keeps the incumbent formula.'
   tier: 0
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "5864af2eda189b5ec158c2fd6f68e479b233de2dd1a82f56d16b97c726fc2aac"
 - q_id: Q-CGBG-PILOT-01
   title: 'Adversarial review: CGBG Pilot Offer (AI Research Capacity)'
   path: z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md
@@ -383,16 +415,24 @@ candidates:
   title: ZONE_REGISTRY.md reconciliation — classify 13 missing repos (planned, never created)
   path: z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-01.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: Phase 1 of registry audit. Identifies 13 repos claimed in ZONE_REGISTRY but absent from GitHub (all classified as planned/never-created). Proposes 3 options for header correction (Option A/B/C). Awaits Z2 decision.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "ff4ef521607d3d8c50569ba82470cd6e2c92c01d0c51e45fe5669c08e9b6498b"
 - q_id: Q-REGISTRY-AUDIT-02
   title: ZONE_REGISTRY.md reconciliation — register 7 active repos missing from registry
   path: z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-02.md
   submitted: '2026-09-13'
-  status: awaiting_z2
+  status: ratified
   note: Phase 2 of registry audit. Identifies 7 repos on GitHub but missing from ZONE_REGISTRY. Proposes zone assignments for each. Blocked on Q-REGISTRY-AUDIT-01 ratification.
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "61c626549b7725ffff300cac30851d1a6527013f860b1cced2f04700c8ec60f0"
 - q_id: Q-REGISTRY-AUDIT-03
   title: ZONE_REGISTRY.md reconciliation — implement + deploy CI gate
   path: z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md
@@ -584,9 +624,13 @@ candidates:
   title: IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class)
   path: z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: 'From the S-091426-01 findings scan. Correction already landed (#323/#325: the seal checker); the block asks Z2 to register the IC and to accept or edit two preventions (advisory board-check CI job; checker as a §A session-open line).'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "39dde9d3b2211e917e80e3763e3579053b6685427d0b6ec3d479309b864b37c9"
 - q_id: Q-MOLT-LEDGER-SCAN-01
   title: Molt verification findings scan — the molt lifecycle writes no permanent record, and the anti-cascade rules that would read it are wired nowhere
   path: z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md
@@ -643,9 +687,13 @@ candidates:
   title: Board ruling d31 — board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities), replacing d17's local-only?
   path: z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md
   submitted: '2026-09-18'
-  status: awaiting_z2
+  status: ratified
   note: 'Z2''s direction 2026-09-18: no public copy, a login to open the board. The Worker (board/worker.mjs, wrangler.jsonc) is on main and fails closed until Access is configured; nothing is served until Z2 rules and connects the repository. Ruled from the board via decision_relay.py: the merge of the ruling PR is the ratification; ratify.py refuses the block.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "ce3c38fe981eca2abe82fe915b80865858ae579cb9fb6f1efc16e050669019dc"
 - q_id: Q-IC-RATIFY-BYPASS-01
   title: 'IC candidate — a by-hand signature path (ratify.py --apply) stayed executable for board rulings after the merge-is-ratification ruling; guarded in #409 (a Tier 2 gate change)'
   path: z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md
@@ -661,93 +709,145 @@ candidates:
   title: Board ruling d20 — Test harness as §A step 3
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-20.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-TEST-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "5b8f04529aa5e1fc4c20a429589a58a8552c8e9bb20687425457baa46996e065"
 - q_id: Q-BOARD-RULING-21
   title: 'Board ruling d21 — Dashboard: commit the rendered receipt'
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-21.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-TEST-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "9b091779c91ba670c4f2b171f2af5397d5037d78729987355e45bfc2262680fd"
 - q_id: Q-BOARD-RULING-22
   title: Board ruling d22 — Scale-out order for the test surface
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-22.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-TEST-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "6c37f2be204b92a9c8e3a10ecf715fe245f753b7f58dd9cf5359e2950ba9de6f"
 - q_id: Q-BOARD-RULING-23
   title: 'Board ruling d23 — Refresh job: enable the PR/issue half'
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-23.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "c8ae8edeaae0e48d7f5056d6017097c056b315e03579a1b77a69cec1462e13ab"
 - q_id: Q-BOARD-RULING-24
   title: Board ruling d24 — May a job advance the board's rev?
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-24.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "748605dc84ab8ae60a1f800877a9e42a54a5fd78a3ef4c963796aabd0521990e"
 - q_id: Q-BOARD-RULING-25
   title: 'Board ruling d25 — Local copies: re-download or a release asset'
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-25.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 1
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "74f23f0a3ce492a171606f2c96ac0e0943a90f753c69a4e259daafaa31e6c023"
 - q_id: Q-BOARD-RULING-26
   title: Board ruling d26 — Resource-based grounding of the refresh job
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-26.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "6209b0f5acb5816442a891c6115d82cdea5763d420e2f2b6f12a8c722e182cd6"
 - q_id: Q-BOARD-RULING-27
   title: Board ruling d27 — Model endpoint policy for the bus
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-27.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "86724008145b91802f079394de6a79903408da72ead6c1c162a6fae05c21ca47"
 - q_id: Q-BOARD-RULING-28
   title: Board ruling d28 — Issue mirror for REQ- records
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-28.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "0f03b08144b9e40e2964fe95b120e7710b7a49e24143a93660ca0ce64ec801f5"
 - q_id: Q-BOARD-RULING-29
   title: Board ruling d29 — The smoke contract in the manifest
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-29.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "d85004fd44dbb8797c8afd91c3a4101506cffe2a629fc6ed336587c4814d4503"
 - q_id: Q-BOARD-RULING-30
   title: Board ruling d30 — Squash-merge read pointer
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-30.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "c565584f818c1528e3c511a0c8af851c5e4bfe875237999e76126bded3ccd27d"
 - q_id: Q-BOARD-RULING-32
   title: Board ruling d32 — KNOWN_RED list in the refresh job
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-32.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the ratification; ratify.py refuses the block. The parent block is unchanged.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "17267ddbe840bff8ceeff42df5541cff76d18208b37b3c7e56c46f20c3460905"
 - q_id: Q-BOARD-RULING-33
   title: 'Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19''s freeze), keep the frozen path, or later'
   path: z1-inbox/2026-09-19/Q-BOARD-RULING-33.md
   submitted: '2026-09-19'
-  status: awaiting_z2
+  status: ratified
   note: 'Z2''s direction 2026-09-19: a clean filename as a successor block to d19, in one move (rename, every reference, a Worker redirect from the old path, re-seal), conditioned on d31''s outcome: the Worker redirect exactly when d31 rules serve behind login, no Worker obligation on stay local, held while d31 is later (state table in the block, red-team read of #410). Filed now so it is on the board; the executing PR opens only after d31''s ruling PR merges.'
   tier: 2
+  ratified_by: Night
+  ratified_at: "2026-11-28"
+  z2_ruling: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  z2_hash: "0e984b38cadaaedef7e80710b85ada27715c4246b232afacf02cfee647118f5a"
 - q_id: Q-INTENTOS-PAGES-GATE-01
   title: 'Gates for the board''s page set — intent_os_pages --check as a pre-merge step (G1), the d33 rename-hold test pre-merge (G2), the runbook card sealed or not (G3): a Tier 2 proposal'
   path: z1-inbox/2026-09-19/Q-INTENTOS-PAGES-GATE-01.md
@@ -1372,6 +1472,9 @@ candidates:
   z2_ruling: "z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md"
   z2_hash: "c3ad71ad4a60226a26a2208d19f27422b5da1ffe9e9a3abc17672fa2dadcee17"
 records:
+- path: "z1-inbox/2026-11-28/Z2_RULINGS_2026-11-28.md"
+  title: "Z2 rulings 2026-11-28 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: "z1-inbox/2026-11-26/Z2_RULINGS_2026-11-26.md"
   title: "Z2 rulings 2026-11-26 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
   note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
