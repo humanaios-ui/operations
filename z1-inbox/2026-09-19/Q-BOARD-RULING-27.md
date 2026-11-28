@@ -37,10 +37,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 0ee08ea73200463a7e4bd032f30d88169331fcb07574c33d541838d397a802f6
+body_hash: 091c0625859b6c21275c804ca917c4786c5b612df9996a53165d0ad171734fa0
+
+```
+RULING d27
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Model endpoint policy for the relay's `/assist` and for workers that take requests — none (no model in the loop; workers are Claude Code sessions and people, the relay only records), local (an open-weight model behind the relay on the operator's machine, OpenAI-compatible endpoint named by one relay variable), or hosted (a provider key on the relay host)?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

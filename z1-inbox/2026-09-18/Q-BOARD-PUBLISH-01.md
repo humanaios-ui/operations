@@ -55,10 +55,23 @@ as a new block. `stay local` leaves d17 in force and the Worker unconnected.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 278ba0fa12d913e3a15939d33d5cb308795284eeb4ebfbf9d846f960118ce824
+body_hash: 6cad55d21c080d16d498b49d02ed3f0f9e5d4e6727436cbdf22ac1dd7f12606a
+
+```
+RULING d31
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Board surface — serve the board from a login-gated Cloudflare Worker (Cloudflare Access, allow-listed identities only; no public copy), replacing d17's local-only?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

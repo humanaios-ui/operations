@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 5992e1c5daca2b84deaebf8c64ce0019958ca557a6bfbfbe47c4185df8d53e68
+body_hash: 40a0a78c8a60a767671e134f646b497f793df44f16046d698c2d5b9d43ad9b1a
+
+```
+RULING d20
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Test harness — adopt `tools/intent_os_test_harness_v1_0.py` as session-open (§A) step 3, so a session cites the board only on a GREEN run or one whose every red row is named in a candidate — or keep it advisory?
+  choice: later
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

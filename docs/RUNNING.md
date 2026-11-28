@@ -17,7 +17,6 @@ GitHub workflow details (every file, not just timers) live in [`.github/WORKFLOW
 
 | What | Where | Started by / why | Cost a month | Stops |
 |---|---|---|---|---|
-| 15 timers that copy the `operations` timers (harmonizer pulse 3x a day, system audit, standing audit, deadline alerts, research pipeline, agent API monitor, plus 9 weekly) | GitHub `empirica-outreach` (private repo) | Copied from `operations`; today's timer shut-off (PRs 1335-1339) only touched `operations`. Owner not named. | Private repo: uses the org's Actions minutes (bill not visible here). `agent-api-monitor` calls the Anthropic API daily: paid, amount unknown. | Until stopped |
 | 4 live web services: `operations` (serves api.humanaios.ai), `resource-miner`, `intent-os-relay`, `entitlement-navigator` | Railway project `sweet-perfection` | Auto-deploy from `operations` main on every merge (last: today 9:22 AM CT). Who created each service: not recorded. | Usage-billed; bill not visible to agents | Until stopped |
 | ACAT-002 Claude leg: reads the digest thread, sends one Gmail reply a day | Claude routine, 8:43 AM daily | Set up Nov 6 for HAIOS-MM-ACAT-002. Overlaps the ACAT-003 trial now running. | Inside Night's Claude plan | Until stopped |
 | HumanAIOS Weekly Checker: checks the digest, replies by Gmail | Claude routine, Mondays 8:20 AM | Set up Oct 24 | Inside Night's Claude plan | Until stopped |
@@ -76,6 +75,7 @@ Ended and deleted: Watch for Grok's PR on findlocaltattooartists (hourly, read-o
 | Supabase `FTLA` | Supabase, free plan | Live again since Nov 26: holds the findlocaltattooartists site database (10 tables, access rules, private photo storage), built by the findlocaltattooartists issue 1 work. Owner Night. $0 free tier. Review or turn off by 2027-03-01. |
 | Azure | Microsoft for Startups credit ($5,000, ends Jan 2) | Nothing running (Night, Nov 26). Any machine started later goes on this list first. |
 | Corpus integrity check | GitHub `empirica-outreach` | Paused by PR 28 (Nov 26) |
+| 16 copied timers (copies of `operations` workflows: harmonizer pulse, system audit, standing audit, deadline alerts, ACAT pipeline trigger, agent API monitor, plus 10 weekly or already off) | GitHub `empirica-outreach` (private repo) | Timers removed by empirica-outreach PR 30 (task "Turn off the copied timers", Nov 28); off once Night merges it. Manual runs still work. Owner Night. Checked Nov 28: no paid AI key is set there, so `agent-api-monitor` made no paid call and n8n triggers were skipped. Cost cap $0. Re-enable only with a named owner, purpose, cost cap and off-date row here. |
 
 ## 5. Could not see (blind spots)
 

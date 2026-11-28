@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: confirm the reading
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: 0bf3833f6b7cbee215d8c733bc928df196a6751ba0ee29041a79a493470c87a9
+body_hash: ffcb8815fb0a97c360f482e71edf2bc26bfb971fca1c31ba5977f9c98559c03f
+
+```
+RULING d26
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Resource-based grounding (Z2, 2026-09-17: no AI-imposed time-frames; time-frames only where a regulatory authority requires them; if the resources are available, we process) — confirm that reading for the refresh job (event-driven only, no cron, falsifiers stated in merges and events), or name a regulatory time-frame that applies?
+  choice: confirm the reading
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 

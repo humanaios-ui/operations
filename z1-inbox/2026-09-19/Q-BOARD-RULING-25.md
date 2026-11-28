@@ -36,10 +36,23 @@ as a new block citing this one.
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: re-download from the repository
+by: Night (by merge; option written by Claude Z1 from Q-STALE-QUEUE-SORT-01)
+at: 2026-11-28T08:00:00Z
+status: DECIDED
+block_hash: f72ca91239a1777b73467995a26ee5e0756db114a55b9a95cb333e28909ea29d
+body_hash: 864b0ebece209e0e45703f2c8248b30ed8460ab128f86fc246dc821ac90092a3
+
+```
+RULING d25
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Local copies of the board — coordinate by re-downloading `ui/intent-os-humanaios-v3_3.html` from the repository after each refresh (no new surface), or publish a rolling release asset `intent-os-latest` so a copy has one stable URL to refresh from?
+  choice: re-download from the repository
+  note: Written from the Q-STALE-QUEUE-SORT-01 decision table; the merge of its pull request is the ruling.
+  at: 2026-11-28T08:00:00Z
+  status: DECIDED
+```
 
 ## Z2 Review Checklist
 
