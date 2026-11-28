@@ -27,6 +27,8 @@ GitHub workflow details (every file, not just timers) live in [`.github/WORKFLOW
 
 About 2,500 workflow runs in the last 7 days (all triggers). 17 timers on, 2 switched off in GitHub (`divergence-detect`, `scvc-milestone-witness`).
 
+Times are CT in standard time. GitHub timers run on UTC, so add one hour during daylight time.
+
 | Timer | When (CT) | Note |
 |---|---|---|
 | coordinator-admission-sweep | every 6 hours | |
@@ -57,18 +59,21 @@ Started by: merged PRs over time. Why: see each file and `.github/WORKFLOWS.md`.
 | Check-ins | every 3 hours, 9 AM-10 PM | Night's check-ins | Until stopped |
 | ACAT-003 digest trial scorer | 11:04 AM daily | Trial Nov 26-Dec 9 | Stops itself Dec 10 |
 | Code learning log rows | 7:23 PM daily | One merge, one lesson | Stops itself after 14 quiet days or when task closes |
+| Monday running-list check | Mondays 10:37 AM | Compares this page with what is live; posts only when something is off. Read-only, $0. Night said yes Nov 26. | Off 2027-03-01 |
 | ACAT-002 leg, Weekly Checker | see section 1 | | Until stopped |
 
 Off (kept, not running): Foundation Audit Aggregator, Monitor Collab Responses, m2r3-hourly-sync.
 
-## 4. Stopped or idle (listed so nobody wonders)
+Ended and deleted: Watch for Grok's PR on findlocaltattooartists (hourly, read-only, $0; ran Nov 26 only, stopped when Grok's PR 3 arrived).
+
+## 4. Stopped, idle or free (listed so nobody wonders)
 
 | What | Where | State |
 |---|---|---|
 | Metaculus forecasting bot (`scintillating-playfulness`) | Railway, `tools/Metaculus` | Not running. Restart set to never; auto-deploy paused Nov 24 until live posting is approved. Holds keys for 5 paid AI APIs, but spends nothing while stopped. |
 | Railway project `elegant-commitment` | Railway | Empty, no services |
 | Supabase `HumanAIOS` | Supabase, free plan | Live database, $0. 5 edge functions run only when called. |
-| Supabase `FTLA` | Supabase, free plan | Paused |
+| Supabase `FTLA` | Supabase, free plan | Live again since Nov 26: holds the findlocaltattooartists site database (10 tables, access rules, private photo storage), built by the findlocaltattooartists issue 1 work. Owner Night. $0 free tier. Review or turn off by 2027-03-01. |
 | Azure | Microsoft for Startups credit ($5,000, ends Jan 2) | Nothing running (Night, Nov 26). Any machine started later goes on this list first. |
 | Corpus integrity check | GitHub `empirica-outreach` | Paused by PR 28 (Nov 26) |
 
