@@ -169,6 +169,7 @@ class Server(socketserver.UnixStreamServer):
         # cannot be redirected through a swapped ancestor. A mismatch fails closed.
         self._socket_path = str(socket_path)
         self._socket_identity = None            # (st_dev, st_ino) of the socket THIS server created
+        self._bound = False                     # True once the bind syscall has succeeded
         parent_fd, leaf = _open_parent_fd(socket_path)
         try:
             # Create the socket private (0600) from the start instead of relying on a later no-follow chmod, which
@@ -183,7 +184,12 @@ class Server(socketserver.UnixStreamServer):
                 try:
                     self.server_bind()
                 except BaseException:
-                    super().server_close()              # close our own descriptor; the path is not ours
+                    # Close our own descriptor. If the bind syscall itself succeeded (an interrupt can still arrive
+                    # before server_bind returns) this process created the file: remove it, by identity. If the bind
+                    # failed, the path is not ours and nothing is unlinked.
+                    super().server_close()
+                    if self._bound:
+                        self._discard_socket(parent_fd, leaf, self._identity_of(parent_fd, leaf))
                     raise
             finally:
                 os.umask(old_umask)
@@ -220,12 +226,31 @@ class Server(socketserver.UnixStreamServer):
         finally:
             os.close(parent_fd)
 
+    def server_bind(self):
+        """The bind syscall, kept apart from the address lookup so a failure of the bind itself (which created
+        nothing) can be told from a failure after it (which left this server's socket file behind)."""
+        self.socket.bind(self.server_address)
+        self._bound = True
+        self.server_address = self.socket.getsockname()
+
     @staticmethod
-    def _discard_socket(parent_fd, leaf, identity):
-        """Unlink `leaf` only if it is still a socket (and, when given, the very inode this server created)."""
+    def _identity_of(parent_fd, leaf):
+        """(st_dev, st_ino) of the socket at `leaf`, or None when it cannot be established."""
         try:
             info = os.stat(leaf, dir_fd=parent_fd, follow_symlinks=False)
-            if stat.S_ISSOCK(info.st_mode) and (identity is None or (info.st_dev, info.st_ino) == identity):
+        except OSError:
+            return None
+        return (info.st_dev, info.st_ino) if stat.S_ISSOCK(info.st_mode) else None
+
+    @staticmethod
+    def _discard_socket(parent_fd, leaf, identity):
+        """Unlink `leaf` only if it is still the very socket inode this server created. An unknown identity unlinks
+        nothing: leaving a file behind is safer than removing someone else's."""
+        if identity is None:
+            return
+        try:
+            info = os.stat(leaf, dir_fd=parent_fd, follow_symlinks=False)
+            if stat.S_ISSOCK(info.st_mode) and (info.st_dev, info.st_ino) == identity:
                 os.unlink(leaf, dir_fd=parent_fd)
         except OSError:
             pass
