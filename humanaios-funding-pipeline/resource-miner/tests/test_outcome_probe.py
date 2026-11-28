@@ -1,0 +1,146 @@
+import json
+import unittest
+from pathlib import Path
+
+from resource_miner.combinations import evaluate_combinations, load_snapshot
+from resource_miner.outcome_probe import (run_shadow_trial, runtime_prerequisites, verify_source_queue)
+
+ROOT = Path(__file__).resolve().parents[1]
+CONFIG = json.loads((ROOT / "data/experiments/resource_complementarity_pilot.v1.json").read_text())
+
+
+class OutcomeShadowTests(unittest.TestCase):
+    def setUp(self):
+        self.rows = load_snapshot(ROOT / "data/resources.snapshot.jsonl")
+
+    def test_real_source_review_task_does_not_fake_synergy(self):
+        result = run_shadow_trial(self.rows, CONFIG)
+        self.assertEqual(result["mode"], "LOCAL_REAL_EXECUTION_NO_EXTERNAL_PROVIDERS")
+        self.assertEqual(result["comparison"]["baseline"]["generated_verification_questions"], 1)
+        self.assertEqual(result["comparison"]["bundle"]["generated_verification_questions"], 3)
+        self.assertEqual(result["comparison"]["reported_affordance_delta"], 2)
+        self.assertEqual(result["comparison"]["verified_outcome_delta"], 0)
+        self.assertEqual(result["verified_synergy"], "NOT_ESTABLISHED")
+        self.assertEqual(result["authority_effect"], "NONE")
+        self.assertEqual(result["incremental_dollar_cost"], "NOT_MEASURED")
+        self.assertNotEqual(result["comparison"]["baseline"]["artifact_sha256"],
+                            result["comparison"]["bundle"]["artifact_sha256"])
+
+    def test_individual_work_product_is_real_review_queue_not_verified_access(self):
+        rid = CONFIG["candidate_ids"][0]
+        out = verify_source_queue(self.rows, [rid])
+        self.assertEqual(out["verification_questions_generated"], 1)
+        self.assertEqual(out["verified_task_outcomes"], 0)
+        self.assertEqual(out["external_calls"], 0)
+        self.assertEqual(out["items"][0]["actual_access"], "NOT_INDEPENDENTLY_VERIFIED")
+        self.assertEqual(out["items"][0]["eligibility"], "UNASSESSED")
+        self.assertEqual(out["authorization_state"], "NOT_REQUESTED")
+
+    def test_receipt_delta_uses_selected_miner_baseline(self):
+        rows = [dict(row) for row in self.rows]
+        first, second = CONFIG["candidate_ids"][:2]
+        for row in rows:
+            if row.get("resource_id") == first:
+                row["route"] = "VERIFY_NOW"
+            elif row.get("resource_id") == second:
+                row["resource_affordances"] = CONFIG["target_affordances"][:2]
+        comparison = evaluate_combinations(rows, CONFIG)
+        self.assertEqual(comparison["baseline_single"]["coverage_count"], 2)
+        self.assertEqual(comparison["existing_miner_first_feasible"]["resource_ids"], [first])
+        self.assertEqual(comparison["existing_miner_first_feasible"]["coverage_count"], 1)
+        self.assertEqual(comparison["incremental_reported_coverage"], 1)
+        receipt = run_shadow_trial(rows, CONFIG)
+        self.assertEqual(receipt["comparison"]["baseline"]["resource_ids"], [first])
+        self.assertEqual(receipt["comparison"]["reported_affordance_delta"], 2)
+        self.assertEqual(receipt["source_snapshot_ref"], comparison["source_snapshot_ref"])
+        self.assertEqual(receipt["configured_source_snapshot_ref_status"], "UNCHECKED_CLAIM")
+
+    def test_fake_access_and_status_do_not_elevate_work_product(self):
+        rid = CONFIG["candidate_ids"][0]
+        rows = [dict(x) for x in self.rows]
+        for item in rows:
+            if item.get("resource_id") == rid:
+                item["eligibility_assessed"] = True
+                item["eligibility_status"] = "ELIGIBLE"
+                item["status"] = "ACTIVE"
+                item["last_verified_at"] = "2026-10-14"
+        out = verify_source_queue(rows, [rid])
+        self.assertEqual(out["items"][0]["eligibility"], "UNASSESSED")
+        self.assertEqual(out["items"][0]["source_currentness"], "NOT_INDEPENDENTLY_VERIFIED")
+        self.assertEqual(out["verified_task_outcomes"], 0)
+
+    def test_empty_evidence_cannot_complete_task(self):
+        rid = CONFIG["candidate_ids"][0]
+        rows = [dict(x) for x in self.rows]
+        for item in rows:
+            if item.get("resource_id") == rid:
+                item["evidence"] = []
+        with self.assertRaisesRegex(ValueError, "Missing evidence"):
+            verify_source_queue(rows, [rid])
+
+    def test_foreign_or_other_account_evidence_fails_closed(self):
+        record = {
+            "resource_id": "SYNTH",
+            "source_url": "https://github.com/provider/program",
+            "resource_affordances": ["compute"],
+        }
+        for evidence_url in (
+            "https://unrelated.example/provider/program",
+            "https://github.com/other/program",
+            "https://github.com/provider/program-other",
+            "https://github.com/provider/program/../../other/program",
+        ):
+            with self.subTest(evidence_url=evidence_url):
+                record["evidence"] = [{"url": evidence_url}]
+                with self.assertRaisesRegex(ValueError, "source-bound evidence"):
+                    verify_source_queue([record], ["SYNTH"])
+
+    def test_review_queue_keeps_only_source_bound_evidence(self):
+        record = {
+            "resource_id": "SYNTH",
+            "source_url": "https://github.com/provider/program",
+            "evidence": [
+                {"url": "https://unrelated.example/outside"},
+                {"url": "https://github.com/provider/program/docs"},
+            ],
+        }
+        out = verify_source_queue([record], ["SYNTH"])
+        self.assertEqual(out["items"][0]["evidence_urls"],
+                         ["https://github.com/provider/program/docs"])
+        self.assertEqual(out["verified_task_outcomes"], 0)
+
+    def test_review_queue_requires_https_public_source(self):
+        for source in ("http://provider.example/program",
+                       "https://user:password@provider.example/program",
+                       "https://[invalid"):
+            with self.subTest(source=source):
+                record = {"resource_id": "SYNTH", "source_url": source,
+                          "evidence": [{"url": "https://provider.example/program"}]}
+                with self.assertRaisesRegex(ValueError, "valid HTTPS source"):
+                    verify_source_queue([record], ["SYNTH"])
+
+    def test_missing_ids_are_denied(self):
+        with self.assertRaisesRegex(ValueError, "missing"):
+            verify_source_queue(self.rows, ["DOES_NOT_EXIST"])
+        with self.assertRaisesRegex(ValueError, "unique"):
+            verify_source_queue(self.rows, ["X", "X"])
+
+    def test_no_runtime_credentials_means_live_trial_blocked(self):
+        out = runtime_prerequisites({})
+        self.assertEqual(out["provider_live_trial"], "BLOCKED_MISSING_RUNTIME")
+        self.assertIn("AZURE_EXECUTION_RECEIPT", out["missing_configuration"])
+        self.assertIn("CEREBRAS_API_KEY", out["missing_configuration"])
+        self.assertEqual(out["execution_capability"], "NONE")
+
+    def test_env_appearance_is_neither_permission_nor_provider_proof(self):
+        fake = {name: "fictional" for name in
+                ("AZURE_EXECUTION_RECEIPT", "CEREBRAS_API_KEY", "LANGFUSE_PUBLIC_KEY",
+                 "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL")}
+        out = runtime_prerequisites(fake)
+        self.assertEqual(out["provider_live_trial"], "PREFLIGHT_ONLY_NOT_AUTHORIZED")
+        self.assertEqual(out["azure_compute_witness"], "NOT_VERIFIED")
+        self.assertEqual(out["provider_interoperability"], "NOT_VERIFIED")
+
+
+if __name__ == "__main__":
+    unittest.main()

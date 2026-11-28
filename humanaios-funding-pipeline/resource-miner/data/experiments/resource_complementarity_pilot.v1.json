@@ -1,0 +1,12 @@
+{
+  "as_of": "2026-10-14",
+  "source_snapshot_ref": "humanaios-ui/operations@5985a388f5b153b6451fc2ef72285d53a4844d61:humanaios-funding-pipeline/resource-miner/data/resources.snapshot.jsonl",
+  "candidate_ids": ["RES-436E920AFDEDD702", "RES-487A19443972682F", "RES-03FF4746A9EE5A3E"],
+  "target_affordances": ["compute_capacity", "infrastructure_capacity", "api_capacity"],
+  "assumed_review_minutes": {
+    "RES-436E920AFDEDD702": 30,
+    "RES-487A19443972682F": 45,
+    "RES-03FF4746A9EE5A3E": 45
+  },
+  "review_budget_minutes": 120
+}
